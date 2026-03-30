@@ -1,4 +1,4 @@
-// v2.0.0 - 2026-03-23 - Phase 2 - getEscoSkills() replaces getSkills() - ESCO REST API path
+// v2.0.1 - 2026-03-30 - HDR #030 - promptTimeout raised 150s to 250s
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -188,12 +188,91 @@ const SENIOR_MGMT_LOOKUP = {
   "learning and organisational development director":  [{ title:"Corporate Trainer", iscoCode:"2424", iscoGroup:"Training and staff development professionals", industry:"Across Industries", description:"Leads the design and evaluation of staff development and capability building programmes.", isAltLabel:true }, { title:"Business Consultant", iscoCode:"2421", iscoGroup:"Management and organisation analysts", industry:"Across Industries", description:"Directs organisational improvement and change programmes.", isAltLabel:true }],
 };
 
+// Bare function/discipline names that are not job titles
+// When searched exactly, the picker shows a refine notice
+const FUNCTION_KEYWORDS = [
+  "organisational development", "organizational development", "organisation development",
+  "human resources", "human resource", "learning and development", "learning & development",
+  "talent management", "talent development", "change management",
+  "finance", "marketing", "operations", "strategy", "procurement",
+  "information technology", "information systems", "data analytics", "data science",
+  "supply chain", "logistics", "legal", "compliance", "risk management",
+  "customer service", "customer success", "sales", "business development",
+  "project management", "product management", "quality assurance",
+];
+
+// Suggested specific titles per function keyword
+const FUNCTION_SUGGESTIONS = {
+  "organisational development": "Organisational Development Specialist, OD Manager, Change Manager",
+  "organizational development": "Organizational Development Specialist, OD Manager, Change Manager",
+  "organisation development": "Organisational Development Specialist, OD Manager, Change Manager",
+  "human resources": "HR Manager, HR Business Partner, HR Specialist, Talent Acquisition Specialist",
+  "human resource": "HR Manager, HR Business Partner, HR Specialist",
+  "learning and development": "Learning and Development Manager, L&D Specialist, Training Manager",
+  "learning & development": "Learning and Development Manager, L&D Specialist",
+  "talent management": "Talent Management Specialist, Talent Manager, HR Business Partner",
+  "change management": "Change Management Specialist, Change Manager, Organisational Development Consultant",
+  "finance": "Finance Manager, Financial Analyst, Financial Controller, CFO",
+  "marketing": "Marketing Manager, Brand Manager, Digital Marketing Specialist",
+  "operations": "Operations Manager, Operations Director, Chief Operating Officer",
+  "strategy": "Strategy Manager, Strategy Consultant, Corporate Strategist",
+  "data analytics": "Data Analyst, Data Scientist, Analytics Manager",
+  "data science": "Data Scientist, Machine Learning Engineer, Data Analyst",
+  "project management": "Project Manager, Programme Manager, PMO Manager",
+  "product management": "Product Manager, Senior Product Manager, Head of Product",
+};
+
+function detectFunctionKeyword(query) {
+  const key = query.trim().toLowerCase();
+  // Only flag if the query IS the function keyword - not if it is part of a longer title
+  const match = FUNCTION_KEYWORDS.find(k => key === k);
+  if (!match) return null;
+  return {
+    keyword: match,
+    suggestions: FUNCTION_SUGGESTIONS[match] || null,
+  };
+}
+// Used after ESCO resolves to detect wrong occupation matches
+const ISCO_COHERENCE_MAP = [
+  { patterns: ["organisational development","organizational development","organisation development","od specialist","od manager","od consultant","change management","change manager","learning and od","l&od"], expected: ["24"], label: "Business and Administration Professionals" },
+  { patterns: ["human resource","hr manager","hr director","hr specialist","hr consultant","people manager","people director"], expected: ["12","24"], label: "HR or Management" },
+  { patterns: ["software engineer","software developer","web developer","frontend","backend","fullstack","devops","data engineer"], expected: ["25"], label: "ICT Professionals" },
+  { patterns: ["nurse","nursing","midwife","paramedic","physiotherapist","occupational therapist"], expected: ["22"], label: "Health Professionals" },
+  { patterns: ["teacher","lecturer","professor","trainer","instructor","tutor"], expected: ["23","24"], label: "Teaching or Training Professionals" },
+  { patterns: ["accountant","auditor","financial analyst","finance manager","cfo","controller"], expected: ["12","24"], label: "Finance Professionals" },
+  { patterns: ["marketing manager","brand manager","marketing director","marketing specialist","digital marketing"], expected: ["12","24"], label: "Business Professionals" },
+];
+
+function checkIscoCoherence(searchedTitle, resolvedIscoCode) {
+  if (!resolvedIscoCode) return null;
+  const key = searchedTitle.trim().toLowerCase();
+  for (const rule of ISCO_COHERENCE_MAP) {
+    const matched = rule.patterns.some(p => key.includes(p));
+    if (!matched) continue;
+    const prefix = String(resolvedIscoCode).slice(0, 2);
+    const ok = rule.expected.some(e => prefix.startsWith(e));
+    if (!ok) return { suspect: true, expected: rule.label, got: resolvedIscoCode };
+    return { suspect: false };
+  }
+  return null; // title not in any rule - no opinion
+}
+
 function lookupSeniorMgmt(query) {
   const key = query.trim().toLowerCase();
-  const result = SENIOR_MGMT_LOOKUP[key];
-  if (!result) return null;
-  // If any result has isAltLabel true, mark noExactMatch
-  return { results: result, isAlt: result.some(r => r.isAltLabel) };
+  // Exact match first
+  if (SENIOR_MGMT_LOOKUP[key]) {
+    const result = SENIOR_MGMT_LOOKUP[key];
+    return { results: result, isAlt: result.some(r => r.isAltLabel) };
+  }
+  // Fuzzy substring match - catches spelling variants and partial titles
+  // e.g. "Organisation Development" (missing "al"), "OD Specialist", "L&OD Manager"
+  for (const [lookupKey, result] of Object.entries(SENIOR_MGMT_LOOKUP)) {
+    // Match if the query contains the lookup key OR the lookup key contains the query (min 8 chars)
+    if (key.length >= 8 && (key.includes(lookupKey) || lookupKey.includes(key))) {
+      return { results: result, isAlt: result.some(r => r.isAltLabel) };
+    }
+  }
+  return null;
 }
 
 async function searchOccupations(keyword, count = "15 to 20") {
@@ -506,6 +585,29 @@ function assignTechniques(actionable, occupationTitle) {
   _techRotation.lastSkipped = allTechs.filter(t => t !== "multimodal-cot" && !usedInThisAnalysis.has(t));
 
   return assigned;
+}
+
+async function checkSkillRelevance(title, skills) {
+  // Score each skill for relevance to the role title using Sonnet
+  // Returns array of { n, r } where r: 1=clearly relevant, 2=adjacent/transferable, 3=not relevant
+  // Used to detect wrong ESCO occupation resolution and flag individual skills
+  if (!skills || skills.length === 0) return [];
+  const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
+  const SYSTEM_RELEVANCE =
+`You are an occupational skills relevance assessor. For each skill listed, score its relevance to the given role title.
+Return ONLY a JSON array. No text before or after. No markdown fences.
+Format: [{"n":1,"r":1}]
+Scoring:
+- 1 = Clearly relevant - a core or expected skill for this role
+- 2 = Adjacent - transferable or indirectly relevant to this role
+- 3 = Not relevant - belongs to a different occupation or field entirely
+Be precise. A skill that appears in a clearly different field (e.g. chemistry skills for an HR role) must score 3.`;
+  const raw = await claudeCall(
+`Role: ${title}
+Score each skill for relevance to this role.
+Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-sonnet-4-6");
+  const arr = extractJSON(raw, "relevance");
+  return Array.isArray(arr) ? arr : [];
 }
 
 async function generateSkillDescriptions(title, skills, onPatch) {
@@ -1221,7 +1323,7 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
   );
 }
 
-function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerFullLoading, pickerFullError, noExactMatch, onSelect, onSearchAgain }) {
+function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerFullLoading, pickerFullError, noExactMatch, functionKeywordNotice = null, onDismissFunctionNotice = null, onSelect, onSearchAgain }) {
   const [localQuery, setLocalQuery] = useState(query);
   const [showAllSectors, setShowAllSectors] = useState(false);
   const [expandedSectors, setExpandedSectors] = useState({});
@@ -1284,6 +1386,23 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
             </p>
           );
         })()}
+        {functionKeywordNotice && (
+          <div style={{ margin:"8px 0 0", padding:"10px 12px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
+            <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:"#1e40af", lineHeight:1.5 }}>
+              ℹ "{toTitleCase(functionKeywordNotice.keyword)}" is a function area, not a specific job title.
+            </p>
+            <p style={{ margin:"0 0 6px", fontSize:11, color:"#1e3a8a", lineHeight:1.5 }}>
+              For the most accurate skills, try a specific title - e.g. {functionKeywordNotice.suggestions || "add a level or specialisation such as Specialist, Manager, or Director"}.
+            </p>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              <button
+                onClick={onDismissFunctionNotice}
+                style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#1d4ed8", border:"none", borderRadius:5, padding:"4px 12px", cursor:"pointer" }}>
+                Proceed anyway
+              </button>
+            </div>
+          </div>
+        )}
         {noExactMatch && (
           <div style={{ margin:"8px 0 0", padding:"8px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:600, color:"#92400e", lineHeight:1.5 }}>
@@ -1971,7 +2090,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
 // These props are documented in the audit as undocumented in the handover prop table,
 // following the same pattern that caused the v1.8.2 pickerFullError live incident.
 // Default values make omission at any future call site graceful rather than fatal.
-function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, skillInputQuery = "", onSkillSearch = null, onSkillQueryChange = () => {}, firstAnalysis, onQueue, queueCount, currentRole, jumpToSkill, onJumpHandled, firstBlinkSkill }) {
+function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, skillInputQuery = "", onSkillSearch = null, onSkillQueryChange = () => {}, firstAnalysis, onQueue, queueCount, currentRole, jumpToSkill, onJumpHandled, firstBlinkSkill, onRefreshPrompt = null }) {
   // Find the first group that is not Human-Led - open its first skill on debut
   const firstAiGroupIdx = grouped.findIndex(g => g.level !== "HUMAN");
   const [expandedGroups, setExpandedGroups] = useState(() => {
@@ -2103,7 +2222,8 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
                   onQueue={onQueue}
                   queueCount={queueCount}
                   currentRole={currentRole}
-                  isFirstBlink={!!(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase())} />
+                  isFirstBlink={!!(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase())}
+                  onRefreshPrompt={onRefreshPrompt} />
                 );
               })}
             </div>
@@ -2115,7 +2235,7 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
 }
 
 // Skill detail row
-function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue, queueCount, currentRole, isFirstBlink }) {
+function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue, queueCount, currentRole, isFirstBlink, onRefreshPrompt }) {
   const [open, setOpen] = useState(!!autoOpen);
   const [jumpHighlight, setJumpHighlight] = useState(false);
   const [showExperts, setShowExperts] = useState(false);
@@ -2157,6 +2277,9 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
               <p style={{ margin:0, fontSize:12, color:C.muted }}>{item.skillType === "soft-skill" ? "Soft Skill" : "Technical Skill"}</p>
               {item.isExtended && (
                 <span style={{ fontSize:9, color:"#6b7280", background:"#f3f4f6", border:"1px solid #d1d5db", borderRadius:4, padding:"1px 6px", fontWeight:600, flexShrink:0 }}>Contextualised</span>
+              )}
+              {item.relevanceScore === 3 && (
+                <span title="AI assessed this skill as potentially from an adjacent occupation - it may not fully apply to this role" style={{ fontSize:9, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:4, padding:"1px 6px", fontWeight:600, flexShrink:0, cursor:"help" }}>⚠ May not apply</span>
               )}
               {item.escoUri && (
                 <a
@@ -2222,8 +2345,13 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                     <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>Generating prompt... please wait a while, thank you</p>
                   </div>
                 : item.promptFailed
-                  ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7 }}>
-                      <p style={{ margin:0, fontSize:11, color:"#92400e" }}>Prompt generation {item.promptFailed === "timeout" ? "timed out" : "failed"} - expand this skill and try again later.</p>
+                  ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                      <p style={{ margin:0, fontSize:11, color:"#92400e" }}>Failed to generate the prompt syntax. Please click refresh.</p>
+                      <button
+                        onClick={e => { e.stopPropagation(); onRefreshPrompt && onRefreshPrompt(item.n); }}
+                        style={{ flexShrink:0, fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius:5, padding:"3px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        ↻ Refresh
+                      </button>
                     </div>
                   : item.prompt
                     ? <PromptBlock text={item.prompt} onSearch={onSearch} prep={item.prep||""} twoStep={item.twoStep||false} readiness={item.readiness||"ready"} promptTech={item.promptTech||""} nextPhase={item.nextPhase||""} automationLevel={item.level} applyText={item.kickstart||""} aiTool={item.tool||""} aiHow={item.how||""} />
@@ -3104,7 +3232,7 @@ function ResultFooter() {
     <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
         <p style={{ margin:0, fontSize:12, color:C.mutedLight }}>
-          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. Powered by AI (Anthropic).
+          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
         </p>
         <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
           <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Skills Analyser"
@@ -3140,6 +3268,9 @@ function ResultFooter() {
           <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>European Union</strong> - minimal risk classification under EU AI Act. Not a high-risk system. No automated decisions made about individuals.
           </p>
+          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+            <strong style={{ color:C.text }}>ISCO-08</strong> - Occupation codes used in this tool are sourced from the International Standard Classification of Occupations (ISCO-08), © 2012 International Labour Organization (ILO), reproduced via the ESCO v1.2 API under ESCO&apos;s CC BY 4.0 licence. The ILO name and emblem are not used. No endorsement by the ILO is implied.
+          </p>
           <a href="/terms.html" target="_blank" rel="noreferrer"
             style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:20, padding:"5px 14px" }}>
             Read full Terms of Use &#8599;
@@ -3154,6 +3285,9 @@ function ResultFooter() {
           </div>
           <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Data source</strong> - Skills are drawn directly from the ESCO v1.2 REST API - the official European Classification of Skills, Competences, Qualifications and Occupations, published by the European Commission DG Employment, Social Affairs and Inclusion. Licensed CC BY 4.0. Skills marked ESCO v1.2 are canonical taxonomy entries, citable by URI. AI rates each skill and generates prompts - it does not generate skill names.
+          </p>
+          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+            <strong style={{ color:C.text }}>Occupation codes (ISCO-08)</strong> - Each occupation in this tool is mapped to an ISCO-08 code - the International Standard Classification of Occupations (2008 revision), published by the International Labour Organization (ILO). ISCO-08 classifies all jobs globally into a four-level hierarchy of 10 major groups, 43 sub-major groups, 130 minor groups, and 436 unit groups. The codes displayed in this tool are sourced via the ESCO API, which maps each ESCO occupation to exactly one ISCO-08 unit group. ISCO-08 codes are used for reference and cross-referencing only - they indicate the occupational group from which skills are drawn, not a formal classification of the user&apos;s specific role. © 2012 International Labour Organization.
           </p>
           <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>How ratings are generated</strong> - Each skill is assessed by Claude (Anthropic) against current AI capability research. This is AI-generated analysis, not a lookup from a fixed classification table. Results reflect general occupational patterns and will vary between searches.
@@ -3426,7 +3560,9 @@ export default function App() {
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
   const [pickerFullLoading, setPickerFullLoading] = useState(false);
   const [pickerFullError, setPickerFullError] = useState(false); // v1.3.0: background full search
-  const [noExactMatch, setNoExactMatch] = useState(null); // v1.4.7: original search term when no exact ESCO match
+  const [noExactMatch, setNoExactMatch] = useState(null);
+  const [escoCoherenceStatus, setEscoCoherenceStatus] = useState(null);
+  const [functionKeywordNotice, setFunctionKeywordNotice] = useState(null); // { keyword, suggestions } | null
   const [sel,       setSel]       = useState(null);
   const [result,    setResult]    = useState(null);
   const [step,      setStep]      = useState("idle");
@@ -3551,7 +3687,7 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step]);
 
-  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
+  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -3605,7 +3741,10 @@ export default function App() {
     setErr("");
     track("occupation_searched");
     pickerCancelRef.current = true; // cancel any in-flight background full search
-    setNoExactMatch(null); setPickerFullError(false);
+    setNoExactMatch(null); setPickerFullError(false); setFunctionKeywordNotice(null);
+    // Detect bare function/discipline names before lookup or API call
+    const funcHit = detectFunctionKeyword(query.trim().toLowerCase());
+    if (funcHit) setFunctionKeywordNotice(funcHit);
     try {
       // v1.8.9: check hardcoded senior management lookup first - instant + deterministic
       const seniorHit = lookupSeniorMgmt(tidyQuery);
@@ -3703,17 +3842,26 @@ export default function App() {
     } catch(e) { setErr(e.message); setStep("error"); }
   }, [query, occs, pickerLoading]);
 
-  const doAnalyse = useCallback(async (occ) => {
+  const doAnalyse = useCallback(async (occ, opts = {}) => {
+    const forceHybrid = opts.forceHybrid || false;
     // H3 fix: increment the cancel counter and capture this analysis's ID.
-    // Any setState call in this closure is guarded by (analysisCancelRef.current === cancelId).
-    // If a second doAnalyse starts, it increments the counter, all prior guards fail,
-    // and the first analysis silently exits without writing to shared state.
-    // Also clear any safetyTimer left running from a previous analysis.
     analysisCancelRef.current += 1;
     const cancelId = analysisCancelRef.current;
     if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
 
-    setSel(occ); setStep("loading"); setSub(`Finding the essential skills for ${toTitleCase(occ.title)}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill("");
+    // Lookup intercept: if the selected occupation title matches a known lookup entry,
+    // override the ISCO code and group with correct values.
+    // Store the canonical ESCO title separately for the skills fetch - preserves display title.
+    // This catches Claude-generated picker results with wrong ISCO codes or non-ESCO titles.
+    const lookupHit = lookupSeniorMgmt(occ.title);
+    let escoFetchTitle = occ.title;
+    if (lookupHit && lookupHit.results && lookupHit.results.length > 0) {
+      const best = lookupHit.results[0];
+      occ = { ...occ, iscoCode: best.iscoCode, iscoGroup: best.iscoGroup, description: best.description, isAltLabel: true };
+      escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
+    }
+
+    setSel(occ); setStep("loading"); setSub(`Finding the essential skills for ${toTitleCase(occ.title)}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -3728,7 +3876,9 @@ export default function App() {
     }, 120000);
 
     try {
-      let escoResult = await getEscoSkills(occ.title);
+      // forceHybrid: skip ESCO fetch and use Claude getSkills() directly
+      // Used when coherence check confirms ESCO returned wrong occupation skills
+      let escoResult = forceHybrid ? null : await getEscoSkills(escoFetchTitle);
       let skills = escoResult ? escoResult.skills : null;
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
@@ -3748,7 +3898,7 @@ export default function App() {
       if (analysisCancelRef.current !== cancelId) return;
       const merged = skills.map(s => {
         const r = ratings.find(x => x.n === s.n) || {};
-        return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[] };
+        return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
       });
       let foundationData = null;
       if (persona) {
@@ -3756,7 +3906,7 @@ export default function App() {
         foundationData = await getFoundationSkills(occ.title, merged, persona);
         if (analysisCancelRef.current !== cancelId) return;
       }
-      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri };
+      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null };
       setResult(newResult);
       track("analysis_completed", { occupation: occ.title });
       if (comparisonsRef.current.length > 0) {
@@ -3773,9 +3923,39 @@ export default function App() {
       clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null;
       setStep("results");
 
+      // Coherence check: detect if ESCO resolved to a wrong occupation
+      // Step 1 - ISCO group guard (instant, no API call)
+      const coherenceGuard = checkIscoCoherence(occ.title, occ.iscoCode);
+      if (coherenceGuard && coherenceGuard.suspect) {
+        // Step 2 - Sonnet per-skill relevance scoring
+        // Show "checking" notice immediately, fire Sonnet call in background
+        if (analysisCancelRef.current === cancelId) setEscoCoherenceStatus("checking");
+        checkSkillRelevance(occ.title, merged).then(scores => {
+          if (analysisCancelRef.current !== cancelId) return;
+          if (!scores.length) { setEscoCoherenceStatus(null); return; }
+          // Patch relevanceScore onto each skill in result state
+          setResult(prev => {
+            if (!prev) return prev;
+            return { ...prev, skills: prev.skills.map(s => {
+              const sc = scores.find(x => x.n === s.n);
+              return sc ? { ...s, relevanceScore: sc.r } : s;
+            })};
+          });
+          // Aggregate: suspect if 4 or more skills score 3 (not relevant)
+          const flaggedCount = scores.filter(x => x.r === 3).length;
+          setEscoCoherenceStatus(flaggedCount >= 4 ? "suspect" : "ok");
+        }).catch(() => {
+          if (analysisCancelRef.current !== cancelId) return;
+          setEscoCoherenceStatus(null); // fail silent
+        });
+      } else {
+        // No coherence concern - mark as ok silently
+        setEscoCoherenceStatus(coherenceGuard ? "ok" : null);
+      }
+
       // Background prompt enrichment - 3 skills at a time, patches UI progressively
       const promptTimeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("prompt_timeout")), 90000)
+        setTimeout(() => reject(new Error("prompt_timeout")), 250000)
       );
 
       const patchBatch = (batchResults) => {
@@ -3980,15 +4160,28 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         const exact = res.find(r => r.title.toLowerCase() === c.title.toLowerCase());
         const occ = exact || res[0] || { title: c.title, iscoCode: "", iscoGroup: "", description: "" };
         occ.title = c.title;
-        let escoResult = await getEscoSkills(occ.title);
+        // H1 fix: same lookup intercept as doAnalyse - catches wrong ESCO occupation for
+        // non-canonical titles (e.g. Organisational Development Specialist -> Business Consultant)
+        const compLookupHit = lookupSeniorMgmt(occ.title);
+        let compEscoFetchTitle = occ.title;
+        if (compLookupHit && compLookupHit.results && compLookupHit.results.length > 0) {
+          const best = compLookupHit.results[0];
+          occ.iscoCode = best.iscoCode;
+          occ.iscoGroup = best.iscoGroup;
+          occ.description = best.description;
+          compEscoFetchTitle = best.title; // canonical ESCO title for skills fetch only
+        }
+        let escoResult = await getEscoSkills(compEscoFetchTitle);
         let skills = escoResult ? escoResult.skills : null;
-        if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
+        // M3 fix: use compEscoFetchTitle in fallback too - not display title
+        if (skills === null) skills = await getSkills(compEscoFetchTitle, occ.iscoGroup || "", occ.iscoCode || "");
         logStep(`Rating ${skills.length} skills for ${roleLabel} against AI...`);
         // Use compact rater for comparison - skips prompt/prep/twoStep to reduce latency ~40%
         const ratings = await rateSkillsCompact(occ.title, skills);
         const merged = skills.map(s => {
           const r = ratings.find(x => x.n === s.n) || {};
-          return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:"", prompt:"", skillType:r.skillType||"technical", prep:"", twoStep:false, readiness:"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[] };
+          // H2 fix: ESCO skillType takes precedence over Claude rating - same as primary merge
+          return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:"", prompt:"", skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:"", twoStep:false, readiness:"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
         });
         logStep(`Mapping career paths for ${roleLabel}...`);
         // Skip progression/crossover/context if role already has full result data
@@ -4047,6 +4240,72 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
     ];
+  };
+
+  const handleSearchAgain = async (newQuery) => {
+    const tidy = toTitleCase(newQuery.trim());
+    pickerCancelRef.current = true;
+    setQuery(tidy); setStep("searching"); setOccs([]); setPickerFullLoading(false);
+    try {
+      const quick = await searchOccupations(tidy, "5");
+      if (!quick.length) { setErr("no occupations found"); setStep("error"); return; }
+      if (quick.length === 1) { doAnalyse(quick[0]); return; }
+      const dedupedQuick = quick.filter((o, i, arr) => arr.findIndex(x => x.title.toLowerCase() === o.title.toLowerCase()) === i);
+      setOccs(dedupedQuick); setStep("picking");
+      pickerCancelRef.current = false;
+      const thisCancel = pickerCancelRef;
+      setPickerFullLoading(true);
+      searchOccupations(tidy, tidy.trim().split(/\s+/).length <= 1 ? "35 to 40" : tidy.trim().split(/\s+/).length === 2 ? "25 to 35" : "15 to 20").then(full => {
+        if (thisCancel.current) { setPickerFullLoading(false); return; }
+        if (full.length > quick.length) {
+          const qt = new Set(quick.map(o => o.title.toLowerCase()));
+          setOccs([...quick, ...full.filter(o => !qt.has(o.title.toLowerCase()))]);
+        }
+        setPickerFullLoading(false);
+      }).catch(() => { setPickerFullLoading(false); setPickerFullError(true); });
+    } catch(e) { setErr(e.message); setStep("error"); }
+  };
+
+  const handleSearchFromSkill = (role) => {
+    const doIt = async () => {
+      const tidyRole = toTitleCase(role);
+      setQuery(tidyRole); setStep("searching"); setErr("");
+      try {
+        const res = await searchOccupations(tidyRole);
+        if (!res.length) { setErr("no occupations found"); setStep("error"); return; }
+        const hasExact = res.some(r => r.title.toLowerCase() === tidyRole.toLowerCase());
+        const list = hasExact ? res : [{ title: tidyRole, iscoCode: "", iscoGroup: "", description: "Role extracted from prompt starter", isAltLabel: true }, ...res];
+        setOccs(list); setStep("picking"); window.scrollTo({ top:0, behavior:"smooth" });
+      } catch(e) { setErr(e.message); setStep("error"); }
+    };
+    confirmIfComparing(doIt);
+  };
+
+  const handleRefreshPrompt = async (skillN) => {
+    setResult(prev => {
+      if (!prev) return prev;
+      return { ...prev, skills: prev.skills.map(s => s.n === skillN ? { ...s, promptLoading: true, promptFailed: false } : s) };
+    });
+    try {
+      const snap = result;
+      const targetSkill = snap?.skills?.find(s => s.n === skillN);
+      if (!targetSkill || targetSkill.level === "HUMAN") return;
+      await generatePrompts(sel?.title || "", snap.skills, [targetSkill], (batchResults) => {
+        setResult(prev => {
+          if (!prev) return prev;
+          return { ...prev, skills: prev.skills.map(s => {
+            const px = batchResults.find(p => p.n === s.n);
+            if (!px) return s;
+            return { ...s, prompt: px.p || px.prompt || "", promptTech: px.pt || px.promptTech || "", nextPhase: px.nx || px.nextPhase || "", promptLoading: false };
+          }) };
+        });
+      });
+    } catch(e) {
+      setResult(prev => {
+        if (!prev) return prev;
+        return { ...prev, skills: prev.skills.map(s => s.n === skillN ? { ...s, promptLoading: false, promptFailed: "error" } : s) };
+      });
+    }
   };
 
   return (
@@ -4303,37 +4562,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             pickerFullLoading={pickerFullLoading}
             pickerFullError={pickerFullError}
             noExactMatch={noExactMatch}
+            functionKeywordNotice={functionKeywordNotice}
+            onDismissFunctionNotice={() => setFunctionKeywordNotice(null)}
             onSelect={(o) => { track("occupation_selected", { auto: false }); doAnalyse(o); }}
-            onSearchAgain={async (newQuery) => {
-              const tidy = toTitleCase(newQuery.trim());
-              // M2 fix: mirror the doSearch pickerCancelRef pattern.
-              // Without this, a background full search in flight from the original
-              // doSearch call was not cancelled before the new search started,
-              // allowing stale results from the first search to overwrite occs state.
-              pickerCancelRef.current = true; // cancel any in-flight background load
-              setQuery(tidy);
-              setStep("searching");
-              setOccs([]);
-              setPickerFullLoading(false);
-              try {
-                const quick = await searchOccupations(tidy, "5");
-                if (!quick.length) { setErr("no occupations found"); setStep("error"); return; }
-                if (quick.length === 1) { doAnalyse(quick[0]); return; }
-                const dedupedQuick = quick.filter((o, i, arr) => arr.findIndex(x => x.title.toLowerCase() === o.title.toLowerCase()) === i);
-                setOccs(dedupedQuick); setStep("picking");
-                pickerCancelRef.current = false; // allow this new background load
-                const thisCancel = pickerCancelRef;
-                setPickerFullLoading(true);
-                searchOccupations(tidy, tidy.trim().split(/\s+/).length <= 1 ? "35 to 40" : tidy.trim().split(/\s+/).length === 2 ? "25 to 35" : "15 to 20").then(full => {
-                  if (thisCancel.current) { setPickerFullLoading(false); return; }
-                  if (full.length > quick.length) {
-                    const qt = new Set(quick.map(o => o.title.toLowerCase()));
-                    setOccs([...quick, ...full.filter(o => !qt.has(o.title.toLowerCase()))]);
-                  }
-                  setPickerFullLoading(false);
-                }).catch(() => { setPickerFullLoading(false); setPickerFullError(true); });
-              } catch(e) { setErr(e.message); setStep("error"); }
-            }}
+            onSearchAgain={handleSearchAgain}
           />
           );
         })()}
@@ -4384,6 +4616,36 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize:19, fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
                 {result.description && <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.6 }}>{result.description}</p>}
                 {result.iscoGroup && <p style={{ margin:"6px 0 0", fontSize:10, color:C.mutedLight }}>ESCO v1.2.1 · {result.iscoGroup}{sel.iscoCode ? <span> · <a href="https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08" target="_blank" rel="noopener noreferrer" style={{ color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>ISCO-08: {sel.iscoCode}</a></span> : ""}</p>}
+                {result.escoCanonicalTitle && (
+                  <p style={{ margin:"3px 0 0", fontSize:10, color:"#d97706", fontStyle:"italic" }}>
+                    Closest ESCO match: {result.escoCanonicalTitle} - ESCO does not have a canonical entry for this title.
+                  </p>
+                )}
+                {/* ESCO coherence notice */}
+                {escoCoherenceStatus === "checking" && (
+                  <div style={{ marginTop:8, padding:"7px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ width:10, height:10, borderRadius:"50%", border:"2px solid #fcd9a0", borderTop:"2px solid #d97706", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+                    <p style={{ margin:0, fontSize:11, color:"#92400e" }}>The ESCO skills shown may not fully match this role as defined by ISCO-08 - AI is checking...</p>
+                  </div>
+                )}
+                {escoCoherenceStatus === "suspect" && (
+                  <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7 }}>
+                    <p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#92400e" }}>⚠ The ESCO skills shown may not fully match this role as defined by ISCO-08.</p>
+                    <p style={{ margin:"0 0 8px", fontSize:11, color:"#92400e", lineHeight:1.5 }}>Some skills may be from an adjacent occupation and may not be directly relevant to this role. You can refresh the skills using AI, or search again with a more specific title.</p>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      <button
+                        onClick={() => { setEscoCoherenceStatus(null); doAnalyse(sel, { forceHybrid: true }); }}
+                        style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#d97706", border:"1px solid #b45309", borderRadius:5, padding:"4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        ↻ Refresh skills with AI
+                      </button>
+                      <button
+                        onClick={() => { setStep("idle"); setResult(null); setEscoCoherenceStatus(null); window.scrollTo({ top:0, behavior:"smooth" }); }}
+                        style={{ fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius:5, padding:"4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        Search again
+                      </button>
+                    </div>
+                  </div>
+                )}
                 {/* Compare section - clean hierarchy, max 3 total */}
                 {(() => {
                   const currentTitle = toTitleCase(sel.title);
@@ -4539,34 +4801,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 </div>
               </div>
 
-              {activeTab === "skills" && (() => {
-                // Groups: Human-Led first (strength before risk)
-                const groupDef = [
-                  { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", icon:"🟢" },
-                  { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:C.accent,  bg:C.accentSoft, border:"#c3d3f5",  icon:"🔵" },
-                  { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#d97706", bg:"#fffbeb", border:"#fcd9a0", icon:"🟡" },
-                  { level:"HIGH",   label:"Full Automation",   sub:"AI can handle most of this independently today. Knowing this helps you focus your energy wisely.", color:"#c0392b", bg:"#fdecea", border:"#f5c6c2", icon:"🔴" },
-                ];
-                const grouped = groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
-                return (
-                <SkillGroupedView
-                  grouped={grouped}
+              {activeTab === "skills" && <SkillGroupedView
+                  grouped={(() => {
+                    const groupDef = [
+                      { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", icon:"🟢" },
+                      { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:C.accent,  bg:C.accentSoft, border:"#c3d3f5",  icon:"🔵" },
+                      { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#d97706", bg:"#fffbeb", border:"#fcd9a0", icon:"🟡" },
+                      { level:"HIGH",   label:"Full Automation",   sub:"AI can handle most of this independently today. Knowing this helps you focus your energy wisely.", color:"#c0392b", bg:"#fdecea", border:"#f5c6c2", icon:"🔴" },
+                    ];
+                    return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
+                  })()}
                   result={result}
-                  onSearch={async (role) => {
-                    const doIt = async () => {
-                      const tidyRole = toTitleCase(role);
-                      setQuery(tidyRole);
-                      setStep("searching"); setErr("");
-                      try {
-                        const res = await searchOccupations(tidyRole);
-                        if (!res.length) { setErr("no occupations found"); setStep("error"); return; }
-                        const hasExact = res.some(r => r.title.toLowerCase() === tidyRole.toLowerCase());
-                        const list = hasExact ? res : [{ title: tidyRole, iscoCode: "", iscoGroup: "", description: "Role extracted from prompt starter", isAltLabel: true }, ...res];
-                        setOccs(list); setStep("picking"); window.scrollTo({ top:0, behavior:"smooth" });
-                      } catch(e) { setErr(e.message); setStep("error"); }
-                    };
-                    confirmIfComparing(doIt);
-                  }}
+                  onSearch={handleSearchFromSkill}
                   skillInputResult={skillInputResult}
                   skillInputQuery={skillInputQuery}
                   onSkillSearch={handleSkillSearch}
@@ -4578,9 +4824,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   jumpToSkill={jumpToSkill}
                   onJumpHandled={() => setJumpToSkill(null)}
                   firstBlinkSkill={firstBlinkSkill}
-                />
-                );
-              })()}
+                  onRefreshPrompt={handleRefreshPrompt}
+                />}
               {activeTab === "foundation" && result.foundationData && (
                 <FoundationPanel data={result.foundationData} persona={persona} />
               )}

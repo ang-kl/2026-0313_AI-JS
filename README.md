@@ -1,50 +1,20 @@
-# AI Skills Analyser - v5
+# AI Skills Analyser
 **Understanding AI's Impact on Your Role**
-Built by Adrian K. L. Ang - linkedin.com/in/angadrian
+
+takearoundabout.com - Built by Adrian K. L. Ang
 
 ---
 
-## Deploy to Vercel
+This tool is completely free to use. The underlying sources I draw from are openly available, and it did not feel right to charge for something built on public knowledge.
 
-### Step 1 - Extract this folder
-Unzip and place the `ai-job-analyser-v5` folder in your Downloads.
+That said, each query does carry a small cost on my end - so if you ever run into a slow response or a brief hiccup, please do bear with me. I top up the credits as I go, and your patience genuinely means a lot.
 
-### Step 2 - Open Terminal and navigate to the folder
-```
-cd ~/Downloads/ai-job-analyser-v5
-```
+If you find it useful - or even if you do not - I would love to hear from you. A quiet DM on LinkedIn with where you are from and a line of feedback. No pressure at all, just a conversation.
 
-### Step 3 - Install dependencies
-```
-npm install --legacy-peer-deps
-```
-
-### Step 4 - Deploy to Vercel
-```
-vercel --prod
-```
-Press Enter for all questions. Vercel CLI should already be installed from your previous deployment.
-
-### Step 5 - Add your Anthropic API key on Vercel
-1. Go to vercel.com and open your project
-2. Settings > Environment Variables
-3. Add: Name = ANTHROPIC_API_KEY, Value = your key
-4. Save, then redeploy:
-```
-vercel --prod
-```
+P.S. This is a side hobby - built in spare moments out of genuine curiosity about where work is heading. I hope it is useful to someone out there.
 
 ---
 
-## Connect a custom domain (optional)
-1. Buy your domain at cloudflare.com/products/registrar
-2. In Vercel: Project > Settings > Domains
-3. Add your domain and follow the DNS instructions
-4. Vercel handles HTTPS automatically
+Adrian K. L. Ang - linkedin.com/in/angadrian - feedback@takearoundabout.com
 
----
-
-## Cost estimate
-Each full analysis run uses Claude Haiku (~5 API calls).
-Approximate cost per analysis: USD 0.02 to 0.04
-200 users: ~USD 4 to 8 total
+*Sometimes the scenic route is the right one.*
