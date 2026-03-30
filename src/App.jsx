@@ -2340,12 +2340,15 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             {item.level !== "HUMAN" && (
               item.promptLoading
                 ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
                       <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>
-                        Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - a <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> skill using {AI_USAGE[item.tool] || item.tool}. Please wait a moment - thank you.
+                        Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - {["A","E","I","O","U"].some(v => (item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted").startsWith(v)) ? "an" : "a"} <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> skill using {AI_USAGE[item.tool] || item.tool}. Please wait a moment - thank you.
                       </p>
                     </div>
+                    <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.55, fontStyle:"italic" }}>
+                      What to do Next will include a 3-step guide on how to act on this skill with AI this week.
+                    </p>
                   </div>
                 : item.promptFailed
                   ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
