@@ -1139,7 +1139,7 @@ function Spinner({ label, step, total, firstTime }) {
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
         <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
-        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:374, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
+        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:300, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
         {step && total && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:4 }}>
             <div style={{ display:"flex", gap:4 }}>
@@ -2340,15 +2340,12 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             {item.level !== "HUMAN" && (
               item.promptLoading
                 ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
                       <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>
-                        Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - {["A","E","I","O","U"].some(v => (item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted").startsWith(v)) ? "an" : "a"} <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> skill using {AI_USAGE[item.tool] || item.tool}. Please wait a moment - thank you.
+                        Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - {["A","E","I","O","U"].some(v => (item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted").startsWith(v)) ? "an" : "a"} <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> technical skill. "What to do Next" will include a 3-step guide on how to act on this skill. Please wait a moment - thank you.
                       </p>
                     </div>
-                    <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.55, fontStyle:"italic" }}>
-                      What to do Next will include a 3-step guide on how to act on this skill with AI this week.
-                    </p>
                   </div>
                 : item.promptFailed
                   ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
