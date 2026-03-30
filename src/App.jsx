@@ -1,4 +1,4 @@
-// v2.0.3 - 2026-03-30 - HDR #032 - scrolling log stack on spinner screen
+// v2.0.4 - 2026-03-30 - HDR #034 - informative promptLoading card with Apply, technique hint, What to do Next preview
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -1133,24 +1133,13 @@ function Tag({ level, small }) {
   );
 }
 
-function Spinner({ logs = [], step, total, firstTime }) {
-  const visibleLogs = logs.slice(0, 3);
-  const opacities = [1, 0.5, 0.25];
+function Spinner({ label, step, total, firstTime }) {
   return (
     <div style={{ padding:"40px 0 32px" }}>
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes logSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
-        <div style={{ minHeight:56, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", gap:4, marginBottom:8 }}>
-          {visibleLogs.map((line, i) => (
-            <p key={line} style={{ color: i === 0 ? C.text : C.muted, fontSize: i === 0 ? 12 : 11, margin:0, fontWeight: i === 0 ? 600 : 400, lineHeight:1.55, maxWidth:340, opacity:opacities[i], transition:"opacity 0.4s", animation: i === 0 ? "logSlideIn 0.3s ease" : undefined, padding:"0 8px", textAlign:"center" }}>
-              {line}
-            </p>
-          ))}
-          {visibleLogs.length === 0 && (
-            <p style={{ color:C.muted, fontSize:12, margin:0, lineHeight:1.55 }}>Starting analysis...</p>
-          )}
-        </div>
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:340, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
         {step && total && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:4 }}>
             <div style={{ display:"flex", gap:4 }}>
@@ -2350,9 +2339,23 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             </div>
             {item.level !== "HUMAN" && (
               item.promptLoading
-                ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7, display:"flex", alignItems:"center", gap:8 }}>
-                    <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                    <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>Generating prompt... please wait a while, thank you</p>
+                ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                      <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic", fontWeight:600 }}>Writing the AI prompt for this skill...</p>
+                    </div>
+                    {item.kickstart && (
+                      <div style={{ marginBottom:6, padding:"5px 9px", background:"#e0f2fe", borderRadius:5 }}>
+                        <p style={{ margin:"0 0 1px", fontSize:9, color:"#0369a1", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em" }}>Apply this week</p>
+                        <p style={{ margin:0, fontSize:11, color:"#0c4a6e", lineHeight:1.5 }}>{item.kickstart}</p>
+                      </div>
+                    )}
+                    <p style={{ margin:"0 0 4px", fontSize:11, color:"#0369a1", lineHeight:1.55 }}>
+                      A prompt suited to a <strong>{(item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted")}</strong> {item.skillType === "soft-skill" ? "soft skill" : "technical skill"} is being written - with a specific technique matched to this level.
+                    </p>
+                    <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.55, fontStyle:"italic" }}>
+                      What to do Next will include a three-step guide on how to act on this skill with AI this week.
+                    </p>
                   </div>
                 : item.promptFailed
                   ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
@@ -3587,7 +3590,7 @@ export default function App() {
   const [skillInputResult, setSkillInputResult] = useState(null);
   const [compareStatus, setCompareStatus] = useState(""); // v6: live step narrative
   const [compareStep,   setCompareStep]   = useState(0);  // v6: current step 1-8
-  const [subLogs,   setSubLogs]   = useState([]);
+  const [sub,       setSub]       = useState("");
   const [subStep,   setSubStep]   = useState(0);
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
@@ -3697,12 +3700,12 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step]);
 
-  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSubLogs([]); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
+  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
     setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr("");
-    setQuery(""); setSubLogs([]); setSubStep(0); setCompareCue(false);
+    setQuery(""); setSub(""); setSubStep(0); setCompareCue(false);
     // Preserve compare tab if comparison is ready - don't snap back to skills
     if (readyCount < 2) setActiveTab("skills");
     comparisonsRef.current = savedComparisons; setComparisons(savedComparisons);
@@ -3871,9 +3874,7 @@ export default function App() {
       escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
     }
 
-    const addSubLog = (msg) => setSubLogs(prev => [msg, ...prev].slice(0, 5));
-    setSel(occ); setStep("loading"); setSubLogs([]); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
-    addSubLog(`Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`);
+    setSel(occ); setStep("loading"); setSub(`Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -3896,11 +3897,11 @@ export default function App() {
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : `AI-generated`;
-      addSubLog(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
+      setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
       // Progression/crossover/context only need the title and group - no dependency on ratings
-      addSubLog(`${skills.length} skills confirmed - analysing automation exposure and mapping career paths...`); setSubStep(2);
+      setSub(`${skills.length} skills confirmed - analysing automation exposure and mapping career paths...`); setSubStep(2);
       const [ratings, progressionData, crossoverData, contextData] = await Promise.all([
         rateSkills(occ.title, skills),
         getProgressionPaths(occ.title, occ.iscoGroup),
@@ -3926,10 +3927,10 @@ export default function App() {
       const topCross = (crossoverData || []).slice(0, 3).map(c => c.role).filter(Boolean).join(", ");
       const progLine  = topProg  ? ` - Career paths: ${topProg}`    : "";
       const crossLine = topCross ? ` - Crossover: ${topCross}` : "";
-      addSubLog(`${lvlParts}${progLine}${crossLine}`); setSubStep(persona ? 3 : 3);
+      setSub(`${lvlParts}${progLine}${crossLine}`); setSubStep(persona ? 3 : 3);
       let foundationData = null;
       if (persona) {
-        addSubLog("Building your personalised foundation skills plan..."); setSubStep(3);
+        setSub("Building your personalised foundation skills plan..."); setSubStep(3);
         foundationData = await getFoundationSkills(occ.title, merged, persona);
         if (analysisCancelRef.current !== cancelId) return;
       }
@@ -4597,7 +4598,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner logs={subLogs} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
