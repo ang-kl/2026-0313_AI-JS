@@ -1,4 +1,4 @@
-// v2.0.4 - 2026-03-30 - HDR #034 - informative promptLoading card, always-visible Apply block, please wait line
+// v2.0.5 - 2026-03-30 - HDR #035 - 8 analytics tracking calls added
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -72,6 +72,7 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
       await new Promise(r => setTimeout(r, delay));
       return claudeCall(prompt, maxTokens, attempt + 1, systemPrompt, model);
     }
+    track("api_error", { model: model.includes("sonnet") ? "sonnet" : "haiku", maxTokens, attempt });
     throw err;
   }
 }
@@ -400,6 +401,7 @@ async function getEscoSkills(title) {
     return null;
   } catch (err) {
     console.warn('getEscoSkills failed, falling back to getSkills:', err.message);
+    track("esco_fallback", { title, reason: err.message.slice(0, 60) });
     return null;
   }
 }
@@ -1636,7 +1638,7 @@ function PersonaToggle({ persona, onChange }) {
           {Object.entries(PERSONA_CONFIG).map(([key, cfg]) => {
             const active = persona === key;
             return (
-              <div key={key} onClick={() => onChange(active ? null : key)}
+              <div key={key} onClick={() => { if (!active) track("persona_selected", { persona: key }); onChange(active ? null : key); }}
                 style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 11px", borderRadius:7, border:`1.5px solid ${active ? cfg.border : C.border}`, background:active ? cfg.bg : C.bg, cursor:"pointer", transition:"border-color 0.15s, background 0.15s", userSelect:"none" }}>
                 <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${active ? cfg.color : C.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: active ? cfg.bg : "transparent", transition:"all 0.15s" }}>
                   {active && <div style={{ width:10, height:10, borderRadius:"50%", background:cfg.color }} />}
@@ -2267,7 +2269,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
           onClose={() => setShowExperts(false)}
         />
       )}
-      <div id={`skill-${item.skill.replace(/\s+/g,"-").toLowerCase()}`} ref={matchRef || null} onClick={() => setOpen(o => !o)} style={{ border:`2px solid ${blinkActive ? c.border : highlight ? c.border : open ? c.border : C.border}`, borderRadius:7, marginBottom:5, background: blinkActive ? c.bg : highlight ? c.bg : open ? c.bg : C.surface, cursor:"pointer", transition:"background 0.3s, border 0.3s", boxShadow: blinkActive ? `0 0 0 3px ${c.bg}, 0 0 12px ${c.bg}` : highlight ? `0 0 0 3px ${c.bg}` : "none", borderLeft: jumpHighlight ? `5px solid ${c.border}` : undefined, animation: blinkActive ? "skillBlink 0.9s ease-in-out infinite" : undefined }}>
+      <div id={`skill-${item.skill.replace(/\s+/g,"-").toLowerCase()}`} ref={matchRef || null} onClick={() => { if (!open) track("skill_expanded", { level: item.level, skillType: item.skillType }); setOpen(o => !o); }} style={{ border:`2px solid ${blinkActive ? c.border : highlight ? c.border : open ? c.border : C.border}`, borderRadius:7, marginBottom:5, background: blinkActive ? c.bg : highlight ? c.bg : open ? c.bg : C.surface, cursor:"pointer", transition:"background 0.3s, border 0.3s", boxShadow: blinkActive ? `0 0 0 3px ${c.bg}, 0 0 12px ${c.bg}` : highlight ? `0 0 0 3px ${c.bg}` : "none", borderLeft: jumpHighlight ? `5px solid ${c.border}` : undefined, animation: blinkActive ? "skillBlink 0.9s ease-in-out infinite" : undefined }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 13px" }}>
           <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.muted, fontWeight:700, flexShrink:0 }}>{idx+1}</span>
           <div style={{ flex:1, minWidth:0 }}>
@@ -2351,7 +2353,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                   ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
                       <p style={{ margin:0, fontSize:11, color:"#92400e" }}>Failed to generate the prompt syntax. Please click refresh.</p>
                       <button
-                        onClick={e => { e.stopPropagation(); onRefreshPrompt && onRefreshPrompt(item.n); }}
+                        onClick={e => { e.stopPropagation(); track("prompt_refresh", { level: item.level }); onRefreshPrompt && onRefreshPrompt(item.n); }}
                         style={{ flexShrink:0, fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius:5, padding:"3px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         ↻ Refresh
                       </button>
@@ -3638,6 +3640,7 @@ export default function App() {
     const roleParam = params.get("role");
     if (roleParam) {
       const tidyRole = toTitleCase(decodeURIComponent(roleParam));
+      track("role_url_param", { role: tidyRole });
       // H1 fix: validate URL param before any API call. The URL param path
       // accepts external input with no UI debouncing - higher injection risk than
       // the search box. Drop silently to idle if the param fails validation.
@@ -3961,6 +3964,7 @@ export default function App() {
           });
           // Aggregate: suspect if 4 or more skills score 3 (not relevant)
           const flaggedCount = scores.filter(x => x.r === 3).length;
+          if (flaggedCount >= 4) track("coherence_suspect", { occupation: occ.title, iscoCode: occ.iscoCode, flaggedCount });
           setEscoCoherenceStatus(flaggedCount >= 4 ? "suspect" : "ok");
         }).catch(() => {
           if (analysisCancelRef.current !== cancelId) return;
@@ -4004,6 +4008,7 @@ export default function App() {
         if (analysisCancelRef.current !== cancelId) return;
         const isTimeout = e.message === "prompt_timeout";
         console.warn("[generatePrompts] background enrichment", isTimeout ? "timed out" : "failed:", e.message);
+        if (isTimeout) track("prompt_timeout", { occupation: occ.title, actionableSkills: actionable.length });
         setResult(prev => {
           if (!prev) return prev;
           return { ...prev, skills: prev.skills.map(s => ({
