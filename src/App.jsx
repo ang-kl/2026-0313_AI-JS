@@ -2342,7 +2342,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                 ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic", fontWeight:600 }}>Writing the AI prompt for this skill... please wait, thank you.</p>
+                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic", fontWeight:600 }}>Generating AI prompt syntax using the recommended technique, along with three steps to apply this skill. Please wait a moment - thank you.</p>
                     </div>
                     <div style={{ marginBottom:6, padding:"5px 9px", background:"#e0f2fe", borderRadius:5 }}>
                       <p style={{ margin:"0 0 1px", fontSize:9, color:"#0369a1", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em" }}>Apply this week</p>
