@@ -1,4 +1,4 @@
-// v2.0.1 - 2026-03-30 - HDR #030 - promptTimeout raised 150s to 250s
+// v2.0.3 - 2026-03-30 - HDR #032 - scrolling log stack on spinner screen
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -1133,14 +1133,24 @@ function Tag({ level, small }) {
   );
 }
 
-function Spinner({ label, step, total, firstTime }) {
+function Spinner({ logs = [], step, total, firstTime }) {
+  const visibleLogs = logs.slice(0, 3);
+  const opacities = [1, 0.5, 0.25];
   return (
     <div style={{ padding:"40px 0 32px" }}>
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
-        <p style={{ color:C.text, fontSize:13, margin:"0 0 4px", fontWeight:600 }}>{label}</p>
-        <p style={{ color:C.muted, fontSize:11, margin:"0 0 8px", lineHeight:1.5 }}>Skills, automation levels, career paths and AI prompts are being compiled for this role.</p>
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes logSlideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+        <div style={{ minHeight:56, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", gap:4, marginBottom:8 }}>
+          {visibleLogs.map((line, i) => (
+            <p key={line} style={{ color: i === 0 ? C.text : C.muted, fontSize: i === 0 ? 12 : 11, margin:0, fontWeight: i === 0 ? 600 : 400, lineHeight:1.55, maxWidth:340, opacity:opacities[i], transition:"opacity 0.4s", animation: i === 0 ? "logSlideIn 0.3s ease" : undefined, padding:"0 8px", textAlign:"center" }}>
+              {line}
+            </p>
+          ))}
+          {visibleLogs.length === 0 && (
+            <p style={{ color:C.muted, fontSize:12, margin:0, lineHeight:1.55 }}>Starting analysis...</p>
+          )}
+        </div>
         {step && total && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:4 }}>
             <div style={{ display:"flex", gap:4 }}>
@@ -3577,7 +3587,7 @@ export default function App() {
   const [skillInputResult, setSkillInputResult] = useState(null);
   const [compareStatus, setCompareStatus] = useState(""); // v6: live step narrative
   const [compareStep,   setCompareStep]   = useState(0);  // v6: current step 1-8
-  const [sub,       setSub]       = useState("");
+  const [subLogs,   setSubLogs]   = useState([]);
   const [subStep,   setSubStep]   = useState(0);
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
@@ -3687,12 +3697,12 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step]);
 
-  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
+  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSubLogs([]); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
     setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr("");
-    setQuery(""); setSub(""); setSubStep(0); setCompareCue(false);
+    setQuery(""); setSubLogs([]); setSubStep(0); setCompareCue(false);
     // Preserve compare tab if comparison is ready - don't snap back to skills
     if (readyCount < 2) setActiveTab("skills");
     comparisonsRef.current = savedComparisons; setComparisons(savedComparisons);
@@ -3861,7 +3871,9 @@ export default function App() {
       escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
     }
 
-    setSel(occ); setStep("loading"); setSub(`Finding the essential skills for ${toTitleCase(occ.title)}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+    const addSubLog = (msg) => setSubLogs(prev => [msg, ...prev].slice(0, 5));
+    setSel(occ); setStep("loading"); setSubLogs([]); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+    addSubLog(`Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`);
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -3883,11 +3895,12 @@ export default function App() {
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
-      setSub(`Rating ${skills.length} skills against current AI capability...`); setSubStep(2);
+      const escoSource = escoResult ? `ESCO v1.2` : `AI-generated`;
+      addSubLog(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
       // Progression/crossover/context only need the title and group - no dependency on ratings
-      setSub(`Analysing skills and mapping career paths for ${toTitleCase(occ.title)}...`); setSubStep(2);
+      addSubLog(`${skills.length} skills confirmed - analysing automation exposure and mapping career paths...`); setSubStep(2);
       const [ratings, progressionData, crossoverData, contextData] = await Promise.all([
         rateSkills(occ.title, skills),
         getProgressionPaths(occ.title, occ.iscoGroup),
@@ -3900,9 +3913,23 @@ export default function App() {
         const r = ratings.find(x => x.n === s.n) || {};
         return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
       });
+      // Stage 3 enriched spinner - automation breakdown + role glimpses
+      const lvlCounts = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
+      merged.forEach(s => { if (lvlCounts[s.level] !== undefined) lvlCounts[s.level]++; });
+      const lvlParts = [
+        lvlCounts.HIGH   > 0 ? `${lvlCounts.HIGH} Full Automation`  : null,
+        lvlCounts.MEDIUM > 0 ? `${lvlCounts.MEDIUM} AI-Augmented`   : null,
+        lvlCounts.LOW    > 0 ? `${lvlCounts.LOW} AI-Assisted`       : null,
+        lvlCounts.HUMAN  > 0 ? `${lvlCounts.HUMAN} Human-Led`       : null,
+      ].filter(Boolean).join(" - ");
+      const topProg = (progressionData || []).slice(0, 3).map(p => p.role).filter(Boolean).join(", ");
+      const topCross = (crossoverData || []).slice(0, 3).map(c => c.role).filter(Boolean).join(", ");
+      const progLine  = topProg  ? ` - Career paths: ${topProg}`    : "";
+      const crossLine = topCross ? ` - Crossover: ${topCross}` : "";
+      addSubLog(`${lvlParts}${progLine}${crossLine}`); setSubStep(persona ? 3 : 3);
       let foundationData = null;
       if (persona) {
-        setSub("Building your personalised foundation skills plan..."); setSubStep(3);
+        addSubLog("Building your personalised foundation skills plan..."); setSubStep(3);
         foundationData = await getFoundationSkills(occ.title, merged, persona);
         if (analysisCancelRef.current !== cancelId) return;
       }
@@ -4570,7 +4597,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
+        {step === "loading" && <Spinner logs={subLogs} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
