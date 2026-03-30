@@ -1,4 +1,4 @@
-// v2.0.4 - 2026-03-30 - HDR #034 - informative promptLoading card with Apply, technique hint, What to do Next preview
+// v2.0.4 - 2026-03-30 - HDR #034 - informative promptLoading card, always-visible Apply block, please wait line
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -2342,16 +2342,14 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                 ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic", fontWeight:600 }}>Writing the AI prompt for this skill...</p>
+                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic", fontWeight:600 }}>Writing the AI prompt for this skill... please wait, thank you.</p>
                     </div>
-                    {item.kickstart && (
-                      <div style={{ marginBottom:6, padding:"5px 9px", background:"#e0f2fe", borderRadius:5 }}>
-                        <p style={{ margin:"0 0 1px", fontSize:9, color:"#0369a1", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em" }}>Apply this week</p>
-                        <p style={{ margin:0, fontSize:11, color:"#0c4a6e", lineHeight:1.5 }}>{item.kickstart}</p>
-                      </div>
-                    )}
+                    <div style={{ marginBottom:6, padding:"5px 9px", background:"#e0f2fe", borderRadius:5 }}>
+                      <p style={{ margin:"0 0 1px", fontSize:9, color:"#0369a1", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.05em" }}>Apply this week</p>
+                      <p style={{ margin:0, fontSize:11, color:"#0c4a6e", lineHeight:1.5 }}>{item.kickstart || "A suggested action for this skill will appear with the prompt."}</p>
+                    </div>
                     <p style={{ margin:"0 0 4px", fontSize:11, color:"#0369a1", lineHeight:1.55 }}>
-                      A prompt suited to a <strong>{(item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted")}</strong> {item.skillType === "soft-skill" ? "soft skill" : "technical skill"} is being written - with a specific technique matched to this level.
+                      A prompt suited to a <strong>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> {item.skillType === "soft-skill" ? "soft skill" : "technical skill"} is being written - with a specific technique matched to this level.
                     </p>
                     <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.55, fontStyle:"italic" }}>
                       What to do Next will include a three-step guide on how to act on this skill with AI this week.
