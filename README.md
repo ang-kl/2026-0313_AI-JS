@@ -1,7 +1,9 @@
-# AI Skills Analyser
+# AI Readiness across Skills and Competences
 **Understanding AI's Impact on Your Role**
 
-takearoundabout.com - Built by Adrian K. L. Ang
+[takearoundabout.com](https://www.takearoundabout.com)
+
+Enter any job title and see how AI is affecting each essential skill in that role - with ready-to-use AI prompts for every skill, career progression paths, and a view of where human judgement still leads. Skills are drawn directly from the ESCO v1.2 taxonomy. Free to use.
 
 ---
 

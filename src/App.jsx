@@ -1175,7 +1175,7 @@ function Spinner({ label, step, total, firstTime }) {
 
 function FeedbackLink() {
   return (
-    <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Skills Analyser"
+    <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
       style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, color:C.teal, fontWeight:600, textDecoration:"none", background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:20, padding:"5px 12px", marginTop:10 }}>
       ✉ feedback@takearoundabout.com
     </a>
@@ -3240,7 +3240,7 @@ function ResultFooter() {
           ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
         </p>
         <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
-          <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Skills Analyser"
+          <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
             style={{ fontSize:12, color:C.teal, textDecoration:"none", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
             Share feedback
           </a>
