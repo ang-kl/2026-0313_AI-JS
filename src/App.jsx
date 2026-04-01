@@ -1,4 +1,4 @@
-// v2.0.5 - 2026-03-30 - HDR #035 - 8 analytics tracking calls added
+// v2.0.5 - 2026-03-30 - HDR #036 - title renamed AI Readiness across Role Skills, role_searched tracking
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -3746,6 +3746,7 @@ export default function App() {
     setTimeout(() => setShowExpect(false), 2200);
     setErr("");
     track("occupation_searched");
+    track("role_searched", { query: tidyQuery.slice(0, 30) });
     pickerCancelRef.current = true; // cancel any in-flight background full search
     setNoExactMatch(null); setPickerFullError(false); setFunctionKeywordNotice(null);
     // Detect bare function/discipline names before lookup or API call
@@ -4438,7 +4439,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       <div style={{ background:C.eu, padding:"10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box" }}>
         <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
         <div style={{ flex:1, minWidth:0 }}>
-          <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Potential Across Role Functions</h1>
+          <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         {step !== "idle" && (
           <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding:"5px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
