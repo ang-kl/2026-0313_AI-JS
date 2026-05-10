@@ -5,10 +5,10 @@
   "functions": {
     "api/claude.js":     { "maxDuration": 300 },
     "api/esco.js":       { "maxDuration": 30  },
-    "v3/api/claude.js":  { "maxDuration": 300 },
-    "v3/api/esco.js":    { "maxDuration": 30  },
-    "v3/api/mcf.js":     { "maxDuration": 30  },
-    "v3/api/datagov.js": { "maxDuration": 15  }
+    "api/v3/claude.js":  { "maxDuration": 300 },
+    "api/v3/esco.js":    { "maxDuration": 30  },
+    "api/v3/mcf.js":     { "maxDuration": 30  },
+    "api/v3/datagov.js": { "maxDuration": 15  }
   },
   "fluid": true,
   "headers": [
@@ -54,9 +54,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/v3/:path*", "destination": "/v3/api/:path*" },
     { "source": "/v3", "destination": "/v3/index.html" },
-    { "source": "/v3/((?!api/|assets/).*)", "destination": "/v3/index.html" },
+    { "source": "/v3/((?!assets/).*)", "destination": "/v3/index.html" },
     { "source": "/((?!api/|v3/|v3$).*)", "destination": "/index.html" }
   ]
 }
