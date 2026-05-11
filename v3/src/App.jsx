@@ -496,6 +496,146 @@ Return the essential skills this posting demands, grounded in the above.`, 1320,
   }
 }
 
+// ===========================================================================
+// Role-Mix decomposition - read the messy real job ad, not the cookie-cutter
+// occupation. Decompose a live posting into the ESCO occupations it actually
+// blends. Numbers are deterministic (ESCO essential-skill overlap + arithmetic);
+// only the headline/notes/skilling prose is LLM. Result cached per posting.
+// ===========================================================================
+
+const ROLE_MIX_VERSION = "rm1"; // bump when the fingerprint inputs or the narrative prompt change
+const _roleMixCache = new Map(); // `${uuid}|${ROLE_MIX_VERSION}` -> roleMix object
+
+const ROLE_MIX_COHERENCE = {
+  coherent: { label:"Coherent hybrid", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+  mixed:    { label:"Mixed bundle",    color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" },
+  grabbag:  { label:"Grab-bag",        color:"#b91c1c", bg:"#fef2f2", border:"#fecaca" },
+};
+
+async function getRoleMixCandidates(title, skills) {
+  const skillPhrases = (skills || []).map(s => s.skill).filter(Boolean).slice(0, 25);
+  const res = await fetch("/api/esco", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "occupationFingerprint", title: title || "", skillPhrases }),
+  });
+  if (!res.ok) throw new Error(`esco fingerprint ${res.status}`);
+  return res.json(); // { candidates:[...], nominal:{uri,label}|null, fallback }
+}
+
+// Pure deterministic assembly: shares (5% bands), skill->component attribution,
+// posted-as-vs-actually, coherence metric, per-component AI exposure.
+function assembleRoleMix(fp, skills, title) {
+  const cand = (fp && fp.candidates) || [];
+  if (!cand.length) return null;
+  const totalRatio = cand.reduce((a, c) => a + Math.max(0.0001, c.ratio), 0);
+  const comps = cand.map(c => ({
+    label: toTitleCase(c.label || ""), uri: c.uri, code: c.code || "", iscoMajor: c.iscoMajor,
+    matchedSkills: c.matchedSkills || [], matchCount: c.matchCount || 0, essentialCount: c.essentialCount || 0,
+    isNominal: !!c.isNominal, rawShare: Math.max(0.0001, c.ratio) / totalRatio,
+  })).sort((a, b) => b.rawShare - a.rawShare);
+  const kept = []; let otherRaw = 0;
+  comps.forEach((c, i) => { if (i < 4 && c.rawShare >= 0.08) kept.push(c); else otherRaw += c.rawShare; });
+  if (!kept.length) kept.push(comps[0]);
+  const denom = kept.reduce((a, c) => a + c.rawShare, 0) + otherRaw || 1;
+  const round5 = x => Math.max(5, Math.round((x / denom) * 20) * 5);
+  kept.forEach(c => { c.pct = round5(c.rawShare); });
+  let otherPct = otherRaw > 0 ? round5(otherRaw) : 0;
+  const sum = kept.reduce((a, c) => a + c.pct, 0) + otherPct;
+  if (sum !== 100 && kept.length) kept[0].pct = Math.max(5, kept[0].pct + (100 - sum));
+  // attribute each analysed skill to the component whose matched-skill set it best matches
+  const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const sigToks = s => norm(s).split(" ").filter(t => t.length > 3);
+  const exact = kept.map(c => new Set(c.matchedSkills.map(norm)));
+  const toks = kept.map(c => c.matchedSkills.map(sigToks));
+  kept.forEach(c => { c.skills = []; });
+  const crossCutting = [];
+  (skills || []).forEach(s => {
+    const ns = norm(s.skill), st = new Set(sigToks(s.skill));
+    let best = -1;
+    for (let i = 0; i < kept.length && best < 0; i++) {
+      if (exact[i].has(ns)) { best = i; break; }
+      for (const mt of toks[i]) { if (mt.filter(t => st.has(t)).length >= 2) { best = i; break; } }
+    }
+    if (best >= 0) kept[best].skills.push({ n: s.n, skill: s.skill, level: s.level });
+    else crossCutting.push({ n: s.n, skill: s.skill, level: s.level });
+  });
+  const exposureOf = arr => {
+    const c = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
+    arr.forEach(s => { if (c[s.level] !== undefined) c[s.level]++; });
+    const n = arr.length || 1;
+    return { counts: c, n: arr.length, aiExposedPct: Math.round(((c.HIGH + c.MEDIUM) / n) * 100), humanPct: Math.round((c.HUMAN / n) * 100) };
+  };
+  kept.forEach(c => { c.exposure = exposureOf(c.skills); });
+  const nominalLabel = fp.nominal && fp.nominal.label ? toTitleCase(fp.nominal.label) : (kept[0] ? kept[0].label : "");
+  const top = kept[0];
+  const nominalIsTop = !!(top && (top.isNominal || (nominalLabel && top.label.toLowerCase() === nominalLabel.toLowerCase())));
+  const mismatch = !nominalIsTop || !!(top && top.pct < 50);
+  const shares = kept.map(c => c.pct / 100).concat(otherPct > 0 ? [otherPct / 100] : []);
+  const k = shares.length;
+  let entropy = 0; shares.forEach(p => { if (p > 0) entropy -= p * Math.log(p); });
+  const normEntropy = k > 1 ? entropy / Math.log(k) : 0;
+  const majors = kept.map(c => c.iscoMajor).filter(m => Number.isInteger(m));
+  const sameMajor = majors.length >= 2 && majors.every(m => m === majors[0]);
+  const coherenceScore = (1 - normEntropy) * (sameMajor ? 1 : 0.65);
+  const coherenceKey = (k <= 1 || coherenceScore >= 0.6) ? "coherent" : (coherenceScore >= 0.32 ? "mixed" : "grabbag");
+  return {
+    components: kept.map(c => ({ label: c.label, code: c.code, iscoMajor: c.iscoMajor, pct: c.pct, isNominal: c.isNominal,
+      matchedSkills: c.matchedSkills, matchCount: c.matchCount, essentialCount: c.essentialCount, skills: c.skills, exposure: c.exposure })),
+    otherPct, crossCutting, nominalLabel, mismatch,
+    coherenceKey, coherenceScore: Math.round(coherenceScore * 100) / 100, sameMajor, fallback: false,
+  };
+}
+
+async function narrateRoleMix(title, mix) {
+  const compDesc = mix.components.map(c => `${c.label} ${c.pct}%${c.isNominal ? " (matches the posted title)" : ""} - AI exposure ${c.exposure.aiExposedPct}%, human-led ${c.exposure.humanPct}%${c.skills.length ? ` - duties: ${c.skills.slice(0,3).map(s=>s.skill).join(", ")}` : ""}`).join("\n");
+  const SYSTEM_RM =
+`You are a careers analyst who reads real job ads, not idealised occupation profiles. You are given a decomposition of ONE live posting into the ESCO occupations it blends, with each component's AI-exposure. Write a short, grounded reflection - never invent numbers, only explain the ones given. Apply Singapore/ASEAN context. Humble tone, no hype.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "headline": "One sentence on what this ad really is, under 22 words",
+  "postedAsNote": "One sentence on how the posted title compares to the actual duty mix, under 22 words. Empty string if the title matches well.",
+  "coherenceNote": "One sentence on whether this is a sensible hybrid or a stretched grab-bag, under 22 words",
+  "skillingPriority": [{"component":"exact component label from the input","why":"why focus here - under 14 words","action":"one concrete thing to do - under 12 words"}]
+}
+Rules:
+- skillingPriority: 2 to 3 items drawn from the components given. Prioritise the component that is most central AND least AI-exposed (the durable core); flag a highly AI-exposed component as lower-priority filler.
+- No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(
+`Job title (as posted): ${title}
+Posted-title's nominal occupation: ${mix.nominalLabel || "(unclear)"}
+Coherence (computed): ${ROLE_MIX_COHERENCE[mix.coherenceKey]?.label || mix.coherenceKey} - score ${mix.coherenceScore}; components ${mix.sameMajor ? "in the same ISCO major group" : "spanning different ISCO major groups"}
+Role-mix components:
+${compDesc}
+${mix.otherPct ? `Other roles (combined): ${mix.otherPct}%\n` : ""}Write the reflection grounded only in the above.`, 700, 1, SYSTEM_RM);
+    const obj = extractJSON(raw, "rolemix-narrative");
+    if (!obj) return null;
+    return {
+      headline: String(obj.headline || "").replace(/"/g, "").trim(),
+      postedAsNote: String(obj.postedAsNote || "").replace(/"/g, "").trim(),
+      coherenceNote: String(obj.coherenceNote || "").replace(/"/g, "").trim(),
+      skillingPriority: (obj.skillingPriority || []).map(x => ({ component: String(x.component||"").trim(), why: String(x.why||"").trim(), action: String(x.action||"").trim() })).filter(x => x.component).slice(0, 3),
+    };
+  } catch (_) { return null; }
+}
+
+async function buildRoleMix(posting, skills) {
+  const cacheKey = `${(posting && (posting.uuid || posting.title)) || "?"}|${ROLE_MIX_VERSION}`;
+  if (_roleMixCache.has(cacheKey)) return _roleMixCache.get(cacheKey);
+  let fp;
+  try { fp = await getRoleMixCandidates((posting && posting.title) || "", skills); }
+  catch (e) { const r = { fallback: true, reason: "esco_error" }; _roleMixCache.set(cacheKey, r); return r; }
+  if (!fp || fp.fallback || !fp.candidates || !fp.candidates.length) {
+    const r = { fallback: true, reason: (fp && fp.reason) || "no_candidates" }; _roleMixCache.set(cacheKey, r); return r;
+  }
+  const mix = assembleRoleMix(fp, skills, (posting && posting.title) || "");
+  if (!mix || !mix.components.length) { const r = { fallback: true, reason: "no_components" }; _roleMixCache.set(cacheKey, r); return r; }
+  mix.narrative = await narrateRoleMix((posting && posting.title) || "", mix);
+  _roleMixCache.set(cacheKey, mix);
+  return mix;
+}
+
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
   const SYSTEM_RATE =
@@ -3985,6 +4125,139 @@ function CompareWarningModal({ onConfirm, onCancel }) {
   );
 }
 
+// v3.2: RoleMixPanel - decomposes a live posting into the ESCO occupations it
+// actually blends (fingerprint %, posted-as-vs-actually, bundle coherence,
+// per-component AI exposure, and a skilling priority). Numbers are deterministic
+// (ESCO essential-skill overlap + arithmetic in assembleRoleMix); prose is LLM.
+function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
+  if (!roleMix) return null;
+  if (roleMix.fallback) {
+    return (
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Role-Mix unavailable</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
+          We couldn't decompose this posting against the ESCO occupation library right now (the lookup was unavailable or no occupation overlapped enough). Re-run the analysis in a moment.
+        </p>
+      </div>
+    );
+  }
+  const comps = roleMix.components || [];
+  const coh = ROLE_MIX_COHERENCE[roleMix.coherenceKey] || ROLE_MIX_COHERENCE.mixed;
+  const nar = roleMix.narrative || {};
+  const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#475569"];
+  const levelBar = [
+    { key:"HIGH",   color:"#dc2626" },
+    { key:"MEDIUM", color:"#d97706" },
+    { key:"LOW",    color:"#2563eb" },
+    { key:"HUMAN",  color:"#166534" },
+  ];
+  const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+  const priByLabel = {}; (nar.skillingPriority||[]).forEach(p => { priByLabel[(p.component||"").toLowerCase()] = p; });
+  return (
+    <div>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || "This posting blends duties from several ESCO occupations — the title alone doesn't capture the mix."}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
+          Matched this posting's skills against ESCO occupations' essential-skill lists. Shares are indicative, not a measurement.
+          {postingMeta && postingMeta.mcfUrl ? <> · <a href={postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>Open posting →</a></> : null}
+        </p>
+      </div>
+
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
+        <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Occupation mix</p>
+        <div style={{ display:"flex", height:16, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+          {comps.map((c,i) => <div key={i} title={`${c.label} ${c.pct}%`} style={{ flex:c.pct, background:palette[i%palette.length], minWidth:6 }} />)}
+          {roleMix.otherPct > 0 && <div title={`Other roles ${roleMix.otherPct}%`} style={{ flex:roleMix.otherPct, background:"#cbd5e1", minWidth:6 }} />}
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {comps.map((c,i) => (
+            <span key={i} style={{ fontSize:12, fontWeight:600, color:palette[i%palette.length], display:"inline-flex", alignItems:"center", gap:5 }}>
+              <span style={{ width:9, height:9, borderRadius:2, background:palette[i%palette.length] }} />
+              {c.label} <span style={{ fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}>· posted title</span> : null}
+            </span>
+          ))}
+          {roleMix.otherPct > 0 && <span style={{ fontSize:12, color:"#64748b" }}>Other roles {roleMix.otherPct}%</span>}
+        </div>
+      </div>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:14 }}>
+        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#f0fdf4", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#a7f3d0"}`, borderRadius:8, padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#166534", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
+          <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#166534", lineHeight:1.5 }}>
+            {nar.postedAsNote || (roleMix.mismatch
+              ? `Titled like "${roleMix.nominalLabel || title}", but the duty mix centres on ${comps[0]?.label || "another role"}.`
+              : `The posted title (${roleMix.nominalLabel || title}) matches the main duty cluster.`)}
+          </p>
+        </div>
+        <div style={{ flex:"1 1 240px", background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:8, padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:coh.color, textTransform:"uppercase", letterSpacing:"0.05em" }}>Bundle coherence: {coh.label}</p>
+          <p style={{ margin:0, fontSize:12, color:coh.color, lineHeight:1.5 }}>
+            {nar.coherenceNote || (roleMix.coherenceKey === "coherent" ? "A focused blend of closely related roles." : roleMix.coherenceKey === "grabbag" ? "A wide spread across unrelated roles — a stretched req." : "A moderate spread across a few roles.")}
+          </p>
+        </div>
+      </div>
+
+      {comps.map((c,i) => {
+        const pri = priByLabel[c.label.toLowerCase()];
+        return (
+          <div key={i} style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${palette[i%palette.length]}`, borderRadius:8, marginBottom:10, background:C.surface, padding:"12px 14px" }}>
+            <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, flexWrap:"wrap", marginBottom:6 }}>
+              <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{c.label} <span style={{ color:palette[i%palette.length], fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}> · matches the posted title</span> : null}</p>
+              <span style={{ fontSize:11, color:C.muted }}>{c.skills.length} duties · AI-exposed {c.exposure.aiExposedPct}% · human-led {c.exposure.humanPct}%</span>
+            </div>
+            {c.exposure.n > 0 && (
+              <div style={{ display:"flex", height:8, borderRadius:4, overflow:"hidden", marginBottom:8 }}>
+                {levelBar.map(b => c.exposure.counts[b.key] > 0 && <div key={b.key} style={{ flex:c.exposure.counts[b.key], background:b.color, minWidth:3 }} />)}
+              </div>
+            )}
+            {c.skills.length > 0 ? (
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginBottom: pri ? 8 : 0 }}>
+                {[...c.skills].sort((a,b)=>(lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((s,j) => (
+                  <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                    <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
+                    <span style={{ fontSize:12, color:C.textSub, lineHeight:1.4 }}>{s.skill}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              c.matchedSkills.length > 0 && <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Overlaps on: {c.matchedSkills.slice(0,5).join(", ")}</p>
+            )}
+            {pri && (
+              <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:6, padding:"7px 10px" }}>
+                <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#a16207", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skilling priority</p>
+                <p style={{ margin:0, fontSize:12, color:"#713f12", lineHeight:1.5 }}>{pri.why}{pri.action ? <> — <strong>{pri.action}</strong></> : null}</p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {roleMix.crossCutting && roleMix.crossCutting.length > 0 && (
+        <div style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:"#f8fafc", padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Cross-cutting ({roleMix.crossCutting.length})</p>
+          <p style={{ margin:"0 0 6px", fontSize:11, color:C.mutedLight }}>Skills that didn't map cleanly to one occupation component.</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize:11, color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px" }}>{s.skill}</span>)}
+          </div>
+        </div>
+      )}
+
+      {nar.skillingPriority && nar.skillingPriority.length > 0 && (
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — given this is a {comps.length}-way blend</p>
+          <ol style={{ margin:0, paddingLeft:18 }}>
+            {nar.skillingPriority.map((p,i) => (
+              <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{p.component}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>
+            ))}
+          </ol>
+          <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted }}>Each component's AI prompts are on the <strong>Skill Analysis</strong> tab — tap any skill.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
 // expects, extracted from live MyCareersFuture postings for this role. Mirrors
 // the Skill Analysis family of views (analysis, categories, seniority bands,
@@ -4995,6 +5268,19 @@ export default function App() {
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
 
+      // Background: Role-Mix decomposition - only for postings (an ESCO analysis is
+      // already a clean single occupation, so a fingerprint of it isn't interesting).
+      if (posting) {
+        buildRoleMix(posting, merged)
+          .then(rm => {
+            if (analysisCancelRef.current !== cancelId) return;
+            setResult(prev => prev ? { ...prev, roleMix: rm } : prev);
+            patchComparisonResult(comparisonKey, { roleMix: rm });
+            track("rolemix_loaded", { occupation: occ.title, components: rm && rm.components ? rm.components.length : 0, coherence: rm && rm.coherenceKey || "", mismatch: !!(rm && rm.mismatch), fallback: !!(rm && rm.fallback) });
+          })
+          .catch(e => { track("rolemix_error", { reason: (e.message||"").slice(0,60) }); });
+      }
+
       // Coherence check: detect if ESCO resolved to a wrong occupation
       // Step 1 - ISCO group guard (instant, no API call)
       const coherenceGuard = checkIscoCoherence(occ.title, occ.iscoCode);
@@ -5369,6 +5655,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
+      ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
       ...(r.foundationData ? [{ key:"foundation", label:`${safePersona(persona).icon||"🎓"} Foundation Skills`, color:safePersona(persona).color||C.green }] : []),
       { key:"progression", label:"⬆️ Career Progression",   color:"#1a56db" },
       { key:"crossover",   label:"🔄 Role Crossover",        color:C.green   },
@@ -5976,6 +6263,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 />}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
+              )}
+
+              {activeTab === "rolemix" && result.roleMix && (
+                <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
               )}
 
               {activeTab === "foundation" && result.foundationData && (
