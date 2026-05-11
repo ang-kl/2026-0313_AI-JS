@@ -15,10 +15,10 @@ export const config = {
 };
 
 const DATAGOV_BASE = 'https://api-production.data.gov.sg/v2/public/api';
-// MOM "Job Vacancy Rate by Industry and Occupational Group, Quarterly".
-// Resource id is intentionally configurable via env so it can be flipped
-// without a code change once the exact dataset id is confirmed.
-const MOM_DATASET_ID = process.env.MOM_VACANCY_DATASET_ID || 'd_ee2f8b2c0d8b1e5e2c3a8f7e6b9d4c1a';
+// MOM "Job Vacancy Rate by Industry and Occupational Group (Level2)",
+// data.gov.sg collection 690, resource d_60ba5027f80aef9a07d747067a948bfc.
+// Override via MOM_VACANCY_DATASET_ID if MOM republishes under a new id.
+const MOM_DATASET_ID = process.env.MOM_VACANCY_DATASET_ID || 'd_60ba5027f80aef9a07d747067a948bfc';
 const TIMEOUT_MS = 10000;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h - data is quarterly
 
