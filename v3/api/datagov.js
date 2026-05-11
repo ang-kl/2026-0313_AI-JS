@@ -5,16 +5,20 @@
 // extracts the last ~12 quarters of data for that group, returns sparkline
 // series + latest + YoY delta.
 //
-// Auth: x-api-key header from process.env.DATA_GOV_SG_API_KEY. data.gov.sg
-// APIs are public; the key only raises rate limits. If key is missing, the
-// function still attempts the call but returns fallback:true on failure.
+// Auth: optional x-api-key header from process.env.DATA_GOV_SG_API_KEY.
+// data.gov.sg's public dataset APIs don't require a key; it's sent only if
+// present (harmless otherwise). On any failure the function returns
+// fallback:true rather than erroring.
 
 export const config = {
   api: { bodyParser: true },
   maxDuration: 30,
 };
 
-const DATAGOV_BASE = 'https://api-production.data.gov.sg/v2/public/api';
+// Dataset *downloads* go through api-open.data.gov.sg/v1 (the initiate +
+// poll flow). Note: api-production.data.gov.sg/v2 is metadata-only and 404s
+// these paths.
+const DATAGOV_BASE = 'https://api-open.data.gov.sg/v1/public/api';
 // MOM "Job Vacancy Rate by Industry and Occupational Group (Level2)",
 // data.gov.sg collection 690, resource d_60ba5027f80aef9a07d747067a948bfc.
 // Override via MOM_VACANCY_DATASET_ID if MOM republishes under a new id.
