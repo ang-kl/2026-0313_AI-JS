@@ -17,7 +17,7 @@ const MCF_TIMEOUT_MS = 8000;
 const MCF_DETAIL_TIMEOUT_MS = 6000;
 const MAX_OUTBOUND_CALLS = 8; // <=3 search + <=5 detail
 const TIER_THRESHOLD = 5;
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 const DESC_CAP = 4000;
 const RESP_CAP = 2500;
 const DEFAULT_DETAIL_LIMIT = 5;
@@ -268,7 +268,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid request. Required: action="jobs", title=string' });
   }
 
-  const cap = Math.max(1, Math.min(20, Number(limit) || 10));
+  const cap = Math.max(1, Math.min(50, Number(limit) || 10));
   const wantDetail = detail === true;
   const detLimit = Math.max(1, Math.min(8, Number(detailLimit) || DEFAULT_DETAIL_LIMIT));
   const occ = escoOccupation || {};
@@ -319,7 +319,7 @@ export default async function handler(req, res) {
     if (tier1Hits.length >= TIER_THRESHOLD) {
       const jobs = await enrich(tier1Hits.slice(0, cap));
       return res.status(200).json({
-        jobs, tier: 1, total: tier1Hits.length, detail: wantDetail,
+        jobs, tier: 1, total: tier1Hits.length, capped: tier1Hits.length > cap, detail: wantDetail,
         source: 'MyCareersFuture Singapore',
       });
     }
@@ -336,7 +336,7 @@ export default async function handler(req, res) {
     if (tier2Hits.length >= TIER_THRESHOLD) {
       const jobs = await enrich(tier2Hits.slice(0, cap));
       return res.status(200).json({
-        jobs, tier: 2, total: tier2Hits.length, detail: wantDetail,
+        jobs, tier: 2, total: tier2Hits.length, capped: tier2Hits.length > cap, detail: wantDetail,
         source: 'MyCareersFuture Singapore',
       });
     }
@@ -352,16 +352,15 @@ export default async function handler(req, res) {
         const broadHits = await callIfBudget(() => mcfSearch(broadQuery, { limit: PAGE_SIZE * 2 }));
         const broaderConcept =
           (skillList.find(s => s?.broaderConcept)?.broaderConcept) || '';
-        const scored = broadHits
+        const scoredAll = broadHits
           .map(j => ({ job: j, score: scoreJob(j, tokens, broaderConcept) }))
           .filter(x => x.score > 0)
-          .sort((a, b) => b.score - a.score)
-          .slice(0, cap)
-          .map(x => x.job);
+          .sort((a, b) => b.score - a.score);
+        const scored = scoredAll.slice(0, cap).map(x => x.job);
         if (scored.length) {
           const jobs = await enrich(scored);
           return res.status(200).json({
-            jobs, tier: 3, approximate: true, total: scored.length, detail: wantDetail,
+            jobs, tier: 3, approximate: true, total: scoredAll.length, capped: scoredAll.length > cap, detail: wantDetail,
             source: 'MyCareersFuture Singapore',
           });
         }
@@ -374,7 +373,7 @@ export default async function handler(req, res) {
     if (merged.length) {
       const jobs = await enrich(merged.slice(0, cap));
       return res.status(200).json({
-        jobs, tier: 2, approximate: true, total: merged.length, detail: wantDetail,
+        jobs, tier: 2, approximate: true, total: merged.length, capped: merged.length > cap, detail: wantDetail,
         source: 'MyCareersFuture Singapore',
       });
     }
