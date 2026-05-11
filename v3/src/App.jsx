@@ -4742,6 +4742,57 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
   );
 }
 
+// v3.2: deterministic skill-cluster sub-archetypes - group the fetched postings
+// by which skill bundle they actually list ("these 47 ads are really 3 jobs:
+// <skills> / <skills> / <skills>"). Greedy Jaccard clustering over skill tokens;
+// each cluster named by its 1-2 most over-represented skill phrases. No AI.
+function clusterPostingsBySkills(jobs) {
+  if (!jobs || jobs.length < 8) return [];
+  const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const tokSet = j => new Set((j.skills || []).flatMap(s => norm(s).split(" ").filter(t => t.length > 3)));
+  const phraseList = j => Array.from(new Set((j.skills || []).map(norm).filter(Boolean)));
+  const sets = jobs.map(tokSet);
+  const phrases = jobs.map(phraseList);
+  if (sets.filter(s => s.size >= 3).length < jobs.length * 0.6) return []; // not enough skill data on the postings
+  const overallPF = {}; phrases.forEach(ps => ps.forEach(p => { overallPF[p] = (overallPF[p] || 0) + 1; }));
+  const phraseExample = {}; jobs.forEach(j => (j.skills || []).forEach(s => { const k = norm(s); if (k && !phraseExample[k]) phraseExample[k] = s; }));
+  const jac = (a, b) => { if (!a.size || !b.size) return 0; let i = 0; a.forEach(t => { if (b.has(t)) i++; }); return i / (a.size + b.size - i); };
+  const TAU = 0.22;
+  const order = jobs.map((_, i) => i).sort((a, b) => String(jobs[a].uuid).localeCompare(String(jobs[b].uuid)));
+  const assigned = new Array(jobs.length).fill(false);
+  const clusters = [];
+  for (let g = 0; g < 4; g++) {
+    let seed = -1, best = -1;
+    for (const i of order) {
+      if (assigned[i] || sets[i].size < 3) continue;
+      let n = 0; for (const k of order) if (!assigned[k] && k !== i && jac(sets[i], sets[k]) >= TAU) n++;
+      if (n > best) { best = n; seed = i; }
+    }
+    if (seed < 0 || best < 2) break;
+    const m = [seed]; assigned[seed] = true;
+    for (const k of order) if (!assigned[k] && jac(sets[seed], sets[k]) >= TAU) { m.push(k); assigned[k] = true; }
+    if (m.length < 3) { m.forEach(x => (assigned[x] = false)); break; }
+    clusters.push(m);
+  }
+  if (clusters.length < 2) return [];
+  const total = jobs.length;
+  const named = clusters.map(m => {
+    const cf = {}; m.forEach(j => phrases[j].forEach(p => { cf[p] = (cf[p] || 0) + 1; }));
+    const top = Object.entries(cf)
+      .filter(([p, c]) => c >= Math.max(2, Math.ceil(m.length * 0.4)))
+      .map(([p, c]) => [p, (c / m.length) / Math.max(1 / total, (overallPF[p] || 1) / total)])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([p]) => toTitleCase(phraseExample[p] || p));
+    return { name: top.length ? top.join(" + ") : `Cluster (${m.length})`, jobs: m.map(i => jobs[i]) };
+  });
+  const seen = {}; named.forEach(grp => { while (seen[grp.name]) grp.name += " ·"; seen[grp.name] = 1; });
+  const leftover = order.filter(i => !assigned[i]);
+  const out = named.filter(grp => grp.jobs.length >= 2);
+  if (leftover.length >= 2) out.push({ name: "Mixed", jobs: leftover.map(i => jobs[i]) });
+  return out.length >= 2 ? out : [];
+}
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
@@ -4837,8 +4888,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
     if (other.length >= 2) groups.push({ name: "Other", jobs: other });
     return groups.length >= 2 ? groups : [];
   })();
-  const activeSector = sectorGroups.find(g => g.name === sectorFilter) || null;
-  const baseJobs = activeSector ? activeSector.jobs : state.jobs;
+  // Prefer a real skill-cluster split when the postings carry enough skill data;
+  // otherwise fall back to the job-category split.
+  const skillGroups = clusterPostingsBySkills(state.jobs);
+  const archGroups = skillGroups.length >= 2 ? skillGroups : sectorGroups;
+  const archLabel = skillGroups.length >= 2 ? "distinct skill clusters" : "job categories";
+  const activeArch = archGroups.find(g => g.name === sectorFilter) || null;
+  const baseJobs = activeArch ? activeArch.jobs : state.jobs;
   const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
   const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
@@ -4875,10 +4931,10 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
       {!state.loading && state.jobs.length > 0 && (
         <>
-          {sectorGroups.length >= 2 && (
+          {archGroups.length >= 2 && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
               <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                These {state.jobs.length}{state.capped ? "+" : ""} postings span {sectorGroups.length} job categories
+                These {state.jobs.length}{state.capped ? "+" : ""} postings fall into {archGroups.length} {archLabel} — tap to filter
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 <button onClick={() => { setSectorFilter(null); setPage(0); }}
@@ -4886,7 +4942,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
                     border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
                   All ({state.jobs.length})
                 </button>
-                {sectorGroups.map(g => (
+                {archGroups.map(g => (
                   <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
                     style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
                       border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
@@ -4898,7 +4954,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {activeSector ? `${baseJobs.length} in ${activeSector.name}` : `${state.jobs.length}${state.capped ? "+" : ""} posting${state.jobs.length === 1 ? "" : "s"}`}
+              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${state.jobs.length}${state.capped ? "+" : ""} posting${state.jobs.length === 1 ? "" : "s"}`}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
