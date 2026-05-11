@@ -639,6 +639,245 @@ async function buildRoleMix(posting, skills) {
   return mix;
 }
 
+// ===========================================================================
+// Job Anatomy - the "predictive" read of a real role from its live MyCareersFuture
+// ads. Per-ad feature extraction (parsing engine) -> deterministic merge with true
+// frequencies -> duty classification (work LAYER + AI exposure now/2y + trajectory)
+// -> deterministic scoring (AI-resilience / automatability / centre of gravity) ->
+// one narration pass. Numbers come from code or label-only classification, never
+// from generative prose. Result cached per (sorted ad uuids + version).
+// ===========================================================================
+
+const JOB_ANATOMY_VERSION = "ja1";
+const _jobAnatomyCache = new Map();
+const JOB_LAYERS = {
+  Activity:       { label:"Activity",       color:"#b45309", bg:"#fffbeb", border:"#fcd9a0", blurb:"hands-on production" },
+  Coordination:   { label:"Coordination",   color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", blurb:"orchestrating people and process" },
+  Accountability: { label:"Accountability", color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5", blurb:"owning outcomes and decisions" },
+  Relational:     { label:"Relational",     color:"#7c3aed", bg:"#f3e8ff", border:"#ddd6fe", blurb:"trust, negotiation and influence" },
+  Judgment:       { label:"Judgment",       color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", blurb:"framing and deciding under ambiguity" },
+};
+const JOB_LAYER_ORDER = ["Activity","Coordination","Accountability","Relational","Judgment"];
+const _exposureBand = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+
+function _stripHtml(s) {
+  return String(s || "")
+    .replace(/<\s*(br|\/p|\/li|\/div|\/tr|\/h[1-6]|\/section)\s*\/?\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/&#39;|&apos;|&rsquo;/gi, "'").replace(/&quot;|&ldquo;|&rdquo;/gi, '"')
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+const _PHRASE_STOP = new Set(["with","from","that","this","your","their","they","them","into","onto","upon","will","shall","must","have","been","were","does","done","using","within","across","along","other","others","more","most","some","such","each","both","when","where","which","while","also","over","than","being","make","made","take","taken","take","ensure","provide","support","manage","handle","perform","carry","drive"]);
+function _phraseNorm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+function _phraseToks(s) { return _phraseNorm(s).split(" ").filter(t => t.length > 3 && !_PHRASE_STOP.has(t)); }
+function _phraseMatch(a, b) {
+  const na = _phraseNorm(a), nb = _phraseNorm(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const ta = _phraseToks(a), tb = _phraseToks(b);
+  const sa = new Set(ta); let shared = 0; tb.forEach(t => { if (sa.has(t)) shared++; });
+  if (shared >= 2) return true;
+  if (ta.length === 1 && tb.length === 1 && ta[0] === tb[0]) return true;
+  return false;
+}
+
+// A. per-ad feature extraction (parsing engine - JSON only, copy/normalise from the ad, no invention)
+async function extractPostingFeatures(job) {
+  const text = _stripHtml(job && (job.description || job.responsibilitiesText) || "").slice(0, 4000);
+  if (text.length < 120) return null;
+  const SYSTEM_AF =
+`ACT AS a job-advert parser. You are given the text of ONE job posting. Extract the structured fields below by copying or lightly normalising phrases FROM THE AD - do not invent, infer, or pad.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+ "tasks": ["short verb-led activity the worker does, under 12 words", ...],
+ "outcomes": ["a result, target or KPI the role is measured on, under 12 words", ...],
+ "decisionRights": ["something the role owns, approves or signs off, under 12 words", ...],
+ "stakeholders": ["who the role works with or manages, under 6 words", ...],
+ "orgSignals": {
+   "reportsTo": "the role this one reports to, or empty string",
+   "teamSize": "e.g. team of 4 / no direct reports / empty string",
+   "scopeRegion": "e.g. SEA region / Singapore / empty string",
+   "seniorityYears": "e.g. 3-5 years / 5+ years / empty string",
+   "tools": ["named tool or system, under 4 words", ...]
+ }
+}
+Rules:
+- tasks: 4 to 8 items. outcomes: 0 to 5. decisionRights: 0 to 4. stakeholders: 0 to 5. tools: 0 to 6.
+- If the ad does not say something, use an empty string or empty array - do NOT guess.
+- No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Job title: ${(job && job.title) || ""}\n\nJob posting text:\n${text}\n\nExtract the structured fields.`, 1100, 1, SYSTEM_AF);
+    const o = extractJSON(raw, "ad-features");
+    if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+    const arr = (x, max) => Array.isArray(x) ? x.map(s => String(s || "").replace(/"/g, "").trim()).filter(Boolean).slice(0, max) : [];
+    const str = x => String(x || "").replace(/"/g, "").trim();
+    const og = o.orgSignals || {};
+    return {
+      tasks: arr(o.tasks, 8), outcomes: arr(o.outcomes, 5), decisionRights: arr(o.decisionRights, 4), stakeholders: arr(o.stakeholders, 5),
+      orgSignals: { reportsTo: str(og.reportsTo), teamSize: str(og.teamSize), scopeRegion: str(og.scopeRegion), seniorityYears: str(og.seniorityYears), tools: arr(og.tools, 6) },
+    };
+  } catch (_) { return null; }
+}
+
+// B. deterministic merge across ads -> duties with true frequencies + aggregated org context
+function mergeAdFeatures(perAd) {
+  const ads = (perAd || []).filter(Boolean);
+  const N = ads.length;
+  const mergeList = (key, kind) => {
+    const out = [];
+    ads.forEach((a, ai) => {
+      (a[key] || []).forEach(phrase => {
+        const m = out.find(x => _phraseMatch(x.text, phrase));
+        if (m) m.ads.add(ai); else out.push({ text: phrase, kind, ads: new Set([ai]) });
+      });
+    });
+    return out;
+  };
+  const tasks = mergeList("tasks", "task");
+  const decisions = mergeList("decisionRights", "decision");
+  const outcomes = mergeList("outcomes", "outcome");
+  const kindOrd = { task:0, decision:1, outcome:2 };
+  const duties = [...tasks, ...decisions, ...outcomes]
+    .map(d => ({ text: d.text, kind: d.kind, count: d.ads.size, of: N }))
+    .sort((a, b) => (b.count - a.count) || (kindOrd[a.kind] - kindOrd[b.kind]) || a.text.localeCompare(b.text))
+    .slice(0, 24);
+  duties.forEach((d, i) => { d.n = i + 1; });
+  const mode = xs => { const f = {}; xs.filter(Boolean).forEach(x => { f[x] = (f[x]||0)+1; }); const e = Object.entries(f).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])); return e.length ? e[0][0] : ""; };
+  const topBy = (xs, n) => { const f = {}; xs.filter(Boolean).forEach(x => { f[x] = (f[x]||0)+1; }); return Object.entries(f).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])).slice(0, n).map(([x]) => x); };
+  const og = ads.map(a => a.orgSignals || {});
+  const orgContext = {
+    reportsTo: mode(og.map(o => o.reportsTo)),
+    teamSize: mode(og.map(o => o.teamSize)),
+    seniorityYears: mode(og.map(o => o.seniorityYears)),
+    scopeRegions: Array.from(new Set(og.map(o => o.scopeRegion).filter(Boolean))).slice(0, 4),
+    tools: topBy(og.flatMap(o => o.tools || []), 6),
+    stakeholders: topBy(ads.flatMap(a => a.stakeholders || []), 6),
+  };
+  return { duties, orgContext, adCount: N };
+}
+
+// C. duty classification (classification engine - labels & numbers only, no prose)
+async function classifyDuties(title, duties) {
+  if (!duties.length) return [];
+  const SYSTEM_CD =
+`ACT AS a workforce-AI classification engine. You are given a list of duties for one job role. For EACH duty output classification labels only - no prose, no explanations.
+Return ONLY a JSON array, same length and order as the input. No text before or after. No markdown fences.
+Format: [{"n":1,"layer":"Activity","exposureNow":"MEDIUM","exposure2y":"HIGH","trajectory":"rising","confidence":0.8}]
+LAYER (what kind of work this duty is):
+- Activity: hands-on production - producing the output yourself (analyse, draft, build, reconcile, test, process).
+- Coordination: orchestrating people and process - scheduling, chasing, running meetings, keeping work flowing.
+- Accountability: owning the outcome - sign-off, approval, decision rights, being answerable when it is wrong.
+- Relational: trust, negotiation, persuasion, influence, difficult conversations, relationship management.
+- Judgment: framing ambiguous problems and deciding with incomplete information; setting direction or priorities.
+EXPOSURE (how well AI can perform this duty - exposureNow = today, exposure2y = in ~2 years):
+- HIGH: AI performs it autonomously with minimal human input.
+- MEDIUM: AI dramatically augments speed or quality; a human still directs and signs off.
+- LOW: AI assists parts of it; human judgment leads throughout.
+- HUMAN: presence, accountability, physical action or relationship - AI cannot meaningfully do it.
+TRAJECTORY: stable (exposure2y equals exposureNow) | rising (climbs one band by ~2 years) | sharp (climbs two bands).
+confidence: a number 0.0 to 1.0.
+Calibration: most Activity duties are MEDIUM now and many are rising; Accountability / Relational / Judgment duties stay LOW or HUMAN; office-suite drafting (Word/Excel/PowerPoint) is MEDIUM at most; if exposureNow is HUMAN the trajectory is usually stable.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nDuties to classify:\n${duties.map((d,i)=>`${i+1}. [${d.kind}] ${d.text}`).join("\n")}\nClassify each.`, 2600, 1, SYSTEM_CD);
+    const arr = extractJSON(raw, "duty-classification");
+    if (!Array.isArray(arr)) return [];
+    const lvl = x => (["HUMAN","LOW","MEDIUM","HIGH"].includes(x) ? x : "MEDIUM");
+    const lay = x => (JOB_LAYERS[x] ? x : "Activity");
+    const tj = x => (["stable","rising","sharp"].includes(x) ? x : "stable");
+    return duties.map((d, i) => {
+      const c = arr.find(x => x && x.n === d.n) || arr[i] || {};
+      const eNow = lvl(c.exposureNow), e2y = lvl(c.exposure2y || c.exposureNow);
+      let trj = tj(c.trajectory);
+      if (e2y === eNow) trj = "stable"; // keep trajectory consistent with the bands
+      return { ...d, layer: lay(c.layer), exposureNow: eNow, exposure2y: e2y, trajectory: trj, confidence: Math.max(0, Math.min(1, Number(c.confidence) || 0.6)) };
+    });
+  } catch (_) { return duties.map(d => ({ ...d, layer:"Activity", exposureNow:"MEDIUM", exposure2y:"MEDIUM", trajectory:"stable", confidence:0.5 })); }
+}
+
+// D. deterministic scoring (no LLM - same inputs -> same numbers)
+function scoreJobAnatomy(duties) {
+  const w = d => Math.max(1, d.count || 1);
+  const totalW = duties.reduce((a, d) => a + w(d), 0) || 1;
+  const layerW = {}; JOB_LAYER_ORDER.forEach(L => layerW[L] = 0);
+  duties.forEach(d => { layerW[d.layer] = (layerW[d.layer] || 0) + w(d); });
+  const layerMix = {}; JOB_LAYER_ORDER.forEach(L => layerMix[L] = Math.round((layerW[L] / totalW) * 100));
+  const expoRes  = { HUMAN:1.0, LOW:0.72, MEDIUM:0.38, HIGH:0.10 };
+  const layRes   = { Activity:0.15, Coordination:0.45, Accountability:0.90, Relational:0.95, Judgment:0.85 };
+  const expoAuto = { HIGH:1.0, MEDIUM:0.60, LOW:0.25, HUMAN:0.05 };
+  const wmean = fn => duties.reduce((a, d) => a + fn(d) * w(d), 0) / totalW;
+  const aiResilienceScore   = Math.round(100 * wmean(d => Math.max(expoRes[d.exposureNow] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
+  const resilience2y        = Math.round(100 * wmean(d => Math.max(expoRes[d.exposure2y] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
+  const automatabilityIndex = Math.round(100 * wmean(d => expoAuto[d.exposureNow] ?? 0.4));
+  const cog = JOB_LAYER_ORDER.slice().sort((a, b) => layerW[b] - layerW[a])[0] || "Activity";
+  const nRising = duties.filter(d => (_exposureBand[d.exposure2y] ?? 1) > (_exposureBand[d.exposureNow] ?? 1)).length;
+  return {
+    layerMix, aiResilienceScore, resilience2y, automatabilityIndex,
+    centreOfGravity: { layer: cog, line: `Most of this role is ${JOB_LAYERS[cog].blurb} work today.` },
+    trajectory2y: { nRising, nDuties: duties.length, line: `${nRising} of ${duties.length} duties move further into AI's reach within ~2 years — resilience ~${aiResilienceScore} → ~${resilience2y} by ~2027.` },
+  };
+}
+
+// F. narration (the only generative pass - it gets the numbers, never makes one)
+async function narrateJobAnatomy(title, a) {
+  const mixLine = JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => `${JOB_LAYERS[L].label} ${a.layerMix[L]}%`).join(" · ");
+  const oc = a.orgContext || {};
+  const ocLine = [oc.reportsTo && `reports to ${oc.reportsTo}`, oc.seniorityYears && `~${oc.seniorityYears}`, oc.teamSize, (oc.scopeRegions||[]).join("/"), (oc.tools||[]).slice(0,4).join(", ")].filter(Boolean).join(" · ") || "not stated in the ads";
+  const topDuties = a.duties.slice(0, 8).map(d => `${d.text} [${d.layer}, ${d.exposureNow}→${d.exposure2y}]`).join("; ");
+  const SYSTEM_NA =
+`ACT AS a careers analyst. You are given the computed anatomy of a real job role - its work-layer mix, AI-resilience score, centre of gravity, 2-year trajectory and org-context signals. Write a short grounded reflection. NEVER produce or change a number - only explain the ones given. Apply Singapore/ASEAN context. Humble, plain, no hype.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+ "headline": "one sentence on what this job mostly is today, under 22 words",
+ "whatTheJobReallyIs": "2 short sentences on the real shape of the work versus the job title, under 45 words",
+ "whatSupervisorsExpect": "2 short sentences on what a manager or department is really hiring for here (accountability, judgment, relationships, outcomes), under 45 words",
+ "prepFocus": [{"layer":"exact layer name from the input","why":"why focus here as AI advances - under 14 words","action":"one concrete thing to do - under 12 words"}]
+}
+Rules: prepFocus 2 to 3 items, prioritising the layers least exposed to AI and most central to this role. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(
+`Role (as posted or searched): ${title}
+Work-layer mix: ${mixLine}
+AI-resilience score: ${a.aiResilienceScore}/100 (in ~2 years: ~${a.resilience2y}/100). Automatability index now: ${a.automatabilityIndex}/100.
+Centre of gravity: ${a.centreOfGravity.layer} — ${a.centreOfGravity.line}
+2-year trajectory: ${a.trajectory2y.line}
+Org-context across ${a.adCount} live ads: ${ocLine}
+Top duties (with layer & exposure now→2y): ${topDuties}
+Write the reflection grounded only in the above.`, 800, 1, SYSTEM_NA);
+    const o = extractJSON(raw, "anatomy-narrative");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    return {
+      headline: s(o.headline), whatTheJobReallyIs: s(o.whatTheJobReallyIs), whatSupervisorsExpect: s(o.whatSupervisorsExpect),
+      prepFocus: (o.prepFocus || []).map(p => ({ layer: s(p.layer), why: s(p.why), action: s(p.action) })).filter(p => p.layer).slice(0, 3),
+    };
+  } catch (_) { return null; }
+}
+
+// orchestrator - reuse the live ads already fetched by buildResponsibilitiesData; cache per ad-set + version
+async function buildJobAnatomy(jobs, title) {
+  const ads = (jobs || []).filter(j => j && j.uuid);
+  const cacheKey = `${ads.map(j => j.uuid).sort().join(",")}|${JOB_ANATOMY_VERSION}`;
+  if (_jobAnatomyCache.has(cacheKey)) return _jobAnatomyCache.get(cacheKey);
+  const done = r => { _jobAnatomyCache.set(cacheKey, r); return r; };
+  if (ads.length < 3) return done({ fallback: true, reason: "too_few_ads" });
+  const settled = await Promise.allSettled(ads.slice(0, 12).map(extractPostingFeatures));
+  const perAd = settled.filter(r => r.status === "fulfilled" && r.value).map(r => r.value);
+  if (perAd.length < 2) return done({ fallback: true, reason: "extract_failed" });
+  const merged = mergeAdFeatures(perAd);
+  if (!merged.duties || merged.duties.length < 4) return done({ fallback: true, reason: "thin", orgContext: merged.orgContext, adCount: merged.adCount });
+  const classified = await classifyDuties(title, merged.duties);
+  if (!classified.length) return done({ fallback: true, reason: "classify_failed" });
+  const scores = scoreJobAnatomy(classified);
+  const partial = { ...scores, orgContext: merged.orgContext, adCount: merged.adCount, duties: classified };
+  const narrative = await narrateJobAnatomy(title, partial);
+  return done({ fallback: false, ...partial, narrative });
+}
+
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
   const SYSTEM_RATE =
@@ -4316,6 +4555,127 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   );
 }
 
+// v3.2: JobAnatomyView - the "predictive" read: work-layer mix + AI-resilience
+// score + per-duty AI exposure (now -> ~2 years) + org-context, from buildJobAnatomy.
+function JobAnatomyView({ anatomy, title }) {
+  if (!anatomy) return null;
+  if (anatomy.fallback || !anatomy.duties || !anatomy.duties.length) {
+    return (
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily — try again tomorrow.</p>
+      </div>
+    );
+  }
+  const a = anatomy;
+  const nar = a.narrative || {};
+  const score = a.aiResilienceScore;
+  const scoreColor = score >= 65 ? "#166534" : score >= 40 ? "#b45309" : "#b91c1c";
+  const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+  const sortedDuties = [...a.duties].sort((x,y) => (y.count - x.count) || ((lvlOrd[x.exposureNow]??1)-(lvlOrd[y.exposureNow]??1)) || x.text.localeCompare(y.text));
+  const trjSym = { stable:"→", rising:"↗", sharp:"⇈" };
+  const oc = a.orgContext || {};
+  const ocBits = [
+    oc.reportsTo && `reports to ${oc.reportsTo}`,
+    oc.seniorityYears && `~${oc.seniorityYears}`,
+    oc.teamSize,
+    ...(oc.scopeRegions || []),
+    (oc.tools && oc.tools.length) ? `tools: ${oc.tools.slice(0,5).join(", ")}` : null,
+  ].filter(Boolean);
+  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize:9.5, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius:8, padding:"1px 7px", whiteSpace:"nowrap" }}>{m.label}</span>; };
+  return (
+    <div>
+      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>🧬 Job Anatomy — what this role actually is</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} · duty frequencies are real counts · work-layer & AI-exposure are classification labels, the scores are computed — not generated prose.</p>
+      </div>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+        <div style={{ flex:"1 1 200px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
+          <p style={{ margin:0, fontSize:32, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
+          <div style={{ display:"flex", height:7, borderRadius:4, overflow:"hidden", background:"#eef1f5", marginTop:8 }}>
+            <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
+          </div>
+          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>≈ {a.resilience2y}/100 by ~2027 · automatability now {a.automatabilityIndex}/100</p>
+        </div>
+        <div style={{ flex:"2 1 320px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+          <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
+          <div style={{ display:"flex", height:14, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
+              <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
+                <span style={{ width:8, height:8, borderRadius:2, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
+              </span>
+            ))}
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line} {a.trajectory2y.line}</p>
+        </div>
+      </div>
+
+      {ocBits.length > 0 && (
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
+          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" · ")}{(oc.stakeholders && oc.stakeholders.length) ? ` · works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
+        </div>
+      )}
+
+      {(nar.whatTheJobReallyIs || nar.whatSupervisorsExpect) && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+          {nar.whatTheJobReallyIs && (
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What this job really is</p>
+              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatTheJobReallyIs}</p>
+            </div>
+          )}
+          {nar.whatSupervisorsExpect && (
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What supervisors actually expect</p>
+              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatSupervisorsExpect}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", marginBottom:14 }}>
+        <p style={{ margin:0, padding:"9px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties — frequency · work layer · AI exposure now → ~2027</p>
+        {sortedDuties.map((d, i) => {
+          const L = JOB_LAYERS[d.layer] || JOB_LAYERS.Activity;
+          return (
+            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap", padding:"9px 14px", borderBottom: i < sortedDuties.length-1 ? `1px solid ${C.border}` : "none", borderLeft:`3px solid ${L.color}` }}>
+              <div style={{ flex:"3 1 200px", minWidth:0 }}>
+                <p style={{ margin:0, fontSize:12.5, color:C.text, lineHeight:1.45 }}>{d.text}</p>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4, alignItems:"center" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding:"1px 8px" }}>{L.label}</span>
+                  <span style={{ fontSize:10, color:C.muted }}>in {d.count}/{d.of} ads</span>
+                  {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>· {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
+                </div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, marginTop:1 }}>
+                {pillNow(d.exposureNow)}
+                <span style={{ fontSize:12, color: d.trajectory === "stable" ? C.mutedLight : "#b45309", fontWeight:700 }}>{trjSym[d.trajectory] || "→"}</span>
+                {pillNow(d.exposure2y)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {nar.prepFocus && nar.prepFocus.length > 0 && (
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — build the layers AI can't take</p>
+          <ol style={{ margin:0, paddingLeft:18 }}>
+            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
 // expects, extracted from live MyCareersFuture postings for this role. Mirrors
 // the Skill Analysis family of views (analysis, categories, seniority bands,
@@ -5456,6 +5816,17 @@ export default function App() {
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
           patchComparisonResult(comparisonKey, { responsibilitiesData: rd });
           track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
+          // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
+          if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
+            buildJobAnatomy(rd.jobs, occ.title)
+              .then(ja => {
+                if (analysisCancelRef.current !== cancelId) return;
+                setResult(prev => prev ? { ...prev, jobAnatomy: ja } : prev);
+                patchComparisonResult(comparisonKey, { jobAnatomy: ja });
+                track("jobanatomy_loaded", { occupation: occ.title, ads: ja && ja.adCount || 0, duties: ja && ja.duties ? ja.duties.length : 0, score: ja && ja.aiResilienceScore, fallback: !!(ja && ja.fallback) });
+              })
+              .catch(e => { track("jobanatomy_error", { reason: (e.message||"").slice(0,60) }); });
+          }
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
 
@@ -5869,6 +6240,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
+      ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
       ...(r.foundationData ? [{ key:"foundation", label:`${safePersona(persona).icon||"🎓"} Foundation Skills`, color:safePersona(persona).color||C.green }] : []),
       { key:"progression", label:"⬆️ Career Progression",   color:"#1a56db" },
@@ -6523,6 +6895,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 />}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
+              )}
+
+              {activeTab === "jobanatomy" && result.jobAnatomy && (
+                <JobAnatomyView anatomy={result.jobAnatomy} title={sel?.title || ""} />
               )}
 
               {activeTab === "rolemix" && result.roleMix && (
