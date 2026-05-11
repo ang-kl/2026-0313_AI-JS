@@ -1574,12 +1574,16 @@ Pick the 6 responsibilities this persona should focus on building first.`, 900, 
 }
 
 // Orchestrator: returns the full responsibilitiesData blob (or a fallback marker).
-async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona) {
+async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona, preJobs) {
   let jobsRes;
-  try {
-    jobsRes = await getJobsForRole(title, escoOccupation, skills);
-  } catch (e) {
-    return { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] };
+  if (Array.isArray(preJobs) && preJobs.length) {
+    jobsRes = { jobs: preJobs, tier: 1, approximate: false };
+  } else {
+    try {
+      jobsRes = await getJobsForRole(title, escoOccupation, skills);
+    } catch (e) {
+      return { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] };
+    }
   }
   const jobs = jobsRes.jobs || [];
   if (!jobs.length) return { fallback: true, reason: "no_jobs", jobCount: 0, jobs: [], tier: jobsRes.tier, approximate: jobsRes.approximate };
@@ -4797,7 +4801,7 @@ function clusterPostingsBySkills(jobs) {
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
-function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount }) {
+function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus }) {
   const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
@@ -4905,8 +4909,14 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "15px 18px", marginBottom: 16 }}>
         <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 21, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
         <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
-          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing. Postings refresh daily.
+          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing — or analyse all of them as one role. Postings refresh daily.
         </p>
+        {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
+          <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
+            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 8, color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            📊 Analyse all {state.jobs.length}{state.capped ? "+" : ""} postings as one role →
+          </button>
+        )}
       </div>
 
       {state.loading && (
@@ -5319,6 +5329,8 @@ export default function App() {
   const doAnalyse = useCallback(async (occ, opts = {}) => {
     const forceHybrid = opts.forceHybrid || false;
     const posting = opts.posting || null; // v3.2: analyse one live MCF posting
+    const corpus = opts.corpus || null;   // v3.2: analyse the aggregate of all fetched MCF postings
+    const fromAds = posting || (corpus ? { title: occ.title } : null); // either posting-source path
     // H3 fix: increment the cancel counter and capture this analysis's ID.
     analysisCancelRef.current += 1;
     const cancelId = analysisCancelRef.current;
@@ -5336,7 +5348,10 @@ export default function App() {
       escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
     }
 
-    setSel(occ); setStep("loading"); setSub(posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...` : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+    setSel(occ); setStep("loading"); setSub(
+      corpus ? `Analysing ${corpus.jobs.length} live MyCareersFuture postings for ${toTitleCase(occ.title)} as one role...`
+      : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
+      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -5353,15 +5368,16 @@ export default function App() {
     try {
       // forceHybrid: skip ESCO fetch and use Claude getSkills() directly
       // Used when coherence check confirms ESCO returned wrong occupation skills.
-      // posting: skip ESCO entirely and derive skills from the live MCF listing.
-      let escoResult = (forceHybrid || posting) ? null : await getEscoSkills(escoFetchTitle);
+      // posting / corpus: skip ESCO entirely and derive skills from the live MCF ad(s).
+      let escoResult = (forceHybrid || posting || corpus) ? null : await getEscoSkills(escoFetchTitle);
       let skills = escoResult ? escoResult.skills : null;
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
       if (skills === null && posting) skills = await getSkillsFromPosting(occ.title, posting.skills, posting.text);
+      if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
-      const escoSource = escoResult ? `ESCO v1.2` : posting ? `from this MyCareersFuture posting` : `AI-generated`;
+      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : posting ? `from this MyCareersFuture posting` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
@@ -5404,10 +5420,13 @@ export default function App() {
         return m ? Number(m[1]) : null;
       })();
       const iscoMajor = (escoOccupation && Number.isInteger(escoOccupation.iscoMajor)) ? escoOccupation.iscoMajor : iscoMajorFromCode;
-      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null, source: posting ? "posting" : "esco", postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl } : null };
-      const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : toTitleCase(occ.title);
+      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null,
+        source: corpus ? "corpus" : posting ? "posting" : "esco",
+        postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl } : null,
+        corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null };
+      const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : corpus ? `${toTitleCase(occ.title)} — across SG ads` : toTitleCase(occ.title);
       setResult(newResult);
-      track("analysis_completed", { occupation: occ.title, source: posting ? "posting" : "esco" });
+      track("analysis_completed", { occupation: occ.title, source: newResult.source });
       if (comparisonsRef.current.length > 0) {
         addToComparison(comparisonKey, newResult);
         setTimeout(() => {
@@ -5425,7 +5444,7 @@ export default function App() {
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
-      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona)
+      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined)
         .then(rd => {
           if (analysisCancelRef.current !== cancelId) return;
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
@@ -5434,15 +5453,17 @@ export default function App() {
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
 
-      // Background: Role-Mix decomposition - only for postings (an ESCO analysis is
-      // already a clean single occupation, so a fingerprint of it isn't interesting).
-      if (posting) {
-        buildRoleMix(posting, merged)
+      // Background: Role-Mix decomposition - for postings AND for the "across all
+      // SG ads" corpus (an ESCO analysis is already a clean single occupation, so
+      // a fingerprint of it isn't interesting).
+      if (fromAds) {
+        const rmTarget = posting || { title: occ.title, uuid: `corpus:${occ.title}` };
+        buildRoleMix(rmTarget, merged)
           .then(rm => {
             if (analysisCancelRef.current !== cancelId) return;
             setResult(prev => prev ? { ...prev, roleMix: rm } : prev);
             patchComparisonResult(comparisonKey, { roleMix: rm });
-            track("rolemix_loaded", { occupation: occ.title, components: rm && rm.components ? rm.components.length : 0, coherence: rm && rm.coherenceKey || "", mismatch: !!(rm && rm.mismatch), fallback: !!(rm && rm.fallback) });
+            track("rolemix_loaded", { occupation: occ.title, source: newResult.source, components: rm && rm.components ? rm.components.length : 0, coherence: rm && rm.coherenceKey || "", mismatch: !!(rm && rm.mismatch), fallback: !!(rm && rm.fallback) });
           })
           .catch(e => { track("rolemix_error", { reason: (e.message||"").slice(0,60) }); });
       }
@@ -5598,6 +5619,27 @@ export default function App() {
     };
     confirmIfComparing(doIt);
   }, [doAnalyse]);
+
+  // v3.2: analyse the AGGREGATE of all fetched MCF postings for a role - aggregated
+  // skill list + a responsibilities corpus -> a full analysis grounded in "what
+  // real SG employers ask for", not one cherry-picked ad.
+  const handleAnalyseCorpus = useCallback((jobs, titleArg) => {
+    if (!Array.isArray(jobs) || jobs.length < 4) return;
+    const title = toTitleCase((titleArg || query || "").trim()) || "Role";
+    const doIt = () => {
+      setQuery(title);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setResult(null); setOccs([]); setErr("");
+      setActiveTab("skills");
+      track("mcf_corpus_analyse", { count: jobs.length });
+      const sf = {}, sex = {};
+      jobs.forEach(j => (j.skills || []).forEach(s => { const k = String(s || "").toLowerCase().trim(); if (!k) return; sf[k] = (sf[k] || 0) + 1; if (!sex[k]) sex[k] = s; }));
+      const aggSkills = Object.entries(sf).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([k]) => sex[k]);
+      const { corpus, titles } = buildResponsibilitiesCorpus(jobs);
+      doAnalyse({ title, iscoCode: "", iscoGroup: "", description: "" }, { corpus: { jobs, skills: aggSkills, text: corpus, titles } });
+    };
+    confirmIfComparing(doIt);
+  }, [doAnalyse, query]);
 
   // v3.2: queue a MyCareersFuture posting for comparison (keyed distinctly by title + employer)
   const handleQueuePosting = useCallback((job) => {
@@ -6169,6 +6211,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               escoOccupation={null}
               onAnalysePosting={handleAnalysePosting}
               onQueuePosting={handleQueuePosting}
+              onAnalyseCorpus={handleAnalyseCorpus}
               queueCount={comparisons.length}
               standalone
             />
@@ -6259,6 +6302,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
                     {result.postingMeta && result.postingMeta.employer ? <span style={{ color:C.textSub }}>· {result.postingMeta.employer}</span> : null}
                     {result.postingMeta && result.postingMeta.mcfUrl ? <a href={result.postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>· Open posting →</a> : null}
+                  </p>
+                )}
+                {result.source === "corpus" && (
+                  <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
+                    <span style={{ color:C.textSub }}>· aggregated from what real SG employers ask for, not one cherry-picked ad</span>
                   </p>
                 )}
                 {/* ESCO coherence notice */}
@@ -6557,6 +6606,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   escoOccupation={result.escoOccupation}
                   onAnalysePosting={handleAnalysePosting}
                   onQueuePosting={handleQueuePosting}
+                  onAnalyseCorpus={handleAnalyseCorpus}
                   queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
                 />
               )}
