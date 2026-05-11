@@ -11,7 +11,7 @@
 
 export const config = {
   api: { bodyParser: true },
-  maxDuration: 15,
+  maxDuration: 30,
 };
 
 const DATAGOV_BASE = 'https://api-production.data.gov.sg/v2/public/api';
@@ -19,7 +19,9 @@ const DATAGOV_BASE = 'https://api-production.data.gov.sg/v2/public/api';
 // data.gov.sg collection 690, resource d_60ba5027f80aef9a07d747067a948bfc.
 // Override via MOM_VACANCY_DATASET_ID if MOM republishes under a new id.
 const MOM_DATASET_ID = process.env.MOM_VACANCY_DATASET_ID || 'd_60ba5027f80aef9a07d747067a948bfc';
-const TIMEOUT_MS = 10000;
+const STEP_TIMEOUT_MS = 7000;   // per-request timeout for each data.gov.sg call
+const POLL_MAX_ATTEMPTS = 3;    // poll-download retries (URL is usually ready on #1)
+const POLL_INTERVAL_MS = 700;
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h - data is quarterly
 
 const WARM_ERRORS = {
@@ -61,23 +63,40 @@ async function fetchWithTimeout(url, opts, timeoutMs) {
   }
 }
 
-// data.gov.sg v2 dataset "poll-download" returns a presigned URL once the
-// dataset is ready. For small static datasets it is usually immediate.
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// data.gov.sg v2 CSV download is a two-step flow: initiate-download starts a
+// CSV export job, then poll-download returns a presigned URL once it's ready.
+// For small static MOM datasets the URL is usually available on the first poll.
 async function fetchDataset(datasetId, apiKey) {
   const headers = { 'accept': 'application/json' };
   if (apiKey) headers['x-api-key'] = apiKey;
+  const id = encodeURIComponent(datasetId);
 
-  const pollUrl = `${DATAGOV_BASE}/datasets/${encodeURIComponent(datasetId)}/poll-download`;
-  const pollRes = await fetchWithTimeout(pollUrl, { headers }, TIMEOUT_MS);
-  if (!pollRes.ok) throw new Error(`poll-download HTTP ${pollRes.status}`);
-  const pollData = await pollRes.json();
-  const downloadUrl = pollData?.data?.url;
-  if (!downloadUrl) throw new Error('poll-download returned no url');
+  const initRes = await fetchWithTimeout(
+    `${DATAGOV_BASE}/datasets/${id}/initiate-download`,
+    { method: 'GET', headers },
+    STEP_TIMEOUT_MS,
+  );
+  if (!initRes.ok) throw new Error(`initiate-download HTTP ${initRes.status}`);
 
-  const csvRes = await fetchWithTimeout(downloadUrl, {}, TIMEOUT_MS);
+  let downloadUrl = null;
+  for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS && !downloadUrl; attempt++) {
+    if (attempt > 0) await sleep(POLL_INTERVAL_MS);
+    const pollRes = await fetchWithTimeout(
+      `${DATAGOV_BASE}/datasets/${id}/poll-download`,
+      { method: 'GET', headers },
+      STEP_TIMEOUT_MS,
+    );
+    if (!pollRes.ok) throw new Error(`poll-download HTTP ${pollRes.status}`);
+    const pollData = await pollRes.json();
+    downloadUrl = pollData?.data?.url || null;
+  }
+  if (!downloadUrl) throw new Error('poll-download did not return a url in time');
+
+  const csvRes = await fetchWithTimeout(downloadUrl, {}, STEP_TIMEOUT_MS);
   if (!csvRes.ok) throw new Error(`dataset HTTP ${csvRes.status}`);
-  const text = await csvRes.text();
-  return parseCsv(text);
+  return parseCsv(await csvRes.text());
 }
 
 // Lightweight CSV parser - MOM datasets do not contain quoted commas in
@@ -173,6 +192,10 @@ export default async function handler(req, res) {
     const series = buildSeries(rows, momGroup);
 
     if (!series.length) {
+      console.error(
+        `[datagov] no series for "${momGroup}"; rows=${rows.length}; columns=`,
+        rows[0] ? Object.keys(rows[0]) : '(none)',
+      );
       const payload = {
         group: momGroup,
         iscoMajor,

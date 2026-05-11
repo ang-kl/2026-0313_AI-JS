@@ -6,7 +6,7 @@
     "api/claude.js":  { "maxDuration": 300 },
     "api/esco.js":    { "maxDuration": 30  },
     "api/mcf.js":     { "maxDuration": 30  },
-    "api/datagov.js": { "maxDuration": 15  }
+    "api/datagov.js": { "maxDuration": 30  }
   },
   "fluid": true,
   "headers": [
