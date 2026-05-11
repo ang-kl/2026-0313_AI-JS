@@ -1,9 +1,9 @@
 // v3/api/esco.js - v3 - ESCO REST API proxy with occupation label passthrough
-// POST /api/v3/esco - body: { "action": "skills", "title": "Facilities Manager" }
+// POST /api/esco - body: { "action": "skills", "title": "Facilities Manager" }
 // Same shape as v2/api/esco.js with one addition:
 //   response.escoOccupation = { uri, preferredLabel, altLabels, iscoMajor }
-// so the frontend can forward canonical labels to /api/v3/mcf and the
-// ISCO major group to /api/v3/datagov without a second ESCO round-trip.
+// so the frontend can forward canonical labels to /api/mcf and the
+// ISCO major group to /api/datagov without a second ESCO round-trip.
 
 const ESCO_BASE = 'https://ec.europa.eu/esco/api';
 const ESCO_VERSION = 'v1.2.0';
@@ -59,7 +59,7 @@ async function fetchOccupationDetail(occupationUri) {
 
   // ISCO-08 major group lives in the broader concept hierarchy. The ESCO
   // occupation URI also encodes the ISCO code. Try both, regex the first
-  // digit out so the frontend can pass it to /api/v3/datagov.
+  // digit out so the frontend can pass it to /api/datagov.
   const iscoCandidate =
     data?.code ||
     (data?._links?.broaderIscoGroup?.[0]?.uri || '') ||

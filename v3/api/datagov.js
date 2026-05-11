@@ -1,5 +1,5 @@
 // v3/api/datagov.js - v3 - data.gov.sg MOM job vacancy rate trend
-// POST /api/v3/datagov - body: { action: "trend", iscoMajor: 1..9 }
+// POST /api/datagov - body: { action: "trend", iscoMajor: 1..9 }
 // Reads MOM "Job Vacancy Rate by Industry and Occupational Group, Quarterly"
 // (collection 690). Maps ISCO-08 major group -> MOM occupational-group label,
 // extracts the last ~12 quarters of data for that group, returns sparkline

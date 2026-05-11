@@ -1,8 +1,9 @@
 // v3.0.0 - 2026-05-10 - HDR #037 - MyCareersFuture live jobs + MOM vacancy-rate trend
 // Changes vs v2.0.5: two new result tabs (Live SG Jobs, Vacancy Trend),
-// new /api/v3/mcf and /api/v3/datagov proxies, ESCO proxy now returns
-// occupation preferredLabel + altLabels + ISCO major group so the new
-// panels can match without a second round-trip. v2 untouched at /.
+// new /api/mcf and /api/datagov proxies, ESCO proxy now returns occupation
+// preferredLabel + altLabels + ISCO major group so the new panels can match
+// without a second round-trip. v3 deploys as its own Vercel project with
+// rootDir=v3; v2 deploys from repo root unchanged.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -46,7 +47,7 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     const controller = new AbortController();
     const fetchTimer = setTimeout(() => controller.abort(), fetchTimeout);
 
-    const res = await fetch("/api/v3/claude", {
+    const res = await fetch("/api/claude", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
@@ -374,7 +375,7 @@ async function getEscoSkills(title) {
   // v2: fetch canonical ESCO essential skills via api/esco proxy
   // Falls back to getSkills() if ESCO returns zero skills
   try {
-    const res = await fetch('/api/v3/esco', {
+    const res = await fetch('/api/esco', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'skills', title })
@@ -3559,7 +3560,7 @@ function CompareWarningModal({ onConfirm, onCancel }) {
 
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
-// keyword fallback) is handled server-side by /api/v3/mcf.
+// keyword fallback) is handled server-side by /api/mcf.
 function McfJobsPanel({ sel, skills, escoOccupation }) {
   const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, error: null });
 
@@ -3568,7 +3569,7 @@ function McfJobsPanel({ sel, skills, escoOccupation }) {
     setState(s => ({ ...s, loading: true, error: null }));
     (async () => {
       try {
-        const res = await fetch("/api/v3/mcf", {
+        const res = await fetch("/api/mcf", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -3717,7 +3718,7 @@ function VacancyTrendPanel({ iscoMajor }) {
     setState({ loading: true, data: null, error: null });
     (async () => {
       try {
-        const res = await fetch("/api/v3/datagov", {
+        const res = await fetch("/api/datagov", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "trend", iscoMajor }),

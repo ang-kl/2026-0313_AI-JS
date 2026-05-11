@@ -1,5 +1,5 @@
 // v3/api/mcf.js - v3 - MyCareersFuture Singapore live job postings
-// POST /api/v3/mcf - body:
+// POST /api/mcf - body:
 //   { action: "jobs", title, escoOccupation: { preferredLabel, altLabels, broaderConcept? },
 //     skills: [{ skill, isEssential }], limit?: 10 }
 // Public unauthenticated MCF API (api.mycareersfuture.gov.sg/v2/jobs).
