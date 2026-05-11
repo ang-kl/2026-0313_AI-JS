@@ -9,6 +9,8 @@
 // "responsibilities" section; a new "📝 Responsibilities" tab runs an AI
 // analysis over that corpus (sub-tabs: Analysis, Categories, Progression,
 // Crossover, Context, Foundation) and appears as a row in the Compare view.
+// The MOM / data.gov.sg "Vacancy Trend" tab is removed for now (the
+// /api/datagov.js function is left in place, just not surfaced in the UI).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4454,116 +4456,10 @@ function McfJobsPanel({ sel, skills, escoOccupation }) {
   );
 }
 
-// v3: VacancyTrendPanel - last ~12 quarters of MOM job-vacancy rate for
-// the occupational group this role falls under. Single inline SVG sparkline
-// (no chart library) keeps the v3 bundle the same size as v2.
-function VacancyTrendPanel({ iscoMajor }) {
-  const [state, setState] = useState({ loading: true, data: null, error: null });
-
-  useEffect(() => {
-    if (!Number.isInteger(iscoMajor)) {
-      setState({ loading: false, data: { fallback: true, message: "We could not map this role to a MOM occupational group, so a vacancy-rate trend is not available.", group: null, series: [] }, error: null });
-      return;
-    }
-    let cancelled = false;
-    setState({ loading: true, data: null, error: null });
-    (async () => {
-      try {
-        const res = await fetch("/api/datagov", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "trend", iscoMajor }),
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        setState({ loading: false, data, error: null });
-        track("v3_vacancy_loaded", { iscoMajor, fallback: !!data.fallback, points: (data.series || []).length });
-      } catch (err) {
-        if (cancelled) return;
-        setState({ loading: false, data: null, error: err.message });
-        track("v3_vacancy_error", { reason: (err.message || "").slice(0, 60) });
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [iscoMajor]);
-
-  const renderSparkline = (series) => {
-    if (!series || series.length < 2) return null;
-    const W = 320, H = 80, P = 8;
-    const rates = series.map(p => p.rate);
-    const min = Math.min(...rates), max = Math.max(...rates);
-    const span = max - min || 1;
-    const stepX = (W - P * 2) / (series.length - 1);
-    const pts = series.map((p, i) => {
-      const x = P + i * stepX;
-      const y = H - P - ((p.rate - min) / span) * (H - P * 2);
-      return [x, y];
-    });
-    const path = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-    const lastX = pts[pts.length - 1][0], lastY = pts[pts.length - 1][1];
-    return (
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", maxWidth: 360 }} aria-label="Vacancy rate sparkline">
-        <path d={path} fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={lastX} cy={lastY} r="3.5" fill="#d97706" />
-      </svg>
-    );
-  };
-
-  return (
-    <div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "15px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 800, color: C.text }}>📈 Vacancy-Rate Trend</h2>
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>
-          Quarterly Singapore job-vacancy rate for this role&apos;s occupational group. Source: <a href="https://data.gov.sg/collections/690/view" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MOM via data.gov.sg</a>.
-        </p>
-      </div>
-
-      {state.loading && (
-        <div style={{ background: "#fffbeb", border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
-          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #fcd9a0", borderTop: "3px solid #d97706", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: 13, color: "#92400e" }}>Loading MOM vacancy data...</p>
-        </div>
-      )}
-
-      {!state.loading && state.data && state.data.fallback && (
-        <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "20px 18px" }}>
-          <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>
-            {state.data.message || "Vacancy-rate trend is temporarily unavailable. Please check back later."}
-          </p>
-        </div>
-      )}
-
-      {!state.loading && state.data && !state.data.fallback && state.data.series?.length > 0 && (
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px 20px" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 14, marginBottom: 12 }}>
-            <div>
-              <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Group</p>
-              <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 700, color: C.text }}>{state.data.group}</p>
-            </div>
-            {state.data.latest && (
-              <div>
-                <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>{state.data.latest.quarter}</p>
-                <p style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 800, color: "#d97706" }}>{state.data.latest.rate.toFixed(1)}<span style={{ fontSize: 13, fontWeight: 600, color: C.textSub, marginLeft: 2 }}>%</span></p>
-              </div>
-            )}
-            {state.data.deltaYoY != null && (
-              <div>
-                <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>YoY</p>
-                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 700, color: state.data.deltaYoY >= 0 ? "#15803d" : "#b91c1c" }}>
-                  {state.data.deltaYoY >= 0 ? "+" : ""}{state.data.deltaYoY.toFixed(1)} pp
-                </p>
-              </div>
-            )}
-          </div>
-          {renderSparkline(state.data.series)}
-          <p style={{ margin: "10px 0 0", fontSize: 11, color: C.muted }}>
-            Last {state.data.series.length} quarters. Higher = more unfilled positions per 100 jobs in this group.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
+// v3: VacancyTrendPanel removed for now - the MOM / data.gov.sg vacancy-rate
+// trend feature is disabled pending a more reliable data source. The
+// /api/datagov.js function and its CSP/vercel.json entries are left in place
+// so it can be re-enabled later without churn.
 
 // 100svh (small viewport height) handles keyboard resize natively on iOS and Android
 
@@ -5314,7 +5210,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"💼 Live SG Jobs",            color:"#0e7490" },
-      { key:"vacancy_trend", label:"📈 Vacancy Trend",         color:"#d97706" },
     ];
   };
 
@@ -5992,10 +5887,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   skills={result.skills}
                   escoOccupation={result.escoOccupation}
                 />
-              )}
-
-              {activeTab === "vacancy_trend" && (
-                <VacancyTrendPanel iscoMajor={result.iscoMajor} />
               )}
 
               <Disclaimer />
