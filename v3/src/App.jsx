@@ -4,6 +4,13 @@
 // preferredLabel + altLabels + ISCO major group so the new panels can match
 // without a second round-trip. v3 deploys as its own Vercel project with
 // rootDir=v3; v2 deploys from repo root unchanged.
+// v3.1.0 - 2026-05-11 - Responsibilities Analysis: /api/mcf now scrapes the
+// full description of the top postings (detail pages) and extracts a
+// "responsibilities" section; a new "📝 Responsibilities" tab runs an AI
+// analysis over that corpus (sub-tabs: Analysis, Categories, Progression,
+// Crossover, Context, Foundation) and appears as a row in the Compare view.
+// The MOM / data.gov.sg "Vacancy Trend" tab is removed for now (the
+// /api/datagov.js function is left in place, just not surfaced in the UI).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1125,6 +1132,313 @@ Identify 5 to 6 sectors where this role is commonly found in Singapore and ASEAN
       skills: Array.isArray(s.skills) ? s.skills : []
     })),
     department: obj.department||""
+  };
+}
+
+// ===========================================================================
+// Responsibilities Analysis - scrape live MyCareersFuture postings, extract the
+// real duties an employer expects, then run the same family of AI analyses we
+// run on skills (rating, seniority bands, crossover, sector context, foundation).
+// ===========================================================================
+
+const RESP_CATEGORIES = [
+  "Delivery & Execution","Planning & Coordination","Stakeholder & Client",
+  "Analysis & Reporting","People & Leadership","Compliance & Governance",
+  "Improvement & Innovation","Technical & Systems",
+];
+const RESP_FREQ = {
+  Core:       { label:"Core duty",  color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+  Common:     { label:"Common",     color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5" },
+  Occasional: { label:"Occasional", color:"#6b7a8d", bg:"#f1f5f9", border:"#dde3ec" },
+};
+
+// Fetch live SG postings (with detail pages) for a role.
+async function getJobsForRole(title, escoOccupation, skills) {
+  const res = await fetch("/api/mcf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "jobs",
+      title: title || "",
+      escoOccupation: escoOccupation || null,
+      skills: (skills || []).map(s => ({ skill: s.skill, isEssential: !s.isExtended, broaderConcept: s.broaderConcept })),
+      limit: 12,
+      detail: true,
+      detailLimit: 5,
+    }),
+  });
+  if (!res.ok) throw new Error(`mcf ${res.status}`);
+  const data = await res.json();
+  return {
+    jobs: Array.isArray(data.jobs) ? data.jobs : [],
+    tier: data.tier || 0,
+    approximate: !!data.approximate,
+    fallback: !!data.fallback,
+    detail: !!data.detail,
+  };
+}
+
+// Concatenate the responsibilities text of the returned postings into one
+// capped corpus, dropping near-duplicate lines.
+function buildResponsibilitiesCorpus(jobs) {
+  const MAX = 12000;
+  const seen = new Set();
+  const blocks = [];
+  let used = 0;
+  for (const j of jobs || []) {
+    const txt = (j.responsibilitiesText || j.description || "").trim();
+    if (!txt) continue;
+    const kept = [];
+    for (const rawLine of txt.split(/\n+/)) {
+      const line = rawLine.trim();
+      if (line.length < 4) continue;
+      const norm = line.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").slice(0, 80);
+      if (seen.has(norm)) continue;
+      seen.add(norm);
+      kept.push(line);
+      used += line.length;
+      if (used >= MAX) break;
+    }
+    if (kept.length) blocks.push(`# ${j.title || "Posting"}${j.employer ? ` — ${j.employer}` : ""}\n${kept.join("\n")}`);
+    if (used >= MAX) break;
+  }
+  return { corpus: blocks.join("\n\n").slice(0, MAX), jobCount: jobs ? jobs.length : 0, titles: (jobs||[]).map(j => j.title).filter(Boolean) };
+}
+
+async function getResponsibilities(title, corpus, jobCount, skills) {
+  const skillList = (skills || []).slice(0, 25).map(s => `${s.n}:${s.skill}`).join(" | ");
+  const SYSTEM_RESP =
+`You are a job-analysis specialist. From a corpus of live job postings for one occupation, you extract the real responsibilities and duties employers expect - normalised, de-duplicated, and specific. You apply Singapore and ASEAN workforce context.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "summary": "One sentence on what this role is mainly responsible for, under 22 words",
+  "responsibilities": [
+    {"n":1,"text":"A concrete duty, action-led, under 16 words","cat":"category","freq":"Core","sk":[1,3]}
+  ]
+}
+Field rules:
+- n: sequential integer from 1
+- text: start with a verb (Manage, Prepare, Coordinate, Resolve...). Specific to this occupation, not generic filler. No quote characters.
+- cat: exactly one of: ${RESP_CATEGORIES.join(" | ")}
+- freq: exactly one of: Core (appears in nearly every posting) | Common (appears in most) | Occasional (appears in a few)
+- sk: array of skill numbers from the provided list that this duty draws on - 0 to 3 items, [] if none clearly apply
+Quality rules:
+- Return 12 to 18 distinct responsibilities - merge near-duplicates, drop boilerplate ("other duties as assigned", "ad hoc tasks")
+- Cover the full breadth of the role, not just one cluster
+- Ground every item in the corpus - do not invent duties the postings do not mention
+Bad example: "Strong communication skills" - that is a requirement, not a responsibility
+Good example: "Prepare monthly management accounts and variance commentary for the finance director"`;
+  const raw = await claudeCall(
+`Occupation: ${title}
+Number of live postings in this corpus: ${jobCount}
+Role's analysed skills (reference by number): ${skillList || "none provided"}
+
+Corpus of live job postings (responsibilities sections):
+${corpus}
+
+Extract the real responsibilities for this occupation from the corpus above.`, 2600, 1, SYSTEM_RESP);
+  const obj = extractJSON(raw, "responsibilities");
+  if (!obj || !Array.isArray(obj.responsibilities)) throw new Error("responsibilities: invalid response");
+  const valid = obj.responsibilities
+    .map((x, i) => ({
+      n: x.n || i + 1,
+      text: String(x.text || x.t || "").replace(/"/g, "").trim(),
+      cat: RESP_CATEGORIES.includes(x.cat) ? x.cat : (RESP_CATEGORIES.includes(x.category) ? x.category : "Delivery & Execution"),
+      freq: RESP_FREQ[x.freq] ? x.freq : (RESP_FREQ[x.frequency] ? x.frequency : "Common"),
+      sk: Array.isArray(x.sk) ? x.sk.filter(n => Number.isFinite(n)) : (Array.isArray(x.skills) ? x.skills.filter(n => Number.isFinite(n)) : []),
+    }))
+    .filter(x => x.text && x.text.length > 4);
+  // renumber to be safe
+  valid.forEach((x, i) => { x._origN = x.n; x.n = i + 1; });
+  return { summary: String(obj.summary || "").replace(/"/g, "").trim(), responsibilities: valid };
+}
+
+async function rateResponsibilities(title, responsibilities) {
+  const SYSTEM_RR =
+`You are a senior AI workforce analyst. Rate how today's AI affects each job responsibility. Apply Singapore and ASEAN context.
+Return ONLY a JSON array with exactly the same number of items as responsibilities provided. No text before or after. No markdown fences.
+Format: [{"n":1,"l":"MEDIUM","a":"DOCS","h":"how AI engages - 12 words max","k":"one step to try this week - 12 words max"}]
+Automation levels:
+- HIGH = Full Automation: AI can perform this duty autonomously with minimal human input
+- MEDIUM = AI-Augmented: AI dramatically enhances speed or quality; a human still directs and signs off
+- LOW = AI-Assisted: AI supports parts of it but human judgment leads throughout
+- HUMAN = Human-Led: presence, relationships, physical action, or accountability mean AI cannot meaningfully do this
+AI tool codes (use exact code): LLM, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
+Field rules:
+- h: calibrated to the level - name the technique or the human/AI split, no generic phrases
+- k: one specific achievable action this week. Do not name specific AI products.
+OFFICE SUITE RULE: drafting in Word/Excel/PowerPoint or spreadsheets = MEDIUM at most. Never HIGH.
+CRITICAL: if a=NA then l MUST be HUMAN.`;
+  const list = responsibilities.map(r => `${r.n}:${r.text}`).join(" | ");
+  const raw = await claudeCall(
+`Occupation: ${title}
+Rate each responsibility for AI automation impact. Singapore and ASEAN context applies.
+Responsibilities to rate: ${list}`, 2600, 1, SYSTEM_RR);
+  const arr = extractJSON(raw, "resp-ratings");
+  if (!Array.isArray(arr)) throw new Error("resp-ratings: expected array");
+  const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
+  return arr.map(x => {
+    const tool = x.a || x.tool || "NA";
+    const rawLevel = levelMap[x.l] || levelMap[x.level] || "HUMAN";
+    const level = (tool === "NA" && rawLevel !== "HUMAN") ? "HUMAN" : rawLevel;
+    return { n: x.n, level, tool, how: x.h || x.how || "", kickstart: x.k || x.kickstart || "" };
+  });
+}
+
+async function getRespProgression(title, responsibilities, iscoGroup) {
+  const list = responsibilities.slice(0, 18).map(r => r.text).join(" | ");
+  const SYSTEM_RP =
+`You are a career development adviser who knows how the duty mix of a role changes with seniority in Singapore and ASEAN organisations.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "bands": [
+    {"name":"Junior / Entry","note":"What the work is mostly about at this level, under 14 words","duties":["Duty under 12 words","Duty under 12 words","Duty under 12 words"]}
+  ]
+}
+Rules:
+- 3 to 4 bands, ordered from most junior to most senior (e.g. Junior / Entry, Mid-level, Senior, Lead / Manager) - use band names that fit this occupation
+- duties: 3 to 5 short responsibilities typical at that level - draw on and extend the list provided; senior bands shed hands-on tasks and add oversight, strategy, or stakeholder duties
+- Keep all strings concise. No quote characters inside strings.`;
+  const raw = await claudeCall(
+`Occupation: ${title}
+ISCO group: ${iscoGroup || "general"}
+Current responsibilities observed in live postings: ${list}
+Describe how the responsibility mix shifts across seniority levels for this occupation.`, 900, 1, SYSTEM_RP);
+  const obj = extractJSON(raw, "resp-progression");
+  if (!obj || !Array.isArray(obj.bands)) throw new Error("resp-progression: invalid response");
+  return { bands: obj.bands.map(b => ({ name: toTitleCase(b.name||""), note: b.note||"", duties: (b.duties||[]).map(d => String(d).replace(/"/g,"").trim()).filter(Boolean) })).filter(b => b.name) };
+}
+
+async function getRespCrossover(title, responsibilities) {
+  const list = responsibilities.slice(0, 14).map(r => r.text).join(" | ");
+  const SYSTEM_RC =
+`You are a career transition specialist. You identify roles in other sectors whose day-to-day responsibilities overlap heavily with this role's, giving someone a credible pivot. Apply Singapore and ASEAN labour-market context.
+Return ONLY a JSON array. No text before or after. No markdown fences.
+Format: [{"r":"Role Title","sector":"Industry or sector","shared":["Shared duty under 8 words","Shared duty under 8 words"],"new":["New duty under 8 words","New duty under 8 words"]}]
+Rules:
+- Return exactly 5 roles from genuinely different sectors - a real title someone would search on MyCareersFuture or LinkedIn Singapore
+- shared: 2 to 3 responsibilities that transfer directly
+- new: 2 to 3 responsibilities the person would have to take on that they do not do today
+- Keep all strings concise. No quote characters inside strings.`;
+  const raw = await claudeCall(
+`Current role: ${title}
+Its responsibilities (from live postings): ${list}
+Find 5 crossover roles in different sectors whose responsibilities overlap with this role's. Apply Singapore and ASEAN context.`, 750, 1, SYSTEM_RC);
+  const arr = extractJSON(raw, "resp-crossover");
+  if (!Array.isArray(arr)) throw new Error("resp-crossover: expected array");
+  return arr.map(x => ({
+    role: toTitleCase(x.r||x.role||""),
+    sector: x.sector||"",
+    shared: (x.shared||x.sharedDuties||[]).map(s => String(s).replace(/"/g,"").trim()).filter(Boolean),
+    newDuties: (x.new||x.newDuties||[]).map(s => String(s).replace(/"/g,"").trim()).filter(Boolean),
+  })).filter(x => x.role);
+}
+
+async function getRespContext(title, responsibilities, iscoGroup) {
+  const list = responsibilities.slice(0, 18).map(r => `${r.n}:${r.text}`).join(" | ");
+  const SYSTEM_RCX =
+`You are a labour-market intelligence analyst specialising in how the same job operates differently across sectors in Singapore and ASEAN.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "sectors": [{"name":"Sector name","note":"How this role's responsibilities look in this sector, under 14 words","duties":[1,3,5]}],
+  "department": "typically sits within [function 1] or [function 2]"
+}
+Rules:
+- sectors: 5 to 6 sectors where this role is genuinely hired
+- duties: array of responsibility numbers (from the list) most central in that sector - minimum 3
+- Keep all strings concise. No quote characters inside strings.`;
+  const raw = await claudeCall(
+`Role: ${title}
+ISCO group: ${iscoGroup || "general"}
+Responsibilities (reference by number): ${list}
+Identify 5 to 6 sectors where this role is commonly hired and map which responsibilities matter most in each.`, 850, 1, SYSTEM_RCX);
+  const obj = extractJSON(raw, "resp-context");
+  if (!obj || !Array.isArray(obj.sectors)) throw new Error("resp-context: invalid response");
+  return {
+    sectors: obj.sectors.map(s => ({ name: toTitleCase(s.name||""), note: s.note||"", duties: Array.isArray(s.duties) ? s.duties.filter(n => Number.isFinite(n)) : [] })),
+    department: obj.department||"",
+  };
+}
+
+async function getFoundationResponsibilities(title, responsibilities, persona) {
+  const cfg = PERSONA_CONFIG[persona];
+  if (!cfg) return null;
+  const list = responsibilities.slice(0, 18).map(r => `${r.n}:${r.text}(${r.level||"?"})`).join(" | ");
+  const SYSTEM_FR =
+`You are a workforce readiness specialist. From a role's actual responsibilities, you pick the few that a person in a given situation should master first - the ones that build credibility and that AI cannot quietly take over. Apply Singapore and ASEAN context (SkillsFuture, WSQ, local employer expectations).
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "summary": "One sentence framing for this persona, under 16 words",
+  "foundations": [{"n":1,"text":"Responsibility to master first, under 14 words","why":"Why it matters for this persona, under 12 words","action":"One concrete thing to do this week, under 12 words","priority":"Must-Have"}]
+}
+Rules:
+- foundations: exactly 6 items, drawn from or directly tied to the responsibilities provided
+- priority: one of Must-Have | High | Develop
+- action must be doable this week, not "read about it"
+- No quote characters inside any string.`;
+  const raw = await claudeCall(
+`Occupation: ${title}
+Persona: ${cfg.context}
+Time horizon: ${cfg.horizon}
+Responsibilities (with AI exposure level): ${list}
+Pick the 6 responsibilities this persona should focus on building first.`, 900, 1, SYSTEM_FR);
+  const obj = extractJSON(raw, "resp-foundations");
+  if (!obj || !Array.isArray(obj.foundations)) throw new Error("resp-foundations: invalid response");
+  return {
+    summary: String(obj.summary||"").replace(/"/g,"").trim(),
+    foundations: obj.foundations.map((x,i) => ({ n:x.n||i+1, text:String(x.text||"").replace(/"/g,"").trim(), why:x.why||"", action:x.action||"", priority:["Must-Have","High","Develop"].includes(x.priority)?x.priority:"Develop" })).filter(x => x.text),
+  };
+}
+
+// Orchestrator: returns the full responsibilitiesData blob (or a fallback marker).
+async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona) {
+  let jobsRes;
+  try {
+    jobsRes = await getJobsForRole(title, escoOccupation, skills);
+  } catch (e) {
+    return { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] };
+  }
+  const jobs = jobsRes.jobs || [];
+  if (!jobs.length) return { fallback: true, reason: "no_jobs", jobCount: 0, jobs: [], tier: jobsRes.tier, approximate: jobsRes.approximate };
+  const { corpus, jobCount, titles } = buildResponsibilitiesCorpus(jobs);
+  if (!corpus || corpus.length < 200) return { fallback: true, reason: "thin_corpus", jobCount, jobs, tier: jobsRes.tier, approximate: jobsRes.approximate };
+
+  let base;
+  try {
+    base = await getResponsibilities(title, corpus, jobCount, skills);
+  } catch (e) {
+    return { fallback: true, reason: "analysis_error", jobCount, jobs, tier: jobsRes.tier, approximate: jobsRes.approximate };
+  }
+  if (!base.responsibilities.length) return { fallback: true, reason: "empty_analysis", jobCount, jobs, tier: jobsRes.tier, approximate: jobsRes.approximate };
+
+  const [ratings, respProgression, respCrossover, respContext, foundationResp] = await Promise.all([
+    rateResponsibilities(title, base.responsibilities).catch(() => []),
+    getRespProgression(title, base.responsibilities, iscoGroup).catch(() => null),
+    getRespCrossover(title, base.responsibilities).catch(() => []),
+    getRespContext(title, base.responsibilities, iscoGroup).catch(() => null),
+    persona ? getFoundationResponsibilities(title, base.responsibilities, persona).catch(() => null) : Promise.resolve(null),
+  ]);
+  const responsibilities = base.responsibilities.map(r => {
+    const rt = ratings.find(x => x.n === r.n) || {};
+    return { ...r, level: rt.level || "HUMAN", tool: rt.tool || "NA", how: rt.how || "", kickstart: rt.kickstart || "" };
+  });
+  return {
+    summary: base.summary,
+    responsibilities,
+    respProgression,
+    respCrossover: respCrossover || [],
+    respContext,
+    foundationResp,
+    jobs,
+    jobCount,
+    jobTitles: titles,
+    tier: jobsRes.tier,
+    approximate: jobsRes.approximate,
+    fallback: false,
   };
 }
 
@@ -2675,6 +2989,80 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         </div>
         );
       })()}
+      {/* Section 2b - Responsibilities (from live MCF postings) */}
+      {(() => {
+        const respReadyAll = ready.every(c => c.result.responsibilitiesData && c.result.responsibilitiesData.responsibilities && c.result.responsibilitiesData.responsibilities.length > 0);
+        const respSomeReady = ready.some(c => c.result.responsibilitiesData && c.result.responsibilitiesData.responsibilities && c.result.responsibilitiesData.responsibilities.length > 0);
+        if (!respSomeReady) return null;
+        if (!respReadyAll) {
+          return (
+            <div style={{ background:"#fcfaff", border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ width:11, height:11, border:`2px solid ${C.purpleBdr}`, borderTop:`2px solid ${C.purple}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+              <p style={{ margin:0, fontSize:12, color:C.purple }}>Building the Responsibilities comparison from live job postings…</p>
+            </div>
+          );
+        }
+        const respLevelBar = [
+          { key:"HIGH",   color:"#dc2626", label:"Full Automation" },
+          { key:"MEDIUM", color:"#d97706", label:"AI-Augmented" },
+          { key:"LOW",    color:"#2563eb", label:"AI-Assisted" },
+          { key:"HUMAN",  color:"#166534", label:"Human-Led" },
+        ];
+        const dSig = (s) => s.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3 && !stopWords.has(w));
+        const dutyMatch = (a, b) => { const wa = dSig(a), wb = dSig(b); return wa.filter(w => wb.includes(w)).length >= 3; };
+        const dutyLists = ready.map(c => c.result.responsibilitiesData.responsibilities);
+        const sharedDuties = dutyLists[0].filter(d0 => dutyLists.slice(1).every(list => list.some(d1 => dutyMatch(d0.text, d1.text)))).filter((d, i, arr) => arr.findIndex(x => dutyMatch(x.text, d.text)) === i);
+        const dLvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+        return (
+          <div style={{ marginBottom:14 }}>
+            <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+              <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities — from live job postings</p>
+              <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>What each role is actually expected to do, and how exposed those duties are to AI.</p>
+            </div>
+            {/* shared duties */}
+            <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#166534" }}>Duties shared across all {ready.length} roles</p>
+              {sharedDuties.length > 0
+                ? sharedDuties.map((d, i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
+                      <span style={{ color:"#166534", fontSize:12, lineHeight:1.4 }}>✓</span>
+                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d.text}</span>
+                    </div>
+                  ))
+                : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>No duties closely shared across all roles — each role's day-to-day is fairly distinct.</p>
+              }
+            </div>
+            {/* per-role bars + top duties */}
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+              {ready.map((c, i) => {
+                const rd = c.result.responsibilitiesData.responsibilities;
+                const counts = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
+                rd.forEach(r => { if (counts[r.level] !== undefined) counts[r.level]++; });
+                const total = rd.length || 1;
+                const top = [...rd].sort((a,b) => (dLvlOrd[a.level]??1)-(dLvlOrd[b.level]??1)).slice(0, 5);
+                return (
+                  <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0, paddingBottom: i < ready.length - 1 ? 14 : 0, borderBottom: i < ready.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                      <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
+                      <span style={{ fontSize:10, color:C.muted, flexShrink:0, marginLeft:8 }}>{rd.length} duties · {counts.HUMAN} Human-Led</span>
+                    </div>
+                    <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:10, marginBottom:6 }}>
+                      {respLevelBar.map(b => counts[b.key] > 0 && <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, minWidth:4 }} />)}
+                    </div>
+                    <p style={{ margin:"0 0 4px", fontSize:9, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most distinctive / human-led duties</p>
+                    {top.map((r, j) => (
+                      <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
+                        <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
+                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.4 }}>{r.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
       {/* Section 3 - Role cards */}
       {/* Per-section row grid - each sub-section aligns horizontally across all role columns */}
       {(() => {
@@ -3558,6 +3946,394 @@ function CompareWarningModal({ onConfirm, onCancel }) {
   );
 }
 
+// v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
+// expects, extracted from live MyCareersFuture postings for this role. Mirrors
+// the Skill Analysis family of views (analysis, categories, seniority bands,
+// crossover roles, sector context, persona foundations).
+function RespCatBadge({ cat }) {
+  return <span style={{ fontSize:10, fontWeight:600, color:C.purple, background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>{cat}</span>;
+}
+function RespFreqBadge({ freq }) {
+  const f = RESP_FREQ[freq] || RESP_FREQ.Common;
+  return <span style={{ fontSize:10, fontWeight:600, color:f.color, background:f.bg, border:`1px solid ${f.border}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>{f.label}</span>;
+}
+
+function ResponsibilityCard({ r, skillByN, autoOpen }) {
+  const [open, setOpen] = useState(!!autoOpen);
+  const lv = LEVELS[r.level] || LEVELS.HUMAN;
+  const mapped = (r.sk || []).map(n => skillByN[n]).filter(Boolean);
+  const hasMore = (r.level !== "HUMAN" && (r.how || r.kickstart));
+  return (
+    <div style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${lv.color}`, borderRadius:8, background:C.surface, marginBottom:8 }}>
+      <div onClick={() => hasMore && setOpen(o => !o)} style={{ padding:"11px 14px", cursor: hasMore ? "pointer" : "default" }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
+          <div style={{ width:104, flexShrink:0, marginTop:1 }}><Tag level={r.level} small /></div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ margin:0, fontSize:13, color:C.text, lineHeight:1.5, fontWeight:500 }}>{r.text}</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginTop:6, alignItems:"center" }}>
+              <RespCatBadge cat={r.cat} />
+              <RespFreqBadge freq={r.freq} />
+              {mapped.map((s,i) => (
+                <span key={i} style={{ fontSize:10, color:C.textSub, background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>↳ {s.skill}</span>
+              ))}
+              {hasMore && <span style={{ fontSize:10, color:C.mutedLight, marginLeft:"auto" }}>{open ? "▲ less" : "▼ how AI applies"}</span>}
+            </div>
+          </div>
+        </div>
+        {hasMore && open && (
+          <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${C.border}`, paddingLeft:114 }}>
+            {r.how && (
+              <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+                <strong style={{ color:lv.color }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""}
+              </p>
+            )}
+            {r.kickstart && (
+              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+                <strong style={{ color:lv.color }}>Try this week:</strong> {r.kickstart}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
+  const [subTab, setSubTab] = useState("analysis");
+  if (!data) return null;
+  if (data.fallback || !data.responsibilities || data.responsibilities.length === 0) {
+    const thin = data.reason === "no_jobs" || data.reason === "thin_corpus" || data.reason === "empty_analysis";
+    return (
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Responsibilities Analysis unavailable</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
+          {thin
+            ? "There aren't enough live MyCareersFuture postings for this role right now to build a reliable responsibilities picture. Postings refresh daily — try again tomorrow."
+            : "The live job feed or the analysis step was unavailable. Please run the analysis again in a moment."}
+        </p>
+      </div>
+    );
+  }
+  const resps = data.responsibilities;
+  const skillByN = {}; (skills || []).forEach(s => { if (s && s.n != null) skillByN[s.n] = s; });
+  const respByN = {}; resps.forEach(r => { respByN[r.n] = r; });
+
+  const tabDefs = [
+    { key:"analysis",   label:"📝 Responsibilities", on:true },
+    { key:"categories", label:"🗂 Categories",       on:true },
+    { key:"bands",      label:"⬆️ By Seniority",     on: !!(data.respProgression && data.respProgression.bands && data.respProgression.bands.length) },
+    { key:"crossover",  label:"🔄 Crossover Roles",  on: !!(data.respCrossover && data.respCrossover.length) },
+    { key:"context",    label:"🏢 By Sector",        on: !!(data.respContext && data.respContext.sectors && data.respContext.sectors.length) },
+    { key:"foundation", label:`${safePersona(persona).icon||"🎓"} Foundation`, on: !!(persona && data.foundationResp && data.foundationResp.foundations && data.foundationResp.foundations.length) },
+  ].filter(t => t.on);
+  const active = tabDefs.some(t => t.key === subTab) ? subTab : "analysis";
+
+  const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+  const sortedResps = [...resps].sort((a,b) => (lvlOrd[a.level]??1) - (lvlOrd[b.level]??1) || a.n - b.n);
+  const humanLed = resps.filter(r => r.level === "HUMAN");
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities Analysis</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{data.summary || "The duties this role is expected to perform, drawn from live job postings."}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
+          Extracted from <strong>{data.jobCount} live MyCareersFuture posting{data.jobCount === 1 ? "" : "s"}</strong>{data.approximate ? " (approximate match)" : ""}. AI exposure ratings are indicative — your context may differ.
+        </p>
+      </div>
+
+      {/* Sub-tab strip */}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
+        {tabDefs.map(t => (
+          <button key={t.key}
+            onClick={() => { setSubTab(t.key); track("tab_viewed", { tab: "responsibilities:"+t.key }); }}
+            style={{ padding:"6px 12px", borderRadius:18, fontSize:11.5, fontWeight:600, cursor:"pointer",
+              border:`2px solid ${active===t.key ? C.purple : C.border}`,
+              background: active===t.key ? C.purple : C.surface,
+              color: active===t.key ? "#fff" : C.textSub, whiteSpace:"nowrap" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ---- Analysis ---- */}
+      {active === "analysis" && (
+        <div>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
+            <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
+            <AutomationBar skills={resps} />
+          </div>
+          {sortedResps.map((r, i) => <ResponsibilityCard key={r.n} r={r} skillByN={skillByN} autoOpen={firstAnalysis && i === sortedResps.findIndex(x => x.level !== "HUMAN")} />)}
+        </div>
+      )}
+
+      {/* ---- Categories ---- */}
+      {active === "categories" && (() => {
+        const byCat = {}; RESP_CATEGORIES.forEach(c => { byCat[c] = []; });
+        resps.forEach(r => { (byCat[r.cat] || (byCat[r.cat] = [])).push(r); });
+        const byLevel = { HUMAN:[], LOW:[], MEDIUM:[], HIGH:[] };
+        resps.forEach(r => { (byLevel[r.level] || byLevel.HUMAN).push(r); });
+        const levelMeta = [
+          { key:"HUMAN",  ...LEVELS.HUMAN },
+          { key:"LOW",    ...LEVELS.LOW },
+          { key:"MEDIUM", ...LEVELS.MEDIUM },
+          { key:"HIGH",   ...LEVELS.HIGH },
+        ];
+        return (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            <div style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By function</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(260px,100%), 1fr))", gap:12 }}>
+                {RESP_CATEGORIES.filter(c => byCat[c] && byCat[c].length).map(c => (
+                  <div key={c} style={{ border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 12px", background:"#fcfaff" }}>
+                    <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>{c} ({byCat[c].length})</p>
+                    {[...byCat[c]].sort((a,b) => (lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((r,i) => (
+                      <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
+                        <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
+                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By AI exposure</p>
+              {levelMeta.filter(m => byLevel[m.key] && byLevel[m.key].length).map(m => (
+                <div key={m.key} style={{ marginBottom:12 }}>
+                  <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:700, color:m.color }}>{m.label} ({byLevel[m.key].length})</p>
+                  {byLevel[m.key].map((r,i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
+                      <span style={{ width:5, height:5, borderRadius:"50%", background:m.color, flexShrink:0, marginTop:6 }} />
+                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ---- By Seniority ---- */}
+      {active === "bands" && data.respProgression && (
+        <div>
+          <div style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>How responsibilities shift with seniority</p>
+            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Hands-on duties give way to oversight, strategy, and stakeholder work as the role grows.</p>
+          </div>
+          {data.respProgression.bands.map((b, i) => (
+            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px", borderBottom:`1px solid ${C.border}` }}>
+                <span style={{ width:26, height:26, borderRadius:"50%", background:"#e8f0fe", border:"1px solid #c3d3f5", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:C.accent, flexShrink:0 }}>{i+1}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{b.name}</p>
+                  {b.note && <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{b.note}</p>}
+                </div>
+              </div>
+              <div style={{ padding:"10px 14px" }}>
+                {b.duties.map((d, j) => (
+                  <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
+                    <span style={{ width:5, height:5, borderRadius:"50%", background:C.accent, flexShrink:0, marginTop:6 }} />
+                    <span style={{ fontSize:12, color:C.textSub, lineHeight:1.5 }}>{d}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ---- Crossover ---- */}
+      {active === "crossover" && (
+        <div>
+          <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}>Roles whose day-to-day overlaps with yours</p>
+            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer — a credible pivot, not a restart.</p>
+          </div>
+          {data.respCrossover.map((x, i) => (
+            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface, padding:"12px 14px" }}>
+              <div style={{ display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:8 }}>
+                <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{x.role}</p>
+                {x.sector && <span style={{ fontSize:11, color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding:"1px 8px" }}>{x.sector}</span>}
+              </div>
+              {x.shared.length > 0 && (
+                <div style={{ marginBottom:8 }}>
+                  <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.05em" }}>Transfers directly</p>
+                  {x.shared.map((d,j) => (
+                    <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
+                      <span style={{ color:C.green, fontSize:12, lineHeight:1.4 }}>✓</span>
+                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {x.newDuties.length > 0 && (
+                <div>
+                  <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.amber, textTransform:"uppercase", letterSpacing:"0.05em" }}>You'd take on</p>
+                  {x.newDuties.map((d,j) => (
+                    <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
+                      <span style={{ color:C.amber, fontSize:12, lineHeight:1.4 }}>+</span>
+                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ---- By Sector ---- */}
+      {active === "context" && data.respContext && (
+        <div>
+          <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.teal }}>How the role's duties differ by sector</p>
+            {data.respContext.department && <p style={{ margin:"4px 0 0", fontSize:12, color:C.textSub }}><strong style={{ color:C.teal }}>Department:</strong> {data.respContext.department.charAt(0).toUpperCase() + data.respContext.department.slice(1)}.</p>}
+          </div>
+          {data.respContext.sectors.map((sec, i) => {
+            const duties = (sec.duties || []).map(n => respByN[n]).filter(Boolean);
+            return (
+              <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px", borderBottom: duties.length ? `1px solid ${C.border}` : "none" }}>
+                  <span style={{ width:28, height:28, borderRadius:"50%", background:C.tealBg, border:`1px solid ${C.tealBdr}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🏢</span>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{sec.name}</p>
+                    {sec.note && <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{sec.note}</p>}
+                  </div>
+                </div>
+                {duties.length > 0 && (
+                  <div style={{ padding:"10px 14px" }}>
+                    <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.teal, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most central duties here</p>
+                    {duties.map((r,j) => (
+                      <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
+                        <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
+                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ---- Foundation ---- */}
+      {active === "foundation" && data.foundationResp && (() => {
+        const cfg = safePersona(persona);
+        const grouped = { "Must-Have":[], "High":[], "Develop":[] };
+        data.foundationResp.foundations.forEach(f => { (grouped[f.priority] || grouped.Develop).push(f); });
+        return (
+          <div>
+            <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding:"12px 16px", marginBottom:14, display:"flex", gap:12, alignItems:"flex-start" }}>
+              <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
+              <div>
+                <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:cfg.color }}>Responsibilities to master first — for: {cfg.label}</p>
+                <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.55 }}>{data.foundationResp.summary}</p>
+              </div>
+            </div>
+            {Object.entries(grouped).map(([prio, items]) => items.length > 0 && (
+              <div key={prio} style={{ marginBottom:16 }}>
+                <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color: prio==="Must-Have"?"#b91c1c":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
+                {items.map((f, i) => (
+                  <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"11px 14px", marginBottom:8, background:C.surface }}>
+                    <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
+                    {f.why && <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>Why:</strong> {f.why}</p>}
+                    {f.action && <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>This week:</strong> {f.action}</p>}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
+      {data.jobTitles && data.jobTitles.length > 0 && (
+        <p style={{ margin:"16px 0 0", fontSize:11, color:C.muted, lineHeight:1.6 }}>
+          Based on live postings: {data.jobTitles.slice(0, 8).join(" · ")}. Source: MyCareersFuture Singapore.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// v3.1: a single live-job card, with an expandable "responsibilities & skills"
+// section sourced from the scraped posting text.
+function McfJobCard({ job, fmtSalary, daysAgo }) {
+  const [open, setOpen] = useState(false);
+  const detail = (job.responsibilitiesText || job.description || "").trim();
+  const hasSkills = Array.isArray(job.skills) && job.skills.length > 0;
+  const hasCats = Array.isArray(job.categories) && job.categories.length > 0;
+  const hasDetail = detail.length > 0 || hasSkills || hasCats;
+  const detailShown = detail.length > 1800 ? detail.slice(0, 1800).replace(/\s+\S*$/, "") + "…" : detail;
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+        <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer"
+           style={{ fontSize: 14, fontWeight: 700, color: C.text, lineHeight: 1.35, textDecoration: "none" }}
+           onMouseOver={e => e.currentTarget.style.color = "#0e7490"}
+           onMouseOut={e => e.currentTarget.style.color = C.text}>{job.title}</a>
+        {job.postedDate && (
+          <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
+        )}
+      </div>
+      {job.employer && (
+        <p style={{ margin: "0 0 6px", fontSize: 12, color: C.textSub }}>{job.employer}</p>
+      )}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>
+          {fmtSalary(job.salaryMin, job.salaryMax)}
+        </span>
+        {job.employmentType && (
+          <span style={{ fontSize: 11, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.employmentType}</span>
+        )}
+        {Array.isArray(job.positionLevels) && job.positionLevels.length > 0 && (
+          <span style={{ fontSize: 11, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.positionLevels.join(", ")}</span>
+        )}
+        {job.minimumYearsExperience != null && job.minimumYearsExperience > 0 && (
+          <span style={{ fontSize: 11, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
+        )}
+      </div>
+      {hasDetail && (
+        <>
+          <button onClick={() => setOpen(o => !o)} style={{ marginTop: 10, background: "transparent", border: "none", padding: 0, fontSize: 11, fontWeight: 700, color: "#0e7490", cursor: "pointer" }}>
+            {open ? "▲ Hide details" : "▼ Show responsibilities & skills"}
+          </button>
+          {open && (
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
+              {detailShown && (
+                <p style={{ margin: "0 0 8px", fontSize: 12, color: C.textSub, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{detailShown}</p>
+              )}
+              {hasSkills && (
+                <div style={{ marginBottom: hasCats ? 8 : 0 }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills listed</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: 10, color: C.textSub, background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{s}</span>)}
+                  </div>
+                </div>
+              )}
+              {hasCats && (
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Categories</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: 10, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>{cc}</span>)}
+                  </div>
+                </div>
+              )}
+              <p style={{ margin: "8px 0 0", fontSize: 11 }}>
+                <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>Open posting on MyCareersFuture →</a>
+              </p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf.
@@ -3665,30 +4441,7 @@ function McfJobsPanel({ sel, skills, escoOccupation }) {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {state.jobs.map(job => (
-              <a key={job.uuid} href={job.mcfUrl} target="_blank" rel="noopener noreferrer"
-                 style={{ display: "block", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", textDecoration: "none", color: C.text, transition: "border-color 0.15s" }}
-                 onMouseOver={e => e.currentTarget.style.borderColor = "#0e7490"}
-                 onMouseOut={e => e.currentTarget.style.borderColor = C.border}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.text, lineHeight: 1.35 }}>{job.title}</span>
-                  {job.postedDate && (
-                    <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
-                  )}
-                </div>
-                {job.employer && (
-                  <p style={{ margin: "0 0 6px", fontSize: 12, color: C.textSub }}>{job.employer}</p>
-                )}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>
-                    {fmtSalary(job.salaryMin, job.salaryMax)}
-                  </span>
-                  {job.employmentType && (
-                    <span style={{ fontSize: 11, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>
-                      {job.employmentType}
-                    </span>
-                  )}
-                </div>
-              </a>
+              <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo} />
             ))}
           </div>
           <p style={{ margin: "14px 0 0", fontSize: 11, color: C.muted, textAlign: "right" }}>
@@ -3703,116 +4456,10 @@ function McfJobsPanel({ sel, skills, escoOccupation }) {
   );
 }
 
-// v3: VacancyTrendPanel - last ~12 quarters of MOM job-vacancy rate for
-// the occupational group this role falls under. Single inline SVG sparkline
-// (no chart library) keeps the v3 bundle the same size as v2.
-function VacancyTrendPanel({ iscoMajor }) {
-  const [state, setState] = useState({ loading: true, data: null, error: null });
-
-  useEffect(() => {
-    if (!Number.isInteger(iscoMajor)) {
-      setState({ loading: false, data: { fallback: true, message: "We could not map this role to a MOM occupational group, so a vacancy-rate trend is not available.", group: null, series: [] }, error: null });
-      return;
-    }
-    let cancelled = false;
-    setState({ loading: true, data: null, error: null });
-    (async () => {
-      try {
-        const res = await fetch("/api/datagov", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "trend", iscoMajor }),
-        });
-        const data = await res.json();
-        if (cancelled) return;
-        setState({ loading: false, data, error: null });
-        track("v3_vacancy_loaded", { iscoMajor, fallback: !!data.fallback, points: (data.series || []).length });
-      } catch (err) {
-        if (cancelled) return;
-        setState({ loading: false, data: null, error: err.message });
-        track("v3_vacancy_error", { reason: (err.message || "").slice(0, 60) });
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [iscoMajor]);
-
-  const renderSparkline = (series) => {
-    if (!series || series.length < 2) return null;
-    const W = 320, H = 80, P = 8;
-    const rates = series.map(p => p.rate);
-    const min = Math.min(...rates), max = Math.max(...rates);
-    const span = max - min || 1;
-    const stepX = (W - P * 2) / (series.length - 1);
-    const pts = series.map((p, i) => {
-      const x = P + i * stepX;
-      const y = H - P - ((p.rate - min) / span) * (H - P * 2);
-      return [x, y];
-    });
-    const path = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-    const lastX = pts[pts.length - 1][0], lastY = pts[pts.length - 1][1];
-    return (
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: "block", maxWidth: 360 }} aria-label="Vacancy rate sparkline">
-        <path d={path} fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={lastX} cy={lastY} r="3.5" fill="#d97706" />
-      </svg>
-    );
-  };
-
-  return (
-    <div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "15px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 800, color: C.text }}>📈 Vacancy-Rate Trend</h2>
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>
-          Quarterly Singapore job-vacancy rate for this role&apos;s occupational group. Source: <a href="https://data.gov.sg/collections/690/view" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MOM via data.gov.sg</a>.
-        </p>
-      </div>
-
-      {state.loading && (
-        <div style={{ background: "#fffbeb", border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
-          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #fcd9a0", borderTop: "3px solid #d97706", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: 13, color: "#92400e" }}>Loading MOM vacancy data...</p>
-        </div>
-      )}
-
-      {!state.loading && state.data && state.data.fallback && (
-        <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "20px 18px" }}>
-          <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>
-            {state.data.message || "Vacancy-rate trend is temporarily unavailable. Please check back later."}
-          </p>
-        </div>
-      )}
-
-      {!state.loading && state.data && !state.data.fallback && state.data.series?.length > 0 && (
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "18px 20px" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 14, marginBottom: 12 }}>
-            <div>
-              <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Group</p>
-              <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 700, color: C.text }}>{state.data.group}</p>
-            </div>
-            {state.data.latest && (
-              <div>
-                <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>{state.data.latest.quarter}</p>
-                <p style={{ margin: "2px 0 0", fontSize: 22, fontWeight: 800, color: "#d97706" }}>{state.data.latest.rate.toFixed(1)}<span style={{ fontSize: 13, fontWeight: 600, color: C.textSub, marginLeft: 2 }}>%</span></p>
-              </div>
-            )}
-            {state.data.deltaYoY != null && (
-              <div>
-                <p style={{ margin: 0, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>YoY</p>
-                <p style={{ margin: "2px 0 0", fontSize: 14, fontWeight: 700, color: state.data.deltaYoY >= 0 ? "#15803d" : "#b91c1c" }}>
-                  {state.data.deltaYoY >= 0 ? "+" : ""}{state.data.deltaYoY.toFixed(1)} pp
-                </p>
-              </div>
-            )}
-          </div>
-          {renderSparkline(state.data.series)}
-          <p style={{ margin: "10px 0 0", fontSize: 11, color: C.muted }}>
-            Last {state.data.series.length} quarters. Higher = more unfilled positions per 100 jobs in this group.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
+// v3: VacancyTrendPanel removed for now - the MOM / data.gov.sg vacancy-rate
+// trend feature is disabled pending a more reliable data source. The
+// /api/datagov.js function and its CSP/vercel.json entries are left in place
+// so it can be re-enabled later without churn.
 
 // 100svh (small viewport height) handles keyboard resize natively on iOS and Android
 
@@ -3984,6 +4631,19 @@ export default function App() {
 
   const removeFromComparison = (title) => {
     setComparisons(prev => prev.filter(c => c.title !== title));
+  };
+
+  // Merge a partial result patch into a queued/ready comparison entry (no-op if absent).
+  const patchComparisonResult = (title, partial) => {
+    setComparisons(prev => {
+      let changed = false;
+      const next = prev.map(c => {
+        if (c.title === title && c.result) { changed = true; return { ...c, result: { ...c.result, ...partial } }; }
+        return c;
+      });
+      if (changed) comparisonsRef.current = next;
+      return changed ? next : prev;
+    });
   };
 
   const doSearch = useCallback(async () => {
@@ -4208,6 +4868,18 @@ export default function App() {
       analysisComplete = true;
       clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null;
       setStep("results");
+
+      // Background: scrape live MyCareersFuture postings for this role and run the
+      // Responsibilities Analysis over their duties. Non-blocking - the
+      // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
+      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona)
+        .then(rd => {
+          if (analysisCancelRef.current !== cancelId) return;
+          setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
+          patchComparisonResult(toTitleCase(occ.title), { responsibilitiesData: rd });
+          track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
+        })
+        .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
 
       // Coherence check: detect if ESCO resolved to a wrong occupation
       // Step 1 - ISCO group guard (instant, no API call)
@@ -4486,7 +5158,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             getRoleContext(occ.title, merged, occ.iscoGroup),
           ]);
         }
-        return { title: c.title, result: { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, progressionData, crossoverData, contextData } };
+        return { title: c.title, result: { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, progressionData, crossoverData, contextData, escoOccupation: escoResult ? escoResult.escoOccupation : null } };
       } catch(e) {
         return { title: c.title, result: null };
       }
@@ -4501,6 +5173,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         comparisonsRef.current = updated;
         return updated;
       });
+      // Background: fill the Responsibilities Analysis for this queued role so it
+      // shows up in the Compare row (non-blocking - runs after the comparison renders).
+      if (r.result && (!c.result || !c.result.responsibilitiesData)) {
+        buildResponsibilitiesData(c.title, r.result.escoOccupation || null, r.result.skills, r.result.iscoGroup, null)
+          .then(rd => patchComparisonResult(c.title, { responsibilitiesData: rd }))
+          .catch(() => {});
+      } else if (r.result && c.result && c.result.responsibilitiesData) {
+        patchComparisonResult(c.title, { responsibilitiesData: c.result.responsibilitiesData });
+      }
       return r;
     };
 
@@ -4521,6 +5202,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     if (!r) return [];
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
+      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...(r.foundationData ? [{ key:"foundation", label:`${safePersona(persona).icon||"🎓"} Foundation Skills`, color:safePersona(persona).color||C.green }] : []),
       { key:"progression", label:"⬆️ Career Progression",   color:"#1a56db" },
       { key:"crossover",   label:"🔄 Role Crossover",        color:C.green   },
@@ -4528,7 +5210,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"💼 Live SG Jobs",            color:"#0e7490" },
-      { key:"vacancy_trend", label:"📈 Vacancy Trend",         color:"#d97706" },
     ];
   };
 
@@ -5120,6 +5801,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   firstBlinkSkill={firstBlinkSkill}
                   onRefreshPrompt={handleRefreshPrompt}
                 />}
+              {activeTab === "responsibilities" && result.responsibilitiesData && (
+                <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
+              )}
+
               {activeTab === "foundation" && result.foundationData && (
                 <FoundationPanel data={result.foundationData} persona={persona} />
               )}
@@ -5202,10 +5887,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   skills={result.skills}
                   escoOccupation={result.escoOccupation}
                 />
-              )}
-
-              {activeTab === "vacancy_trend" && (
-                <VacancyTrendPanel iscoMajor={result.iscoMajor} />
               )}
 
               <Disclaimer />
