@@ -69,34 +69,42 @@ async function fetchWithTimeout(url, opts, timeoutMs) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// data.gov.sg v2 CSV download is a two-step flow: initiate-download starts a
-// CSV export job, then poll-download returns a presigned URL once it's ready.
-// For small static MOM datasets the URL is usually available on the first poll.
+// data.gov.sg dataset download (api-open.data.gov.sg/v1): poll-download returns
+// a presigned URL once a CSV export is ready. For non-CSV / already-prepared
+// datasets you can poll directly; CSV datasets need an initiate-download first.
+// The API has been inconsistent about initiate's HTTP method, so we try POST
+// then GET and tolerate a 404 there (then just keep polling).
 async function fetchDataset(datasetId, apiKey) {
   const headers = { 'accept': 'application/json' };
   if (apiKey) headers['x-api-key'] = apiKey;
-  const id = encodeURIComponent(datasetId);
+  const jsonHeaders = { ...headers, 'content-type': 'application/json' };
+  const base = `${DATAGOV_BASE}/datasets/${encodeURIComponent(datasetId)}`;
+  const tried = [];
 
-  const initRes = await fetchWithTimeout(
-    `${DATAGOV_BASE}/datasets/${id}/initiate-download`,
-    { method: 'GET', headers },
-    STEP_TIMEOUT_MS,
-  );
-  if (!initRes.ok) throw new Error(`initiate-download HTTP ${initRes.status}`);
+  async function getJson(url, opts) {
+    let res;
+    try { res = await fetchWithTimeout(url, opts, STEP_TIMEOUT_MS); }
+    catch (err) { return { ok: false, status: err.name === 'AbortError' ? 'timeout' : 'error' }; }
+    if (!res.ok) return { ok: false, status: res.status };
+    return { ok: true, json: await res.json().catch(() => null) };
+  }
 
+  // Kick off the export (best-effort: a 404 here just means "poll directly").
+  for (const opts of [{ method: 'POST', headers: jsonHeaders, body: '{}' }, { method: 'GET', headers }]) {
+    const r = await getJson(`${base}/initiate-download`, opts);
+    tried.push(`initiate(${opts.method})=${r.ok ? 'ok' : r.status}`);
+    if (r.ok) break;
+  }
+
+  // Poll for the presigned download URL.
   let downloadUrl = null;
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS && !downloadUrl; attempt++) {
     if (attempt > 0) await sleep(POLL_INTERVAL_MS);
-    const pollRes = await fetchWithTimeout(
-      `${DATAGOV_BASE}/datasets/${id}/poll-download`,
-      { method: 'GET', headers },
-      STEP_TIMEOUT_MS,
-    );
-    if (!pollRes.ok) throw new Error(`poll-download HTTP ${pollRes.status}`);
-    const pollData = await pollRes.json();
-    downloadUrl = pollData?.data?.url || null;
+    const r = await getJson(`${base}/poll-download`, { method: 'GET', headers });
+    tried.push(`poll#${attempt + 1}=${r.ok ? (r.json?.data?.url ? 'url' : 'no-url') : r.status}`);
+    if (r.ok) downloadUrl = r.json?.data?.url || null;
   }
-  if (!downloadUrl) throw new Error('poll-download did not return a url in time');
+  if (!downloadUrl) throw new Error(`no download url [${tried.join(' ')}]`);
 
   const csvRes = await fetchWithTimeout(downloadUrl, {}, STEP_TIMEOUT_MS);
   if (!csvRes.ok) throw new Error(`dataset HTTP ${csvRes.status}`);
