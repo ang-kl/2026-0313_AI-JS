@@ -858,12 +858,23 @@ Write the reflection grounded only in the above.`, 800, 1, SYSTEM_NA);
   } catch (_) { return null; }
 }
 
-// orchestrator - reuse the live ads already fetched by buildResponsibilitiesData; cache per ad-set + version
-async function buildJobAnatomy(jobs, title) {
+// orchestrator. Two-tier cache: an in-memory exact-ad-set cache (within session)
+// and a shared persistent cache via /api/anatomy keyed by role title + version
+// (cross-session / cross-user, ~7-day TTL) - which also logs every fresh run for
+// the longitudinal dataset. Reuses the live ads buildResponsibilitiesData fetched.
+async function buildJobAnatomy(jobs, title, source) {
   const ads = (jobs || []).filter(j => j && j.uuid);
   const cacheKey = `${ads.map(j => j.uuid).sort().join(",")}|${JOB_ANATOMY_VERSION}`;
   if (_jobAnatomyCache.has(cacheKey)) return _jobAnatomyCache.get(cacheKey);
   const done = r => { _jobAnatomyCache.set(cacheKey, r); return r; };
+  const roleKey = String(title || "").trim().toLowerCase();
+  // shared persistent cache
+  if (roleKey) {
+    try {
+      const r = await fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "get", role: roleKey, version: JOB_ANATOMY_VERSION }) }).then(x => x.json());
+      if (r && r.hit && !r.hit.fallback && Array.isArray(r.hit.duties) && r.hit.duties.length) { track("jobanatomy_cache_hit", { role: roleKey }); return done(r.hit); }
+    } catch (_) { /* fall through to compute */ }
+  }
   if (ads.length < 3) return done({ fallback: true, reason: "too_few_ads" });
   const settled = await Promise.allSettled(ads.slice(0, 12).map(extractPostingFeatures));
   const perAd = settled.filter(r => r.status === "fulfilled" && r.value).map(r => r.value);
@@ -875,7 +886,16 @@ async function buildJobAnatomy(jobs, title) {
   const scores = scoreJobAnatomy(classified);
   const partial = { ...scores, orgContext: merged.orgContext, adCount: merged.adCount, duties: classified };
   const narrative = await narrateJobAnatomy(title, partial);
-  return done({ fallback: false, ...partial, narrative });
+  const result = { fallback: false, ...partial, narrative };
+  // log this fresh run to the shared store (fire-and-forget)
+  if (roleKey) {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "put", role: roleKey, roleDisplay: toTitleCase(title || ""), version: JOB_ANATOMY_VERSION,
+      source: ["esco", "posting", "corpus"].includes(source) ? source : "esco",
+      adUuids: ads.map(j => j.uuid), adCount: merged.adCount, duties: classified, orgContext: merged.orgContext, narrative,
+    }) }).catch(() => {});
+  }
+  return done(result);
 }
 
 async function rateSkills(title, skills) {
@@ -5818,7 +5838,7 @@ export default function App() {
           track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
           // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
           if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
-            buildJobAnatomy(rd.jobs, occ.title)
+            buildJobAnatomy(rd.jobs, occ.title, corpus ? "corpus" : posting ? "posting" : "esco")
               .then(ja => {
                 if (analysisCancelRef.current !== cancelId) return;
                 setResult(prev => prev ? { ...prev, jobAnatomy: ja } : prev);
