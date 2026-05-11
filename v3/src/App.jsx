@@ -4707,6 +4707,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         <div style={{ flex:1, minWidth:0 }}>
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
+        <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
+          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding:"5px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0 }}>
+          V2 - ESCO EU skillsets
+        </a>
         {step !== "idle" && (
           <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding:"5px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
             New Search
