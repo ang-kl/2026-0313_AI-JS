@@ -3242,6 +3242,57 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           </div>
         );
       })()}
+      {/* Section 2c - Role-Mix (from posting analyses) */}
+      {(() => {
+        const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#475569"];
+        const withMix = ready.filter(c => c.result.roleMix && !c.result.roleMix.fallback && c.result.roleMix.components && c.result.roleMix.components.length);
+        if (!withMix.length) return null;
+        return (
+          <div style={{ marginBottom:14 }}>
+            <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+              <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what each posting actually is</p>
+              <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>For roles analysed from a live MyCareersFuture listing: the ESCO occupations the ad blends, and whether the posted title matches the duty mix.</p>
+            </div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+              {ready.map((c, i) => {
+                const rm = c.result.roleMix;
+                const has = !!(rm && !rm.fallback && rm.components && rm.components.length);
+                const coh = has ? (ROLE_MIX_COHERENCE[rm.coherenceKey] || ROLE_MIX_COHERENCE.mixed) : null;
+                return (
+                  <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0, paddingBottom: i < ready.length - 1 ? 14 : 0, borderBottom: i < ready.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom: has ? 6 : 0, flexWrap:"wrap" }}>
+                      <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
+                      {has ? (
+                        <span style={{ display:"inline-flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                          <span style={{ fontSize:10, fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding:"1px 8px" }}>{coh.label}</span>
+                          {rm.mismatch && <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding:"1px 8px" }}>title ≠ duties</span>}
+                        </span>
+                      ) : <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{rm && rm.fallback ? "not available" : "ESCO analysis — no posting mix"}</span>}
+                    </div>
+                    {has && (
+                      <>
+                        <div style={{ display:"flex", height:10, borderRadius:4, overflow:"hidden", marginBottom:6 }}>
+                          {rm.components.map((cmp,j) => <div key={j} title={`${cmp.label} ${cmp.pct}%`} style={{ flex:cmp.pct, background:palette[j%palette.length], minWidth:4 }} />)}
+                          {rm.otherPct > 0 && <div title={`Other roles ${rm.otherPct}%`} style={{ flex:rm.otherPct, background:"#cbd5e1", minWidth:4 }} />}
+                        </div>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                          {rm.components.map((cmp,j) => (
+                            <span key={j} style={{ fontSize:11, fontWeight:600, color:palette[j%palette.length], display:"inline-flex", alignItems:"center", gap:4 }}>
+                              <span style={{ width:8, height:8, borderRadius:2, background:palette[j%palette.length] }} />{cmp.label} <span style={{ fontWeight:800 }}>{cmp.pct}%</span>
+                            </span>
+                          ))}
+                          {rm.otherPct > 0 && <span style={{ fontSize:11, color:"#64748b" }}>Other {rm.otherPct}%</span>}
+                        </div>
+                        {rm.narrative && rm.narrative.headline && <p style={{ margin:"6px 0 0", fontSize:11, color:C.muted, lineHeight:1.5 }}>{rm.narrative.headline}</p>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
       {/* Section 3 - Role cards */}
       {/* Per-section row grid - each sub-section aligns horizontally across all role columns */}
       {(() => {
@@ -4698,12 +4749,14 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount }) {
   const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
+  const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const PER_PAGE = 10;
 
   useEffect(() => {
     let cancelled = false;
     setState(s => ({ ...s, loading: true, error: null }));
     setPage(0);
+    setSectorFilter(null);
     (async () => {
       try {
         const res = await fetch("/api/mcf", {
@@ -4762,9 +4815,33 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
     return `${Math.floor(days / 30)} month${days < 60 ? "" : "s"} ago`;
   };
 
-  const totalPages = Math.max(1, Math.ceil(state.jobs.length / PER_PAGE));
+  // Sub-archetypes: group the fetched postings by MCF job category - only shown
+  // when there's a genuine spread (>=2 categories, each with >=2 postings, and a
+  // category on at least 40% of postings). Deterministic, no AI.
+  const sectorGroups = (() => {
+    const jobs = state.jobs;
+    if (!jobs || jobs.length < 6) return [];
+    const counts = {}; let withCat = 0;
+    jobs.forEach(j => { const cats = Array.from(new Set((j.categories || []).filter(Boolean))); if (cats.length) withCat++; cats.forEach(c => { counts[c] = (counts[c] || 0) + 1; }); });
+    if (withCat < jobs.length * 0.4 || Object.keys(counts).length < 2) return [];
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 4).map(([n]) => n);
+    const buckets = top.map(name => ({ name, jobs: [] }));
+    const other = [];
+    jobs.forEach(j => {
+      const cats = new Set((j.categories || []).filter(Boolean));
+      let placed = false;
+      for (let i = 0; i < top.length; i++) { if (cats.has(top[i])) { buckets[i].jobs.push(j); placed = true; break; } }
+      if (!placed) other.push(j);
+    });
+    const groups = buckets.filter(b => b.jobs.length >= 2);
+    if (other.length >= 2) groups.push({ name: "Other", jobs: other });
+    return groups.length >= 2 ? groups : [];
+  })();
+  const activeSector = sectorGroups.find(g => g.name === sectorFilter) || null;
+  const baseJobs = activeSector ? activeSector.jobs : state.jobs;
+  const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageJobs = state.jobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+  const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
   const canQueue = (queueCount || 0) < 3;
 
   return (
@@ -4798,9 +4875,30 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
       {!state.loading && state.jobs.length > 0 && (
         <>
+          {sectorGroups.length >= 2 && (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                These {state.jobs.length}{state.capped ? "+" : ""} postings span {sectorGroups.length} job categories
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <button onClick={() => { setSectorFilter(null); setPage(0); }}
+                  style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                    border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
+                  All ({state.jobs.length})
+                </button>
+                {sectorGroups.map(g => (
+                  <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
+                    style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                      border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
+                    {g.name} ({g.jobs.length})
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {state.jobs.length}{state.capped ? "+" : ""} posting{state.jobs.length === 1 ? "" : "s"}
+              {activeSector ? `${baseJobs.length} in ${activeSector.name}` : `${state.jobs.length}${state.capped ? "+" : ""} posting${state.jobs.length === 1 ? "" : "s"}`}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
