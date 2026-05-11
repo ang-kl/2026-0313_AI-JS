@@ -4946,6 +4946,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
 export default function App() {
   const [query,     setQuery]     = useState("");
+  const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
@@ -5127,13 +5128,24 @@ export default function App() {
     });
   };
 
+  // v3.2: "Browse MyCareersFuture jobs" mode - skip ESCO resolution; go straight
+  // to the standalone job list for the typed term. Each card can still "Analyse
+  // this posting" (-> full results screen) or "+ Compare".
+  const startJobsBrowse = useCallback(() => {
+    if (!query.trim()) return;
+    const validationErr = validateJobTitleInput(query);
+    if (validationErr) { setErr(validationErr); setStep("error"); return; }
+    setErr(""); setSel(null); setResult(null); setOccs([]);
+    track("jobs_browse_started", { q: query.trim().slice(0, 60) });
+    setStep("mcf_browse");
+  }, [query]);
+
   const doSearch = useCallback(async () => {
     if (!query.trim()) return;
     // H1 fix: validate input before any API call or state transition.
     // Catches oversized, non-alphabetic, and HTML-special-char inputs at the front door.
     const validationErr = validateJobTitleInput(query);
-    if (validationErr) { setErr(validationErr); setStep("error"); return; }
-    // Paint loading state immediately before any other work - critical for INP score
+    if (validationErr) { setErr(validationErr); setStep("error"); return; }    // Paint loading state immediately before any other work - critical for INP score
     const tidyQuery = toTitleCase(query.trim());
     if (occs.length > 0 && !pickerLoading) {
       if (occs.length === 1) { track("occupation_selected", { auto: true }); doAnalyse(occs[0]); return; }
@@ -5994,19 +6006,35 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 Type a job title such as Nurse, Financial Analyst or Software Engineer to see AI impact on role skills
               </span>
 
+              {/* v3.2: mode toggle - analyse a role (ESCO) vs browse live SG job postings */}
+              <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+                {[
+                  { k:"role", label:"🔎 Analyse a role", sub:"ESCO essential skills" },
+                  { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
+                ].map(m => (
+                  <button key={m.k} onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                    style={{ flex:1, textAlign:"left", padding:"7px 11px", borderRadius:8, cursor:"pointer",
+                      border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
+                      background: searchMode===m.k ? C.accentSoft : C.surface }}>
+                    <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
+                    <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
+                  </button>
+                ))}
+              </div>
+
               <div style={{ display:"flex", gap:8 }}>
                 <input type="search" id="job-title-search" name="job-title" autoComplete="off"
-                  aria-label="Enter a job title to search" aria-describedby="search-hint"
+                  aria-label={searchMode==="jobs" ? "Enter a job title to browse postings" : "Enter a job title to search"} aria-describedby="search-hint"
                   role="searchbox"
-                  value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>e.key==="Enter"&&doSearch()}
-                  placeholder='Enter a job title to begin...'
+                  value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
+                  placeholder={searchMode==="jobs" ? 'Job title to browse live SG postings...' : 'Enter a job title to begin...'}
                   style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:7, color:C.text, padding:"11px 13px", fontSize:16, outline:"none", fontFamily:"inherit" }} autoFocus />
-                <button onClick={doSearch} aria-label="Search for job title" style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"11px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
-                  Search
+                <button onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"11px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+                  {searchMode==="jobs" ? "Browse" : "Search"}
                 </button>
               </div>
-              {/* v6: progressive picker - shows as user types, before pressing Analyse */}
-              {query.trim().length >= 3 && (step === "idle" || step === "error") && (
+              {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
+              {searchMode === "role" && query.trim().length >= 3 && (step === "idle" || step === "error") && (
                 <div style={{ marginTop:8 }}>
                   {pickerLoading && (
                     <p style={{ fontSize:11, color:C.muted, margin:"4px 0" }}>Finding roles matching "{query.trim()}"...</p>
@@ -6072,6 +6100,29 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         )}
 
         {step === "searching" && <Spinner label={`Searching for "${query}"...`} />}
+
+        {step === "mcf_browse" && (
+          <div>
+            <button onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
+              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize:13, fontWeight:700, color:C.accent, cursor:"pointer" }}>
+              ← New search
+            </button>
+            <McfJobsPanel
+              sel={{ title: query.trim() }}
+              skills={[]}
+              escoOccupation={null}
+              onAnalysePosting={handleAnalysePosting}
+              onQueuePosting={handleQueuePosting}
+              queueCount={comparisons.length}
+              standalone
+            />
+            {comparisons.length > 0 && (
+              <p style={{ marginTop:12, fontSize:12, color:C.accent, textAlign:"center" }}>
+                {comparisons.length} posting{comparisons.length===1?"":"s"} queued for comparison — tap <strong>📊 Analyse this posting</strong> on any card to open the analysis, then run the comparison from there.
+              </p>
+            )}
+          </div>
+        )}
 
         {step === "picking" && (() => {
           // Group by sector
