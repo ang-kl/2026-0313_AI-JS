@@ -512,8 +512,11 @@ const ROLE_MIX_COHERENCE = {
   grabbag:  { label:"Grab-bag",        color:"#b91c1c", bg:"#fef2f2", border:"#fecaca" },
 };
 
-async function getRoleMixCandidates(title, skills) {
-  const skillPhrases = (skills || []).map(s => s.skill).filter(Boolean).slice(0, 25);
+async function getRoleMixCandidates(title, skills, extraPhrases) {
+  const skillPhrases = Array.from(new Set([
+    ...((extraPhrases || []).map(s => String(s || "").trim()).filter(Boolean)),
+    ...((skills || []).map(s => s.skill).filter(Boolean)),
+  ])).slice(0, 30);
   const res = await fetch("/api/esco", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "occupationFingerprint", title: title || "", skillPhrases }),
@@ -624,7 +627,7 @@ async function buildRoleMix(posting, skills) {
   const cacheKey = `${(posting && (posting.uuid || posting.title)) || "?"}|${ROLE_MIX_VERSION}`;
   if (_roleMixCache.has(cacheKey)) return _roleMixCache.get(cacheKey);
   let fp;
-  try { fp = await getRoleMixCandidates((posting && posting.title) || "", skills); }
+  try { fp = await getRoleMixCandidates((posting && posting.title) || "", skills, (posting && posting.skills) || []); }
   catch (e) { const r = { fallback: true, reason: "esco_error" }; _roleMixCache.set(cacheKey, r); return r; }
   if (!fp || fp.fallback || !fp.candidates || !fp.candidates.length) {
     const r = { fallback: true, reason: (fp && fp.reason) || "no_candidates" }; _roleMixCache.set(cacheKey, r); return r;
@@ -5368,16 +5371,19 @@ export default function App() {
     try {
       // forceHybrid: skip ESCO fetch and use Claude getSkills() directly
       // Used when coherence check confirms ESCO returned wrong occupation skills.
-      // posting / corpus: skip ESCO entirely and derive skills from the live MCF ad(s).
-      let escoResult = (forceHybrid || posting || corpus) ? null : await getEscoSkills(escoFetchTitle);
+      // corpus: skip ESCO; derive an aggregate skill list from all the live ads.
+      // posting (single ad): KEEP the role - resolve it to the STANDARD ESCO essential
+      // skills (so Skill Analysis / Progression / Crossover / Categories / Context are
+      // the canonical view); the ad's own content drives the Role-Mix & Responsibilities
+      // tabs instead.
+      let escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle);
       let skills = escoResult ? escoResult.skills : null;
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
-      if (skills === null && posting) skills = await getSkillsFromPosting(occ.title, posting.skills, posting.text);
       if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
-      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : posting ? `from this MyCareersFuture posting` : `AI-generated`;
+      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
