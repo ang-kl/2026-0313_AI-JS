@@ -1480,18 +1480,27 @@ No quote characters inside any string value.`;
   } catch (_) { return null; }
 }
 
-// orchestrator
-async function buildRoleGraph(result, title) {
+// orchestrator. onStep(n) (optional) is called before each of the 6 advertised
+// pipeline steps (1..6) and once more (7) when the graph + card are assembled - see
+// _RG_STEPS / RoleGraphStepCard for the labels surfaced to the user.
+async function buildRoleGraph(result, title, onStep) {
+  const step = n => { try { onStep && onStep(n); } catch (_) {} };
   const roleKey = String(title || "").trim().toLowerCase();
   const cacheKey = `${roleKey}|${(result && result.source) || "esco"}|${ROLE_GRAPH_VERSION}`;
-  if (_roleGraphCache.has(cacheKey)) return _roleGraphCache.get(cacheKey);
+  if (_roleGraphCache.has(cacheKey)) { step(7); return _roleGraphCache.get(cacheKey); }
   const skills = (result && result.skills) || [];
+  step(1);                                                  // ingest posting + extract responsibilities/requirements/quals/competencies
   const { responsibilities } = gatherStatements(result || {});
+  step(2);                                                  // structure into itemised responsibility/requirement statements
   if (!skills.length || responsibilities.length < 3) return { fallback: true, reason: "thin_input" }; // not cached - responsibilities/anatomy may still be loading
+  step(3);                                                  // analyse each statement -> infer activities/tasks/skills/competency signals
   const analysed = await analyseRolePipeline(title, responsibilities, skills);
+  step(4);                                                  // map each inferred responsibility -> ESCO skills
   const mapping = mapStatementsToEsco(responsibilities, analysed, skills);
+  step(5);                                                  // reverse-map ESCO skills -> likely ISCO-08 occupations (similarity + weighted matching)
   let fp = null;
   try { fp = await getRoleMixCandidates(title || "", skills, ((result && result.responsibilitiesData && result.responsibilitiesData.jobs) || []).flatMap(j => (j.skills || [])).slice(0, 20)); } catch (_) { fp = null; }
+  step(6);                                                  // trading-algorithm-style scoring to rank ISCO-08 roles vs the selected MCF role
   const iscoCandidates = scoreIscoCandidates(fp, skills, mapping, responsibilities);
   const graph = buildGraphStructure(title, (result && result.source) || "esco", responsibilities, skills, mapping, iscoCandidates);
   // AI-exposure mix from the role's skills
@@ -1505,6 +1514,7 @@ async function buildRoleGraph(result, title) {
   const narrative = await narrateRoleGraph(title, summary);
   const out = { fallback: false, title: toTitleCase(title || ""), source: (result && result.source) || "esco", statements: responsibilities, analysed, mapping, iscoCandidates, graph, aiMix, narrative, fpFallback: !fp || fp.fallback };
   _roleGraphCache.set(cacheKey, out);
+  step(7);
   return out;
 }
 
@@ -5468,7 +5478,48 @@ function JobAnatomyView({ anatomy, title }) {
 // the skill-analysis card, the API-ready node/edge JSON, and a pasted-CV fit read.
 // CV text -> /api/claude only, never stored.
 const _RG_PIPE = ["Source role", "Itemise statements", "Infer activities/skills", "Map → ESCO skills", "Reverse-map → ISCO-08", "Trading-score & rank", "Build graph + card"];
+// The 6 pipeline steps surfaced to the user while the Role Graph builds for an MCF
+// posting (RoleGraphStepCard). `short` mirrors _RG_PIPE[0..5]; `full` is the exact
+// wording requested. buildRoleGraph(result, title, onStep) emits 1..6 then 7 (done).
+const _RG_STEPS = [
+  { short: _RG_PIPE[0], full: "Ingest the job posting and extract the responsibilities, requirements, qualifications, and preferred competencies." },
+  { short: _RG_PIPE[1], full: "Structure the extracted content into itemised responsibility and requirement statements." },
+  { short: _RG_PIPE[2], full: "Analyse each statement to infer the underlying work activities, tasks, skills, and competency signals." },
+  { short: _RG_PIPE[3], full: "Map each inferred responsibility to relevant ESCO skills." },
+  { short: _RG_PIPE[4], full: "Reverse-map the ESCO skills to likely ISCO-08 occupations, using similarity scoring and weighted matching." },
+  { short: _RG_PIPE[5], full: "Apply trading-algorithm-style scoring to rank the ISCO-08 roles against the selected MyCareersFuture role, based on skill proximity, responsibility overlap, and confidence weightage." },
+];
 function _rgTrunc(s, n) { const t = String(s || ""); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; }
+// Live 6-step progress card shown on the Role Graph tab while buildRoleGraph runs
+// for an MCF-posting analysis. `step`: 1..6 = that step in progress; >=7 = assembling.
+function RoleGraphStepCard({ step }) {
+  const cur = (step >= 7) ? 7 : (step || 1);
+  return (
+    <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "16px 18px" }}>
+      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: "#0369a1" }}>Building the role graph</p>
+      <p style={{ margin: "0 0 11px", fontSize: 11, color: "#0369a1" }}>{cur >= 7 ? "Assembling the role → occupation → skill → responsibility graph and the skill-analysis card…" : `Step ${cur} of 6`}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+        {_RG_STEPS.map((s, i) => {
+          const n = i + 1;
+          const done = n < cur;
+          const active = n === cur;
+          return (
+            <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+              <span style={{ flexShrink: 0, width: 16, marginTop: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                {done
+                  ? <span style={{ color: "#16a34a", fontSize: 13, fontWeight: 800 }}>✓</span>
+                  : active
+                    ? <span style={{ width: 12, height: 12, border: "2px solid #bae6fd", borderTop: "2px solid #1a56db", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite" }} />
+                    : <span style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{n}.</span>}
+              </span>
+              <span style={{ fontSize: 12, lineHeight: 1.55, color: active ? "#0c4a6e" : done ? C.text : C.muted, fontWeight: active ? 700 : 400 }}>{s.full}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 function RoleGraphPanel({ result, title }) {
   const [graphState, setGraphState] = useState({ status: "loading" });
   const [hoveredId, setHoveredId] = useState(null);
@@ -5479,9 +5530,16 @@ function RoleGraphPanel({ result, title }) {
   const [cv, setCv] = useState({ status: "idle" });
   const roleKey = (title || "").trim().toLowerCase();
 
+  // For a single MCF-posting analysis the pipeline (and its 6-step progress) is
+  // driven in the background by doAnalyse via result.roleGraphData / .roleGraphProgress
+  // - the panel just reflects it. For other analyses the panel runs buildRoleGraph itself.
+  const isPosting = !!(result && result.source === "posting");
+
   useEffect(() => {
     let cancelled = false;
-    setGraphState({ status: "loading" }); setCv({ status: "idle" }); setHoveredId(null);
+    setCv({ status: "idle" }); setHoveredId(null);
+    if (isPosting) { setGraphState({ status: "loading" }); return () => { cancelled = true; }; }
+    setGraphState({ status: "loading" });
     let _tG; try { _tG = performance.now(); } catch (_) { _tG = 0; }
     logStep("rolegraph", "start", 0, title);
     buildRoleGraph(result, title).then(g => { if (cancelled) return; logStep("rolegraph", g && g.fallback ? "thin_input" : "ok", _msSince(_tG), g && g.fallback ? g.reason : `${g && g.iscoCandidates ? g.iscoCandidates.length : 0} candidates`); setGraphState({ status: "done", g }); }).catch((e) => { logStep("rolegraph", "error", _msSince(_tG), e && e.message); if (!cancelled) setGraphState({ status: "error" }); });
@@ -5489,7 +5547,9 @@ function RoleGraphPanel({ result, title }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey, (result && result.source) || ""]);
 
-  const g = graphState.g;
+  const g = isPosting ? (result && result.roleGraphData) : graphState.g;
+  const rgLoading = isPosting ? !(result && result.roleGraphData) : (graphState.status === "loading");
+  const rgErrored = isPosting ? false : (graphState.status === "error");
   const runCv = () => {
     if (!g || g.fallback || cvText.trim().length < 200) return;
     setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
@@ -5572,15 +5632,17 @@ function RoleGraphPanel({ result, title }) {
         </div>
       </div>
 
-      {graphState.status === "loading" && (
+      {rgLoading && (isPosting ? (
+        <RoleGraphStepCard step={(result && result.roleGraphProgress) || 1} />
+      ) : (
         <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
           <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
           <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
         </div>
-      )}
-      {graphState.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+      ))}
+      {rgErrored && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
 
-      {graphState.status === "done" && g && (g.fallback ? (
+      {!rgLoading && g && (g.fallback ? (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
           <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
           <p style={{ margin: 0, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
@@ -7333,6 +7395,25 @@ export default function App() {
                 logStep("jobanatomy", ja && ja.fallback ? "fallback" : "ok", _msSince(_tJ), `ads=${ja && ja.adCount || 0} duties=${ja && ja.duties ? ja.duties.length : 0}`);
               })
               .catch(e => { track("jobanatomy_error", { reason: (e.message||"").slice(0,60) }); logStep("jobanatomy", "error", _msSince(_tJ), e && e.message); });
+          }
+          // Background: Role Graph - for a single MCF posting, run the 6-step
+          // pipeline now (so the "🕸 Role Graph" tab's step card is already
+          // advancing by the time the user opens it). gatherStatements prefers
+          // rd.responsibilities, so no need to wait on Job Anatomy.
+          if (posting) {
+            let _tRG; try { _tRG = performance.now(); } catch (_) { _tRG = 0; }
+            setResult(prev => prev ? { ...prev, roleGraphProgress: 1 } : prev);
+            buildRoleGraph({ skills: merged, source: newResult.source, responsibilitiesData: rd }, occ.title, n => {
+              if (analysisCancelRef.current !== cancelId) return;
+              setResult(prev => prev ? { ...prev, roleGraphProgress: n } : prev);
+            })
+              .then(rg => {
+                if (analysisCancelRef.current !== cancelId) return;
+                setResult(prev => prev ? { ...prev, roleGraphData: rg, roleGraphProgress: 7 } : prev);
+                patchComparisonResult(comparisonKey, { roleGraphData: rg });
+                logStep("rolegraph", rg && rg.fallback ? "thin_input" : "ok", _msSince(_tRG), rg && rg.fallback ? rg.reason : `${rg && rg.iscoCandidates ? rg.iscoCandidates.length : 0} candidates`);
+              })
+              .catch(e => { logStep("rolegraph", "error", _msSince(_tRG), e && e.message); });
           }
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); logStep("responsibilities", "error", _msSince(_tR), e && e.message); }); }
