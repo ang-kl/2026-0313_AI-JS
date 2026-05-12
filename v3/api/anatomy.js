@@ -2,8 +2,8 @@
 // POST /api/anatomy:
 //   { action:"get",  role, version }                         -> { hit: <anatomy obj> | null }
 //   { action:"put",  role, version, source, adUuids, adCount, roleDisplay, duties, orgContext, narrative } -> { ok:bool, id? }
-//   { action:"getProfile", role, version }                   -> { profile: <screening profile> | null, keywordGaps:[...] }
-//   { action:"putProfile", role, version, source, roleDisplay, mustHave, niceToHave, knockouts, aiDimensions, seniority, tools, dutyKeywords, narrative } -> { ok:bool }
+//   { action:"getProfile", role, version }                   -> { profile: <tiered screening profile> | null, keywordGaps:[...] }
+//   { action:"putProfile", role, version, source, roleDisplay, profile:{ exactTitle, requiredQuals, hardSkills, softSkills, dutyKeywords, aiDimensions, knockouts, seniority, tools, narrative } } -> { ok:bool }
 //   { action:"recordGap", role, version, missingKws:[], allMustHaveKws:[] } -> { ok:bool }   (counts only - never resume text)
 // Backed by Vercel Postgres (@vercel/postgres). Stores ONLY derived data from
 // public job ads (titles, employer names, classified duties, screening keywords)
@@ -110,20 +110,24 @@ function kwList(input, max) {
   }).filter(x => x && x.kw);
 }
 function sanitiseProfile(body) {
-  const knockouts = (Array.isArray(body.knockouts) ? body.knockouts : []).slice(0, 5).map(x => ({ q: str(typeof x === "string" ? x : (x && (x.q || x.question)), 160) })).filter(x => x.q);
-  const aiDimensions = (Array.isArray(body.aiDimensions) ? body.aiDimensions : []).slice(0, 6).map(x => {
+  const pb = (body && body.profile && typeof body.profile === "object") ? body.profile : (body || {});
+  const exactTitle = kwList(pb.exactTitle, 6).map(x => (x.why ? { kw: x.kw, why: x.why } : { kw: x.kw }));
+  const requiredQuals = kwList(pb.requiredQuals, 8).map(x => (x.why ? { kw: x.kw, why: x.why } : { kw: x.kw }));
+  const hardSkills = kwList(pb.hardSkills != null ? pb.hardSkills : pb.mustHave, 32);
+  const softSkills = kwList(pb.softSkills != null ? pb.softSkills : pb.niceToHave, 16).map(x => ({ kw: x.kw }));
+  const knockouts = (Array.isArray(pb.knockouts) ? pb.knockouts : []).slice(0, 8).map(x => str(typeof x === "string" ? x : (x && (x.q || x.question)), 160)).filter(Boolean);
+  const aiDimensions = (Array.isArray(pb.aiDimensions) ? pb.aiDimensions : []).slice(0, 6).map(x => {
     if (typeof x === "string") return { name: str(x, 60) };
     if (x && typeof x === "object") return { name: str(x.name, 60), what: str(x.what, 140) };
     return null;
   }).filter(x => x && x.name);
-  const narr = body.narrative && typeof body.narrative === "object" ? { headline: str(body.narrative.headline, 240), aiBar: str(body.narrative.aiBar, 240) } : null;
+  const narr = pb.narrative && typeof pb.narrative === "object" ? { headline: str(pb.narrative.headline, 240), aiBar: str(pb.narrative.aiBar, 240) } : null;
   return {
-    mustHave: kwList(body.mustHave, 32),
-    niceToHave: kwList(body.niceToHave, 20).map(x => ({ kw: x.kw })),
+    exactTitle, requiredQuals, hardSkills, softSkills,
     knockouts, aiDimensions,
-    seniority: str(body.seniority, 60),
-    tools: arr(body.tools, 8, 40),
-    dutyKeywords: arr(body.dutyKeywords, 25, 200),
+    seniority: str(pb.seniority, 60),
+    tools: arr(pb.tools, 8, 40),
+    dutyKeywords: arr(pb.dutyKeywords, 25, 200),
     narrative: narr,
   };
 }
@@ -139,7 +143,8 @@ async function ensureTables() {
   await sql`CREATE TABLE IF NOT EXISTS screening_profiles (
     id BIGSERIAL PRIMARY KEY, role_key TEXT NOT NULL, role_display TEXT NOT NULL, version TEXT NOT NULL,
     source TEXT, must_have JSONB, nice_to_have JSONB, knockouts JSONB, ai_dimensions JSONB,
-    seniority TEXT, tools JSONB, duty_keywords JSONB, narrative JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
+    seniority TEXT, tools JSONB, duty_keywords JSONB, narrative JSONB, tiers JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
+  await sql`ALTER TABLE screening_profiles ADD COLUMN IF NOT EXISTS tiers JSONB`;
   await sql`CREATE INDEX IF NOT EXISTS screening_profiles_lookup ON screening_profiles (role_key, version, created_at DESC)`;
   await sql`CREATE TABLE IF NOT EXISTS screen_keyword_gaps (
     role_key TEXT NOT NULL, version TEXT NOT NULL, kw TEXT NOT NULL,
@@ -195,25 +200,27 @@ export default async function handler(req, res) {
     if (!roleKey) return res.status(200).json({ profile: null, keywordGaps: [] });
     try {
       await ensureTables();
-      const v = version || "sp1";
-      const { rows } = await sql`SELECT must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, created_at FROM screening_profiles WHERE role_key=${roleKey} AND version=${v} AND created_at > now() - ${PROFILE_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
+      const v = version || "sp2";
+      const { rows } = await sql`SELECT must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers, created_at FROM screening_profiles WHERE role_key=${roleKey} AND version=${v} AND created_at > now() - ${PROFILE_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
       let gaps = [];
       try { const g = await sql`SELECT kw, miss_count, check_count FROM screen_keyword_gaps WHERE role_key=${roleKey} AND version=${v} AND check_count >= 2 ORDER BY miss_count DESC, kw ASC LIMIT 8`; gaps = g.rows.map(r => ({ kw: r.kw, miss: r.miss_count, of: r.check_count })); } catch (_) {}
       if (!rows.length) return res.status(200).json({ profile: null, keywordGaps: gaps });
       const r = rows[0];
-      return res.status(200).json({ profile: { mustHave: r.must_have || [], niceToHave: r.nice_to_have || [], knockouts: r.knockouts || [], aiDimensions: r.ai_dimensions || [], seniority: r.seniority || "", tools: r.tools || [], dutyKeywords: r.duty_keywords || [], narrative: r.narrative || null, cachedAt: r.created_at }, keywordGaps: gaps });
+      const t = r.tiers || {};
+      return res.status(200).json({ profile: { exactTitle: t.exactTitle || [], requiredQuals: t.requiredQuals || [], hardSkills: r.must_have || [], softSkills: r.nice_to_have || [], dutyKeywords: r.duty_keywords || [], aiDimensions: r.ai_dimensions || [], knockouts: r.knockouts || [], seniority: r.seniority || "", tools: r.tools || [], narrative: r.narrative || null, cachedAt: r.created_at }, keywordGaps: gaps });
     } catch (err) { console.error('[anatomy] getProfile:', err && err.message); return res.status(200).json({ profile: null, keywordGaps: [] }); }
   }
 
   if (action === 'putProfile') {
     const p = sanitiseProfile(body);
-    if (!roleKey || !p.mustHave.length) return res.status(200).json({ ok: false, reason: 'invalid' });
+    if (!roleKey || !(p.hardSkills.length || p.exactTitle.length)) return res.status(200).json({ ok: false, reason: 'invalid' });
     const source = ["esco", "posting", "corpus"].includes(body.source) ? body.source : "esco";
     const roleDisplay = str(body.roleDisplay || body.role, 140) || roleKey;
+    const tiers = { exactTitle: p.exactTitle, requiredQuals: p.requiredQuals };
     try {
       await ensureTables();
-      await sql`INSERT INTO screening_profiles (role_key, role_display, version, source, must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative)
-        VALUES (${roleKey}, ${roleDisplay}, ${version || "sp1"}, ${source}, ${JSON.stringify(p.mustHave)}, ${JSON.stringify(p.niceToHave)}, ${JSON.stringify(p.knockouts)}, ${JSON.stringify(p.aiDimensions)}, ${p.seniority}, ${JSON.stringify(p.tools)}, ${JSON.stringify(p.dutyKeywords)}, ${JSON.stringify(p.narrative)})`;
+      await sql`INSERT INTO screening_profiles (role_key, role_display, version, source, must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers)
+        VALUES (${roleKey}, ${roleDisplay}, ${version || "sp2"}, ${source}, ${JSON.stringify(p.hardSkills)}, ${JSON.stringify(p.softSkills)}, ${JSON.stringify(p.knockouts)}, ${JSON.stringify(p.aiDimensions)}, ${p.seniority}, ${JSON.stringify(p.tools)}, ${JSON.stringify(p.dutyKeywords)}, ${JSON.stringify(p.narrative)}, ${JSON.stringify(tiers)})`;
       return res.status(200).json({ ok: true });
     } catch (err) { console.error('[anatomy] putProfile:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
   }
