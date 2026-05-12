@@ -496,6 +496,1097 @@ Return the essential skills this posting demands, grounded in the above.`, 1320,
   }
 }
 
+// ===========================================================================
+// Role-Mix decomposition - read the messy real job ad, not the cookie-cutter
+// occupation. Decompose a live posting into the ESCO occupations it actually
+// blends. Numbers are deterministic (ESCO essential-skill overlap + arithmetic);
+// only the headline/notes/skilling prose is LLM. Result cached per posting.
+// ===========================================================================
+
+const ROLE_MIX_VERSION = "rm1"; // bump when the fingerprint inputs or the narrative prompt change
+const _roleMixCache = new Map(); // `${uuid}|${ROLE_MIX_VERSION}` -> roleMix object
+
+const ROLE_MIX_COHERENCE = {
+  coherent: { label:"Coherent hybrid", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+  mixed:    { label:"Mixed bundle",    color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" },
+  grabbag:  { label:"Grab-bag",        color:"#b91c1c", bg:"#fef2f2", border:"#fecaca" },
+};
+
+async function getRoleMixCandidates(title, skills, extraPhrases) {
+  const skillPhrases = Array.from(new Set([
+    ...((extraPhrases || []).map(s => String(s || "").trim()).filter(Boolean)),
+    ...((skills || []).map(s => s.skill).filter(Boolean)),
+  ])).slice(0, 30);
+  const res = await fetch("/api/esco", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "occupationFingerprint", title: title || "", skillPhrases }),
+  });
+  if (!res.ok) throw new Error(`esco fingerprint ${res.status}`);
+  return res.json(); // { candidates:[...], nominal:{uri,label}|null, fallback }
+}
+
+// Pure deterministic assembly: shares (5% bands), skill->component attribution,
+// posted-as-vs-actually, coherence metric, per-component AI exposure.
+function assembleRoleMix(fp, skills, title) {
+  const cand = (fp && fp.candidates) || [];
+  if (!cand.length) return null;
+  const totalRatio = cand.reduce((a, c) => a + Math.max(0.0001, c.ratio), 0);
+  const comps = cand.map(c => ({
+    label: toTitleCase(c.label || ""), uri: c.uri, code: c.code || "", iscoMajor: c.iscoMajor,
+    matchedSkills: c.matchedSkills || [], matchCount: c.matchCount || 0, essentialCount: c.essentialCount || 0,
+    isNominal: !!c.isNominal, rawShare: Math.max(0.0001, c.ratio) / totalRatio,
+  })).sort((a, b) => b.rawShare - a.rawShare);
+  const kept = []; let otherRaw = 0;
+  comps.forEach((c, i) => { if (i < 4 && c.rawShare >= 0.08) kept.push(c); else otherRaw += c.rawShare; });
+  if (!kept.length) kept.push(comps[0]);
+  const denom = kept.reduce((a, c) => a + c.rawShare, 0) + otherRaw || 1;
+  const round5 = x => Math.max(5, Math.round((x / denom) * 20) * 5);
+  kept.forEach(c => { c.pct = round5(c.rawShare); });
+  let otherPct = otherRaw > 0 ? round5(otherRaw) : 0;
+  const sum = kept.reduce((a, c) => a + c.pct, 0) + otherPct;
+  if (sum !== 100 && kept.length) kept[0].pct = Math.max(5, kept[0].pct + (100 - sum));
+  // attribute each analysed skill to the component whose matched-skill set it best matches
+  const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const sigToks = s => norm(s).split(" ").filter(t => t.length > 3);
+  const exact = kept.map(c => new Set(c.matchedSkills.map(norm)));
+  const toks = kept.map(c => c.matchedSkills.map(sigToks));
+  kept.forEach(c => { c.skills = []; });
+  const crossCutting = [];
+  (skills || []).forEach(s => {
+    const ns = norm(s.skill), st = new Set(sigToks(s.skill));
+    let best = -1;
+    for (let i = 0; i < kept.length && best < 0; i++) {
+      if (exact[i].has(ns)) { best = i; break; }
+      for (const mt of toks[i]) { if (mt.filter(t => st.has(t)).length >= 2) { best = i; break; } }
+    }
+    if (best >= 0) kept[best].skills.push({ n: s.n, skill: s.skill, level: s.level });
+    else crossCutting.push({ n: s.n, skill: s.skill, level: s.level });
+  });
+  const exposureOf = arr => {
+    const c = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
+    arr.forEach(s => { if (c[s.level] !== undefined) c[s.level]++; });
+    const n = arr.length || 1;
+    return { counts: c, n: arr.length, aiExposedPct: Math.round(((c.HIGH + c.MEDIUM) / n) * 100), humanPct: Math.round((c.HUMAN / n) * 100) };
+  };
+  kept.forEach(c => { c.exposure = exposureOf(c.skills); });
+  const nominalLabel = fp.nominal && fp.nominal.label ? toTitleCase(fp.nominal.label) : (kept[0] ? kept[0].label : "");
+  const top = kept[0];
+  const nominalIsTop = !!(top && (top.isNominal || (nominalLabel && top.label.toLowerCase() === nominalLabel.toLowerCase())));
+  const mismatch = !nominalIsTop || !!(top && top.pct < 50);
+  const shares = kept.map(c => c.pct / 100).concat(otherPct > 0 ? [otherPct / 100] : []);
+  const k = shares.length;
+  let entropy = 0; shares.forEach(p => { if (p > 0) entropy -= p * Math.log(p); });
+  const normEntropy = k > 1 ? entropy / Math.log(k) : 0;
+  const majors = kept.map(c => c.iscoMajor).filter(m => Number.isInteger(m));
+  const sameMajor = majors.length >= 2 && majors.every(m => m === majors[0]);
+  const coherenceScore = (1 - normEntropy) * (sameMajor ? 1 : 0.65);
+  const coherenceKey = (k <= 1 || coherenceScore >= 0.6) ? "coherent" : (coherenceScore >= 0.32 ? "mixed" : "grabbag");
+  return {
+    components: kept.map(c => ({ label: c.label, code: c.code, iscoMajor: c.iscoMajor, pct: c.pct, isNominal: c.isNominal,
+      matchedSkills: c.matchedSkills, matchCount: c.matchCount, essentialCount: c.essentialCount, skills: c.skills, exposure: c.exposure })),
+    otherPct, crossCutting, nominalLabel, mismatch,
+    coherenceKey, coherenceScore: Math.round(coherenceScore * 100) / 100, sameMajor, fallback: false,
+  };
+}
+
+async function narrateRoleMix(title, mix) {
+  const compDesc = mix.components.map(c => `${c.label} ${c.pct}%${c.isNominal ? " (matches the posted title)" : ""} - AI exposure ${c.exposure.aiExposedPct}%, human-led ${c.exposure.humanPct}%${c.skills.length ? ` - duties: ${c.skills.slice(0,3).map(s=>s.skill).join(", ")}` : ""}`).join("\n");
+  const SYSTEM_RM =
+`You are a careers analyst who reads real job ads, not idealised occupation profiles. You are given a decomposition of ONE live posting into the ESCO occupations it blends, with each component's AI-exposure. Write a short, grounded reflection - never invent numbers, only explain the ones given. Apply Singapore/ASEAN context. Humble tone, no hype.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "headline": "One sentence on what this ad really is, under 22 words",
+  "postedAsNote": "One sentence on how the posted title compares to the actual duty mix, under 22 words. Empty string if the title matches well.",
+  "coherenceNote": "One sentence on whether this is a sensible hybrid or a stretched grab-bag, under 22 words",
+  "skillingPriority": [{"component":"exact component label from the input","why":"why focus here - under 14 words","action":"one concrete thing to do - under 12 words"}]
+}
+Rules:
+- skillingPriority: 2 to 3 items drawn from the components given. Prioritise the component that is most central AND least AI-exposed (the durable core); flag a highly AI-exposed component as lower-priority filler.
+- No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(
+`Job title (as posted): ${title}
+Posted-title's nominal occupation: ${mix.nominalLabel || "(unclear)"}
+Coherence (computed): ${ROLE_MIX_COHERENCE[mix.coherenceKey]?.label || mix.coherenceKey} - score ${mix.coherenceScore}; components ${mix.sameMajor ? "in the same ISCO major group" : "spanning different ISCO major groups"}
+Role-mix components:
+${compDesc}
+${mix.otherPct ? `Other roles (combined): ${mix.otherPct}%\n` : ""}Write the reflection grounded only in the above.`, 700, 1, SYSTEM_RM);
+    const obj = extractJSON(raw, "rolemix-narrative");
+    if (!obj) return null;
+    return {
+      headline: String(obj.headline || "").replace(/"/g, "").trim(),
+      postedAsNote: String(obj.postedAsNote || "").replace(/"/g, "").trim(),
+      coherenceNote: String(obj.coherenceNote || "").replace(/"/g, "").trim(),
+      skillingPriority: (obj.skillingPriority || []).map(x => ({ component: String(x.component||"").trim(), why: String(x.why||"").trim(), action: String(x.action||"").trim() })).filter(x => x.component).slice(0, 3),
+    };
+  } catch (_) { return null; }
+}
+
+async function buildRoleMix(posting, skills) {
+  const cacheKey = `${(posting && (posting.uuid || posting.title)) || "?"}|${ROLE_MIX_VERSION}`;
+  if (_roleMixCache.has(cacheKey)) return _roleMixCache.get(cacheKey);
+  let fp;
+  try { fp = await getRoleMixCandidates((posting && posting.title) || "", skills, (posting && posting.skills) || []); }
+  catch (e) { const r = { fallback: true, reason: "esco_error" }; _roleMixCache.set(cacheKey, r); return r; }
+  if (!fp || fp.fallback || !fp.candidates || !fp.candidates.length) {
+    const r = { fallback: true, reason: (fp && fp.reason) || "no_candidates" }; _roleMixCache.set(cacheKey, r); return r;
+  }
+  const mix = assembleRoleMix(fp, skills, (posting && posting.title) || "");
+  if (!mix || !mix.components.length) { const r = { fallback: true, reason: "no_components" }; _roleMixCache.set(cacheKey, r); return r; }
+  mix.narrative = await narrateRoleMix((posting && posting.title) || "", mix);
+  _roleMixCache.set(cacheKey, mix);
+  return mix;
+}
+
+// ===========================================================================
+// Job Anatomy - the "predictive" read of a real role from its live MyCareersFuture
+// ads. Per-ad feature extraction (parsing engine) -> deterministic merge with true
+// frequencies -> duty classification (work LAYER + AI exposure now/2y + trajectory)
+// -> deterministic scoring (AI-resilience / automatability / centre of gravity) ->
+// one narration pass. Numbers come from code or label-only classification, never
+// from generative prose. Result cached per (sorted ad uuids + version).
+// ===========================================================================
+
+const JOB_ANATOMY_VERSION = "ja1";
+const _jobAnatomyCache = new Map();
+const JOB_LAYERS = {
+  Activity:       { label:"Activity",       color:"#b45309", bg:"#fffbeb", border:"#fcd9a0", blurb:"hands-on production" },
+  Coordination:   { label:"Coordination",   color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", blurb:"orchestrating people and process" },
+  Accountability: { label:"Accountability", color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5", blurb:"owning outcomes and decisions" },
+  Relational:     { label:"Relational",     color:"#7c3aed", bg:"#f3e8ff", border:"#ddd6fe", blurb:"trust, negotiation and influence" },
+  Judgment:       { label:"Judgment",       color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", blurb:"framing and deciding under ambiguity" },
+};
+const JOB_LAYER_ORDER = ["Activity","Coordination","Accountability","Relational","Judgment"];
+const _exposureBand = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+
+function _stripHtml(s) {
+  return String(s || "")
+    .replace(/<\s*(br|\/p|\/li|\/div|\/tr|\/h[1-6]|\/section)\s*\/?\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/&#39;|&apos;|&rsquo;/gi, "'").replace(/&quot;|&ldquo;|&rdquo;/gi, '"')
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+const _PHRASE_STOP = new Set(["with","from","that","this","your","their","they","them","into","onto","upon","will","shall","must","have","been","were","does","done","using","within","across","along","other","others","more","most","some","such","each","both","when","where","which","while","also","over","than","being","make","made","take","taken","take","ensure","provide","support","manage","handle","perform","carry","drive"]);
+function _phraseNorm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+function _phraseToks(s) { return _phraseNorm(s).split(" ").filter(t => t.length > 3 && !_PHRASE_STOP.has(t)); }
+function _phraseMatch(a, b) {
+  const na = _phraseNorm(a), nb = _phraseNorm(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const ta = _phraseToks(a), tb = _phraseToks(b);
+  const sa = new Set(ta); let shared = 0; tb.forEach(t => { if (sa.has(t)) shared++; });
+  if (shared >= 2) return true;
+  if (ta.length === 1 && tb.length === 1 && ta[0] === tb[0]) return true;
+  return false;
+}
+
+// A. per-ad feature extraction (parsing engine - JSON only, copy/normalise from the ad, no invention)
+async function extractPostingFeatures(job) {
+  const text = _stripHtml(job && (job.description || job.responsibilitiesText) || "").slice(0, 4000);
+  if (text.length < 120) return null;
+  const SYSTEM_AF =
+`ACT AS a job-advert parser. You are given the text of ONE job posting. Extract the structured fields below by copying or lightly normalising phrases FROM THE AD - do not invent, infer, or pad.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+ "tasks": ["short verb-led activity the worker does, under 12 words", ...],
+ "outcomes": ["a result, target or KPI the role is measured on, under 12 words", ...],
+ "decisionRights": ["something the role owns, approves or signs off, under 12 words", ...],
+ "stakeholders": ["who the role works with or manages, under 6 words", ...],
+ "orgSignals": {
+   "reportsTo": "the role this one reports to, or empty string",
+   "teamSize": "e.g. team of 4 / no direct reports / empty string",
+   "scopeRegion": "e.g. SEA region / Singapore / empty string",
+   "seniorityYears": "e.g. 3-5 years / 5+ years / empty string",
+   "tools": ["named tool or system, under 4 words", ...]
+ }
+}
+Rules:
+- tasks: 4 to 8 items. outcomes: 0 to 5. decisionRights: 0 to 4. stakeholders: 0 to 5. tools: 0 to 6.
+- If the ad does not say something, use an empty string or empty array - do NOT guess.
+- No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Job title: ${(job && job.title) || ""}\n\nJob posting text:\n${text}\n\nExtract the structured fields.`, 1100, 1, SYSTEM_AF);
+    const o = extractJSON(raw, "ad-features");
+    if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+    const arr = (x, max) => Array.isArray(x) ? x.map(s => String(s || "").replace(/"/g, "").trim()).filter(Boolean).slice(0, max) : [];
+    const str = x => String(x || "").replace(/"/g, "").trim();
+    const og = o.orgSignals || {};
+    return {
+      tasks: arr(o.tasks, 8), outcomes: arr(o.outcomes, 5), decisionRights: arr(o.decisionRights, 4), stakeholders: arr(o.stakeholders, 5),
+      orgSignals: { reportsTo: str(og.reportsTo), teamSize: str(og.teamSize), scopeRegion: str(og.scopeRegion), seniorityYears: str(og.seniorityYears), tools: arr(og.tools, 6) },
+    };
+  } catch (_) { return null; }
+}
+
+// B. deterministic merge across ads -> duties with true frequencies + aggregated org context
+function mergeAdFeatures(perAd) {
+  const ads = (perAd || []).filter(Boolean);
+  const N = ads.length;
+  const mergeList = (key, kind) => {
+    const out = [];
+    ads.forEach((a, ai) => {
+      (a[key] || []).forEach(phrase => {
+        const m = out.find(x => _phraseMatch(x.text, phrase));
+        if (m) m.ads.add(ai); else out.push({ text: phrase, kind, ads: new Set([ai]) });
+      });
+    });
+    return out;
+  };
+  const tasks = mergeList("tasks", "task");
+  const decisions = mergeList("decisionRights", "decision");
+  const outcomes = mergeList("outcomes", "outcome");
+  const kindOrd = { task:0, decision:1, outcome:2 };
+  const duties = [...tasks, ...decisions, ...outcomes]
+    .map(d => ({ text: d.text, kind: d.kind, count: d.ads.size, of: N }))
+    .sort((a, b) => (b.count - a.count) || (kindOrd[a.kind] - kindOrd[b.kind]) || a.text.localeCompare(b.text))
+    .slice(0, 24);
+  duties.forEach((d, i) => { d.n = i + 1; });
+  const mode = xs => { const f = {}; xs.filter(Boolean).forEach(x => { f[x] = (f[x]||0)+1; }); const e = Object.entries(f).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])); return e.length ? e[0][0] : ""; };
+  const topBy = (xs, n) => { const f = {}; xs.filter(Boolean).forEach(x => { f[x] = (f[x]||0)+1; }); return Object.entries(f).sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])).slice(0, n).map(([x]) => x); };
+  const og = ads.map(a => a.orgSignals || {});
+  const orgContext = {
+    reportsTo: mode(og.map(o => o.reportsTo)),
+    teamSize: mode(og.map(o => o.teamSize)),
+    seniorityYears: mode(og.map(o => o.seniorityYears)),
+    scopeRegions: Array.from(new Set(og.map(o => o.scopeRegion).filter(Boolean))).slice(0, 4),
+    tools: topBy(og.flatMap(o => o.tools || []), 6),
+    stakeholders: topBy(ads.flatMap(a => a.stakeholders || []), 6),
+  };
+  return { duties, orgContext, adCount: N };
+}
+
+// C. duty classification (classification engine - labels & numbers only, no prose)
+async function classifyDuties(title, duties) {
+  if (!duties.length) return [];
+  const SYSTEM_CD =
+`ACT AS a workforce-AI classification engine. You are given a list of duties for one job role. For EACH duty output classification labels only - no prose, no explanations.
+Return ONLY a JSON array, same length and order as the input. No text before or after. No markdown fences.
+Format: [{"n":1,"layer":"Activity","exposureNow":"MEDIUM","exposure2y":"HIGH","trajectory":"rising","confidence":0.8}]
+LAYER (what kind of work this duty is):
+- Activity: hands-on production - producing the output yourself (analyse, draft, build, reconcile, test, process).
+- Coordination: orchestrating people and process - scheduling, chasing, running meetings, keeping work flowing.
+- Accountability: owning the outcome - sign-off, approval, decision rights, being answerable when it is wrong.
+- Relational: trust, negotiation, persuasion, influence, difficult conversations, relationship management.
+- Judgment: framing ambiguous problems and deciding with incomplete information; setting direction or priorities.
+EXPOSURE (how well AI can perform this duty - exposureNow = today, exposure2y = in ~2 years):
+- HIGH: AI performs it autonomously with minimal human input.
+- MEDIUM: AI dramatically augments speed or quality; a human still directs and signs off.
+- LOW: AI assists parts of it; human judgment leads throughout.
+- HUMAN: presence, accountability, physical action or relationship - AI cannot meaningfully do it.
+TRAJECTORY: stable (exposure2y equals exposureNow) | rising (climbs one band by ~2 years) | sharp (climbs two bands).
+confidence: a number 0.0 to 1.0.
+Calibration: most Activity duties are MEDIUM now and many are rising; Accountability / Relational / Judgment duties stay LOW or HUMAN; office-suite drafting (Word/Excel/PowerPoint) is MEDIUM at most; if exposureNow is HUMAN the trajectory is usually stable.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nDuties to classify:\n${duties.map((d,i)=>`${i+1}. [${d.kind}] ${d.text}`).join("\n")}\nClassify each.`, 2600, 1, SYSTEM_CD);
+    const arr = extractJSON(raw, "duty-classification");
+    if (!Array.isArray(arr)) return [];
+    const lvl = x => (["HUMAN","LOW","MEDIUM","HIGH"].includes(x) ? x : "MEDIUM");
+    const lay = x => (JOB_LAYERS[x] ? x : "Activity");
+    const tj = x => (["stable","rising","sharp"].includes(x) ? x : "stable");
+    return duties.map((d, i) => {
+      const c = arr.find(x => x && x.n === d.n) || arr[i] || {};
+      const eNow = lvl(c.exposureNow), e2y = lvl(c.exposure2y || c.exposureNow);
+      let trj = tj(c.trajectory);
+      if (e2y === eNow) trj = "stable"; // keep trajectory consistent with the bands
+      return { ...d, layer: lay(c.layer), exposureNow: eNow, exposure2y: e2y, trajectory: trj, confidence: Math.max(0, Math.min(1, Number(c.confidence) || 0.6)) };
+    });
+  } catch (_) { return duties.map(d => ({ ...d, layer:"Activity", exposureNow:"MEDIUM", exposure2y:"MEDIUM", trajectory:"stable", confidence:0.5 })); }
+}
+
+// D. deterministic scoring (no LLM - same inputs -> same numbers)
+function scoreJobAnatomy(duties) {
+  const w = d => Math.max(1, d.count || 1);
+  const totalW = duties.reduce((a, d) => a + w(d), 0) || 1;
+  const layerW = {}; JOB_LAYER_ORDER.forEach(L => layerW[L] = 0);
+  duties.forEach(d => { layerW[d.layer] = (layerW[d.layer] || 0) + w(d); });
+  const layerMix = {}; JOB_LAYER_ORDER.forEach(L => layerMix[L] = Math.round((layerW[L] / totalW) * 100));
+  const expoRes  = { HUMAN:1.0, LOW:0.72, MEDIUM:0.38, HIGH:0.10 };
+  const layRes   = { Activity:0.15, Coordination:0.45, Accountability:0.90, Relational:0.95, Judgment:0.85 };
+  const expoAuto = { HIGH:1.0, MEDIUM:0.60, LOW:0.25, HUMAN:0.05 };
+  const wmean = fn => duties.reduce((a, d) => a + fn(d) * w(d), 0) / totalW;
+  const aiResilienceScore   = Math.round(100 * wmean(d => Math.max(expoRes[d.exposureNow] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
+  const resilience2y        = Math.round(100 * wmean(d => Math.max(expoRes[d.exposure2y] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
+  const automatabilityIndex = Math.round(100 * wmean(d => expoAuto[d.exposureNow] ?? 0.4));
+  const cog = JOB_LAYER_ORDER.slice().sort((a, b) => layerW[b] - layerW[a])[0] || "Activity";
+  const nRising = duties.filter(d => (_exposureBand[d.exposure2y] ?? 1) > (_exposureBand[d.exposureNow] ?? 1)).length;
+  return {
+    layerMix, aiResilienceScore, resilience2y, automatabilityIndex,
+    centreOfGravity: { layer: cog, line: `Most of this role is ${JOB_LAYERS[cog].blurb} work today.` },
+    trajectory2y: { nRising, nDuties: duties.length, line: `${nRising} of ${duties.length} duties move further into AI's reach within ~2 years — resilience ~${aiResilienceScore} → ~${resilience2y} by ~2027.` },
+  };
+}
+
+// F. narration (the only generative pass - it gets the numbers, never makes one)
+async function narrateJobAnatomy(title, a) {
+  const mixLine = JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => `${JOB_LAYERS[L].label} ${a.layerMix[L]}%`).join(" · ");
+  const oc = a.orgContext || {};
+  const ocLine = [oc.reportsTo && `reports to ${oc.reportsTo}`, oc.seniorityYears && `~${oc.seniorityYears}`, oc.teamSize, (oc.scopeRegions||[]).join("/"), (oc.tools||[]).slice(0,4).join(", ")].filter(Boolean).join(" · ") || "not stated in the ads";
+  const topDuties = a.duties.slice(0, 8).map(d => `${d.text} [${d.layer}, ${d.exposureNow}→${d.exposure2y}]`).join("; ");
+  const SYSTEM_NA =
+`ACT AS a careers analyst. You are given the computed anatomy of a real job role - its work-layer mix, AI-resilience score, centre of gravity, 2-year trajectory and org-context signals. Write a short grounded reflection. NEVER produce or change a number - only explain the ones given. Apply Singapore/ASEAN context. Humble, plain, no hype.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+ "headline": "one sentence on what this job mostly is today, under 22 words",
+ "whatTheJobReallyIs": "2 short sentences on the real shape of the work versus the job title, under 45 words",
+ "whatSupervisorsExpect": "2 short sentences on what a manager or department is really hiring for here (accountability, judgment, relationships, outcomes), under 45 words",
+ "prepFocus": [{"layer":"exact layer name from the input","why":"why focus here as AI advances - under 14 words","action":"one concrete thing to do - under 12 words"}]
+}
+Rules: prepFocus 2 to 3 items, prioritising the layers least exposed to AI and most central to this role. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(
+`Role (as posted or searched): ${title}
+Work-layer mix: ${mixLine}
+AI-resilience score: ${a.aiResilienceScore}/100 (in ~2 years: ~${a.resilience2y}/100). Automatability index now: ${a.automatabilityIndex}/100.
+Centre of gravity: ${a.centreOfGravity.layer} — ${a.centreOfGravity.line}
+2-year trajectory: ${a.trajectory2y.line}
+Org-context across ${a.adCount} live ads: ${ocLine}
+Top duties (with layer & exposure now→2y): ${topDuties}
+Write the reflection grounded only in the above.`, 800, 1, SYSTEM_NA);
+    const o = extractJSON(raw, "anatomy-narrative");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    return {
+      headline: s(o.headline), whatTheJobReallyIs: s(o.whatTheJobReallyIs), whatSupervisorsExpect: s(o.whatSupervisorsExpect),
+      prepFocus: (o.prepFocus || []).map(p => ({ layer: s(p.layer), why: s(p.why), action: s(p.action) })).filter(p => p.layer).slice(0, 3),
+    };
+  } catch (_) { return null; }
+}
+
+// orchestrator. Two-tier cache: an in-memory exact-ad-set cache (within session)
+// and a shared persistent cache via /api/anatomy keyed by role title + version
+// (cross-session / cross-user, ~7-day TTL) - which also logs every fresh run for
+// the longitudinal dataset. Reuses the live ads buildResponsibilitiesData fetched.
+async function buildJobAnatomy(jobs, title, source) {
+  const ads = (jobs || []).filter(j => j && j.uuid);
+  const cacheKey = `${ads.map(j => j.uuid).sort().join(",")}|${JOB_ANATOMY_VERSION}`;
+  if (_jobAnatomyCache.has(cacheKey)) return _jobAnatomyCache.get(cacheKey);
+  const done = r => { _jobAnatomyCache.set(cacheKey, r); return r; };
+  const roleKey = String(title || "").trim().toLowerCase();
+  // shared persistent cache
+  if (roleKey) {
+    try {
+      const r = await fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "get", role: roleKey, version: JOB_ANATOMY_VERSION }) }).then(x => x.json());
+      if (r && r.hit && !r.hit.fallback && Array.isArray(r.hit.duties) && r.hit.duties.length) { track("jobanatomy_cache_hit", { role: roleKey }); return done(r.hit); }
+    } catch (_) { /* fall through to compute */ }
+  }
+  if (ads.length < 3) return done({ fallback: true, reason: "too_few_ads" });
+  const settled = await Promise.allSettled(ads.slice(0, 12).map(extractPostingFeatures));
+  const perAd = settled.filter(r => r.status === "fulfilled" && r.value).map(r => r.value);
+  if (perAd.length < 2) return done({ fallback: true, reason: "extract_failed" });
+  const merged = mergeAdFeatures(perAd);
+  if (!merged.duties || merged.duties.length < 4) return done({ fallback: true, reason: "thin", orgContext: merged.orgContext, adCount: merged.adCount });
+  const classified = await classifyDuties(title, merged.duties);
+  if (!classified.length) return done({ fallback: true, reason: "classify_failed" });
+  const scores = scoreJobAnatomy(classified);
+  const partial = { ...scores, orgContext: merged.orgContext, adCount: merged.adCount, duties: classified };
+  const narrative = await narrateJobAnatomy(title, partial);
+  const result = { fallback: false, ...partial, narrative };
+  // log this fresh run to the shared store (fire-and-forget)
+  if (roleKey) {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "put", role: roleKey, roleDisplay: toTitleCase(title || ""), version: JOB_ANATOMY_VERSION,
+      source: ["esco", "posting", "corpus"].includes(source) ? source : "esco",
+      adUuids: ads.map(j => j.uuid), adCount: merged.adCount, duties: classified, orgContext: merged.orgContext, narrative,
+    }) }).catch(() => {});
+  }
+  return done(result);
+}
+
+// ===========================================================================
+// ATS Reverse-Engineer v2 - reverses the screening pipeline as a 3-gate model
+// (parsing -> keyword(exact, tiered) -> semantic) + an AI-anomaly check, grounded
+// in v3/doc/Report-ATS.md, and checks a pasted resume through all of it. Resume
+// text -> /api/claude only, never stored. The screening profile per role is cached
+// in the DB (/api/anatomy getProfile/putProfile); only aggregate keyword-gap COUNTS
+// are recorded (recordGap) - no resume text, no URLs.
+// ===========================================================================
+
+const SCREEN_PROFILE_VERSION = "sp2";
+const _screeningProfileCache = new Map();
+const AI_DIMENSIONS_DEFAULT = [
+  { name: "Skills coverage", what: "how many of the must-have skills the resume shows" },
+  { name: "Relevant experience", what: "experience in this role / a close one, at the right scale" },
+  { name: "Seniority match", what: "years and scope vs what the role expects" },
+  { name: "Evidence of impact", what: "measurable outcomes, not just duties listed" },
+  { name: "Keyword alignment", what: "uses the role's own language / tools" },
+];
+// known acronym <-> full-form pairs (Report-ATS.md §3.2 - include both forms once)
+const _ACRONYM_PAIRS = [
+  ["SEO","search engine optimization"],["SQL","structured query language"],["KPI","key performance indicator"],
+  ["CRM","customer relationship management"],["ERP","enterprise resource planning"],["P&L","profit and loss"],
+  ["B2B","business to business"],["B2C","business to consumer"],["SaaS","software as a service"],["UX","user experience"],
+  ["UI","user interface"],["API","application programming interface"],["ETL","extract transform load"],
+  ["GAAP","generally accepted accounting principles"],["IFRS","international financial reporting standards"],
+  ["AML","anti money laundering"],["KYC","know your customer"],["ESG","environmental social governance"],
+  ["L&D","learning and development"],["HRIS","human resources information system"],["PMO","project management office"],
+  ["RFP","request for proposal"],["SLA","service level agreement"],["OKR","objectives and key results"],
+];
+// ATS vendor identification from the application URL stem (Report-ATS.md §4.1, §6)
+const _ATS_VENDORS = [
+  { key:"workday",    re:/myworkdayjobs\.com|workday\.com/i, name:"Workday", parserGen:"Hybrid rule + NLP", weakness:"multi-column layouts, graphics, non-standard headings", behavior:"Pre-fills the application form from your resume - check and correct the parsed fields it shows you." },
+  { key:"greenhouse", re:/boards\.greenhouse\.io|greenhouse\.io/i, name:"Greenhouse", parserGen:"Rule + ML hybrid", weakness:"headers/footers, tables, large files", behavior:"The recruiter sees your PDF plus a parsed profile; the AI summary uses the parsed text - keep the file small and clean." },
+  { key:"lever",      re:/jobs\.lever\.co|lever\.co/i, name:"Lever", parserGen:"ML-first (LeverTRM, Gem AI absorbed 2023-24)", weakness:"images-as-text, tables", behavior:"Recruiters act mainly on the PARSED profile, not your PDF - so what the parser extracts is what they see." },
+  { key:"taleo",      re:/taleo\.net|taleo\.com/i, name:"Oracle Taleo", parserGen:"Legacy rule-based", weakness:"the most fragile parser - penalises everything non-standard", behavior:"Form pre-fill is partial; you re-enter a lot manually. Keep it dead simple: single column, canonical headings, plain bullets." },
+  { key:"icims",      re:/icims\.com/i, name:"iCIMS", parserGen:"Rule + ML hybrid", weakness:"international formats, columns, non-Latin scripts", behavior:"Form pre-fill; mid-strength parser - creative/international layouts underperform." },
+  { key:"sapsf",      re:/successfactors\.com|sapsf\.com|jobs\.sap\.com/i, name:"SAP SuccessFactors", parserGen:"Rule + ML hybrid", weakness:"custom characters, decorative glyphs", behavior:"Strong on enterprise/EMEA workflows; avoid decorative characters and non-standard glyphs." },
+];
+function identifyAts(url) {
+  const u = String(url || "").trim();
+  if (!u) return null;
+  for (const v of _ATS_VENDORS) if (v.re.test(u)) return { key: v.key, name: v.name, parserGen: v.parserGen, weakness: v.weakness, behavior: v.behavior };
+  return null;
+}
+
+// --- resume text parsing helpers (Gate 1) ---
+const _CANON_HEADINGS = {
+  experience: /^\s*[•\-*]?\s*(work\s+|professional\s+)?(experience|employment(\s+history)?|work\s+history|career\s+history)\s*:?\s*$/i,
+  education: /^\s*[•\-*]?\s*(education|academic\s+background|qualifications?)\s*:?\s*$/i,
+  skills: /^\s*[•\-*]?\s*(skills|technical\s+skills|core\s+(skills|competenc(ies|es))|key\s+skills|competenc(ies|es)|areas?\s+of\s+expertise)\s*:?\s*$/i,
+  certifications: /^\s*[•\-*]?\s*(certifications?|licen[cs]es?|credentials?)\s*:?\s*$/i,
+  summary: /^\s*[•\-*]?\s*(summary|profile|professional\s+summary|career\s+summary|about(\s+me)?|objective)\s*:?\s*$/i,
+};
+const _DATE_RANGE_RE = /\b((19|20)\d{2}|[A-Za-z]{3,9}\.?\s+(19|20)\d{2}|\d{1,2}\/(19|20)\d{2})\b\s*[-–—]+\s*|\bto\b\s*((19|20)\d{2}|present|now|current)/i;
+const _EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const _PHONE_RE = /(\+?\d[\d\s().-]{6,}\d)/;
+const _DECOR_BULLET_RE = /^\s*[►▶▸◆◇■□●○✦✓✔➤➔★☆»·∙▪▫»]/;
+const _HEADING_LINE_RE = /^[A-Z][A-Za-z &/]{2,40}:?$/;
+function _resumeLines(text) { return String(text || "").split(/\r?\n/).map(l => l.replace(/\s+$/, "")); }
+function _findHeadingLine(lines, re) { for (let i = 0; i < lines.length; i++) if (re.test(lines[i]) && lines[i].trim().length <= 60) return i; return -1; }
+function _sectionAfter(lines, startIdx) {
+  if (startIdx < 0) return "";
+  const out = [];
+  for (let i = startIdx + 1; i < lines.length; i++) {
+    const l = lines[i].trim();
+    const isNewHeading = l && l.length <= 50 && ((_HEADING_LINE_RE.test(l) && l === l.toUpperCase()) || Object.values(_CANON_HEADINGS).some(re => re.test(lines[i])));
+    if (isNewHeading) break;
+    out.push(lines[i]);
+  }
+  return out.join("\n");
+}
+
+// Gate 1 - parse / format (deterministic, inferred from the pasted TEXT) + the static invariants checklist
+function parseCheck(resumeText) {
+  const text = String(resumeText || "");
+  const lines = _resumeLines(text);
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const flags = []; // { level:"warn"|"info", msg }
+  const expIdx = _findHeadingLine(lines, _CANON_HEADINGS.experience);
+  const eduIdx = _findHeadingLine(lines, _CANON_HEADINGS.education);
+  const skillsIdx = _findHeadingLine(lines, _CANON_HEADINGS.skills);
+  const expSection = _sectionAfter(lines, expIdx);
+  const skillsSection = _sectionAfter(lines, skillsIdx);
+  if (expIdx < 0) flags.push({ level: "warn", msg: 'No canonical "Experience" / "Work History" heading found - rule-based parsers (Taleo, legacy iCIMS) may misroute your job history.' });
+  if (eduIdx < 0) flags.push({ level: "info", msg: 'No clear "Education" heading found.' });
+  if (expIdx >= 0 && !_DATE_RANGE_RE.test(expSection)) flags.push({ level: "warn", msg: "No date ranges detected in your experience section - ATS give more experience weight to skills inside DATED job entries." });
+  const head = lines.slice(0, 14).join("\n"), tail = lines.slice(-8).join("\n");
+  const emailAnywhere = _EMAIL_RE.test(text);
+  const contactAtTop = emailAnywhere && (_EMAIL_RE.test(head) || _PHONE_RE.test(head));
+  if (emailAnywhere && !contactAtTop) {
+    if (_EMAIL_RE.test(tail) || _PHONE_RE.test(tail)) flags.push({ level: "warn", msg: "Your contact details look like they're at the very end (a footer?) - ~25% of ATS skip header/footer text. Put name + email + phone in the first body block." });
+    else flags.push({ level: "info", msg: "Contact details aren't in the first few lines - make sure they're in the body, not a Word header/footer." });
+  } else if (!emailAnywhere) flags.push({ level: "info", msg: "No email detected in the pasted text - if you only pasted part of your resume, the checks below cover just what's here." });
+  const pages = words < 700 ? 1 : words < 1350 ? 2 : 3;
+  if (pages >= 3) flags.push({ level: "warn", msg: `This is ~${pages}+ pages of text (~${words} words) - aim for 1 page under ~8 years' experience, 2 up to ~20 (academia/clinical excepted).` });
+  const hasDecor = lines.some(l => _DECOR_BULLET_RE.test(l));
+  if (hasDecor) flags.push({ level: "info", msg: "Decorative bullet glyphs detected - SAP SuccessFactors and Taleo can choke on these; use plain solid dots or hyphens." });
+  const shortLines = lines.filter(l => l.trim() && l.trim().length < 25).length;
+  const multiColHint = lines.length > 25 && shortLines / lines.length > 0.45;
+  if (multiColHint) flags.push({ level: "info", msg: "Lots of very short lines - if your resume is multi-column, ATS read left-to-right across rows and scramble it. Use a single column." });
+  let score = 100; flags.forEach(f => score -= f.level === "warn" ? 14 : 4); score = Math.max(0, Math.min(100, score));
+  const hasPlainBullet = lines.some(l => /^\s*[•\-*]/.test(l));
+  const checklist = [
+    { item: "Single-column layout", ok: multiColHint ? false : null, note: "the only layout with verified parse fidelity on all 6 major ATS" },
+    { item: "Text-layer PDF or DOCX (never image-only)", ok: null, note: "image-only PDFs parse near 0% - verify in your document" },
+    { item: "Contact info in the body, not a header/footer", ok: emailAnywhere ? contactAtTop : null, note: "~25% of ATS skip header/footer text" },
+    { item: "Canonical section headings (Experience / Education / Skills / Certifications)", ok: (expIdx >= 0 && skillsIdx >= 0) ? true : (expIdx < 0 ? false : null), note: '"My Journey" etc. misroute content' },
+    { item: "Plain bullets (solid dot or hyphen), no decorative glyphs", ok: hasDecor ? false : (hasPlainBullet ? true : null), note: "" },
+    { item: "Dates inside each job entry", ok: expIdx >= 0 ? _DATE_RANGE_RE.test(expSection) : null, note: "skills in dated entries get more experience weight" },
+    { item: "Right length (≤1pg under 8 yrs, ≤2pg 8-20 yrs)", ok: pages <= 2, note: "" },
+    { item: "Sans-serif font, 10-12pt body, 1-inch margins", ok: null, note: "verify in your document" },
+    { item: "Present tense for current role, past for prior roles", ok: null, note: "verify in your document" },
+  ];
+  return { score, flags, checklist, expIdx, skillsIdx, expSection, skillsSection, words, pages, lines };
+}
+
+// --- deterministic: build the role's TIERED demanded set from what `result` already carries ---
+function buildDemandedSet(result) {
+  const add = (list, kw, why, fromAdsInc) => {
+    const k = String(kw || "").trim(); if (!k || k.length > 60) return;
+    const m = list.find(x => _phraseMatch(x.kw, k));
+    if (m) { if (fromAdsInc) m.fromAds = (m.fromAds || 0) + fromAdsInc; if (!m.why && why) m.why = why; return; }
+    list.push({ kw: toTitleCase(k), why: why || "", fromAds: fromAdsInc || 0 });
+  };
+  const exactTitle = [];
+  add(exactTitle, ((result.escoCanonicalTitle || (result.escoOccupation && result.escoOccupation.preferredLabel) || "").trim()) || (result.title || ""), "the canonical job title", 0);
+  ((result.escoOccupation && result.escoOccupation.altLabels) || []).slice(0, 4).forEach(a => add(exactTitle, a, "an alternative title employers use", 0));
+  const hardSkills = [], softSkills = [];
+  (result.skills || []).forEach(s => {
+    const isSoft = s.skillType === "soft-skill" || s.type === "soft-skill";
+    if (isSoft) add(softSkills, s.skill, "ESCO human/soft skill", 0);
+    else add(hardSkills, s.skill, s.escoUri ? "ESCO essential skill" : "core skill", 0);
+  });
+  const adJobs = (result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const adTally = {}; adJobs.forEach(j => Array.from(new Set((j.skills || []).filter(Boolean))).forEach(s => { adTally[s] = (adTally[s] || 0) + 1; }));
+  Object.entries(adTally).sort((a, b) => b[1] - a[1]).forEach(([s, c]) => add(hardSkills, s, `listed in ${c} of ${adJobs.length} live ads`, c));
+  ((result.jobAnatomy && result.jobAnatomy.orgContext && result.jobAnatomy.orgContext.tools) || []).forEach(t => add(hardSkills, t, "tool / system the ads name", 0));
+  hardSkills.sort((a, b) => (b.fromAds || 0) - (a.fromAds || 0) || a.kw.localeCompare(b.kw));
+  const dutyKeywords = ((result.jobAnatomy && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties : (result.responsibilitiesData && Array.isArray(result.responsibilitiesData.responsibilities) ? result.responsibilitiesData.responsibilities : [])).map(d => d.text).filter(Boolean).slice(0, 24);
+  const oc = (result.jobAnatomy && result.jobAnatomy.orgContext) || {};
+  return { exactTitle: exactTitle.slice(0, 5), hardSkills: hardSkills.slice(0, 24), softSkills: softSkills.slice(0, 12), dutyKeywords, seniority: oc.seniorityYears || "", tools: (oc.tools || []).slice(0, 8) };
+}
+
+// coverage of one kw list against the resume (helper)
+function _coverOne(rNorm, rToks, kwList) {
+  const list = (kwList || []).map(x => (typeof x === "string" ? { kw: x } : x)).filter(x => x && x.kw);
+  const covered = [], partial = [], missing = [];
+  list.forEach(x => {
+    const kn = _phraseNorm(x.kw); if (!kn) { missing.push(x); return; }
+    if (rNorm.includes(kn)) { covered.push(x); return; }
+    const kt = _phraseToks(x.kw).length ? _phraseToks(x.kw) : kn.split(" ").filter(t => t.length > 2);
+    if (!kt.length) { missing.push(x); return; }
+    const present = kt.filter(t => rToks.has(t)).length;
+    if (present === kt.length) covered.push(x); else if (present > 0) partial.push(x); else missing.push(x);
+  });
+  return { score: list.length ? Math.round(100 * (covered.length + 0.4 * partial.length) / list.length) : 0, covered, partial, missing, total: list.length };
+}
+
+// Gate 2 - keyword match (exact, tiered) + the documented levers (title-mirroring, placement, stuffing, acronyms)
+function keywordGates(resumeText, profile, parsed) {
+  const rNorm = _phraseNorm(resumeText);
+  const rToks = new Set(rNorm.split(" ").filter(t => t.length > 2));
+  const tiers = {
+    requiredQuals: _coverOne(rNorm, rToks, profile.requiredQuals || []),
+    hardSkills: _coverOne(rNorm, rToks, profile.hardSkills || []),
+    softSkills: _coverOne(rNorm, rToks, profile.softSkills || []),
+    dutyKeywords: _coverOne(rNorm, rToks, (profile.dutyKeywords || []).map(d => ({ kw: d }))),
+  };
+  const exTitles = (profile.exactTitle || []).map(t => t.kw || t).filter(Boolean);
+  let titleFound = "", titleMatched = false;
+  if (parsed && parsed.expIdx >= 0 && parsed.lines) {
+    for (let i = parsed.expIdx + 1; i < Math.min(parsed.lines.length, parsed.expIdx + 8); i++) {
+      const l = parsed.lines[i].trim(); if (!l || l.length > 80) continue;
+      const ln = _phraseNorm(l);
+      const m = exTitles.find(t => { const tn = _phraseNorm(t); const tt = _phraseToks(t); return tn && (ln.includes(tn) || (tn.length > 6 && tn.includes(ln)) || (tt.length && _phraseToks(l).filter(x => tt.includes(x)).length >= Math.max(1, Math.ceil(tt.length * 0.6)))); });
+      if (m) { titleFound = l; titleMatched = true; break; }
+      if (!titleFound) titleFound = l;
+    }
+  }
+  if (!titleMatched) titleMatched = exTitles.some(t => { const tn = _phraseNorm(t); return tn && tn.length > 5 && rNorm.includes(tn); });
+  // placement: covered hard-skills that ONLY appear in the Skills-list section, not in dated experience bullets
+  const skillsSec = _phraseNorm(parsed && parsed.skillsSection || "");
+  const expSec = _phraseNorm(parsed && parsed.expSection || "");
+  const onlyInSkillsList = [];
+  if (skillsSec) tiers.hardSkills.covered.forEach(c => {
+    const kn = _phraseNorm(c.kw); if (!kn) return;
+    if (skillsSec.includes(kn) && !(expSec && expSec.includes(kn))) onlyInSkillsList.push(c);
+  });
+  // stuffing: any covered kw appearing 4+ times in the full text
+  const countOcc = s => { const kn = _phraseNorm(s); if (!kn || kn.length < 3) return 0; let n = 0, i = 0; while ((i = rNorm.indexOf(kn, i)) !== -1) { n++; i += kn.length; } return n; };
+  const stuffing = []; const seenStuff = new Set();
+  [...tiers.requiredQuals.covered, ...tiers.hardSkills.covered, ...tiers.softSkills.covered].forEach(c => { const k = c.kw.toLowerCase(); if (seenStuff.has(k)) return; const n = countOcc(c.kw); if (n >= 4) { stuffing.push({ kw: c.kw, n }); seenStuff.add(k); } });
+  // acronym pairing: relevant pair where exactly one side is present
+  const acronymTips = [];
+  const demKw = [...(profile.requiredQuals || []), ...(profile.hardSkills || []), ...(profile.softSkills || [])].map(x => _phraseNorm(x.kw || x));
+  _ACRONYM_PAIRS.forEach(([acr, full]) => {
+    const acrTok = acr.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const aIn = rToks.has(acrTok) || rNorm.includes(acrTok);
+    const fIn = rNorm.includes(full);
+    const fullWords = full.split(" ");
+    const relevant = demKw.some(d => d.includes(acrTok) || d.includes(full) || fullWords.every(w => d.includes(w)));
+    if (relevant && aIn !== fIn) acronymTips.push({ acronym: acr, full, have: aIn ? "acronym" : "full form" });
+  });
+  // tier-weighted gate-2 score (redistribute requiredQuals/title weight if absent)
+  const titleScore = titleMatched ? 100 : 0;
+  let w = { req: 0.30, title: 0.20, hard: 0.30, duty: 0.12, soft: 0.08 };
+  if (!(profile.requiredQuals || []).length) w = { req: 0, title: 0.28, hard: 0.42, duty: 0.18, soft: 0.12 };
+  if (!exTitles.length) { w.hard += w.title; w.title = 0; }
+  const gate2Score = Math.round(w.req * tiers.requiredQuals.score + w.title * titleScore + w.hard * tiers.hardSkills.score + w.duty * tiers.dutyKeywords.score + w.soft * tiers.softSkills.score);
+  return { tiers, gate2Score, titleMatch: { matched: titleMatched, found: titleFound, target: exTitles[0] || "" }, placement: { onlyInSkillsList, n: onlyInSkillsList.length }, stuffing, acronymTips };
+}
+
+// AI-anomaly check (deterministic signals the AI co-pilot flags)
+function anomalyCheck(resumeText, kwGates) {
+  const flags = [];
+  (kwGates.stuffing || []).forEach(s => flags.push({ msg: `"${s.kw}" appears ${s.n}x - modern AI co-pilots flag keyword stuffing above ~2-3 mentions. Trim to 2-3 well-placed uses.` }));
+  const sents = String(resumeText || "").split(/[.!?]\s+|\n/).map(s => s.trim()).filter(s => s.split(/\s+/).length >= 3);
+  if (sents.length >= 8) {
+    const lens = sents.map(s => s.split(/\s+/).length);
+    const mean = lens.reduce((a, b) => a + b, 0) / lens.length;
+    const sd = Math.sqrt(lens.reduce((a, b) => a + (b - mean) * (b - mean), 0) / lens.length);
+    if (mean > 6 && sd / mean < 0.18) flags.push({ msg: "Your bullets are unusually uniform in length and rhythm - AI screeners read very even cadence as a low-burstiness 'AI-generated' signal. Vary it: mix short punchy bullets with longer ones." });
+  }
+  return { flags };
+}
+
+// --- LLM: the screening-rules engine - required qualifications + the AI screener's scoring dimensions ---
+async function profileScreener(title, dem) {
+  const must = (dem.hardSkills || []).map(m => m.kw).slice(0, 24).join(" | ");
+  const duties = (dem.dutyKeywords || []).slice(0, 14).join(" | ");
+  const SYSTEM_PS =
+`ACT AS the screening-rules engine for an ATS plus an AI resume screener hiring a ${title} in Singapore. You are given the role's key skills and duties. Output classification labels only - no prose, no advice, no rewriting.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "requiredQuals": [{"term":"the 1-3 word qualification term, e.g. 'CFA charter', 'degree in accounting', '5+ years experience'","question":"the knockout/screening question this maps to, under 14 words"}],   // 2 to 5 plausible HARD filters for THIS role (degree/field, minimum years, certification/licence, work pass, language)
+ "aiDimensions": [{"name":"short label","what":"what an AI screener scores on this, under 12 words"}]   // 4 to 5 - e.g. Skills coverage, Relevant experience, Seniority match, Evidence of impact, Keyword alignment
+}
+Rules: requiredQuals must be genuine HARD filters (not soft preferences). No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nKey skills: ${must}\nDuties: ${duties}\nTypical seniority: ${dem.seniority || "not stated"} | tools: ${(dem.tools || []).join(", ") || "not stated"}\nReturn the required qualifications and AI scoring dimensions.`, 650, 1, SYSTEM_PS);
+    const o = extractJSON(raw, "profile-screener");
+    if (!o) return { requiredQuals: [], aiDimensions: AI_DIMENSIONS_DEFAULT };
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const requiredQuals = (Array.isArray(o.requiredQuals) ? o.requiredQuals : []).map(r => (typeof r === "string" ? { term: s(r).slice(0, 60), question: "" } : { term: s(r && (r.term || r.kw)).slice(0, 60), question: s(r && (r.question || r.q)).slice(0, 140) })).filter(r => r.term).slice(0, 5);
+    let aiDimensions = (Array.isArray(o.aiDimensions) ? o.aiDimensions : []).map(d => (typeof d === "string" ? { name: s(d).slice(0, 60) } : { name: s(d && d.name).slice(0, 60), what: s(d && d.what).slice(0, 140) })).filter(d => d.name).slice(0, 6);
+    if (aiDimensions.length < 3) aiDimensions = AI_DIMENSIONS_DEFAULT;
+    return { requiredQuals, aiDimensions };
+  } catch (_) { return { requiredQuals: [], aiDimensions: AI_DIMENSIONS_DEFAULT }; }
+}
+
+async function profileNarrative(title, dem, aiDimensions) {
+  const SYSTEM_PN =
+`ACT AS a careers analyst. You are given a role's key skills and the dimensions an AI screener would score on. Write a 2-sentence reflection on how a resume for this role is screened, plus a one-line "the bar to clear". Singapore context. Humble, plain.
+Return ONLY a JSON object. No text/fences. Format: {"headline":"2 short sentences, under 40 words","aiBar":"one line on what clears the AI screener, under 20 words"}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nKey skills: ${(dem.hardSkills || []).map(m => m.kw).slice(0, 16).join(", ")}\nAI screener scores on: ${(aiDimensions || []).map(d => d.name).join(", ")}\nWrite the reflection.`, 280, 1, SYSTEM_PN);
+    const o = extractJSON(raw, "profile-narrative");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    return { headline: s(o.headline).slice(0, 260), aiBar: s(o.aiBar).slice(0, 200) };
+  } catch (_) { return null; }
+}
+
+async function getScreeningProfile(result, title) {
+  const roleKey = String(title || "").trim().toLowerCase();
+  const cacheKey = `${roleKey}|${SCREEN_PROFILE_VERSION}`;
+  if (_screeningProfileCache.has(cacheKey)) return _screeningProfileCache.get(cacheKey);
+  if (roleKey) {
+    try {
+      const r = await fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "getProfile", role: roleKey, version: SCREEN_PROFILE_VERSION }) }).then(x => x.json());
+      if (r && r.profile && ((Array.isArray(r.profile.hardSkills) && r.profile.hardSkills.length) || (Array.isArray(r.profile.exactTitle) && r.profile.exactTitle.length))) {
+        const p = { ...r.profile, keywordGaps: r.keywordGaps || [], cached: true };
+        _screeningProfileCache.set(cacheKey, p); return p;
+      }
+    } catch (_) { /* fall through */ }
+  }
+  const dem = buildDemandedSet(result || {});
+  if (!dem.hardSkills.length && !dem.exactTitle.length) return { exactTitle: [], requiredQuals: [], hardSkills: [], softSkills: [], dutyKeywords: [], aiDimensions: AI_DIMENSIONS_DEFAULT, knockouts: [], seniority: "", tools: [], narrative: null, keywordGaps: [], cached: false, empty: true };
+  const [ps, narr] = await Promise.all([profileScreener(title, dem), profileNarrative(title, dem, AI_DIMENSIONS_DEFAULT)]);
+  const aiDimensions = (ps && ps.aiDimensions && ps.aiDimensions.length) ? ps.aiDimensions : AI_DIMENSIONS_DEFAULT;
+  const rqRaw = (ps && ps.requiredQuals) || [];
+  const requiredQuals = rqRaw.map(r => ({ kw: r.term, why: r.question || "" }));
+  const knockouts = rqRaw.map(r => r.question || r.term).filter(Boolean);
+  const profile = { exactTitle: dem.exactTitle, requiredQuals, hardSkills: dem.hardSkills, softSkills: dem.softSkills, dutyKeywords: dem.dutyKeywords, aiDimensions, knockouts, seniority: dem.seniority, tools: dem.tools, narrative: narr, keywordGaps: [], cached: false };
+  if (roleKey) {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "putProfile", role: roleKey, roleDisplay: toTitleCase(title || ""), version: SCREEN_PROFILE_VERSION, source: (result && result.source) || "esco",
+      profile: { exactTitle: profile.exactTitle, requiredQuals, hardSkills: profile.hardSkills, softSkills: profile.softSkills, dutyKeywords: profile.dutyKeywords, aiDimensions, knockouts, seniority: profile.seniority, tools: profile.tools, narrative: narr },
+    }) }).catch(() => {});
+  }
+  _screeningProfileCache.set(cacheKey, profile);
+  return profile;
+}
+
+// --- LLM: the "AI screener" (Gate 3 - the soft ranker on top of the hard filter) - labels & numbers only ---
+async function screenResume(title, aiDimensions, demandedSummary, resumeText) {
+  const dims = (aiDimensions && aiDimensions.length ? aiDimensions : AI_DIMENSIONS_DEFAULT).map(d => d.name);
+  const SYSTEM_SR =
+`ACT AS the AI screener stage of an ATS for the role ${title} in Singapore. The keyword/Boolean hard filter has already run; you are the SEMANTIC ranker on top of it plus the recruiter-facing summarizer. You are given the role's demanded skills/duties, a candidate's resume text, and the dimensions you score on. Output classification labels and numbers only - no prose, no rewriting the resume, no advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "verdict": "STRONG" | "POSSIBLE" | "UNLIKELY",
+ "scores": { ${dims.map(d => `"${d}": 0-100`).join(", ")} },
+ "advanceReasons": ["why a screener would advance this resume, under 12 words", ...],   // 0 to 4
+ "rejectReasons": ["why a screener would reject/deprioritise it, under 12 words", ...],   // 0 to 4
+ "redFlags": ["a concrete red flag in the resume, under 12 words", ...],   // 0 to 3
+ "knockoutRisks": ["a likely required-qualification this resume does not clearly satisfy, under 12 words", ...]   // 0 to 3
+}
+Rules: score the resume vs the role honestly; verdict UNLIKELY if a hard qualification looks unmet or skills coverage is poor. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nDemanded skills/duties: ${demandedSummary}\n\nCandidate resume text:\n${String(resumeText || "").slice(0, 6000)}\n\nScore and classify.`, 1700, 1, SYSTEM_SR);
+    const o = extractJSON(raw, "screen-resume");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n) => Array.isArray(x) ? x.map(v => s(v).slice(0, 120)).filter(Boolean).slice(0, n) : [];
+    const verdict = ["STRONG", "POSSIBLE", "UNLIKELY"].includes(o.verdict) ? o.verdict : "POSSIBLE";
+    const scores = {}; dims.forEach(d => { const v = Number(o.scores && o.scores[d]); scores[d] = Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 50; });
+    return { verdict, scores, advanceReasons: arrS(o.advanceReasons, 4), rejectReasons: arrS(o.rejectReasons, 4), redFlags: arrS(o.redFlags, 3), knockoutRisks: arrS(o.knockoutRisks, 3) };
+  } catch (_) { return null; }
+}
+
+// --- LLM: rewrite advice - the only generative pass; templates, never fabricated claims; with the over-optimization guardrail ---
+async function resumeAdvice(title, screenResult, kwGates, jobAnatomySummary, resumeText) {
+  const missing = [...(kwGates.tiers.requiredQuals.missing || []), ...(kwGates.tiers.hardSkills.missing || [])].map(m => m.kw || m).slice(0, 15).join(" | ");
+  const tm = kwGates.titleMatch;
+  const titleCtx = (tm && tm.target) ? (tm.matched ? `most-recent title matches the target ("${tm.found}")` : `most-recent title looks like "${tm.found || "?"}" but the target role is "${tm.target}" - a TITLE MISMATCH (exact title match is the single biggest lever)`) : "";
+  const placeCtx = (kwGates.placement && kwGates.placement.n) ? `${kwGates.placement.n} covered skills appear ONLY in the standalone Skills list, not in dated job bullets: ${kwGates.placement.onlyInSkillsList.slice(0, 8).map(c => c.kw).join(", ")}` : "";
+  const stuffCtx = (kwGates.stuffing && kwGates.stuffing.length) ? `over-repeated keywords (will trip the AI co-pilot): ${kwGates.stuffing.map(s => `${s.kw} x${s.n}`).join(", ")}` : "";
+  const SYSTEM_RA =
+`You are a careers coach helping a candidate get past the ATS keyword filter AND the AI screener for ${title} (Singapore). You are given the screening result, the must-have keywords the resume is MISSING, the title/placement/repetition diagnostics, the role's AI-exposure picture, and the resume text. Give concrete, honest advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "headline": "one line on the biggest gap to close, under 22 words",
+ "titleAdvice": "if there is a title mismatch: how to mirror the target job title accurately in the most-recent role - else empty string, under 22 words",
+ "placementAdvice": "if skills sit only in a Skills list: how to move the key ones into dated job bullets - else empty string, under 22 words",
+ "mustAdd": [{"keyword":"a missing must-have keyword - MUST come from the missing list, do not invent","why":"why it matters here, under 12 words","exampleBullet":"a TEMPLATE bullet to fill in honestly, e.g. 'Did X using Y, measured by Z' - NEVER a fabricated metric or claim"}],   // 0 to 5
+ "reframe": [{"from":"a phrasing likely in the resume","to":"a stronger phrasing the screener responds to","why":"under 12 words"}],   // 0 to 4
+ "donts": ["a thing NOT to do, under 12 words", ...],   // 0 to 3
+ "aiAngle": "one paragraph (under 50 words): how to position yourself as someone who DIRECTS AI on this role's AI-exposed duties, and to lean into the human-led ones AI cannot take"
+}
+Hard rules: never invent achievements, employers, dates or metrics - exampleBullet values are fill-in-the-blank templates only. Never advise keyword stuffing - cap any skill at 2-3 well-placed mentions; honest, varied, semantically-coherent content beats clever stuffing, and over-optimisation trips the AI co-pilot's anomaly detector. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}
+Screening result: verdict ${screenResult ? screenResult.verdict : "?"}; keyword gate ${kwGates.gate2Score}/100; reject reasons: ${screenResult ? (screenResult.rejectReasons || []).join("; ") : ""}; red flags: ${screenResult ? (screenResult.redFlags || []).join("; ") : ""}
+Title diagnostic: ${titleCtx || "n/a"}
+Placement diagnostic: ${placeCtx || "n/a"}
+Repetition diagnostic: ${stuffCtx || "none"}
+Must-have keywords the resume is MISSING: ${missing || "(none)"}
+This role's AI picture: ${jobAnatomySummary || "n/a"}
+
+Candidate resume text:
+${String(resumeText || "").slice(0, 6000)}
+
+Give the advice.`, 1700, 1, SYSTEM_RA);
+    const o = extractJSON(raw, "resume-advice");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n) => Array.isArray(x) ? x.map(v => s(v).slice(0, 140)).filter(Boolean).slice(0, n) : [];
+    return {
+      headline: s(o.headline).slice(0, 240),
+      titleAdvice: s(o.titleAdvice).slice(0, 220),
+      placementAdvice: s(o.placementAdvice).slice(0, 220),
+      mustAdd: (Array.isArray(o.mustAdd) ? o.mustAdd : []).map(m => ({ keyword: s(m && (m.keyword || m.kw)).slice(0, 60), why: s(m && m.why).slice(0, 120), exampleBullet: s(m && m.exampleBullet).slice(0, 220) })).filter(m => m.keyword).slice(0, 5),
+      reframe: (Array.isArray(o.reframe) ? o.reframe : []).map(r => ({ from: s(r && r.from).slice(0, 160), to: s(r && r.to).slice(0, 160), why: s(r && r.why).slice(0, 120) })).filter(r => r.from && r.to).slice(0, 4),
+      donts: arrS(o.donts, 3),
+      aiAngle: s(o.aiAngle).slice(0, 360),
+    };
+  } catch (_) { return null; }
+}
+
+// --- orchestrator: check a pasted resume through the 3 gates + the anomaly check ---
+async function checkResume(resumeText, profile, title, jobAnatomy, source, role) {
+  const parsed = parseCheck(resumeText);
+  const kw = keywordGates(resumeText, profile, parsed);
+  const demandedSummary = `required: ${(profile.requiredQuals || []).map(m => m.kw).join(", ") || "n/a"}; key skills: ${(profile.hardSkills || []).map(m => m.kw).slice(0, 18).join(", ")}; soft: ${(profile.softSkills || []).map(m => m.kw).slice(0, 6).join(", ")}${profile.dutyKeywords && profile.dutyKeywords.length ? `; duties: ${profile.dutyKeywords.slice(0, 8).join("; ")}` : ""}${profile.seniority ? `; typical seniority: ${profile.seniority}` : ""}`;
+  const jaSummary = (jobAnatomy && !jobAnatomy.fallback && jobAnatomy.layerMix)
+    ? `layer mix ${["Activity", "Coordination", "Accountability", "Relational", "Judgment"].filter(L => jobAnatomy.layerMix[L]).map(L => `${L} ${jobAnatomy.layerMix[L]}%`).join("/")}; AI-resilience ${jobAnatomy.aiResilienceScore}/100; AI-exposed duties: ${(jobAnatomy.duties || []).filter(d => d.exposureNow === "MEDIUM" || d.exposureNow === "HIGH").slice(0, 4).map(d => d.text).join("; ")}` : "";
+  const screen = await screenResume(title, profile.aiDimensions, demandedSummary, resumeText);
+  const anomaly = anomalyCheck(resumeText, kw);
+  const scoreVals = screen && screen.scores ? Object.values(screen.scores) : [];
+  const aiMean = scoreVals.length ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : kw.gate2Score;
+  const overall = Math.round(0.22 * parsed.score + 0.40 * kw.gate2Score + 0.38 * aiMean);
+  const band = overall >= 70 ? "likely" : overall >= 45 ? "borderline" : "unlikely";
+  const advice = await resumeAdvice(title, screen, kw, jaSummary, resumeText);
+  // fire-and-forget: record which required/hard keywords were missing (counts only, no resume text)
+  const allMust = [...(profile.requiredQuals || []), ...(profile.hardSkills || [])].map(m => m.kw);
+  if (role && allMust.length) {
+    const missingSet = new Set([...(kw.tiers.requiredQuals.missing || []), ...(kw.tiers.hardSkills.missing || [])].map(m => m.kw || m));
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "recordGap", role: String(role).trim().toLowerCase(), version: SCREEN_PROFILE_VERSION,
+      allMustHaveKws: allMust, missingKws: Array.from(missingSet),
+    }) }).catch(() => {});
+  }
+  return { parsed, kw, screen, anomaly, overall, band, advice };
+}
+
+// ===========================================================================
+// Role Graph - MyCareersFuture role -> itemised responsibility/requirement
+// statements -> inferred work activities/skills/competency signals -> ESCO
+// skills -> reverse-mapped ISCO-08 occupations (similarity + trading-style
+// weighted scoring) -> an API-ready role-skill graph (nodes = role / occupation
+// / skill / responsibility, edges = match strength) + a skill-analysis card.
+// Plus CV ingress: a pasted CV -> structured profile -> fit score, skill-gap,
+// transferable-skills map across the ISCO-08 families, role-readiness read.
+// CV text -> /api/claude only, never stored. Result cached per (title|version).
+// ===========================================================================
+
+const ROLE_GRAPH_VERSION = "rg1";
+const _roleGraphCache = new Map();
+const RG_NODE_STYLE = {
+  mcfRole:        { label:"MyCareersFuture role", color:"#1e3a8a", bg:"#dbeafe", border:"#93c5fd" },
+  iscoOccupation: { label:"ISCO-08 occupation",   color:"#5b21b6", bg:"#ede9fe", border:"#c4b5fd" },
+  escoSkill:      { label:"ESCO skill",            color:"#0e7490", bg:"#cffafe", border:"#67e8f9" },
+  responsibility: { label:"Responsibility",        color:"#b45309", bg:"#fef3c7", border:"#fcd34d" },
+};
+const RG_EDGE_COLOR = { "role-occupation":"#6366f1", "role-skill":"#0891b2", "occupation-skill":"#8b5cf6", "skill-responsibility":"#d97706" };
+function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
+
+// 1) deterministic: pull the itemised responsibility statements the rest of the analysis already produced
+function gatherStatements(result) {
+  const rd = result && result.responsibilitiesData;
+  const ja = result && result.jobAnatomy;
+  let resp = [];
+  if (rd && Array.isArray(rd.responsibilities) && rd.responsibilities.length) {
+    resp = rd.responsibilities.map((r, i) => ({ id: "r" + (r.n != null ? r.n : i), text: String(r.text || "").trim(), cat: r.cat || "", level: r.level || "HUMAN", sk: Array.isArray(r.sk) ? r.sk : [] })).filter(r => r.text);
+  } else if (ja && !ja.fallback && Array.isArray(ja.duties) && ja.duties.length) {
+    resp = ja.duties.map((d, i) => ({ id: "d" + (d.n != null ? d.n : i), text: String(d.text || "").trim(), cat: d.layer || "", level: d.exposureNow || "HUMAN", sk: [] })).filter(r => r.text);
+  }
+  return { responsibilities: resp.slice(0, 22) };
+}
+
+// 2) LLM: infer the role's requirements/qualifications/preferred competencies + per-statement activities/skills/signals (one batched call)
+async function analyseRolePipeline(title, statements, skills) {
+  if (!statements.length) return null;
+  const list = statements.map((s, i) => `${i + 1}. ${s.text}`).join("\n").slice(0, 4600);
+  const skillHint = (skills || []).map(s => s.skill).filter(Boolean).slice(0, 30).join(", ");
+  const SYS_RP =
+`ACT AS a job-analysis engine. Given a job title and its itemised responsibility statements, infer (a) the role's likely hard REQUIREMENTS, formal QUALIFICATIONS (degree/licence/certification) and PREFERRED competencies, and (b) for EACH numbered responsibility, the underlying work activities, the skills it implies, and the competency signals it sends to an employer. Singapore context. Output labels only - no prose, no advice, no rewriting.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "requirements": ["short hard-requirement phrase", ...],            // 2 to 6
+ "qualifications": ["short formal-qualification phrase", ...],       // 0 to 5
+ "preferredCompetencies": ["short preferred-competency phrase", ...],// 0 to 6
+ "statements": [{"i":1,"activities":["short work-activity phrase", ...],"skills":["short skill phrase", ...],"signals":["short competency-signal phrase", ...]}]   // one object per numbered statement; activities 1-4, skills 1-4, signals 0-3
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Job title: ${title}\nKnown ESCO skills (hints, not exhaustive): ${skillHint || "none"}\nResponsibility statements:\n${list}\n\nAnalyse.`, 2800, 1, SYS_RP);
+    const o = extractJSON(raw, "role-pipeline");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 80)).filter(Boolean).slice(0, n) : [];
+    const stmtMap = {};
+    (Array.isArray(o.statements) ? o.statements : []).forEach(st => { const idx = Number(st && st.i); if (!Number.isFinite(idx)) return; stmtMap[idx] = { activities: arrS(st.activities, 4, 90), skills: arrS(st.skills, 4, 70), signals: arrS(st.signals, 3, 80) }; });
+    return { requirements: arrS(o.requirements, 6, 80), qualifications: arrS(o.qualifications, 5, 80), preferredCompetencies: arrS(o.preferredCompetencies, 6, 80), statements: stmtMap };
+  } catch (_) { return null; }
+}
+
+// 3) deterministic: map each responsibility statement to the role's ESCO skills (its own sk[] links + token-matched inferred skill phrases)
+function mapStatementsToEsco(statements, analysed, skills) {
+  const sk = skills || [];
+  const byN = {}; sk.forEach((s, idx) => { if (s && s.n != null) byN[s.n] = idx; });
+  const skNorm = sk.map(s => _phraseNorm(s.skill));
+  const skToks = sk.map(s => _phraseToks(s.skill));
+  const edges = []; const seen = new Set();
+  const pushEdge = (respId, idx, strength) => { if (idx == null || idx < 0) return; const k = respId + "|" + idx; if (seen.has(k)) return; seen.add(k); edges.push({ respId, skillIdx: idx, strength }); };
+  statements.forEach((st, i) => {
+    (st.sk || []).forEach(n => { if (byN[n] != null) pushEdge(st.id, byN[n], 1); });
+    const inf = (analysed && analysed.statements && analysed.statements[i + 1]) || null;
+    (inf ? inf.skills : []).forEach(p => {
+      const pn = _phraseNorm(p), pt = _phraseToks(p);
+      if (!pn) return;
+      let bi = -1, bs = 0;
+      for (let j = 0; j < sk.length; j++) {
+        if (skNorm[j] && (skNorm[j] === pn || (pn.length > 4 && skNorm[j].includes(pn)) || (skNorm[j].length > 4 && pn.includes(skNorm[j])))) { bi = j; bs = 1; break; }
+        const sh = pt.length ? pt.filter(t => skToks[j].includes(t)).length : 0;
+        if (sh >= 2 && bs < 1) { bi = j; bs = 0.6; }
+      }
+      if (bi >= 0) pushEdge(st.id, bi, bs);
+    });
+  });
+  return { edges, usedSkillIdxs: Array.from(new Set(edges.map(e => e.skillIdx))) };
+}
+
+// 5) deterministic: trading-algorithm-style scoring of the reverse-mapped ISCO-08 candidates
+function scoreIscoCandidates(fp, skills, mapping, statements) {
+  const cand = (fp && fp.candidates) || [];
+  if (!cand.length) return [];
+  const sk = skills || [];
+  const respSkillNames = {}; statements.forEach(st => { respSkillNames[st.id] = new Set(); });
+  mapping.edges.forEach(e => { const s = sk[e.skillIdx]; if (s && respSkillNames[e.respId]) respSkillNames[e.respId].add(_phraseNorm(s.skill)); });
+  const totalResp = statements.length || 1;
+  return cand.map(c => {
+    const matched = (c.matchedSkills || []).map(_phraseNorm).filter(Boolean);
+    const matchedSet = new Set(matched);
+    const skillProximity = Math.max(0, Math.min(1, c.ratio || 0));
+    let respHit = 0;
+    statements.forEach(st => { for (const n of (respSkillNames[st.id] || [])) { if (matchedSet.has(n) || matched.some(m => m.includes(n) || n.includes(m))) { respHit++; break; } } });
+    const responsibilityOverlap = respHit / totalResp;
+    const confidence = Math.max(0, Math.min(1, (c.matchCount || 0) / 8)) * ((c.essentialCount || 0) >= 5 ? 1 : 0.7);
+    let composite = 0.45 * skillProximity + 0.35 * responsibilityOverlap + 0.20 * confidence;
+    if (c.isNominal) composite = Math.min(1, composite + 0.05);
+    return {
+      uri: c.uri, label: toTitleCase(c.label || ""), code: c.code || "", iscoMajor: c.iscoMajor != null ? c.iscoMajor : null,
+      essentialCount: c.essentialCount || 0, matchCount: c.matchCount || 0, matchedSkills: (c.matchedSkills || []).slice(0, 12), isNominal: !!c.isNominal,
+      skillProximity: Math.round(skillProximity * 100), responsibilityOverlap: Math.round(responsibilityOverlap * 100), confidence: Math.round(confidence * 100), score: Math.round(composite * 100),
+    };
+  }).sort((a, b) => b.score - a.score || b.matchCount - a.matchCount || a.label.localeCompare(b.label)).slice(0, 10);
+}
+
+// 6) deterministic: assemble the API-ready node/edge graph (capped for legibility) + the layer arrays the viz uses
+function buildGraphStructure(title, source, statements, skills, mapping, iscoCandidates) {
+  const sk = skills || [];
+  const usedSet = new Set(mapping.usedSkillIdxs);
+  const edgeCount = {}; mapping.edges.forEach(e => { edgeCount[e.skillIdx] = (edgeCount[e.skillIdx] || 0) + 1; });
+  const candNorm = new Set(); iscoCandidates.forEach(c => (c.matchedSkills || []).forEach(m => candNorm.add(_phraseNorm(m))));
+  const skillRank = sk.map((s, idx) => ({ idx, used: usedSet.has(idx) ? 1 : 0, ec: edgeCount[idx] || 0, inCand: candNorm.has(_phraseNorm(s.skill)) ? 1 : 0 }));
+  skillRank.sort((a, b) => (b.used - a.used) || (b.ec - a.ec) || (b.inCand - a.inCand));
+  const topSkillIdx = skillRank.slice(0, 16).map(r => r.idx);
+  const topSkillSet = new Set(topSkillIdx);
+  const respRank = statements.map(st => ({ st, ec: mapping.edges.filter(e => e.respId === st.id).length })).sort((a, b) => b.ec - a.ec);
+  const topResp = respRank.slice(0, 14).map(r => r.st);
+  const topRespSet = new Set(topResp.map(r => r.id));
+  const topIsco = iscoCandidates.slice(0, 8);
+
+  const roleId = "role:" + _rgSlug(title);
+  const iscoIdOf = c => "isco:" + (c.code ? c.code : _rgSlug(c.label));
+  const skillIdOf = (s, idx) => "esco:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + (s.n != null ? s.n : idx));
+
+  const nodes = [{ id: roleId, type: "mcfRole", label: toTitleCase(title), source: source || "esco" }];
+  topIsco.forEach(c => nodes.push({ id: iscoIdOf(c), type: "iscoOccupation", label: c.label, code: c.code || "", iscoMajor: c.iscoMajor, score: c.score }));
+  const skillNodeIdByIdx = {}, skillNodeIdByNorm = {};
+  topSkillIdx.forEach(idx => { const s = sk[idx]; const id = skillIdOf(s, idx); skillNodeIdByIdx[idx] = id; skillNodeIdByNorm[_phraseNorm(s.skill)] = id; nodes.push({ id, type: "escoSkill", label: s.skill, escoUri: s.escoUri || "", skillType: s.skillType || s.type || "", level: s.level || "HUMAN" }); });
+  topResp.forEach(st => nodes.push({ id: "resp:" + st.id, type: "responsibility", label: st.text, cat: st.cat || "", level: st.level || "HUMAN" }));
+
+  const edges = [];
+  const addE = (s, t, w, kind) => { if (!s || !t) return; edges.push({ source: s, target: t, weight: Math.round(Math.max(0.05, Math.min(1, w)) * 100) / 100, kind }); };
+  topIsco.forEach(c => addE(roleId, iscoIdOf(c), c.score / 100, "role-occupation"));
+  topSkillIdx.forEach(idx => { const s = sk[idx]; const lw = s.level === "HIGH" ? 1 : s.level === "MEDIUM" ? 0.8 : s.level === "LOW" ? 0.65 : 0.5; addE(roleId, skillNodeIdByIdx[idx], lw, "role-skill"); });
+  topIsco.forEach(c => { const cid = iscoIdOf(c); (c.matchedSkills || []).forEach(m => { const pn = _phraseNorm(m); let nid = skillNodeIdByNorm[pn]; let w = 1; if (!nid) { const hit = Object.keys(skillNodeIdByNorm).find(k => k.length > 3 && (k.includes(pn) || pn.includes(k))); if (hit) { nid = skillNodeIdByNorm[hit]; w = 0.6; } } if (nid) addE(cid, nid, w, "occupation-skill"); }); });
+  mapping.edges.forEach(e => { if (!topSkillSet.has(e.skillIdx) || !topRespSet.has(e.respId)) return; addE(skillNodeIdByIdx[e.skillIdx], "resp:" + e.respId, e.strength, "skill-responsibility"); });
+
+  return {
+    nodes, edges, columns: ["mcfRole", "iscoOccupation", "escoSkill", "responsibility"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
+    stats: { roles: 1, occupations: topIsco.length, skills: topSkillIdx.length, responsibilities: topResp.length, edges: edges.length },
+  };
+}
+
+// 7) LLM: the skill-analysis card - what the role actually means; work performed, skills required, adjacent roles, capability gaps
+async function narrateRoleGraph(title, summary) {
+  const SYS_NG =
+`ACT AS a careers analyst. You are given a structured decomposition of one job role: its top responsibilities, the ESCO skills they map to, the ISCO-08 occupations it most resembles (with similarity scores), and its AI-exposure mix. Write a grounded analysis - never invent numbers, only interpret the ones given. Singapore context. Humble, plain, no hype.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "whatTheRoleReallyIs": "2 sentences on what this role actually is in terms of work performed, under 45 words",
+ "workPerformed": ["short phrase naming a core kind of work this role does", ...],   // 3 to 6
+ "skillsRequired": ["short phrase naming a capability the role demands", ...],        // 3 to 7
+ "adjacentRoles": [{"role":"an occupation label from the input","why":"why it is adjacent, under 14 words"}],   // 2 to 4, drawn from the ISCO candidates given
+ "capabilityGaps": ["a capability commonly under-evidenced for this role, under 14 words", ...]   // 2 to 4
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\n${summary}\n\nWrite the analysis.`, 1100, 1, SYS_NG);
+    const o = extractJSON(raw, "rolegraph-narrative");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 90)).filter(Boolean).slice(0, n) : [];
+    return {
+      whatTheRoleReallyIs: ss(o.whatTheRoleReallyIs).slice(0, 320),
+      workPerformed: arrS(o.workPerformed, 6, 70), skillsRequired: arrS(o.skillsRequired, 7, 70),
+      adjacentRoles: (Array.isArray(o.adjacentRoles) ? o.adjacentRoles : []).map(r => ({ role: ss(r && r.role).slice(0, 80), why: ss(r && r.why).slice(0, 110) })).filter(r => r.role).slice(0, 4),
+      capabilityGaps: arrS(o.capabilityGaps, 4, 110),
+    };
+  } catch (_) { return null; }
+}
+
+// orchestrator
+async function buildRoleGraph(result, title) {
+  const roleKey = String(title || "").trim().toLowerCase();
+  const cacheKey = `${roleKey}|${(result && result.source) || "esco"}|${ROLE_GRAPH_VERSION}`;
+  if (_roleGraphCache.has(cacheKey)) return _roleGraphCache.get(cacheKey);
+  const skills = (result && result.skills) || [];
+  const { responsibilities } = gatherStatements(result || {});
+  if (!skills.length || responsibilities.length < 3) return { fallback: true, reason: "thin_input" }; // not cached - responsibilities/anatomy may still be loading
+  const analysed = await analyseRolePipeline(title, responsibilities, skills);
+  const mapping = mapStatementsToEsco(responsibilities, analysed, skills);
+  let fp = null;
+  try { fp = await getRoleMixCandidates(title || "", skills, ((result && result.responsibilitiesData && result.responsibilitiesData.jobs) || []).flatMap(j => (j.skills || [])).slice(0, 20)); } catch (_) { fp = null; }
+  const iscoCandidates = scoreIscoCandidates(fp, skills, mapping, responsibilities);
+  const graph = buildGraphStructure(title, (result && result.source) || "esco", responsibilities, skills, mapping, iscoCandidates);
+  // AI-exposure mix from the role's skills
+  const lc = { HIGH: 0, MEDIUM: 0, LOW: 0, HUMAN: 0 }; skills.forEach(s => { if (lc[s.level] !== undefined) lc[s.level]++; });
+  const tot = skills.length || 1;
+  const aiMix = { aiExposedPct: Math.round(((lc.HIGH + lc.MEDIUM) / tot) * 100), humanPct: Math.round((lc.HUMAN / tot) * 100) };
+  const topIscoLine = iscoCandidates.slice(0, 6).map(c => `${c.label} (score ${c.score}/100; skill-proximity ${c.skillProximity}%, responsibility-overlap ${c.responsibilityOverlap}%${c.isNominal ? "; matches the posted title" : ""})`).join("\n");
+  const topRespLine = graph.nodes.filter(n => n.type === "responsibility").slice(0, 10).map(n => `- ${n.label}`).join("\n");
+  const topSkillLine = graph.nodes.filter(n => n.type === "escoSkill").slice(0, 14).map(n => n.label).join(", ");
+  const summary = `Top responsibilities:\n${topRespLine}\nESCO skills these map to: ${topSkillLine}\nClosest ISCO-08 occupations:\n${topIscoLine}\nAI-exposure mix: ${aiMix.aiExposedPct}% of skills AI-augmentable/automatable, ${aiMix.humanPct}% human-led.${analysed && analysed.requirements.length ? `\nInferred requirements: ${analysed.requirements.join(", ")}` : ""}`;
+  const narrative = await narrateRoleGraph(title, summary);
+  const out = { fallback: false, title: toTitleCase(title || ""), source: (result && result.source) || "esco", statements: responsibilities, analysed, mapping, iscoCandidates, graph, aiMix, narrative, fpFallback: !fp || fp.fallback };
+  _roleGraphCache.set(cacheKey, out);
+  return out;
+}
+
+// --- CV ingress ---
+async function extractCV(cvText) {
+  const SYS_CV =
+`ACT AS a CV-parsing engine. Extract structured facts from the candidate's CV text. Output only what is present - never invent. No prose, no advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "roleHistory": [{"title":"job title as written","years":"duration or dates as written, or empty"}],   // most recent first, up to 8
+ "skills": ["a skill / tool / domain the CV evidences", ...],   // up to 30
+ "qualifications": ["a degree / certification / licence as written", ...],   // up to 10
+ "achievements": ["a concrete achievement line, lightly summarised, under 18 words", ...]   // up to 8
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Candidate CV text:\n${String(cvText || "").slice(0, 7000)}\n\nExtract.`, 1600, 1, SYS_CV);
+    const o = extractJSON(raw, "extract-cv");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 90)).filter(Boolean).slice(0, n) : [];
+    return {
+      roleHistory: (Array.isArray(o.roleHistory) ? o.roleHistory : []).map(r => ({ title: ss(r && (r.title || r.role)).slice(0, 90), years: ss(r && (r.years || r.dates)).slice(0, 40) })).filter(r => r.title).slice(0, 8),
+      skills: arrS(o.skills, 30, 60), qualifications: arrS(o.qualifications, 10, 90), achievements: arrS(o.achievements, 8, 140),
+    };
+  } catch (_) { return null; }
+}
+
+function scoreCVFit(cvText, cvProfile, skills, iscoCandidates) {
+  const corpus = [String(cvText || ""), ...((cvProfile && cvProfile.skills) || []), ...((cvProfile && cvProfile.achievements) || []), ...((cvProfile && cvProfile.roleHistory) || []).map(r => r.title), ...((cvProfile && cvProfile.qualifications) || [])].join(" \n ");
+  const rNorm = _phraseNorm(corpus);
+  const rToks = new Set(rNorm.split(" ").filter(t => t.length > 2));
+  const escoCov = _coverOne(rNorm, rToks, (skills || []).map(s => ({ kw: s.skill })));
+  const fams = (iscoCandidates || []).slice(0, 8).map(c => {
+    const cov = _coverOne(rNorm, rToks, (c.matchedSkills || []).map(m => ({ kw: m })));
+    return { uri: c.uri, label: c.label, code: c.code, iscoMajor: c.iscoMajor, roleScore: c.score, coverage: cov.score, covered: cov.covered.map(x => x.kw), missing: cov.missing.map(x => x.kw), total: cov.total };
+  }).filter(f => f.total > 0).sort((a, b) => b.coverage - a.coverage);
+  const bestFam = fams[0] ? fams[0].coverage : escoCov.score;
+  const fitScore = Math.round(0.6 * escoCov.score + 0.4 * bestFam);
+  return { escoCoverage: escoCov, families: fams, fitScore, band: fitScore >= 70 ? "READY" : fitScore >= 45 ? "DEVELOPING" : "STRETCH" };
+}
+
+async function narrateCVFit(title, fitSummary) {
+  const SYS_CF =
+`ACT AS a careers coach. You are given a candidate's structured CV facts and a deterministic fit analysis against a target role and the ISCO-08 occupation families it resembles. Write an honest, grounded role-readiness read - never invent CV facts, only interpret the analysis given. Singapore context. Plain, candid, encouraging but realistic.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "readiness": "READY" | "DEVELOPING" | "STRETCH",
+ "explanation": "2-3 sentences on how ready this candidate is and why, under 55 words",
+ "transferableStrengths": ["a strength from the CV that transfers to this role, under 14 words", ...],   // 2 to 5
+ "gapsToClose": ["a concrete gap to close, under 14 words", ...],   // 2 to 5
+ "nextSteps": ["a concrete next step, under 14 words", ...]   // 2 to 4
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Target role: ${title}\n${fitSummary}\n\nWrite the readiness read.`, 1000, 1, SYS_CF);
+    const o = extractJSON(raw, "cv-fit-narrative");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 100)).filter(Boolean).slice(0, n) : [];
+    const readiness = ["READY", "DEVELOPING", "STRETCH"].includes(o.readiness) ? o.readiness : null;
+    return { readiness, explanation: ss(o.explanation).slice(0, 360), transferableStrengths: arrS(o.transferableStrengths, 5, 110), gapsToClose: arrS(o.gapsToClose, 5, 110), nextSteps: arrS(o.nextSteps, 4, 110) };
+  } catch (_) { return null; }
+}
+
+async function ingestCV(cvText, roleGraph, title, allSkills) {
+  const cvProfile = await extractCV(cvText);
+  const graphSkills = (roleGraph && roleGraph.graph) ? roleGraph.graph.nodes.filter(n => n.type === "escoSkill").map(n => ({ skill: n.label })) : [];
+  const skillSet = (Array.isArray(allSkills) && allSkills.length) ? allSkills : graphSkills;
+  const fit = scoreCVFit(cvText, cvProfile, skillSet, (roleGraph && roleGraph.iscoCandidates) || []);
+  const famLine = fit.families.slice(0, 5).map(f => `${f.label}: ${f.coverage}% of its core skills evidenced (${f.covered.slice(0, 5).join(", ") || "few"})`).join("\n");
+  const fitSummary = `CV role history: ${(cvProfile && cvProfile.roleHistory || []).map(r => r.title + (r.years ? ` (${r.years})` : "")).join("; ") || "n/a"}
+CV qualifications: ${(cvProfile && cvProfile.qualifications || []).join(", ") || "n/a"}
+Fit score (deterministic): ${fit.fitScore}/100 (band ${fit.band}); target-role ESCO-skill coverage ${fit.escoCoverage.score}% (${fit.escoCoverage.covered.length}/${fit.escoCoverage.total}); missing key skills: ${fit.escoCoverage.missing.slice(0, 10).map(x => x.kw).join(", ") || "none"}
+Closest ISCO-08 families by CV overlap:
+${famLine || "n/a"}`;
+  const narrative = await narrateCVFit(title, fitSummary);
+  return { cvProfile, fit, narrative };
+}
+
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
   const SYSTEM_RATE =
@@ -1434,12 +2525,16 @@ Pick the 6 responsibilities this persona should focus on building first.`, 900, 
 }
 
 // Orchestrator: returns the full responsibilitiesData blob (or a fallback marker).
-async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona) {
+async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona, preJobs) {
   let jobsRes;
-  try {
-    jobsRes = await getJobsForRole(title, escoOccupation, skills);
-  } catch (e) {
-    return { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] };
+  if (Array.isArray(preJobs) && preJobs.length) {
+    jobsRes = { jobs: preJobs, tier: 1, approximate: false };
+  } else {
+    try {
+      jobsRes = await getJobsForRole(title, escoOccupation, skills);
+    } catch (e) {
+      return { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] };
+    }
   }
   const jobs = jobsRes.jobs || [];
   if (!jobs.length) return { fallback: true, reason: "no_jobs", jobCount: 0, jobs: [], tier: jobsRes.tier, approximate: jobsRes.approximate };
@@ -3102,6 +4197,57 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           </div>
         );
       })()}
+      {/* Section 2c - Role-Mix (from posting analyses) */}
+      {(() => {
+        const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#475569"];
+        const withMix = ready.filter(c => c.result.roleMix && !c.result.roleMix.fallback && c.result.roleMix.components && c.result.roleMix.components.length);
+        if (!withMix.length) return null;
+        return (
+          <div style={{ marginBottom:14 }}>
+            <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+              <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what each posting actually is</p>
+              <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>For roles analysed from a live MyCareersFuture listing: the ESCO occupations the ad blends, and whether the posted title matches the duty mix.</p>
+            </div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+              {ready.map((c, i) => {
+                const rm = c.result.roleMix;
+                const has = !!(rm && !rm.fallback && rm.components && rm.components.length);
+                const coh = has ? (ROLE_MIX_COHERENCE[rm.coherenceKey] || ROLE_MIX_COHERENCE.mixed) : null;
+                return (
+                  <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0, paddingBottom: i < ready.length - 1 ? 14 : 0, borderBottom: i < ready.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom: has ? 6 : 0, flexWrap:"wrap" }}>
+                      <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
+                      {has ? (
+                        <span style={{ display:"inline-flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+                          <span style={{ fontSize:10, fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding:"1px 8px" }}>{coh.label}</span>
+                          {rm.mismatch && <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding:"1px 8px" }}>title ≠ duties</span>}
+                        </span>
+                      ) : <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{rm && rm.fallback ? "not available" : "ESCO analysis — no posting mix"}</span>}
+                    </div>
+                    {has && (
+                      <>
+                        <div style={{ display:"flex", height:10, borderRadius:4, overflow:"hidden", marginBottom:6 }}>
+                          {rm.components.map((cmp,j) => <div key={j} title={`${cmp.label} ${cmp.pct}%`} style={{ flex:cmp.pct, background:palette[j%palette.length], minWidth:4 }} />)}
+                          {rm.otherPct > 0 && <div title={`Other roles ${rm.otherPct}%`} style={{ flex:rm.otherPct, background:"#cbd5e1", minWidth:4 }} />}
+                        </div>
+                        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                          {rm.components.map((cmp,j) => (
+                            <span key={j} style={{ fontSize:11, fontWeight:600, color:palette[j%palette.length], display:"inline-flex", alignItems:"center", gap:4 }}>
+                              <span style={{ width:8, height:8, borderRadius:2, background:palette[j%palette.length] }} />{cmp.label} <span style={{ fontWeight:800 }}>{cmp.pct}%</span>
+                            </span>
+                          ))}
+                          {rm.otherPct > 0 && <span style={{ fontSize:11, color:"#64748b" }}>Other {rm.otherPct}%</span>}
+                        </div>
+                        {rm.narrative && rm.narrative.headline && <p style={{ margin:"6px 0 0", fontSize:11, color:C.muted, lineHeight:1.5 }}>{rm.narrative.headline}</p>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
       {/* Section 3 - Role cards */}
       {/* Per-section row grid - each sub-section aligns horizontally across all role columns */}
       {(() => {
@@ -3985,6 +5131,909 @@ function CompareWarningModal({ onConfirm, onCancel }) {
   );
 }
 
+// v3.2: RoleMixPanel - decomposes a live posting into the ESCO occupations it
+// actually blends (fingerprint %, posted-as-vs-actually, bundle coherence,
+// per-component AI exposure, and a skilling priority). Numbers are deterministic
+// (ESCO essential-skill overlap + arithmetic in assembleRoleMix); prose is LLM.
+function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
+  if (!roleMix) return null;
+  if (roleMix.fallback) {
+    return (
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Role-Mix unavailable</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
+          We couldn't decompose this posting against the ESCO occupation library right now (the lookup was unavailable or no occupation overlapped enough). Re-run the analysis in a moment.
+        </p>
+      </div>
+    );
+  }
+  const comps = roleMix.components || [];
+  const coh = ROLE_MIX_COHERENCE[roleMix.coherenceKey] || ROLE_MIX_COHERENCE.mixed;
+  const nar = roleMix.narrative || {};
+  const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#475569"];
+  const levelBar = [
+    { key:"HIGH",   color:"#dc2626" },
+    { key:"MEDIUM", color:"#d97706" },
+    { key:"LOW",    color:"#2563eb" },
+    { key:"HUMAN",  color:"#166534" },
+  ];
+  const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+  const priByLabel = {}; (nar.skillingPriority||[]).forEach(p => { priByLabel[(p.component||"").toLowerCase()] = p; });
+  return (
+    <div>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || "This posting blends duties from several ESCO occupations — the title alone doesn't capture the mix."}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
+          Matched this posting's skills against ESCO occupations' essential-skill lists. Shares are indicative, not a measurement.
+          {postingMeta && postingMeta.mcfUrl ? <> · <a href={postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>Open posting →</a></> : null}
+        </p>
+      </div>
+
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
+        <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Occupation mix</p>
+        <div style={{ display:"flex", height:16, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+          {comps.map((c,i) => <div key={i} title={`${c.label} ${c.pct}%`} style={{ flex:c.pct, background:palette[i%palette.length], minWidth:6 }} />)}
+          {roleMix.otherPct > 0 && <div title={`Other roles ${roleMix.otherPct}%`} style={{ flex:roleMix.otherPct, background:"#cbd5e1", minWidth:6 }} />}
+        </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {comps.map((c,i) => (
+            <span key={i} style={{ fontSize:12, fontWeight:600, color:palette[i%palette.length], display:"inline-flex", alignItems:"center", gap:5 }}>
+              <span style={{ width:9, height:9, borderRadius:2, background:palette[i%palette.length] }} />
+              {c.label} <span style={{ fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}>· posted title</span> : null}
+            </span>
+          ))}
+          {roleMix.otherPct > 0 && <span style={{ fontSize:12, color:"#64748b" }}>Other roles {roleMix.otherPct}%</span>}
+        </div>
+      </div>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:14 }}>
+        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#f0fdf4", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#a7f3d0"}`, borderRadius:8, padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#166534", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
+          <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#166534", lineHeight:1.5 }}>
+            {nar.postedAsNote || (roleMix.mismatch
+              ? `Titled like "${roleMix.nominalLabel || title}", but the duty mix centres on ${comps[0]?.label || "another role"}.`
+              : `The posted title (${roleMix.nominalLabel || title}) matches the main duty cluster.`)}
+          </p>
+        </div>
+        <div style={{ flex:"1 1 240px", background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:8, padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:coh.color, textTransform:"uppercase", letterSpacing:"0.05em" }}>Bundle coherence: {coh.label}</p>
+          <p style={{ margin:0, fontSize:12, color:coh.color, lineHeight:1.5 }}>
+            {nar.coherenceNote || (roleMix.coherenceKey === "coherent" ? "A focused blend of closely related roles." : roleMix.coherenceKey === "grabbag" ? "A wide spread across unrelated roles — a stretched req." : "A moderate spread across a few roles.")}
+          </p>
+        </div>
+      </div>
+
+      {comps.map((c,i) => {
+        const pri = priByLabel[c.label.toLowerCase()];
+        return (
+          <div key={i} style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${palette[i%palette.length]}`, borderRadius:8, marginBottom:10, background:C.surface, padding:"12px 14px" }}>
+            <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, flexWrap:"wrap", marginBottom:6 }}>
+              <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{c.label} <span style={{ color:palette[i%palette.length], fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}> · matches the posted title</span> : null}</p>
+              <span style={{ fontSize:11, color:C.muted }}>{c.skills.length} duties · AI-exposed {c.exposure.aiExposedPct}% · human-led {c.exposure.humanPct}%</span>
+            </div>
+            {c.exposure.n > 0 && (
+              <div style={{ display:"flex", height:8, borderRadius:4, overflow:"hidden", marginBottom:8 }}>
+                {levelBar.map(b => c.exposure.counts[b.key] > 0 && <div key={b.key} style={{ flex:c.exposure.counts[b.key], background:b.color, minWidth:3 }} />)}
+              </div>
+            )}
+            {c.skills.length > 0 ? (
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginBottom: pri ? 8 : 0 }}>
+                {[...c.skills].sort((a,b)=>(lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((s,j) => (
+                  <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                    <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
+                    <span style={{ fontSize:12, color:C.textSub, lineHeight:1.4 }}>{s.skill}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              c.matchedSkills.length > 0 && <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Overlaps on: {c.matchedSkills.slice(0,5).join(", ")}</p>
+            )}
+            {pri && (
+              <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:6, padding:"7px 10px" }}>
+                <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#a16207", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skilling priority</p>
+                <p style={{ margin:0, fontSize:12, color:"#713f12", lineHeight:1.5 }}>{pri.why}{pri.action ? <> — <strong>{pri.action}</strong></> : null}</p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {roleMix.crossCutting && roleMix.crossCutting.length > 0 && (
+        <div style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:"#f8fafc", padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Cross-cutting ({roleMix.crossCutting.length})</p>
+          <p style={{ margin:"0 0 6px", fontSize:11, color:C.mutedLight }}>Skills that didn't map cleanly to one occupation component.</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize:11, color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px" }}>{s.skill}</span>)}
+          </div>
+        </div>
+      )}
+
+      {nar.skillingPriority && nar.skillingPriority.length > 0 && (
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — given this is a {comps.length}-way blend</p>
+          <ol style={{ margin:0, paddingLeft:18 }}>
+            {nar.skillingPriority.map((p,i) => (
+              <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{p.component}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>
+            ))}
+          </ol>
+          <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted }}>Each component's AI prompts are on the <strong>Skill Analysis</strong> tab — tap any skill.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// v3.2: JobAnatomyView - the "predictive" read: work-layer mix + AI-resilience
+// score + per-duty AI exposure (now -> ~2 years) + org-context, from buildJobAnatomy.
+function JobAnatomyView({ anatomy, title }) {
+  if (!anatomy) return null;
+  if (anatomy.fallback || !anatomy.duties || !anatomy.duties.length) {
+    return (
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily — try again tomorrow.</p>
+      </div>
+    );
+  }
+  const a = anatomy;
+  const nar = a.narrative || {};
+  const score = a.aiResilienceScore;
+  const scoreColor = score >= 65 ? "#166534" : score >= 40 ? "#b45309" : "#b91c1c";
+  const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
+  const sortedDuties = [...a.duties].sort((x,y) => (y.count - x.count) || ((lvlOrd[x.exposureNow]??1)-(lvlOrd[y.exposureNow]??1)) || x.text.localeCompare(y.text));
+  const trjSym = { stable:"→", rising:"↗", sharp:"⇈" };
+  const oc = a.orgContext || {};
+  const ocBits = [
+    oc.reportsTo && `reports to ${oc.reportsTo}`,
+    oc.seniorityYears && `~${oc.seniorityYears}`,
+    oc.teamSize,
+    ...(oc.scopeRegions || []),
+    (oc.tools && oc.tools.length) ? `tools: ${oc.tools.slice(0,5).join(", ")}` : null,
+  ].filter(Boolean);
+  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize:9.5, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius:8, padding:"1px 7px", whiteSpace:"nowrap" }}>{m.label}</span>; };
+  return (
+    <div>
+      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>🧬 Job Anatomy — what this role actually is</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} · duty frequencies are real counts · work-layer & AI-exposure are classification labels, the scores are computed — not generated prose.</p>
+      </div>
+
+      <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+        <div style={{ flex:"1 1 200px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
+          <p style={{ margin:0, fontSize:32, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
+          <div style={{ display:"flex", height:7, borderRadius:4, overflow:"hidden", background:"#eef1f5", marginTop:8 }}>
+            <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
+          </div>
+          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>≈ {a.resilience2y}/100 by ~2027 · automatability now {a.automatabilityIndex}/100</p>
+        </div>
+        <div style={{ flex:"2 1 320px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+          <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
+          <div style={{ display:"flex", height:14, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
+              <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
+                <span style={{ width:8, height:8, borderRadius:2, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
+              </span>
+            ))}
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line} {a.trajectory2y.line}</p>
+        </div>
+      </div>
+
+      {ocBits.length > 0 && (
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
+          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" · ")}{(oc.stakeholders && oc.stakeholders.length) ? ` · works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
+        </div>
+      )}
+
+      {(nar.whatTheJobReallyIs || nar.whatSupervisorsExpect) && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
+          {nar.whatTheJobReallyIs && (
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What this job really is</p>
+              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatTheJobReallyIs}</p>
+            </div>
+          )}
+          {nar.whatSupervisorsExpect && (
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What supervisors actually expect</p>
+              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatSupervisorsExpect}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", marginBottom:14 }}>
+        <p style={{ margin:0, padding:"9px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties — frequency · work layer · AI exposure now → ~2027</p>
+        {sortedDuties.map((d, i) => {
+          const L = JOB_LAYERS[d.layer] || JOB_LAYERS.Activity;
+          return (
+            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap", padding:"9px 14px", borderBottom: i < sortedDuties.length-1 ? `1px solid ${C.border}` : "none", borderLeft:`3px solid ${L.color}` }}>
+              <div style={{ flex:"3 1 200px", minWidth:0 }}>
+                <p style={{ margin:0, fontSize:12.5, color:C.text, lineHeight:1.45 }}>{d.text}</p>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4, alignItems:"center" }}>
+                  <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding:"1px 8px" }}>{L.label}</span>
+                  <span style={{ fontSize:10, color:C.muted }}>in {d.count}/{d.of} ads</span>
+                  {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>· {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
+                </div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, marginTop:1 }}>
+                {pillNow(d.exposureNow)}
+                <span style={{ fontSize:12, color: d.trajectory === "stable" ? C.mutedLight : "#b45309", fontWeight:700 }}>{trjSym[d.trajectory] || "→"}</span>
+                {pillNow(d.exposure2y)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {nar.prepFocus && nar.prepFocus.length > 0 && (
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — build the layers AI can't take</p>
+          <ol style={{ margin:0, paddingLeft:18 }}>
+            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
+          </ol>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// v3.4: RoleGraphPanel - the MyCareersFuture role -> ESCO -> ISCO-08 intelligence
+// pipeline + CV ingress. Shows the layered role-skill graph (role -> ISCO-08
+// candidates -> ESCO skills -> responsibilities), the trading-style ISCO ranking,
+// the skill-analysis card, the API-ready node/edge JSON, and a pasted-CV fit read.
+// CV text -> /api/claude only, never stored.
+const _RG_PIPE = ["Source role", "Itemise statements", "Infer activities/skills", "Map → ESCO skills", "Reverse-map → ISCO-08", "Trading-score & rank", "Build graph + card"];
+function _rgTrunc(s, n) { const t = String(s || ""); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; }
+function RoleGraphPanel({ result, title }) {
+  const [graphState, setGraphState] = useState({ status: "loading" });
+  const [hoveredId, setHoveredId] = useState(null);
+  const [showJson, setShowJson] = useState(false);
+  const [showStmts, setShowStmts] = useState(false);
+  const [showCvProfile, setShowCvProfile] = useState(false);
+  const [cvText, setCvText] = useState("");
+  const [cv, setCv] = useState({ status: "idle" });
+  const roleKey = (title || "").trim().toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    setGraphState({ status: "loading" }); setCv({ status: "idle" }); setHoveredId(null);
+    buildRoleGraph(result, title).then(g => { if (!cancelled) setGraphState({ status: "done", g }); }).catch(() => { if (!cancelled) setGraphState({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleKey, (result && result.source) || ""]);
+
+  const g = graphState.g;
+  const runCv = () => {
+    if (!g || g.fallback || cvText.trim().length < 200) return;
+    setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
+    ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); }).catch(() => setCv({ status: "error" }));
+  };
+
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
+  const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
+
+  // --- layered SVG graph layout ---
+  const renderGraph = (graph) => {
+    const cols = [
+      { type: "mcfRole", x: 16, w: 168 },
+      { type: "iscoOccupation", x: 262, w: 196 },
+      { type: "escoSkill", x: 540, w: 188 },
+      { type: "responsibility", x: 808, w: 276 },
+    ];
+    const W = 1100, H_NODE = 30, V_GAP = 9, PAD_Y = 16;
+    const byCol = cols.map(c => ({ ...c, nodes: graph.nodes.filter(n => n.type === c.type) }));
+    const colHeights = byCol.map(c => Math.max(H_NODE, c.nodes.length * (H_NODE + V_GAP) - V_GAP));
+    const H = Math.max(...colHeights) + PAD_Y * 2;
+    const pos = {}; // id -> {cx, cyTop, cy, w, col}
+    byCol.forEach((c, ci) => {
+      const top = PAD_Y + (H - PAD_Y * 2 - colHeights[ci]) / 2;
+      c.nodes.forEach((n, ni) => { const y = top + ni * (H_NODE + V_GAP); pos[n.id] = { x: c.x, w: c.w, yTop: y, cy: y + H_NODE / 2, col: ci }; });
+    });
+    // only the left-to-right flow edges are drawn
+    const drawn = graph.edges.filter(e => ["role-occupation", "occupation-skill", "skill-responsibility"].includes(e.kind) && pos[e.source] && pos[e.target]);
+    // highlight set
+    let hi = null;
+    if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
+    const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
+    const nodeDim = id => hi && !hi.has(id);
+    return (
+      <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 760 }} role="img" aria-label="Role-skill graph">
+          {/* column captions */}
+          {byCol.map((c, ci) => <text key={"cap" + ci} x={c.x + c.w / 2} y={11} textAnchor="middle" fontSize="10" fontWeight="700" fill={RG_NODE_STYLE[c.type].color} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{["MCF role", "ISCO-08 candidates", "ESCO skills", "Responsibilities"][ci]}</text>)}
+          {/* edges */}
+          {drawn.map((e, i) => {
+            const s = pos[e.source], t = pos[e.target];
+            const sx = s.x + s.w, sy = s.cy, tx = t.x, ty = t.cy;
+            const dx = (tx - sx) * 0.45;
+            const vis = edgeVisible(e);
+            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.6} strokeOpacity={vis ? (hi ? 0.55 : 0.18 + e.weight * 0.3) : 0.05} />;
+          })}
+          {/* nodes */}
+          {byCol.map((c, ci) => c.nodes.map(n => {
+            const p = pos[n.id]; const st = RG_NODE_STYLE[n.type]; const dim = nodeDim(n.id);
+            const lvl = n.level && LEVELS[n.level] ? n.level : null;
+            const txt = n.type === "responsibility" ? _rgTrunc(n.label, 42) : n.type === "escoSkill" ? _rgTrunc(n.label, 26) : n.type === "iscoOccupation" ? _rgTrunc(n.label, 24) : _rgTrunc(n.label, 22);
+            return (
+              <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.16 : 1 }}>
+                <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${lvl}` : ""}</title>
+                <rect x={p.x} y={p.yTop} width={p.w} height={H_NODE} rx={6} fill={st.bg} stroke={hoveredId === n.id ? st.color : st.border} strokeWidth={hoveredId === n.id ? 2 : 1} />
+                {lvl && <rect x={p.x} y={p.yTop} width={4} height={H_NODE} rx={2} fill={lvlColor(lvl)} />}
+                <text x={p.x + (lvl ? 10 : 8)} y={p.cy + 3.5} fontSize="10.5" fill={st.color} fontWeight={n.type === "mcfRole" ? 700 : 500}>{txt}</text>
+                {n.type === "iscoOccupation" && n.score != null && <text x={p.x + p.w - 6} y={p.cy + 3.5} fontSize="9.5" textAnchor="end" fill={st.color} fontWeight="700">{n.score}</text>}
+              </g>
+            );
+          }))}
+        </svg>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities → infers the work activities & skills behind each → maps them to <strong>ESCO</strong> skills → reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) → assembles an API-ready <strong>role → occupation → skill → responsibility</strong> graph and a skill-analysis card. Then a pasted CV can be scored against all of it.</p>
+        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>🔒 If you paste a CV below, it's sent for analysis and <strong>not stored</strong> — not in our database, not in analytics.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 10.5, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 12, padding: "2px 9px" }}>{i + 1}. {s}</span>)}
+        </div>
+      </div>
+
+      {graphState.status === "loading" && (
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
+          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
+        </div>
+      )}
+      {graphState.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+
+      {graphState.status === "done" && g && (g.fallback ? (
+        <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
+          <p style={{ margin: 0, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
+        </div>
+      ) : (
+        <>
+          {/* the graph */}
+          {card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                {hdr("The role-skill graph")}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace it"}</span>
+              </div>
+              {renderGraph(g.graph)}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
+                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 3, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
+              </div>
+              {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
+            </>
+          )}
+
+          {/* skill-analysis card */}
+          {g.narrative && card(
+            <>
+              {hdr("Skill-analysis card — what this role actually means")}
+              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 12 }}>
+                {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
+                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+              </div>
+            </>
+          )}
+
+          {/* ISCO-08 ranking */}
+          {g.iscoCandidates.length > 0 && card(
+            <>
+              {hdr("ISCO-08 occupations this role reverse-maps to — trading-style ranking")}
+              <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
+              {g.iscoCandidates.map((c, i) => (
+                <div key={i} style={{ padding: "8px 10px", borderRadius: 8, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
+                    {c.code ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
+                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#166534", background: "#f0fdf4", border: "1px solid #a7f3d0", borderRadius: 10, padding: "1px 7px" }}>matches the posted title</span>}
+                    <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
+                  </div>
+                  <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
+                    {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
+                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 3, background: "#eef1f5", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
+                    ))}
+                  </div>
+                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 10.5, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "1px 7px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* requirements / quals / preferred */}
+          {g.analysed && (g.analysed.requirements.length || g.analysed.qualifications.length || g.analysed.preferredCompetencies.length) ? card(
+            <>
+              {hdr("Inferred requirements, qualifications & preferred competencies")}
+              {g.analysed.requirements.length > 0 && <div style={{ marginBottom: 8 }}>{subHdr("Likely hard requirements")}{g.analysed.requirements.map((r, i) => chip(r, "#92400e", "#fffbeb", "#fcd9a0", "rq" + i))}</div>}
+              {g.analysed.qualifications.length > 0 && <div style={{ marginBottom: 8 }}>{subHdr("Formal qualifications")}{g.analysed.qualifications.map((r, i) => chip(r, "#0c4a6e", "#e0f2fe", "#bae6fd", "ql" + i))}</div>}
+              {g.analysed.preferredCompetencies.length > 0 && <div>{subHdr("Preferred competencies")}{g.analysed.preferredCompetencies.map((r, i) => chip(r, C.textSub, "#f1f5f9", C.border, "pc" + i))}</div>}
+            </>
+          ) : null}
+
+          {/* per-statement analysis */}
+          {g.statements.length > 0 && card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("Per-responsibility analysis")}<button onClick={() => setShowStmts(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showStmts ? "hide" : `show all ${g.statements.length}`}</button></div>
+              {(showStmts ? g.statements : g.statements.slice(0, 5)).map((st, i) => {
+                const inf = (g.analysed && g.analysed.statements && g.analysed.statements[g.statements.indexOf(st) + 1]) || null;
+                const mapped = g.mapping.edges.filter(e => e.respId === st.id).map(e => ((result.skills || [])[e.skillIdx] || {}).skill).filter(Boolean);
+                return (
+                  <div key={st.id} style={{ padding: "8px 10px", borderRadius: 7, background: C.bg, border: `1px solid ${C.border}`, marginBottom: 6 }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 12.5, color: C.text, lineHeight: 1.5 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 2, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
+                    {inf && inf.activities.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Activities:</strong> {inf.activities.join(" · ")}</p>}
+                    {inf && inf.skills.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Implied skills:</strong> {inf.skills.join(" · ")}</p>}
+                    {inf && inf.signals.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Signals:</strong> {inf.signals.join(" · ")}</p>}
+                    {mapped.length > 0 && <p style={{ margin: "3px 0 0", fontSize: 11, color: "#0e7490", lineHeight: 1.5 }}>↳ ESCO: {Array.from(new Set(mapped)).slice(0, 6).join(", ")}</p>}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* API-ready JSON */}
+          {card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("API-ready graph (nodes / edges)")}<div style={{ display: "flex", gap: 12 }}>
+                <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
+                <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
+              </div></div>
+              <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
+              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#0f172a", color: "#e2e8f0", borderRadius: 7, padding: "10px 12px", fontSize: 11, lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
+            </>
+          )}
+
+          {/* ---- CV ingress ---- */}
+          {card(
+            <>
+              {hdr("CV ingress — score a CV against this role, its ESCO skills & ISCO-08 families")}
+              <textarea value={cvText} onChange={e => setCvText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of a CV here…"
+                style={{ width: "100%", minHeight: 130, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                <button onClick={runCv} disabled={cvText.trim().length < 200 || cv.status === "loading"} style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (cvText.trim().length < 200 || cv.status === "loading") ? C.mutedLight : "#4338ca", border: "none", borderRadius: 7, cursor: (cvText.trim().length < 200 || cv.status === "loading") ? "not-allowed" : "pointer" }}>{cv.status === "loading" ? "Scoring…" : "Score this CV"}</button>
+                {cvText && <button onClick={() => { setCvText(""); setCv({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>{cvText.trim().length < 200 ? `${cvText.trim().length}/200 chars min` : `${cvText.length} chars${cvText.length >= 8000 ? " (capped)" : ""}`}</span>
+              </div>
+              {cv.status === "loading" && <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 11, height: 11, border: "2px solid #c7d2fe", borderTop: "2px solid #4338ca", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} /><p style={{ margin: 0, fontSize: 12, color: C.muted }}>Parsing the CV and scoring fit…</p></div>}
+              {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "#b45309" }}>That didn't go through — please try again.</p>}
+              {cv.status === "done" && cv.fit && (() => {
+                const f = cv.fit; const bc = f.band === "READY" ? "#166534" : f.band === "DEVELOPING" ? "#b45309" : "#b91c1c";
+                const bl = f.band === "READY" ? "Role-ready" : f.band === "DEVELOPING" ? "Developing — close some gaps" : "A stretch right now";
+                return (
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10, padding: "10px 12px", borderRadius: 8, background: bc + "12", border: `1.5px solid ${bc}55` }}>
+                      <span style={{ fontSize: 24, fontWeight: 800, color: bc }}>{f.fitScore}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: bc }}>{bl}</span>
+                      <span style={{ fontSize: 11.5, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
+                    </div>
+                    <div style={{ marginBottom: 10 }}>{subHdr(`Target-role ESCO skills — covered ${f.escoCoverage.covered.length}/${f.escoCoverage.total}`)}
+                      {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0", "cc" + i))}
+                      {f.escoCoverage.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "cp" + i))}
+                      {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca", "cm" + i))}
+                    </div>
+                    {f.families.length > 0 && (
+                      <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
+                        {f.families.slice(0, 6).map((fam, i) => (
+                          <div key={i} style={{ marginBottom: 6 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
+                              <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#166534" : fam.coverage >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                              <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{fam.coverage}%</span>
+                            </div>
+                            {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 10.5, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {cv.narrative && (
+                      <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 8, padding: "12px 14px" }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
+                        {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px,100%), 1fr))", gap: 10 }}>
+                          {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.nextSteps.length > 0 && <div>{subHdr("Next steps")}{cv.narrative.nextSteps.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#4338ca" }}>→</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                        </div>
+                      </div>
+                    )}
+                    {cv.cvProfile && (
+                      <div style={{ marginTop: 10 }}>
+                        <button onClick={() => setShowCvProfile(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showCvProfile ? "hide what we extracted" : "show what we extracted from the CV"}</button>
+                        {showCvProfile && (
+                          <div style={{ marginTop: 8, padding: "8px 10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                            {cv.cvProfile.roleHistory.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Roles:</strong> {cv.cvProfile.roleHistory.map(r => r.title + (r.years ? ` (${r.years})` : "")).join(" · ")}</p>}
+                            {cv.cvProfile.qualifications.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Qualifications:</strong> {cv.cvProfile.qualifications.join(" · ")}</p>}
+                            {cv.cvProfile.skills.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Skills:</strong> {cv.cvProfile.skills.join(", ")}</p>}
+                            {cv.cvProfile.achievements.length > 0 && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Achievements:</strong> {cv.cvProfile.achievements.join(" · ")}</p>}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </>
+          )}
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis — ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Never add anything to a CV that isn't true.</p>
+        </>
+      ))}
+    </div>
+  );
+}
+
+// v3.3: ResumeCheckPanel - reverses the screening pipeline as a 3-gate model
+// (🚪 parse/format -> 🔑 keyword(exact, tiered) -> 🤖 semantic/AI rank) + an
+// ⚑ AI-anomaly check, grounded in v3/doc/Report-ATS.md, and checks a pasted
+// résumé through all of it. Résumé text -> /api/claude only, never stored.
+// The screening profile per role is cached in the DB; only aggregate
+// keyword-gap COUNTS are recorded - no résumé text, no URLs.
+const _GATE_STATE = {
+  neutral: { bg: "#f1f5f9", border: C.border, color: C.muted, mark: "" },
+  pass:    { bg: "#f0fdf4", border: "#a7f3d0", color: "#166534", mark: "✓" },
+  warn:    { bg: "#fffbeb", border: "#fcd9a0", color: "#92400e", mark: "⚠" },
+  fail:    { bg: "#fef2f2", border: "#fecaca", color: "#b91c1c", mark: "✗" },
+};
+function ResumeCheckPanel({ result, title }) {
+  const [profileState, setProfileState] = useState({ status: "loading" });
+  const [resumeText, setResumeText] = useState("");
+  const [appUrl, setAppUrl] = useState("");
+  const [check, setCheck] = useState({ status: "idle" });
+  const roleKey = (title || "").trim().toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    setProfileState({ status: "loading" });
+    setCheck({ status: "idle" });
+    getScreeningProfile(result, title)
+      .then(p => { if (!cancelled) setProfileState({ status: "done", profile: p }); })
+      .catch(() => { if (!cancelled) setProfileState({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleKey]);
+
+  const profile = profileState.profile;
+  const ats = identifyAts(appUrl);
+  const runCheck = () => {
+    if (!profile || resumeText.trim().length < 200) return;
+    setCheck({ status: "loading" });
+    track("resume_check_started", { occupation: title });
+    checkResume(resumeText, profile, title, result.jobAnatomy, result.source, roleKey)
+      .then(r => {
+        setCheck({ status: "done", ...r });
+        track("resume_checked", { occupation: title, coverage: r.kw ? r.kw.gate2Score : 0, verdict: r.screen ? r.screen.verdict : "?" });
+      })
+      .catch(() => setCheck({ status: "error" }));
+  };
+
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const tierChips = (tier, label) => {
+    if (!tier || !tier.total) return null;
+    return (
+      <div style={{ marginBottom: 8 }}>
+        {sectionHdr(`${label} — ${tier.covered.length}/${tier.total}${tier.partial.length ? ` (${tier.partial.length} partial)` : ""}`)}
+        {tier.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0", "c" + i))}
+        {tier.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "p" + i))}
+        {tier.missing.map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca", "m" + i))}
+      </div>
+    );
+  };
+
+  // 3-gate strip states (computed once a check has run)
+  let gateStates = { parse: "neutral", keyword: "neutral", semantic: "neutral", anomaly: "neutral" };
+  if (check.status === "done") {
+    const warnFlags = (check.parsed.flags || []).filter(f => f.level === "warn").length;
+    gateStates.parse = warnFlags >= 2 ? "fail" : warnFlags === 1 ? "warn" : "pass";
+    const g2 = check.kw.gate2Score, tm = check.kw.titleMatch;
+    gateStates.keyword = g2 >= 65 && (!tm || !tm.target || tm.matched) ? "pass" : g2 >= 40 ? "warn" : "fail";
+    gateStates.semantic = !check.screen ? "neutral" : check.screen.verdict === "STRONG" ? "pass" : check.screen.verdict === "POSSIBLE" ? "warn" : "fail";
+    gateStates.anomaly = (check.anomaly.flags || []).length === 0 ? "pass" : "warn";
+  }
+  const gateStrip = (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+      {[
+        ["🚪", "Parse / format", "parse", "Gate 1"],
+        ["🔑", "Keyword match", "keyword", "Gate 2"],
+        ["🤖", "Semantic / AI rank", "semantic", "Gate 3"],
+        ["⚑", "AI-anomaly", "anomaly", "Guardrail"],
+      ].map(([icon, lbl, k, sub], i) => {
+        const st = _GATE_STATE[gateStates[k]];
+        return (
+          <div key={i} style={{ flex: "1 1 130px", minWidth: 120, background: st.bg, border: `1.5px solid ${st.border}`, borderRadius: 9, padding: "8px 10px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: 14 }}>{icon}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: st.color }}>{lbl}</span>
+              {st.mark && <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 800, color: st.color }}>{st.mark}</span>}
+            </div>
+            <p style={{ margin: "2px 0 0", fontSize: 10, color: C.mutedLight }}>{sub}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: C.teal }}>📄 Resume Check — the 3 gates between you and a recruiter</p>
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Modern hiring screens a résumé through three stages — a <strong>parser</strong>, a <strong>keyword/Boolean filter</strong>, then a <strong>semantic AI ranker</strong> — with an AI co-pilot watching for over-optimised "anomalies". This reverses all three for {toTitleCase(title || "this role")} and checks a pasted résumé against each.</p>
+        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>Based on <strong><a href="https://github.com/ang-kl/2026-0313_AI-JS/blob/main/v3/doc/Report-ATS.md" target="_blank" rel="noopener noreferrer" style={{ color: C.teal }}>v3/doc/Report-ATS.md</a></strong> — a synthesis of 2023–26 research on how the six dominant ATS actually work. 🔒 Your résumé is sent for analysis and <strong>not stored</strong> — not in our database, not in analytics; only anonymous keyword-gap counts are kept. The application URL, if you enter one, is parsed in your browser only.</p>
+      </div>
+
+      {gateStrip}
+
+      {/* The screening profile for this role */}
+      {card(
+        <>
+          <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>What screening looks for in this role</p>
+          {profileState.status === "loading" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 11, height: 11, border: `2px solid ${C.tealBdr}`, borderTop: `2px solid ${C.teal}`, borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} />
+              <p style={{ margin: 0, fontSize: 12, color: C.muted }}>Working out the screening profile for this role…</p>
+            </div>
+          )}
+          {profileState.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Couldn't build the screening profile right now — you can still paste a résumé below and we'll check it against this role's skills.</p>}
+          {profileState.status === "done" && profile && (profile.empty ? (
+            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not enough role data yet to build a screening profile — try again in a moment, or paste a résumé below.</p>
+          ) : (
+            <>
+              {profile.narrative && profile.narrative.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{profile.narrative.headline}{profile.narrative.aiBar ? <> <strong style={{ color: C.teal }}>The bar to clear:</strong> {profile.narrative.aiBar}</> : null}</p>}
+              {profile.requiredQuals && profile.requiredQuals.length > 0 && (
+                <div style={{ marginBottom: 10 }}>{sectionHdr(`Required qualifications — the hard filters (${profile.requiredQuals.length})`)}
+                  {profile.requiredQuals.map((q, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{q.kw}</strong>{q.why ? ` — ${q.why}` : ""}</span></div>)}
+                </div>
+              )}
+              {profile.exactTitle && profile.exactTitle.length > 0 && (
+                <div style={{ marginBottom: 10 }}>{sectionHdr("Exact job title to mirror — the single biggest lever (≈10× interview likelihood)")}{profile.exactTitle.map((t, i) => chip(t.kw || t, "#0c4a6e", "#e0f2fe", "#bae6fd", i))}</div>
+              )}
+              {profile.hardSkills && profile.hardSkills.length > 0 && (
+                <div style={{ marginBottom: 10 }}>{sectionHdr(`Hard skills the keyword filter checks (${profile.hardSkills.length})`)}{profile.hardSkills.map((m, i) => chip(m.kw + (m.fromAds ? ` ·${m.fromAds}` : ""), "#0c4a6e", "#e0f2fe", "#bae6fd", i))}</div>
+              )}
+              {profile.softSkills && profile.softSkills.length > 0 && (
+                <div style={{ marginBottom: 10 }}>{sectionHdr("Soft skills")}{profile.softSkills.map((m, i) => chip(m.kw, C.textSub, "#f1f5f9", C.border, i))}</div>
+              )}
+              {profile.aiDimensions && profile.aiDimensions.length > 0 && (
+                <div style={{ marginBottom: profile.keywordGaps && profile.keywordGaps.length ? 10 : 0 }}>{sectionHdr("What the semantic AI ranker scores you on")}
+                  {profile.aiDimensions.map((d, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: C.teal, fontWeight: 700 }}>•</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{d.name}</strong>{d.what ? ` — ${d.what}` : ""}</span></div>)}
+                  {(profile.seniority || (profile.tools && profile.tools.length)) && <p style={{ margin: "6px 0 0", fontSize: 11, color: C.mutedLight }}>Typically: {[profile.seniority && `~${profile.seniority}`, (profile.tools || []).slice(0, 5).join(", ")].filter(Boolean).join(" · ")}</p>}
+                </div>
+              )}
+              {profile.keywordGaps && profile.keywordGaps.length > 0 && (
+                <div style={{ marginTop: 8, padding: "7px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 7 }}>
+                  <p style={{ margin: 0, fontSize: 11, color: "#92400e", lineHeight: 1.5 }}><strong>Most often missing</strong> on résumés checked against this role: {profile.keywordGaps.slice(0, 6).map(g => `${g.kw} (${g.miss}/${g.of})`).join(" · ")}</p>
+                </div>
+              )}
+            </>
+          ))}
+        </>
+      )}
+
+      {/* Static format-invariants checklist (always shown) */}
+      {card(
+        <>
+          <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: C.text }}>Format invariants — Gate 1 fails ~23% of résumés before ranking</p>
+          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>These hold across all six dominant ATS. The pasted-text check below will mark the ones it can see; the rest you verify in your document.</p>
+          {(check.status === "done" ? check.parsed.checklist : parseCheck("").checklist).map((c, i) => {
+            const showState = check.status === "done";
+            const mark = !showState || c.ok === null ? "○" : c.ok ? "✓" : "✗";
+            const col = !showState || c.ok === null ? C.mutedLight : c.ok ? "#166534" : "#b91c1c";
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
+                <span style={{ color: col, fontWeight: 700, fontSize: 13, flexShrink: 0, width: 13 }}>{mark}</span>
+                <span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{c.item}{c.note ? <span style={{ color: C.mutedLight }}> — {c.note}</span> : null}</span>
+              </div>
+            );
+          })}
+        </>
+      )}
+
+      {/* Optional: identify the ATS from the application URL */}
+      {card(
+        <>
+          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Which ATS is this employer using? <span style={{ fontWeight: 400, color: C.muted }}>(optional)</span></p>
+          <input value={appUrl} onChange={e => setAppUrl(e.target.value.slice(0, 300))} placeholder="Paste the job-application page URL (e.g. …myworkdayjobs.com/…)"
+            style={{ width: "100%", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "8px 10px", fontSize: 12.5, outline: "none", fontFamily: "inherit" }} />
+          {appUrl.trim() && !ats && <p style={{ margin: "8px 0 0", fontSize: 11.5, color: C.muted, fontStyle: "italic" }}>Not one of the six big ATS (Workday / Greenhouse / Lever / Taleo / iCIMS / SAP SuccessFactors) by URL — many employers use those, or a smaller vendor; the format invariants above still apply.</p>}
+          {ats && (
+            <div style={{ marginTop: 10, padding: "10px 12px", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 8 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.teal }}>{ats.name}</p>
+              <p style={{ margin: "0 0 3px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Parser:</strong> {ats.parserGen}. <strong>Weak on:</strong> {ats.weakness}.</p>
+              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{ats.behavior}</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Paste & check */}
+      {card(
+        <>
+          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Paste your résumé text</p>
+          <textarea value={resumeText} onChange={e => setResumeText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of your résumé here…"
+            style={{ width: "100%", minHeight: 140, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+            <button onClick={runCheck} disabled={resumeText.trim().length < 200 || check.status === "loading" || !profile}
+              style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? C.mutedLight : C.teal, border: "none", borderRadius: 7, cursor: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? "not-allowed" : "pointer" }}>
+              {check.status === "loading" ? "Checking…" : "Run it through the 3 gates"}
+            </button>
+            {resumeText && <button onClick={() => { setResumeText(""); setCheck({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+            <span style={{ fontSize: 11, color: C.mutedLight }}>{resumeText.trim().length < 200 ? `${resumeText.trim().length}/200 chars min` : `${resumeText.length} chars${resumeText.length >= 8000 ? " (capped at 8000)" : ""}`}</span>
+          </div>
+        </>
+      )}
+
+      {check.status === "loading" && (
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
+          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Running it through the parser, the keyword filter, the AI ranker and the anomaly check…</p>
+        </div>
+      )}
+      {check.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+
+      {check.status === "done" && (() => {
+        const { parsed, kw, screen: scr, anomaly, advice: adv } = check;
+        const bandColor = check.band === "likely" ? "#166534" : check.band === "borderline" ? "#b45309" : "#b91c1c";
+        const bandLabel = check.band === "likely" ? "Likely to clear screening" : check.band === "borderline" ? "Borderline — could go either way" : "Likely filtered out";
+        const g2Color = kw.gate2Score >= 65 ? "#166534" : kw.gate2Score >= 40 ? "#b45309" : "#b91c1c";
+        const pColor = parsed.score >= 75 ? "#166534" : parsed.score >= 50 ? "#b45309" : "#b91c1c";
+        const tm = kw.titleMatch;
+        return (
+          <div>
+            {/* overall band */}
+            <div style={{ background: bandColor + "12", border: `1.5px solid ${bandColor}55`, borderRadius: 10, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: bandColor }}>{bandLabel}</span>
+              <span style={{ fontSize: 12, color: C.textSub }}>composite {check.overall}/100 = 22% parse + 40% keyword + 38% semantic</span>
+            </div>
+
+            {/* Gate 1 — parse / format */}
+            {card(
+              <>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🚪 Gate 1 — Parse / format</p>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: pColor }}>{parsed.score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                  <span style={{ fontSize: 11.5, color: C.muted }}>~{parsed.words} words · ~{parsed.pages} page{parsed.pages === 1 ? "" : "s"} of text</span>
+                </div>
+                {parsed.flags.length === 0
+                  ? <p style={{ margin: 0, fontSize: 12, color: "#166534" }}>No text-level parsing red flags detected in the pasted text. (Still verify the layout invariants above in your actual file.)</p>
+                  : parsed.flags.map((f, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 4 }}>
+                      <span style={{ color: f.level === "warn" ? "#b45309" : C.mutedLight, flexShrink: 0 }}>{f.level === "warn" ? "⚠" : "○"}</span>
+                      <span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{f.msg}</span>
+                    </div>
+                  ))}
+              </>
+            )}
+
+            {/* Gate 2 — keyword match (exact, tiered) */}
+            {card(
+              <>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🔑 Gate 2 — Keyword match (exact, tiered)</p>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: g2Color }}>{kw.gate2Score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                </div>
+                {/* exact-title lever */}
+                {tm && tm.target && (
+                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 7, background: tm.matched ? "#f0fdf4" : "#fef2f2", border: `1px solid ${tm.matched ? "#a7f3d0" : "#fecaca"}` }}>
+                    <p style={{ margin: 0, fontSize: 12, color: tm.matched ? "#166534" : "#b91c1c", lineHeight: 1.5 }}>
+                      {tm.matched
+                        ? <><strong>Title mirrored.</strong> Your most-recent role title matches the target ("{tm.found || tm.target}") — that's the biggest single lever (≈10× interview likelihood).</>
+                        : <><strong>Title mismatch.</strong> Your most-recent title looks like "{tm.found || "(not detected)"}" but the role is "{tm.target}". Mirroring the exact title — accurately — is the strongest move you can make.</>}
+                    </p>
+                  </div>
+                )}
+                {tierChips(kw.tiers.requiredQuals, "Required qualifications")}
+                {tierChips(kw.tiers.hardSkills, "Hard skills")}
+                {tierChips(kw.tiers.dutyKeywords, "Duty keywords")}
+                {tierChips(kw.tiers.softSkills, "Soft skills")}
+                {/* placement */}
+                {kw.placement && kw.placement.n > 0 && (
+                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 7 }}>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#92400e", lineHeight: 1.5 }}><strong>Placement:</strong> {kw.placement.n} matched skill{kw.placement.n === 1 ? "" : "s"} appear only in your standalone Skills list, not inside a dated job entry — ATS give more experience weight to skills shown in dated bullets: {kw.placement.onlyInSkillsList.slice(0, 8).map(c => c.kw).join(", ")}.</p>
+                  </div>
+                )}
+                {/* stuffing */}
+                {kw.stuffing && kw.stuffing.length > 0 && (
+                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 7 }}>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#b91c1c", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
+                  </div>
+                )}
+                {/* acronym tips */}
+                {kw.acronymTips && kw.acronymTips.length > 0 && (
+                  <div style={{ padding: "7px 10px", background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                    <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Acronyms:</strong> include both the acronym and the spelled-out form once each so both keyword variants match — {kw.acronymTips.slice(0, 4).map(t => `${t.acronym} / ${t.full} (you have the ${t.have})`).join("; ")}.</p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Gate 3 — semantic / AI rank */}
+            {scr && card(
+              <>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🤖 Gate 3 — Semantic / AI rank</p>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: bandColor, background: bandColor + "1a", border: `1px solid ${bandColor}55`, borderRadius: 12, padding: "2px 10px" }}>{scr.verdict === "STRONG" ? "Strong fit" : scr.verdict === "POSSIBLE" ? "Possible fit" : "Unlikely fit"}</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                  {Object.entries(scr.scores || {}).map(([dim, val], i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ width: 150, flexShrink: 0, fontSize: 11, color: C.textSub }}>{dim}</span>
+                      <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#166534" : val >= 40 ? "#b45309" : "#b91c1c" }} /></div>
+                      <span style={{ width: 28, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 10 }}>
+                  {scr.advanceReasons.length > 0 && <div>{sectionHdr("A screener would advance because")}{scr.advanceReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.rejectReasons.length > 0 && <div>{sectionHdr("…or reject because")}{scr.rejectReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.redFlags.length > 0 && <div>{sectionHdr("Red flags")}{scr.redFlags.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>⚑</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.knockoutRisks.length > 0 && <div>{sectionHdr("Required-qual risks")}{scr.knockoutRisks.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                </div>
+              </>
+            )}
+
+            {/* AI-anomaly */}
+            {anomaly && anomaly.flags.length > 0 && (
+              <div style={{ background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+                <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#92400e" }}>⚑ AI-anomaly guardrail</p>
+                {anomaly.flags.map((f, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 4 }}><span style={{ color: "#b45309", flexShrink: 0 }}>•</span><span style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5 }}>{f.msg}</span></div>)}
+              </div>
+            )}
+
+            {/* how to fix */}
+            {adv && (
+              <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "14px 16px" }}>
+                <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: C.green }}>How to fix it</p>
+                {adv.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{adv.headline}</p>}
+                {adv.titleAdvice && <div style={{ marginBottom: 8, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Mirror the title:</strong> {adv.titleAdvice}</p></div>}
+                {adv.placementAdvice && <div style={{ marginBottom: 8, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Move it into a dated bullet:</strong> {adv.placementAdvice}</p></div>}
+                {adv.mustAdd.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>{sectionHdr("Add these keywords (with a template bullet — fill in honestly)")}
+                    {adv.mustAdd.map((m, i) => (
+                      <div key={i} style={{ marginBottom: 7, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: C.green }}>{m.keyword}{m.why ? <span style={{ fontWeight: 400, color: C.muted }}> — {m.why}</span> : null}</p>
+                        {m.exampleBullet && <p style={{ margin: "3px 0 0", fontSize: 12, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>“{m.exampleBullet}”</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {adv.reframe.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>{sectionHdr("Reframe")}
+                    {adv.reframe.map((r, i) => <div key={i} style={{ marginBottom: 5, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><span style={{ color: C.mutedLight }}>“{r.from}”</span> → <strong style={{ color: C.green }}>“{r.to}”</strong>{r.why ? <span style={{ color: C.muted }}> — {r.why}</span> : null}</div>)}
+                  </div>
+                )}
+                {adv.donts.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Don't")}{adv.donts.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{d}</span></div>)}</div>}
+                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "7px 10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 7 }}><p style={{ margin: 0, fontSize: 11.5, color: "#b91c1c", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
+                {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
+              </div>
+            )}
+            <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative simulation grounded in <a href="https://github.com/ang-kl/2026-0313_AI-JS/blob/main/v3/doc/Report-ATS.md" target="_blank" rel="noopener noreferrer" style={{ color: C.mutedLight }}>v3/doc/Report-ATS.md</a> — not an actual ATS; real systems vary by employer. Never add anything to your résumé that isn't true.</p>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 // v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
 // expects, extracted from live MyCareersFuture postings for this role. Mirrors
 // the Skill Analysis family of views (analysis, categories, seniority bands,
@@ -4418,19 +6467,72 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
   );
 }
 
+// v3.2: deterministic skill-cluster sub-archetypes - group the fetched postings
+// by which skill bundle they actually list ("these 47 ads are really 3 jobs:
+// <skills> / <skills> / <skills>"). Greedy Jaccard clustering over skill tokens;
+// each cluster named by its 1-2 most over-represented skill phrases. No AI.
+function clusterPostingsBySkills(jobs) {
+  if (!jobs || jobs.length < 8) return [];
+  const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const tokSet = j => new Set((j.skills || []).flatMap(s => norm(s).split(" ").filter(t => t.length > 3)));
+  const phraseList = j => Array.from(new Set((j.skills || []).map(norm).filter(Boolean)));
+  const sets = jobs.map(tokSet);
+  const phrases = jobs.map(phraseList);
+  if (sets.filter(s => s.size >= 3).length < jobs.length * 0.6) return []; // not enough skill data on the postings
+  const overallPF = {}; phrases.forEach(ps => ps.forEach(p => { overallPF[p] = (overallPF[p] || 0) + 1; }));
+  const phraseExample = {}; jobs.forEach(j => (j.skills || []).forEach(s => { const k = norm(s); if (k && !phraseExample[k]) phraseExample[k] = s; }));
+  const jac = (a, b) => { if (!a.size || !b.size) return 0; let i = 0; a.forEach(t => { if (b.has(t)) i++; }); return i / (a.size + b.size - i); };
+  const TAU = 0.22;
+  const order = jobs.map((_, i) => i).sort((a, b) => String(jobs[a].uuid).localeCompare(String(jobs[b].uuid)));
+  const assigned = new Array(jobs.length).fill(false);
+  const clusters = [];
+  for (let g = 0; g < 4; g++) {
+    let seed = -1, best = -1;
+    for (const i of order) {
+      if (assigned[i] || sets[i].size < 3) continue;
+      let n = 0; for (const k of order) if (!assigned[k] && k !== i && jac(sets[i], sets[k]) >= TAU) n++;
+      if (n > best) { best = n; seed = i; }
+    }
+    if (seed < 0 || best < 2) break;
+    const m = [seed]; assigned[seed] = true;
+    for (const k of order) if (!assigned[k] && jac(sets[seed], sets[k]) >= TAU) { m.push(k); assigned[k] = true; }
+    if (m.length < 3) { m.forEach(x => (assigned[x] = false)); break; }
+    clusters.push(m);
+  }
+  if (clusters.length < 2) return [];
+  const total = jobs.length;
+  const named = clusters.map(m => {
+    const cf = {}; m.forEach(j => phrases[j].forEach(p => { cf[p] = (cf[p] || 0) + 1; }));
+    const top = Object.entries(cf)
+      .filter(([p, c]) => c >= Math.max(2, Math.ceil(m.length * 0.4)))
+      .map(([p, c]) => [p, (c / m.length) / Math.max(1 / total, (overallPF[p] || 1) / total)])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 2)
+      .map(([p]) => toTitleCase(phraseExample[p] || p));
+    return { name: top.length ? top.join(" + ") : `Cluster (${m.length})`, jobs: m.map(i => jobs[i]) };
+  });
+  const seen = {}; named.forEach(grp => { while (seen[grp.name]) grp.name += " ·"; seen[grp.name] = 1; });
+  const leftover = order.filter(i => !assigned[i]);
+  const out = named.filter(grp => grp.jobs.length >= 2);
+  if (leftover.length >= 2) out.push({ name: "Mixed", jobs: leftover.map(i => jobs[i]) });
+  return out.length >= 2 ? out : [];
+}
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
-function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount }) {
+function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus }) {
   const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
+  const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const PER_PAGE = 10;
 
   useEffect(() => {
     let cancelled = false;
     setState(s => ({ ...s, loading: true, error: null }));
     setPage(0);
+    setSectorFilter(null);
     (async () => {
       try {
         const res = await fetch("/api/mcf", {
@@ -4489,9 +6591,38 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
     return `${Math.floor(days / 30)} month${days < 60 ? "" : "s"} ago`;
   };
 
-  const totalPages = Math.max(1, Math.ceil(state.jobs.length / PER_PAGE));
+  // Sub-archetypes: group the fetched postings by MCF job category - only shown
+  // when there's a genuine spread (>=2 categories, each with >=2 postings, and a
+  // category on at least 40% of postings). Deterministic, no AI.
+  const sectorGroups = (() => {
+    const jobs = state.jobs;
+    if (!jobs || jobs.length < 6) return [];
+    const counts = {}; let withCat = 0;
+    jobs.forEach(j => { const cats = Array.from(new Set((j.categories || []).filter(Boolean))); if (cats.length) withCat++; cats.forEach(c => { counts[c] = (counts[c] || 0) + 1; }); });
+    if (withCat < jobs.length * 0.4 || Object.keys(counts).length < 2) return [];
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 4).map(([n]) => n);
+    const buckets = top.map(name => ({ name, jobs: [] }));
+    const other = [];
+    jobs.forEach(j => {
+      const cats = new Set((j.categories || []).filter(Boolean));
+      let placed = false;
+      for (let i = 0; i < top.length; i++) { if (cats.has(top[i])) { buckets[i].jobs.push(j); placed = true; break; } }
+      if (!placed) other.push(j);
+    });
+    const groups = buckets.filter(b => b.jobs.length >= 2);
+    if (other.length >= 2) groups.push({ name: "Other", jobs: other });
+    return groups.length >= 2 ? groups : [];
+  })();
+  // Prefer a real skill-cluster split when the postings carry enough skill data;
+  // otherwise fall back to the job-category split.
+  const skillGroups = clusterPostingsBySkills(state.jobs);
+  const archGroups = skillGroups.length >= 2 ? skillGroups : sectorGroups;
+  const archLabel = skillGroups.length >= 2 ? "distinct skill clusters" : "job categories";
+  const activeArch = archGroups.find(g => g.name === sectorFilter) || null;
+  const baseJobs = activeArch ? activeArch.jobs : state.jobs;
+  const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageJobs = state.jobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+  const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
   const canQueue = (queueCount || 0) < 3;
 
   return (
@@ -4499,8 +6630,14 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "15px 18px", marginBottom: 16 }}>
         <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 21, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
         <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
-          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing. Postings refresh daily.
+          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing — or analyse all of them as one role. Postings refresh daily.
         </p>
+        {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
+          <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
+            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 8, color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            📊 Analyse all {state.jobs.length}{state.capped ? "+" : ""} postings as one role →
+          </button>
+        )}
       </div>
 
       {state.loading && (
@@ -4525,9 +6662,30 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
       {!state.loading && state.jobs.length > 0 && (
         <>
+          {archGroups.length >= 2 && (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                These {state.jobs.length}{state.capped ? "+" : ""} postings fall into {archGroups.length} {archLabel} — tap to filter
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <button onClick={() => { setSectorFilter(null); setPage(0); }}
+                  style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                    border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
+                  All ({state.jobs.length})
+                </button>
+                {archGroups.map(g => (
+                  <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
+                    style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                      border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
+                    {g.name} ({g.jobs.length})
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {state.jobs.length}{state.capped ? "+" : ""} posting{state.jobs.length === 1 ? "" : "s"}
+              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${state.jobs.length}${state.capped ? "+" : ""} posting${state.jobs.length === 1 ? "" : "s"}`}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
@@ -4575,6 +6733,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
 export default function App() {
   const [query,     setQuery]     = useState("");
+  const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
@@ -4756,13 +6915,24 @@ export default function App() {
     });
   };
 
+  // v3.2: "Browse MyCareersFuture jobs" mode - skip ESCO resolution; go straight
+  // to the standalone job list for the typed term. Each card can still "Analyse
+  // this posting" (-> full results screen) or "+ Compare".
+  const startJobsBrowse = useCallback(() => {
+    if (!query.trim()) return;
+    const validationErr = validateJobTitleInput(query);
+    if (validationErr) { setErr(validationErr); setStep("error"); return; }
+    setErr(""); setSel(null); setResult(null); setOccs([]);
+    track("jobs_browse_started", { q: query.trim().slice(0, 60) });
+    setStep("mcf_browse");
+  }, [query]);
+
   const doSearch = useCallback(async () => {
     if (!query.trim()) return;
     // H1 fix: validate input before any API call or state transition.
     // Catches oversized, non-alphabetic, and HTML-special-char inputs at the front door.
     const validationErr = validateJobTitleInput(query);
-    if (validationErr) { setErr(validationErr); setStep("error"); return; }
-    // Paint loading state immediately before any other work - critical for INP score
+    if (validationErr) { setErr(validationErr); setStep("error"); return; }    // Paint loading state immediately before any other work - critical for INP score
     const tidyQuery = toTitleCase(query.trim());
     if (occs.length > 0 && !pickerLoading) {
       if (occs.length === 1) { track("occupation_selected", { auto: true }); doAnalyse(occs[0]); return; }
@@ -4880,6 +7050,8 @@ export default function App() {
   const doAnalyse = useCallback(async (occ, opts = {}) => {
     const forceHybrid = opts.forceHybrid || false;
     const posting = opts.posting || null; // v3.2: analyse one live MCF posting
+    const corpus = opts.corpus || null;   // v3.2: analyse the aggregate of all fetched MCF postings
+    const fromAds = posting || (corpus ? { title: occ.title } : null); // either posting-source path
     // H3 fix: increment the cancel counter and capture this analysis's ID.
     analysisCancelRef.current += 1;
     const cancelId = analysisCancelRef.current;
@@ -4897,7 +7069,10 @@ export default function App() {
       escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
     }
 
-    setSel(occ); setStep("loading"); setSub(posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...` : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+    setSel(occ); setStep("loading"); setSub(
+      corpus ? `Analysing ${corpus.jobs.length} live MyCareersFuture postings for ${toTitleCase(occ.title)} as one role...`
+      : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
+      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -4914,15 +7089,19 @@ export default function App() {
     try {
       // forceHybrid: skip ESCO fetch and use Claude getSkills() directly
       // Used when coherence check confirms ESCO returned wrong occupation skills.
-      // posting: skip ESCO entirely and derive skills from the live MCF listing.
-      let escoResult = (forceHybrid || posting) ? null : await getEscoSkills(escoFetchTitle);
+      // corpus: skip ESCO; derive an aggregate skill list from all the live ads.
+      // posting (single ad): KEEP the role - resolve it to the STANDARD ESCO essential
+      // skills (so Skill Analysis / Progression / Crossover / Categories / Context are
+      // the canonical view); the ad's own content drives the Role-Mix & Responsibilities
+      // tabs instead.
+      let escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle);
       let skills = escoResult ? escoResult.skills : null;
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
-      if (skills === null && posting) skills = await getSkillsFromPosting(occ.title, posting.skills, posting.text);
+      if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
-      const escoSource = escoResult ? `ESCO v1.2` : posting ? `from this MyCareersFuture posting` : `AI-generated`;
+      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
@@ -4965,10 +7144,13 @@ export default function App() {
         return m ? Number(m[1]) : null;
       })();
       const iscoMajor = (escoOccupation && Number.isInteger(escoOccupation.iscoMajor)) ? escoOccupation.iscoMajor : iscoMajorFromCode;
-      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null, source: posting ? "posting" : "esco", postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl } : null };
-      const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : toTitleCase(occ.title);
+      const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null,
+        source: corpus ? "corpus" : posting ? "posting" : "esco",
+        postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl } : null,
+        corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null };
+      const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : corpus ? `${toTitleCase(occ.title)} — across SG ads` : toTitleCase(occ.title);
       setResult(newResult);
-      track("analysis_completed", { occupation: occ.title, source: posting ? "posting" : "esco" });
+      track("analysis_completed", { occupation: occ.title, source: newResult.source });
       if (comparisonsRef.current.length > 0) {
         addToComparison(comparisonKey, newResult);
         setTimeout(() => {
@@ -4986,14 +7168,40 @@ export default function App() {
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
-      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona)
+      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined)
         .then(rd => {
           if (analysisCancelRef.current !== cancelId) return;
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
           patchComparisonResult(comparisonKey, { responsibilitiesData: rd });
           track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
+          // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
+          if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
+            buildJobAnatomy(rd.jobs, occ.title, corpus ? "corpus" : posting ? "posting" : "esco")
+              .then(ja => {
+                if (analysisCancelRef.current !== cancelId) return;
+                setResult(prev => prev ? { ...prev, jobAnatomy: ja } : prev);
+                patchComparisonResult(comparisonKey, { jobAnatomy: ja });
+                track("jobanatomy_loaded", { occupation: occ.title, ads: ja && ja.adCount || 0, duties: ja && ja.duties ? ja.duties.length : 0, score: ja && ja.aiResilienceScore, fallback: !!(ja && ja.fallback) });
+              })
+              .catch(e => { track("jobanatomy_error", { reason: (e.message||"").slice(0,60) }); });
+          }
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
+
+      // Background: Role-Mix decomposition - for postings AND for the "across all
+      // SG ads" corpus (an ESCO analysis is already a clean single occupation, so
+      // a fingerprint of it isn't interesting).
+      if (fromAds) {
+        const rmTarget = posting || { title: occ.title, uuid: `corpus:${occ.title}` };
+        buildRoleMix(rmTarget, merged)
+          .then(rm => {
+            if (analysisCancelRef.current !== cancelId) return;
+            setResult(prev => prev ? { ...prev, roleMix: rm } : prev);
+            patchComparisonResult(comparisonKey, { roleMix: rm });
+            track("rolemix_loaded", { occupation: occ.title, source: newResult.source, components: rm && rm.components ? rm.components.length : 0, coherence: rm && rm.coherenceKey || "", mismatch: !!(rm && rm.mismatch), fallback: !!(rm && rm.fallback) });
+          })
+          .catch(e => { track("rolemix_error", { reason: (e.message||"").slice(0,60) }); });
+      }
 
       // Coherence check: detect if ESCO resolved to a wrong occupation
       // Step 1 - ISCO group guard (instant, no API call)
@@ -5146,6 +7354,27 @@ export default function App() {
     };
     confirmIfComparing(doIt);
   }, [doAnalyse]);
+
+  // v3.2: analyse the AGGREGATE of all fetched MCF postings for a role - aggregated
+  // skill list + a responsibilities corpus -> a full analysis grounded in "what
+  // real SG employers ask for", not one cherry-picked ad.
+  const handleAnalyseCorpus = useCallback((jobs, titleArg) => {
+    if (!Array.isArray(jobs) || jobs.length < 4) return;
+    const title = toTitleCase((titleArg || query || "").trim()) || "Role";
+    const doIt = () => {
+      setQuery(title);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setResult(null); setOccs([]); setErr("");
+      setActiveTab("skills");
+      track("mcf_corpus_analyse", { count: jobs.length });
+      const sf = {}, sex = {};
+      jobs.forEach(j => (j.skills || []).forEach(s => { const k = String(s || "").toLowerCase().trim(); if (!k) return; sf[k] = (sf[k] || 0) + 1; if (!sex[k]) sex[k] = s; }));
+      const aggSkills = Object.entries(sf).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([k]) => sex[k]);
+      const { corpus, titles } = buildResponsibilitiesCorpus(jobs);
+      doAnalyse({ title, iscoCode: "", iscoGroup: "", description: "" }, { corpus: { jobs, skills: aggSkills, text: corpus, titles } });
+    };
+    confirmIfComparing(doIt);
+  }, [doAnalyse, query]);
 
   // v3.2: queue a MyCareersFuture posting for comparison (keyed distinctly by title + employer)
   const handleQueuePosting = useCallback((job) => {
@@ -5369,6 +7598,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
+      ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
+      ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
       ...(r.foundationData ? [{ key:"foundation", label:`${safePersona(persona).icon||"🎓"} Foundation Skills`, color:safePersona(persona).color||C.green }] : []),
       { key:"progression", label:"⬆️ Career Progression",   color:"#1a56db" },
       { key:"crossover",   label:"🔄 Role Crossover",        color:C.green   },
@@ -5376,6 +7607,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
+      { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
+      { key:"resume",      label:"📄 Resume Check",            color:"#0e7490" },
     ];
   };
 
@@ -5609,19 +7842,35 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 Type a job title such as Nurse, Financial Analyst or Software Engineer to see AI impact on role skills
               </span>
 
+              {/* v3.2: mode toggle - analyse a role (ESCO) vs browse live SG job postings */}
+              <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+                {[
+                  { k:"role", label:"🔎 Analyse a role", sub:"ESCO essential skills" },
+                  { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
+                ].map(m => (
+                  <button key={m.k} onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                    style={{ flex:1, textAlign:"left", padding:"7px 11px", borderRadius:8, cursor:"pointer",
+                      border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
+                      background: searchMode===m.k ? C.accentSoft : C.surface }}>
+                    <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
+                    <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
+                  </button>
+                ))}
+              </div>
+
               <div style={{ display:"flex", gap:8 }}>
                 <input type="search" id="job-title-search" name="job-title" autoComplete="off"
-                  aria-label="Enter a job title to search" aria-describedby="search-hint"
+                  aria-label={searchMode==="jobs" ? "Enter a job title to browse postings" : "Enter a job title to search"} aria-describedby="search-hint"
                   role="searchbox"
-                  value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>e.key==="Enter"&&doSearch()}
-                  placeholder='Enter a job title to begin...'
+                  value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
+                  placeholder={searchMode==="jobs" ? 'Job title to browse live SG postings...' : 'Enter a job title to begin...'}
                   style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:7, color:C.text, padding:"11px 13px", fontSize:16, outline:"none", fontFamily:"inherit" }} autoFocus />
-                <button onClick={doSearch} aria-label="Search for job title" style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"11px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
-                  Search
+                <button onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"11px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+                  {searchMode==="jobs" ? "Browse" : "Search"}
                 </button>
               </div>
-              {/* v6: progressive picker - shows as user types, before pressing Analyse */}
-              {query.trim().length >= 3 && (step === "idle" || step === "error") && (
+              {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
+              {searchMode === "role" && query.trim().length >= 3 && (step === "idle" || step === "error") && (
                 <div style={{ marginTop:8 }}>
                   {pickerLoading && (
                     <p style={{ fontSize:11, color:C.muted, margin:"4px 0" }}>Finding roles matching "{query.trim()}"...</p>
@@ -5687,6 +7936,30 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         )}
 
         {step === "searching" && <Spinner label={`Searching for "${query}"...`} />}
+
+        {step === "mcf_browse" && (
+          <div>
+            <button onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
+              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize:13, fontWeight:700, color:C.accent, cursor:"pointer" }}>
+              ← New search
+            </button>
+            <McfJobsPanel
+              sel={{ title: query.trim() }}
+              skills={[]}
+              escoOccupation={null}
+              onAnalysePosting={handleAnalysePosting}
+              onQueuePosting={handleQueuePosting}
+              onAnalyseCorpus={handleAnalyseCorpus}
+              queueCount={comparisons.length}
+              standalone
+            />
+            {comparisons.length > 0 && (
+              <p style={{ marginTop:12, fontSize:12, color:C.accent, textAlign:"center" }}>
+                {comparisons.length} posting{comparisons.length===1?"":"s"} queued for comparison — tap <strong>📊 Analyse this posting</strong> on any card to open the analysis, then run the comparison from there.
+              </p>
+            )}
+          </div>
+        )}
 
         {step === "picking" && (() => {
           // Group by sector
@@ -5767,6 +8040,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
                     {result.postingMeta && result.postingMeta.employer ? <span style={{ color:C.textSub }}>· {result.postingMeta.employer}</span> : null}
                     {result.postingMeta && result.postingMeta.mcfUrl ? <a href={result.postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>· Open posting →</a> : null}
+                  </p>
+                )}
+                {result.source === "corpus" && (
+                  <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
+                    <span style={{ color:C.textSub }}>· aggregated from what real SG employers ask for, not one cherry-picked ad</span>
                   </p>
                 )}
                 {/* ESCO coherence notice */}
@@ -5978,6 +8257,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
               )}
 
+              {activeTab === "jobanatomy" && result.jobAnatomy && (
+                <JobAnatomyView anatomy={result.jobAnatomy} title={sel?.title || ""} />
+              )}
+
+              {activeTab === "rolemix" && result.roleMix && (
+                <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
+              )}
+
               {activeTab === "foundation" && result.foundationData && (
                 <FoundationPanel data={result.foundationData} persona={persona} />
               )}
@@ -6061,8 +8348,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   escoOccupation={result.escoOccupation}
                   onAnalysePosting={handleAnalysePosting}
                   onQueuePosting={handleQueuePosting}
+                  onAnalyseCorpus={handleAnalyseCorpus}
                   queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
                 />
+              )}
+
+              {activeTab === "rolegraph" && (
+                <RoleGraphPanel result={result} title={sel?.title || ""} />
+              )}
+
+              {activeTab === "resume" && (
+                <ResumeCheckPanel result={result} title={sel?.title || ""} />
               )}
 
               <Disclaimer />

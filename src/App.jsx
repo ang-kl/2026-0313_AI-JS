@@ -1,4 +1,4 @@
-// v2.0.5 - 2026-03-30 - HDR #036 - title renamed AI Readiness across Role Skills, role_searched tracking
+// v2.0.7 - 2026-04-08 - HDR #038b live activity feed on loading screen: staggered skill list, stage ticks, collapsed explanation toggle, prompt typewriter
 // Changes: prompt caching, ISCO skill targets, debounced picker,
 // picker header cleaned (removed redundant instructions),
 // search box moved to top of idle screen
@@ -1135,13 +1135,120 @@ function Tag({ level, small }) {
   );
 }
 
-function Spinner({ label, step, total, firstTime }) {
+// HDR #038: LivePromptCard - shown inside Spinner when a live prompt resolves during loading
+function LivePromptCard({ livePrompt }) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  const textRef = useRef(livePrompt.text || "");
+  const idxRef  = useRef(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    textRef.current = livePrompt.text || "";
+    idxRef.current = 0;
+    setDisplayed("");
+    setDone(false);
+    const tick = () => {
+      const CHUNK = 4; // characters per tick - balances legibility and speed
+      const next = idxRef.current + CHUNK;
+      setDisplayed(textRef.current.slice(0, next));
+      idxRef.current = next;
+      if (next < textRef.current.length) {
+        timerRef.current = setTimeout(tick, 22);
+      } else {
+        setDone(true);
+      }
+    };
+    timerRef.current = setTimeout(tick, 80); // slight delay before starting
+    return () => clearTimeout(timerRef.current);
+  }, [livePrompt.text]);
+
+  const c = LEVELS[livePrompt.level] || LEVELS.HUMAN;
+  const TECH_LABELS = {
+    "chain-of-thought":"Chain of thought","persona-injection":"Persona injection",
+    "directional-stimulus":"Directional stimulus","generate-knowledge":"Generate knowledge",
+    "few-shot-anchor":"Few-shot anchor","output-contract":"Output contract",
+    "skeleton-of-thought":"Skeleton of thought","self-consistency":"Self-consistency",
+    "meta-prompting":"Meta prompting","tree-of-thoughts":"Tree of thoughts",
+    "decomposition-scaffold":"Decomposition scaffold","reflexion":"Reflexion",
+    "self-critique-loop":"Self-critique loop","react":"ReAct",
+    "prompt-chaining":"Prompt chaining","rag":"RAG",
+    "agentic-task-spec":"Agentic task spec","least-to-most":"Least-to-most",
+    "multimodal-cot":"Multimodal CoT",
+  };
+  const techLabel = TECH_LABELS[livePrompt.promptTech] || livePrompt.promptTech;
+
+  return (
+    <div style={{ marginTop:16, animation:"fadeInUp 0.4s ease both" }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+        <div style={{ width:8, height:8, borderRadius:"50%", background: done ? C.accent : "#f97316", animation: done ? "none" : "sp 0.9s linear infinite", border: done ? "none" : `2px solid ${C.border}`, borderTop: done ? "none" : `2px solid #f97316`, flexShrink:0 }} />
+        <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, letterSpacing:"0.04em", textTransform:"uppercase" }}>
+          {done ? "Prompt ready" : "Building prompt\u2026"}
+        </p>
+      </div>
+      {/* Skill row replica */}
+      <div style={{ border:`2px solid ${c.border}`, borderRadius:7, background:c.bg, marginBottom:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 13px", borderBottom:`1px solid ${c.border}` }}>
+          <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.muted, fontWeight:700, flexShrink:0 }}>1</span>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ margin:0, fontSize:14, color:C.text, fontWeight:500 }}>{livePrompt.skill}</p>
+            <p style={{ margin:0, fontSize:12, color:C.muted }}>Technical Skill</p>
+          </div>
+          <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:"2px 7px", borderRadius:20, fontSize:10, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
+            {c.icon} {c.label}
+          </span>
+        </div>
+        {/* Prompt block */}
+        <div style={{ padding:"10px 13px 11px 41px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:6 }}>
+            <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
+            <span style={{ fontSize:9, fontWeight:600, color:"#166534", background:"#dcfce7", border:"1px solid #a7f3d0", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap" }}>Copy and go</span>
+            {techLabel && (
+              <span style={{ fontSize:9, fontWeight:700, color:"#92400e", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding:"1px 7px", whiteSpace:"nowrap" }}>
+                {techLabel}
+              </span>
+            )}
+          </div>
+          <pre style={{ margin:"0 0 0", fontSize:11, color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius:5, padding:"6px 9px", whiteSpace:"pre-wrap", wordBreak:"break-word", minHeight:48, position:"relative" }}>
+            {displayed}
+            {!done && <span style={{ display:"inline-block", width:2, height:"1em", background:"#0369a1", marginLeft:2, verticalAlign:"middle", animation:"sp 0.7s step-end infinite" }} />}
+          </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Spinner({ label, step, total, firstTime, livePrompt, liveSkills }) {
+  const [explainOpen, setExplainOpen] = useState(false);
+  const [visibleSkills, setVisibleSkills] = useState(0);
+
+  // Stagger skill rows appearing one by one as liveSkills populates
+  useEffect(() => {
+    if (!liveSkills || liveSkills.length === 0) { setVisibleSkills(0); return; }
+    setVisibleSkills(0);
+    let i = 0;
+    const tick = () => {
+      i++;
+      setVisibleSkills(i);
+      if (i < liveSkills.length) setTimeout(tick, 120);
+    };
+    setTimeout(tick, 300);
+  }, [liveSkills]);
+
+  // Derive display stage from subStep + what has arrived
+  const stage1Done  = step >= 2;
+  const stage2Done  = step >= 3;
+  const skillsReady = liveSkills && liveSkills.length > 0;
+
   return (
     <div style={{ padding:"40px 0 32px" }}>
-      <div style={{ textAlign:"center", marginBottom:16 }}>
+      {/* Spinner dot + label + progress dots - unchanged */}
+      <div style={{ textAlign:"center", marginBottom:20 }}>
         <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
-        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:300, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
+        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes fadeInRow{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
+        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:320, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
         {step && total && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:4 }}>
             <div style={{ display:"flex", gap:4 }}>
@@ -1153,22 +1260,532 @@ function Spinner({ label, step, total, firstTime }) {
           </div>
         )}
       </div>
-      {firstTime && (
-        <div style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
-              The results screen shows every skill in this role distributed across five automation levels: <strong>Full Automation</strong>, <strong>AI-Agentic</strong>, <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
-            </p>
-          </div>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
-              <strong>Skill Analysis</strong> contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide. <strong>Career Progression</strong> shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers. <strong>Role Crossover</strong> highlights the transferable skills that open doors to adjacent roles. <strong>Skill Categories</strong> groups skills into thematic clusters for structured learning. <strong>Role Context</strong> maps how the role operates across sectors and organisations in Singapore and the ASEAN region.
+
+      {/* ── Live activity feed ── */}
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, overflow:"hidden" }}>
+
+        {/* Stage 1 - Resolving role */}
+        <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px", borderBottom: skillsReady ? `1px solid ${C.border}` : "none" }}>
+          <span style={{ fontSize:13, lineHeight:1, marginTop:1, flexShrink:0 }}>
+            {stage1Done ? "✓" : <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, animation:"sp 0.7s linear infinite" }} />}
+          </span>
+          <div style={{ flex:1 }}>
+            <p style={{ margin:0, fontSize:12, fontWeight:600, color: stage1Done ? C.green : C.text }}>
+              {stage1Done ? "Role resolved in ESCO v1.2" : "Resolving role in ESCO v1.2\u2026"}
             </p>
           </div>
         </div>
+
+        {/* Stage 2 - Skills found + expanding detail */}
+        {skillsReady && (
+          <div style={{ borderBottom: stage2Done ? `1px solid ${C.border}` : "none" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px 6px" }}>
+              <span style={{ fontSize:13, lineHeight:1, marginTop:1, flexShrink:0 }}>
+                {stage2Done ? "✓" : <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, animation:"sp 0.7s linear infinite" }} />}
+              </span>
+              <div style={{ flex:1 }}>
+                <p style={{ margin:0, fontSize:12, fontWeight:600, color: stage2Done ? C.green : C.text }}>
+                  {liveSkills.length} essential skills found
+                  <span style={{ fontSize:11, fontWeight:400, color:C.muted }}> - rating each against current AI capability</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Stage 2a - Skill list appearing row by row */}
+            <div style={{ padding:"0 14px 6px 36px" }}>
+              <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                Expanding skill details from taxonomy\u2026
+              </p>
+              <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                {liveSkills.slice(0, visibleSkills).map((s, i) => (
+                  <div key={s.n} style={{ animation:"fadeInRow 0.25s ease both", display:"flex", alignItems:"flex-start", gap:8, padding:"5px 8px", background:C.bg, borderRadius:5, border:`1px solid ${C.border}` }}>
+                    <span style={{ fontSize:10, color:C.mutedLight, fontWeight:700, flexShrink:0, minWidth:16, textAlign:"right", marginTop:1 }}>{s.n}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ margin:0, fontSize:12, fontWeight:600, color:C.text, lineHeight:1.3 }}>{s.skill}</p>
+                      {s.desc && (
+                        <p style={{ margin:"2px 0 0", fontSize:11, color:C.muted, lineHeight:1.5, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
+                          {s.desc}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {/* Trailing pulse while more skills are loading */}
+                {visibleSkills < liveSkills.length && (
+                  <div style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 8px" }}>
+                    <span style={{ width:6, height:6, borderRadius:"50%", background:C.accent, display:"inline-block", animation:"pulse 1s ease-in-out infinite", flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:C.muted }}>loading more\u2026</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 3 - Automation rated + career paths mapped */}
+        {stage2Done && (
+          <div style={{ animation:"fadeInUp 0.3s ease both" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"11px 14px 6px", borderBottom:"none" }}>
+              <span style={{ fontSize:13, lineHeight:1, marginTop:1, flexShrink:0 }}>
+                {livePrompt ? "✓" : <span style={{ display:"inline-block", width:10, height:10, borderRadius:"50%", border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, animation:"sp 0.7s linear infinite" }} />}
+              </span>
+              <div style={{ flex:1 }}>
+                <p style={{ margin:0, fontSize:12, fontWeight:600, color: livePrompt ? C.green : C.text }}>
+                  {livePrompt ? "Automation exposure mapped - career paths ready" : "Mapping automation exposure and career paths\u2026"}
+                </p>
+              </div>
+            </div>
+            {/* Parse label into visual chips */}
+            {label && (() => {
+              // Automation level counts - e.g. "5 Full Automation - 8 AI-Augmented - 10 AI-Assisted - 5 Human-Led"
+              const lvlDef = [
+                { key:"Full Automation", color:"#dc2626", bg:"#fef2f2", border:"#fecaca" },
+                { key:"AI-Augmented",    color:"#d97706", bg:"#fffbeb", border:"#fcd9a0" },
+                { key:"AI-Assisted",     color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe" },
+                { key:"Human-Led",       color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+              ];
+              const lvlChips = lvlDef
+                .map(l => { const m = label.match(new RegExp(`(\\d+)\\s+${l.key}`)); return m ? { ...l, count: m[1] } : null; })
+                .filter(Boolean);
+              const progMatch = label.match(/Career paths:\s*([^-\n]+)/);
+              const crossMatch = label.match(/Crossover:\s*([^-\n]+)/);
+              const progRoles = progMatch ? progMatch[1].trim().split(",").map(r => r.trim()).filter(Boolean) : [];
+              const crossRoles = crossMatch ? crossMatch[1].trim().split(",").map(r => r.trim()).filter(Boolean) : [];
+              return (
+                <div style={{ padding:"0 14px 10px 36px", display:"flex", flexDirection:"column", gap:8 }}>
+                  {lvlChips.length > 0 && (
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                      {lvlChips.map((l, i) => (
+                        <span key={i} style={{ fontSize:11, fontWeight:700, color:l.color, background:l.bg, border:`1px solid ${l.border}`, borderRadius:12, padding:"2px 9px" }}>
+                          {l.count} {l.key}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {progRoles.length > 0 && (
+                    <div>
+                      <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Career paths</p>
+                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                        {progRoles.slice(0,3).map((r,i) => (
+                          <span key={i} style={{ fontSize:11, color:"#1e40af", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:12, padding:"2px 9px", animation:`fadeInUp 0.3s ease ${i*80}ms both` }}>{r}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {crossRoles.length > 0 && (
+                    <div>
+                      <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Crossover roles</p>
+                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                        {crossRoles.slice(0,3).map((r,i) => (
+                          <span key={i} style={{ fontSize:11, color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:12, padding:"2px 9px", animation:`fadeInUp 0.3s ease ${i*80}ms both` }}>{r}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Live prompt typewriter - fades in when prompt resolves */}
+        {livePrompt && (
+          <div style={{ padding:"12px 14px", borderTop:`1px solid ${C.border}`, animation:"fadeInUp 0.4s ease both" }}>
+            <LivePromptCard livePrompt={livePrompt} />
+          </div>
+        )}
+
+        {/* Waiting state - nothing yet */}
+        {!skillsReady && !stage1Done && (
+          <div style={{ padding:"10px 14px 14px 36px" }}>
+            <div style={{ display:"flex", gap:5 }}>
+              {[0,1,2].map(i => (
+                <span key={i} style={{ width:6, height:6, borderRadius:"50%", background:C.border, display:"inline-block", animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Collapsed explanation toggle - shown on every analysis ── */}
+      <div style={{ marginTop:12 }}>
+        <button onClick={() => setExplainOpen(o => !o)}
+          style={{ background:"transparent", border:"none", fontSize:12, color:C.accent, cursor:"pointer", padding:"4px 0", fontWeight:600, display:"flex", alignItems:"center", gap:5 }}>
+          <span style={{ fontSize:10 }}>{explainOpen ? "▲" : "▼"}</span>
+          {explainOpen ? "Hide" : "What will be shown when this finishes"}
+        </button>
+        {explainOpen && (
+          <div style={{ marginTop:8, animation:"fadeInUp 0.25s ease both" }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
+              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
+              <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
+                The results screen shows every skill in this role distributed across five automation levels: <strong>Full Automation</strong>, <strong>AI-Agentic</strong>, <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
+              </p>
+            </div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
+              <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
+                <strong>Skill Analysis</strong> contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide. <strong>Career Progression</strong> shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers. <strong>Role Crossover</strong> highlights the transferable skills that open doors to adjacent roles. <strong>Skill Categories</strong> groups skills into thematic clusters for structured learning. <strong>Role Context</strong> maps how the role operates across sectors and organisations in Singapore and the ASEAN region.
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// HDR #037: PreviewSection - static sample cards shown on first screen below DeviceNote
+// Three window cards mimicking real result screens. Operations Manager sample. Zero API calls.
+const PREVIEW_OPS = {
+  skill: {
+    name: "Operational planning",
+    type: "Technical Skill",
+    level: "LOW",
+    tool: "AI search tool",
+    how: "AI drafts the plan structure; manager validates against operational constraints and resource availability",
+    kickstart: "Use an AI search tool to draft the operational plan structure",
+    prompt: `You are a senior Operations Manager with 10+ years of experience in multi-site operations planning.\n\nFirst, generate all relevant knowledge about best-practice operational planning for a mid-sized corporate environment: key frameworks, common constraints, resource allocation principles, and risk factors typically overlooked at the planning stage.\n\nThen apply that knowledge to the following task: produce a structured operational plan for [describe the operational objective, e.g. seasonal capacity increase or process rollout]. The plan must cover: objective and scope, resource requirements (people, equipment, budget estimate), timeline with key milestones, risk register with mitigations, and a review trigger.\n\nConstraints: keep the plan to one A4 page in summary form. Flag any assumption you have made where you lacked specific data. Use plain UK English throughout.`,
+    promptTech: "generate-knowledge",
+    readiness: "ready",
+    nextPhaseSteps: [
+      { label: "Step 1 - Try it now:", body: "Paste the prompt into an AI language tool. Replace the bracketed objective with a real planning scenario from your current quarter. Look for whether the risk register surfaces constraints you had not already listed - that is the signal it is working." },
+      { label: "Step 2 - Refine it:", body: "After the first response, type: \"Identify the three assumptions in this plan most likely to break under time pressure and suggest a contingency for each.\" This sharpens the output beyond a generic framework." },
+      { label: "Step 3 - Step up:", body: "The AI-Augmented version of this skill involves feeding live data into the plan - headcount figures, cost codes, historical throughput. When you are ready, try providing a one-page data extract alongside the prompt and asking AI to validate the plan against actual numbers." },
+    ],
+  },
+  progression: {
+    role: "Senior Operations Manager",
+    dir: "up",
+    note: "Broader portfolio, more stakeholders, P&L accountability",
+    transferable: [
+      { level: "HIGH", skill: "Process optimisation" },
+      { level: "LOW",  skill: "Stakeholder engagement" },
+      { level: "HUMAN", skill: "Team leadership" },
+    ],
+    gap: ["Financial planning and budgeting", "Change management", "Executive reporting"],
+    step: "Operations Project Lead",
+  },
+  comparison: {
+    roles: ["Operations Manager", "Project Manager"],
+    skillCounts: [28, 26],
+    bars: {
+      "Operations Manager": { HIGH:5, MEDIUM:8, LOW:9, HUMAN:6 },
+      "Project Manager":    { HIGH:4, MEDIUM:7, LOW:10, HUMAN:5 },
+    },
+    shared: ["Risk management", "Stakeholder communication", "Resource allocation", "Performance monitoring"],
+    pairNote: "Both roles also share Budget management",
+    unique: {
+      "Operations Manager": { level:"HUMAN", skill:"Physical resource coordination" },
+      "Project Manager":    { level:"LOW",   skill:"Project scheduling tools" },
+    },
+    devGap: {
+      "Operations Manager": ["Strategic financial planning", "Executive stakeholder management", "Organisational change leadership"],
+      "Project Manager":    ["Portfolio governance", "Benefits realisation tracking", "Programme-level risk management"],
+    },
+    summary: {
+      observation: "It appears both roles share a similar automation exposure overall, though Operations Manager carries more Human-Led skills - likely reflecting the physical coordination and floor-level oversight that AI cannot replicate. Project Manager shows a slightly broader AI-Assisted skill set, which may suit those comfortable working alongside AI tools on a daily basis.",
+      nextstep: "One approach worth considering: if the Human-Led skills in Operations appeal to you, it may be worth exploring which of those skills transfer directly to a Senior Operations Manager path before committing to a lateral move.",
+      warning: "Both roles have notable Full Automation exposure in process-level tasks - it is worth reviewing which specific skills are affected and whether your current role already requires you to work with those tools.",
+    },
+  },
+};
+
+function PreviewSection() {
+  const [activeCard, setActiveCard] = useState(0); // 0=skills, 1=progression, 2=comparison
+  const TABS = [
+    { key:0, label:"Skill Analysis" },
+    { key:1, label:"Career Progression" },
+    { key:2, label:"Compare" },
+  ];
+  const d = PREVIEW_OPS;
+  const cLOW   = LEVELS.LOW;
+  const cHUMAN = LEVELS.HUMAN;
+  const cHIGH  = LEVELS.HIGH;
+  const levelBar = [
+    { key:"HIGH",   color:"#dc2626", label:"Full Automation" },
+    { key:"MEDIUM", color:"#d97706", label:"AI-Augmented" },
+    { key:"LOW",    color:"#2563eb", label:"AI-Assisted" },
+    { key:"HUMAN",  color:"#166534", label:"Human-Led" },
+  ];
+  const levelColor = { HIGH:"#dc2626", MEDIUM:"#d97706", LOW:"#2563eb", HUMAN:"#166534" };
+  const levelBg    = { HIGH:"#fef2f2", MEDIUM:"#fffbeb", LOW:"#eff6ff", HUMAN:"#f0fdf4" };
+  const levelBdr   = { HIGH:"#fecaca", MEDIUM:"#fcd9a0", LOW:"#bfdbfe", HUMAN:"#a7f3d0" };
+  const levelIcon  = { HIGH:"⚡", MEDIUM:"~", LOW:"●", HUMAN:"♦" };
+  const levelLabel = { HIGH:"Full Automation", MEDIUM:"AI-Augmented", LOW:"AI-Assisted", HUMAN:"Human-Led" };
+
+  return (
+    <div style={{ marginTop:24, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
+      {/* Outer card wrapper - white surface, soft shadow, 16px radius */}
+      <div style={{ background:"#ffffff", borderRadius:16, boxShadow:"0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.06)", overflow:"hidden" }}>
+
+        {/* Card header */}
+        <div style={{ padding:"18px 20px 14px", borderBottom:`1px solid ${C.border}` }}>
+          <p style={{ margin:"0 0 2px", fontSize:15, fontWeight:800, color:C.text, lineHeight:1.25, fontFamily:"'DM Sans', system-ui, sans-serif", letterSpacing:"-0.01em" }}>
+            Sample Result
+          </p>
+          <p style={{ margin:0, fontSize:12, color:C.muted, fontFamily:"'DM Sans', system-ui, sans-serif" }}>
+            Operations Manager - a common corporate role. Type any job title above to see yours.
+          </p>
+        </div>
+
+        {/* Tab pills */}
+        <div style={{ display:"flex", gap:6, padding:"12px 20px 0", overflowX:"auto", paddingBottom:0 }}>
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setActiveCard(t.key)}
+              style={{ padding:"6px 14px", fontSize:12, fontWeight:700, borderRadius:20, border:`2px solid ${activeCard === t.key ? C.accent : C.border}`, background: activeCard === t.key ? C.accent : C.surface, color: activeCard === t.key ? "#fff" : C.muted, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.15s", fontFamily:"'DM Sans', system-ui, sans-serif" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Card content - padded inner area */}
+        <div style={{ padding:"16px 20px 20px" }}>
+      {activeCard === 0 && (
+        <div style={{ animation:"fadeInUp 0.3s ease both" }}>
+          {/* Skill row - open state */}
+          <div style={{ border:`2px solid ${cLOW.border}`, borderRadius:7, background:cLOW.bg }}>
+            {/* Row header */}
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 13px" }}>
+              <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.muted, fontWeight:700, flexShrink:0 }}>1</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ margin:0, fontSize:14, color:C.text, fontWeight:500 }}>{d.skill.name}</p>
+                <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginTop:1 }}>
+                  <p style={{ margin:0, fontSize:12, color:C.muted }}>Technical Skill</p>
+                </div>
+              </div>
+              <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:"2px 7px", borderRadius:20, fontSize:10, fontWeight:700, color:cLOW.color, background:cLOW.bg, border:`1px solid ${cLOW.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
+                {cLOW.icon} {cLOW.label}
+              </span>
+              <span style={{ fontSize:10, color:C.mutedLight }}>▲</span>
+            </div>
+            {/* Row body */}
+            <div style={{ padding:"2px 13px 11px 41px", borderTop:`1px solid ${cLOW.border}` }}>
+              <p style={{ margin:"8px 0 7px", fontSize:13, color:cLOW.color, fontWeight:600 }}>
+                ● Apply: {d.skill.kickstart}
+              </p>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 11px", flex:"1 1 110px" }}>
+                  <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>AI Tool</p>
+                  <p style={{ margin:0, fontSize:12, color:C.accent, fontWeight:600 }}>{d.skill.tool}</p>
+                </div>
+                <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 11px", flex:"3 1 200px" }}>
+                  <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Approach</p>
+                  <p style={{ margin:0, fontSize:12, color:C.textSub }}>{d.skill.how}</p>
+                </div>
+              </div>
+              {/* Prompt block */}
+              <div style={{ marginTop:8, background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7, padding:"10px 12px" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:6 }}>
+                  <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
+                  <span style={{ fontSize:9, fontWeight:600, color:"#166534", background:"#dcfce7", border:"1px solid #a7f3d0", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap" }}>Copy and go</span>
+                  <span style={{ fontSize:9, fontWeight:700, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:10, padding:"1px 7px", whiteSpace:"nowrap" }}>
+                    L3-4 Generate knowledge
+                  </span>
+                </div>
+                <pre style={{ margin:"0 0 8px", fontSize:11, color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius:5, padding:"6px 9px", whiteSpace:"pre-wrap", wordBreak:"break-word", maxHeight:120, overflow:"hidden", maskImage:"linear-gradient(to bottom, #000 60%, transparent 100%)", WebkitMaskImage:"linear-gradient(to bottom, #000 60%, transparent 100%)" }}>{d.skill.prompt}</pre>
+                <p style={{ margin:"0 0 6px", fontSize:10, color:"#0369a1", lineHeight:1.5, opacity:0.8 }}>
+                  Paste into any AI tool. Edit <strong>[bracketed]</strong> parts to fit your context.
+                </p>
+              </div>
+              {/* What to do next */}
+              <div style={{ marginTop:10, padding:"12px 14px", background:"#fff", border:`1px solid ${C.border}`, borderRadius:7 }}>
+                <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:"#1e40af" }}>What to do Next</p>
+                {d.skill.nextPhaseSteps.map((s, i) => (
+                  <div key={i} style={{ marginBottom: i < 2 ? 10 : 0 }}>
+                    <p style={{ margin:"0 0 2px", fontSize:12, color:"#1e3a8a", lineHeight:1.6 }}>
+                      <strong>{s.label}</strong> {s.body}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, fontStyle:"italic", textAlign:"center" }}>
+            Every skill in your role will have a prompt card like this. Type your job title above to see yours.
+          </p>
+        </div>
       )}
+
+      {/* Card 2 - Career Progression */}
+      {activeCard === 1 && (
+        <div style={{ animation:"fadeInUp 0.3s ease both" }}>
+          <div style={{ background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+            <p style={{ margin:0, fontSize:12, color:"#1e40af", lineHeight:1.5 }}>
+              Career progression paths based on current skills - where this role typically leads.
+            </p>
+          </div>
+          {/* Progression card - open */}
+          <div style={{ border:`1px solid #bfdbfe`, borderRadius:8, background:"#eff6ff" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
+              <div style={{ width:34, height:34, borderRadius:"50%", background:"#eff6ff", border:"1px solid #bfdbfe", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>⬆</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
+                  <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{d.progression.role}</p>
+                  <span style={{ fontSize:10, fontWeight:700, color:"#1e40af", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:12, padding:"1px 8px", flexShrink:0 }}>Step Up</span>
+                </div>
+                <p style={{ margin:0, fontSize:12, color:C.textSub }}>{d.progression.note}</p>
+              </div>
+              <span style={{ fontSize:10, color:C.mutedLight }}>▲</span>
+            </div>
+            <div style={{ padding:"4px 16px 12px 62px", borderTop:"1px solid #bfdbfe" }}>
+              <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:"#1e40af", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                Skills from your current role that will transfer
+              </p>
+              {d.progression.transferable.map((s, i) => (
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+                  <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:"2px 7px", borderRadius:20, fontSize:10, fontWeight:700, color:levelColor[s.level], background:levelBg[s.level], border:`1px solid ${levelBdr[s.level]}`, whiteSpace:"nowrap", width:112, flexShrink:0 }}>
+                    {levelIcon[s.level]} {levelLabel[s.level]}
+                  </span>
+                  <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                </div>
+              ))}
+              <div style={{ marginTop:10, padding:"7px 10px", background:C.surface, border:"1px solid #bfdbfe", borderRadius:6 }}>
+                <p style={{ margin:"0 0 5px", fontSize:10, fontWeight:700, color:"#1e40af", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                  Skills to develop for this role
+                </p>
+                {d.progression.gap.map((g, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
+                    <span style={{ width:6, height:6, borderRadius:"50%", background:"#1e40af", flexShrink:0 }} />
+                    <span style={{ fontSize:12, color:C.textSub }}>{g}</span>
+                  </div>
+                ))}
+                <div style={{ marginTop:8, paddingTop:7, borderTop:"1px dashed #bfdbfe", display:"flex", alignItems:"flex-start", gap:6 }}>
+                  <span style={{ fontSize:13, flexShrink:0 }}>🪜</span>
+                  <p style={{ margin:0, fontSize:12, color:"#1e40af", lineHeight:1.5 }}>
+                    Consider stepping through <strong>{d.progression.step}</strong> first - it bridges the gap more gradually.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, fontStyle:"italic", textAlign:"center" }}>
+            Six progression paths are shown for your role - up, lateral, and specialist. Type your job title above.
+          </p>
+        </div>
+      )}
+
+      {/* Card 3 - Comparison */}
+      {activeCard === 2 && (
+        <div style={{ animation:"fadeInUp 0.3s ease both" }}>
+          {/* Header */}
+          <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:8, padding:"10px 14px", marginBottom:12, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <p style={{ margin:0, fontSize:12, color:"#0369a1" }}>Commonalities, differences and development needs across your selected roles.</p>
+            <span style={{ fontSize:11, fontWeight:600, color:"#0369a1", flexShrink:0, marginLeft:10 }}>2 of 3 roles</span>
+          </div>
+
+          {/* Shared skills */}
+          <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
+            <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:800, color:"#166534", lineHeight:1.3 }}>
+              Transferable strengths - shared across both roles
+            </p>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+              {d.comparison.shared.map((s, i) => (
+                <span key={i} style={{ fontSize:12, color:"#166534", background:"#dcfce7", border:"1px solid #a7f3d0", borderRadius:12, padding:"2px 9px" }}>{s}</span>
+              ))}
+            </div>
+            <div style={{ paddingTop:8, borderTop:"1px dashed #a7f3d0" }}>
+              <p style={{ margin:"0 0 5px", fontSize:12, fontWeight:700, color:"#0e7490" }}>Operations Manager &amp; Project Manager also share</p>
+              <span style={{ fontSize:12, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:12, padding:"2px 8px" }}>Budget management</span>
+            </div>
+          </div>
+
+          {/* Automation bars */}
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+              <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches each role</p>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"flex-end" }}>
+                {levelBar.map(b => (
+                  <span key={b.key} style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    <span style={{ width:10, height:10, borderRadius:2, background:b.color, flexShrink:0, display:"inline-block" }} />
+                    <span style={{ fontSize:9, color:b.color, fontWeight:700 }}>{b.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+            {d.comparison.roles.map((role, ri) => {
+              const counts = d.comparison.bars[role];
+              const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+              return (
+                <div key={ri} style={{ marginBottom: ri < 1 ? 14 : 0 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{role}</p>
+                    <span style={{ fontSize:10, color:C.muted }}>{d.comparison.skillCounts[ri]} skills</span>
+                  </div>
+                  <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:12, marginBottom:4 }}>
+                    {levelBar.map(b => counts[b.key] > 0 && <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, minWidth:4 }} />)}
+                  </div>
+                  <div style={{ display:"flex", gap:8, flexWrap:"nowrap", overflowX:"auto" }}>
+                    {levelBar.map(b => counts[b.key] > 0 && (
+                      <span key={b.key} style={{ fontSize:10, color:b.color, fontWeight:700, whiteSpace:"nowrap", flexShrink:0 }}>
+                        {counts[b.key]} <span style={{ fontWeight:500, opacity:0.85 }}>{b.label}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Role detail grid - unique skills + dev gaps */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(2,minmax(0,1fr))", gap:10, marginBottom:12 }}>
+            {d.comparison.roles.map((role, ri) => (
+              <div key={ri} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+                <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.text }}>{role}</p>
+                <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Unique to this role</p>
+                <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:8 }}>
+                  <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:"2px 7px", borderRadius:20, fontSize:10, fontWeight:700,
+                    color:levelColor[d.comparison.unique[role].level],
+                    background:levelBg[d.comparison.unique[role].level],
+                    border:`1px solid ${levelBdr[d.comparison.unique[role].level]}`,
+                    whiteSpace:"nowrap", flexShrink:0 }}>
+                    {levelIcon[d.comparison.unique[role].level]} {levelLabel[d.comparison.unique[role].level]}
+                  </span>
+                  <span style={{ fontSize:11, color:C.textSub }}>{d.comparison.unique[role].skill}</span>
+                </div>
+                <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Skills to develop</p>
+                {d.comparison.devGap[role].map((g, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
+                    <span style={{ width:5, height:5, borderRadius:"50%", background:"#b45309", flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:C.textSub }}>{g}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* AI reflection - Comparing these roles */}
+          <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:8, padding:"14px 16px" }}>
+            <p style={{ margin:"0 0 8px", fontSize:14, fontWeight:800, color:"#0e7490", letterSpacing:"-0.01em", lineHeight:1.3 }}>Comparing these roles</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+              {d.comparison.roles.map((r, i) => (
+                <span key={i} style={{ fontSize:12, fontWeight:700, color:"#0e7490", background:"#fff", border:"1.5px solid #0e7490", borderRadius:12, padding:"3px 10px" }}>{r}</span>
+              ))}
+            </div>
+            <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>What stands out</p>
+            <p style={{ margin:"0 0 12px", fontSize:12, color:"#0c4a6e", lineHeight:1.85 }}>{d.comparison.summary.observation}</p>
+            <div style={{ background:"#fff", border:"1px solid #a5f3fc", borderRadius:6, padding:"7px 10px", marginBottom:8 }}>
+              <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>A suggested next step</p>
+              <p style={{ margin:0, fontSize:12, color:"#0c4a6e", lineHeight:1.6 }}>{d.comparison.summary.nextstep}</p>
+            </div>
+            <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6, padding:"7px 10px" }}>
+              <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.06em" }}>Worth being aware of</p>
+              <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.6 }}>{d.comparison.summary.warning}</p>
+            </div>
+            <div style={{ margin:"12px 0 0", borderTop:"1px solid #a5f3fc", paddingTop:10 }}>
+              <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:"#0e7490" }}>Ready to act on this?</p>
+              <p style={{ margin:0, fontSize:12, color:"#0c4a6e", lineHeight:1.65 }}>
+                Type your job title above - comparison works across any roles you choose.
+              </p>
+            </div>
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, fontStyle:"italic", textAlign:"center" }}>
+            Compare up to 3 roles side by side. Type your job title above to get started.
+          </p>
+        </div>
+      )}
+        </div>{/* end padded inner area */}
+      </div>{/* end white card wrapper */}
     </div>
   );
 }
@@ -3584,6 +4201,8 @@ export default function App() {
   const [compareStep,   setCompareStep]   = useState(0);  // v6: current step 1-8
   const [sub,       setSub]       = useState("");
   const [subStep,   setSubStep]   = useState(0);
+  const [livePrompt, setLivePrompt] = useState(null); // HDR #038: {skill,level,promptTech,text} live prompt shown during loading
+  const [liveSkills, setLiveSkills] = useState([]);   // HDR #038b: skill names+descriptions shown as they arrive during loading
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
   const [segmentPanelOpen, setSegmentPanelOpen] = useState(true); // v1.5.5: collapsible automation panel
@@ -3869,6 +4488,8 @@ export default function App() {
     }
 
     setSel(occ); setStep("loading"); setSub(`Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+    setLivePrompt(null); // HDR #038: reset live prompt for each new analysis
+    setLiveSkills([]);   // HDR #038b: reset skill feed for each new analysis
     setShowExpect(false);
     const total = persona ? 4 : 3;
 
@@ -3891,6 +4512,8 @@ export default function App() {
       if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : `AI-generated`;
+      // HDR #038b: expose skill names+descriptions to loading screen immediately after they arrive
+      setLiveSkills(skills.map(s => ({ n: s.n, skill: s.skill, desc: s.escoDescription || "" })));
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
@@ -3908,6 +4531,29 @@ export default function App() {
         const r = ratings.find(x => x.n === s.n) || {};
         return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
       });
+
+      // HDR #038: fire a single-skill live prompt in parallel - shown on loading screen
+      // Uses the first actionable (non-HUMAN) skill. Fires in background - does not block main pipeline.
+      const liveSkill = merged.find(s => s.level !== "HUMAN");
+      if (liveSkill) {
+        const liveCancelId = cancelId;
+        const liveAssign = assignTechniques([{ n: liveSkill.n, level: liveSkill.level, skillType: liveSkill.skillType || "technical" }], occ.title);
+        const liveTech = liveAssign.get(liveSkill.n) || "chain-of-thought";
+        const liveMsg =
+`Occupation: ${occ.title}
+Write prompts for these skills. The technique (pt) is pre-assigned - use EXACTLY the technique specified for each skill. Format: n:level:skillType:ASSIGNED_TECHNIQUE:skillName
+${liveSkill.n}:${liveSkill.level}:${liveSkill.skillType||"technical"}:${liveTech}:${liveSkill.skill}
+Return pt exactly as assigned above. Do not substitute a different technique.`;
+        claudeCall(liveMsg, 5500, 1, null, "claude-sonnet-4-6").then(raw => {
+          if (analysisCancelRef.current !== liveCancelId) return;
+          try {
+            const arr = extractJSON(raw, "live-prompt");
+            if (Array.isArray(arr) && arr[0] && arr[0].p) {
+              setLivePrompt({ skill: liveSkill.skill, level: liveSkill.level, promptTech: arr[0].pt || liveTech, text: arr[0].p, nextPhase: arr[0].nx || "" });
+            }
+          } catch(_) {}
+        }).catch(() => {});
+      }
       // Stage 3 enriched spinner - automation breakdown + role glimpses
       const lvlCounts = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
       merged.forEach(s => { if (lvlCounts[s.level] !== undefined) lvlCounts[s.level]++; });
@@ -3987,6 +4633,8 @@ export default function App() {
         // Without this check, prompts from a first analysis would patch into the
         // second analysis's skill rows if both ran concurrently.
         if (analysisCancelRef.current !== cancelId) return;
+        // HDR #038: if the live prompt already resolved for this skill, inject it
+        // into batchResults so the result is not discarded and not re-fetched.
         setResult(prev => {
           if (!prev) return prev;
           const enriched = prev.skills.map(s => {
@@ -4566,6 +5214,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <CommunityNote />
             <Tagline />
             <DeviceNote />
+            <PreviewSection />
           </>
         )}
 
@@ -4594,7 +5243,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} livePrompt={livePrompt} liveSkills={liveSkills} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
