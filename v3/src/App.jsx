@@ -1298,6 +1298,295 @@ async function checkResume(resumeText, profile, title, jobAnatomy, source, role)
   return { parsed, kw, screen, anomaly, overall, band, advice };
 }
 
+// ===========================================================================
+// Role Graph - MyCareersFuture role -> itemised responsibility/requirement
+// statements -> inferred work activities/skills/competency signals -> ESCO
+// skills -> reverse-mapped ISCO-08 occupations (similarity + trading-style
+// weighted scoring) -> an API-ready role-skill graph (nodes = role / occupation
+// / skill / responsibility, edges = match strength) + a skill-analysis card.
+// Plus CV ingress: a pasted CV -> structured profile -> fit score, skill-gap,
+// transferable-skills map across the ISCO-08 families, role-readiness read.
+// CV text -> /api/claude only, never stored. Result cached per (title|version).
+// ===========================================================================
+
+const ROLE_GRAPH_VERSION = "rg1";
+const _roleGraphCache = new Map();
+const RG_NODE_STYLE = {
+  mcfRole:        { label:"MyCareersFuture role", color:"#1e3a8a", bg:"#dbeafe", border:"#93c5fd" },
+  iscoOccupation: { label:"ISCO-08 occupation",   color:"#5b21b6", bg:"#ede9fe", border:"#c4b5fd" },
+  escoSkill:      { label:"ESCO skill",            color:"#0e7490", bg:"#cffafe", border:"#67e8f9" },
+  responsibility: { label:"Responsibility",        color:"#b45309", bg:"#fef3c7", border:"#fcd34d" },
+};
+const RG_EDGE_COLOR = { "role-occupation":"#6366f1", "role-skill":"#0891b2", "occupation-skill":"#8b5cf6", "skill-responsibility":"#d97706" };
+function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
+
+// 1) deterministic: pull the itemised responsibility statements the rest of the analysis already produced
+function gatherStatements(result) {
+  const rd = result && result.responsibilitiesData;
+  const ja = result && result.jobAnatomy;
+  let resp = [];
+  if (rd && Array.isArray(rd.responsibilities) && rd.responsibilities.length) {
+    resp = rd.responsibilities.map((r, i) => ({ id: "r" + (r.n != null ? r.n : i), text: String(r.text || "").trim(), cat: r.cat || "", level: r.level || "HUMAN", sk: Array.isArray(r.sk) ? r.sk : [] })).filter(r => r.text);
+  } else if (ja && !ja.fallback && Array.isArray(ja.duties) && ja.duties.length) {
+    resp = ja.duties.map((d, i) => ({ id: "d" + (d.n != null ? d.n : i), text: String(d.text || "").trim(), cat: d.layer || "", level: d.exposureNow || "HUMAN", sk: [] })).filter(r => r.text);
+  }
+  return { responsibilities: resp.slice(0, 22) };
+}
+
+// 2) LLM: infer the role's requirements/qualifications/preferred competencies + per-statement activities/skills/signals (one batched call)
+async function analyseRolePipeline(title, statements, skills) {
+  if (!statements.length) return null;
+  const list = statements.map((s, i) => `${i + 1}. ${s.text}`).join("\n").slice(0, 4600);
+  const skillHint = (skills || []).map(s => s.skill).filter(Boolean).slice(0, 30).join(", ");
+  const SYS_RP =
+`ACT AS a job-analysis engine. Given a job title and its itemised responsibility statements, infer (a) the role's likely hard REQUIREMENTS, formal QUALIFICATIONS (degree/licence/certification) and PREFERRED competencies, and (b) for EACH numbered responsibility, the underlying work activities, the skills it implies, and the competency signals it sends to an employer. Singapore context. Output labels only - no prose, no advice, no rewriting.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "requirements": ["short hard-requirement phrase", ...],            // 2 to 6
+ "qualifications": ["short formal-qualification phrase", ...],       // 0 to 5
+ "preferredCompetencies": ["short preferred-competency phrase", ...],// 0 to 6
+ "statements": [{"i":1,"activities":["short work-activity phrase", ...],"skills":["short skill phrase", ...],"signals":["short competency-signal phrase", ...]}]   // one object per numbered statement; activities 1-4, skills 1-4, signals 0-3
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Job title: ${title}\nKnown ESCO skills (hints, not exhaustive): ${skillHint || "none"}\nResponsibility statements:\n${list}\n\nAnalyse.`, 2800, 1, SYS_RP);
+    const o = extractJSON(raw, "role-pipeline");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 80)).filter(Boolean).slice(0, n) : [];
+    const stmtMap = {};
+    (Array.isArray(o.statements) ? o.statements : []).forEach(st => { const idx = Number(st && st.i); if (!Number.isFinite(idx)) return; stmtMap[idx] = { activities: arrS(st.activities, 4, 90), skills: arrS(st.skills, 4, 70), signals: arrS(st.signals, 3, 80) }; });
+    return { requirements: arrS(o.requirements, 6, 80), qualifications: arrS(o.qualifications, 5, 80), preferredCompetencies: arrS(o.preferredCompetencies, 6, 80), statements: stmtMap };
+  } catch (_) { return null; }
+}
+
+// 3) deterministic: map each responsibility statement to the role's ESCO skills (its own sk[] links + token-matched inferred skill phrases)
+function mapStatementsToEsco(statements, analysed, skills) {
+  const sk = skills || [];
+  const byN = {}; sk.forEach((s, idx) => { if (s && s.n != null) byN[s.n] = idx; });
+  const skNorm = sk.map(s => _phraseNorm(s.skill));
+  const skToks = sk.map(s => _phraseToks(s.skill));
+  const edges = []; const seen = new Set();
+  const pushEdge = (respId, idx, strength) => { if (idx == null || idx < 0) return; const k = respId + "|" + idx; if (seen.has(k)) return; seen.add(k); edges.push({ respId, skillIdx: idx, strength }); };
+  statements.forEach((st, i) => {
+    (st.sk || []).forEach(n => { if (byN[n] != null) pushEdge(st.id, byN[n], 1); });
+    const inf = (analysed && analysed.statements && analysed.statements[i + 1]) || null;
+    (inf ? inf.skills : []).forEach(p => {
+      const pn = _phraseNorm(p), pt = _phraseToks(p);
+      if (!pn) return;
+      let bi = -1, bs = 0;
+      for (let j = 0; j < sk.length; j++) {
+        if (skNorm[j] && (skNorm[j] === pn || (pn.length > 4 && skNorm[j].includes(pn)) || (skNorm[j].length > 4 && pn.includes(skNorm[j])))) { bi = j; bs = 1; break; }
+        const sh = pt.length ? pt.filter(t => skToks[j].includes(t)).length : 0;
+        if (sh >= 2 && bs < 1) { bi = j; bs = 0.6; }
+      }
+      if (bi >= 0) pushEdge(st.id, bi, bs);
+    });
+  });
+  return { edges, usedSkillIdxs: Array.from(new Set(edges.map(e => e.skillIdx))) };
+}
+
+// 5) deterministic: trading-algorithm-style scoring of the reverse-mapped ISCO-08 candidates
+function scoreIscoCandidates(fp, skills, mapping, statements) {
+  const cand = (fp && fp.candidates) || [];
+  if (!cand.length) return [];
+  const sk = skills || [];
+  const respSkillNames = {}; statements.forEach(st => { respSkillNames[st.id] = new Set(); });
+  mapping.edges.forEach(e => { const s = sk[e.skillIdx]; if (s && respSkillNames[e.respId]) respSkillNames[e.respId].add(_phraseNorm(s.skill)); });
+  const totalResp = statements.length || 1;
+  return cand.map(c => {
+    const matched = (c.matchedSkills || []).map(_phraseNorm).filter(Boolean);
+    const matchedSet = new Set(matched);
+    const skillProximity = Math.max(0, Math.min(1, c.ratio || 0));
+    let respHit = 0;
+    statements.forEach(st => { for (const n of (respSkillNames[st.id] || [])) { if (matchedSet.has(n) || matched.some(m => m.includes(n) || n.includes(m))) { respHit++; break; } } });
+    const responsibilityOverlap = respHit / totalResp;
+    const confidence = Math.max(0, Math.min(1, (c.matchCount || 0) / 8)) * ((c.essentialCount || 0) >= 5 ? 1 : 0.7);
+    let composite = 0.45 * skillProximity + 0.35 * responsibilityOverlap + 0.20 * confidence;
+    if (c.isNominal) composite = Math.min(1, composite + 0.05);
+    return {
+      uri: c.uri, label: toTitleCase(c.label || ""), code: c.code || "", iscoMajor: c.iscoMajor != null ? c.iscoMajor : null,
+      essentialCount: c.essentialCount || 0, matchCount: c.matchCount || 0, matchedSkills: (c.matchedSkills || []).slice(0, 12), isNominal: !!c.isNominal,
+      skillProximity: Math.round(skillProximity * 100), responsibilityOverlap: Math.round(responsibilityOverlap * 100), confidence: Math.round(confidence * 100), score: Math.round(composite * 100),
+    };
+  }).sort((a, b) => b.score - a.score || b.matchCount - a.matchCount || a.label.localeCompare(b.label)).slice(0, 10);
+}
+
+// 6) deterministic: assemble the API-ready node/edge graph (capped for legibility) + the layer arrays the viz uses
+function buildGraphStructure(title, source, statements, skills, mapping, iscoCandidates) {
+  const sk = skills || [];
+  const usedSet = new Set(mapping.usedSkillIdxs);
+  const edgeCount = {}; mapping.edges.forEach(e => { edgeCount[e.skillIdx] = (edgeCount[e.skillIdx] || 0) + 1; });
+  const candNorm = new Set(); iscoCandidates.forEach(c => (c.matchedSkills || []).forEach(m => candNorm.add(_phraseNorm(m))));
+  const skillRank = sk.map((s, idx) => ({ idx, used: usedSet.has(idx) ? 1 : 0, ec: edgeCount[idx] || 0, inCand: candNorm.has(_phraseNorm(s.skill)) ? 1 : 0 }));
+  skillRank.sort((a, b) => (b.used - a.used) || (b.ec - a.ec) || (b.inCand - a.inCand));
+  const topSkillIdx = skillRank.slice(0, 16).map(r => r.idx);
+  const topSkillSet = new Set(topSkillIdx);
+  const respRank = statements.map(st => ({ st, ec: mapping.edges.filter(e => e.respId === st.id).length })).sort((a, b) => b.ec - a.ec);
+  const topResp = respRank.slice(0, 14).map(r => r.st);
+  const topRespSet = new Set(topResp.map(r => r.id));
+  const topIsco = iscoCandidates.slice(0, 8);
+
+  const roleId = "role:" + _rgSlug(title);
+  const iscoIdOf = c => "isco:" + (c.code ? c.code : _rgSlug(c.label));
+  const skillIdOf = (s, idx) => "esco:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + (s.n != null ? s.n : idx));
+
+  const nodes = [{ id: roleId, type: "mcfRole", label: toTitleCase(title), source: source || "esco" }];
+  topIsco.forEach(c => nodes.push({ id: iscoIdOf(c), type: "iscoOccupation", label: c.label, code: c.code || "", iscoMajor: c.iscoMajor, score: c.score }));
+  const skillNodeIdByIdx = {}, skillNodeIdByNorm = {};
+  topSkillIdx.forEach(idx => { const s = sk[idx]; const id = skillIdOf(s, idx); skillNodeIdByIdx[idx] = id; skillNodeIdByNorm[_phraseNorm(s.skill)] = id; nodes.push({ id, type: "escoSkill", label: s.skill, escoUri: s.escoUri || "", skillType: s.skillType || s.type || "", level: s.level || "HUMAN" }); });
+  topResp.forEach(st => nodes.push({ id: "resp:" + st.id, type: "responsibility", label: st.text, cat: st.cat || "", level: st.level || "HUMAN" }));
+
+  const edges = [];
+  const addE = (s, t, w, kind) => { if (!s || !t) return; edges.push({ source: s, target: t, weight: Math.round(Math.max(0.05, Math.min(1, w)) * 100) / 100, kind }); };
+  topIsco.forEach(c => addE(roleId, iscoIdOf(c), c.score / 100, "role-occupation"));
+  topSkillIdx.forEach(idx => { const s = sk[idx]; const lw = s.level === "HIGH" ? 1 : s.level === "MEDIUM" ? 0.8 : s.level === "LOW" ? 0.65 : 0.5; addE(roleId, skillNodeIdByIdx[idx], lw, "role-skill"); });
+  topIsco.forEach(c => { const cid = iscoIdOf(c); (c.matchedSkills || []).forEach(m => { const pn = _phraseNorm(m); let nid = skillNodeIdByNorm[pn]; let w = 1; if (!nid) { const hit = Object.keys(skillNodeIdByNorm).find(k => k.length > 3 && (k.includes(pn) || pn.includes(k))); if (hit) { nid = skillNodeIdByNorm[hit]; w = 0.6; } } if (nid) addE(cid, nid, w, "occupation-skill"); }); });
+  mapping.edges.forEach(e => { if (!topSkillSet.has(e.skillIdx) || !topRespSet.has(e.respId)) return; addE(skillNodeIdByIdx[e.skillIdx], "resp:" + e.respId, e.strength, "skill-responsibility"); });
+
+  return {
+    nodes, edges, columns: ["mcfRole", "iscoOccupation", "escoSkill", "responsibility"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
+    stats: { roles: 1, occupations: topIsco.length, skills: topSkillIdx.length, responsibilities: topResp.length, edges: edges.length },
+  };
+}
+
+// 7) LLM: the skill-analysis card - what the role actually means; work performed, skills required, adjacent roles, capability gaps
+async function narrateRoleGraph(title, summary) {
+  const SYS_NG =
+`ACT AS a careers analyst. You are given a structured decomposition of one job role: its top responsibilities, the ESCO skills they map to, the ISCO-08 occupations it most resembles (with similarity scores), and its AI-exposure mix. Write a grounded analysis - never invent numbers, only interpret the ones given. Singapore context. Humble, plain, no hype.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "whatTheRoleReallyIs": "2 sentences on what this role actually is in terms of work performed, under 45 words",
+ "workPerformed": ["short phrase naming a core kind of work this role does", ...],   // 3 to 6
+ "skillsRequired": ["short phrase naming a capability the role demands", ...],        // 3 to 7
+ "adjacentRoles": [{"role":"an occupation label from the input","why":"why it is adjacent, under 14 words"}],   // 2 to 4, drawn from the ISCO candidates given
+ "capabilityGaps": ["a capability commonly under-evidenced for this role, under 14 words", ...]   // 2 to 4
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\n${summary}\n\nWrite the analysis.`, 1100, 1, SYS_NG);
+    const o = extractJSON(raw, "rolegraph-narrative");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 90)).filter(Boolean).slice(0, n) : [];
+    return {
+      whatTheRoleReallyIs: ss(o.whatTheRoleReallyIs).slice(0, 320),
+      workPerformed: arrS(o.workPerformed, 6, 70), skillsRequired: arrS(o.skillsRequired, 7, 70),
+      adjacentRoles: (Array.isArray(o.adjacentRoles) ? o.adjacentRoles : []).map(r => ({ role: ss(r && r.role).slice(0, 80), why: ss(r && r.why).slice(0, 110) })).filter(r => r.role).slice(0, 4),
+      capabilityGaps: arrS(o.capabilityGaps, 4, 110),
+    };
+  } catch (_) { return null; }
+}
+
+// orchestrator
+async function buildRoleGraph(result, title) {
+  const roleKey = String(title || "").trim().toLowerCase();
+  const cacheKey = `${roleKey}|${(result && result.source) || "esco"}|${ROLE_GRAPH_VERSION}`;
+  if (_roleGraphCache.has(cacheKey)) return _roleGraphCache.get(cacheKey);
+  const skills = (result && result.skills) || [];
+  const { responsibilities } = gatherStatements(result || {});
+  if (!skills.length || responsibilities.length < 3) return { fallback: true, reason: "thin_input" }; // not cached - responsibilities/anatomy may still be loading
+  const analysed = await analyseRolePipeline(title, responsibilities, skills);
+  const mapping = mapStatementsToEsco(responsibilities, analysed, skills);
+  let fp = null;
+  try { fp = await getRoleMixCandidates(title || "", skills, ((result && result.responsibilitiesData && result.responsibilitiesData.jobs) || []).flatMap(j => (j.skills || [])).slice(0, 20)); } catch (_) { fp = null; }
+  const iscoCandidates = scoreIscoCandidates(fp, skills, mapping, responsibilities);
+  const graph = buildGraphStructure(title, (result && result.source) || "esco", responsibilities, skills, mapping, iscoCandidates);
+  // AI-exposure mix from the role's skills
+  const lc = { HIGH: 0, MEDIUM: 0, LOW: 0, HUMAN: 0 }; skills.forEach(s => { if (lc[s.level] !== undefined) lc[s.level]++; });
+  const tot = skills.length || 1;
+  const aiMix = { aiExposedPct: Math.round(((lc.HIGH + lc.MEDIUM) / tot) * 100), humanPct: Math.round((lc.HUMAN / tot) * 100) };
+  const topIscoLine = iscoCandidates.slice(0, 6).map(c => `${c.label} (score ${c.score}/100; skill-proximity ${c.skillProximity}%, responsibility-overlap ${c.responsibilityOverlap}%${c.isNominal ? "; matches the posted title" : ""})`).join("\n");
+  const topRespLine = graph.nodes.filter(n => n.type === "responsibility").slice(0, 10).map(n => `- ${n.label}`).join("\n");
+  const topSkillLine = graph.nodes.filter(n => n.type === "escoSkill").slice(0, 14).map(n => n.label).join(", ");
+  const summary = `Top responsibilities:\n${topRespLine}\nESCO skills these map to: ${topSkillLine}\nClosest ISCO-08 occupations:\n${topIscoLine}\nAI-exposure mix: ${aiMix.aiExposedPct}% of skills AI-augmentable/automatable, ${aiMix.humanPct}% human-led.${analysed && analysed.requirements.length ? `\nInferred requirements: ${analysed.requirements.join(", ")}` : ""}`;
+  const narrative = await narrateRoleGraph(title, summary);
+  const out = { fallback: false, title: toTitleCase(title || ""), source: (result && result.source) || "esco", statements: responsibilities, analysed, mapping, iscoCandidates, graph, aiMix, narrative, fpFallback: !fp || fp.fallback };
+  _roleGraphCache.set(cacheKey, out);
+  return out;
+}
+
+// --- CV ingress ---
+async function extractCV(cvText) {
+  const SYS_CV =
+`ACT AS a CV-parsing engine. Extract structured facts from the candidate's CV text. Output only what is present - never invent. No prose, no advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "roleHistory": [{"title":"job title as written","years":"duration or dates as written, or empty"}],   // most recent first, up to 8
+ "skills": ["a skill / tool / domain the CV evidences", ...],   // up to 30
+ "qualifications": ["a degree / certification / licence as written", ...],   // up to 10
+ "achievements": ["a concrete achievement line, lightly summarised, under 18 words", ...]   // up to 8
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Candidate CV text:\n${String(cvText || "").slice(0, 7000)}\n\nExtract.`, 1600, 1, SYS_CV);
+    const o = extractJSON(raw, "extract-cv");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 90)).filter(Boolean).slice(0, n) : [];
+    return {
+      roleHistory: (Array.isArray(o.roleHistory) ? o.roleHistory : []).map(r => ({ title: ss(r && (r.title || r.role)).slice(0, 90), years: ss(r && (r.years || r.dates)).slice(0, 40) })).filter(r => r.title).slice(0, 8),
+      skills: arrS(o.skills, 30, 60), qualifications: arrS(o.qualifications, 10, 90), achievements: arrS(o.achievements, 8, 140),
+    };
+  } catch (_) { return null; }
+}
+
+function scoreCVFit(cvText, cvProfile, skills, iscoCandidates) {
+  const corpus = [String(cvText || ""), ...((cvProfile && cvProfile.skills) || []), ...((cvProfile && cvProfile.achievements) || []), ...((cvProfile && cvProfile.roleHistory) || []).map(r => r.title), ...((cvProfile && cvProfile.qualifications) || [])].join(" \n ");
+  const rNorm = _phraseNorm(corpus);
+  const rToks = new Set(rNorm.split(" ").filter(t => t.length > 2));
+  const escoCov = _coverOne(rNorm, rToks, (skills || []).map(s => ({ kw: s.skill })));
+  const fams = (iscoCandidates || []).slice(0, 8).map(c => {
+    const cov = _coverOne(rNorm, rToks, (c.matchedSkills || []).map(m => ({ kw: m })));
+    return { uri: c.uri, label: c.label, code: c.code, iscoMajor: c.iscoMajor, roleScore: c.score, coverage: cov.score, covered: cov.covered.map(x => x.kw), missing: cov.missing.map(x => x.kw), total: cov.total };
+  }).filter(f => f.total > 0).sort((a, b) => b.coverage - a.coverage);
+  const bestFam = fams[0] ? fams[0].coverage : escoCov.score;
+  const fitScore = Math.round(0.6 * escoCov.score + 0.4 * bestFam);
+  return { escoCoverage: escoCov, families: fams, fitScore, band: fitScore >= 70 ? "READY" : fitScore >= 45 ? "DEVELOPING" : "STRETCH" };
+}
+
+async function narrateCVFit(title, fitSummary) {
+  const SYS_CF =
+`ACT AS a careers coach. You are given a candidate's structured CV facts and a deterministic fit analysis against a target role and the ISCO-08 occupation families it resembles. Write an honest, grounded role-readiness read - never invent CV facts, only interpret the analysis given. Singapore context. Plain, candid, encouraging but realistic.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "readiness": "READY" | "DEVELOPING" | "STRETCH",
+ "explanation": "2-3 sentences on how ready this candidate is and why, under 55 words",
+ "transferableStrengths": ["a strength from the CV that transfers to this role, under 14 words", ...],   // 2 to 5
+ "gapsToClose": ["a concrete gap to close, under 14 words", ...],   // 2 to 5
+ "nextSteps": ["a concrete next step, under 14 words", ...]   // 2 to 4
+}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Target role: ${title}\n${fitSummary}\n\nWrite the readiness read.`, 1000, 1, SYS_CF);
+    const o = extractJSON(raw, "cv-fit-narrative");
+    if (!o) return null;
+    const ss = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 100)).filter(Boolean).slice(0, n) : [];
+    const readiness = ["READY", "DEVELOPING", "STRETCH"].includes(o.readiness) ? o.readiness : null;
+    return { readiness, explanation: ss(o.explanation).slice(0, 360), transferableStrengths: arrS(o.transferableStrengths, 5, 110), gapsToClose: arrS(o.gapsToClose, 5, 110), nextSteps: arrS(o.nextSteps, 4, 110) };
+  } catch (_) { return null; }
+}
+
+async function ingestCV(cvText, roleGraph, title, allSkills) {
+  const cvProfile = await extractCV(cvText);
+  const graphSkills = (roleGraph && roleGraph.graph) ? roleGraph.graph.nodes.filter(n => n.type === "escoSkill").map(n => ({ skill: n.label })) : [];
+  const skillSet = (Array.isArray(allSkills) && allSkills.length) ? allSkills : graphSkills;
+  const fit = scoreCVFit(cvText, cvProfile, skillSet, (roleGraph && roleGraph.iscoCandidates) || []);
+  const famLine = fit.families.slice(0, 5).map(f => `${f.label}: ${f.coverage}% of its core skills evidenced (${f.covered.slice(0, 5).join(", ") || "few"})`).join("\n");
+  const fitSummary = `CV role history: ${(cvProfile && cvProfile.roleHistory || []).map(r => r.title + (r.years ? ` (${r.years})` : "")).join("; ") || "n/a"}
+CV qualifications: ${(cvProfile && cvProfile.qualifications || []).join(", ") || "n/a"}
+Fit score (deterministic): ${fit.fitScore}/100 (band ${fit.band}); target-role ESCO-skill coverage ${fit.escoCoverage.score}% (${fit.escoCoverage.covered.length}/${fit.escoCoverage.total}); missing key skills: ${fit.escoCoverage.missing.slice(0, 10).map(x => x.kw).join(", ") || "none"}
+Closest ISCO-08 families by CV overlap:
+${famLine || "n/a"}`;
+  const narrative = await narrateCVFit(title, fitSummary);
+  return { cvProfile, fit, narrative };
+}
+
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
   const SYSTEM_RATE =
@@ -5096,6 +5385,302 @@ function JobAnatomyView({ anatomy, title }) {
   );
 }
 
+// v3.4: RoleGraphPanel - the MyCareersFuture role -> ESCO -> ISCO-08 intelligence
+// pipeline + CV ingress. Shows the layered role-skill graph (role -> ISCO-08
+// candidates -> ESCO skills -> responsibilities), the trading-style ISCO ranking,
+// the skill-analysis card, the API-ready node/edge JSON, and a pasted-CV fit read.
+// CV text -> /api/claude only, never stored.
+const _RG_PIPE = ["Source role", "Itemise statements", "Infer activities/skills", "Map → ESCO skills", "Reverse-map → ISCO-08", "Trading-score & rank", "Build graph + card"];
+function _rgTrunc(s, n) { const t = String(s || ""); return t.length > n ? t.slice(0, n - 1).trimEnd() + "…" : t; }
+function RoleGraphPanel({ result, title }) {
+  const [graphState, setGraphState] = useState({ status: "loading" });
+  const [hoveredId, setHoveredId] = useState(null);
+  const [showJson, setShowJson] = useState(false);
+  const [showStmts, setShowStmts] = useState(false);
+  const [showCvProfile, setShowCvProfile] = useState(false);
+  const [cvText, setCvText] = useState("");
+  const [cv, setCv] = useState({ status: "idle" });
+  const roleKey = (title || "").trim().toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    setGraphState({ status: "loading" }); setCv({ status: "idle" }); setHoveredId(null);
+    buildRoleGraph(result, title).then(g => { if (!cancelled) setGraphState({ status: "done", g }); }).catch(() => { if (!cancelled) setGraphState({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleKey, (result && result.source) || ""]);
+
+  const g = graphState.g;
+  const runCv = () => {
+    if (!g || g.fallback || cvText.trim().length < 200) return;
+    setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
+    ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); }).catch(() => setCv({ status: "error" }));
+  };
+
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
+  const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
+
+  // --- layered SVG graph layout ---
+  const renderGraph = (graph) => {
+    const cols = [
+      { type: "mcfRole", x: 16, w: 168 },
+      { type: "iscoOccupation", x: 262, w: 196 },
+      { type: "escoSkill", x: 540, w: 188 },
+      { type: "responsibility", x: 808, w: 276 },
+    ];
+    const W = 1100, H_NODE = 30, V_GAP = 9, PAD_Y = 16;
+    const byCol = cols.map(c => ({ ...c, nodes: graph.nodes.filter(n => n.type === c.type) }));
+    const colHeights = byCol.map(c => Math.max(H_NODE, c.nodes.length * (H_NODE + V_GAP) - V_GAP));
+    const H = Math.max(...colHeights) + PAD_Y * 2;
+    const pos = {}; // id -> {cx, cyTop, cy, w, col}
+    byCol.forEach((c, ci) => {
+      const top = PAD_Y + (H - PAD_Y * 2 - colHeights[ci]) / 2;
+      c.nodes.forEach((n, ni) => { const y = top + ni * (H_NODE + V_GAP); pos[n.id] = { x: c.x, w: c.w, yTop: y, cy: y + H_NODE / 2, col: ci }; });
+    });
+    // only the left-to-right flow edges are drawn
+    const drawn = graph.edges.filter(e => ["role-occupation", "occupation-skill", "skill-responsibility"].includes(e.kind) && pos[e.source] && pos[e.target]);
+    // highlight set
+    let hi = null;
+    if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
+    const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
+    const nodeDim = id => hi && !hi.has(id);
+    return (
+      <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 760 }} role="img" aria-label="Role-skill graph">
+          {/* column captions */}
+          {byCol.map((c, ci) => <text key={"cap" + ci} x={c.x + c.w / 2} y={11} textAnchor="middle" fontSize="10" fontWeight="700" fill={RG_NODE_STYLE[c.type].color} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{["MCF role", "ISCO-08 candidates", "ESCO skills", "Responsibilities"][ci]}</text>)}
+          {/* edges */}
+          {drawn.map((e, i) => {
+            const s = pos[e.source], t = pos[e.target];
+            const sx = s.x + s.w, sy = s.cy, tx = t.x, ty = t.cy;
+            const dx = (tx - sx) * 0.45;
+            const vis = edgeVisible(e);
+            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.6} strokeOpacity={vis ? (hi ? 0.55 : 0.18 + e.weight * 0.3) : 0.05} />;
+          })}
+          {/* nodes */}
+          {byCol.map((c, ci) => c.nodes.map(n => {
+            const p = pos[n.id]; const st = RG_NODE_STYLE[n.type]; const dim = nodeDim(n.id);
+            const lvl = n.level && LEVELS[n.level] ? n.level : null;
+            const txt = n.type === "responsibility" ? _rgTrunc(n.label, 42) : n.type === "escoSkill" ? _rgTrunc(n.label, 26) : n.type === "iscoOccupation" ? _rgTrunc(n.label, 24) : _rgTrunc(n.label, 22);
+            return (
+              <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.16 : 1 }}>
+                <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${lvl}` : ""}</title>
+                <rect x={p.x} y={p.yTop} width={p.w} height={H_NODE} rx={6} fill={st.bg} stroke={hoveredId === n.id ? st.color : st.border} strokeWidth={hoveredId === n.id ? 2 : 1} />
+                {lvl && <rect x={p.x} y={p.yTop} width={4} height={H_NODE} rx={2} fill={lvlColor(lvl)} />}
+                <text x={p.x + (lvl ? 10 : 8)} y={p.cy + 3.5} fontSize="10.5" fill={st.color} fontWeight={n.type === "mcfRole" ? 700 : 500}>{txt}</text>
+                {n.type === "iscoOccupation" && n.score != null && <text x={p.x + p.w - 6} y={p.cy + 3.5} fontSize="9.5" textAnchor="end" fill={st.color} fontWeight="700">{n.score}</text>}
+              </g>
+            );
+          }))}
+        </svg>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities → infers the work activities & skills behind each → maps them to <strong>ESCO</strong> skills → reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) → assembles an API-ready <strong>role → occupation → skill → responsibility</strong> graph and a skill-analysis card. Then a pasted CV can be scored against all of it.</p>
+        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>🔒 If you paste a CV below, it's sent for analysis and <strong>not stored</strong> — not in our database, not in analytics.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 10.5, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 12, padding: "2px 9px" }}>{i + 1}. {s}</span>)}
+        </div>
+      </div>
+
+      {graphState.status === "loading" && (
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
+          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
+        </div>
+      )}
+      {graphState.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+
+      {graphState.status === "done" && g && (g.fallback ? (
+        <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
+          <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
+          <p style={{ margin: 0, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
+        </div>
+      ) : (
+        <>
+          {/* the graph */}
+          {card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                {hdr("The role-skill graph")}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace it"}</span>
+              </div>
+              {renderGraph(g.graph)}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
+                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 3, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
+              </div>
+              {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
+            </>
+          )}
+
+          {/* skill-analysis card */}
+          {g.narrative && card(
+            <>
+              {hdr("Skill-analysis card — what this role actually means")}
+              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 12 }}>
+                {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
+                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+              </div>
+            </>
+          )}
+
+          {/* ISCO-08 ranking */}
+          {g.iscoCandidates.length > 0 && card(
+            <>
+              {hdr("ISCO-08 occupations this role reverse-maps to — trading-style ranking")}
+              <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
+              {g.iscoCandidates.map((c, i) => (
+                <div key={i} style={{ padding: "8px 10px", borderRadius: 8, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
+                    {c.code ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
+                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#166534", background: "#f0fdf4", border: "1px solid #a7f3d0", borderRadius: 10, padding: "1px 7px" }}>matches the posted title</span>}
+                    <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
+                  </div>
+                  <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
+                    {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
+                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 3, background: "#eef1f5", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
+                    ))}
+                  </div>
+                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 10.5, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "1px 7px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* requirements / quals / preferred */}
+          {g.analysed && (g.analysed.requirements.length || g.analysed.qualifications.length || g.analysed.preferredCompetencies.length) ? card(
+            <>
+              {hdr("Inferred requirements, qualifications & preferred competencies")}
+              {g.analysed.requirements.length > 0 && <div style={{ marginBottom: 8 }}>{subHdr("Likely hard requirements")}{g.analysed.requirements.map((r, i) => chip(r, "#92400e", "#fffbeb", "#fcd9a0", "rq" + i))}</div>}
+              {g.analysed.qualifications.length > 0 && <div style={{ marginBottom: 8 }}>{subHdr("Formal qualifications")}{g.analysed.qualifications.map((r, i) => chip(r, "#0c4a6e", "#e0f2fe", "#bae6fd", "ql" + i))}</div>}
+              {g.analysed.preferredCompetencies.length > 0 && <div>{subHdr("Preferred competencies")}{g.analysed.preferredCompetencies.map((r, i) => chip(r, C.textSub, "#f1f5f9", C.border, "pc" + i))}</div>}
+            </>
+          ) : null}
+
+          {/* per-statement analysis */}
+          {g.statements.length > 0 && card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("Per-responsibility analysis")}<button onClick={() => setShowStmts(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showStmts ? "hide" : `show all ${g.statements.length}`}</button></div>
+              {(showStmts ? g.statements : g.statements.slice(0, 5)).map((st, i) => {
+                const inf = (g.analysed && g.analysed.statements && g.analysed.statements[g.statements.indexOf(st) + 1]) || null;
+                const mapped = g.mapping.edges.filter(e => e.respId === st.id).map(e => ((result.skills || [])[e.skillIdx] || {}).skill).filter(Boolean);
+                return (
+                  <div key={st.id} style={{ padding: "8px 10px", borderRadius: 7, background: C.bg, border: `1px solid ${C.border}`, marginBottom: 6 }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 12.5, color: C.text, lineHeight: 1.5 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 2, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
+                    {inf && inf.activities.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Activities:</strong> {inf.activities.join(" · ")}</p>}
+                    {inf && inf.skills.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Implied skills:</strong> {inf.skills.join(" · ")}</p>}
+                    {inf && inf.signals.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Signals:</strong> {inf.signals.join(" · ")}</p>}
+                    {mapped.length > 0 && <p style={{ margin: "3px 0 0", fontSize: 11, color: "#0e7490", lineHeight: 1.5 }}>↳ ESCO: {Array.from(new Set(mapped)).slice(0, 6).join(", ")}</p>}
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* API-ready JSON */}
+          {card(
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("API-ready graph (nodes / edges)")}<div style={{ display: "flex", gap: 12 }}>
+                <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
+                <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
+              </div></div>
+              <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
+              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#0f172a", color: "#e2e8f0", borderRadius: 7, padding: "10px 12px", fontSize: 11, lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
+            </>
+          )}
+
+          {/* ---- CV ingress ---- */}
+          {card(
+            <>
+              {hdr("CV ingress — score a CV against this role, its ESCO skills & ISCO-08 families")}
+              <textarea value={cvText} onChange={e => setCvText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of a CV here…"
+                style={{ width: "100%", minHeight: 130, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                <button onClick={runCv} disabled={cvText.trim().length < 200 || cv.status === "loading"} style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (cvText.trim().length < 200 || cv.status === "loading") ? C.mutedLight : "#4338ca", border: "none", borderRadius: 7, cursor: (cvText.trim().length < 200 || cv.status === "loading") ? "not-allowed" : "pointer" }}>{cv.status === "loading" ? "Scoring…" : "Score this CV"}</button>
+                {cvText && <button onClick={() => { setCvText(""); setCv({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+                <span style={{ fontSize: 11, color: C.mutedLight }}>{cvText.trim().length < 200 ? `${cvText.trim().length}/200 chars min` : `${cvText.length} chars${cvText.length >= 8000 ? " (capped)" : ""}`}</span>
+              </div>
+              {cv.status === "loading" && <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 11, height: 11, border: "2px solid #c7d2fe", borderTop: "2px solid #4338ca", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} /><p style={{ margin: 0, fontSize: 12, color: C.muted }}>Parsing the CV and scoring fit…</p></div>}
+              {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "#b45309" }}>That didn't go through — please try again.</p>}
+              {cv.status === "done" && cv.fit && (() => {
+                const f = cv.fit; const bc = f.band === "READY" ? "#166534" : f.band === "DEVELOPING" ? "#b45309" : "#b91c1c";
+                const bl = f.band === "READY" ? "Role-ready" : f.band === "DEVELOPING" ? "Developing — close some gaps" : "A stretch right now";
+                return (
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10, padding: "10px 12px", borderRadius: 8, background: bc + "12", border: `1.5px solid ${bc}55` }}>
+                      <span style={{ fontSize: 24, fontWeight: 800, color: bc }}>{f.fitScore}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: bc }}>{bl}</span>
+                      <span style={{ fontSize: 11.5, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
+                    </div>
+                    <div style={{ marginBottom: 10 }}>{subHdr(`Target-role ESCO skills — covered ${f.escoCoverage.covered.length}/${f.escoCoverage.total}`)}
+                      {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0", "cc" + i))}
+                      {f.escoCoverage.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "cp" + i))}
+                      {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca", "cm" + i))}
+                    </div>
+                    {f.families.length > 0 && (
+                      <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
+                        {f.families.slice(0, 6).map((fam, i) => (
+                          <div key={i} style={{ marginBottom: 6 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
+                              <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#166534" : fam.coverage >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                              <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{fam.coverage}%</span>
+                            </div>
+                            {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 10.5, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {cv.narrative && (
+                      <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 8, padding: "12px 14px" }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
+                        {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px,100%), 1fr))", gap: 10 }}>
+                          {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.nextSteps.length > 0 && <div>{subHdr("Next steps")}{cv.narrative.nextSteps.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#4338ca" }}>→</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                        </div>
+                      </div>
+                    )}
+                    {cv.cvProfile && (
+                      <div style={{ marginTop: 10 }}>
+                        <button onClick={() => setShowCvProfile(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showCvProfile ? "hide what we extracted" : "show what we extracted from the CV"}</button>
+                        {showCvProfile && (
+                          <div style={{ marginTop: 8, padding: "8px 10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                            {cv.cvProfile.roleHistory.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Roles:</strong> {cv.cvProfile.roleHistory.map(r => r.title + (r.years ? ` (${r.years})` : "")).join(" · ")}</p>}
+                            {cv.cvProfile.qualifications.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Qualifications:</strong> {cv.cvProfile.qualifications.join(" · ")}</p>}
+                            {cv.cvProfile.skills.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Skills:</strong> {cv.cvProfile.skills.join(", ")}</p>}
+                            {cv.cvProfile.achievements.length > 0 && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Achievements:</strong> {cv.cvProfile.achievements.join(" · ")}</p>}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </>
+          )}
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis — ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Never add anything to a CV that isn't true.</p>
+        </>
+      ))}
+    </div>
+  );
+}
+
 // v3.3: ResumeCheckPanel - reverses the screening pipeline as a 3-gate model
 // (🚪 parse/format -> 🔑 keyword(exact, tiered) -> 🤖 semantic/AI rank) + an
 // ⚑ AI-anomaly check, grounded in v3/doc/Report-ATS.md, and checks a pasted
@@ -7022,6 +7607,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
+      { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
       { key:"resume",      label:"📄 Resume Check",            color:"#0e7490" },
     ];
   };
@@ -7765,6 +8351,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   onAnalyseCorpus={handleAnalyseCorpus}
                   queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
                 />
+              )}
+
+              {activeTab === "rolegraph" && (
+                <RoleGraphPanel result={result} title={sel?.title || ""} />
               )}
 
               {activeTab === "resume" && (
