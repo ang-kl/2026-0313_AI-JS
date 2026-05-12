@@ -2036,6 +2036,54 @@ function track(event, props) {
   try { window._vtrack && window._vtrack(event, props); } catch(_) {}
 }
 
+// ── Pipeline step trail ───────────────────────────────────────────────────────
+// A lightweight, fire-and-forget per-step log of the analysis pipeline (and the
+// Resume-Check / Role-Graph orchestrators): which stage ran, ok/error, how long,
+// and a short detail string. Used to diagnose where a run stalls or fails - the
+// last few entries are shown on the error screen, and the full trail is queryable
+// at ?debug=logs (and in the pipeline_logs table). Logs ONLY step labels, statuses,
+// durations, counts and truncated error strings + the occupation title + a random
+// per-session id - never resume/CV text, posting bodies, or any user data. If the
+// store isn't configured / the DB is down, every call is a silent no-op.
+function _randId(n) { return Math.random().toString(36).slice(2, 2 + (n || 8)); }
+const _PIPE_SESSION = (() => {
+  try {
+    const k = "v3_pipe_session";
+    let v = sessionStorage.getItem(k);
+    if (!v) { v = _randId(8); sessionStorage.setItem(k, v); }
+    return v;
+  } catch (_) { return _randId(8); }
+})();
+let _logCtx = { role: "", source: "" };
+function setLogCtx(role, source) { _logCtx = { role: String(role || "").slice(0, 140), source: String(source || "").slice(0, 40) }; }
+const _recentSteps = []; // last ~24 { t, step, status, ms, detail } - read by ErrBox
+let _logQueue = [];
+let _logFlushTimer = null;
+function _flushLogQueue() {
+  _logFlushTimer = null;
+  if (!_logQueue.length) return;
+  const entries = _logQueue.splice(0, 20);
+  try {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "log", session: _PIPE_SESSION, role: _logCtx.role, source: _logCtx.source, entries }) }).catch(() => {});
+  } catch (_) {}
+  if (_logQueue.length) { _logFlushTimer = setTimeout(_flushLogQueue, 800); }
+}
+function logStep(step, status, ms, detail) {
+  try {
+    const s = String(step || "").slice(0, 40);
+    if (!s) return;
+    const st = String(status || "info").slice(0, 40);
+    const m = (ms == null || !Number.isFinite(Number(ms))) ? null : Math.max(0, Math.round(Number(ms)));
+    const d = detail == null ? "" : String(detail).slice(0, 300);
+    _recentSteps.push({ t: Date.now(), step: s, status: st, ms: m, detail: d });
+    if (_recentSteps.length > 24) _recentSteps.shift();
+    try { console.debug("[pipe]", s, st, m != null ? m + "ms" : "", d); } catch (_) {}
+    _logQueue.push({ step: s, status: st, ms: m, detail: d });
+    if (!_logFlushTimer) _logFlushTimer = setTimeout(_flushLogQueue, 800);
+  } catch (_) {}
+}
+function _msSince(t0) { try { return Math.round(performance.now() - t0); } catch (_) { return null; } }
+
 // H1 fix: input validation gate applied before any API call in doSearch and
 // the URL param handler. Enforces three rules:
 // (1) Maximum 140 chars - matches the UI guidance already shown to users.
@@ -2632,6 +2680,33 @@ function FeedbackLink() {
   );
 }
 
+// Shows the last few pipeline steps recorded before an error - read directly from
+// the module-level _recentSteps ring buffer (this re-renders when step flips to
+// "error"). Step labels / statuses / timings / truncated detail only - no user data.
+function DiagSteps() {
+  const [open, setOpen] = useState(false);
+  const steps = _recentSteps.slice(-12);
+  if (!steps.length) return null;
+  const isBad = s => s === "error" || s === "timeout";
+  return (
+    <div style={{ marginTop: 4 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 10, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>
+        {open ? "Hide" : "Show"} diagnostics - last {steps.length} step{steps.length === 1 ? "" : "s"} before this
+      </button>
+      {open && (
+        <div style={{ marginTop: 6, fontFamily: "monospace", fontSize: 10, lineHeight: 1.7, color: C.muted, background: "#fafafa", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", maxHeight: 200, overflowY: "auto" }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{ color: isBad(s.status) ? "#c0392b" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+              {s.step} · {s.status}{s.ms != null ? ` · ${s.ms}ms` : ""}{s.detail ? ` · ${s.detail.slice(0, 120)}` : ""}
+            </div>
+          ))}
+          <div style={{ marginTop: 4 }}><a href="?debug=logs" style={{ color: "#4338ca" }}>open full step log</a></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ErrBox({ msg, query }) {
   const isNotFound = msg && msg.toLowerCase().includes("no occup");
   const isInvalid  = msg && msg.toLowerCase().includes("does not look like");
@@ -2670,6 +2745,7 @@ function ErrBox({ msg, query }) {
           Apologies for the inconvenience. Please try again in a moment - this is usually a brief hiccup. If it keeps happening, we would genuinely appreciate a note so we can look into it.
         </p>
         <FeedbackLink />
+        <DiagSteps />
       </div>
     );
   }
@@ -2716,6 +2792,7 @@ function ErrBox({ msg, query }) {
       </p>
       {msg && <p style={{ margin:"0 0 6px", fontSize:10, color:C.muted, fontFamily:"monospace", wordBreak:"break-all" }}>{msg}</p>}
       <FeedbackLink />
+      <DiagSteps />
     </div>
   );
 }
@@ -5405,7 +5482,9 @@ function RoleGraphPanel({ result, title }) {
   useEffect(() => {
     let cancelled = false;
     setGraphState({ status: "loading" }); setCv({ status: "idle" }); setHoveredId(null);
-    buildRoleGraph(result, title).then(g => { if (!cancelled) setGraphState({ status: "done", g }); }).catch(() => { if (!cancelled) setGraphState({ status: "error" }); });
+    let _tG; try { _tG = performance.now(); } catch (_) { _tG = 0; }
+    logStep("rolegraph", "start", 0, title);
+    buildRoleGraph(result, title).then(g => { if (cancelled) return; logStep("rolegraph", g && g.fallback ? "thin_input" : "ok", _msSince(_tG), g && g.fallback ? g.reason : `${g && g.iscoCandidates ? g.iscoCandidates.length : 0} candidates`); setGraphState({ status: "done", g }); }).catch((e) => { logStep("rolegraph", "error", _msSince(_tG), e && e.message); if (!cancelled) setGraphState({ status: "error" }); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey, (result && result.source) || ""]);
@@ -5414,7 +5493,9 @@ function RoleGraphPanel({ result, title }) {
   const runCv = () => {
     if (!g || g.fallback || cvText.trim().length < 200) return;
     setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
-    ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); }).catch(() => setCv({ status: "error" }));
+    let _tCv; try { _tCv = performance.now(); } catch (_) { _tCv = 0; }
+    logStep("cv_ingress", "start", 0, title);
+    ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); logStep("cv_ingress", "ok", _msSince(_tCv), `fit=${r.fit ? r.fit.fitScore : 0} ${r.fit ? r.fit.band : "?"}`); }).catch((e) => { logStep("cv_ingress", "error", _msSince(_tCv), e && e.message); setCv({ status: "error" }); });
   };
 
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
@@ -5704,9 +5785,10 @@ function ResumeCheckPanel({ result, title }) {
     let cancelled = false;
     setProfileState({ status: "loading" });
     setCheck({ status: "idle" });
+    let _tP; try { _tP = performance.now(); } catch (_) { _tP = 0; }
     getScreeningProfile(result, title)
-      .then(p => { if (!cancelled) setProfileState({ status: "done", profile: p }); })
-      .catch(() => { if (!cancelled) setProfileState({ status: "error" }); });
+      .then(p => { if (cancelled) return; logStep("screen_profile", p && p.cached ? "cache_hit" : p && p.empty ? "empty" : "built", _msSince(_tP), title); setProfileState({ status: "done", profile: p }); })
+      .catch((e) => { logStep("screen_profile", "error", _msSince(_tP), e && e.message); if (!cancelled) setProfileState({ status: "error" }); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey]);
@@ -5717,12 +5799,15 @@ function ResumeCheckPanel({ result, title }) {
     if (!profile || resumeText.trim().length < 200) return;
     setCheck({ status: "loading" });
     track("resume_check_started", { occupation: title });
+    let _tC; try { _tC = performance.now(); } catch (_) { _tC = 0; }
+    logStep("resume_check", "start", 0, title);
     checkResume(resumeText, profile, title, result.jobAnatomy, result.source, roleKey)
       .then(r => {
         setCheck({ status: "done", ...r });
         track("resume_checked", { occupation: title, coverage: r.kw ? r.kw.gate2Score : 0, verdict: r.screen ? r.screen.verdict : "?" });
+        logStep("resume_check", "ok", _msSince(_tC), `coverage=${r.kw ? r.kw.gate2Score : 0} ${r.screen ? r.screen.verdict : "?"}`);
       })
-      .catch(() => setCheck({ status: "error" }));
+      .catch((e) => { logStep("resume_check", "error", _msSince(_tC), e && e.message); setCheck({ status: "error" }); });
   };
 
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
@@ -6731,6 +6816,48 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
 // 100svh (small viewport height) handles keyboard resize natively on iOS and Android
 
+// ── ?debug=logs - read-only view of the pipeline_logs trail ───────────────────
+// Step labels / statuses / timings / truncated details only - no user data, so
+// no auth gate. Rendered instead of <App/> when the URL has ?debug=logs.
+export function PipelineLogsView() {
+  const [state, setState] = useState({ status: "loading", logs: [] });
+  const load = useCallback(() => {
+    setState(s => ({ ...s, status: "loading" }));
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "recentLogs", limit: 300 }) })
+      .then(r => r.json())
+      .then(d => setState({ status: "done", logs: Array.isArray(d && d.logs) ? d.logs : [] }))
+      .catch(() => setState({ status: "error", logs: [] }));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const fmt = ts => { try { return new Date(ts).toLocaleString(); } catch (_) { return String(ts || ""); } };
+  const td = { padding: "3px 8px", borderBottom: "1px solid #eee", verticalAlign: "top", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" };
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px", fontSize: 12, color: C.text }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
+        <h1 style={{ fontSize: 16, margin: 0 }}>Pipeline step log</h1>
+        <button onClick={load} style={{ fontSize: 12, padding: "3px 10px", cursor: "pointer" }}>refresh</button>
+        <span style={{ color: C.muted }}>{state.status === "loading" ? "loading…" : `${state.logs.length} rows (newest first)`}</span>
+      </div>
+      {state.status === "error" && <p style={{ color: "#c0392b" }}>Could not load - the store may be unavailable.</p>}
+      {state.status === "done" && !state.logs.length && <p style={{ color: C.muted }}>No log rows yet.</p>}
+      {!!state.logs.length && (
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
+          <thead><tr style={{ textAlign: "left", color: C.muted }}>
+            <th style={{ padding: "3px 8px" }}>ts</th><th style={{ padding: "3px 8px" }}>session</th><th style={{ padding: "3px 8px" }}>role</th><th style={{ padding: "3px 8px" }}>source</th><th style={{ padding: "3px 8px" }}>step</th><th style={{ padding: "3px 8px" }}>status</th><th style={{ padding: "3px 8px" }}>ms</th><th style={{ padding: "3px 8px" }}>detail</th>
+          </tr></thead>
+          <tbody>
+            {state.logs.map((r, i) => (
+              <tr key={i} style={{ background: (r.status === "error" || r.status === "timeout") ? "#fdecea" : i % 2 ? "#fafafa" : "#fff" }}>
+                <td style={td}>{fmt(r.ts)}</td><td style={td}>{r.session || ""}</td><td style={td}>{r.role || ""}</td><td style={td}>{r.source || ""}</td><td style={{ ...td, fontWeight: 700 }}>{r.step}</td><td style={td}>{r.status}</td><td style={{ ...td, textAlign: "right" }}>{r.ms != null ? r.ms : ""}</td><td style={td}>{r.detail || ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [query,     setQuery]     = useState("");
   const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
@@ -7075,12 +7202,17 @@ export default function App() {
       : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
     setShowExpect(false);
     const total = persona ? 4 : 3;
+    const _src = corpus ? "corpus" : posting ? "posting" : "esco";
+    setLogCtx(occ.title, _src);
+    let _t0; try { _t0 = performance.now(); } catch (_) { _t0 = 0; }
+    logStep("analysis", "start", 0, `${occ.title} (${_src})`);
 
     // Safety timeout: if the full analysis has not completed in 120s, surface an error
     // rather than leaving the user on an infinite spinner
     let analysisComplete = false;
     safetyTimerRef.current = setTimeout(() => {
       if (!analysisComplete && analysisCancelRef.current === cancelId) {
+        logStep("analysis", "timeout", 120000, occ.title);
         setErr("This one is taking longer than expected. Please try again - it usually resolves on the second attempt.");
         setStep("error");
       }
@@ -7094,12 +7226,17 @@ export default function App() {
       // skills (so Skill Analysis / Progression / Crossover / Categories / Context are
       // the canonical view); the ad's own content drives the Role-Mix & Responsibilities
       // tabs instead.
-      let escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle);
-      let skills = escoResult ? escoResult.skills : null;
+      let _tEsco; try { _tEsco = performance.now(); } catch (_) { _tEsco = 0; }
+      let escoResult, skills;
+      try {
+        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle);
+        skills = escoResult ? escoResult.skills : null;
+        if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
+        if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
+        logStep("esco_skills", "ok", _msSince(_tEsco), `${(skills || []).length} skills ${escoResult ? "ESCO" : corpus ? "corpus" : "AI"}`);
+      } catch (e) { logStep("esco_skills", "error", _msSince(_tEsco), e && e.message); throw e; }
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
-      if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
-      if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
@@ -7107,12 +7244,17 @@ export default function App() {
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
       // Progression/crossover/context only need the title and group - no dependency on ratings
       setSub(`${skills.length} skills confirmed - analysing automation exposure and mapping career paths...`); setSubStep(2);
-      const [ratings, progressionData, crossoverData, contextData] = await Promise.all([
-        rateSkills(occ.title, skills),
-        getProgressionPaths(occ.title, occ.iscoGroup),
-        getCrossoverRoles(occ.title, skills),
-        getRoleContext(occ.title, skills, occ.iscoGroup),
-      ]);
+      let _tCore; try { _tCore = performance.now(); } catch (_) { _tCore = 0; }
+      let ratings, progressionData, crossoverData, contextData;
+      try {
+        [ratings, progressionData, crossoverData, contextData] = await Promise.all([
+          rateSkills(occ.title, skills),
+          getProgressionPaths(occ.title, occ.iscoGroup),
+          getCrossoverRoles(occ.title, skills),
+          getRoleContext(occ.title, skills, occ.iscoGroup),
+        ]);
+        logStep("core_llm", "ok", _msSince(_tCore), `${(ratings || []).length} rated`);
+      } catch (e) { logStep("core_llm", "error", _msSince(_tCore), e && e.message); throw e; }
 
       if (analysisCancelRef.current !== cancelId) return;
       const merged = skills.map(s => {
@@ -7136,7 +7278,9 @@ export default function App() {
       let foundationData = null;
       if (persona) {
         setSub("Building your personalised foundation skills plan..."); setSubStep(3);
-        foundationData = await getFoundationSkills(occ.title, merged, persona);
+        let _tF; try { _tF = performance.now(); } catch (_) { _tF = 0; }
+        try { foundationData = await getFoundationSkills(occ.title, merged, persona); logStep("foundation", "ok", _msSince(_tF), persona); }
+        catch (e) { logStep("foundation", "error", _msSince(_tF), e && e.message); throw e; }
         if (analysisCancelRef.current !== cancelId) return;
       }
       const iscoMajorFromCode = (() => {
@@ -7163,44 +7307,51 @@ export default function App() {
       setActiveTab("skills");
       analysisComplete = true;
       clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null;
+      logStep("analysis", "results_shown", _msSince(_t0), `${merged.length} skills`);
       setStep("results");
 
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
+      { let _tR; try { _tR = performance.now(); } catch (_) { _tR = 0; }
       buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined)
         .then(rd => {
           if (analysisCancelRef.current !== cancelId) return;
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
           patchComparisonResult(comparisonKey, { responsibilitiesData: rd });
           track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
+          logStep("responsibilities", rd && rd.fallback ? "fallback" : "ok", _msSince(_tR), `jobs=${rd && rd.jobCount || 0} count=${rd && rd.responsibilities ? rd.responsibilities.length : 0}`);
           // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
           if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
+            let _tJ; try { _tJ = performance.now(); } catch (_) { _tJ = 0; }
             buildJobAnatomy(rd.jobs, occ.title, corpus ? "corpus" : posting ? "posting" : "esco")
               .then(ja => {
                 if (analysisCancelRef.current !== cancelId) return;
                 setResult(prev => prev ? { ...prev, jobAnatomy: ja } : prev);
                 patchComparisonResult(comparisonKey, { jobAnatomy: ja });
                 track("jobanatomy_loaded", { occupation: occ.title, ads: ja && ja.adCount || 0, duties: ja && ja.duties ? ja.duties.length : 0, score: ja && ja.aiResilienceScore, fallback: !!(ja && ja.fallback) });
+                logStep("jobanatomy", ja && ja.fallback ? "fallback" : "ok", _msSince(_tJ), `ads=${ja && ja.adCount || 0} duties=${ja && ja.duties ? ja.duties.length : 0}`);
               })
-              .catch(e => { track("jobanatomy_error", { reason: (e.message||"").slice(0,60) }); });
+              .catch(e => { track("jobanatomy_error", { reason: (e.message||"").slice(0,60) }); logStep("jobanatomy", "error", _msSince(_tJ), e && e.message); });
           }
         })
-        .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); });
+        .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); logStep("responsibilities", "error", _msSince(_tR), e && e.message); }); }
 
       // Background: Role-Mix decomposition - for postings AND for the "across all
       // SG ads" corpus (an ESCO analysis is already a clean single occupation, so
       // a fingerprint of it isn't interesting).
       if (fromAds) {
         const rmTarget = posting || { title: occ.title, uuid: `corpus:${occ.title}` };
+        let _tM; try { _tM = performance.now(); } catch (_) { _tM = 0; }
         buildRoleMix(rmTarget, merged)
           .then(rm => {
             if (analysisCancelRef.current !== cancelId) return;
             setResult(prev => prev ? { ...prev, roleMix: rm } : prev);
             patchComparisonResult(comparisonKey, { roleMix: rm });
             track("rolemix_loaded", { occupation: occ.title, source: newResult.source, components: rm && rm.components ? rm.components.length : 0, coherence: rm && rm.coherenceKey || "", mismatch: !!(rm && rm.mismatch), fallback: !!(rm && rm.fallback) });
+            logStep("rolemix", rm && rm.fallback ? "fallback" : "ok", _msSince(_tM), `${rm && rm.components ? rm.components.length : 0} components ${rm && rm.coherenceKey || ""}`);
           })
-          .catch(e => { track("rolemix_error", { reason: (e.message||"").slice(0,60) }); });
+          .catch(e => { track("rolemix_error", { reason: (e.message||"").slice(0,60) }); logStep("rolemix", "error", _msSince(_tM), e && e.message); });
       }
 
       // Coherence check: detect if ESCO resolved to a wrong occupation
@@ -7224,9 +7375,11 @@ export default function App() {
           // Aggregate: suspect if 4 or more skills score 3 (not relevant)
           const flaggedCount = scores.filter(x => x.r === 3).length;
           if (flaggedCount >= 4) track("coherence_suspect", { occupation: occ.title, iscoCode: occ.iscoCode, flaggedCount });
+          logStep("coherence", flaggedCount >= 4 ? "suspect" : "ok", null, `${flaggedCount} flagged`);
           setEscoCoherenceStatus(flaggedCount >= 4 ? "suspect" : "ok");
-        }).catch(() => {
+        }).catch((e) => {
           if (analysisCancelRef.current !== cancelId) return;
+          logStep("coherence", "error", null, e && e.message);
           setEscoCoherenceStatus(null); // fail silent
         });
       } else {
@@ -7288,7 +7441,7 @@ export default function App() {
       }).catch(e => console.warn("[generateSkillDescriptions] failed:", e.message));
 
       // hasAnalysedOnce is set in useEffect after first render - see below
-    } catch(e) { analysisComplete = true; clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; if (analysisCancelRef.current === cancelId) { setErr(e.message); setStep("error"); } }
+    } catch(e) { analysisComplete = true; clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; logStep("analysis", "error", _msSince(_t0), e && e.message); if (analysisCancelRef.current === cancelId) { setErr(e.message); setStep("error"); } }
   }, [persona]);
 
   // Called when user clicks "Analyse this role" on a progression or crossover card

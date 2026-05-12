@@ -5,9 +5,12 @@
 //   { action:"getProfile", role, version }                   -> { profile: <tiered screening profile> | null, keywordGaps:[...] }
 //   { action:"putProfile", role, version, source, roleDisplay, profile:{ exactTitle, requiredQuals, hardSkills, softSkills, dutyKeywords, aiDimensions, knockouts, seniority, tools, narrative } } -> { ok:bool }
 //   { action:"recordGap", role, version, missingKws:[], allMustHaveKws:[] } -> { ok:bool }   (counts only - never resume text)
+//   { action:"log", session, role, source, entries:[{step,status,ms,detail}, ...] } -> { ok:bool }   (pipeline step trail - step labels/timings only, never user data)
+//   { action:"recentLogs", role?, limit? } -> { logs:[{ts,session,role,source,step,status,ms,detail}, ...] }   (read-only debug view at ?debug=logs)
 // Backed by Vercel Postgres (@vercel/postgres). Stores ONLY derived data from
-// public job ads (titles, employer names, classified duties, screening keywords)
-// and aggregate keyword-gap counts - no raw ad HTML, no resume text, no user data.
+// public job ads (titles, employer names, classified duties, screening keywords),
+// aggregate keyword-gap counts, and pipeline step labels/timings/truncated error
+// strings - no raw ad HTML, no resume/CV text, no user data.
 // Numeric scores on the "put" path are re-computed server-side from the submitted
 // duties, so a malicious/buggy client can never write bad numbers. If no Postgres
 // connection string is set / the DB is down, every call returns a graceful empty
@@ -150,6 +153,10 @@ async function ensureTables() {
     role_key TEXT NOT NULL, version TEXT NOT NULL, kw TEXT NOT NULL,
     miss_count INT NOT NULL DEFAULT 0, check_count INT NOT NULL DEFAULT 0, last_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (role_key, version, kw))`;
+  await sql`CREATE TABLE IF NOT EXISTS pipeline_logs (
+    id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(),
+    session TEXT, role_key TEXT, source TEXT, step TEXT NOT NULL, status TEXT NOT NULL, ms INT, detail TEXT)`;
+  await sql`CREATE INDEX IF NOT EXISTS pipeline_logs_ts ON pipeline_logs (ts DESC)`;
   _tableEnsured = true;
 }
 
@@ -238,6 +245,41 @@ export default async function handler(req, res) {
         ON CONFLICT (role_key, version, kw) DO UPDATE SET miss_count = screen_keyword_gaps.miss_count + EXCLUDED.miss_count, check_count = screen_keyword_gaps.check_count + 1, last_seen = now()`));
       return res.status(200).json({ ok: true });
     } catch (err) { console.error('[anatomy] recordGap:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
+  }
+
+  // ---- pipeline step trail (debug/telemetry) ----
+  if (action === 'log') {
+    // Records ONLY orchestrator step labels, statuses, durations and truncated
+    // error/detail strings - never resume/CV text, ad bodies or any user data.
+    const clampMs = x => { const n = Number(x); return Number.isFinite(n) ? Math.max(0, Math.min(600000, Math.round(n))) : null; };
+    const lbl = x => str(x, 40);
+    const raw = Array.isArray(body.entries) && body.entries.length
+      ? body.entries
+      : (body.step ? [{ step: body.step, status: body.status, ms: body.ms, detail: body.detail }] : []);
+    const entries = raw.slice(0, 20).map(e => e && typeof e === 'object' ? { step: lbl(e.step), status: lbl(e.status) || 'info', ms: clampMs(e.ms), detail: str(e.detail, 300) } : null).filter(e => e && e.step);
+    if (!entries.length) return res.status(200).json({ ok: false, reason: 'invalid' });
+    const session = str(body.session, 40);
+    const source = lbl(body.source);
+    try {
+      await ensureTables();
+      for (const e of entries) {
+        await sql`INSERT INTO pipeline_logs (session, role_key, source, step, status, ms, detail)
+          VALUES (${session || null}, ${roleKey || null}, ${source || null}, ${e.step}, ${e.status}, ${e.ms}, ${e.detail || null})`;
+      }
+      if (Math.random() < 0.01) { try { await sql`DELETE FROM pipeline_logs WHERE ts < now() - interval '14 days'`; } catch (_) {} }
+      return res.status(200).json({ ok: true });
+    } catch (err) { console.error('[anatomy] log:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
+  }
+
+  if (action === 'recentLogs') {
+    const limit = Math.max(1, Math.min(400, Number(body.limit) || 120));
+    try {
+      await ensureTables();
+      const { rows } = roleKey
+        ? await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE role_key=${roleKey} ORDER BY ts DESC LIMIT ${limit}`
+        : await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs ORDER BY ts DESC LIMIT ${limit}`;
+      return res.status(200).json({ logs: rows.map(r => ({ ts: r.ts, session: r.session, role: r.role_key, source: r.source, step: r.step, status: r.status, ms: r.ms, detail: r.detail })) });
+    } catch (err) { console.error('[anatomy] recentLogs:', err && err.message); return res.status(200).json({ logs: [] }); }
   }
 
   return res.status(400).json({ error: 'Invalid action' });
