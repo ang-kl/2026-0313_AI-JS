@@ -898,6 +898,243 @@ async function buildJobAnatomy(jobs, title, source) {
   return done(result);
 }
 
+// ===========================================================================
+// ATS Reverse-Engineer - reverse the screening pipeline (the "system" keyword
+// filter + an "AI screener") for the analysed role, and check a pasted resume
+// through both. Resume text -> /api/claude only, never stored. The screening
+// profile per role is cached in the DB (/api/anatomy getProfile/putProfile);
+// only aggregate keyword-gap COUNTS are recorded (recordGap) - no resume text.
+// ===========================================================================
+
+const SCREEN_PROFILE_VERSION = "sp1";
+const _screeningProfileCache = new Map();
+const AI_DIMENSIONS_DEFAULT = [
+  { name: "Skills coverage", what: "how many of the must-have skills the resume shows" },
+  { name: "Relevant experience", what: "experience in this role / a close one, at the right scale" },
+  { name: "Seniority match", what: "years and scope vs what the role expects" },
+  { name: "Evidence of impact", what: "measurable outcomes, not just duties listed" },
+  { name: "Keyword alignment", what: "uses the role's own language / tools" },
+];
+
+// --- deterministic: build the role's "demanded" set from what `result` already carries ---
+function buildDemandedSet(result) {
+  const out = []; // { kw, why, fromAds }
+  const seen = () => null;
+  const addKw = (kw, why, fromAdsInc) => {
+    const k = String(kw || "").trim(); if (!k || k.length > 60) return;
+    const m = out.find(x => _phraseMatch(x.kw, k));
+    if (m) { if (fromAdsInc) m.fromAds = (m.fromAds || 0) + fromAdsInc; if (!m.why && why) m.why = why; return; }
+    out.push({ kw: toTitleCase(k), why: why || "", fromAds: fromAdsInc || 0 });
+  };
+  // ESCO essential skills - the canonical core
+  (result.skills || []).forEach(s => addKw(s.skill, s.escoUri ? "ESCO essential skill" : "core skill for this role", 0));
+  // skills the live ads list (boosts fromAds; adds ad-only ones)
+  const adJobs = (result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const adTally = {};
+  adJobs.forEach(j => Array.from(new Set((j.skills || []).filter(Boolean))).forEach(s => { adTally[s] = (adTally[s] || 0) + 1; }));
+  Object.entries(adTally).sort((a, b) => b[1] - a[1]).forEach(([s, c]) => addKw(s, `listed in ${c} of ${adJobs.length} live ads`, c));
+  // tools the ads mention (from Job Anatomy org context)
+  ((result.jobAnatomy && result.jobAnatomy.orgContext && result.jobAnatomy.orgContext.tools) || []).forEach(t => addKw(t, "tool / system the ads name", 0));
+  // sort: ad-frequency desc, then ESCO/core, then alpha; the long single-ad tail -> nice-to-have
+  out.sort((a, b) => (b.fromAds || 0) - (a.fromAds || 0) || a.kw.localeCompare(b.kw));
+  const mustHave = [];
+  const niceToHave = [];
+  out.forEach(x => {
+    if (mustHave.length < 24 && ((x.fromAds || 0) >= 2 || (x.why || "").includes("ESCO") || (x.why || "").includes("core skill") || (x.why || "").includes("tool"))) mustHave.push(x);
+    else if (niceToHave.length < 12) niceToHave.push({ kw: x.kw });
+  });
+  if (!mustHave.length && out.length) out.slice(0, 18).forEach(x => mustHave.push(x));
+  const dutyKeywords = ((result.jobAnatomy && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties : (result.responsibilitiesData && Array.isArray(result.responsibilitiesData.responsibilities) ? result.responsibilitiesData.responsibilities : [])).map(d => d.text).filter(Boolean).slice(0, 24);
+  const oc = (result.jobAnatomy && result.jobAnatomy.orgContext) || {};
+  return { mustHave: mustHave.slice(0, 24), niceToHave, dutyKeywords, seniority: oc.seniorityYears || "", tools: (oc.tools || []).slice(0, 8) };
+}
+
+// --- deterministic: how the "system" (ATS keyword filter) reads a resume against a kw list ---
+function coverageScore(resumeText, kwList) {
+  const list = (kwList || []).map(x => (typeof x === "string" ? { kw: x } : x)).filter(x => x && x.kw);
+  if (!list.length) return { score: 0, covered: [], partial: [], missing: [] };
+  const rNorm = _phraseNorm(resumeText);
+  const rToks = new Set(_phraseNorm(resumeText).split(" ").filter(t => t.length > 2));
+  const covered = [], partial = [], missing = [];
+  list.forEach(x => {
+    const kn = _phraseNorm(x.kw);
+    if (!kn) { missing.push(x); return; }
+    if (rNorm.includes(kn)) { covered.push(x); return; } // literal phrase present
+    const kt = _phraseToks(x.kw).length ? _phraseToks(x.kw) : kn.split(" ").filter(t => t.length > 2);
+    if (!kt.length) { missing.push(x); return; }
+    const present = kt.filter(t => rToks.has(t)).length;
+    if (present === kt.length) covered.push(x);
+    else if (present > 0) partial.push(x);
+    else missing.push(x);
+  });
+  const score = Math.round(100 * (covered.length + 0.4 * partial.length) / list.length);
+  return { score, covered, partial, missing };
+}
+
+// --- LLM: the screening-rules engine (knockouts + the AI screener's scoring dimensions) ---
+async function profileScreener(title, dem) {
+  const must = dem.mustHave.map(m => m.kw).slice(0, 24).join(" | ");
+  const duties = (dem.dutyKeywords || []).slice(0, 14).join(" | ");
+  const SYSTEM_PS =
+`ACT AS the screening-rules engine for an ATS plus an AI resume screener hiring a ${title} in Singapore. You are given the must-have keywords and the role's duties/org context. Output classification labels only - no prose, no advice, no rewriting.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+ "knockouts": ["a likely knockout/screening question, under 14 words", ...],   // 2 to 5 - e.g. degree in X? minimum N years? specific certification / work pass / language?
+ "aiDimensions": [{"name":"short label","what":"what an AI screener scores on this, under 12 words"}, ...]   // 4 to 5 - e.g. Skills coverage, Relevant experience, Seniority match, Evidence of impact, Keyword alignment
+}
+Rules: knockouts must be plausible HARD filters for THIS role (not soft preferences). No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nMust-have keywords: ${must}\nDuties: ${duties}\nTypical seniority: ${dem.seniority || "not stated"} | tools: ${(dem.tools || []).join(", ") || "not stated"}\nReturn the knockouts and AI scoring dimensions.`, 650, 1, SYSTEM_PS);
+    const o = extractJSON(raw, "profile-screener");
+    if (!o) return { knockouts: [], aiDimensions: AI_DIMENSIONS_DEFAULT };
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const knockouts = (Array.isArray(o.knockouts) ? o.knockouts : []).map(q => s(typeof q === "string" ? q : (q && q.q)).slice(0, 140)).filter(Boolean).slice(0, 5);
+    let aiDimensions = (Array.isArray(o.aiDimensions) ? o.aiDimensions : []).map(d => (typeof d === "string" ? { name: s(d).slice(0, 60) } : { name: s(d && d.name).slice(0, 60), what: s(d && d.what).slice(0, 140) })).filter(d => d.name).slice(0, 6);
+    if (aiDimensions.length < 3) aiDimensions = AI_DIMENSIONS_DEFAULT;
+    return { knockouts, aiDimensions };
+  } catch (_) { return { knockouts: [], aiDimensions: AI_DIMENSIONS_DEFAULT }; }
+}
+
+async function profileNarrative(title, dem, aiDimensions) {
+  const SYSTEM_PN =
+`ACT AS a careers analyst. You are given a role's must-have keywords and the dimensions an AI screener would score on. Write a 2-sentence reflection on how a resume for this role is screened, plus a one-line "the bar to clear". Singapore context. Humble, plain.
+Return ONLY a JSON object. No text/fences. Format: {"headline":"2 short sentences, under 40 words","aiBar":"one line on what clears the AI screener, under 20 words"}
+No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nMust-have keywords: ${dem.mustHave.map(m => m.kw).slice(0, 16).join(", ")}\nAI screener scores on: ${(aiDimensions || []).map(d => d.name).join(", ")}\nWrite the reflection.`, 280, 1, SYSTEM_PN);
+    const o = extractJSON(raw, "profile-narrative");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    return { headline: s(o.headline).slice(0, 260), aiBar: s(o.aiBar).slice(0, 200) };
+  } catch (_) { return null; }
+}
+
+async function getScreeningProfile(result, title) {
+  const roleKey = String(title || "").trim().toLowerCase();
+  const cacheKey = `${roleKey}|${SCREEN_PROFILE_VERSION}`;
+  if (_screeningProfileCache.has(cacheKey)) return _screeningProfileCache.get(cacheKey);
+  // shared DB cache
+  if (roleKey) {
+    try {
+      const r = await fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "getProfile", role: roleKey, version: SCREEN_PROFILE_VERSION }) }).then(x => x.json());
+      if (r && r.profile && Array.isArray(r.profile.mustHave) && r.profile.mustHave.length) {
+        const p = { ...r.profile, keywordGaps: r.keywordGaps || [], cached: true };
+        _screeningProfileCache.set(cacheKey, p); return p;
+      }
+    } catch (_) { /* fall through */ }
+  }
+  // build from `result`
+  const dem = buildDemandedSet(result || {});
+  if (!dem.mustHave.length) { const p = { mustHave: [], niceToHave: [], knockouts: [], aiDimensions: AI_DIMENSIONS_DEFAULT, seniority: "", tools: [], dutyKeywords: [], narrative: null, keywordGaps: [], cached: false, empty: true }; return p; }
+  const [ps, narr] = await Promise.all([
+    profileScreener(title, dem),
+    profileNarrative(title, dem, AI_DIMENSIONS_DEFAULT),
+  ]);
+  const aiDimensions = (ps && ps.aiDimensions && ps.aiDimensions.length) ? ps.aiDimensions : AI_DIMENSIONS_DEFAULT;
+  const profile = { mustHave: dem.mustHave, niceToHave: dem.niceToHave, knockouts: (ps && ps.knockouts) || [], aiDimensions, seniority: dem.seniority, tools: dem.tools, dutyKeywords: dem.dutyKeywords, narrative: narr, keywordGaps: [], cached: false };
+  // fire-and-forget the write
+  if (roleKey) {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "putProfile", role: roleKey, roleDisplay: toTitleCase(title || ""), version: SCREEN_PROFILE_VERSION, source: result && result.source || "esco",
+      mustHave: dem.mustHave, niceToHave: dem.niceToHave, knockouts: profile.knockouts, aiDimensions, seniority: dem.seniority, tools: dem.tools, dutyKeywords: dem.dutyKeywords, narrative: narr,
+    }) }).catch(() => {});
+  }
+  _screeningProfileCache.set(cacheKey, profile);
+  return profile;
+}
+
+// --- LLM: the "AI screener" - labels & numbers only ---
+async function screenResume(title, aiDimensions, demandedSummary, resumeText) {
+  const dims = (aiDimensions && aiDimensions.length ? aiDimensions : AI_DIMENSIONS_DEFAULT).map(d => d.name);
+  const SYSTEM_SR =
+`ACT AS an AI resume screener for the role ${title} in Singapore. You are given the role's demanded skills/duties, a candidate's resume text, and the dimensions you score on. Output classification labels and numbers only - no prose, no rewriting the resume, no advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "verdict": "STRONG" | "POSSIBLE" | "UNLIKELY",
+ "scores": { ${dims.map(d => `"${d}": 0-100`).join(", ")} },
+ "advanceReasons": ["why a screener would advance this resume, under 12 words", ...],   // 0 to 4
+ "rejectReasons": ["why a screener would reject/deprioritise it, under 12 words", ...],   // 0 to 4
+ "redFlags": ["a concrete red flag in the resume, under 12 words", ...],   // 0 to 3
+ "knockoutRisks": ["a likely knockout question this resume does not clearly satisfy, under 12 words", ...]   // 0 to 3
+}
+Rules: scores must reflect the resume vs the role honestly; verdict UNLIKELY if a hard knockout looks unmet or skills coverage is poor. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}\nDemanded skills/duties: ${demandedSummary}\n\nCandidate resume text:\n${String(resumeText || "").slice(0, 6000)}\n\nScore and classify.`, 1700, 1, SYSTEM_SR);
+    const o = extractJSON(raw, "screen-resume");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n) => Array.isArray(x) ? x.map(v => s(v).slice(0, 120)).filter(Boolean).slice(0, n) : [];
+    const verdict = ["STRONG", "POSSIBLE", "UNLIKELY"].includes(o.verdict) ? o.verdict : "POSSIBLE";
+    const scores = {};
+    dims.forEach(d => { const v = Number(o.scores && o.scores[d]); scores[d] = Number.isFinite(v) ? Math.max(0, Math.min(100, Math.round(v))) : 50; });
+    return { verdict, scores, advanceReasons: arrS(o.advanceReasons, 4), rejectReasons: arrS(o.rejectReasons, 4), redFlags: arrS(o.redFlags, 3), knockoutRisks: arrS(o.knockoutRisks, 3) };
+  } catch (_) { return null; }
+}
+
+// --- LLM: rewrite advice - the only generative pass; templates, never fabricated claims ---
+async function resumeAdvice(title, screenResult, coverage, jobAnatomySummary, resumeText) {
+  const missing = coverage.missing.map(m => m.kw || m).slice(0, 15).join(" | ");
+  const SYSTEM_RA =
+`You are a careers coach helping a candidate get past the ATS and AI screener for ${title} (Singapore). You are given the screening result, the must-have keywords the resume is MISSING, the role's AI-exposure picture, and the resume text. Give concrete, honest advice.
+Return ONLY a JSON object. No text/fences.
+Format:
+{
+ "headline": "one line on the biggest gap to close, under 22 words",
+ "mustAdd": [{"keyword":"a missing must-have keyword - MUST come from the missing list, do not invent","why":"why it matters here, under 12 words","exampleBullet":"a TEMPLATE bullet the candidate can fill in honestly, e.g. 'Did X using Y, measured by Z' - NEVER a fabricated metric or claim"}],   // 0 to 5
+ "reframe": [{"from":"a phrasing likely in the resume","to":"a stronger phrasing the screener responds to","why":"under 12 words"}],   // 0 to 4
+ "donts": ["a thing NOT to do, under 12 words", ...],   // 0 to 3 - e.g. don't pad with this role's automatable duties
+ "aiAngle": "one paragraph (under 50 words): how to position yourself as someone who DIRECTS AI on this role's AI-exposed duties, and to lean into the human-led ones AI cannot take"
+}
+Hard rule: never invent achievements, employers, dates or metrics. exampleBullet values are fill-in-the-blank templates only. No quote characters inside any string value.`;
+  try {
+    const raw = await claudeCall(`Role: ${title}
+Screening result: verdict ${screenResult ? screenResult.verdict : "?"}; keyword coverage ${coverage.score}/100; reject reasons: ${screenResult ? (screenResult.rejectReasons || []).join("; ") : ""}; red flags: ${screenResult ? (screenResult.redFlags || []).join("; ") : ""}
+Must-have keywords the resume is MISSING: ${missing || "(none)"}
+This role's AI picture: ${jobAnatomySummary || "n/a"}
+
+Candidate resume text:
+${String(resumeText || "").slice(0, 6000)}
+
+Give the advice.`, 1700, 1, SYSTEM_RA);
+    const o = extractJSON(raw, "resume-advice");
+    if (!o) return null;
+    const s = x => String(x || "").replace(/"/g, "").trim();
+    const arrS = (x, n) => Array.isArray(x) ? x.map(v => s(v).slice(0, 140)).filter(Boolean).slice(0, n) : [];
+    return {
+      headline: s(o.headline).slice(0, 240),
+      mustAdd: (Array.isArray(o.mustAdd) ? o.mustAdd : []).map(m => ({ keyword: s(m && (m.keyword || m.kw)).slice(0, 60), why: s(m && m.why).slice(0, 120), exampleBullet: s(m && m.exampleBullet).slice(0, 200) })).filter(m => m.keyword).slice(0, 5),
+      reframe: (Array.isArray(o.reframe) ? o.reframe : []).map(r => ({ from: s(r && r.from).slice(0, 160), to: s(r && r.to).slice(0, 160), why: s(r && r.why).slice(0, 120) })).filter(r => r.from && r.to).slice(0, 4),
+      donts: arrS(o.donts, 3),
+      aiAngle: s(o.aiAngle).slice(0, 360),
+    };
+  } catch (_) { return null; }
+}
+
+// --- orchestrator: check a pasted resume against the role's screening profile ---
+async function checkResume(resumeText, profile, title, jobAnatomy, source, role) {
+  const cov = coverageScore(resumeText, profile.mustHave);
+  const covNice = coverageScore(resumeText, profile.niceToHave);
+  const demandedSummary = `must-have: ${profile.mustHave.map(m => m.kw).slice(0, 20).join(", ")}${profile.dutyKeywords && profile.dutyKeywords.length ? `; duties: ${profile.dutyKeywords.slice(0, 8).join("; ")}` : ""}${profile.seniority ? `; typical seniority: ${profile.seniority}` : ""}`;
+  const jaSummary = (jobAnatomy && !jobAnatomy.fallback && jobAnatomy.layerMix)
+    ? `layer mix ${["Activity","Coordination","Accountability","Relational","Judgment"].filter(L => jobAnatomy.layerMix[L]).map(L => `${L} ${jobAnatomy.layerMix[L]}%`).join("/")}; AI-resilience ${jobAnatomy.aiResilienceScore}/100; AI-exposed duties: ${(jobAnatomy.duties || []).filter(d => d.exposureNow === "MEDIUM" || d.exposureNow === "HIGH").slice(0,4).map(d=>d.text).join("; ")}` : "";
+  const screen = await screenResume(title, profile.aiDimensions, demandedSummary, resumeText);
+  const scoreVals = screen && screen.scores ? Object.values(screen.scores) : [];
+  const aiMean = scoreVals.length ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : cov.score;
+  const overall = Math.round(0.4 * cov.score + 0.6 * aiMean);
+  const band = overall >= 70 ? "likely" : overall >= 45 ? "borderline" : "unlikely";
+  const advice = await resumeAdvice(title, screen, cov, jaSummary, resumeText);
+  // fire-and-forget: record which must-haves were missing (counts only, no resume text)
+  if (role && profile.mustHave.length) {
+    fetch("/api/anatomy", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      action: "recordGap", role: String(role).trim().toLowerCase(), version: SCREEN_PROFILE_VERSION,
+      allMustHaveKws: profile.mustHave.map(m => m.kw), missingKws: cov.missing.map(m => m.kw || m),
+    }) }).catch(() => {});
+  }
+  return { coverage: cov, coverageNice: covNice, screen, overall, band, advice };
+}
+
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
   const SYSTEM_RATE =
@@ -4696,6 +4933,189 @@ function JobAnatomyView({ anatomy, title }) {
   );
 }
 
+// v3.2: ResumeCheckPanel - reverse-engineer how a resume is screened (the "system"
+// keyword filter + an "AI screener") for this role, and check a pasted resume.
+// Resume text -> /api/claude only, never stored. The screening profile is cached;
+// only aggregate keyword-gap counts are recorded.
+function ResumeCheckPanel({ result, title }) {
+  const [profileState, setProfileState] = useState({ status: "loading" });
+  const [resumeText, setResumeText] = useState("");
+  const [check, setCheck] = useState({ status: "idle" });
+  const roleKey = (title || "").trim().toLowerCase();
+
+  useEffect(() => {
+    let cancelled = false;
+    setProfileState({ status: "loading" });
+    getScreeningProfile(result, title)
+      .then(p => { if (!cancelled) setProfileState({ status: "done", profile: p }); })
+      .catch(() => { if (!cancelled) setProfileState({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleKey]);
+
+  const profile = profileState.profile;
+  const runCheck = () => {
+    if (!profile || resumeText.trim().length < 200) return;
+    setCheck({ status: "loading" });
+    track("resume_check_started", { occupation: title });
+    checkResume(resumeText, profile, title, result.jobAnatomy, result.source, roleKey)
+      .then(r => {
+        setCheck({ status: "done", ...r });
+        track("resume_checked", { occupation: title, coverage: r.coverage.score, verdict: r.screen ? r.screen.verdict : "?" });
+      })
+      .catch(() => setCheck({ status: "error" }));
+  };
+
+  const chip = (txt, color, bg, border) => <span style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+
+  return (
+    <div>
+      <div style={{ background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: C.teal }}>📄 Resume Check — how you'd be screened for this role</p>
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>What an ATS keyword filter and an AI screener for {toTitleCase(title || "this role")} look for — and how a pasted résumé measures up.</p>
+        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>🔒 Your résumé is sent for analysis and <strong>not stored</strong> — not in our database, not in analytics. Only anonymous keyword-gap counts are kept.</p>
+      </div>
+
+      {/* How this role is screened */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>How this role is screened</p>
+        {profileState.status === "loading" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ width: 11, height: 11, border: `2px solid ${C.tealBdr}`, borderTop: `2px solid ${C.teal}`, borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} />
+            <p style={{ margin: 0, fontSize: 12, color: C.muted }}>Working out the screening profile for this role…</p>
+          </div>
+        )}
+        {profileState.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Couldn't build the screening profile right now — you can still paste a résumé below and we'll check it against this role's skills.</p>}
+        {profileState.status === "done" && profile && (profile.empty ? (
+          <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not enough role data yet to build a screening profile — try again in a moment, or paste a résumé below.</p>
+        ) : (
+          <>
+            {profile.narrative && profile.narrative.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{profile.narrative.headline}{profile.narrative.aiBar ? <> <strong style={{ color: C.teal }}>The AI screener's bar:</strong> {profile.narrative.aiBar}</> : null}</p>}
+            <div style={{ marginBottom: 10 }}>{sectionHdr(`Must-have keywords the system filters on (${profile.mustHave.length})`)}{profile.mustHave.map((m, i) => chip(m.kw, "#0c4a6e", "#e0f2fe", "#bae6fd"))}</div>
+            {profile.niceToHave.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Nice-to-have")}{profile.niceToHave.map((m, i) => chip(m.kw, C.textSub, "#f1f5f9", C.border))}</div>}
+            {profile.knockouts.length > 0 && (
+              <div style={{ marginBottom: 10 }}>{sectionHdr("Likely knockout questions")}
+                {profile.knockouts.map((k, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{typeof k === "string" ? k : k.q}</span></div>)}
+              </div>
+            )}
+            {profile.aiDimensions.length > 0 && (
+              <div style={{ marginBottom: profile.keywordGaps && profile.keywordGaps.length ? 10 : 0 }}>{sectionHdr("What the AI screener scores you on")}
+                {profile.aiDimensions.map((d, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: C.teal, fontWeight: 700 }}>•</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{d.name}</strong>{d.what ? ` — ${d.what}` : ""}</span></div>)}
+                {(profile.seniority || (profile.tools && profile.tools.length)) && <p style={{ margin: "6px 0 0", fontSize: 11, color: C.mutedLight }}>Typically: {[profile.seniority && `~${profile.seniority}`, (profile.tools || []).slice(0, 5).join(", ")].filter(Boolean).join(" · ")}</p>}
+              </div>
+            )}
+            {profile.keywordGaps && profile.keywordGaps.length > 0 && (
+              <div style={{ marginTop: 8, padding: "7px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 7 }}>
+                <p style={{ margin: 0, fontSize: 11, color: "#92400e", lineHeight: 1.5 }}><strong>Most often missing</strong> on résumés checked against this role: {profile.keywordGaps.slice(0, 6).map(g => `${g.kw} (${g.miss}/${g.of})`).join(" · ")}</p>
+              </div>
+            )}
+          </>
+        ))}
+      </div>
+
+      {/* Paste & check */}
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
+        <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Paste your résumé text</p>
+        <textarea value={resumeText} onChange={e => setResumeText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of your résumé here…"
+          style={{ width: "100%", minHeight: 140, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+          <button onClick={runCheck} disabled={resumeText.trim().length < 200 || check.status === "loading" || !profile}
+            style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? C.mutedLight : C.teal, border: "none", borderRadius: 7, cursor: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? "not-allowed" : "pointer" }}>
+            {check.status === "loading" ? "Checking…" : "Check my résumé against this role"}
+          </button>
+          {resumeText && <button onClick={() => { setResumeText(""); setCheck({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+          <span style={{ fontSize: 11, color: C.mutedLight }}>{resumeText.trim().length < 200 ? `${resumeText.trim().length}/200 chars min` : `${resumeText.length} chars${resumeText.length >= 8000 ? " (capped at 8000)" : ""}`}</span>
+        </div>
+      </div>
+
+      {check.status === "loading" && (
+        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
+          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Running it through the ATS keyword filter and the AI screener…</p>
+        </div>
+      )}
+      {check.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+
+      {check.status === "done" && (() => {
+        const cov = check.coverage;
+        const scr = check.screen;
+        const adv = check.advice;
+        const bandColor = check.band === "likely" ? "#166534" : check.band === "borderline" ? "#b45309" : "#b91c1c";
+        const bandLabel = check.band === "likely" ? "Likely to clear screening" : check.band === "borderline" ? "Borderline — could go either way" : "Likely filtered out";
+        const covColor = cov.score >= 65 ? "#166534" : cov.score >= 40 ? "#b45309" : "#b91c1c";
+        return (
+          <div>
+            {/* system view */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>How the system reads it — ATS keyword filter</p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 26, fontWeight: 800, color: covColor }}>{cov.score}<span style={{ fontSize: 13, fontWeight: 600, color: C.muted }}>/100</span></span>
+                <span style={{ fontSize: 12, color: C.textSub }}>must-have keyword coverage{check.coverageNice && check.coverageNice.score ? ` · nice-to-have ${check.coverageNice.score}/100` : ""}</span>
+              </div>
+              <div style={{ display: "flex", height: 7, borderRadius: 4, overflow: "hidden", background: "#eef1f5", marginBottom: 10 }}><div style={{ width: `${Math.max(0, Math.min(100, cov.score))}%`, background: covColor }} /></div>
+              {cov.covered.length > 0 && <div style={{ marginBottom: 6 }}>{sectionHdr(`Covered (${cov.covered.length})`)}{cov.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0"))}</div>}
+              {cov.partial.length > 0 && <div style={{ marginBottom: 6 }}>{sectionHdr(`Partial (${cov.partial.length})`)}{cov.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0"))}</div>}
+              {cov.missing.length > 0 && <div>{sectionHdr(`Missing — add these (${cov.missing.length})`)}{cov.missing.map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca"))}</div>}
+            </div>
+
+            {/* AI screener view */}
+            {scr && (
+              <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>How an AI screener reads it</p>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: bandColor, background: bandColor + "1a", border: `1px solid ${bandColor}55`, borderRadius: 12, padding: "2px 10px" }}>{bandLabel} · {check.overall}/100</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                  {Object.entries(scr.scores || {}).map(([dim, val], i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ width: 150, flexShrink: 0, fontSize: 11, color: C.textSub }}>{dim}</span>
+                      <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#166534" : val >= 40 ? "#b45309" : "#b91c1c" }} /></div>
+                      <span style={{ width: 28, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 10 }}>
+                  {scr.advanceReasons.length > 0 && <div>{sectionHdr("A screener would advance because")}{scr.advanceReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.rejectReasons.length > 0 && <div>{sectionHdr("…or reject because")}{scr.rejectReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.redFlags.length > 0 && <div>{sectionHdr("Red flags")}{scr.redFlags.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>⚑</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.knockoutRisks.length > 0 && <div>{sectionHdr("Knockout questions at risk")}{scr.knockoutRisks.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                </div>
+              </div>
+            )}
+
+            {/* how to fix */}
+            {adv && (
+              <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "14px 16px" }}>
+                <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: C.green }}>How to fix it</p>
+                {adv.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{adv.headline}</p>}
+                {adv.mustAdd.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>{sectionHdr("Add these keywords (with a template bullet — fill in honestly)")}
+                    {adv.mustAdd.map((m, i) => (
+                      <div key={i} style={{ marginBottom: 7, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: C.green }}>{m.keyword}{m.why ? <span style={{ fontWeight: 400, color: C.muted }}> — {m.why}</span> : null}</p>
+                        {m.exampleBullet && <p style={{ margin: "3px 0 0", fontSize: 12, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>“{m.exampleBullet}”</p>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {adv.reframe.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>{sectionHdr("Reframe")}
+                    {adv.reframe.map((r, i) => <div key={i} style={{ marginBottom: 5, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><span style={{ color: C.mutedLight }}>“{r.from}”</span> → <strong style={{ color: C.green }}>“{r.to}”</strong>{r.why ? <span style={{ color: C.muted }}> — {r.why}</span> : null}</div>)}
+                  </div>
+                )}
+                {adv.donts.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Don't")}{adv.donts.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{d}</span></div>)}</div>}
+                {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
+              </div>
+            )}
+            <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative simulation, not an actual ATS — real systems vary by employer. Never add anything to your résumé that isn't true.</p>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 // v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
 // expects, extracted from live MyCareersFuture postings for this role. Mirrors
 // the Skill Analysis family of views (analysis, categories, seniority bands,
@@ -6269,6 +6689,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
+      { key:"resume",      label:"📄 Resume Check",            color:"#0e7490" },
     ];
   };
 
@@ -7011,6 +7432,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   onAnalyseCorpus={handleAnalyseCorpus}
                   queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
                 />
+              )}
+
+              {activeTab === "resume" && (
+                <ResumeCheckPanel result={result} title={sel?.title || ""} />
               )}
 
               <Disclaimer />

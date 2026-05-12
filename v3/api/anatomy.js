@@ -1,22 +1,31 @@
-// v3/api/anatomy.js - v3 - persistent store for Job Anatomy runs.
+// v3/api/anatomy.js - v3 - persistent store: Job Anatomy runs + ATS screening profiles.
 // POST /api/anatomy:
-//   { action:"get", role, version } -> { hit: <anatomy object> | null }
-//   { action:"put", role, version, source, adUuids, adCount, roleDisplay,
-//     duties:[...], orgContext:{...}, narrative:{...} } -> { ok:bool, id? }
-// Backed by Vercel Postgres (@vercel/postgres). Stores only DERIVED data from
-// public job ads (titles, employer names, the extracted/classified duties) - no
-// raw ad HTML, no user data. The "put" path strictly validates the payload shape
-// and RE-COMPUTES every numeric score server-side from the submitted duties, so a
-// malicious or buggy client can never write bad numbers (it can at most write
-// shape-valid junk duties, which only shadows a role's cache until the next
-// genuine run). If POSTGRES_URL is unset / the DB is down, every call returns a
-// graceful empty result and the app behaves exactly as without the store.
+//   { action:"get",  role, version }                         -> { hit: <anatomy obj> | null }
+//   { action:"put",  role, version, source, adUuids, adCount, roleDisplay, duties, orgContext, narrative } -> { ok:bool, id? }
+//   { action:"getProfile", role, version }                   -> { profile: <screening profile> | null, keywordGaps:[...] }
+//   { action:"putProfile", role, version, source, roleDisplay, mustHave, niceToHave, knockouts, aiDimensions, seniority, tools, dutyKeywords, narrative } -> { ok:bool }
+//   { action:"recordGap", role, version, missingKws:[], allMustHaveKws:[] } -> { ok:bool }   (counts only - never resume text)
+// Backed by Vercel Postgres (@vercel/postgres). Stores ONLY derived data from
+// public job ads (titles, employer names, classified duties, screening keywords)
+// and aggregate keyword-gap counts - no raw ad HTML, no resume text, no user data.
+// Numeric scores on the "put" path are re-computed server-side from the submitted
+// duties, so a malicious/buggy client can never write bad numbers. If no Postgres
+// connection string is set / the DB is down, every call returns a graceful empty
+// result and the app behaves exactly as without the store.
 
+// Vercel's @vercel/postgres reads POSTGRES_URL. A "Prisma Postgres" store on Vercel
+// usually exposes the connection string as DATABASE_URL (and a prisma+postgres://
+// Accelerate URL that this driver can't parse - in that case set a direct
+// postgres:// URL as POSTGRES_URL). Fall back through the common env-var names.
+if (!process.env.POSTGRES_URL) {
+  process.env.POSTGRES_URL = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
+}
 import { sql } from '@vercel/postgres';
 
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
-const TTL_DAYS = 7;
+const ANATOMY_TTL = "7 days";
+const PROFILE_TTL = "14 days";
 const JOB_LAYER_ORDER = ["Activity", "Coordination", "Accountability", "Relational", "Judgment"];
 const _layerSet = new Set(JOB_LAYER_ORDER);
 const _expoSet = new Set(["HUMAN", "LOW", "MEDIUM", "HIGH"]);
@@ -91,24 +100,51 @@ function sanitiseNarrative(n) {
   };
 }
 
+// --- ATS screening profile sanitisers ---
+function kwList(input, max) {
+  if (!Array.isArray(input)) return [];
+  return input.slice(0, max).map(x => {
+    if (typeof x === "string") return { kw: str(x, 60) };
+    if (x && typeof x === "object") return { kw: str(x.kw || x.keyword, 60), why: str(x.why, 120), fromAds: Math.max(0, Math.min(99, Number(x.fromAds) || 0)) || undefined };
+    return null;
+  }).filter(x => x && x.kw);
+}
+function sanitiseProfile(body) {
+  const knockouts = (Array.isArray(body.knockouts) ? body.knockouts : []).slice(0, 5).map(x => ({ q: str(typeof x === "string" ? x : (x && (x.q || x.question)), 160) })).filter(x => x.q);
+  const aiDimensions = (Array.isArray(body.aiDimensions) ? body.aiDimensions : []).slice(0, 6).map(x => {
+    if (typeof x === "string") return { name: str(x, 60) };
+    if (x && typeof x === "object") return { name: str(x.name, 60), what: str(x.what, 140) };
+    return null;
+  }).filter(x => x && x.name);
+  const narr = body.narrative && typeof body.narrative === "object" ? { headline: str(body.narrative.headline, 240), aiBar: str(body.narrative.aiBar, 240) } : null;
+  return {
+    mustHave: kwList(body.mustHave, 32),
+    niceToHave: kwList(body.niceToHave, 20).map(x => ({ kw: x.kw })),
+    knockouts, aiDimensions,
+    seniority: str(body.seniority, 60),
+    tools: arr(body.tools, 8, 40),
+    dutyKeywords: arr(body.dutyKeywords, 25, 200),
+    narrative: narr,
+  };
+}
+
 let _tableEnsured = false;
-async function ensureTable() {
+async function ensureTables() {
   if (_tableEnsured) return;
   await sql`CREATE TABLE IF NOT EXISTS anatomy_runs (
-    id BIGSERIAL PRIMARY KEY,
-    role_key TEXT NOT NULL,
-    role_display TEXT NOT NULL,
-    version TEXT NOT NULL,
-    source TEXT,
-    ad_uuids JSONB,
-    ad_count INT,
-    ai_resilience_score INT,
-    automatability_index INT,
-    layer_mix JSONB,
-    anatomy JSONB NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-  )`;
+    id BIGSERIAL PRIMARY KEY, role_key TEXT NOT NULL, role_display TEXT NOT NULL, version TEXT NOT NULL,
+    source TEXT, ad_uuids JSONB, ad_count INT, ai_resilience_score INT, automatability_index INT,
+    layer_mix JSONB, anatomy JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
   await sql`CREATE INDEX IF NOT EXISTS anatomy_runs_lookup ON anatomy_runs (role_key, version, created_at DESC)`;
+  await sql`CREATE TABLE IF NOT EXISTS screening_profiles (
+    id BIGSERIAL PRIMARY KEY, role_key TEXT NOT NULL, role_display TEXT NOT NULL, version TEXT NOT NULL,
+    source TEXT, must_have JSONB, nice_to_have JSONB, knockouts JSONB, ai_dimensions JSONB,
+    seniority TEXT, tools JSONB, duty_keywords JSONB, narrative JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
+  await sql`CREATE INDEX IF NOT EXISTS screening_profiles_lookup ON screening_profiles (role_key, version, created_at DESC)`;
+  await sql`CREATE TABLE IF NOT EXISTS screen_keyword_gaps (
+    role_key TEXT NOT NULL, version TEXT NOT NULL, kw TEXT NOT NULL,
+    miss_count INT NOT NULL DEFAULT 0, check_count INT NOT NULL DEFAULT 0, last_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (role_key, version, kw))`;
   _tableEnsured = true;
 }
 
@@ -117,26 +153,22 @@ export default async function handler(req, res) {
   const body = req.body || {};
   const action = body.action;
   const roleKey = str(body.role, 140).toLowerCase();
-  const version = str(body.version, 24) || "ja1";
+  const version = str(body.version, 24);
 
+  // ---- Job Anatomy cache ----
   if (action === 'get') {
     if (!roleKey) return res.status(200).json({ hit: null });
     try {
-      await ensureTable();
-      const { rows } = await sql`SELECT anatomy, created_at FROM anatomy_runs WHERE role_key=${roleKey} AND version=${version} AND created_at > now() - interval '7 days' ORDER BY created_at DESC LIMIT 1`;
+      await ensureTables();
+      const { rows } = await sql`SELECT anatomy, created_at FROM anatomy_runs WHERE role_key=${roleKey} AND version=${version || "ja1"} AND created_at > now() - ${ANATOMY_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
       if (!rows.length) return res.status(200).json({ hit: null });
       const a = rows[0].anatomy;
       if (a && Array.isArray(a.duties) && a.duties.length >= 4) {
-        // re-derive every numeric field from the stored duties (deterministic) so a
-        // row written by an older/buggy code path is still self-consistent on read
         const recomputed = scoreJobAnatomy(a.duties);
         return res.status(200).json({ hit: { ...a, ...recomputed, fallback: false, cachedAt: rows[0].created_at } });
       }
       return res.status(200).json({ hit: a ? { ...a, cachedAt: rows[0].created_at } : null });
-    } catch (err) {
-      console.error('[anatomy] get error:', err && err.message);
-      return res.status(200).json({ hit: null });
-    }
+    } catch (err) { console.error('[anatomy] get:', err && err.message); return res.status(200).json({ hit: null }); }
   }
 
   if (action === 'put') {
@@ -151,16 +183,54 @@ export default async function handler(req, res) {
     const roleDisplay = str(body.roleDisplay || body.role, 140) || roleKey;
     const anatomy = { fallback: false, ...scores, orgContext, adCount, duties, narrative };
     try {
-      await ensureTable();
-      const { rows } = await sql`INSERT INTO anatomy_runs
-        (role_key, role_display, version, source, ad_uuids, ad_count, ai_resilience_score, automatability_index, layer_mix, anatomy)
-        VALUES (${roleKey}, ${roleDisplay}, ${version}, ${source}, ${JSON.stringify(adUuids)}, ${adCount}, ${scores.aiResilienceScore}, ${scores.automatabilityIndex}, ${JSON.stringify(scores.layerMix)}, ${JSON.stringify(anatomy)})
-        RETURNING id`;
+      await ensureTables();
+      const { rows } = await sql`INSERT INTO anatomy_runs (role_key, role_display, version, source, ad_uuids, ad_count, ai_resilience_score, automatability_index, layer_mix, anatomy)
+        VALUES (${roleKey}, ${roleDisplay}, ${version || "ja1"}, ${source}, ${JSON.stringify(adUuids)}, ${adCount}, ${scores.aiResilienceScore}, ${scores.automatabilityIndex}, ${JSON.stringify(scores.layerMix)}, ${JSON.stringify(anatomy)}) RETURNING id`;
       return res.status(200).json({ ok: true, id: rows[0] && rows[0].id });
-    } catch (err) {
-      console.error('[anatomy] put error:', err && err.message);
-      return res.status(200).json({ ok: false, reason: 'db' });
-    }
+    } catch (err) { console.error('[anatomy] put:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
+  }
+
+  // ---- ATS screening profile ----
+  if (action === 'getProfile') {
+    if (!roleKey) return res.status(200).json({ profile: null, keywordGaps: [] });
+    try {
+      await ensureTables();
+      const v = version || "sp1";
+      const { rows } = await sql`SELECT must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, created_at FROM screening_profiles WHERE role_key=${roleKey} AND version=${v} AND created_at > now() - ${PROFILE_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
+      let gaps = [];
+      try { const g = await sql`SELECT kw, miss_count, check_count FROM screen_keyword_gaps WHERE role_key=${roleKey} AND version=${v} AND check_count >= 2 ORDER BY miss_count DESC, kw ASC LIMIT 8`; gaps = g.rows.map(r => ({ kw: r.kw, miss: r.miss_count, of: r.check_count })); } catch (_) {}
+      if (!rows.length) return res.status(200).json({ profile: null, keywordGaps: gaps });
+      const r = rows[0];
+      return res.status(200).json({ profile: { mustHave: r.must_have || [], niceToHave: r.nice_to_have || [], knockouts: r.knockouts || [], aiDimensions: r.ai_dimensions || [], seniority: r.seniority || "", tools: r.tools || [], dutyKeywords: r.duty_keywords || [], narrative: r.narrative || null, cachedAt: r.created_at }, keywordGaps: gaps });
+    } catch (err) { console.error('[anatomy] getProfile:', err && err.message); return res.status(200).json({ profile: null, keywordGaps: [] }); }
+  }
+
+  if (action === 'putProfile') {
+    const p = sanitiseProfile(body);
+    if (!roleKey || !p.mustHave.length) return res.status(200).json({ ok: false, reason: 'invalid' });
+    const source = ["esco", "posting", "corpus"].includes(body.source) ? body.source : "esco";
+    const roleDisplay = str(body.roleDisplay || body.role, 140) || roleKey;
+    try {
+      await ensureTables();
+      await sql`INSERT INTO screening_profiles (role_key, role_display, version, source, must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative)
+        VALUES (${roleKey}, ${roleDisplay}, ${version || "sp1"}, ${source}, ${JSON.stringify(p.mustHave)}, ${JSON.stringify(p.niceToHave)}, ${JSON.stringify(p.knockouts)}, ${JSON.stringify(p.aiDimensions)}, ${p.seniority}, ${JSON.stringify(p.tools)}, ${JSON.stringify(p.dutyKeywords)}, ${JSON.stringify(p.narrative)})`;
+      return res.status(200).json({ ok: true });
+    } catch (err) { console.error('[anatomy] putProfile:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
+  }
+
+  if (action === 'recordGap') {
+    // counts only - never resume text. kws come from the role's demanded set.
+    const all = arr(body.allMustHaveKws, 32, 60);
+    const missing = new Set(arr(body.missingKws, 32, 60));
+    if (!roleKey || !all.length) return res.status(200).json({ ok: false, reason: 'invalid' });
+    const v = version || "sp1";
+    try {
+      await ensureTables();
+      await Promise.all(all.map(kw => sql`INSERT INTO screen_keyword_gaps (role_key, version, kw, miss_count, check_count)
+        VALUES (${roleKey}, ${v}, ${kw}, ${missing.has(kw) ? 1 : 0}, 1)
+        ON CONFLICT (role_key, version, kw) DO UPDATE SET miss_count = screen_keyword_gaps.miss_count + EXCLUDED.miss_count, check_count = screen_keyword_gaps.check_count + 1, last_seen = now()`));
+      return res.status(200).json({ ok: true });
+    } catch (err) { console.error('[anatomy] recordGap:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
   }
 
   return res.status(400).json({ error: 'Invalid action' });
