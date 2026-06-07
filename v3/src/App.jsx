@@ -26,6 +26,10 @@
 // (2) badge Role Context as "AI estimate - not from this posting" and drop the fabricated
 // Department line; (3) add a deterministic confidence floor to the ISCO reverse-map so
 // cross-domain noise (Sports Coach 4, Survival Instructor 4) no longer ranks beside real matches.
+// v3.0.5 - 2026-06-07 - HDR #042 - provenance badges (Phase 2): a Prov chip + ProvLegend make
+// "computed" (deterministic, reproducible) visibly distinct from "AI estimate" (LLM judgement,
+// may vary) and "from MCF" (verbatim posting). Tagged the headline surfaces: AI Exposure Overview
+// + Role-Mix = AI estimate; ISCO reverse-map ranking = computed; posting link = from MCF.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1963,6 +1967,35 @@ const LEVELS = {
   HUMAN: { label:"Human-Led",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"♦"  },
 };
 
+// Provenance of a displayed value, so "computed" (deterministic, reproducible)
+// is visibly distinct from "AI estimate" (an LLM judgement that can vary per
+// run) and "from MCF" (verbatim posting fact). Colour-blind-safe (no red/green);
+// the icon + label carry the meaning, not the hue.
+const PROV = {
+  mcf:        { label:"from MyCareersFuture", short:"from MCF",   icon:"●", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4", tip:"Taken verbatim from the live MyCareersFuture posting." },
+  computed:   { label:"computed",            short:"computed",   icon:"✓", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", tip:"Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." },
+  ai:         { label:"AI estimate",         short:"AI estimate", icon:"~", color:"#b45309", bg:"#fffbeb", border:"#fde68a", tip:"An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." },
+  unverified: { label:"unverified",          short:"unverified", icon:"?", color:"#64748b", bg:"#f1f5f9", border:"#cbd5e1", tip:"A claim without a checked source." },
+};
+function Prov({ kind, small }) {
+  const p = PROV[kind]; if (!p) return null;
+  return (
+    <span title={p.tip} style={{ display:"inline-flex", alignItems:"center", gap:3, fontSize:small?9:10, fontWeight:700, color:p.color, background:p.bg, border:`1px solid ${p.border}`, borderRadius:999, padding:small?"0 6px":"1px 8px", whiteSpace:"nowrap", verticalAlign:"middle", lineHeight:1.7 }}>
+      <span aria-hidden="true">{p.icon}</span>{small ? p.short : p.label}
+    </span>
+  );
+}
+function ProvLegend() {
+  return (
+    <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding:"8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, fontSize:11, color:C.textSub }}>
+      <span style={{ fontWeight:700, color:C.text }}>Reading the badges:</span>
+      <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="mcf" /> posting facts</span>
+      <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="computed" /> deterministic, reproducible</span>
+      <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="ai" /> AI judgement, may vary</span>
+    </div>
+  );
+}
+
 const PERSONA_CONFIG = {
   fresh: {
     label:   "Fresh Graduate",
@@ -3238,7 +3271,10 @@ function ExposureBar({ skills }) {
   const total = skills.length || 1;
   return (
     <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:16 }}>
-      <p style={{ margin:"0 0 6px", fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI Exposure Overview</p>
+      <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
+        <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI Exposure Overview</p>
+        <Prov kind="ai" />
+      </div>
       <p style={{ margin:"0 0 10px" }}>
         <span style={{ fontSize:26, fontWeight:800, color:C.accent }}>{cnt.HIGH + cnt.MEDIUM}</span>
         <span style={{ fontSize:13, color:C.textSub, marginLeft:8 }}>of {total} skills have some level of AI involvement today</span>
@@ -5272,11 +5308,14 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   return (
     <div>
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:3 }}>
+          <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
+          <Prov kind="ai" />
+        </div>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || "This posting blends duties from several ESCO occupations — the title alone doesn't capture the mix."}</p>
         <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
           Matched this posting's skills against ESCO occupations' essential-skill lists. Shares are indicative, not a measurement.
-          {postingMeta && postingMeta.mcfUrl ? <> · <a href={postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>Open posting →</a></> : null}
+          {postingMeta && postingMeta.mcfUrl ? <> · <Prov kind="mcf" small /> <a href={postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>Open posting →</a></> : null}
         </p>
       </div>
 
@@ -5706,6 +5745,7 @@ function RoleGraphPanel({ result, title }) {
           {g.iscoCandidates.length > 0 && card(
             <>
               {hdr("ISCO-08 occupations this role reverse-maps to — trading-style ranking")}
+              <div style={{ margin: "0 0 6px" }}><Prov kind="computed" /></div>
               <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
               {g.iscoCandidates.map((c, i) => (
                 <div key={i} style={{ padding: "8px 10px", borderRadius: 8, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
@@ -8435,6 +8475,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 );
               })()}
               {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
+              <ProvLegend />
               <ExposureBar skills={result.skills} />
               <SkillSegments
                 skills={result.skills}
