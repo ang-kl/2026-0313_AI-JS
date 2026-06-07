@@ -19,6 +19,8 @@
 // v3.0.2 - 2026-06-07 - HDR #039 - LeapView responsive fix: on phones the graph stage and
 // info panel stacked and the graph collapsed to a thin strip; narrow screens now use a
 // column layout with a fixed-height graph on top + scrolling panel, plus 44px touch targets.
+// v3.0.3 - 2026-06-07 - HDR #040 - docs: doc/v3-leap-view.md - leap view feature reference
+// (stakeholders, flows, controls, data path, non-inventive contract, responsive, limitations).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
