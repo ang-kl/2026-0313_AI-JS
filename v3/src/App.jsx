@@ -21,6 +21,11 @@
 // column layout with a fixed-height graph on top + scrolling panel, plus 44px touch targets.
 // v3.0.3 - 2026-06-07 - HDR #040 - docs: doc/v3-leap-view.md - leap view feature reference
 // (stakeholders, flows, controls, data path, non-inventive contract, responsive, limitations).
+// v3.0.4 - 2026-06-07 - HDR #041 - honesty + a11y pass on the analyzer: (1) kill red/green for
+// AI-exposure - blue<->orange diverging ramp across all 6 level palettes, no red/green emoji;
+// (2) badge Role Context as "AI estimate - not from this posting" and drop the fabricated
+// Department line; (3) add a deterministic confidence floor to the ISCO reverse-map so
+// cross-domain noise (Sports Coach 4, Survival Instructor 4) no longer ranks beside real matches.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1405,7 +1410,7 @@ function scoreIscoCandidates(fp, skills, mapping, statements) {
   const respSkillNames = {}; statements.forEach(st => { respSkillNames[st.id] = new Set(); });
   mapping.edges.forEach(e => { const s = sk[e.skillIdx]; if (s && respSkillNames[e.respId]) respSkillNames[e.respId].add(_phraseNorm(s.skill)); });
   const totalResp = statements.length || 1;
-  return cand.map(c => {
+  const scored = cand.map(c => {
     const matched = (c.matchedSkills || []).map(_phraseNorm).filter(Boolean);
     const matchedSet = new Set(matched);
     const skillProximity = Math.max(0, Math.min(1, c.ratio || 0));
@@ -1420,7 +1425,14 @@ function scoreIscoCandidates(fp, skills, mapping, statements) {
       essentialCount: c.essentialCount || 0, matchCount: c.matchCount || 0, matchedSkills: (c.matchedSkills || []).slice(0, 12), isNominal: !!c.isNominal,
       skillProximity: Math.round(skillProximity * 100), responsibilityOverlap: Math.round(responsibilityOverlap * 100), confidence: Math.round(confidence * 100), score: Math.round(composite * 100),
     };
-  }).sort((a, b) => b.score - a.score || b.matchCount - a.matchCount || a.label.localeCompare(b.label)).slice(0, 10);
+  }).sort((a, b) => b.score - a.score || b.matchCount - a.matchCount || a.label.localeCompare(b.label));
+  // Deterministic confidence floor: drop clear cross-domain noise (very low
+  // composite score - e.g. "Sports Coach 4" / "Survival Instructor 4" for a
+  // Transformation Manager) from the ISCO reverse-map so it isn't shown beside
+  // genuine matches. Always keep at least the top 3 so the map never empties.
+  const FLOOR = 10;
+  const strong = scored.filter(c => c.score >= FLOOR);
+  return (strong.length >= 3 ? strong : scored.slice(0, 3)).slice(0, 10);
 }
 
 // 6) deterministic: assemble the API-ready node/edge graph (capped for legibility) + the layer arrays the viz uses
@@ -1941,11 +1953,14 @@ Skills to rate: ${skillList}`, 2200, 2, SYSTEM_COMPACT);
   });
 }
 
+// Colour-blind-safe blue<->orange diverging ramp (NO red/green). The two poles
+// read as cool (Human-Led, blue) vs warm (Full Automation, orange); icons +
+// text labels carry the meaning independent of hue, ordered by automation level.
 const LEVELS = {
-  HIGH:  { label:"Full Automation", color:"#dc2626", bg:"#fef2f2", border:"#fecaca", icon:"⚡" },
-  MEDIUM:{ label:"AI-Augmented",    color:"#d97706", bg:"#fffbeb", border:"#fcd9a0", icon:"~"  },
-  LOW:   { label:"AI-Assisted",     color:"#2563eb", bg:"#eff6ff", border:"#bfdbfe", icon:"●"  },
-  HUMAN: { label:"Human-Led",       color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", icon:"♦"  },
+  HIGH:  { label:"Full Automation", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"⚡" },
+  MEDIUM:{ label:"AI-Augmented",    color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"~"  },
+  LOW:   { label:"AI-Assisted",     color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"●"  },
+  HUMAN: { label:"Human-Led",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"♦"  },
 };
 
 const PERSONA_CONFIG = {
@@ -4005,10 +4020,10 @@ function AutomationBar({ skills, small }) {
   skills.forEach(s => { if (counts[s.level] !== undefined) counts[s.level]++; });
   const total = skills.length || 1;
   const bars = [
-    { key:"HIGH",   label:"Full Automation", color:"#dc2626", bg:"#fef2f2" },
-    { key:"MEDIUM", label:"AI-Augmented",color:"#d97706", bg:"#fffbeb" },
-    { key:"LOW",    label:"AI-Assisted", color:"#2563eb", bg:"#eff6ff" },
-    { key:"HUMAN",  label:"Human-Led",   color:"#166534", bg:"#f0fdf4" },
+    { key:"HIGH",   label:"Full Automation", color:"#9a3412", bg:"#fff7ed" },
+    { key:"MEDIUM", label:"AI-Augmented",color:"#b45309", bg:"#fffbeb" },
+    { key:"LOW",    label:"AI-Assisted", color:"#0e7490", bg:"#ecfeff" },
+    { key:"HUMAN",  label:"Human-Led",   color:"#1e40af", bg:"#eef2ff" },
   ];
   return (
     <div>
@@ -4034,7 +4049,7 @@ function roleInsight(skills, humanLedCount, sharedCount, totalSkills) {
   const humanRatio = humanLedCount / totalSkills;
   const highRatio = highCount / totalSkills;
   const sharedRatio = sharedCount / totalSkills;
-  if (humanRatio >= 0.4) return { text:"Strong human-led profile - distinctly resilient to automation", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" };
+  if (humanRatio >= 0.4) return { text:"Strong human-led profile - distinctly resilient to automation", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe" };
   if (highRatio >= 0.5) return { text:"High automation exposure - AI tools play a central role here", color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" };
   if (sharedRatio >= 0.5) return { text:"Builds closely on your transferable strengths", color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5" };
   if (humanRatio >= 0.25 && highRatio <= 0.25) return { text:"Balanced profile - human judgement leads with moderate AI support", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc" };
@@ -4135,10 +4150,10 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
   }, [summaryKey]);
 
   const levelBar = [
-    { key:"HIGH",   color:"#dc2626", label:"Full Automation" },
-    { key:"MEDIUM", color:"#d97706", label:"AI-Augmented" },
-    { key:"LOW",    color:"#2563eb", label:"AI-Assisted" },
-    { key:"HUMAN",  color:"#166534", label:"Human-Led" },
+    { key:"HIGH",   color:"#9a3412", label:"Full Automation" },
+    { key:"MEDIUM", color:"#b45309", label:"AI-Augmented" },
+    { key:"LOW",    color:"#0e7490", label:"AI-Assisted" },
+    { key:"HUMAN",  color:"#1e40af", label:"Human-Led" },
   ];
   return (
     <div style={{ marginTop:0 }}>
@@ -4234,10 +4249,10 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           );
         }
         const respLevelBar = [
-          { key:"HIGH",   color:"#dc2626", label:"Full Automation" },
-          { key:"MEDIUM", color:"#d97706", label:"AI-Augmented" },
-          { key:"LOW",    color:"#2563eb", label:"AI-Assisted" },
-          { key:"HUMAN",  color:"#166534", label:"Human-Led" },
+          { key:"HIGH",   color:"#9a3412", label:"Full Automation" },
+          { key:"MEDIUM", color:"#b45309", label:"AI-Augmented" },
+          { key:"LOW",    color:"#0e7490", label:"AI-Assisted" },
+          { key:"HUMAN",  color:"#1e40af", label:"Human-Led" },
         ];
         const dSig = (s) => s.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3 && !stopWords.has(w));
         const dutyMatch = (a, b) => { const wa = dSig(a), wb = dSig(b); return wa.filter(w => wb.includes(w)).length >= 3; };
@@ -4645,17 +4660,15 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
   return (
     <div>
       <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
-        <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0e7490" }}>Role Context</p>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+          <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0e7490" }}>Role Context</p>
+          <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:999, padding:"1px 8px" }}>~ AI estimate · illustrative</span>
+        </div>
         <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
-          Common sectors where this role appears and the skills most valued in each context.
+          Typical sectors where this <em>title</em> tends to appear, generated by AI for orientation — <strong>not derived from this specific posting</strong>. Use it as a prompt for your own research, not as fact about this employer.
         </p>
-        {data.department && (
-          <p style={{ margin:"6px 0 0", fontSize:12, color:C.textSub }}>
-            <strong style={{ color:"#0e7490" }}>Department:</strong> {data.department.charAt(0).toUpperCase() + data.department.slice(1)}.
-          </p>
-        )}
         <p style={{ margin:"6px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
-          AI automation exposure may vary by sector, organisation size, and seniority level. These sectors are indicative - your specific context may differ.
+          Exposure varies by sector, organisation size, and seniority. These sectors are indicative — your context may differ.
         </p>
       </div>
       {data.sectors.map((sector, i) => {
@@ -5249,10 +5262,10 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   const nar = roleMix.narrative || {};
   const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#475569"];
   const levelBar = [
-    { key:"HIGH",   color:"#dc2626" },
-    { key:"MEDIUM", color:"#d97706" },
-    { key:"LOW",    color:"#2563eb" },
-    { key:"HUMAN",  color:"#166534" },
+    { key:"HIGH",   color:"#9a3412" },
+    { key:"MEDIUM", color:"#b45309" },
+    { key:"LOW",    color:"#0e7490" },
+    { key:"HUMAN",  color:"#1e40af" },
   ];
   const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
   const priByLabel = {}; (nar.skillingPriority||[]).forEach(p => { priByLabel[(p.component||"").toLowerCase()] = p; });
@@ -8475,10 +8488,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {activeTab === "skills" && <SkillGroupedView
                   grouped={(() => {
                     const groupDef = [
-                      { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", icon:"🟢" },
-                      { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:C.accent,  bg:C.accentSoft, border:"#c3d3f5",  icon:"🔵" },
-                      { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#d97706", bg:"#fffbeb", border:"#fcd9a0", icon:"🟡" },
-                      { level:"HIGH",   label:"Full Automation",   sub:"AI can handle most of this independently today. Knowing this helps you focus your energy wisely.", color:"#c0392b", bg:"#fdecea", border:"#f5c6c2", icon:"🔴" },
+                      { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"🟦" },
+                      { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490",  bg:"#ecfeff", border:"#a5f3fc",  icon:"🔵" },
+                      { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"🟡" },
+                      { level:"HIGH",   label:"Full Automation",   sub:"AI can handle most of this independently today. Knowing this helps you focus your energy wisely.", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"🟧" },
                     ];
                     return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
                   })()}
