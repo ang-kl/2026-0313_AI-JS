@@ -16,6 +16,9 @@
 // HR/FCF, ATS, demand Skeptic, Hiring Mgr, You/CV overlay), routed via ?view=leap in
 // main.jsx; /api/mcf gains action:"job" to fetch ONE posting by uuid + a rough live-demand
 // proxy. Blue/orange/cyan palette (no red/green); job fields verbatim from MyCareersFuture.
+// v3.0.2 - 2026-06-07 - HDR #039 - LeapView responsive fix: on phones the graph stage and
+// info panel stacked and the graph collapsed to a thin strip; narrow screens now use a
+// column layout with a fixed-height graph on top + scrolling panel, plus 44px touch targets.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

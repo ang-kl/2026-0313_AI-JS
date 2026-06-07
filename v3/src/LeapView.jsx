@@ -61,10 +61,15 @@ export default function LeapView(){
   const [showReal,setShowReal] = useState(false);
   const [showLabels,setShowLabels] = useState(false);
   const [size,setSize] = useState({w:800,h:560});
+  const [narrow,setNarrow] = useState(false);
 
   useEffect(()=>{ const e=stageRef.current; if(!e) return;
     const ro = new ResizeObserver(()=>{ const r=e.getBoundingClientRect(); setSize({w:Math.max(320,r.width),h:Math.max(320,r.height)}); });
     ro.observe(e); return ()=>ro.disconnect();
+  },[]);
+
+  useEffect(()=>{ const mq=()=>setNarrow(window.innerWidth<760); mq();
+    window.addEventListener('resize',mq); return ()=>window.removeEventListener('resize',mq);
   },[]);
 
   async function load(uuidRaw){
@@ -103,7 +108,7 @@ export default function LeapView(){
         <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8,alignItems:'center'}}>
           <input value={input} onChange={e=>setInput(e.target.value)} placeholder="Paste MyCareersFuture job link or UUID"
             onKeyDown={e=>{if(e.key==='Enter')load(input);}}
-            style={{flex:'1 1 280px',minWidth:0,padding:'8px 11px',border:'1px solid #d8e0ec',borderRadius:8,fontSize:'.85rem'}}/>
+            style={{flex:'1 1 280px',minWidth:0,padding:'10px 12px',minHeight:44,border:'1px solid #d8e0ec',borderRadius:8,fontSize:'.85rem'}}/>
           <button onClick={()=>load(input)} style={btn(true)}>Load job</button>
           <button onClick={()=>{setShowCV(!showCV);}} aria-pressed={showCV} style={btn(showCV)}>👤 CV overlay</button>
           <button onClick={()=>setShowReal(!showReal)} aria-pressed={showReal} style={btn(showReal)}>🫥 Advert → Real</button>
@@ -113,8 +118,8 @@ export default function LeapView(){
           style={{width:'100%',marginTop:8,height:54,padding:'7px 10px',border:'1px solid #d8e0ec',borderRadius:8,fontSize:'.8rem',resize:'vertical'}}/>}
       </header>
 
-      <main style={{flex:1,display:'flex',minHeight:0,flexWrap:'wrap'}}>
-        <div ref={stageRef} style={{flex:'1 1 420px',minWidth:0,position:'relative',background:'radial-gradient(circle at 50% 46%,#fff,#eef2f8)'}}>
+      <main style={{flex:1,display:'flex',flexDirection:narrow?'column':'row',minHeight:0}}>
+        <div ref={stageRef} style={{...(narrow?{flex:'0 0 auto',height:'min(58dvh,480px)',width:'100%'}:{flex:'1 1 420px',minWidth:0}),position:'relative',background:'radial-gradient(circle at 50% 46%,#fff,#eef2f8)'}}>
           {status ? <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',color:'#5b6b82',padding:20,textAlign:'center'}}>{status}</div> :
           <svg viewBox={`0 0 ${W} ${H}`} style={{position:'absolute',inset:0,width:'100%',height:'100%'}} role="img" aria-label="Job stakeholder web">
             <defs>{Object.entries(COL).map(([k,c])=>(
@@ -152,7 +157,7 @@ export default function LeapView(){
           </svg>}
         </div>
 
-        <aside style={{flex:'0 0 320px',maxWidth:'100%',overflow:'auto',background:'#fff',borderLeft:'1px solid #d8e0ec',padding:14}}>
+        <aside style={{...(narrow?{flex:'1 1 auto',width:'100%',minHeight:0,borderTop:'1px solid #d8e0ec'}:{flex:'0 0 320px',borderLeft:'1px solid #d8e0ec'}),maxWidth:'100%',overflow:'auto',background:'#fff',padding:14}}>
           {sel==='HUB' && job ? (
             <div><h2 style={h2}>THE JOB</h2>
               <p style={row}><b>{job.title}</b><br/>{job.employer} · {(job.salaryMin||job.salaryMax)?`$${fmtK(job.salaryMin)}–${fmtK(job.salaryMax)}`:'pay undisclosed'}</p>
@@ -180,7 +185,7 @@ export default function LeapView(){
   );
 }
 
-const btn = (on) => ({background:on?'#1668c7':'#eef3fb',color:on?'#fff':'#16202e',border:'1px solid '+(on?'#1668c7':'#d8e0ec'),borderRadius:999,padding:'7px 12px',fontSize:'.8rem',cursor:'pointer'});
+const btn = (on) => ({background:on?'#1668c7':'#eef3fb',color:on?'#fff':'#16202e',border:'1px solid '+(on?'#1668c7':'#d8e0ec'),borderRadius:999,padding:'7px 14px',minHeight:44,display:'inline-flex',alignItems:'center',fontSize:'.85rem',cursor:'pointer'});
 const h2 = {fontSize:'.98rem',margin:'.1em 0 .5em'};
 const row = {margin:'.5em 0',fontSize:'.87rem',lineHeight:1.5};
 const k = {color:'#5b6b82',fontSize:'.7rem',textTransform:'uppercase',letterSpacing:'.05em'};
