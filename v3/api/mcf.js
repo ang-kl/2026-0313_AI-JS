@@ -264,6 +264,28 @@ export default async function handler(req, res) {
   }
 
   const { action, title, escoOccupation, skills, limit, detail, detailLimit } = req.body || {};
+
+  // ---- action: "job" — fetch ONE posting by uuid (+ a rough live-demand proxy) ----
+  // Powers the ?view=leap stakeholder graph. Best-effort, always 200 with a warm
+  // empty on failure (mirrors the rest of this handler).
+  if (action === 'job') {
+    const uuid = (req.body?.uuid || '').toString().trim();
+    if (!uuid) return res.status(400).json({ error: 'Required: action="job", uuid=string' });
+    try {
+      const raw = await fetchJobDetail(uuid);
+      const job = raw ? normaliseJob(raw) : null;
+      if (!job) {
+        return res.status(200).json({ job: null, fallback: true, ...WARM_ERRORS.empty, source: 'MyCareersFuture Singapore' });
+      }
+      // rough live-demand proxy: how many similar live postings share the title (1 call, capped)
+      let demand = null;
+      try { demand = (await mcfSearch(`"${job.title}"`, { limit: 30 })).length; } catch (_) {}
+      return res.status(200).json({ job, demand, source: 'MyCareersFuture Singapore' });
+    } catch (err) {
+      return res.status(200).json({ job: null, fallback: true, ...WARM_ERRORS.server, source: 'MyCareersFuture Singapore' });
+    }
+  }
+
   if (action !== 'jobs' || !title || typeof title !== 'string') {
     return res.status(400).json({ error: 'Invalid request. Required: action="jobs", title=string' });
   }

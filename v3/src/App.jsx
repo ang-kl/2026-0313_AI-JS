@@ -11,6 +11,11 @@
 // Crossover, Context, Foundation) and appears as a row in the Compare view.
 // The MOM / data.gov.sg "Vacancy Trend" tab is removed for now (the
 // /api/datagov.js function is left in place, just not surfaced in the UI).
+// v3.0.1 - 2026-06-07 - HDR #038 - ?view=leap "behind the corner" stakeholder web:
+// new LeapView.jsx (job-centred SVG graph of the forces around one posting - Director,
+// HR/FCF, ATS, demand Skeptic, Hiring Mgr, You/CV overlay), routed via ?view=leap in
+// main.jsx; /api/mcf gains action:"job" to fetch ONE posting by uuid + a rough live-demand
+// proxy. Blue/orange/cyan palette (no red/green); job fields verbatim from MyCareersFuture.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
