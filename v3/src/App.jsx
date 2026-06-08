@@ -52,6 +52,11 @@
 // coverage / keyword-gate / ATS bar + the covered(✓)/missing(✗) chips now use blue(high)→amber(mid)→
 // orange(low) instead of green/red; positive=blue, negative=orange app-wide. NO green/red hex remains
 // in App.jsx; numbers/labels/icons still carry meaning so it's not colour-alone. v3-only (v1/v2 untouched).
+// v3.0.12 - 2026-06-08 - HDR #049 - "wire the engine" PR1: deterministic AI-Exposure engine foundation.
+// New v3/engine-data/ (AIOE z-scores + SSOC↔ISCO + ISCO↔SOC, all verified public data, bundled with
+// provenance) + pure engine-core computeEngine() + new /api/engine endpoint. Chain SSOC→ISCO→SOC→AIOE
+// (table lookups, NO LLM, same input⇒same output); index = AIOE percentile (0-100) with z-mean/range
+// carried; unknown SSOC or missing AIOE → number withheld (ok:false), never faked. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
