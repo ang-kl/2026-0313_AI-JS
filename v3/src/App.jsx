@@ -43,6 +43,11 @@
 // v3.0.9 - 2026-06-08 - HDR #046 - Browse SG jobs: "Fresh grads · < 4 yrs experience" checkbox
 // inside the Browse card; when ticked, scouts live MCF postings for roles needing < 4 yrs
 // experience (minimumYearsExperience null or < 4) - filters the browse results + shows the count.
+// v3.0.10 - 2026-06-08 - HDR #047 - code-audit fixes (v3-only): fresh-grad now requires an EXPLICIT
+// < 4 yrs (null no longer passes) + page resets on toggle + chip counts + capped caveat; Role Graph
+// linesOf no longer clips long/CJK labels + barycenter sweeps one side at a time; mode cards are a
+// real <button aria-pressed> with the checkbox as a sibling (no interactive nested in role=button);
+// ProvLegend reworded "where shown". (Score-bar red/green left for a separate a11y sweep.)
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2001,7 +2006,7 @@ function Prov({ kind, small }) {
 function ProvLegend() {
   return (
     <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding:"8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, fontSize:11, color:C.textSub }}>
-      <span style={{ fontWeight:700, color:C.text }}>Reading the badges:</span>
+      <span style={{ fontWeight:700, color:C.text }}>Badges, where shown:</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="mcf" /> posting facts</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="computed" /> deterministic, reproducible</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="ai" /> AI judgement, may vary</span>
@@ -5648,12 +5653,21 @@ function RoleGraphPanel({ result, title }) {
       { type: "responsibility", x: 790, w: 298 },
     ];
     const W = 1104, V_GAP = 10, PAD_Y = 14, HEAD_H = 30, FONT = 11, LINE_H = 15, PAD_V = 7, PAD_X = 11;
-    // word-wrap: estimate wrapped line count -> variable node height (no truncation)
+    // word-wrap: conservatively estimate wrapped line count -> variable node height (avoid clip)
     const linesOf = (label, w, isco) => {
-      const cpl = Math.max(6, Math.floor((w - PAD_X * 2 - 8 - (isco ? 22 : 0)) / (FONT * 0.58)));
-      const words = String(label || "").split(/\s+/).filter(Boolean);
+      const px = w - PAD_X * 2 - 8 - (isco ? 28 : 0);
+      const s = String(label || "");
+      // CJK glyphs are ~1em wide and don't break on spaces - count per glyph
+      const cjk = (s.match(/[　-鿿가-힯＀-￯]/g) || []).length;
+      if (cjk > s.length * 0.3) return Math.max(1, Math.ceil(s.length / Math.max(3, Math.floor(px / (FONT * 1.05)))));
+      const cpl = Math.max(6, Math.floor(px / (FONT * 0.62))); // Latin chars/line (conservative -> taller, no clip)
+      const words = s.split(/\s+/).filter(Boolean);
       let lines = 1, cur = 0;
-      for (const word of words) { const wl = word.length + (cur ? 1 : 0); if (cur + wl > cpl && cur > 0) { lines++; cur = Math.min(word.length, cpl); } else { cur += wl; } }
+      for (const word of words) {
+        if (word.length > cpl) { if (cur) lines++; lines += Math.ceil(word.length / cpl) - 1; cur = word.length % cpl || cpl; continue; } // long token wraps across lines
+        const wl = word.length + (cur ? 1 : 0);
+        if (cur + wl > cpl && cur > 0) { lines++; cur = word.length; } else { cur += wl; }
+      }
       return Math.max(1, lines);
     };
     const heightOf = (n, w) => Math.max(30, linesOf(n.label, w, n.type === "iscoOccupation") * LINE_H + PAD_V * 2);
@@ -5662,10 +5676,13 @@ function RoleGraphPanel({ result, title }) {
     const flowKinds = ["role-occupation", "occupation-skill", "skill-responsibility"];
     const adj = {}; graph.edges.forEach(e => { if (!flowKinds.includes(e.kind)) return; (adj[e.source] = adj[e.source] || []).push(e.target); (adj[e.target] = adj[e.target] || []).push(e.source); });
     const indexMap = c => { const m = {}; c.nodes.forEach((n, i) => { m[n.id] = i; }); return m; };
-    for (let sweep = 0; sweep < 5; sweep++) {
-      const order = sweep % 2 === 0 ? [1, 2, 3] : [2, 1, 0];
+    for (let sweep = 0; sweep < 6; sweep++) {
+      const forward = sweep % 2 === 0;
+      const order = forward ? [1, 2, 3] : [2, 1, 0];
       for (const ci of order) {
-        const idx = {}; [byCol[ci - 1], byCol[ci + 1]].filter(Boolean).forEach(nc => Object.assign(idx, indexMap(nc)));
+        const ref = forward ? byCol[ci - 1] : byCol[ci + 1]; // order against the already-placed adjacent column ONLY (merging both scales mis-orders)
+        if (!ref) continue;
+        const idx = indexMap(ref);
         byCol[ci].nodes = byCol[ci].nodes.map((n, i) => {
           const nbr = (adj[n.id] || []).filter(id => idx[id] != null);
           return { n, key: nbr.length ? nbr.reduce((s, id) => s + idx[id], 0) / nbr.length : i, orig: i };
@@ -6776,6 +6793,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const PER_PAGE = 10;
+  useEffect(() => { setPage(0); }, [freshGrad]); // reset paging when the fresh-grad filter toggles
 
   useEffect(() => {
     let cancelled = false;
@@ -6868,7 +6886,9 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const archGroups = skillGroups.length >= 2 ? skillGroups : sectorGroups;
   const archLabel = skillGroups.length >= 2 ? "distinct skill clusters" : "job categories";
   const activeArch = archGroups.find(g => g.name === sectorFilter) || null;
-  const baseJobs = (activeArch ? activeArch.jobs : state.jobs).filter(j => !freshGrad || j.minimumYearsExperience == null || j.minimumYearsExperience < 4);
+  // fresh-grad scout: only EXPLICIT entry/junior roles - an unstated experience bar is NOT claimed to be < 4
+  const isFresh = j => j.minimumYearsExperience != null && j.minimumYearsExperience < 4;
+  const baseJobs = (activeArch ? activeArch.jobs : state.jobs).filter(j => !freshGrad || isFresh(j));
   const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
   const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
@@ -6920,13 +6940,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
                 <button onClick={() => { setSectorFilter(null); setPage(0); }}
                   style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
                     border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
-                  All ({state.jobs.length})
+                  All ({freshGrad ? state.jobs.filter(isFresh).length : state.jobs.length})
                 </button>
                 {archGroups.map(g => (
                   <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
                     style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
                       border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
-                    {g.name} ({g.jobs.length})
+                    {g.name} ({freshGrad ? g.jobs.filter(isFresh).length : g.jobs.length})
                   </button>
                 ))}
               </div>
@@ -6946,6 +6966,9 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           </div>
           {freshGrad && baseJobs.length === 0 && state.jobs.length > 0 && (
             <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
+          )}
+          {freshGrad && state.capped && baseJobs.length > 0 && (
+            <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
@@ -8189,20 +8212,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   { k:"role", label:"🔎 Analyse a role", sub:"ESCO essential skills" },
                   { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
                 ].map(m => (
-                  <div key={m.k} role="button" tabIndex={0}
-                    onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
-                    onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSearchMode(m.k); setOccs([]); setErr(""); } }}
-                    style={{ flex:1, textAlign:"left", padding:"7px 11px", borderRadius:8, cursor:"pointer",
+                  <div key={m.k}
+                    style={{ flex:1, display:"flex", flexDirection:"column", borderRadius:8, overflow:"hidden",
                       border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
                       background: searchMode===m.k ? C.accentSoft : C.surface }}>
-                    <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
-                    <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
+                    <button type="button" aria-pressed={searchMode===m.k}
+                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                      style={{ textAlign:"left", padding:"7px 11px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
+                      <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
+                      <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
+                    </button>
                     {m.k === "jobs" && (
-                      <label onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}
-                        title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
-                        style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:7, cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
-                        <input type="checkbox" checked={freshGrad}
-                          onChange={e => { setSearchMode("jobs"); setOccs([]); setErr(""); setFreshGrad(e.target.checked); }}
+                      <label title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
+                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"0 11px 8px", cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
+                        <input type="checkbox" checked={freshGrad} aria-label="Fresh grads - roles under 4 years experience"
+                          onChange={e => { if (searchMode !== "jobs") { setSearchMode("jobs"); setOccs([]); setErr(""); } setFreshGrad(e.target.checked); }}
                           style={{ width:15, height:15, accentColor:C.accent, cursor:"pointer", margin:0 }} />
                         {"Fresh grads · < 4 yrs experience"}
                       </label>
