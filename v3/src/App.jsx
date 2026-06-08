@@ -40,6 +40,9 @@
 // v3.0.8 - 2026-06-08 - HDR #045 - first-run help copy now specifies you're analysing a
 // 🇸🇬 MyCareersFuture (MCF) role (search matched to live MCF postings + ESCO skills), not a
 // generic/made-up role - per "specify for searching MCF role and not others".
+// v3.0.9 - 2026-06-08 - HDR #046 - Browse SG jobs: "Fresh grads · < 4 yrs experience" checkbox
+// inside the Browse card; when ticked, scouts live MCF postings for roles needing < 4 yrs
+// experience (minimumYearsExperience null or < 4) - filters the browse results + shows the count.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -6768,7 +6771,7 @@ function clusterPostingsBySkills(jobs) {
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
-function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus }) {
+function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
   const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
@@ -6865,7 +6868,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const archGroups = skillGroups.length >= 2 ? skillGroups : sectorGroups;
   const archLabel = skillGroups.length >= 2 ? "distinct skill clusters" : "job categories";
   const activeArch = archGroups.find(g => g.name === sectorFilter) || null;
-  const baseJobs = activeArch ? activeArch.jobs : state.jobs;
+  const baseJobs = (activeArch ? activeArch.jobs : state.jobs).filter(j => !freshGrad || j.minimumYearsExperience == null || j.minimumYearsExperience < 4);
   const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
   const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
@@ -6931,7 +6934,8 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${state.jobs.length}${state.capped ? "+" : ""} posting${state.jobs.length === 1 ? "" : "s"}`}
+              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${baseJobs.length}${state.capped && !freshGrad ? "+" : ""} posting${baseJobs.length === 1 ? "" : "s"}`}
+              {freshGrad ? ` · fresh-grad filter (< 4 yrs exp)` : ""}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
@@ -6940,6 +6944,9 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
               </span>
             )}
           </div>
+          {freshGrad && baseJobs.length === 0 && state.jobs.length > 0 && (
+            <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
+          )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
               <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
@@ -7022,6 +7029,7 @@ export function PipelineLogsView() {
 export default function App() {
   const [query,     setQuery]     = useState("");
   const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
+  const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
@@ -8181,13 +8189,25 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   { k:"role", label:"🔎 Analyse a role", sub:"ESCO essential skills" },
                   { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
                 ].map(m => (
-                  <button key={m.k} onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                  <div key={m.k} role="button" tabIndex={0}
+                    onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                    onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSearchMode(m.k); setOccs([]); setErr(""); } }}
                     style={{ flex:1, textAlign:"left", padding:"7px 11px", borderRadius:8, cursor:"pointer",
                       border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
                       background: searchMode===m.k ? C.accentSoft : C.surface }}>
                     <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                     <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
-                  </button>
+                    {m.k === "jobs" && (
+                      <label onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}
+                        title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
+                        style={{ display:"inline-flex", alignItems:"center", gap:6, marginTop:7, cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
+                        <input type="checkbox" checked={freshGrad}
+                          onChange={e => { setSearchMode("jobs"); setOccs([]); setErr(""); setFreshGrad(e.target.checked); }}
+                          style={{ width:15, height:15, accentColor:C.accent, cursor:"pointer", margin:0 }} />
+                        {"Fresh grads · < 4 yrs experience"}
+                      </label>
+                    )}
+                  </div>
                 ))}
               </div>
 
@@ -8284,6 +8304,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               onQueuePosting={handleQueuePosting}
               onAnalyseCorpus={handleAnalyseCorpus}
               queueCount={comparisons.length}
+              freshGrad={freshGrad}
               standalone
             />
             {comparisons.length > 0 && (
