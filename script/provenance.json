@@ -1,0 +1,17 @@
+[
+  {
+    "claim": "target role detail",
+    "source_url": "https://www.mycareersfuture.gov.sg/job/x-a359c3692d4b5f03869071eff58fd47f",
+    "kind": "stated"
+  },
+  {
+    "claim": "employer posting sweep",
+    "source": "https://api.mycareersfuture.gov.sg/v2/search?uen=199106419N",
+    "kind": "stated"
+  },
+  {
+    "claim": "department placement",
+    "kind": "inferred",
+    "method": "title-keyword heuristic"
+  }
+]

@@ -1,0 +1,585 @@
+{
+  "target": {
+    "uuid": "a359c3692d4b5f03869071eff58fd47f",
+    "source_url": "https://www.mycareersfuture.gov.sg/job/x-a359c3692d4b5f03869071eff58fd47f",
+    "title": "Salesforce Data Analyst (Graduate Program)",
+    "employer": "Capgemini Singapore  PTE. LTD.",
+    "uen": "199106419N",
+    "ssoc": "21222",
+    "occupationId": "OCC013821",
+    "categories": [
+      "Consulting",
+      "Information Technology"
+    ],
+    "seniority": [
+      "Fresh/entry level"
+    ],
+    "skills": [
+      "JSON",
+      "Integration",
+      "Data Mapping",
+      "XML",
+      "Salesforce",
+      "MuleSoft",
+      "Data model",
+      "Cloud",
+      "API",
+      "Data",
+      "Testing"
+    ],
+    "salary_min": 4000,
+    "salary_max": 4400,
+    "vacancies": 1,
+    "responsibilities": [
+      "We are seeking a\u00a0Salesforce Data Analyst\u00a0to support large-scale system integration projects involving Salesforce and multiple external systems.",
+      "You will start by assisting in data mapping and integration work between Salesforce and APIs (e.g. MuleSoft), gaining hands\u2011on exposure to how data flows across systems. This includes understanding Salesforce data models, integration payloads, and transformation logic.",
+      "You will also support testing activities (SIT/UAT) and work closely with experienced consultants across Salesforce, integration, and functional teams.",
+      "Over time, this role can evolve into a Business Analyst or Developer track, depending on project needs and your interests.",
+      "This role is suited for individuals who are detail-oriented, structured, and proactive, and who are interested in understanding how enterprise systems connect and operate end\u2011to\u2011end.",
+      "Data Mapping & Integration Support",
+      "Work closely with functional, integration (MuleSoft) and data migration teams to support end\u2011to\u2011end delivery.",
+      "Assist in mapping data between Salesforce objects and external systems via APIs.",
+      "Analyse field definitions, data structures, and relationships across systems.",
+      "Support the documentation of data templates, mappings, transformation logic and integration requirements.",
+      "Work with senior consultants to clarify data inconsistencies, edge cases, and validation rules.",
+      "Review API payloads (JSON/XML) to understand how data is exchanged between systems.",
+      "Perform data patching when required.",
+      "Maintain clear and well-structured documentation such as data mapping sheets, integration specifications (functional level), test scenarios and results."
+    ],
+    "qualifications": [
+      "Support requirement discussions with business and functional teams to understand data-related needs.",
+      "Assist in documenting simple user stories, process flows, and data-related requirements.",
+      "Translate business requirements into structured data or integration-related inputs.",
+      "Testing & Quality Assurance",
+      "Support requirement discussions with business and functional teams to understand data-related needs.",
+      "Assist in documenting simple user stories, process flows, and data-related requirements.",
+      "Translate business requirements into structured data or integration-related inputs.",
+      "Interest in data, systems, or integration work.",
+      "Strong attention to detail and ability to work with structured information.",
+      "Ability to analyse and compare data across different sources.",
+      "Able to follow through on tasks and track details consistently.",
+      "Comfortable working with multiple teams and stakeholders.",
+      "Good to have",
+      "Basic understanding of databases, data structures, or APIs.",
+      "Familiarity with JSON, XML, or Excel-based data mapping.",
+      "Exposure (academic or internship) to system integration, business analysis, or testing.",
+      "Interest in Salesforce, cloud platforms, integration or enterprise systems.",
+      "Ways of working",
+      "Work collaboratively within an agile, sprint-based build delivery environment.",
+      "Learn by supporting senior consultants.",
+      "Take ownership of assigned data mapping and testing tasks, ensuring accuracy and completeness.",
+      "Communicate proactively on progress, issues, and dependencies.",
+      "Be comfortable working with detailed, structured tasks that require consistency and attention.",
+      "Success measures",
+      "Produce accurate and complete data mapping documentation with minimal supervision.",
+      "Understand Salesforce data models and basic integration flows.",
+      "Support testing cycles with minimal errors in data validation.",
+      "Proactively follow up on issues and close assigned tasks.",
+      "Communicate clearly and build working relationships across teams.",
+      "Demonstrate reliability, attention to detail, and ownership in day\u2011to\u2011day work.",
+      "Education",
+      "Bachelor\u2019s degree in Computer Science, Information Systems, or a related field, or equivalent practical experience",
+      "Let's talk about what's in it for you!",
+      "As \"Architects of Positive Futures\", Capgemini actively supports the community in 3 ways:",
+      "Come join us, bring your whole self to work, create new possibilities for you, your customers and your community and help us to be Architects of Positive Futures."
+    ],
+    "status": "stated",
+    "fetched": "08-06-'26 21:52 SGT"
+  },
+  "corroboration_set": [
+    {
+      "uuid": "5e5a2fff6ebe4802d12de53976719549",
+      "title": "Frontend Developer (Android)",
+      "seniority": [
+        "Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 8000,
+      "applications": 0,
+      "posted": "2026-06-08",
+      "updated": "2026-06-08",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/frontend-developer-capgemini-singapore-5e5a2fff6ebe4802d12de53976719549"
+    },
+    {
+      "uuid": "ace1dfd2ce946feb3af55d55a4096171",
+      "title": "Senior Backend Developer (Java)",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 10000,
+      "applications": 0,
+      "posted": "2026-06-08",
+      "updated": "2026-06-08",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/senior-backend-developer-capgemini-singapore-ace1dfd2ce946feb3af55d55a4096171"
+    },
+    {
+      "uuid": "a359c3692d4b5f03869071eff58fd47f",
+      "title": "Salesforce Data Analyst (Graduate Program)",
+      "seniority": [
+        "Fresh/entry level"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 4400,
+      "applications": 0,
+      "posted": "2026-06-08",
+      "updated": "2026-06-08",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-a359c3692d4b5f03869071eff58fd47f"
+    },
+    {
+      "uuid": "900bcb7e311057a3d443569ab3d1427b",
+      "title": "PMO / Project Coordinator",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 6000,
+      "applications": 0,
+      "posted": "2026-06-08",
+      "updated": "2026-06-08",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/pmo-project-coordinator-capgemini-singapore-900bcb7e311057a3d443569ab3d1427b"
+    },
+    {
+      "uuid": "194569e1a832e770ae25931eef0132e5",
+      "title": "Software Engineer (Generative AI Engineer)",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-06-05",
+      "updated": "2026-06-05",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-capgemini-singapore-194569e1a832e770ae25931eef0132e5"
+    },
+    {
+      "uuid": "fbea40678044e6ebe378f71c142a22a2",
+      "title": "Software Engineer, Quality & Platform (GenAI)",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-06-05",
+      "updated": "2026-06-05",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-quality-platform-capgemini-singapore-fbea40678044e6ebe378f71c142a22a2"
+    },
+    {
+      "uuid": "516b900370694064714a202749c05b84",
+      "title": "Software Engineer (Full Stack / GenAI Applications)",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-06-05",
+      "updated": "2026-06-05",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-capgemini-singapore-516b900370694064714a202749c05b84"
+    },
+    {
+      "uuid": "055aafb0666e4647ba7daa4c204cc7ff",
+      "title": "DevSecOps Engineer",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-06-05",
+      "updated": "2026-06-05",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/devsecops-engineer-capgemini-singapore-055aafb0666e4647ba7daa4c204cc7ff"
+    },
+    {
+      "uuid": "05edd2909963c227c86ca11fe7f871b7",
+      "title": "Product Manager",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 10000,
+      "applications": 0,
+      "posted": "2026-06-04",
+      "updated": "2026-06-04",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/product-manager-capgemini-singapore-05edd2909963c227c86ca11fe7f871b7"
+    },
+    {
+      "uuid": "b5a5754cc3922335b81575e8dcfd8f8e",
+      "title": "UX Designer",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Design",
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 10000,
+      "applications": 0,
+      "posted": "2026-06-03",
+      "updated": "2026-06-03",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/ux-designer-capgemini-singapore-b5a5754cc3922335b81575e8dcfd8f8e"
+    },
+    {
+      "uuid": "a9b30742ebbf76367f5a9fbee540a123",
+      "title": "X-Ray / CT Imaging Engineer",
+      "seniority": [
+        "Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Sciences / Laboratory / R&D"
+      ],
+      "salary_min": 4000,
+      "salary_max": 8000,
+      "applications": 0,
+      "posted": "2026-06-03",
+      "updated": "2026-06-03",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/x-ray-ct-imaging-engineer-capgemini-singapore-a9b30742ebbf76367f5a9fbee540a123"
+    },
+    {
+      "uuid": "910a918361dc6ae182c3db98c4c13a74",
+      "title": "Business Analyst (Data Migration)",
+      "seniority": [
+        "Junior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 6000,
+      "applications": 0,
+      "posted": "2026-06-03",
+      "updated": "2026-06-03",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/business-analyst-capgemini-singapore-910a918361dc6ae182c3db98c4c13a74"
+    },
+    {
+      "uuid": "e887719cfc99767944fb8daa15798c51",
+      "title": "Salesforce Developer",
+      "seniority": [
+        "Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology",
+        "Professional Services"
+      ],
+      "salary_min": 7000,
+      "salary_max": 14000,
+      "applications": 0,
+      "posted": "2026-06-02",
+      "updated": "2026-06-02",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-developer-capgemini-singapore-e887719cfc99767944fb8daa15798c51"
+    },
+    {
+      "uuid": "bdf75430dbc3725dacd0a32c21bdc38c",
+      "title": "Delivery Executive (Digital & Integration SME)",
+      "seniority": [
+        "Middle Management"
+      ],
+      "categories": [
+        "Banking and Finance",
+        "Consulting",
+        "Information Technology",
+        "Professional Services"
+      ],
+      "salary_min": 25000,
+      "salary_max": 32000,
+      "applications": 0,
+      "posted": "2026-05-26",
+      "updated": "2026-05-26",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/banking-finance/delivery-executive-capgemini-singapore-bdf75430dbc3725dacd0a32c21bdc38c"
+    },
+    {
+      "uuid": "faa6636950ebc601c190494f5a5f120b",
+      "title": "Salesforce Business Analyst",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 12000,
+      "applications": 0,
+      "posted": "2026-05-26",
+      "updated": "2026-05-26",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-business-analyst-capgemini-singapore-faa6636950ebc601c190494f5a5f120b"
+    },
+    {
+      "uuid": "8410b488a017c808a32ec77bdda6f9ca",
+      "title": "Cybersecurity Operations Lead",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-05-22",
+      "updated": "2026-05-22",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/cybersecurity-operations-lead-capgemini-singapore-8410b488a017c808a32ec77bdda6f9ca"
+    },
+    {
+      "uuid": "db68a91faa7ec8b31abbace9d5a47f3a",
+      "title": "Senior Frontend Engineer",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-05-21",
+      "updated": "2026-05-21",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/senior-frontend-engineer-capgemini-singapore-db68a91faa7ec8b31abbace9d5a47f3a"
+    },
+    {
+      "uuid": "f177e2b49f99f97d793e127319e418ff",
+      "title": "Software Developer (Salesforce) (Graduate Program) - 2026 Hires",
+      "seniority": [
+        "Fresh/entry level"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 4400,
+      "applications": 0,
+      "posted": "2026-05-21",
+      "updated": "2026-05-21",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/software-developer-2026-hires-capgemini-singapore-f177e2b49f99f97d793e127319e418ff"
+    },
+    {
+      "uuid": "5fce1097bb4ce8a0447988e906697947",
+      "title": "Full Stack Engineer",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 7000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-05-21",
+      "updated": "2026-05-21",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/full-stack-engineer-capgemini-singapore-5fce1097bb4ce8a0447988e906697947"
+    },
+    {
+      "uuid": "2ea334af3aad52525493e56405c67c2b",
+      "title": "IT Support Specialist",
+      "seniority": [
+        "Fresh/entry level"
+      ],
+      "categories": [
+        "Information Technology"
+      ],
+      "salary_min": 3000,
+      "salary_max": 5000,
+      "applications": 0,
+      "posted": "2026-05-19",
+      "updated": "2026-05-19",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/information-technology/support-specialist-capgemini-singapore-2ea334af3aad52525493e56405c67c2b"
+    },
+    {
+      "uuid": "8e08a112fa694559c9d4cc7c580dc6b0",
+      "title": "System Support Engineer",
+      "seniority": [
+        "Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 4000,
+      "salary_max": 7000,
+      "applications": 0,
+      "posted": "2026-05-14",
+      "updated": "2026-05-18",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/system-support-engineer-capgemini-singapore-8e08a112fa694559c9d4cc7c580dc6b0"
+    },
+    {
+      "uuid": "d6753a1a70628d2e4dd27f5d0db21fca",
+      "title": "Software Developer (.NET)",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 10000,
+      "applications": 0,
+      "posted": "2026-05-14",
+      "updated": "2026-05-14",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/software-developer-capgemini-singapore-d6753a1a70628d2e4dd27f5d0db21fca"
+    },
+    {
+      "uuid": "4a00e3c1a30b612c460d0a2245a3a73c",
+      "title": "Senior Automation Tester (Tosca)",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Information Technology"
+      ],
+      "salary_min": 6500,
+      "salary_max": 11500,
+      "applications": 0,
+      "posted": "2026-05-13",
+      "updated": "2026-05-13",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/information-technology/senior-automation-tester-capgemini-singapore-4a00e3c1a30b612c460d0a2245a3a73c"
+    },
+    {
+      "uuid": "c659a3288a4d192b57c4fade0c13cb04",
+      "title": "Tosca Test Manager",
+      "seniority": [
+        "Manager"
+      ],
+      "categories": [
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 8000,
+      "applications": 0,
+      "posted": "2026-05-13",
+      "updated": "2026-05-13",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/information-technology/tosca-test-manager-capgemini-singapore-c659a3288a4d192b57c4fade0c13cb04"
+    },
+    {
+      "uuid": "675ef7d03646e00d6c1fe4aeb93057fe",
+      "title": "Test Manager (Information System)",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Information Technology"
+      ],
+      "salary_min": 7000,
+      "salary_max": 12000,
+      "applications": 0,
+      "posted": "2026-05-13",
+      "updated": "2026-05-13",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/information-technology/test-manager-capgemini-singapore-675ef7d03646e00d6c1fe4aeb93057fe"
+    },
+    {
+      "uuid": "6fbe6097103e681c7ba75f33a174c062",
+      "title": "Software Applications Test Manager (Banking Applications)",
+      "seniority": [
+        "Manager"
+      ],
+      "categories": [
+        "Banking and Finance",
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 9000,
+      "salary_max": 13000,
+      "applications": 0,
+      "posted": "2026-05-13",
+      "updated": "2026-05-13",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/banking-finance/software-applications-test-manager-capgemini-singapore-6fbe6097103e681c7ba75f33a174c062"
+    },
+    {
+      "uuid": "b21d5f21290cf86dbfaad0e34d83c01b",
+      "title": "System Analyst (Financial Service)",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9800,
+      "applications": 0,
+      "posted": "2026-05-13",
+      "updated": "2026-05-13",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/information-technology/system-analyst-capgemini-singapore-b21d5f21290cf86dbfaad0e34d83c01b"
+    },
+    {
+      "uuid": "c7fb03b25429b8eececaee54655145ed",
+      "title": ".NET Developer",
+      "seniority": [
+        "Senior Executive"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 5000,
+      "salary_max": 10000,
+      "applications": 0,
+      "posted": "2026-05-11",
+      "updated": "2026-05-12",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/net-developer-capgemini-singapore-c7fb03b25429b8eececaee54655145ed"
+    },
+    {
+      "uuid": "2133674ebd8920b3de21edc8bbadf1b7",
+      "title": "Digital Business Analyst",
+      "seniority": [
+        "Professional"
+      ],
+      "categories": [
+        "Consulting",
+        "Information Technology"
+      ],
+      "salary_min": 6000,
+      "salary_max": 9000,
+      "applications": 0,
+      "posted": "2026-05-11",
+      "updated": "2026-05-11",
+      "source_url": "https://www.mycareersfuture.gov.sg/job/consulting/digital-business-analyst-capgemini-singapore-2133674ebd8920b3de21edc8bbadf1b7"
+    }
+  ],
+  "generated": "08-06-'26 21:52 SGT"
+}
