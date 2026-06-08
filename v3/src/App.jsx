@@ -37,6 +37,9 @@
 // truncation) via foreignObject cards; header "MCF role" -> "🇸🇬 MyCareersFuture (MCF)" + full
 // column names; curved edges kept; barycenter node ordering across columns to de-spaghetti the
 // crossings while keeping ALL edges; variable-height nodes; tap-to-trace + AI-exposure left bar.
+// v3.0.8 - 2026-06-08 - HDR #045 - first-run help copy now specifies you're analysing a
+// 🇸🇬 MyCareersFuture (MCF) role (search matched to live MCF postings + ESCO skills), not a
+// generic/made-up role - per "specify for searching MCF role and not others".
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2731,7 +2734,7 @@ function Spinner({ label, step, total, firstTime }) {
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
             <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
-              The results screen shows every skill in this role distributed across five automation levels: <strong>Full Automation</strong>, <strong>AI-Agentic</strong>, <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
+              You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across five automation levels: <strong>Full Automation</strong>, <strong>AI-Agentic</strong>, <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
             </p>
           </div>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
