@@ -57,6 +57,12 @@
 // provenance) + pure engine-core computeEngine() + new /api/engine endpoint. Chain SSOC→ISCO→SOC→AIOE
 // (table lookups, NO LLM, same input⇒same output); index = AIOE percentile (0-100) with z-mean/range
 // carried; unknown SSOC or missing AIOE → number withheld (ok:false), never faked. v3-only.
+// v3.0.13 - 2026-06-08 - HDR #050 - "wire the engine" PR2: ?view=graph — left→right MINDMAP of one MCF
+// posting (new RoleGraph.jsx, routed in main.jsx). LEFT = the published job ad (Skills + Responsibilities,
+// verbatim ● from MCF); CENTRE = the role hub; RIGHT = the AI filter (✓ computed): AI-Exposure 98/100 →
+// Occupation ISCO → how-computed chain → AI-able-vs-human* → mirror-roles* (* = honest occupation-level
+// only, no fake per-skill bars). Curved branches, click-to-highlight, responsive (stacks on phones).
+// Data baked offline by engine-data/build-graph-data.mjs (engine output + token-overlap inferred links). v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
