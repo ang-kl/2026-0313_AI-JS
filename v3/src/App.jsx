@@ -33,6 +33,10 @@
 // v3.0.6 - 2026-06-08 - HDR #043 - docs: doc/v3-engine-wiring-spec.md - approved design to move
 // AI-exposure from LLM-guessed to deterministic AIOE (reconcile occupation -> AIOE index ->
 // mirror-roles; new /api/engine; LLM narration only). Staged PR0 (data gate) -> PR1 -> PR2.
+// v3.0.7 - 2026-06-08 - HDR #044 - Role Graph professional redesign: full word-wrap (no "..."
+// truncation) via foreignObject cards; header "MCF role" -> "🇸🇬 MyCareersFuture (MCF)" + full
+// column names; curved edges kept; barycenter node ordering across columns to de-spaghetti the
+// crossings while keeping ALL edges; variable-height nodes; tap-to-trace + AI-exposure left bar.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5632,52 +5636,78 @@ function RoleGraphPanel({ result, title }) {
   // --- layered SVG graph layout ---
   const renderGraph = (graph) => {
     const cols = [
-      { type: "mcfRole", x: 16, w: 168 },
-      { type: "iscoOccupation", x: 262, w: 196 },
-      { type: "escoSkill", x: 540, w: 188 },
-      { type: "responsibility", x: 808, w: 276 },
+      { type: "mcfRole", x: 16, w: 190 },
+      { type: "iscoOccupation", x: 250, w: 198 },
+      { type: "escoSkill", x: 516, w: 206 },
+      { type: "responsibility", x: 790, w: 298 },
     ];
-    const W = 1100, H_NODE = 30, V_GAP = 9, PAD_Y = 16;
+    const W = 1104, V_GAP = 10, PAD_Y = 14, HEAD_H = 30, FONT = 11, LINE_H = 15, PAD_V = 7, PAD_X = 11;
+    // word-wrap: estimate wrapped line count -> variable node height (no truncation)
+    const linesOf = (label, w, isco) => {
+      const cpl = Math.max(6, Math.floor((w - PAD_X * 2 - 8 - (isco ? 22 : 0)) / (FONT * 0.58)));
+      const words = String(label || "").split(/\s+/).filter(Boolean);
+      let lines = 1, cur = 0;
+      for (const word of words) { const wl = word.length + (cur ? 1 : 0); if (cur + wl > cpl && cur > 0) { lines++; cur = Math.min(word.length, cpl); } else { cur += wl; } }
+      return Math.max(1, lines);
+    };
+    const heightOf = (n, w) => Math.max(30, linesOf(n.label, w, n.type === "iscoOccupation") * LINE_H + PAD_V * 2);
     const byCol = cols.map(c => ({ ...c, nodes: graph.nodes.filter(n => n.type === c.type) }));
-    const colHeights = byCol.map(c => Math.max(H_NODE, c.nodes.length * (H_NODE + V_GAP) - V_GAP));
-    const H = Math.max(...colHeights) + PAD_Y * 2;
-    const pos = {}; // id -> {cx, cyTop, cy, w, col}
-    byCol.forEach((c, ci) => {
-      const top = PAD_Y + (H - PAD_Y * 2 - colHeights[ci]) / 2;
-      c.nodes.forEach((n, ni) => { const y = top + ni * (H_NODE + V_GAP); pos[n.id] = { x: c.x, w: c.w, yTop: y, cy: y + H_NODE / 2, col: ci }; });
-    });
-    // only the left-to-right flow edges are drawn
-    const drawn = graph.edges.filter(e => ["role-occupation", "occupation-skill", "skill-responsibility"].includes(e.kind) && pos[e.source] && pos[e.target]);
-    // highlight set
+    // --- barycenter ordering: reduce edge crossings while keeping ALL edges ---
+    const flowKinds = ["role-occupation", "occupation-skill", "skill-responsibility"];
+    const adj = {}; graph.edges.forEach(e => { if (!flowKinds.includes(e.kind)) return; (adj[e.source] = adj[e.source] || []).push(e.target); (adj[e.target] = adj[e.target] || []).push(e.source); });
+    const indexMap = c => { const m = {}; c.nodes.forEach((n, i) => { m[n.id] = i; }); return m; };
+    for (let sweep = 0; sweep < 5; sweep++) {
+      const order = sweep % 2 === 0 ? [1, 2, 3] : [2, 1, 0];
+      for (const ci of order) {
+        const idx = {}; [byCol[ci - 1], byCol[ci + 1]].filter(Boolean).forEach(nc => Object.assign(idx, indexMap(nc)));
+        byCol[ci].nodes = byCol[ci].nodes.map((n, i) => {
+          const nbr = (adj[n.id] || []).filter(id => idx[id] != null);
+          return { n, key: nbr.length ? nbr.reduce((s, id) => s + idx[id], 0) / nbr.length : i, orig: i };
+        }).sort((a, b) => a.key - b.key || a.orig - b.orig).map(x => x.n);
+      }
+    }
+    // --- variable-height layout ---
+    const stackH = c => c.nodes.reduce((s, n) => s + heightOf(n, c.w) + V_GAP, -V_GAP);
+    const maxStack = Math.max(40, ...byCol.map(stackH));
+    const H = maxStack + PAD_Y * 2 + HEAD_H;
+    const pos = {};
+    byCol.forEach(c => { let y = HEAD_H + PAD_Y + (maxStack - stackH(c)) / 2; c.nodes.forEach(n => { const h = heightOf(n, c.w); pos[n.id] = { x: c.x, w: c.w, yTop: y, h, cy: y + h / 2 }; y += h + V_GAP; }); });
+    const drawn = graph.edges.filter(e => flowKinds.includes(e.kind) && pos[e.source] && pos[e.target]);
     let hi = null;
     if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
     const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
     const nodeDim = id => hi && !hi.has(id);
+    const HEADS = ["🇸🇬 MyCareersFuture (MCF)", "ISCO-08 candidates", "ESCO skills", "Responsibilities"];
     return (
       <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 760 }} role="img" aria-label="Role-skill graph">
-          {/* column captions */}
-          {byCol.map((c, ci) => <text key={"cap" + ci} x={c.x + c.w / 2} y={11} textAnchor="middle" fontSize="10" fontWeight="700" fill={RG_NODE_STYLE[c.type].color} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>{["MCF role", "ISCO-08 candidates", "ESCO skills", "Responsibilities"][ci]}</text>)}
-          {/* edges */}
+        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 820 }} role="img" aria-label="Role-skill graph">
+          {/* column headers (word-wrapped, full names) */}
+          {byCol.map((c, ci) => (
+            <foreignObject key={"cap" + ci} x={c.x} y={3} width={c.w} height={HEAD_H}>
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: 10.5, fontWeight: 800, color: RG_NODE_STYLE[c.type].color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.25, fontFamily: "inherit" }}>{HEADS[ci]}</div>
+            </foreignObject>
+          ))}
+          {/* curved edges */}
           {drawn.map((e, i) => {
             const s = pos[e.source], t = pos[e.target];
             const sx = s.x + s.w, sy = s.cy, tx = t.x, ty = t.cy;
-            const dx = (tx - sx) * 0.45;
+            const dx = Math.max(28, (tx - sx) * 0.45);
             const vis = edgeVisible(e);
-            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.6} strokeOpacity={vis ? (hi ? 0.55 : 0.18 + e.weight * 0.3) : 0.05} />;
+            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.6 : 0.16 + e.weight * 0.28) : 0.04} />;
           })}
-          {/* nodes */}
-          {byCol.map((c, ci) => c.nodes.map(n => {
+          {/* word-wrapped nodes */}
+          {byCol.map(c => c.nodes.map(n => {
             const p = pos[n.id]; const st = RG_NODE_STYLE[n.type]; const dim = nodeDim(n.id);
-            const lvl = n.level && LEVELS[n.level] ? n.level : null;
-            const txt = n.type === "responsibility" ? _rgTrunc(n.label, 42) : n.type === "escoSkill" ? _rgTrunc(n.label, 26) : n.type === "iscoOccupation" ? _rgTrunc(n.label, 24) : _rgTrunc(n.label, 22);
+            const lvl = n.level && LEVELS[n.level] ? n.level : null; const active = hoveredId === n.id;
             return (
-              <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.16 : 1 }}>
-                <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${lvl}` : ""}</title>
-                <rect x={p.x} y={p.yTop} width={p.w} height={H_NODE} rx={6} fill={st.bg} stroke={hoveredId === n.id ? st.color : st.border} strokeWidth={hoveredId === n.id ? 2 : 1} />
-                {lvl && <rect x={p.x} y={p.yTop} width={4} height={H_NODE} rx={2} fill={lvlColor(lvl)} />}
-                <text x={p.x + (lvl ? 10 : 8)} y={p.cy + 3.5} fontSize="10.5" fill={st.color} fontWeight={n.type === "mcfRole" ? 700 : 500}>{txt}</text>
-                {n.type === "iscoOccupation" && n.score != null && <text x={p.x + p.w - 6} y={p.cy + 3.5} fontSize="9.5" textAnchor="end" fill={st.color} fontWeight="700">{n.score}</text>}
+              <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.18 : 1 }}>
+                <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${LEVELS[lvl].label}` : ""}</title>
+                <foreignObject x={p.x} y={p.yTop} width={p.w} height={p.h}>
+                  <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 7, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: FONT, lineHeight: `${LINE_H}px`, color: st.color, fontWeight: n.type === "mcfRole" ? 700 : 500, overflowWrap: "anywhere", wordBreak: "break-word" }}>{n.label}</span>
+                    {n.type === "iscoOccupation" && n.score != null && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: st.color }}>{n.score}</span>}
+                  </div>
+                </foreignObject>
               </g>
             );
           }))}
