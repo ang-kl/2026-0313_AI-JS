@@ -47,7 +47,11 @@
 // < 4 yrs (null no longer passes) + page resets on toggle + chip counts + capped caveat; Role Graph
 // linesOf no longer clips long/CJK labels + barycenter sweeps one side at a time; mode cards are a
 // real <button aria-pressed> with the checkbox as a sibling (no interactive nested in role=button);
-// ProvLegend reworded "where shown". (Score-bar red/green left for a separate a11y sweep.)
+// ProvLegend reworded "where shown".
+// v3.0.11 - 2026-06-08 - HDR #048 - finish the red/green a11y sweep (audit #8): every score / CV-fit /
+// coverage / keyword-gate / ATS bar + the covered(✓)/missing(✗) chips now use blue(high)→amber(mid)→
+// orange(low) instead of green/red; positive=blue, negative=orange app-wide. NO green/red hex remains
+// in App.jsx; numbers/labels/icons still carry meaning so it's not colour-alone. v3-only (v1/v2 untouched).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -62,9 +66,9 @@ const C = {
   mutedLight: "#9aa5b4",
   text:       "#1a202c",
   textSub:    "#4a5568",
-  green:      "#166534",
+  green:      "#1e40af",
   greenBg:    "#ecfdf5",
-  greenBdr:   "#a7f3d0",
+  greenBdr:   "#c7d2fe",
   purple:     "#7c3aed",
   purpleBg:   "#f3e8ff",
   purpleBdr:  "#ddd6fe",
@@ -544,9 +548,9 @@ const ROLE_MIX_VERSION = "rm1"; // bump when the fingerprint inputs or the narra
 const _roleMixCache = new Map(); // `${uuid}|${ROLE_MIX_VERSION}` -> roleMix object
 
 const ROLE_MIX_COHERENCE = {
-  coherent: { label:"Coherent hybrid", color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+  coherent: { label:"Coherent hybrid", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe" },
   mixed:    { label:"Mixed bundle",    color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" },
-  grabbag:  { label:"Grab-bag",        color:"#b91c1c", bg:"#fef2f2", border:"#fecaca" },
+  grabbag:  { label:"Grab-bag",        color:"#9a3412", bg:"#fff7ed", border:"#fed7aa" },
 };
 
 async function getRoleMixCandidates(title, skills, extraPhrases) {
@@ -692,7 +696,7 @@ const JOB_LAYERS = {
   Coordination:   { label:"Coordination",   color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", blurb:"orchestrating people and process" },
   Accountability: { label:"Accountability", color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5", blurb:"owning outcomes and decisions" },
   Relational:     { label:"Relational",     color:"#7c3aed", bg:"#f3e8ff", border:"#ddd6fe", blurb:"trust, negotiation and influence" },
-  Judgment:       { label:"Judgment",       color:"#166534", bg:"#f0fdf4", border:"#a7f3d0", blurb:"framing and deciding under ambiguity" },
+  Judgment:       { label:"Judgment",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", blurb:"framing and deciding under ambiguity" },
 };
 const JOB_LAYER_ORDER = ["Activity","Coordination","Accountability","Relational","Judgment"];
 const _exposureBand = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
@@ -2018,9 +2022,9 @@ const PERSONA_CONFIG = {
   fresh: {
     label:   "Fresh Graduate",
     icon:    "🎓",
-    color:   "#166534",
+    color:   "#1e40af",
     bg:      "#ecfdf5",
-    border:  "#a7f3d0",
+    border:  "#c7d2fe",
     context: "a fresh graduate with no prior work experience entering this field for the first time",
     horizon: "first 12 months of employment and beyond",
   },
@@ -2411,7 +2415,7 @@ const RESP_CATEGORIES = [
   "Improvement & Innovation","Technical & Systems",
 ];
 const RESP_FREQ = {
-  Core:       { label:"Core duty",  color:"#166534", bg:"#f0fdf4", border:"#a7f3d0" },
+  Core:       { label:"Core duty",  color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe" },
   Common:     { label:"Common",     color:"#1a56db", bg:"#e8f0fe", border:"#c3d3f5" },
   Occasional: { label:"Occasional", color:"#6b7a8d", bg:"#f1f5f9", border:"#dde3ec" },
 };
@@ -2782,7 +2786,7 @@ function DiagSteps() {
       {open && (
         <div style={{ marginTop: 6, fontFamily: "monospace", fontSize: 10, lineHeight: 1.7, color: C.muted, background: "#fafafa", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", maxHeight: 200, overflowY: "auto" }}>
           {steps.map((s, i) => (
-            <div key={i} style={{ color: isBad(s.status) ? "#c0392b" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            <div key={i} style={{ color: isBad(s.status) ? "#9a3412" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
               {s.step} · {s.status}{s.ms != null ? ` · ${s.ms}ms` : ""}{s.detail ? ` · ${s.detail.slice(0, 120)}` : ""}
             </div>
           ))}
@@ -2803,7 +2807,7 @@ function ErrBox({ msg, query }) {
 
   if (isBusy) {
     return (
-      <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.green }}>The analyser has had a wonderful day</p>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
           So many searches today that it has reached its daily limit - which is a good thing, really. It resets overnight, so please do come back tomorrow. Thank you for your patience and interest - it genuinely means a lot.
@@ -2839,7 +2843,7 @@ function ErrBox({ msg, query }) {
   if (isNotFound) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#c0392b" }}>
+        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
           No match found for "{query}"
         </p>
         <p style={{ margin:"0 0 8px", fontSize:12, color:"#78350f", lineHeight:1.65 }}>A few things that often help:</p>
@@ -2856,7 +2860,7 @@ function ErrBox({ msg, query }) {
   if (isInvalid || isTooLong) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#c0392b" }}>
+        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
           {isTooLong ? "That job title is a little long" : "That does not quite look like a job title"}
         </p>
         <p style={{ margin:0, fontSize:12, color:"#78350f", lineHeight:1.65 }}>
@@ -3088,9 +3092,9 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
             )}
           </div>
           {pickerFullLoading && (
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", marginBottom:10, background:"#f0fdf4", border:"1px solid #86efac", borderRadius:7 }}>
-              <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #86efac", borderTop:"2px solid #16a34a", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-              <p style={{ margin:0, fontSize:13, fontWeight:500, color:"#166534", lineHeight:1.5 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", marginBottom:10, background:"#eef2ff", border:"1px solid #93c5fd", borderRadius:7 }}>
+              <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #93c5fd", borderTop:"2px solid #0f766e", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+              <p style={{ margin:0, fontSize:13, fontWeight:500, color:"#1e40af", lineHeight:1.5 }}>
                 Loading more roles - please wait.
               </p>
             </div>
@@ -3103,14 +3107,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
             </div>
           )}
           {showNudge && (
-            <div style={{ position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)", zIndex:200, maxWidth:340, width:"calc(100% - 32px)", background:"#166534", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>
+            <div style={{ position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)", zIndex:200, maxWidth:340, width:"calc(100% - 32px)", background:"#1e40af", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>
               <button
                 onClick={() => { browseRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setNudgeDismissed(true); }}
                 style={{ flex:1, background:"transparent", border:"none", cursor:"pointer", textAlign:"left", padding:0 }}>
                 <p style={{ margin:0, fontSize:13, fontWeight:700, color:"#fff", lineHeight:1.4 }}>
                   {additionalCount} more roles loaded below
                 </p>
-                <p style={{ margin:"2px 0 0", fontSize:11, color:"#bbf7d0", lineHeight:1.3 }}>
+                <p style={{ margin:"2px 0 0", fontSize:11, color:"#bfdbfe", lineHeight:1.3 }}>
                   Tap to browse by industry ↓
                 </p>
               </button>
@@ -3421,7 +3425,7 @@ function NxCopyButton({ nxDisplay, promptTech, prep, automationLevel, applyText,
   };
   return (
     <button onClick={handleNxCopy}
-      style={{ fontSize:10, fontWeight:600, color: nxCopied ? "#166534" : C.muted, background: nxCopied ? "#dcfce7" : "transparent", border:`1px solid ${nxCopied ? "#a7f3d0" : C.border}`, borderRadius:5, padding:"2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
+      style={{ fontSize:10, fontWeight:600, color: nxCopied ? "#1e40af" : C.muted, background: nxCopied ? "#dbeafe" : "transparent", border:`1px solid ${nxCopied ? "#c7d2fe" : C.border}`, borderRadius:5, padding:"2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
       {nxCopied ? "Copied. Ready to Paste" : "Copy Instructions"}
     </button>
   );
@@ -3480,7 +3484,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
     "least-to-most":        { label:"Least-to-most",        desc:"Complex problem broken into simpler subproblems, solved in order. Each answer builds the next. Good for dependent reasoning chains.", level:"L4-5", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
     "output-contract":      { label:"Output contract",      desc:"Explicit output structure with field names, section headers, and word or count targets. Eliminates vague responses.", level:"L4-5", color:"#1e40af", bg:"#dbeafe", border:"#bfdbfe" },
     "skeleton-of-thought":  { label:"Skeleton of thought",  desc:"Generate a structured outline first, then expand each section. Faster for long structured documents where sections are independent.", level:"L4-5", color:"#1e3a8a", bg:"#eff6ff", border:"#bfdbfe" },
-    "few-shot-anchor":      { label:"Few-shot anchor",       desc:"A worked example of ideal input-output is embedded before the task. AI calibrates to your quality standard, not its default.", level:"L5-6", color:"#065f46", bg:"#d1fae5", border:"#a7f3d0" },
+    "few-shot-anchor":      { label:"Few-shot anchor",       desc:"A worked example of ideal input-output is embedded before the task. AI calibrates to your quality standard, not its default.", level:"L5-6", color:"#065f46", bg:"#d1fae5", border:"#c7d2fe" },
     "multimodal-cot":       { label:"Multimodal CoT",        desc:"Combines image and text inputs with chain-of-thought reasoning. AI reasons across both modalities. Applicable when the task involves interpreting a visual alongside text.", level:"L5-6", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa" },
     "self-consistency":     { label:"Self-consistency",      desc:"Same prompt run multiple times; the most consistent answer selected. Best for high-stakes analytical tasks where a single answer may be unreliable.", level:"L5-6", color:"#6b21a8", bg:"#faf5ff", border:"#e9d5ff" },
     "meta-prompting":       { label:"Meta prompting",        desc:"Describe the shape and evaluation criteria of the ideal answer before asking. AI knows what good looks like before it starts.", level:"L6-7", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
@@ -3498,7 +3502,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
   // Next phase colours by automation level
   const NX_STYLE = {
     HIGH:   { bg:"#fdf4ff", border:"#c084fc", color:"#86198f", icon:"⚡" },
-    MEDIUM: { bg:"#f0fdf4", border:"#4ade80", color:"#166534", icon:"🔼" },
+    MEDIUM: { bg:"#eef2ff", border:"#93c5fd", color:"#1e40af", icon:"🔼" },
     LOW:    { bg:"#eff6ff", border:"#93c5fd", color:"#1e40af", icon:"🔼" },
   };
   const nxStyle = NX_STYLE[automationLevel] || NX_STYLE.MEDIUM;
@@ -3519,7 +3523,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
       )}
       <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:6 }}>
           <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
-          {readiness === "ready"                           && <span style={{ fontSize:9, fontWeight:600, color:"#166534", background:"#dcfce7", border:"1px solid #a7f3d0", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
+          {readiness === "ready"                           && <span style={{ fontSize:9, fontWeight:600, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
           {(readiness === "quick-prep" || readiness === "prepare") && <span style={{ fontSize:9, fontWeight:600, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Quick prep first</span>}
           {readiness === "deep-prep"                       && <span style={{ fontSize:9, fontWeight:600, color:"#7c3aed", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Prep needed</span>}
           {tech && (
@@ -3547,7 +3551,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
           {tech && <span> This prompt uses a <strong>{tech.label.toLowerCase()}</strong> - hover the badge above to learn why.</span>}
         </p>
         <button onClick={handleCopy}
-          style={{ flexShrink:0, padding:"5px 14px", fontSize:11, fontWeight:700, color: copied ? "#166534" : "#0369a1", background: copied ? "#dcfce7" : "#e0f2fe", border:`1.5px solid ${copied ? "#a7f3d0" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
+          style={{ flexShrink:0, padding:"5px 14px", fontSize:11, fontWeight:700, color: copied ? "#1e40af" : "#0369a1", background: copied ? "#dbeafe" : "#e0f2fe", border:`1.5px solid ${copied ? "#c7d2fe" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
           {copied ? "Copied. Ready to Paste" : "Copy Prompt"}
         </button>
       </div>
@@ -3667,9 +3671,9 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
                       onClick={() => handleQueue(ex.role)}
                       disabled={queueFull || isQueued}
                       style={{ flex:"1 1 auto", padding:"5px 10px", fontSize:12, fontWeight:700,
-                        color: isQueued ? "#166534" : queueFull ? C.muted : C.accent,
-                        background: isQueued ? "#f0fdf4" : queueFull ? C.surface : C.accentSoft,
-                        border: `1.5px solid ${isQueued ? "#a7f3d0" : queueFull ? C.border : "#c3d3f5"}`,
+                        color: isQueued ? "#1e40af" : queueFull ? C.muted : C.accent,
+                        background: isQueued ? "#eef2ff" : queueFull ? C.surface : C.accentSoft,
+                        border: `1.5px solid ${isQueued ? "#c7d2fe" : queueFull ? C.border : "#c3d3f5"}`,
                         borderRadius:6, cursor: queueFull || isQueued ? "not-allowed" : "pointer" }}>
                       {isQueued ? "✓ Queued for compare" : queueFull ? "Comparison full" : "+ Compare"}
                     </button>
@@ -4019,9 +4023,9 @@ function FoundationCard({ item }) {
               <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Why AI Cannot Replace This</p>
               <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{item.why}</p>
             </div>
-            <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:6, padding:"7px 12px", flex:"2 1 180px" }}>
+            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:6, padding:"7px 12px", flex:"2 1 180px" }}>
               <p style={{ margin:"0 0 2px", fontSize:10, color:C.green, textTransform:"uppercase", fontWeight:700 }}>Learning Action</p>
-              <p style={{ margin:0, fontSize:12, color:"#166534", fontWeight:600, lineHeight:1.5 }}>{item.action}</p>
+              <p style={{ margin:0, fontSize:12, color:"#1e40af", fontWeight:600, lineHeight:1.5 }}>{item.action}</p>
             </div>
           </div>
         </div>
@@ -4216,18 +4220,18 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         <span style={{ fontSize:11, fontWeight:600, color:"#0369a1", flexShrink:0, marginLeft:10 }}>{ready.length} of 3 roles</span>
       </div>
       {/* Section 1 - Overlap */}
-      <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:800, color:"#166534", lineHeight:1.3 }}>
+      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:800, color:"#1e40af", lineHeight:1.3 }}>
           {allShared.length > 0 ? `Transferable strengths - shared across all ${ready.length} roles` : `Transferable strengths across all ${ready.length} roles`}
         </p>
         {allShared.length > 0
           ? <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: pairShared.length > 0 ? 10 : 0 }}>
-              {allShared.map((s, i) => <span key={i} style={{ fontSize:12, color:"#166534", background:"#dcfce7", border:"1px solid #a7f3d0", borderRadius:12, padding:"2px 9px" }}>{toTitleCase(s)}</span>)}
+              {allShared.map((s, i) => <span key={i} style={{ fontSize:12, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius:12, padding:"2px 9px" }}>{toTitleCase(s)}</span>)}
             </div>
           : <p style={{ margin:"0 0 10px", fontSize:12, color:C.muted, fontStyle:"italic" }}>No skills shared across all roles - each draws on a distinct skill set.</p>
         }
         {pairShared.filter(p => p.skills.length > 0).map((pair, i) => (
-          <div key={i} style={{ marginTop:8, paddingTop:8, borderTop:"1px dashed #a7f3d0" }}>
+          <div key={i} style={{ marginTop:8, paddingTop:8, borderTop:"1px dashed #c7d2fe" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#0e7490" }}>{pair.label} also share</p>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
               {pair.skills.map((s, j) => <span key={j} style={{ fontSize:12, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:12, padding:"2px 8px" }}>{toTitleCase(s)}</span>)}
@@ -4320,12 +4324,12 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
               <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>What each role is actually expected to do, and how exposed those duties are to AI.</p>
             </div>
             {/* shared duties */}
-            <div style={{ background:"#f0fdf4", border:"1px solid #a7f3d0", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
-              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#166534" }}>Duties shared across all {ready.length} roles</p>
+            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#1e40af" }}>Duties shared across all {ready.length} roles</p>
               {sharedDuties.length > 0
                 ? sharedDuties.map((d, i) => (
                     <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
-                      <span style={{ color:"#166534", fontSize:12, lineHeight:1.4 }}>✓</span>
+                      <span style={{ color:"#1e40af", fontSize:12, lineHeight:1.4 }}>✓</span>
                       <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d.text}</span>
                     </div>
                   ))
@@ -4567,7 +4571,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                   {humanLed[i].length > 0
                     ? humanLed[i].map((s, j) => (
                         <div key={j} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
-                          <span style={{ width:5, height:5, borderRadius:"50%", background:"#166534", flexShrink:0 }} />
+                          <span style={{ width:5, height:5, borderRadius:"50%", background:"#1e40af", flexShrink:0 }} />
                           <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
                         </div>
                       ))
@@ -4781,7 +4785,7 @@ function CategoryPanel({ skills }) {
 
   const reuseOrder = ["Transversal","Cross-sector","Sector-specific","Occupation-specific"];
   const reuseColour = {
-    "Transversal":         { bg:"#f0fdf4", border:"#bbf7d0", text:"#16a34a" },
+    "Transversal":         { bg:"#eef2ff", border:"#bfdbfe", text:"#0f766e" },
     "Cross-sector":        { bg:"#eff6ff", border:"#bfdbfe", text:"#2563eb" },
     "Sector-specific":     { bg:"#fefce8", border:"#fde68a", text:"#ca8a04" },
     "Occupation-specific": { bg:"#fff7ed", border:"#fed7aa", text:"#ea580c" },
@@ -5282,7 +5286,7 @@ function CompareWarningModal({ onConfirm, onCancel }) {
         </p>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={onConfirm}
-            style={{ flex:1, padding:"8px 14px", fontSize:12, fontWeight:700, color:"#fff", background:"#dc2626", border:"none", borderRadius:7, cursor:"pointer" }}>
+            style={{ flex:1, padding:"8px 14px", fontSize:12, fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius:7, cursor:"pointer" }}>
             Yes, start fresh
           </button>
           <button onClick={onCancel}
@@ -5355,9 +5359,9 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
       </div>
 
       <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:14 }}>
-        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#f0fdf4", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#a7f3d0"}`, borderRadius:8, padding:"10px 14px" }}>
-          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#166534", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
-          <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#166534", lineHeight:1.5 }}>
+        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#eef2ff", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#c7d2fe"}`, borderRadius:8, padding:"10px 14px" }}>
+          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#1e40af", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
+          <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#1e40af", lineHeight:1.5 }}>
             {nar.postedAsNote || (roleMix.mismatch
               ? `Titled like "${roleMix.nominalLabel || title}", but the duty mix centres on ${comps[0]?.label || "another role"}.`
               : `The posted title (${roleMix.nominalLabel || title}) matches the main duty cluster.`)}
@@ -5446,7 +5450,7 @@ function JobAnatomyView({ anatomy, title }) {
   const a = anatomy;
   const nar = a.narrative || {};
   const score = a.aiResilienceScore;
-  const scoreColor = score >= 65 ? "#166534" : score >= 40 ? "#b45309" : "#b91c1c";
+  const scoreColor = score >= 65 ? "#1e40af" : score >= 40 ? "#b45309" : "#9a3412";
   const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
   const sortedDuties = [...a.duties].sort((x,y) => (y.count - x.count) || ((lvlOrd[x.exposureNow]??1)-(lvlOrd[y.exposureNow]??1)) || x.text.localeCompare(y.text));
   const trjSym = { stable:"→", rising:"↗", sharp:"⇈" };
@@ -5587,7 +5591,7 @@ function RoleGraphStepCard({ step }) {
             <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
               <span style={{ flexShrink: 0, width: 16, marginTop: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                 {done
-                  ? <span style={{ color: "#16a34a", fontSize: 13, fontWeight: 800 }}>✓</span>
+                  ? <span style={{ color: "#0f766e", fontSize: 13, fontWeight: 800 }}>✓</span>
                   : active
                     ? <span style={{ width: 12, height: 12, border: "2px solid #bae6fd", borderTop: "2px solid #1a56db", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite" }} />
                     : <span style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{n}.</span>}
@@ -5792,7 +5796,7 @@ function RoleGraphPanel({ result, title }) {
                 {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
                 {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
                 {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
-                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
               </div>
             </>
           )}
@@ -5808,10 +5812,10 @@ function RoleGraphPanel({ result, title }) {
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
                     {c.code ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
-                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#166534", background: "#f0fdf4", border: "1px solid #a7f3d0", borderRadius: 10, padding: "1px 7px" }}>matches the posted title</span>}
-                    <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
+                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "1px 7px" }}>matches the posted title</span>}
+                    <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
                   </div>
-                  <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#166534" : c.score >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                  <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }} /></div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
                     {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
                       <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 3, background: "#eef1f5", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
@@ -5879,7 +5883,7 @@ function RoleGraphPanel({ result, title }) {
               {cv.status === "loading" && <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 11, height: 11, border: "2px solid #c7d2fe", borderTop: "2px solid #4338ca", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} /><p style={{ margin: 0, fontSize: 12, color: C.muted }}>Parsing the CV and scoring fit…</p></div>}
               {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "#b45309" }}>That didn't go through — please try again.</p>}
               {cv.status === "done" && cv.fit && (() => {
-                const f = cv.fit; const bc = f.band === "READY" ? "#166534" : f.band === "DEVELOPING" ? "#b45309" : "#b91c1c";
+                const f = cv.fit; const bc = f.band === "READY" ? "#1e40af" : f.band === "DEVELOPING" ? "#b45309" : "#9a3412";
                 const bl = f.band === "READY" ? "Role-ready" : f.band === "DEVELOPING" ? "Developing — close some gaps" : "A stretch right now";
                 return (
                   <div style={{ marginTop: 14 }}>
@@ -5889,9 +5893,9 @@ function RoleGraphPanel({ result, title }) {
                       <span style={{ fontSize: 11.5, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
                     </div>
                     <div style={{ marginBottom: 10 }}>{subHdr(`Target-role ESCO skills — covered ${f.escoCoverage.covered.length}/${f.escoCoverage.total}`)}
-                      {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0", "cc" + i))}
+                      {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#1e40af", "#eef2ff", "#c7d2fe", "cc" + i))}
                       {f.escoCoverage.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "cp" + i))}
-                      {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca", "cm" + i))}
+                      {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#9a3412", "#fff7ed", "#fed7aa", "cm" + i))}
                     </div>
                     {f.families.length > 0 && (
                       <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
@@ -5899,7 +5903,7 @@ function RoleGraphPanel({ result, title }) {
                           <div key={i} style={{ marginBottom: 6 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
-                              <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#166534" : fam.coverage >= 35 ? "#b45309" : "#b91c1c" }} /></div>
+                              <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#1e40af" : fam.coverage >= 35 ? "#b45309" : "#9a3412" }} /></div>
                               <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{fam.coverage}%</span>
                             </div>
                             {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 10.5, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
@@ -5912,8 +5916,8 @@ function RoleGraphPanel({ result, title }) {
                         <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
                         {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px,100%), 1fr))", gap: 10 }}>
-                          {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
-                          {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1e40af" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
+                          {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
                           {cv.narrative.nextSteps.length > 0 && <div>{subHdr("Next steps")}{cv.narrative.nextSteps.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#4338ca" }}>→</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
                         </div>
                       </div>
@@ -5951,9 +5955,9 @@ function RoleGraphPanel({ result, title }) {
 // keyword-gap COUNTS are recorded - no résumé text, no URLs.
 const _GATE_STATE = {
   neutral: { bg: "#f1f5f9", border: C.border, color: C.muted, mark: "" },
-  pass:    { bg: "#f0fdf4", border: "#a7f3d0", color: "#166534", mark: "✓" },
+  pass:    { bg: "#eef2ff", border: "#c7d2fe", color: "#1e40af", mark: "✓" },
   warn:    { bg: "#fffbeb", border: "#fcd9a0", color: "#92400e", mark: "⚠" },
-  fail:    { bg: "#fef2f2", border: "#fecaca", color: "#b91c1c", mark: "✗" },
+  fail:    { bg: "#fff7ed", border: "#fed7aa", color: "#9a3412", mark: "✗" },
 };
 function ResumeCheckPanel({ result, title }) {
   const [profileState, setProfileState] = useState({ status: "loading" });
@@ -5999,9 +6003,9 @@ function ResumeCheckPanel({ result, title }) {
     return (
       <div style={{ marginBottom: 8 }}>
         {sectionHdr(`${label} — ${tier.covered.length}/${tier.total}${tier.partial.length ? ` (${tier.partial.length} partial)` : ""}`)}
-        {tier.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#166534", "#f0fdf4", "#a7f3d0", "c" + i))}
+        {tier.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#1e40af", "#eef2ff", "#c7d2fe", "c" + i))}
         {tier.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "p" + i))}
-        {tier.missing.map((m, i) => chip(`✗ ${m.kw || m}`, "#b91c1c", "#fef2f2", "#fecaca", "m" + i))}
+        {tier.missing.map((m, i) => chip(`✗ ${m.kw || m}`, "#9a3412", "#fff7ed", "#fed7aa", "m" + i))}
       </div>
     );
   };
@@ -6103,7 +6107,7 @@ function ResumeCheckPanel({ result, title }) {
           {(check.status === "done" ? check.parsed.checklist : parseCheck("").checklist).map((c, i) => {
             const showState = check.status === "done";
             const mark = !showState || c.ok === null ? "○" : c.ok ? "✓" : "✗";
-            const col = !showState || c.ok === null ? C.mutedLight : c.ok ? "#166534" : "#b91c1c";
+            const col = !showState || c.ok === null ? C.mutedLight : c.ok ? "#1e40af" : "#9a3412";
             return (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
                 <span style={{ color: col, fontWeight: 700, fontSize: 13, flexShrink: 0, width: 13 }}>{mark}</span>
@@ -6158,10 +6162,10 @@ function ResumeCheckPanel({ result, title }) {
 
       {check.status === "done" && (() => {
         const { parsed, kw, screen: scr, anomaly, advice: adv } = check;
-        const bandColor = check.band === "likely" ? "#166534" : check.band === "borderline" ? "#b45309" : "#b91c1c";
+        const bandColor = check.band === "likely" ? "#1e40af" : check.band === "borderline" ? "#b45309" : "#9a3412";
         const bandLabel = check.band === "likely" ? "Likely to clear screening" : check.band === "borderline" ? "Borderline — could go either way" : "Likely filtered out";
-        const g2Color = kw.gate2Score >= 65 ? "#166534" : kw.gate2Score >= 40 ? "#b45309" : "#b91c1c";
-        const pColor = parsed.score >= 75 ? "#166534" : parsed.score >= 50 ? "#b45309" : "#b91c1c";
+        const g2Color = kw.gate2Score >= 65 ? "#1e40af" : kw.gate2Score >= 40 ? "#b45309" : "#9a3412";
+        const pColor = parsed.score >= 75 ? "#1e40af" : parsed.score >= 50 ? "#b45309" : "#9a3412";
         const tm = kw.titleMatch;
         return (
           <div>
@@ -6180,7 +6184,7 @@ function ResumeCheckPanel({ result, title }) {
                   <span style={{ fontSize: 11.5, color: C.muted }}>~{parsed.words} words · ~{parsed.pages} page{parsed.pages === 1 ? "" : "s"} of text</span>
                 </div>
                 {parsed.flags.length === 0
-                  ? <p style={{ margin: 0, fontSize: 12, color: "#166534" }}>No text-level parsing red flags detected in the pasted text. (Still verify the layout invariants above in your actual file.)</p>
+                  ? <p style={{ margin: 0, fontSize: 12, color: "#1e40af" }}>No text-level parsing red flags detected in the pasted text. (Still verify the layout invariants above in your actual file.)</p>
                   : parsed.flags.map((f, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 4 }}>
                       <span style={{ color: f.level === "warn" ? "#b45309" : C.mutedLight, flexShrink: 0 }}>{f.level === "warn" ? "⚠" : "○"}</span>
@@ -6199,8 +6203,8 @@ function ResumeCheckPanel({ result, title }) {
                 </div>
                 {/* exact-title lever */}
                 {tm && tm.target && (
-                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 7, background: tm.matched ? "#f0fdf4" : "#fef2f2", border: `1px solid ${tm.matched ? "#a7f3d0" : "#fecaca"}` }}>
-                    <p style={{ margin: 0, fontSize: 12, color: tm.matched ? "#166534" : "#b91c1c", lineHeight: 1.5 }}>
+                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 7, background: tm.matched ? "#eef2ff" : "#fff7ed", border: `1px solid ${tm.matched ? "#c7d2fe" : "#fed7aa"}` }}>
+                    <p style={{ margin: 0, fontSize: 12, color: tm.matched ? "#1e40af" : "#9a3412", lineHeight: 1.5 }}>
                       {tm.matched
                         ? <><strong>Title mirrored.</strong> Your most-recent role title matches the target ("{tm.found || tm.target}") — that's the biggest single lever (≈10× interview likelihood).</>
                         : <><strong>Title mismatch.</strong> Your most-recent title looks like "{tm.found || "(not detected)"}" but the role is "{tm.target}". Mirroring the exact title — accurately — is the strongest move you can make.</>}
@@ -6219,8 +6223,8 @@ function ResumeCheckPanel({ result, title }) {
                 )}
                 {/* stuffing */}
                 {kw.stuffing && kw.stuffing.length > 0 && (
-                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 7 }}>
-                    <p style={{ margin: 0, fontSize: 11.5, color: "#b91c1c", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
+                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#9a3412", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
                   </div>
                 )}
                 {/* acronym tips */}
@@ -6243,16 +6247,16 @@ function ResumeCheckPanel({ result, title }) {
                   {Object.entries(scr.scores || {}).map(([dim, val], i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ width: 150, flexShrink: 0, fontSize: 11, color: C.textSub }}>{dim}</span>
-                      <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#166534" : val >= 40 ? "#b45309" : "#b91c1c" }} /></div>
+                      <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#1e40af" : val >= 40 ? "#b45309" : "#9a3412" }} /></div>
                       <span style={{ width: 28, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{val}</span>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 10 }}>
-                  {scr.advanceReasons.length > 0 && <div>{sectionHdr("A screener would advance because")}{scr.advanceReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#166534" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                  {scr.rejectReasons.length > 0 && <div>{sectionHdr("…or reject because")}{scr.rejectReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.advanceReasons.length > 0 && <div>{sectionHdr("A screener would advance because")}{scr.advanceReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1e40af" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.rejectReasons.length > 0 && <div>{sectionHdr("…or reject because")}{scr.rejectReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
                   {scr.redFlags.length > 0 && <div>{sectionHdr("Red flags")}{scr.redFlags.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>⚑</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                  {scr.knockoutRisks.length > 0 && <div>{sectionHdr("Required-qual risks")}{scr.knockoutRisks.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b91c1c" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
+                  {scr.knockoutRisks.length > 0 && <div>{sectionHdr("Required-qual risks")}{scr.knockoutRisks.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
                 </div>
               </>
             )}
@@ -6288,7 +6292,7 @@ function ResumeCheckPanel({ result, title }) {
                   </div>
                 )}
                 {adv.donts.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Don't")}{adv.donts.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{d}</span></div>)}</div>}
-                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "7px 10px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 7 }}><p style={{ margin: 0, fontSize: 11.5, color: "#b91c1c", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
+                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}><p style={{ margin: 0, fontSize: 11.5, color: "#9a3412", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
                 {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
               </div>
             )}
@@ -6620,7 +6624,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
             </div>
             {Object.entries(grouped).map(([prio, items]) => items.length > 0 && (
               <div key={prio} style={{ marginBottom:16 }}>
-                <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color: prio==="Must-Have"?"#b91c1c":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
+                <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color: prio==="Must-Have"?"#9a3412":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
                 {items.map((f, i) => (
                   <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"11px 14px", marginBottom:8, background:C.surface }}>
                     <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
@@ -7029,7 +7033,7 @@ export function PipelineLogsView() {
         <button onClick={load} style={{ fontSize: 12, padding: "3px 10px", cursor: "pointer" }}>refresh</button>
         <span style={{ color: C.muted }}>{state.status === "loading" ? "loading…" : `${state.logs.length} rows (newest first)`}</span>
       </div>
-      {state.status === "error" && <p style={{ color: "#c0392b" }}>Could not load - the store may be unavailable.</p>}
+      {state.status === "error" && <p style={{ color: "#9a3412" }}>Could not load - the store may be unavailable.</p>}
       {state.status === "done" && !state.logs.length && <p style={{ color: C.muted }}>No log rows yet.</p>}
       {!!state.logs.length && (
         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
@@ -8537,7 +8541,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     )}
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {comparisons.map((c, i) => (
-                        <span key={i} style={{ fontSize:10, color: c.result ? "#166534" : C.accent, background: c.result ? "#f0fdf4" : "#fff", border:`1px solid ${c.result ? "#a7f3d0" : "#c3d3f5"}`, borderRadius:12, padding:"1px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
+                        <span key={i} style={{ fontSize:10, color: c.result ? "#1e40af" : C.accent, background: c.result ? "#eef2ff" : "#fff", border:`1px solid ${c.result ? "#c7d2fe" : "#c3d3f5"}`, borderRadius:12, padding:"1px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
                           {c.result ? "✓" : "⏳"} {c.title}
                           {!c.result && <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize:11, color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>}
                         </span>
@@ -8688,14 +8692,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       </div>
                       <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
                         {comparisons.map((c, i) => (
-                          <span key={i} style={{ fontSize:11, color: c.result ? "#166534" : "#0369a1", background: c.result ? "#f0fdf4" : "#e8f0fe", border:`1px solid ${c.result ? "#a7f3d0" : "#bae6fd"}`, borderRadius:12, padding:"4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
-                            {c.result ? <span style={{ color:"#166534", fontWeight:700 }}>✓</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
+                          <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius:12, padding:"4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+                            {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>✓</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
                             <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
                           </span>
                         ))}
                       </div>
                       {comparisons.some(c => c.result) && (
-                        <p style={{ margin:0, fontSize:11, color:"#166534", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
+                        <p style={{ margin:0, fontSize:11, color:"#1e40af", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
                       )}
                     </div>
                   ) : readyComps.length >= 2 ? (
