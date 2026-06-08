@@ -30,6 +30,9 @@
 // "computed" (deterministic, reproducible) visibly distinct from "AI estimate" (LLM judgement,
 // may vary) and "from MCF" (verbatim posting). Tagged the headline surfaces: AI Exposure Overview
 // + Role-Mix = AI estimate; ISCO reverse-map ranking = computed; posting link = from MCF.
+// v3.0.6 - 2026-06-08 - HDR #043 - docs: doc/v3-engine-wiring-spec.md - approved design to move
+// AI-exposure from LLM-guessed to deterministic AIOE (reconcile occupation -> AIOE index ->
+// mirror-roles; new /api/engine; LLM narration only). Staged PR0 (data gate) -> PR1 -> PR2.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
