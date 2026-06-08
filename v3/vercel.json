@@ -7,7 +7,8 @@
     "api/esco.js":    { "maxDuration": 60  },
     "api/mcf.js":     { "maxDuration": 60  },
     "api/datagov.js": { "maxDuration": 30  },
-    "api/anatomy.js": { "maxDuration": 15  }
+    "api/anatomy.js": { "maxDuration": 15  },
+    "api/engine.js":  { "maxDuration": 15  }
   },
   "fluid": true,
   "headers": [
