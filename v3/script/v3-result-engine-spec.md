@@ -210,10 +210,10 @@ Use the in-repo samples as golden inputs - do not invent test data.
 
 ## §10. Agents and recipes (this bundle)
 
-- `.claude/agents/spec-author.md` - turns an enhancement into a PR-sized spec slice in this idiom; sets `READY_FOR_BUILD`.
-- `.claude/agents/result-engine-builder.md` - implements one PR (E2/H1/A8/...) against this spec; deterministic-first; never lets the LLM author a number.
-- `.claude/agents/conformance-auditor.md` - runs D1-D8 (static) + G1-G8 (dynamic) + the §6 hard gates; **read-only**, proposes, never edits.
-- `.claude/agents/a11y-honesty-reviewer.md` - checks the §7 contract (no red/green, 44px, aria, Prov chips, "human decides"); **read-only**.
+- `v3/agents/spec-author.md` - turns an enhancement into a PR-sized spec slice in this idiom; sets `READY_FOR_BUILD`.
+- `v3/agents/result-engine-builder.md` - implements one PR (E2/H1/A8/...) against this spec; deterministic-first; never lets the LLM author a number.
+- `v3/agents/conformance-auditor.md` - runs D1-D8 (static) + G1-G8 (dynamic) + the §6 hard gates; **read-only**, proposes, never edits.
+- `v3/agents/a11y-honesty-reviewer.md` - checks the §7 contract (no red/green, 44px, aria, Prov chips, "human decides"); **read-only**.
 - `v3/script/v3-result-engine.recipes.md` - R-FREEZE, R-SPEC, R-AUDIT, R-SNAPSHOT, R-PREMORTEM, R-PORT, R-DEBUG.
 
 ---

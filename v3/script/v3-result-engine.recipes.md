@@ -3,7 +3,7 @@
 # v3 Result-Engine - Recipes
 
 > **Target repo path:** `v3/script/v3-result-engine.recipes.md`.
-> Reusable build + prompt recipes for the result-page arc. Each recipe states **When**, the **Run** (a runnable command or a prompt skeleton), and the **Expect**. Recipes pair with the agents in `.claude/agents/` and the spec `v3/script/v3-result-engine-spec.md`. House rules in `doc/CLAUDE-FULL.md` bind all of them. Hyphens only, never em/en dashes (R007).
+> Reusable build + prompt recipes for the result-page arc. Each recipe states **When**, the **Run** (a runnable command or a prompt skeleton), and the **Expect**. Recipes pair with the agents in `v3/agents/` and the spec `v3/script/v3-result-engine-spec.md`. House rules in `doc/CLAUDE-FULL.md` bind all of them. Hyphens only, never em/en dashes (R007).
 
 ---
 
