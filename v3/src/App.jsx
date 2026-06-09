@@ -97,6 +97,14 @@
 // Integration / Informatica BDM (Singaporean Only)" searches as "Data Analyst" - no longer resolving to the
 // wrong occupation ("Call Centre Analyst") with unrelated skills. Conservative: keeps "Full-Stack Engineer",
 // "X-Ray / CT Imaging Engineer", clean titles unchanged. Cache rg2->rg3 to rebuild. v3-only.
+// v3.0.22 - 2026-06-10 - HDR #059 - model upgrade: the two analysis calls (skill-relevance + the
+// batch prompt/dimension generator) move from Sonnet 4.6 -> Opus 4.8 for higher-quality advisory
+// output. Verified live: claude-opus-4-8 returns 200 through /api/claude. Request body is clean
+// (model + max_tokens + messages + system only) so the swap needs no param changes. The per-call
+// fetch timeout now branches on the model: Opus 180s / Sonnet 150s / Haiku by size (was a single
+// isSonnet flag that would have silently dropped these calls to 90s). api_error telemetry now
+// reports the real tier (opus/sonnet/haiku) instead of mislabelling Opus as haiku. The ~30
+// Haiku-default calls (extraction, classification, scoring, CV) are unchanged. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -134,9 +142,12 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     };
     if (systemPrompt) body.system = systemPrompt;
 
-    // Per-call fetch timeout: longer for Sonnet and large Haiku calls
-    const isSonnet = model.includes("sonnet");
-    const fetchTimeout = isSonnet ? 150000 : maxTokens > 2500 ? 90000 : 55000;
+    // Per-call fetch timeout: heavy models (Opus/Sonnet) get a long window;
+    // Opus reasons more than Sonnet, so it gets extra headroom. Haiku scales by size.
+    const fetchTimeout =
+      model.includes("opus")   ? 180000 :
+      model.includes("sonnet") ? 150000 :
+      maxTokens > 2500         ? 90000  : 55000;
     const controller = new AbortController();
     const fetchTimer = setTimeout(() => controller.abort(), fetchTimeout);
 
@@ -167,7 +178,8 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
       await new Promise(r => setTimeout(r, delay));
       return claudeCall(prompt, maxTokens, attempt + 1, systemPrompt, model);
     }
-    track("api_error", { model: model.includes("sonnet") ? "sonnet" : "haiku", maxTokens, attempt });
+    const tier = model.includes("opus") ? "opus" : model.includes("sonnet") ? "sonnet" : "haiku";
+    track("api_error", { model: tier, maxTokens, attempt });
     throw err;
   }
 }
@@ -1851,7 +1863,7 @@ Be precise. A skill that appears in a clearly different field (e.g. chemistry sk
   const raw = await claudeCall(
 `Role: ${title}
 Score each skill for relevance to this role.
-Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-sonnet-4-6");
+Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-opus-4-8");
   const arr = extractJSON(raw, "relevance");
   return Array.isArray(arr) ? arr : [];
 }
@@ -1983,7 +1995,7 @@ ${batch.map(s => {
 Return pt exactly as assigned above. Do not substitute a different technique.`;
 
     try {
-      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-sonnet-4-6");
+      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
       const arr = extractJSON(raw, "prompts-batch");
       if (Array.isArray(arr)) {
         allResults.push(...arr);
