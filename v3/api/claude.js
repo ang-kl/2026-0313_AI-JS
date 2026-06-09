@@ -72,12 +72,15 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const status = response.status;
+      const aType = (data && data.error && data.error.type) || "";
+      const aMsg = (data && data.error && data.error.message) || "";
+      const detail = `HTTP ${status}${aType ? " " + aType : ""}${aMsg ? ": " + aMsg : ""}`.slice(0, 300);
       console.error(`[proxy] Anthropic error ${status}:`, JSON.stringify(data));
-      if (status === 401 || status === 403) return res.status(503).json({ ...WARM_ERRORS.busy,     debug: `HTTP ${status}` });
-      if (status === 429 || status === 529) return res.status(503).json({ ...WARM_ERRORS.overload, debug: `HTTP ${status}` });
-      if (status >= 500)                    return res.status(503).json({ ...WARM_ERRORS.server,   debug: `HTTP ${status}` });
-      const anthropicMsg = data?.error?.message || `HTTP ${status}`;
-      return res.status(status).json({ error: anthropicMsg, code: data?.error?.type || `HTTP_${status}`, debug: anthropicMsg });
+      // 401/403 = auth failure: say so plainly (was misleadingly mapped to "reached our limit").
+      if (status === 401 || status === 403) return res.status(503).json({ code: "AUTH", message: "The AI service rejected the API key. Please check ANTHROPIC_API_KEY in this project's Vercel settings.", debug: detail });
+      if (status === 429 || status === 529) return res.status(503).json({ ...WARM_ERRORS.overload, debug: detail });
+      if (status >= 500)                    return res.status(503).json({ ...WARM_ERRORS.server,   debug: detail });
+      return res.status(status).json({ error: aMsg || `HTTP ${status}`, code: aType || `HTTP_${status}`, debug: detail });
     }
 
     // Validate response has content
