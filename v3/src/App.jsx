@@ -72,6 +72,10 @@
 // v3.0.15 - 2026-06-09 - HDR #052 - debug mode switch renamed to ?dmm=1 (debug=1 kept as alias); the panel
 // (?dmm=panel) now ALSO shows the Postgres step trail for the same session (anatomy recentLogs gains a
 // session filter) - so dmm logs logic + API (file/panel) AND the persisted pipeline_logs in one place. v3-only.
+// v3.0.16 - 2026-06-09 - HDR #053 - ops: redeploy to bind the rotated ANTHROPIC_API_KEY (no code change).
+// The exposed key was auto-revoked when the repo went public (PR #42); Vercel binds env vars at build time,
+// so a fresh deploy is needed to pick up the new key. Verified via Vercel MCP: live /api/claude was Anthropic
+// 401 on dpl_99xq; this rebuild rebinds the Production env. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
