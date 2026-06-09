@@ -83,6 +83,10 @@
 // straight off the MyCareersFuture role on the LEFT (new role-responsibility edges; columns reordered to
 // MCF -> Responsibilities -> ISCO-08 -> ESCO). The ISCO->ESCO chain is the secondary "analysis" branch
 // (role->occupation link kept faint until a node is traced). Cache bumped rg1->rg2. v3-only.
+// v3.0.19 - 2026-06-09 - HDR #056 - Role Graph now CENTRE-ROOTED: R&R (from MCF) on the LEFT, the role title
+// in the MIDDLE, the ISCO-08 + ESCO analysis on the RIGHT (cols: Responsibilities -> [Role] -> ISCO -> ESCO).
+// Edge renderer handles leftward branches (role->R&R draws from the role's left edge); role->occupation is a
+// clean short rightward link again (faint treatment dropped). Same rg2 graph data (render-only change). v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1527,7 +1531,7 @@ function buildGraphStructure(title, source, statements, skills, mapping, iscoCan
   mapping.edges.forEach(e => { if (!topSkillSet.has(e.skillIdx) || !topRespSet.has(e.respId)) return; addE(skillNodeIdByIdx[e.skillIdx], "resp:" + e.respId, e.strength, "skill-responsibility"); });
 
   return {
-    nodes, edges, columns: ["mcfRole", "responsibility", "iscoOccupation", "escoSkill"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
+    nodes, edges, columns: ["responsibility", "mcfRole", "iscoOccupation", "escoSkill"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
     stats: { roles: 1, occupations: topIsco.length, skills: topSkillIdx.length, responsibilities: topResp.length, edges: edges.length },
   };
 }
@@ -5685,11 +5689,12 @@ function RoleGraphPanel({ result, title }) {
 
   // --- layered SVG graph layout ---
   const renderGraph = (graph) => {
+    // centre-rooted: R&R (from MCF) on the LEFT, the role title in the MIDDLE, the ISCO/ESCO analysis on the RIGHT
     const cols = [
-      { type: "mcfRole", x: 16, w: 176 },
-      { type: "responsibility", x: 206, w: 348 },
-      { type: "iscoOccupation", x: 586, w: 196 },
-      { type: "escoSkill", x: 812, w: 276 },
+      { type: "responsibility", x: 16, w: 336 },
+      { type: "mcfRole", x: 372, w: 160 },
+      { type: "iscoOccupation", x: 556, w: 200 },
+      { type: "escoSkill", x: 780, w: 308 },
     ];
     const W = 1104, V_GAP = 10, PAD_Y = 14, HEAD_H = 30, FONT = 11, LINE_H = 15, PAD_V = 7, PAD_X = 11;
     // word-wrap: conservatively estimate wrapped line count -> variable node height (avoid clip)
@@ -5739,7 +5744,7 @@ function RoleGraphPanel({ result, title }) {
     if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
     const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
     const nodeDim = id => hi && !hi.has(id);
-    const HEADS = ["🇸🇬 MyCareersFuture (MCF)", "Roles & responsibilities", "ISCO-08 candidates", "ESCO skills"];
+    const HEADS = ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
     return (
       <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 820 }} role="img" aria-label="Role-skill graph">
@@ -5752,12 +5757,13 @@ function RoleGraphPanel({ result, title }) {
           {/* curved edges */}
           {drawn.map((e, i) => {
             const s = pos[e.source], t = pos[e.target];
-            const sx = s.x + s.w, sy = s.cy, tx = t.x, ty = t.cy;
-            const dx = Math.max(28, (tx - sx) * 0.45);
+            // role hub is in the middle: R&R branch LEFT (target left of source), analysis branches RIGHT.
+            const leftward = t.x < s.x;
+            const sx = leftward ? s.x : s.x + s.w, sy = s.cy;
+            const tx = leftward ? t.x + t.w : t.x, ty = t.cy;
+            const dx = (leftward ? -1 : 1) * Math.max(28, Math.abs(tx - sx) * 0.45);
             const vis = edgeVisible(e);
-            // role->responsibility (the MCF's own R&R) is the prominent left branch; the role->occupation
-            // "analysis" link skips over the R&R column, so keep it faint until a node is traced.
-            const baseOp = e.kind === "role-occupation" ? 0.08 : 0.18 + e.weight * 0.3;
+            const baseOp = 0.18 + e.weight * 0.3;
             return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.6 : baseOp) : 0.04} />;
           })}
           {/* word-wrapped nodes */}
