@@ -91,6 +91,12 @@
 // (which skill each R&R needs) are drawn again, faint at rest so they don't spaghetti across the centre, and
 // they light up boldly when a node is tapped - so you can see how a left responsibility resonates with the
 // right-side skills (and back). Hint updated. Render-only (same rg2 data). v3-only.
+// v3.0.21 - 2026-06-09 - HDR #058 - fix(ESCO matcher): clean the posting title before the ESCO occupation
+// search (new cleanOccupationTitle in api/esco.js, applied in resolveOccupation + occupationFingerprint).
+// Strips (parentheticals) + text after a spaced dash so a noisy title like "Data Analyst - Talend Data
+// Integration / Informatica BDM (Singaporean Only)" searches as "Data Analyst" - no longer resolving to the
+// wrong occupation ("Call Centre Analyst") with unrelated skills. Conservative: keeps "Full-Stack Engineer",
+// "X-Ray / CT Imaging Engineer", clean titles unchanged. Cache rg2->rg3 to rebuild. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1389,7 +1395,7 @@ async function checkResume(resumeText, profile, title, jobAnatomy, source, role)
 // CV text -> /api/claude only, never stored. Result cached per (title|version).
 // ===========================================================================
 
-const ROLE_GRAPH_VERSION = "rg2";
+const ROLE_GRAPH_VERSION = "rg3";
 const _roleGraphCache = new Map();
 const RG_NODE_STYLE = {
   mcfRole:        { label:"MyCareersFuture role", color:"#1e3a8a", bg:"#dbeafe", border:"#93c5fd" },

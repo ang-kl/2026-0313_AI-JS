@@ -28,17 +28,34 @@ async function fetchWithTimeout(url, timeoutMs) {
   }
 }
 
+// Strip qualifier/locale/tool noise from a posting title so the ESCO occupation
+// search matches the CORE role. e.g.
+//   "Data Analyst - Talend Data Integration / Informatica BDM (Singaporean Only)" -> "Data Analyst"
+// Conservative on purpose: only removes (parentheticals)/[brackets] and any text after
+// the FIRST spaced dash (en/em/hyphen). It never splits on "/" or on hyphenated words,
+// so "Full-Stack Engineer" and "X-Ray / CT Imaging Engineer" are preserved. Falls back
+// to the raw title if cleaning would leave too little.
+function cleanOccupationTitle(raw) {
+  const original = String(raw || '').trim();
+  let s = original.replace(/[([][^)\]]*[)\]]/g, ' '); // drop (...) and [...]
+  s = s.split(/\s+[–—-]\s+/)[0];                       // keep text before the first spaced dash
+  s = s.replace(/\s{2,}/g, ' ').trim();
+  return s.length >= 3 ? s : original;
+}
+
 // Returns { uri, preferredLabel } picked from the search result that best
 // matches the user's title (case-insensitive exact match if present, else
-// the first/highest-ranked result).
+// the first/highest-ranked result). Searches on the CLEANED core title so noisy
+// postings ("... - Talend ... (Singaporean Only)") don't resolve to a wrong occupation.
 async function resolveOccupation(title) {
-  const url = `${ESCO_BASE}/search?text=${encodeURIComponent(title)}&type=occupation&language=en&selectedVersion=${ESCO_VERSION}&limit=10`;
+  const cleaned = cleanOccupationTitle(title);
+  const url = `${ESCO_BASE}/search?text=${encodeURIComponent(cleaned)}&type=occupation&language=en&selectedVersion=${ESCO_VERSION}&limit=10`;
   const res = await fetchWithTimeout(url, ESCO_TIMEOUT_MS);
   if (!res.ok) throw new Error(`ESCO search HTTP ${res.status}`);
   const data = await res.json();
   const results = data?._embedded?.results;
   if (!results || results.length === 0) throw new Error('No occupation found');
-  const needle = title.trim().toLowerCase();
+  const needle = cleaned.toLowerCase();
   const exactMatch = results.find(r => r.title && r.title.toLowerCase() === needle);
   const chosen = exactMatch || results[0];
   return { uri: chosen.uri, preferredLabel: chosen.title || '' };
@@ -162,8 +179,8 @@ async function occupationFingerprint(title, skillPhrases) {
   const phrases = (Array.isArray(skillPhrases) ? skillPhrases : []).map(p => String(p || '').trim()).filter(Boolean).slice(0, 30);
   const phraseTokens = phrases.map(normTokens).filter(t => t.length);
 
-  // 1) Candidate occupations: search on the title + the most distinctive skill phrases.
-  const searchTerms = [title.trim().slice(0, 120)];
+  // 1) Candidate occupations: search on the CLEANED core title + the most distinctive skill phrases.
+  const searchTerms = [cleanOccupationTitle(title).slice(0, 120)];
   for (const p of phrases.slice(0, 5)) if (p.length >= 4) searchTerms.push(p.slice(0, 120));
   const searchResults = await Promise.allSettled(searchTerms.map((t, i) => searchOccupations(t, i === 0 ? 8 : 5)));
   const nominalUri = (searchResults[0].status === 'fulfilled' && searchResults[0].value[0]) ? searchResults[0].value[0] : null;
