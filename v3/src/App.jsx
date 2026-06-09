@@ -79,6 +79,10 @@
 // v3.0.17 - 2026-06-09 - HDR #054 - api/claude.js now surfaces the EXACT Anthropic error (type+message) in the
 // response `debug` field, and a 401/403 returns an honest "API key rejected - check ANTHROPIC_API_KEY" message
 // instead of the misleading "we've reached our limit" copy (which hid the real auth failure). v3-only.
+// v3.0.18 - 2026-06-09 - HDR #055 - Role Graph: the MCF posting's OWN roles & responsibilities now branch
+// straight off the MyCareersFuture role on the LEFT (new role-responsibility edges; columns reordered to
+// MCF -> Responsibilities -> ISCO-08 -> ESCO). The ISCO->ESCO chain is the secondary "analysis" branch
+// (role->occupation link kept faint until a node is traced). Cache bumped rg1->rg2. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1377,7 +1381,7 @@ async function checkResume(resumeText, profile, title, jobAnatomy, source, role)
 // CV text -> /api/claude only, never stored. Result cached per (title|version).
 // ===========================================================================
 
-const ROLE_GRAPH_VERSION = "rg1";
+const ROLE_GRAPH_VERSION = "rg2";
 const _roleGraphCache = new Map();
 const RG_NODE_STYLE = {
   mcfRole:        { label:"MyCareersFuture role", color:"#1e3a8a", bg:"#dbeafe", border:"#93c5fd" },
@@ -1385,7 +1389,7 @@ const RG_NODE_STYLE = {
   escoSkill:      { label:"ESCO skill",            color:"#0e7490", bg:"#cffafe", border:"#67e8f9" },
   responsibility: { label:"Responsibility",        color:"#b45309", bg:"#fef3c7", border:"#fcd34d" },
 };
-const RG_EDGE_COLOR = { "role-occupation":"#6366f1", "role-skill":"#0891b2", "occupation-skill":"#8b5cf6", "skill-responsibility":"#d97706" };
+const RG_EDGE_COLOR = { "role-responsibility":"#d97706", "role-occupation":"#6366f1", "role-skill":"#0891b2", "occupation-skill":"#8b5cf6", "skill-responsibility":"#d97706" };
 function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
 
 // 1) deterministic: pull the itemised responsibility statements the rest of the analysis already produced
@@ -1515,13 +1519,15 @@ function buildGraphStructure(title, source, statements, skills, mapping, iscoCan
 
   const edges = [];
   const addE = (s, t, w, kind) => { if (!s || !t) return; edges.push({ source: s, target: t, weight: Math.round(Math.max(0.05, Math.min(1, w)) * 100) / 100, kind }); };
+  // the MCF posting's OWN roles & responsibilities branch straight off the role (left side)
+  topResp.forEach(st => addE(roleId, "resp:" + st.id, st.level === "HIGH" ? 1 : st.level === "MEDIUM" ? 0.8 : 0.65, "role-responsibility"));
   topIsco.forEach(c => addE(roleId, iscoIdOf(c), c.score / 100, "role-occupation"));
   topSkillIdx.forEach(idx => { const s = sk[idx]; const lw = s.level === "HIGH" ? 1 : s.level === "MEDIUM" ? 0.8 : s.level === "LOW" ? 0.65 : 0.5; addE(roleId, skillNodeIdByIdx[idx], lw, "role-skill"); });
   topIsco.forEach(c => { const cid = iscoIdOf(c); (c.matchedSkills || []).forEach(m => { const pn = _phraseNorm(m); let nid = skillNodeIdByNorm[pn]; let w = 1; if (!nid) { const hit = Object.keys(skillNodeIdByNorm).find(k => k.length > 3 && (k.includes(pn) || pn.includes(k))); if (hit) { nid = skillNodeIdByNorm[hit]; w = 0.6; } } if (nid) addE(cid, nid, w, "occupation-skill"); }); });
   mapping.edges.forEach(e => { if (!topSkillSet.has(e.skillIdx) || !topRespSet.has(e.respId)) return; addE(skillNodeIdByIdx[e.skillIdx], "resp:" + e.respId, e.strength, "skill-responsibility"); });
 
   return {
-    nodes, edges, columns: ["mcfRole", "iscoOccupation", "escoSkill", "responsibility"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
+    nodes, edges, columns: ["mcfRole", "responsibility", "iscoOccupation", "escoSkill"], version: ROLE_GRAPH_VERSION, generatedAt: new Date().toISOString(),
     stats: { roles: 1, occupations: topIsco.length, skills: topSkillIdx.length, responsibilities: topResp.length, edges: edges.length },
   };
 }
@@ -5680,10 +5686,10 @@ function RoleGraphPanel({ result, title }) {
   // --- layered SVG graph layout ---
   const renderGraph = (graph) => {
     const cols = [
-      { type: "mcfRole", x: 16, w: 190 },
-      { type: "iscoOccupation", x: 250, w: 198 },
-      { type: "escoSkill", x: 516, w: 206 },
-      { type: "responsibility", x: 790, w: 298 },
+      { type: "mcfRole", x: 16, w: 176 },
+      { type: "responsibility", x: 206, w: 348 },
+      { type: "iscoOccupation", x: 586, w: 196 },
+      { type: "escoSkill", x: 812, w: 276 },
     ];
     const W = 1104, V_GAP = 10, PAD_Y = 14, HEAD_H = 30, FONT = 11, LINE_H = 15, PAD_V = 7, PAD_X = 11;
     // word-wrap: conservatively estimate wrapped line count -> variable node height (avoid clip)
@@ -5706,7 +5712,7 @@ function RoleGraphPanel({ result, title }) {
     const heightOf = (n, w) => Math.max(30, linesOf(n.label, w, n.type === "iscoOccupation") * LINE_H + PAD_V * 2);
     const byCol = cols.map(c => ({ ...c, nodes: graph.nodes.filter(n => n.type === c.type) }));
     // --- barycenter ordering: reduce edge crossings while keeping ALL edges ---
-    const flowKinds = ["role-occupation", "occupation-skill", "skill-responsibility"];
+    const flowKinds = ["role-responsibility", "role-occupation", "occupation-skill"];
     const adj = {}; graph.edges.forEach(e => { if (!flowKinds.includes(e.kind)) return; (adj[e.source] = adj[e.source] || []).push(e.target); (adj[e.target] = adj[e.target] || []).push(e.source); });
     const indexMap = c => { const m = {}; c.nodes.forEach((n, i) => { m[n.id] = i; }); return m; };
     for (let sweep = 0; sweep < 6; sweep++) {
@@ -5733,7 +5739,7 @@ function RoleGraphPanel({ result, title }) {
     if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
     const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
     const nodeDim = id => hi && !hi.has(id);
-    const HEADS = ["🇸🇬 MyCareersFuture (MCF)", "ISCO-08 candidates", "ESCO skills", "Responsibilities"];
+    const HEADS = ["🇸🇬 MyCareersFuture (MCF)", "Roles & responsibilities", "ISCO-08 candidates", "ESCO skills"];
     return (
       <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 820 }} role="img" aria-label="Role-skill graph">
@@ -5749,7 +5755,10 @@ function RoleGraphPanel({ result, title }) {
             const sx = s.x + s.w, sy = s.cy, tx = t.x, ty = t.cy;
             const dx = Math.max(28, (tx - sx) * 0.45);
             const vis = edgeVisible(e);
-            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.6 : 0.16 + e.weight * 0.28) : 0.04} />;
+            // role->responsibility (the MCF's own R&R) is the prominent left branch; the role->occupation
+            // "analysis" link skips over the R&R column, so keep it faint until a node is traced.
+            const baseOp = e.kind === "role-occupation" ? 0.08 : 0.18 + e.weight * 0.3;
+            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.6 : baseOp) : 0.04} />;
           })}
           {/* word-wrapped nodes */}
           {byCol.map(c => c.nodes.map(n => {
