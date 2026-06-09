@@ -76,6 +76,9 @@
 // The exposed key was auto-revoked when the repo went public (PR #42); Vercel binds env vars at build time,
 // so a fresh deploy is needed to pick up the new key. Verified via Vercel MCP: live /api/claude was Anthropic
 // 401 on dpl_99xq; this rebuild rebinds the Production env. v3-only.
+// v3.0.17 - 2026-06-09 - HDR #054 - api/claude.js now surfaces the EXACT Anthropic error (type+message) in the
+// response `debug` field, and a 401/403 returns an honest "API key rejected - check ANTHROPIC_API_KEY" message
+// instead of the misleading "we've reached our limit" copy (which hid the real auth failure). v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
