@@ -1,5 +1,5 @@
 // v3/src/debug.js — DEBUG MODE capture engine (v3 only; OFF by default).
-// Enable with ?debug=1 (sticky for the tab via sessionStorage). When enabled it:
+// Enable with ?dmm=1 (sticky for the tab via sessionStorage; ?debug=1 kept as an alias). When enabled it:
 //   • patches window.fetch to capture every same-origin /api/* call (full req+resp bodies),
 //   • receives logic steps teed from App.jsx logStep(),
 //   • buffers entries per session (keyed by the shared v3_pipe_session id),
@@ -167,8 +167,9 @@ function downloadJsonl() {
 export function initDebug() {
   if (!hasWin()) return;
   try {
-    const p = new URLSearchParams(location.search).get('debug');
-    if (p === '1' || p === 'panel') sessionStorage.setItem(SS_ENABLED, '1');
+    const sp = new URLSearchParams(location.search);
+    const p = sp.get('dmm') || sp.get('debug'); // ?dmm=1 is the switch; ?debug= kept as alias
+    if (p === '1' || p === 'panel' || p === 'logs') sessionStorage.setItem(SS_ENABLED, '1');
     else if (p === '0') sessionStorage.removeItem(SS_ENABLED);
     enabled = sessionStorage.getItem(SS_ENABLED) === '1';
   } catch (_) { enabled = false; }

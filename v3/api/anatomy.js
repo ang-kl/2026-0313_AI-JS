@@ -273,9 +273,12 @@ export default async function handler(req, res) {
 
   if (action === 'recentLogs') {
     const limit = Math.max(1, Math.min(400, Number(body.limit) || 120));
+    const sess = body.session ? String(body.session).replace(/[^a-z0-9]/gi, '').slice(0, 40) : null; // debug-mode (dmm) session filter
     try {
       await ensureTables();
-      const { rows } = roleKey
+      const { rows } = sess
+        ? await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE session=${sess} ORDER BY ts DESC LIMIT ${limit}`
+        : roleKey
         ? await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE role_key=${roleKey} ORDER BY ts DESC LIMIT ${limit}`
         : await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs ORDER BY ts DESC LIMIT ${limit}`;
       return res.status(200).json({ logs: rows.map(r => ({ ts: r.ts, session: r.session, role: r.role_key, source: r.source, step: r.step, status: r.status, ms: r.ms, detail: r.detail })) });

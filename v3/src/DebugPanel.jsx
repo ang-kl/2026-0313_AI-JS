@@ -1,7 +1,7 @@
 // v3/src/DebugPanel.jsx — ?debug=panel — live view of the current session's debug capture
 // (logic steps + API calls) with idle status and a Download button. Read-only; capture is
 // driven by v3/src/debug.js (enable with ?debug=1). No effect on v1/v2.
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const C = { bg: '#0b1020', surface: '#121a2e', border: '#26324d', text: '#e6ecf7', sub: '#9fb0cc', accent: '#5b8cff' };
 const KIND = { api: { c: '#5b8cff', l: 'API' }, logic: { c: '#2dd4bf', l: 'LOGIC' }, meta: { c: '#f59e0b', l: 'META' } };
@@ -10,11 +10,24 @@ export default function DebugPanel() {
   const dbg = typeof window !== 'undefined' ? window.__v3debug : null;
   const [, force] = useState(0);
   const [expanded, setExpanded] = useState(null);
+  const [pg, setPg] = useState({ status: 'idle', logs: [] });
 
   useEffect(() => {
     if (!dbg || !dbg.subscribe) return;
     return dbg.subscribe(() => force((n) => n + 1));
   }, [dbg]);
+
+  // Postgres step trail for THIS session (auto-logged by logStep → pipeline_logs)
+  const loadPg = useCallback(() => {
+    const sess = dbg && dbg.session;
+    if (!sess) return;
+    setPg((s) => ({ ...s, status: 'loading' }));
+    fetch('/api/anatomy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'recentLogs', session: sess, limit: 400 }) })
+      .then((r) => r.json())
+      .then((d) => setPg({ status: 'done', logs: Array.isArray(d && d.logs) ? d.logs : [] }))
+      .catch(() => setPg({ status: 'error', logs: [] }));
+  }, [dbg]);
+  useEffect(() => { loadPg(); }, [loadPg]);
 
   const wrap = { minHeight: '100vh', background: C.bg, color: C.text, fontFamily: 'ui-monospace,SFMono-Regular,Menlo,monospace', padding: 16, fontSize: 12 };
 
@@ -23,8 +36,8 @@ export default function DebugPanel() {
       <div style={wrap}>
         <h1 style={{ fontSize: 16, margin: '0 0 8px' }}>v3 debug panel</h1>
         <p style={{ color: C.sub, lineHeight: 1.6 }}>
-          Debug capture is <b>off</b>. Open the app with <code style={{ color: C.accent }}>?debug=1</code> first
-          (it stays on for this tab), use the app, then return here with <code style={{ color: C.accent }}>?debug=panel</code> to view and download the session log.
+          Debug mode is <b>off</b>. Open the app with <code style={{ color: C.accent }}>?dmm=1</code> first
+          (it stays on for this tab), use the app, then return here with <code style={{ color: C.accent }}>?dmm=panel</code> to view and download the session log.
         </p>
       </div>
     );
@@ -47,13 +60,13 @@ export default function DebugPanel() {
         <span style={badge(idle ? '#f59e0b' : '#2dd4bf', C.surface)}>{idle ? '● idle (logging paused)' : '● active'}</span>
         <span style={badge(C.accent, C.surface)}>{apiN} API · {logicN} logic · {buf.length} total</span>
         <button onClick={() => dbg.downloadJsonl()} style={{ marginLeft: 'auto', cursor: 'pointer', background: C.accent, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontWeight: 700, fontSize: 12 }}>⬇ Download session log (.jsonl)</button>
-        <button onClick={() => force((n) => n + 1)} style={{ cursor: 'pointer', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12 }}>refresh</button>
+        <button onClick={() => { force((n) => n + 1); loadPg(); }} style={{ cursor: 'pointer', background: C.surface, color: C.text, border: `1px solid ${C.border}`, borderRadius: 8, padding: '7px 12px', fontSize: 12 }}>refresh</button>
       </div>
       <p style={{ color: C.sub, margin: '0 0 10px' }}>
         Newest last · capture stops after 1 min idle, resumes on next activity.
         {' '}In local <code>npm run dev</code> these rows are also written to <code>v3/debug/{st.session}-&lt;date&gt;.jsonl</code>.
       </p>
-      {!buf.length && <p style={{ color: C.sub }}>No entries yet — use the app (with ?debug=1) to generate logic + API events.</p>}
+      {!buf.length && <p style={{ color: C.sub }}>No entries yet — use the app (with ?dmm=1) to generate logic + API events.</p>}
       {!!buf.length && (
         <table style={{ borderCollapse: 'collapse', width: '100%' }}>
           <thead><tr style={{ textAlign: 'left', color: C.sub }}>
@@ -92,6 +105,35 @@ export default function DebugPanel() {
           </tbody>
         </table>
       )}
+
+      {/* Postgres step trail for THIS session (auto-logged by logStep → pipeline_logs) */}
+      <div style={{ marginTop: 24 }}>
+        <h2 style={{ fontSize: 13, margin: '0 0 6px', color: C.sub }}>
+          Postgres step log · this session ({pg.logs.length}){pg.status === 'loading' ? ' · loading…' : pg.status === 'error' ? ' · store unavailable' : ''}
+        </h2>
+        {pg.status === 'done' && !pg.logs.length && <p style={{ color: C.sub }}>No persisted steps for this session yet (steps flush to pipeline_logs ~1s after each one). Run the app with ?dmm=1 first.</p>}
+        {!!pg.logs.length && (
+          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead><tr style={{ textAlign: 'left', color: C.sub }}>
+              {['when', 'step', 'status', 'ms', 'detail'].map((h) => <th key={h} style={{ padding: '4px 8px', borderBottom: `1px solid ${C.border}` }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {pg.logs.map((r, i) => {
+                const bad = r.status === 'error' || r.status === 'timeout';
+                return (
+                  <tr key={i} style={{ background: bad ? '#3b1d1d' : i % 2 ? '#0e1526' : 'transparent' }}>
+                    <td style={{ ...cell, color: C.sub }}>{String(r.ts || '').slice(11, 23)}</td>
+                    <td style={{ ...cell, fontWeight: 600 }}>{r.step}</td>
+                    <td style={{ ...cell, color: bad ? '#fca5a5' : C.text }}>{r.status}</td>
+                    <td style={{ ...cell, textAlign: 'right' }}>{r.ms != null ? r.ms : ''}</td>
+                    <td style={cell}>{r.detail || ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

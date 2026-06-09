@@ -4,11 +4,11 @@ This folder holds per-session debug logs produced by **v3 debug mode** (logic fl
 calls). One file per browser session: `<session>-<YYYY-MM-DD>.jsonl` (newline-delimited JSON).
 
 ## How it fills up
-- Open the app with **`?debug=1`** (sticky for the tab). Use it normally.
+- Open the app with **`?dmm=1`** (debug mode; sticky for the tab; `?debug=1` still works as an alias). Use it normally.
 - **Local `npm run dev`:** the Vite dev plugin (`../vite-debug-plugin.js`) writes files here
   automatically as you use the app.
 - **Live site:** serverless can't write the repo filesystem, so nothing is auto-written —
-  open **`?debug=panel`** and click **Download session log** to save the `.jsonl` here yourself.
+  open **`?dmm=panel`** and click **Download session log** to save the `.jsonl` here yourself.
 - Logging **stops after 1 minute idle** and resumes on the next activity (same file).
 
 ## Entry shape (one JSON object per line)
