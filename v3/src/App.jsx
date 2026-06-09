@@ -87,6 +87,10 @@
 // in the MIDDLE, the ISCO-08 + ESCO analysis on the RIGHT (cols: Responsibilities -> [Role] -> ISCO -> ESCO).
 // Edge renderer handles leftward branches (role->R&R draws from the role's left edge); role->occupation is a
 // clean short rightward link again (faint treatment dropped). Same rg2 graph data (render-only change). v3-only.
+// v3.0.20 - 2026-06-09 - HDR #057 - Role Graph: restore the LEFT<->RIGHT link. The skill-responsibility edges
+// (which skill each R&R needs) are drawn again, faint at rest so they don't spaghetti across the centre, and
+// they light up boldly when a node is tapped - so you can see how a left responsibility resonates with the
+// right-side skills (and back). Hint updated. Render-only (same rg2 data). v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5717,7 +5721,7 @@ function RoleGraphPanel({ result, title }) {
     const heightOf = (n, w) => Math.max(30, linesOf(n.label, w, n.type === "iscoOccupation") * LINE_H + PAD_V * 2);
     const byCol = cols.map(c => ({ ...c, nodes: graph.nodes.filter(n => n.type === c.type) }));
     // --- barycenter ordering: reduce edge crossings while keeping ALL edges ---
-    const flowKinds = ["role-responsibility", "role-occupation", "occupation-skill"];
+    const flowKinds = ["role-responsibility", "role-occupation", "occupation-skill", "skill-responsibility"];
     const adj = {}; graph.edges.forEach(e => { if (!flowKinds.includes(e.kind)) return; (adj[e.source] = adj[e.source] || []).push(e.target); (adj[e.target] = adj[e.target] || []).push(e.source); });
     const indexMap = c => { const m = {}; c.nodes.forEach((n, i) => { m[n.id] = i; }); return m; };
     for (let sweep = 0; sweep < 6; sweep++) {
@@ -5763,8 +5767,10 @@ function RoleGraphPanel({ result, title }) {
             const tx = leftward ? t.x + t.w : t.x, ty = t.cy;
             const dx = (leftward ? -1 : 1) * Math.max(28, Math.abs(tx - sx) * 0.45);
             const vis = edgeVisible(e);
-            const baseOp = 0.18 + e.weight * 0.3;
-            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.6 : baseOp) : 0.04} />;
+            // skill<->responsibility spans the whole width (right skills to left R&R) — keep it faint at rest
+            // so it doesn't spaghetti, but it lights up boldly when a node is tapped (shows the resonance).
+            const baseOp = e.kind === "skill-responsibility" ? 0.07 : 0.18 + e.weight * 0.3;
+            return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.65 : baseOp) : 0.04} />;
           })}
           {/* word-wrapped nodes */}
           {byCol.map(c => c.nodes.map(n => {
@@ -5820,7 +5826,7 @@ function RoleGraphPanel({ result, title }) {
             <>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 {hdr("The role-skill graph")}
-                <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace it"}</span>
+                <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a responsibility to see the skills it needs (and back)"}</span>
               </div>
               {renderGraph(g.graph)}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
