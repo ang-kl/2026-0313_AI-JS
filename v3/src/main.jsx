@@ -3,22 +3,29 @@ import ReactDOM from 'react-dom/client'
 import App, { PipelineLogsView } from './App.jsx'
 import LeapView from './LeapView.jsx'
 import RoleGraph from './RoleGraph.jsx'
+import DebugPanel from './DebugPanel.jsx'
+import { initDebug } from './debug.js'
 import { inject, track } from '@vercel/analytics'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
 // Make track globally available for App.jsx
 window._vtrack = track
 
+// Debug mode (OFF by default; ?debug=1 enables). Must run BEFORE any fetch fires so the
+// capture patch is in place. No-op unless enabled — zero effect on normal users / v1 / v2.
+initDebug()
+
 inject()
 
 const params = (() => { try { return new URLSearchParams(window.location.search); } catch (_) { return new URLSearchParams(); } })()
 const debugLogs = params.get('debug') === 'logs'
+const debugPanel = params.get('debug') === 'panel'
 const leap = params.get('view') === 'leap'
 const graph = params.get('view') === 'graph'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {graph ? <RoleGraph /> : leap ? <LeapView /> : debugLogs ? <PipelineLogsView /> : <App />}
+    {graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App />}
     <SpeedInsights />
   </React.StrictMode>,
 )

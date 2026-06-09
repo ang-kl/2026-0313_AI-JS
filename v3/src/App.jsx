@@ -63,6 +63,12 @@
 // Occupation ISCO → how-computed chain → AI-able-vs-human* → mirror-roles* (* = honest occupation-level
 // only, no fake per-skill bars). Curved branches, click-to-highlight, responsive (stacks on phones).
 // Data baked offline by engine-data/build-graph-data.mjs (engine output + token-overlap inferred links). v3-only.
+// v3.0.14 - 2026-06-09 - HDR #051 - DEBUG MODE (OFF by default; ?debug=1): per-session capture of logic
+// steps + every /api/* call (full req/resp bodies) via a fail-safe window.fetch patch (new src/debug.js)
+// + one tee line here in logStep. Logs keyed by the shared v3_pipe_session; stop after 1 min idle, resume
+// on activity. LOCAL npm run dev writes v3/debug/<session>-<date>.jsonl (new vite-debug-plugin.js, apply:serve);
+// LIVE: ?debug=panel (new DebugPanel.jsx) shows the live trail + Download. v3/.gitignore keeps logs/prompts
+// out of git. A debug error can never break a real API call; zero overhead + no effect on v1/v2 when off.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2179,6 +2185,8 @@ function logStep(step, status, ms, detail) {
     _recentSteps.push({ t: Date.now(), step: s, status: st, ms: m, detail: d });
     if (_recentSteps.length > 24) _recentSteps.shift();
     try { console.debug("[pipe]", s, st, m != null ? m + "ms" : "", d); } catch (_) {}
+    // Debug mode tee (no-op unless ?debug=1): forward logic steps to v3/src/debug.js.
+    try { if (typeof window !== "undefined" && window.__v3debug && window.__v3debug.enabled) window.__v3debug.recordLogic({ step: s, status: st, ms: m, detail: d, role: _logCtx.role, source: _logCtx.source }); } catch (_) {}
     _logQueue.push({ step: s, status: st, ms: m, detail: d });
     if (!_logFlushTimer) _logFlushTimer = setTimeout(_flushLogQueue, 800);
   } catch (_) {}
