@@ -105,6 +105,16 @@
 // isSonnet flag that would have silently dropped these calls to 90s). api_error telemetry now
 // reports the real tier (opus/sonnet/haiku) instead of mislabelling Opus as haiku. The ~30
 // Haiku-default calls (extraction, classification, scoring, CV) are unchanged. v3-only.
+// v3.1.0 - 2026-06-10 - HDR #060 - PR E2 (result-engine arc, MINOR): engine reconcile + coherence +
+// mirror-roles. engine-core.js gains reconcile(ssocPrior, fingerprintIscos) -> agree/conflict (on
+// conflict the ESCO skill evidence wins - MCF SSOC tags can be mis-coded; both lists surfaced) and
+// mirrorRolesFor(blend) -> top-5 ISCO with sharePct + each one's computed AIOE index (null when no
+// score exists - never faked). computeEngine accepts optional skills/fingerprintIscos, populates
+// coherence + mirrorRoles (were hard-null), sets via:'reconcile', demotes confidence one band on
+// conflict; engine version engine-1 -> engine-2. api/engine.js passes the new inputs through. NO
+// LLM, no network, no render change (that is H1). Snapshot-stable: NHG 78 / PSD 74 / Metta 78
+// identical to the engine-1 baseline on the SSOC-only path. Conformance audit PASS (gates 1,3,4,5;
+// gate 2 N/A until H1). R-FREEZE clean. G1 gate confirmed by Human Lead (v3.0.22 -> v3.1.0).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
