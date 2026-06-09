@@ -18,8 +18,9 @@ initDebug()
 inject()
 
 const params = (() => { try { return new URLSearchParams(window.location.search); } catch (_) { return new URLSearchParams(); } })()
-const debugLogs = params.get('debug') === 'logs'
-const debugPanel = params.get('debug') === 'panel'
+const dmm = params.get('dmm') || params.get('debug') // ?dmm= is the debug-mode switch; ?debug= kept as alias
+const debugLogs = dmm === 'logs'
+const debugPanel = dmm === 'panel'
 const leap = params.get('view') === 'leap'
 const graph = params.get('view') === 'graph'
 

@@ -69,6 +69,9 @@
 // on activity. LOCAL npm run dev writes v3/debug/<session>-<date>.jsonl (new vite-debug-plugin.js, apply:serve);
 // LIVE: ?debug=panel (new DebugPanel.jsx) shows the live trail + Download. v3/.gitignore keeps logs/prompts
 // out of git. A debug error can never break a real API call; zero overhead + no effect on v1/v2 when off.
+// v3.0.15 - 2026-06-09 - HDR #052 - debug mode switch renamed to ?dmm=1 (debug=1 kept as alias); the panel
+// (?dmm=panel) now ALSO shows the Postgres step trail for the same session (anatomy recentLogs gains a
+// session filter) - so dmm logs logic + API (file/panel) AND the persisted pipeline_logs in one place. v3-only.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
