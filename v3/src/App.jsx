@@ -202,6 +202,18 @@
 // honest two-pole framing, amber-vs-blue not red/green, AA footer). This CLOSES the goal's buildable
 // protocols: 1 (BF2), 3 (this), 5 (BDF3), 7 (FR1) all shipped; 9 (Sentinel) parked - no result-page
 // data source. R-FREEZE clean. Auto-shipped under the hands-free V-1 sign-off. G1 (v3.1.7 -> v3.1.8).
+// v3.1.9 - 2026-06-10 - HDR #069 - C1 (RESULT-ENGINE arc, first candidate-side slice; the stewardship
+// arc is complete so the loop now advances the Placement Read toward v3.2.0). Candidate Fingerprint:
+// new candidateFingerprint(skillPhrases) in api/esco.js mirrors occupationFingerprint but works from
+// a CV's OWN skill evidence with no self-declared title - so a CV resolves to a defensible occupation
+// BLEND (ESCO search + essential-skill overlap, normalised to shares), not one possibly-mislabelled
+// title. ingestCV calls it (action:candidateFingerprint) and the CV result now shows "What your CV
+// reads as" with the blend. The frozen ESCO search-side (searchOccupations/getOccupationEssential/
+// occupationFingerprint/getEscoSkills) is byte-untouched - candidateFingerprint is purely additive
+// and reuses those helpers. Deterministic compute (no LLM in the fn); blend tagged ~ AI estimate
+// because the CV skills are LLM-extracted upstream (the honest tag - inputs vary run to run). Withhold
+// over fabricate (fallback -> null -> not rendered). Audit verdict SHIP. Transversal reuse-level
+// weighting deferred (C1.x, documented). R-FREEZE clean. Hands-free V-1 sign-off. G1 (v3.1.8 -> v3.1.9).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1819,7 +1831,16 @@ Fit score (deterministic): ${fit.fitScore}/100 (band ${fit.band}); target-role E
 Closest ISCO-08 families by CV overlap:
 ${famLine || "n/a"}`;
   const narrative = await narrateCVFit(title, fitSummary);
-  return { cvProfile, fit, narrative };
+  // C1: a defensible occupation BLEND from the CV's own skill evidence (not the self-declared title).
+  let blend = null;
+  try {
+    const cvSkills = (cvProfile && Array.isArray(cvProfile.skills)) ? cvProfile.skills : [];
+    if (cvSkills.length >= 3) {
+      const res = await fetch("/api/esco", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "candidateFingerprint", skillPhrases: cvSkills }) });
+      if (res.ok) { const b = await res.json(); if (b && !b.fallback && Array.isArray(b.candidates) && b.candidates.length) blend = b; }
+    }
+  } catch (_) { blend = null; }
+  return { cvProfile, fit, narrative, blend };
 }
 
 async function rateSkills(title, skills) {
@@ -6576,6 +6597,19 @@ function RoleGraphPanel({ result, title }) {
                       {f.escoCoverage.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "cp" + i))}
                       {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#9a3412", "#fff7ed", "#fed7aa", "cm" + i))}
                     </div>
+                    {cv.blend && Array.isArray(cv.blend.candidates) && cv.blend.candidates.length > 0 && (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>{subHdr("What your CV reads as - an occupation blend from your skills, not your job title")}<Prov kind="ai" small /></div>
+                        {cv.blend.candidates.map((b, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                            <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(b.label, 32)}{b.code ? <span style={{ color: C.mutedLight }}> ·{b.code}</span> : null}</span>
+                            <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${b.sharePct}%`, height: "100%", background: "#4338ca" }} /></div>
+                            <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{b.sharePct}%</span>
+                          </div>
+                        ))}
+                        <p style={{ margin: "3px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Derived from your CV's skills (AI-extracted) matched to ESCO occupations - a defensible blend to compare against the single title you would write at the top of your CV. AI-assisted; human decides.</p>
+                      </div>
+                    )}
                     {f.families.length > 0 && (
                       <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
                         {f.families.slice(0, 6).map((fam, i) => (

@@ -146,7 +146,7 @@ Each PR ships as one PR: PATCH/MINOR bump (G1) + HDR journal entry + `.serial-st
 | **E2** | Engine reconcile + coherence + mirror-roles | REWIRE | `engine-core.js`, `engine.js` | engine-wiring-spec step 1-3 | Metta + NHG + PSD samples snapshot-stable; `coherence` agree/conflict surfaces |
 | **H1** | Headline swap | RADICAL-REPLACE | `App.jsx` | engine-wiring-spec App wiring | `AI-Exposure Index X/100 ✓ computed` leads; LLM number demoted |
 | **A8** | Re-ground anatomy on AIOE | REWIRE | `anatomy.js` | Felten; Brynjolfsson; Eloundou; ALM 2003 | every resilience score traces to a citation |
-| **C1** | Candidate Fingerprint | ADDITIVE | `esco.js` | ESCO v1.2.1; SkillSpan; EC crosswalk | a CV -> a defensible blend, not one mislabelled title |
+| **C1** | Candidate Fingerprint | ADDITIVE | `esco.js` | ESCO v1.2.1; SkillSpan; EC crosswalk | SHIPPED v3.1.9: candidateFingerprint() -> a CV's skills resolve to an occupation blend (shares), shown in the CV result as "What your CV reads as"; ~ AI estimate. Transversal reuse-level weighting deferred (C1.x) |
 | **C2** | Candidate Anatomy | ADDITIVE | `anatomy.js` | existing engine; ALM | Accountability/Relational/Judgment concentration as AI-resilience signal |
 | **T3** | True-Fit + Proof Ledger | NEW | `matcher.js`, `esco.js`, `anatomy.js` | Schmidt-Hunter 1998; ConFit; Wolgast 2017 | per-layer overlap + proof ledger; live builds rank top-validity |
 | **D4** | Demand-Proof gate | NEW | `mcf.js` | MOM FCF 14-day; del Rio-Chanona | real/not-real verdict with live numbers; "do not spend" default |
