@@ -334,6 +334,16 @@
 // clear) in one place. Hierarchy preserved (text #1a202c > textSub #4a5568 > muted #5b6878 >
 // mutedLight #9aa5b4); same blue-grey hue, no red/green. Flagged repeatedly by the a11y reviewer as
 // the single global fix for the micro-label gap. No frozen symbol touched. G1 (v3.2.1 -> v3.2.2).
+// v3.2.3 - 2026-06-10 - HDR #079 - Role-Skill Graph readability (Human Lead feedback A+B). A: the
+// skill<->responsibility edge (the LEFT<->RIGHT link between R&R and ESCO skills) was 0.07 opacity -
+// invisible until a node was tapped, so readers could not see how the two sides connect. Raised the
+// resting opacity to 0.3 (others 0.18 -> 0.2 base); a tapped node still wins (0.65) and dims the rest
+// (0.04). B: the graph SVG was a fixed 1104px canvas that wasted the side margins on a notebook and
+// force-scrolled when the column was narrower. Made it responsive (viewBox + preserveAspectRatio,
+// width:100% height:auto, minWidth 880 so mobile still scrolls); the centre-on-selected-role scroll
+// math is now scale-aware (computes the hub pixel from the live scrollWidth, not the hardcoded 1104).
+// No colour change (edges stay amber/indigo/cyan/violet - no red/green); nodes scale UP on desktop.
+// Additive; no frozen symbol touched. Build green. G1 (v3.2.2 -> v3.2.3).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -7176,13 +7186,15 @@ function RoleGraphPanel({ result, title }) {
   const rgErrored = isPosting ? false : (graphState.status === "error");
 
   // Centre the map on the selected role once the graph is ready. The graph is centre-rooted:
-  // the role hub sits mid-canvas (~x452 in the 1104px viewBox), so on a narrow viewport the
-  // scroll container would otherwise open at the left column with the selected role off-screen.
+  // the role hub sits mid-canvas (~x452 in the 1104-unit viewBox). B: the SVG is now responsive
+  // (width 100%, min 880), so its rendered width varies - compute the hub's pixel position from the
+  // ACTUAL scrollWidth, not the hardcoded viewBox unit. On wide screens it fits (no scroll); on
+  // narrow ones it scrolls to centre the selected role.
   useEffect(() => {
     const el = graphScrollRef.current;
     if (!el || !g || g.fallback) return;
-    const ROLE_HUB_CX = 452; // mcfRole column centre: x 372 + w 160/2 (cols in renderGraph); SVG is 1:1 with its viewBox
-    const target = ROLE_HUB_CX - el.clientWidth / 2;
+    const ROLE_HUB_CX = 452, VIEWBOX_W = 1104; // mcfRole column centre in viewBox units
+    const target = (ROLE_HUB_CX / VIEWBOX_W) * el.scrollWidth - el.clientWidth / 2;
     el.scrollLeft = Math.max(0, Math.min(target, el.scrollWidth - el.clientWidth));
   }, [g]);
 
@@ -7260,7 +7272,7 @@ function RoleGraphPanel({ result, title }) {
     const HEADS = ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
     return (
       <div ref={graphScrollRef} style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
-        <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 820 }} role="img" aria-label="Role-skill graph">
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block", width: "100%", height: "auto", minWidth: 880 }} role="img" aria-label="Role-skill graph">
           {/* column headers (word-wrapped, full names) */}
           {byCol.map((c, ci) => (
             <foreignObject key={"cap" + ci} x={c.x} y={3} width={c.w} height={HEAD_H}>
@@ -7278,7 +7290,10 @@ function RoleGraphPanel({ result, title }) {
             const vis = edgeVisible(e);
             // skill<->responsibility spans the whole width (right skills to left R&R) — keep it faint at rest
             // so it doesn't spaghetti, but it lights up boldly when a node is tapped (shows the resonance).
-            const baseOp = e.kind === "skill-responsibility" ? 0.07 : 0.18 + e.weight * 0.3;
+            // A: the skill<->responsibility edge is the LEFT<->RIGHT link readers most need to see;
+            // it was 0.07 (invisible until tapped). Raise the resting opacity so the web reads at a
+            // glance, while a tapped node still wins at 0.65 and dims the rest to 0.04.
+            const baseOp = e.kind === "skill-responsibility" ? 0.3 : 0.2 + e.weight * 0.3;
             return <path key={"e" + i} d={`M${sx},${sy} C${sx + dx},${sy} ${tx - dx},${ty} ${tx},${ty}`} fill="none" stroke={RG_EDGE_COLOR[e.kind] || "#94a3b8"} strokeWidth={0.6 + e.weight * 2.4} strokeOpacity={vis ? (hi ? 0.65 : baseOp) : 0.04} />;
           })}
           {/* word-wrapped nodes */}
