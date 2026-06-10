@@ -449,6 +449,13 @@
 // FR1 v3.1.4 / BF2 v3.1.5 / BDF3 v3.1.6 / PW4 v3.1.7 in the stewardship spec; EPIC CLOSED note
 // added to result-engine-spec SS5 (the E2-B6 table is the closed ledger, not the active queue).
 // G1 (v3.3.0 -> v3.3.1).
+// v3.3.2 - 2026-06-11 - HDR #089 - G4 (goal-centric audit, last item): Deep Read teaser. The v3.2.6
+// IA fix moved the 7 stewardship reads behind the Deep Read tab - right call for page length, but
+// the goal's heart became one tap less discoverable. One gated sentence inside the Navigation box
+// (renders only when the deepread tab exists): "Deep Read holds the stewardship reads - why this
+// role exists, what stays human vs what to hand to AI, and whether the market and employer are what
+// they seem." C.textSub (AA), ASCII hyphens (R007), microscope glyph aria-hidden, no colour-state,
+// no new control. Additive; no frozen symbol touched. G1 (v3.3.1 -> v3.3.2).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -10630,6 +10637,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
                   Tap a section to explore the results:
                 </p>
+                {tabs.some(t => t.key === "deepread") && (
+                  <p style={{ margin:"0 0 8px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>
+                    <span aria-hidden="true">🔬</span> <strong>Deep Read</strong> holds the stewardship reads - why this role exists, what stays human vs what to hand to AI, and whether the market and employer are what they seem.
+                  </p>
+                )}
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   {tabs.map(t => {
                     const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
