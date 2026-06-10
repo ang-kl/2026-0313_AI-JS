@@ -328,6 +328,12 @@
 // 8/8 PASS + all G-tests + hard gates PASS; a11y review 7/7 PASS (no red/green, 44px, aria, no-number
 // honesty footer). Additive; no frozen symbol touched. R-FREEZE + R007 clean. Hands-free V-1 sign-off.
 // G1 (v3.2.0 -> v3.2.1).
+// v3.2.2 - 2026-06-10 - HDR #078 - a11y polish (parked item): darken C.muted #6b7a8d -> #5b6878.
+// One-line palette change; C.muted is used ~252x for uppercase micro-labels + small footers that
+// previously sat at ~4.38:1 on white (just under WCAG AA 4.5:1). #5b6878 lifts them to ~5.57:1 (AA
+// clear) in one place. Hierarchy preserved (text #1a202c > textSub #4a5568 > muted #5b6878 >
+// mutedLight #9aa5b4); same blue-grey hue, no red/green. Flagged repeatedly by the a11y reviewer as
+// the single global fix for the micro-label gap. No frozen symbol touched. G1 (v3.2.1 -> v3.2.2).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -338,7 +344,7 @@ const C = {
   accentSoft: "#e8f0fe",
   eu:         "#003399",
   euStar:     "#ffcc00",
-  muted:      "#6b7a8d",
+  muted:      "#5b6878",
   mutedLight: "#9aa5b4",
   text:       "#1a202c",
   textSub:    "#4a5568",
