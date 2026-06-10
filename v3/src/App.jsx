@@ -10630,6 +10630,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
                   Tap a section to explore the results:
                 </p>
+                {tabs.some(t => t.key === "deepread") && (
+                  <p style={{ margin:"0 0 8px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>
+                    <span aria-hidden="true">🔬</span> <strong>Deep Read</strong> holds the stewardship reads - why this role exists, what stays human vs what to hand to AI, and whether the market and employer are what they seem.
+                  </p>
+                )}
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   {tabs.map(t => {
                     const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
