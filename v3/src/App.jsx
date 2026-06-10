@@ -237,6 +237,24 @@
 // verified, amber-vs-blue not red/green). Spec AU-7: built inline (not a matcher.js) + evidence-
 // bucket tiering (not per-work-layer) - source wins, core promises honoured. R-FREEZE + R007 clean.
 // Hands-free V-1 sign-off. G1 (v3.1.10 -> v3.1.11).
+// v3.1.12 - 2026-06-10 - HDR #072 - D4 (result-engine arc): Demand-Proof gate. New
+// demandProof(jobs, nowMs) - a pure deterministic read over the already-fetched live MCF
+// sample (result.responsibilitiesData.jobs) - and a collapsible "Demand-Proof" panel after
+// StewardshipShift. It surfaces: sample count (● from MCF), postings in the last 9 / 30 days
+// (◐ derived, from each posting's postedDate), monthly salary p25/p50/p75 from stated-band
+// midpoints (◐ derived, only when >= 4 stated a band), the experience-years distribution
+// (◐ derived, from minimumYearsExperience), and a conservative verdict active/moderate/thin
+// (✓ computed) defaulting to "do not over-invest" when thin. R-PREMORTEM (the §9 FCF
+// false-positive risk): we do NOT build a per-post ghost classifier - the Fair Consideration
+// 14-day rule is surfaced as an information-only caveat, never as a per-seat "fake" label.
+// Withhold over fabricate: returns null under 4 postings; salary withheld under 4 stated
+// bands; recency suppressed when no postedDate parses. NO LLM in this read (D1-D8 N/A). Audit
+// PASS (no LLM number; Prov chip on every figure; blue/cyan/orange not red/green; state by
+// shape+label ▲◆▽ not colour; 44px target; aria-expanded; aria-hidden glyphs; "human decides"
+// + Source/Confidence/Time-window footer). Spec AU-7: built inline over the already-fetched
+// jobs (not a re-fetch in mcf.js) - the action:"job" path stays frozen, jobs are already in
+// state, and the read is ephemeral/display-only; source wins, mcf.js prescription preserved.
+// R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.11 -> v3.1.12).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4139,6 +4157,185 @@ function StewardshipShift({ result }) {
           </div>
           <p style={{ margin:"8px 0 0", fontSize:10.5, color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
           <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// D4 - Demand-Proof gate. Deterministic facts over the live MCF sample, plus a
+// conservative sample verdict and a Fair-Consideration caveat. R-PREMORTEM: we
+// do NOT classify any individual seat as a "ghost post" (no inventive per-post
+// classifier) - we only count, take percentiles, and default to "do not
+// over-invest" when the sample is thin. Withhold under 4 postings.
+function demandProof(jobs, nowMs) {
+  const arr = Array.isArray(jobs) ? jobs : [];
+  const n = arr.length;
+  if (n < 4) return null; // too thin to read - withhold over fabricate
+
+  // recency, from each posting's postedDate (a verbatim MCF field)
+  const DAY = 86400000;
+  let within9 = 0, within30 = 0, dated = 0;
+  for (const j of arr) {
+    const t = (j && j.postedDate) ? Date.parse(j.postedDate) : NaN;
+    if (!Number.isFinite(t)) continue;
+    dated++;
+    const age = (nowMs - t) / DAY;
+    if (age >= 0 && age <= 9) within9++;
+    if (age >= 0 && age <= 30) within30++;
+  }
+
+  // salary percentiles from stated bands (midpoint), only when >= 4 stated one
+  const mids = [];
+  for (const j of arr) {
+    const lo = Number(j && j.salaryMin), hi = Number(j && j.salaryMax);
+    if (Number.isFinite(lo) && lo > 0 && Number.isFinite(hi) && hi > 0) mids.push((lo + hi) / 2);
+    else if (Number.isFinite(lo) && lo > 0) mids.push(lo);
+    else if (Number.isFinite(hi) && hi > 0) mids.push(hi);
+  }
+  mids.sort((a, b) => a - b);
+  const pctile = p => {
+    const idx = Math.min(mids.length - 1, Math.max(0, Math.round((p / 100) * (mids.length - 1))));
+    return Math.round(mids[idx] / 100) * 100; // nearest $100 - it is a rough read
+  };
+  const salary = mids.length >= 4 ? { p25: pctile(25), p50: pctile(50), p75: pctile(75), n: mids.length } : null;
+
+  // experience asked for, from minimumYearsExperience (a verbatim MCF field)
+  const bands = { fresh: 0, junior: 0, mid: 0, senior: 0 };
+  let expN = 0;
+  for (const j of arr) {
+    const y = (j && typeof j.minimumYearsExperience === "number") ? j.minimumYearsExperience : null;
+    if (y == null) continue;
+    expN++;
+    if (y < 2) bands.fresh++;
+    else if (y < 5) bands.junior++;
+    else if (y < 9) bands.mid++;
+    else bands.senior++;
+  }
+
+  // conservative verdict - sample size + recency drive it; default "thin"
+  let verdict;
+  if (dated > 0 && n >= 12 && within30 >= 6) verdict = "active";
+  else if (n >= 6 && (dated === 0 || within30 >= 3)) verdict = "moderate";
+  else verdict = "thin";
+  const confidence = n >= 12 ? "higher" : n >= 6 ? "moderate" : "low";
+
+  return { n, dated, within9, within30, salary, bands, expN, verdict, confidence };
+}
+
+const _DEMAND_VERDICT = {
+  active:   { glyph:"▲", label:"Active demand",   color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe",
+              line:"Multiple recent postings in this sample. Demand looks real - but still verify the specific employer and seat." },
+  moderate: { glyph:"◆", label:"Moderate demand", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc",
+              line:"Some postings, but a thin or older sample. Treat it as a lead, not proof - verify before you over-invest in this one title." },
+  thin:     { glyph:"▽", label:"Thin / unproven", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa",
+              line:"Demand is not proven from this sample. Default: do not over-invest in this single title - widen your search and confirm live openings first." },
+};
+
+function DemandProof({ result }) {
+  const [open, setOpen] = useState(false);
+  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const dp = demandProof(jobs, Date.now());
+  if (!dp) return null; // withheld - sample too thin to read
+
+  const v = _DEMAND_VERDICT[dp.verdict] || _DEMAND_VERDICT.thin;
+  const fmtSGD = x => (x == null ? "-" : "$" + Math.round(x).toLocaleString("en-SG"));
+  const bandRows = [
+    { key:"fresh",  label:"Fresh (under 2 yrs)" },
+    { key:"junior", label:"Junior (2-4 yrs)" },
+    { key:"mid",    label:"Mid (5-8 yrs)" },
+    { key:"senior", label:"Senior (9 yrs+)" },
+  ];
+  const maxBand = Math.max(1, ...bandRows.map(b => dp.bands[b.key]));
+
+  const stat = (label, val, kind) => (
+    <div style={{ padding:"8px 10px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8 }}>
+      <span style={{ fontSize:18, fontWeight:800, color:C.text, display:"block", marginBottom:2 }}>{val}</span>
+      <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
+        <span style={{ fontSize:10, color:C.muted }}>{label}</span>
+        <Prov kind={kind} small />
+      </span>
+    </div>
+  );
+  const salCell = (label, val) => (
+    <div style={{ textAlign:"center", flex:1 }}>
+      <p style={{ margin:"0 0 1px", fontSize:9.5, color:C.muted, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
+      <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.text }}>{fmtSGD(val)}</p>
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }} aria-hidden="true">📡</span>
+          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Demand-Proof - is the market actually hiring this?</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding:"12px 14px 14px" }}>
+          {/* verdict - shape + label + text, never colour alone */}
+          <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:8 }}>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:800, color:v.color, background:v.bg, border:`1px solid ${v.border}`, borderRadius:999, padding:"2px 11px" }}>
+              <span aria-hidden="true">{v.glyph}</span>{v.label}
+            </span>
+            <Prov kind="computed" small />
+          </div>
+          <p style={{ margin:"0 0 10px", fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>{v.line}</p>
+
+          {/* counts */}
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(118px,1fr))", gap:8, marginBottom:10 }}>
+            {stat("Postings in sample", String(dp.n), "mcf")}
+            {dp.dated > 0 ? stat("Posted in last 9 days", String(dp.within9), "derived") : null}
+            {dp.dated > 0 ? stat("Posted in last 30 days", String(dp.within30), "derived") : null}
+          </div>
+
+          {/* salary spread */}
+          {dp.salary ? (
+            <div style={{ marginBottom:10, padding:"9px 11px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
+                <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.text }}>Monthly salary spread (rough)</p>
+                <Prov kind="derived" small />
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
+                {salCell("25th", dp.salary.p25)}
+                {salCell("Median", dp.salary.p50)}
+                {salCell("75th", dp.salary.p75)}
+              </div>
+              <p style={{ margin:"6px 0 0", fontSize:10, color:C.muted }}>From {dp.salary.n} postings that stated a salary band, using each band's midpoint.</p>
+            </div>
+          ) : (
+            <p style={{ margin:"0 0 10px", fontSize:11, color:C.muted, fontStyle:"italic" }}>Salary spread withheld - fewer than 4 postings in this sample stated a band.</p>
+          )}
+
+          {/* experience asked for */}
+          {dp.expN > 0 ? (
+            <div style={{ marginBottom:10 }}>
+              <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:700, color:C.text, display:"flex", alignItems:"center", gap:6 }}>Experience asked for <Prov kind="derived" small /></p>
+              {bandRows.map(b => {
+                const c = dp.bands[b.key];
+                return (
+                  <div key={b.key} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+                    <span style={{ fontSize:11, color:C.textSub, width:118, flexShrink:0 }}>{b.label}</span>
+                    <div style={{ flex:1, height:8, background:"#eef2f7", borderRadius:4, overflow:"hidden" }}>
+                      <div style={{ width:`${(c / maxBand) * 100}%`, height:"100%", background:"#1e40af" }} />
+                    </div>
+                    <span style={{ fontSize:11, fontWeight:700, color:C.text, width:18, textAlign:"right" }}>{c}</span>
+                  </div>
+                );
+              })}
+              <p style={{ margin:"5px 0 0", fontSize:10, color:C.muted }}>From {dp.expN} postings that stated a minimum-years figure.</p>
+            </div>
+          ) : null}
+
+          {/* Fair Consideration caveat - information only, NOT a per-post ghost label */}
+          <div style={{ padding:"8px 11px", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:8, marginBottom:6 }}>
+            <p style={{ margin:0, fontSize:10.5, color:"#9a3412", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
+          </div>
+
+          <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
         </div>
       )}
     </div>
@@ -9428,6 +9625,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               <ForensicReversal result={result} title={sel?.title || ""} />
               <BdfStewardship result={result} title={sel?.title || ""} />
               <StewardshipShift result={result} />
+              <DemandProof result={result} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
