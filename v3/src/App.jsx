@@ -315,6 +315,19 @@
 // 44px copy buttons + toggle, aria, no red/green, "human decides" footers. CLOSES the result-engine
 // epic at v3.2.0 (E2,H1,A8,C1,C2,T3,D4,F5,F5.2,B6). Additive; no frozen symbol touched. R-FREEZE +
 // R007 clean. Hands-free V-1 sign-off. G1 (v3.1.15 -> v3.2.0, MINOR - epic close).
+// v3.2.1 - 2026-06-10 - HDR #077 - RK1 (stewardship arc, goal protocol 1 - the missing half).
+// BF2 built bridge-vs-firewall but only name-dropped Rumelt; this builds the kernel itself. New
+// StrategyRead panel (after Forensic Reversal) reads the role through Richard Rumelt's kernel of
+// strategy (Good Strategy / Bad Strategy, 2011): Diagnosis (the structural obstacle the vacancy
+// signals) -> Guiding policy -> Coherent action (the duties that enact it). Interpretive, fully
+// LLM-authored, ~ AI estimate end to end; computes NO number (the readme's "friction cost" is NOT
+// built - no data would mean fabrication). SYSTEM_RUMELT is JSON-only, every field "NO digits";
+// fetchStrategyRead strips digits + drops any coherent-action citing a non-existent duty; render
+// shows the real duty text, never an LLM-cited number; withheld under 3 duties or on empty diagnosis.
+// Lazy, cached by evidence hash, rk1 tag. Mirrors the governed FR1 pattern. Conformance audit D1-D8
+// 8/8 PASS + all G-tests + hard gates PASS; a11y review 7/7 PASS (no red/green, 44px, aria, no-number
+// honesty footer). Additive; no frozen symbol touched. R-FREEZE + R007 clean. Hands-free V-1 sign-off.
+// G1 (v3.2.0 -> v3.2.1).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4104,6 +4117,124 @@ function ForensicReversal({ result, title }) {
             </div>
           )}
           <p style={{ margin:"8px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- RK1: Rumelt-kernel "Strategy read" (stewardship arc, goal protocol 1 - the missing half) ----
+// Protocol 1 asks the AI to read the vacancy through Richard Rumelt's kernel of strategy
+// (Good Strategy / Bad Strategy, 2011): does this role resolve a DIAGNOSED obstacle? BF2 built the
+// bridge-vs-firewall categorisation; this builds the kernel itself - Diagnosis (the structural
+// deficit the vacancy signals) -> Guiding policy (the approach) -> Coherent action (the concrete
+// duties that enact it). It is interpretive, so it is fully LLM-authored and tagged ~ AI estimate;
+// it computes no number (the readme's "friction cost" is NOT built - no data would mean fabrication).
+// Grounded ONLY in the role's own duty statements; coherent-action items must cite a real duty number
+// (verified) or they are dropped; digits never survive into prose; withheld under 3 duties. Lazy on
+// first open; cached by evidence hash, rk1 tag (bump on SYSTEM_RUMELT change).
+const _rkCache = new Map(); // `${title}|${evidenceHash}|rk1` -> read
+const SYSTEM_RUMELT =
+`ACT AS a strategy analyst. You are given the numbered duty statements of one advertised job role. Read the role through Richard Rumelt's kernel of strategy: a vacancy is not a request for labour but a sign of a structural obstacle the organisation is trying to resolve. Work ONLY from the given lines; never invent facts. If the lines do not support a confident diagnosis, return an empty diagnosis. Singapore context, plain language.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "diagnosis": "one line naming the structural obstacle or deficit this vacancy signals, under 22 words, contains NO digits",
+ "guidingPolicy": "one line naming the overall approach the role embodies to address it, under 22 words, contains NO digits",
+ "coherentActions": [{"n":duty number,"action":"the concrete action this duty enacts toward the policy, under 14 words, NO digits"}]
+}
+coherentActions: 2 to 3 entries, each citing a duty number that exists in the given lines. Before output, re-check every cited duty number exists; drop any that do not. No quote characters inside string values.`;
+
+async function fetchStrategyRead(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|rk1`;
+  if (_rkCache.has(key)) return _rkCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nRead through Rumelt's kernel.`, 600, 1, SYSTEM_RUMELT, "claude-opus-4-8");
+  const o = extractJSON(raw, "rumelt-strategy") || {};
+  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "")]));
+  const noDigits = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const read = {
+    diagnosis: noDigits(o.diagnosis, 170),
+    guidingPolicy: noDigits(o.guidingPolicy, 170),
+    // audit guard: a coherent action survives only if it cites a duty number that actually exists
+    coherentActions: (Array.isArray(o.coherentActions) ? o.coherentActions : [])
+      .map(a => ({ n: Number(a && a.n), action: noDigits(a && a.action, 110) }))
+      .filter(a => byN.has(a.n) && a.action)
+      .slice(0, 3),
+  };
+  _rkCache.set(key, read);
+  return read;
+}
+
+function StrategyRead({ result, title }) {
+  const [open, setOpen] = useState(false);
+  const [rk, setRk] = useState({ status: "idle" });
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || rk.status === "done" || rk.status === "loading" || statements.length < 3) return;
+    setRk({ status: "loading" });
+    const t0 = Date.now();
+    fetchStrategyRead(title, statements)
+      .then(read => { logStep("strategy_read", "ok", Date.now() - t0, read.diagnosis ? "diagnosed" : "thin"); setRk({ status: "done", read }); })
+      .catch(e => { logStep("strategy_read", "error", Date.now() - t0, e && e.message); setRk({ status: "error" }); });
+  }
+
+  if (statements.length < 3) return null; // too few duties to frame a strategy kernel
+  const sec = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🧭</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Strategy read - the obstacle this role is hired to resolve</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          {rk.status === "loading" && <p style={{ margin: 0, fontSize: 11.5, color: C.muted }} aria-busy="true">Reading the role through Rumelt's kernel from {Math.min(14, statements.length)} duty lines...</p>}
+          {rk.status === "error" && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>The strategy read could not be completed - try again in a moment.</p>}
+          {rk.status === "done" && (
+            rk.read.diagnosis ? (
+              <div>
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Diagnosis - the obstacle behind the vacancy")}<Prov kind="ai" small /></div>
+                  <p style={{ margin: 0, fontSize: 12.5, color: C.text, fontWeight: 600, lineHeight: 1.55 }}>{rk.read.diagnosis}</p>
+                </div>
+                {rk.read.guidingPolicy && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Guiding policy - the approach the role embodies")}<Prov kind="ai" small /></div>
+                    <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.55 }}>{rk.read.guidingPolicy}</p>
+                  </div>
+                )}
+                {rk.read.coherentActions.length > 0 && (
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Coherent action - the duties that enact it")}<Prov kind="ai" small /></div>
+                    {rk.read.coherentActions.map((a, i) => {
+                      const st = statements.find(s => Number(s.n) === a.n);
+                      if (!st) return null; // never render an LLM-cited duty number as text
+                      return (
+                        <div key={i} style={{ padding: "6px 10px", marginBottom: 5, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                          <p style={{ margin: "0 0 3px", fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{st.text}</p>
+                          <p style={{ margin: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>enacts:</strong> {a.action}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>Withheld - the duty statements do not support a confident strategy diagnosis for this role.</p>
+            )
+          )}
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. An interpretive read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal protocol 1 + Rumelt, Good Strategy / Bad Strategy (2011).</p>
         </div>
       )}
     </div>
@@ -10073,6 +10204,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 }}
               />
               <ForensicReversal result={result} title={sel?.title || ""} />
+              <StrategyRead result={result} title={sel?.title || ""} />
               <BdfStewardship result={result} title={sel?.title || ""} />
               <StewardshipShift result={result} />
               <DemandProof result={result} />
