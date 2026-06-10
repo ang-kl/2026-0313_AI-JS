@@ -146,6 +146,18 @@
 // container so the mcfRole hub (~x452, 1:1 with the viewBox) lands at the viewport centre once the
 // graph data is ready (clamped, no-op on desktop where the whole graph fits). Render-only, v3-only;
 // frozen door + engine untouched.
+// v3.1.4 - 2026-06-10 - HDR #064 - FR1, first PR of the STEWARDSHIP ARC (v3/script/
+// v3-stewardship-spec.md, grounded in v3/goal/: the readme protocols, the Teleology paper, and
+// w34854 Acemoglu-Autor-Johnson 2026). New collapsible "Forensic Reversal - why this role exists"
+// panel in the result Overview: (1) crux anomaly - deterministic token-rarity of each duty line vs
+// the sampled comparison ads ("the acute need that likely triggered this hire"), tagged with the
+// NEW derived Prov chip, withheld under 4 usable ads; (2) verb mandate - SYSTEM_FORENSIC (JSON-only,
+// D1-D8 audited) isolates active verbs, client drops any verb not verbatim in the duty text and
+// verifies every cited line; histogram counted client-side; (3) reverse-BDF consumes/delivers per
+// top duty, digits stripped, unknown duty numbers dropped. LLM authors NO number that reaches the
+// page (audit gate 1 re-verified after 2 guard fixes + a SYSTEM_FR name-collision rename). Crux
+// scorer proven deterministic. Loaded lazily on first open; cached by evidence hash, fr1 tag.
+// R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.3 -> v3.1.4).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2118,6 +2130,7 @@ const PROV = {
   mcf:        { label:"from MyCareersFuture", short:"from MCF",   icon:"●", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4", tip:"Taken verbatim from the live MyCareersFuture posting." },
   computed:   { label:"computed",            short:"computed",   icon:"✓", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", tip:"Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." },
   ai:         { label:"AI estimate",         short:"AI estimate", icon:"~", color:"#b45309", bg:"#fffbeb", border:"#fde68a", tip:"An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." },
+  derived:    { label:"derived",             short:"derived",    icon:"◐", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", tip:"Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." },
   unverified: { label:"unverified",          short:"unverified", icon:"?", color:"#64748b", bg:"#f1f5f9", border:"#cbd5e1", tip:"A claim without a checked source." },
 };
 function Prov({ kind, small }) {
@@ -2135,6 +2148,7 @@ function ProvLegend() {
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="mcf" /> posting facts</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="computed" /> deterministic, reproducible</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="ai" /> AI judgement, may vary</span>
+      <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="derived" /> computed from the sampled ads</span>
     </div>
   );
 }
@@ -3605,6 +3619,164 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
           <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.65 }}>
             <strong style={{ color:C.text }}>No Human-Led skills shown?</strong> For this role, all essential skills were assessed as having some level of AI involvement today. Human-Led only applies where AI genuinely cannot help - think crisis judgment, physical care, or building trust with real people at stake. If that does not feel right, check the Skill Analysis tab for the full reasoning.
           </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- FR1: Forensic Reversal panel (stewardship arc, v3/script/v3-stewardship-spec.md SS4) ----
+// Reverse-engineers WHY the role exists (goal doc protocol 7): (1) verb mandate - the LLM
+// isolates active verbs from the duty lines (~ AI estimate; histogram counted client-side;
+// any verb not actually present in the duty text is DROPPED - non-inventive guard); (2) crux
+// anomaly - deterministic token-rarity of each duty line vs the sampled comparison ads
+// (tagged derived; same ads -> same lines); (3) reverse-BDF inputs/outputs per top duty
+// (~ AI estimate). The LLM authors NO number that reaches the page.
+const _frCache = new Map(); // `${title}|${evidenceHash}|fr1` -> read (fr1 = prompt version; bump on SYSTEM_FORENSIC change)
+const SYSTEM_FORENSIC =
+`ACT AS a forensic role analyst. You are given the numbered duty statements of one advertised job role. Reverse-engineer WHY the role exists - the operational mandate behind the job title. Work ONLY from the given lines; never invent facts. Singapore context, plain language.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "verbs": [{"verb":"an active verb copied verbatim from a duty line, lowercase","n":[duty numbers where it appears]}],
+ "mandate": "one line naming the true operational mandate behind the title, under 18 words, contains NO digits",
+ "bdf": [{"n":duty number,"inputs":"what this duty consumes from upstream, under 10 words, no digits","outputs":"what it must deliver downstream, under 10 words, no digits"}]
+}
+verbs: 4 to 8 entries, the most load-bearing verbs only - each MUST appear verbatim inside a duty line. bdf: exactly the 3 most load-bearing duties. Before output, re-check each verb appears character-for-character inside a duty line and each duty number you cite contains that verb; omit anything that fails. No quote characters inside string values.`;
+
+function _frTokens(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter(t => t.length > 3); }
+
+// Deterministic crux scorer: a duty line's distinctiveness = mean token rarity across the
+// sampled ads' duty text. Boilerplate tokens appear in most ads (rarity ~0); the acute,
+// hire-triggering need does not. Withholds below 4 usable ads (thin sample = no claim).
+function cruxAnomaly(statements, jobs) {
+  const docs = (jobs || []).map(j => new Set(_frTokens((j && (j.responsibilitiesText || j.description)) || ""))).filter(d => d.size > 5);
+  if (docs.length < 4) return { ok: false, adCount: docs.length };
+  const rarity = t => 1 - (docs.reduce((a, d) => a + (d.has(t) ? 1 : 0), 0) / docs.length);
+  const scored = statements.map(st => {
+    const toks = [...new Set(_frTokens(st.text))];
+    return { st, score: toks.length ? Math.round((toks.reduce((a, t) => a + rarity(t), 0) / toks.length) * 100) / 100 : 0 };
+  }).sort((a, b) => (b.score - a.score) || (a.st.text < b.st.text ? -1 : 1)); // byte tie-break: locale-independent
+  return { ok: true, adCount: docs.length, top: scored.slice(0, 2) };
+}
+
+async function fetchForensicRead(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|fr1`;
+  if (_frCache.has(key)) return _frCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nReverse-engineer.`, 700, 1, SYSTEM_FORENSIC);
+  const o = extractJSON(raw, "forensic-reversal");
+  // Non-inventive guards (audit C1/W1): a verb must actually occur in the duty text or it is
+  // dropped; each cited duty index must exist AND that duty line must contain the verb; bdf
+  // entries citing unknown duties are dropped; digits never survive into rendered prose.
+  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "").toLowerCase()]));
+  const corpus = [...byN.values()].join(" \n ");
+  const noDigits = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const verbs = (Array.isArray(o.verbs) ? o.verbs : [])
+    .map(v => {
+      const verb = String((v && v.verb) || "").toLowerCase().trim();
+      const n = [...new Set((Array.isArray(v && v.n) ? v.n : []).map(Number))].filter(x => (byN.get(x) || "").includes(verb));
+      return { verb, n };
+    })
+    .filter(v => v.verb && v.verb.length > 2 && corpus.includes(v.verb))
+    .slice(0, 8);
+  const read = {
+    verbs,
+    mandate: noDigits(o && o.mandate, 160),
+    bdf: (Array.isArray(o.bdf) ? o.bdf : []).slice(0, 3).map(b => ({
+      n: Number(b && b.n), inputs: noDigits(b && b.inputs, 90), outputs: noDigits(b && b.outputs, 90),
+    })).filter(b => byN.has(b.n) && (b.inputs || b.outputs)),
+  };
+  _frCache.set(key, read);
+  return read;
+}
+
+function ForensicReversal({ result, title }) {
+  const [open, setOpen] = useState(false);
+  const [fr, setFr] = useState({ status: "idle" });
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || fr.status === "done" || fr.status === "loading" || statements.length < 3) return;
+    setFr({ status: "loading" });
+    const t0 = Date.now();
+    fetchForensicRead(title, statements)
+      .then(read => { logStep("forensic_reversal", "ok", Date.now() - t0, `${read.verbs.length} verbs`); setFr({ status: "done", read }); })
+      .catch(e => { logStep("forensic_reversal", "error", Date.now() - t0, e && e.message); setFr({ status: "error" }); });
+  }
+
+  if (statements.length < 3) return null; // nothing defensible to reverse-engineer
+  const crux = open ? cruxAnomaly(statements, jobs) : null; // only computed when the panel is open
+  const verbCounts = fr.status === "done" ? fr.read.verbs.map(v => ({ verb: v.verb, count: Math.max(1, v.n.length) })).sort((a, b) => (b.count - a.count) || a.verb.localeCompare(b.verb)) : [];
+  const sec = t => <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
+
+  return (
+    <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#155e75" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }}>🔎</span>
+          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Forensic Reversal - why this role exists</span>
+        </div>
+        <span style={{ fontSize:12, color: open ? "#a5f3fc" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+      </button>
+      {open && crux && (
+        <div style={{ padding:"12px 14px 14px" }}>
+          {/* 1. crux anomaly - deterministic, derived from the sampled ads */}
+          <div style={{ marginBottom:12 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("The acute need that likely triggered this hire")}<Prov kind="derived" small /></div>
+            {crux.ok ? (
+              <div>
+                {crux.top.map((c, i) => (
+                  <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding:"7px 10px", marginBottom:6, background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:7 }}>
+                    <span style={{ fontSize:11, fontWeight:800, color:"#0e7490", flexShrink:0 }}>{i + 1}</span>
+                    <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.55 }}>{c.st.text} <span style={{ fontSize:10, color:"#0e7490", fontWeight:700, whiteSpace:"nowrap" }}>distinctiveness {c.score} vs {crux.adCount} ads</span></p>
+                  </div>
+                ))}
+                <p style={{ margin:0, fontSize:10.5, color:C.muted, lineHeight:1.6 }}>The duty lines LEAST shared with {crux.adCount} similar ads - the hyper-specific 20% in the boilerplate. Derived from this sample, not a verbatim posting fact.</p>
+              </div>
+            ) : (
+              <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>Withheld - only {crux.adCount} comparable ads in the sample (need 4+ for a defensible distinctiveness read).</p>
+            )}
+          </div>
+          {/* 2 + 3. verb mandate + reverse-BDF - LLM read, loaded on first open */}
+          {fr.status === "loading" && <p style={{ margin:0, fontSize:11.5, color:C.muted }} aria-busy="true">Isolating the operational mandate from {Math.min(14, statements.length)} duty lines...</p>}
+          {fr.status === "error" && <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>The mandate read could not be completed - the deterministic crux read above still stands.</p>}
+          {fr.status === "done" && (
+            <div>
+              <div style={{ marginBottom:10 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("The verb mandate behind the noun-title")}<Prov kind="ai" small /></div>
+                {fr.read.mandate ? <p style={{ margin:"0 0 7px", fontSize:12.5, color:C.text, fontWeight:600, lineHeight:1.55 }}>{fr.read.mandate}</p> : null}
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {verbCounts.map(v => (
+                    <span key={v.verb} style={{ fontSize:11, color:"#1e40af", background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:12, padding:"3px 10px", fontWeight:600 }}>{v.verb}{v.count > 1 ? ` x${v.count}` : ""}</span>
+                  ))}
+                </div>
+                {verbCounts.length === 0 && <p style={{ margin:0, fontSize:11, color:C.muted }}>No verbs survived the verification guard (each must appear verbatim in the duty text) - read withheld.</p>}
+              </div>
+              {fr.read.bdf.length > 0 && (
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("Reverse-BDF: what the top duties consume and must deliver")}<Prov kind="ai" small /></div>
+                  {fr.read.bdf.map((b, i) => {
+                    const st = statements.find(s => Number(s.n) === b.n);
+                    if (!st) return null; // audit C1: never render an LLM-cited duty number as text
+                    return (
+                      <div key={i} style={{ padding:"6px 10px", marginBottom:5, background:C.surface, border:`1px solid ${C.border}`, borderRadius:7 }}>
+                        <p style={{ margin:"0 0 3px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{st.text}</p>
+                        <p style={{ margin:0, fontSize:11, color:C.text, lineHeight:1.5 }}><strong style={{ color:"#0e7490" }}>consumes:</strong> {b.inputs || "-"} <strong style={{ color:"#1e40af", marginLeft:8 }}>delivers:</strong> {b.outputs || "-"}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.mutedLight, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
         </div>
       )}
     </div>
@@ -8827,6 +8999,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   }, 450);
                 }}
               />
+              <ForensicReversal result={result} title={sel?.title || ""} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
