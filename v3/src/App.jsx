@@ -214,6 +214,16 @@
 // because the CV skills are LLM-extracted upstream (the honest tag - inputs vary run to run). Withhold
 // over fabricate (fallback -> null -> not rendered). Audit verdict SHIP. Transversal reuse-level
 // weighting deferred (C1.x, documented). R-FREEZE clean. Hands-free V-1 sign-off. G1 (v3.1.8 -> v3.1.9).
+// v3.1.10 - 2026-06-10 - HDR #070 - C2 (result-engine arc): Candidate Anatomy. ingestCV now runs the
+// CV's OWN outcomes (cvProfile.achievements) through the EXISTING classifyDuties (layer + exposure per
+// outcome) then the EXISTING deterministic scoreJobAnatomy - the same resilience engine the role uses
+// - and the CV result shows "Your work anatomy": resilientPct = how much of the track record sits in
+// the AI-resilient layers (Accountability/Relational/Judgment), the layer-mix bar, and a constructive
+// read. No NEW prompt (reuses classifyDuties); no LLM-authored number (resilientPct/layerMix from
+// pure scoreJobAnatomy over LLM-classified LAYERS); tagged ~ AI estimate; withheld under 3 outcomes.
+// Client-computed but deterministic + EPHEMERAL (not persisted) - spec AU-7 amendment recorded (spec
+// said server-recomputed; the guard protects a shared store, which this never writes). Audit SHIP.
+// R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.9 -> v3.1.10).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1840,7 +1850,26 @@ ${famLine || "n/a"}`;
       if (res.ok) { const b = await res.json(); if (b && !b.fallback && Array.isArray(b.candidates) && b.candidates.length) blend = b; }
     }
   } catch (_) { blend = null; }
-  return { cvProfile, fit, narrative, blend };
+  // C2: candidate anatomy - run the deterministic resilience engine on the CV's OWN outcomes.
+  // classifyDuties (LLM) tags each achievement's layer + exposure; scoreJobAnatomy is the same
+  // pure, deterministic function the job anatomy uses (no number the client can fabricate - re-run
+  // gives the same result). Ephemeral (not persisted), so no shared-store write concern. The
+  // signal of interest: how much of the person's track record sits in the AI-resilient layers
+  // (Accountability/Relational/Judgment) vs the exposed Activity layer.
+  let anatomy = null;
+  try {
+    const outcomes = (cvProfile && Array.isArray(cvProfile.achievements)) ? cvProfile.achievements : [];
+    if (outcomes.length >= 3) {
+      const duties = outcomes.map((t, i) => ({ n: i + 1, kind: "outcome", text: t }));
+      const classified = await classifyDuties("the candidate's own track record", duties);
+      if (classified.length) {
+        const a = scoreJobAnatomy(classified);
+        const resilientPct = (a.layerMix.Accountability || 0) + (a.layerMix.Relational || 0) + (a.layerMix.Judgment || 0);
+        anatomy = { ...a, resilientPct, nOutcomes: outcomes.length };
+      }
+    }
+  } catch (_) { anatomy = null; }
+  return { cvProfile, fit, narrative, blend, anatomy };
 }
 
 async function rateSkills(title, skills) {
@@ -6608,6 +6637,23 @@ function RoleGraphPanel({ result, title }) {
                           </div>
                         ))}
                         <p style={{ margin: "3px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Derived from your CV's skills (AI-extracted) matched to ESCO occupations - a defensible blend to compare against the single title you would write at the top of your CV. AI-assisted; human decides.</p>
+                      </div>
+                    )}
+                    {cv.anatomy && cv.anatomy.layerMix && (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>{subHdr("Your work anatomy - where your own track record sits")}<Prov kind="ai" small /></div>
+                        <p style={{ margin: "0 0 6px", fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: cv.anatomy.resilientPct >= 50 ? "#1e40af" : "#9a3412" }}>{cv.anatomy.resilientPct}%</strong> of your {cv.anatomy.nOutcomes} stated outcomes sit in the AI-resilient layers (accountability, relational, judgment){cv.anatomy.resilientPct >= 50 ? " - that concentration is your edge as AI commoditises the routine." : " - more of your evidence is in layers AI is reaching; lead with the human-owned outcomes."}</p>
+                        <div style={{ display: "flex", gap: 2, height: 8, borderRadius: 4, overflow: "hidden", marginBottom: 6 }}>
+                          {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => <div key={L} title={`${JOB_LAYERS[L].label} ${cv.anatomy.layerMix[L]}%`} style={{ flex: cv.anatomy.layerMix[L], background: JOB_LAYERS[L].color, minWidth: 5 }} />)}
+                        </div>
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                          {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => (
+                            <span key={L} style={{ fontSize: 11, fontWeight: 600, color: JOB_LAYERS[L].color, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <span style={{ width: 8, height: 8, borderRadius: 2, background: JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight: 800 }}>{cv.anatomy.layerMix[L]}%</span>
+                            </span>
+                          ))}
+                        </div>
+                        <p style={{ margin: "6px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Your outcomes classified by work-layer (AI-classified), then scored by the same deterministic resilience engine the role uses. AI-assisted; human decides.</p>
                       </div>
                     )}
                     {f.families.length > 0 && (
