@@ -414,6 +414,27 @@
 // (forensic/rumelt/bdf) stay on Opus 4.8 (out of scope, separate cost call). No thinking param added
 // (Fable 5 rejects explicit disabled); api/claude.js untouched (frozen, model-agnostic). Build green.
 // G1 (v3.2.9 -> v3.2.10).
+// v3.3.0 - 2026-06-10 - HDR #087 - RB1 (approved plan PR 2; goal protocol 3, the stewardship shift
+// at the FOUNDATION layer). The 4-level skill-analysis rubric was ~3 months old, written for a
+// chat-assistant world - while the panels built on it (ST3 "Hand to AI agents", PW4, FR1) already
+// speak the goal's agentic-stewardship worldview. Re-baselined the rubric to the same goal, in the
+// goal's language, in all THREE raters (SYSTEM_RATE, SYSTEM_COMPACT compare, SYSTEM_RR duties):
+// HIGH = AI completes the work end-to-end - including an AI agent running the multi-step workflow -
+// the human reviews the OUTCOME, not each step ("procedural execution commoditised by autonomous
+// systems"); HUMAN = legal accountability, moral liability, presence - the governance node AI cannot
+// hold ("legal personhood, moral liability, and intuition"). NO 5th level, NO label/colour/icon
+// change (LEVELS + PWAI_LENS byte-untouched, audited). AGENT=AI agent tool added to the tool codes +
+// AI_USAGE (open-set lookups verified). h/k guidance now describes delegation, not prompt-technique
+// name-dropping; office-suite guard kept (skill-vs-task honesty) with a clarifying clause.
+// SYSTEM_PROMPTS: HIGH word-target = "a brief an AI agent could run"; Step 3 HIGH "Automate it" =
+// the stewardship handover (what you hand over, the checkpoint, the escalation - the same handover
+// ST3's give-pole describes); MEDIUM "Build on it" may hand one step to an agent. Copy: loading help
+// corrected from the false "five automation levels...AI-Agentic" to the honest FOUR; groupDef +
+// duties HIGH subs re-worded to agent delegation. Audit-found D6 gap fixed: the duties analysis
+// header now carries ~ AI estimate (it renders AI-judged levels chip-less before). Conformance audit
+// PASS (D1-D8 x4 templates; levelMaps still exactly 4 keys w/ HUMAN fallback; no numeric field; "Do
+// not name products" survives; no persistent rating cache so no key bump; engine untouched; R007
+// clean). Spec: stewardship-spec RB1 row added. G1 (v3.2.10 -> v3.3.0, MINOR - rating semantics).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2168,23 +2189,24 @@ async function rateSkills(title, skills) {
 `You are a senior AI workforce analyst. Rate how AI affects each occupational skill. Apply Singapore and ASEAN context.
 Return ONLY a JSON array with exactly the same number of items as skills provided. No text before or after. No markdown fences.
 Format: [{"n":1,"l":"HIGH","a":"LLM","h":"how AI engages - 12 words max","k":"kickstart this week - 12 words max","st":"technical","pr":"","tw":false,"rd":"ready"}]
-Automation levels:
-- HIGH = Full Automation: AI performs autonomously with minimal human input
-- MEDIUM = AI-Augmented: AI dramatically enhances speed or quality; human still directs
-- LOW = AI-Assisted: AI supports but human judgment leads throughout
-- HUMAN = Human-Led: presence, empathy, or physical action required - AI cannot meaningfully assist
+Automation levels (rate against TODAY'S frontier, where AI agents plan, use tools and iterate across steps):
+- HIGH = Full Automation: AI completes the work end-to-end - including an AI agent running the multi-step workflow - the human reviews the OUTCOME, not each step
+- MEDIUM = AI-Augmented: AI does the heavy lifting; a human directs and signs off each step
+- LOW = AI-Assisted: AI informs and supports; human judgment leads throughout
+- HUMAN = Human-Led: legal accountability, moral liability, presence, empathy or physical action required - the governance node AI cannot hold
 AI tools (use exact code):
-LLM=AI language tool, COPILOT=Microsoft Copilot, SEARCH=AI search tool, IMAGE=AI image tool, VOICE=AI voice tool, DATA=AI data analysis tool, AUTO=AI automation tool, CODE=AI coding tool, DOCS=AI document tool, SLIDES=AI presentation tool, VISION=AI vision tool, RESEARCH=AI research tool, VIDEO=AI video tool, NA=Not applicable
+LLM=AI language tool, AGENT=AI agent tool, COPILOT=Microsoft Copilot, SEARCH=AI search tool, IMAGE=AI image tool, VOICE=AI voice tool, DATA=AI data analysis tool, AUTO=AI automation tool, CODE=AI coding tool, DOCS=AI document tool, SLIDES=AI presentation tool, VISION=AI vision tool, RESEARCH=AI research tool, VIDEO=AI video tool, NA=Not applicable
 Field rules:
-- h: calibrated to level. HIGH: name the technique e.g. "Automated via ReAct loop" or "Delegated using prompt chaining + reflexion". MEDIUM: describe human-AI split e.g. "Human sets criteria, AI uses tree-of-thoughts to evaluate options". LOW: frame AI as support e.g. "AI generates knowledge first; human applies judgment to decision". HUMAN: explain why e.g. "Requires physical presence and emotional attunement". No generic phrases.
-- k: one specific achievable action this week. Do not name specific AI products.
+- h: calibrated to level. HIGH: describe the delegation e.g. "An AI agent runs the monitor-and-report workflow; human reviews the output" or "Agent drafts, checks and files the documentation end-to-end". MEDIUM: describe the human-AI split e.g. "Human sets criteria, AI evaluates the options for sign-off". LOW: frame AI as support e.g. "AI surfaces the evidence; human applies judgment to the decision". HUMAN: explain why e.g. "Requires physical presence and emotional attunement". No generic phrases.
+- k: one specific achievable action this week (for HIGH it may be setting up an agent run with a checkpoint). Do not name specific AI products.
 - pr: if prompt needs real data first, start with "Have your..." or "Open your..." - else empty string
 - tw: true only if multi-turn approach genuinely helps
 - rd: "ready" if usable today, "prepare" if setup needed
-OFFICE SUITE RULE: Microsoft Office, Excel, Word, PowerPoint, Spreadsheets = MEDIUM at most. Never HIGH.
+OFFICE SUITE RULE: Microsoft Office, Excel, Word, PowerPoint, Spreadsheets = MEDIUM at most. Never HIGH. (Agents can drive these apps, but the SKILL is the human competency, not the app operation.)
 CRITICAL: If a=NA then l MUST be HUMAN. No exceptions.
 Bad example: "Patient Empathy" as LOW with LLM - must be HUMAN + NA
-Good example: "Clinical Documentation" as MEDIUM with DOCS - AI drafts, clinician reviews`;
+Good example: "Clinical Documentation" as MEDIUM with DOCS - AI drafts, clinician reviews
+Good example: "Routine Compliance Reporting" as HIGH with AGENT - an agent compiles, checks and files the report; human reviews the outcome`;
 
   const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
   const raw = await claudeCall(
@@ -2415,7 +2437,7 @@ rag example (HIGH, knowledge/compliance skill): "You are a specialist [role]. I 
 prompt-chaining example (HIGH, multi-stage analytical skill): "Stage 1 - Analysis: You are a senior [role]. Analyse the following situation and produce a structured diagnostic: [describe situation]. Output: a numbered list of root causes, each with supporting evidence and estimated impact level. --- Stage 2 - Recommendation: Taking the diagnostic output from Stage 1 as your input, produce a prioritised action plan. For each action: state the objective, the specific steps, the owner, and the success metric. Do not repeat the diagnostic. Build directly on it."
 
 WORD TARGETS - the prompt text must fall within these ranges:
-For l=HIGH (280-440 words): Show the full technique structure explicitly - tool-use chains, retrieval sources, decision rules, verification steps, multi-stage scaffolds. Include: expert persona + full technique structure + output contract + 2 hard constraints + verification or escalation step.
+For l=HIGH (280-440 words): Write it as a brief an AI agent could run - tool-use chains, retrieval sources, decision rules, verification steps, multi-stage scaffolds, and the human review checkpoint. Include: expert persona + full technique structure + output contract + 2 hard constraints + verification or escalation step.
 For l=MEDIUM (180-280 words): Show the technique structure clearly. Include: expert persona + technique structure shown explicitly + output contract + technique applied with visible steps.
 For l=LOW (100-160 words): Embed the technique clearly. Include: expert persona + technique applied + output contract + one constraint.
 
@@ -2428,8 +2450,8 @@ Step 2 - Refine it (50-60 words): one specific follow-up technique tied to the a
 
 Step 3 content varies by automation level:
 - l=LOW: "Step up" (60-70 words) - describe what the MEDIUM version of this skill looks like: what changes when AI is more involved, what the user would need to provide, what they would get back.
-- l=MEDIUM: "Build on it" (60-70 words) - describe connecting this to a data source, chaining it to another prompt, or scheduling it. Give one concrete example of what that looks like.
-- l=HIGH: "Automate it" (60-70 words) - describe the trigger, the action, and the output destination for running this without manual initiation. Give the user a clear picture of what full automation looks like in practice.
+- l=MEDIUM: "Build on it" (60-70 words) - describe connecting this to a data source, chaining it to another prompt, or handing one repeatable step to an AI agent to run. Give one concrete example of what that looks like.
+- l=HIGH: "Automate it" (60-70 words) - describe handing the whole workflow to an AI agent: what you hand over (the brief, the data access), the checkpoint where you review its output, and when it should escalate back to you. Give the user a clear picture of what delegating to an agent looks like in practice - the human reviews the outcome, not each step.
 
 Do not start with "Next phase:". Start directly with the background paragraph.`;
 
@@ -2472,8 +2494,8 @@ async function rateSkillsCompact(title, skills) {
 `You are a senior AI workforce analyst. Rate how AI affects each occupational skill. Apply Singapore and ASEAN context.
 Return ONLY a JSON array with exactly the same number of items as skills provided. No text before or after.
 Format: [{"n":1,"l":"HIGH","a":"LLM","h":"how AI helps under 8 words","st":"technical"}]
-Automation levels: HIGH=Full Automation, MEDIUM=AI-Augmented, LOW=AI-Assisted, HUMAN=Human-Led
-AI tools: LLM, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
+Automation levels (rate against TODAY'S frontier, where AI agents run multi-step workflows): HIGH=Full Automation (AI/agent completes it end-to-end, human reviews the outcome), MEDIUM=AI-Augmented (AI does the heavy lifting, human directs each step), LOW=AI-Assisted (AI supports, human judgment leads), HUMAN=Human-Led (accountability, presence or physical action AI cannot hold)
+AI tools: LLM, AGENT, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
 CRITICAL: If a=NA then l MUST be HUMAN. Physical, tactile, and face-to-face skills are always HUMAN + NA.
 OFFICE SUITE RULE: Skills named "Microsoft Office", "Office Suite", "Spreadsheets", "Excel", "Word", "PowerPoint" or similar general productivity suite skills must be rated MEDIUM at most - never HIGH.`;
 
@@ -2574,6 +2596,7 @@ const PERSONA_CONFIG = {
 
 const AI_USAGE = {
   LLM:       "AI language tool",
+  AGENT:     "AI agent tool",
   COPILOT:   "Microsoft Copilot",
   SEARCH:    "AI search tool",
   IMAGE:     "AI image tool",
@@ -3062,14 +3085,14 @@ async function rateResponsibilities(title, responsibilities) {
 `You are a senior AI workforce analyst. Rate how today's AI affects each job responsibility. Apply Singapore and ASEAN context.
 Return ONLY a JSON array with exactly the same number of items as responsibilities provided. No text before or after. No markdown fences.
 Format: [{"n":1,"l":"MEDIUM","a":"DOCS","h":"how AI engages - 12 words max","k":"one step to try this week - 12 words max"}]
-Automation levels:
-- HIGH = Full Automation: AI can perform this duty autonomously with minimal human input
-- MEDIUM = AI-Augmented: AI dramatically enhances speed or quality; a human still directs and signs off
+Automation levels (rate against TODAY'S frontier, where AI agents plan, use tools and iterate across steps):
+- HIGH = Full Automation: AI completes this duty end-to-end - including an AI agent running the multi-step workflow - the human reviews the outcome, not each step
+- MEDIUM = AI-Augmented: AI does the heavy lifting; a human directs and signs off each step
 - LOW = AI-Assisted: AI supports parts of it but human judgment leads throughout
-- HUMAN = Human-Led: presence, relationships, physical action, or accountability mean AI cannot meaningfully do this
-AI tool codes (use exact code): LLM, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
+- HUMAN = Human-Led: legal accountability, moral liability, presence, relationships or physical action mean AI cannot hold this
+AI tool codes (use exact code): LLM, AGENT, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
 Field rules:
-- h: calibrated to the level - name the technique or the human/AI split, no generic phrases
+- h: calibrated to the level - for HIGH describe the delegation (what the agent runs, what the human reviews); otherwise name the human/AI split. No generic phrases.
 - k: one specific achievable action this week. Do not name specific AI products.
 OFFICE SUITE RULE: drafting in Word/Excel/PowerPoint or spreadsheets = MEDIUM at most. Never HIGH.
 CRITICAL: if a=NA then l MUST be HUMAN.`;
@@ -3298,7 +3321,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
             <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
-              You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across five automation levels: <strong>Full Automation</strong>, <strong>AI-Agentic</strong>, <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
+              You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across four automation levels: <strong>Full Automation</strong> (AI - including AI agents - completes it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
             </p>
           </div>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
@@ -8419,13 +8442,16 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
           { key:"HUMAN",  ...LEVELS.HUMAN,  sub:"Presence, judgement, or accountability keep these duties human-led." },
           { key:"LOW",    ...LEVELS.LOW,    sub:"AI can support these duties, but you stay in control." },
           { key:"MEDIUM", ...LEVELS.MEDIUM, sub:"AI markedly speeds these up; a human still directs and signs off." },
-          { key:"HIGH",   ...LEVELS.HIGH,   sub:"AI can carry most of these autonomously today." },
+          { key:"HIGH",   ...LEVELS.HIGH,   sub:"An AI agent can run these end-to-end today; the human reviews the outcome." },
         ];
         const firstAiKey = ["LOW","MEDIUM","HIGH"].find(k => resps.some(r => r.level === k));
         return (
           <div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:16 }}>
-              <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
+              <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+                <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
+                <Prov kind="ai" small />
+              </div>
               <AutomationBar skills={resps} />
             </div>
             {levelMeta.map(m => {
@@ -10621,7 +10647,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"🟦" },
                       { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490",  bg:"#ecfeff", border:"#a5f3fc",  icon:"🔵" },
                       { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"🟡" },
-                      { level:"HIGH",   label:"Full Automation",   sub:"AI can handle most of this independently today. Knowing this helps you focus your energy wisely.", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"🟧" },
+                      { level:"HIGH",   label:"Full Automation",   sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"🟧" },
                     ];
                     return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
                   })()}
