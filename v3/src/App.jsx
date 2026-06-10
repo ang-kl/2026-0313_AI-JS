@@ -397,6 +397,13 @@
 // (Python) skipped to avoid spam. Underline is a non-colour cue (blue), colour-blind-safe; no AI,
 // nothing reworded. Verified: headings parse h2/h3, multi-word skills underline, short ones don't.
 // Additive; no frozen symbol touched. Build green. G1 (v3.2.7 -> v3.2.8).
+// v3.2.9 - 2026-06-10 - HDR #085 - job-ad window: make the drag actually work. The v3.2.7 drag used
+// setPointerCapture without preventDefault, so a mouse drag started a text-selection instead of moving
+// the window. Switched to the canonical pattern: pointerdown on the header adds document-level
+// pointermove/pointerup listeners + e.preventDefault() + userSelect:none, so the window tracks the
+// pointer 1:1 (mouse + touch). Affordance: cursor grab on the header, a "(drag to move)" hint by the
+// title. Reopen still resets position (recoverable). No red/green; no frozen symbol. Build green.
+// G1 (v3.2.8 -> v3.2.9).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5146,7 +5153,6 @@ function JobAdFab({ onClick }) {
 // clear of the corner FABs.
 function JobAdDrawer({ result, open, onClose }) {
   const closeRef = useRef(null);
-  const dragRef = useRef(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   useEffect(() => { if (open) setPos({ x: 0, y: 0 }); }, [open]); // reset position each open
   useEffect(() => {
@@ -5163,19 +5169,32 @@ function JobAdDrawer({ result, open, onClose }) {
   const adText = job ? String(job.description || job.responsibilitiesText || "").trim() : "";
   const blocks = _fmtJobAd(adText);
   const termRe = _jdTermRe(result);
-  const onDown = e => { dragRef.current = { sx: e.clientX, sy: e.clientY, bx: pos.x, by: pos.y }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} };
-  const onMove = e => { if (!dragRef.current) return; setPos({ x: dragRef.current.bx + (e.clientX - dragRef.current.sx), y: dragRef.current.by + (e.clientY - dragRef.current.sy) }); };
-  const onUp = e => { if (dragRef.current) { dragRef.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {} } };
+  // Drag via document-level listeners (most reliable across browsers/trackpads). preventDefault stops
+  // the browser starting a text-selection instead of a drag; pointer events cover mouse + touch.
+  const onDragStart = e => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    const sx = e.clientX, sy = e.clientY, bx = pos.x, by = pos.y;
+    const move = ev => setPos({ x: bx + (ev.clientX - sx), y: by + (ev.clientY - sy) });
+    const up = () => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", up);
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
+  };
   return (
     <div role="dialog" aria-label="Job advertisement from MyCareersFuture"
       style={{ position: "fixed", top: 68, right: 18, zIndex: 1001, width: "min(440px, 94vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: "0 14px 44px rgba(0,0,0,0.30)", transform: `translate(${pos.x}px, ${pos.y}px)`, animation: "adFade 0.18s ease both" }}>
       <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}}`}</style>
-      <div onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "#1e3a5f", borderRadius: "11px 11px 0 0", cursor: "move", touchAction: "none", flexShrink: 0 }}>
+      <div onPointerDown={onDragStart}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "#1e3a5f", borderRadius: "11px 11px 0 0", cursor: "grab", touchAction: "none", userSelect: "none", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span aria-hidden="true" style={{ color: "#93c5fd", fontSize: 14, letterSpacing: "-1px" }}>⠿</span>
+          <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: 15, cursor: "grab" }}>⠿</span>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement</p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: 9.5, fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
             {job && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
           </div>
         </div>
