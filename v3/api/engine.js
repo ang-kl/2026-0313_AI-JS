@@ -22,6 +22,6 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('engine error:', err.message);
     // Honest failure: no computed-looking fake number.
-    return res.status(200).json({ ok: false, reason: 'engine error', error: err.message, version: 'engine-2' });
+    return res.status(200).json({ ok: false, reason: 'engine error', error: err.message, version: 'engine-3' });
   }
 }
