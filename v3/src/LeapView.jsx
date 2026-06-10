@@ -49,6 +49,23 @@ function cvCoverage(skills, cvText){
   return {proof, gap};
 }
 
+// BF2 (stewardship arc, v3/script/v3-stewardship-spec.md): capability bridge vs governance
+// firewall - goal protocol 1 / Rumelt's kernel. A TRANSPARENT word-balance read of the ad's
+// own text (the Leap idiom: derived heuristics, tagged - like the inflated-title check), not
+// a measurement and not an LLM judgement: build-stems vs governance-stems, verdict hedged
+// ("reads like"), counts shown, withheld when the text is too thin to defend.
+const BRIDGE_STEMS = ['build','develop','launch','implement','deliver','design','creat','grow','driv','transform','improv','establish','expand','innovat','scale'];
+const FIREWALL_STEMS = ['comply','complian','govern','audit','risk','control','polic','regulat','assur','oversight','safeguard','approv','monitor','legal'];
+function bridgeOrFirewall(job){
+  // title + description only: responsibilitiesText is EXTRACTED from description (mcf.js),
+  // so including both would double-count every duty word and break "counts you can check".
+  const T = tok((job.title||'')+' '+(job.description||''));
+  const b = T.filter(t=>BRIDGE_STEMS.some(st=>t.startsWith(st))).length;
+  const f = T.filter(t=>FIREWALL_STEMS.some(st=>t.startsWith(st))).length;
+  if (b+f < 4) return {verdict:'unclear', b, f};
+  return {verdict: f >= b*1.4 ? 'firewall' : b >= f*1.4 ? 'bridge' : 'mixed', b, f};
+}
+
 export default function LeapView(){
   const stageRef = useRef(null);
   const [input,setInput] = useState('');
@@ -87,6 +104,7 @@ export default function LeapView(){
 
   const items = useMemo(()=> job ? deriveItems(job, demand) : [], [job, demand]);
   const cov = useMemo(()=> job ? cvCoverage(job.skills, cv) : null, [job, cv]);
+  const bf = useMemo(()=> job ? bridgeOrFirewall(job) : null, [job]);
 
   // layout
   const W=size.w, H=size.h, s=Math.max(.62,Math.min(1.25,Math.min(W,H)/620));
@@ -162,6 +180,12 @@ export default function LeapView(){
             <div><h2 style={h2}>THE JOB</h2>
               <p style={row}><b>{job.title}</b><br/>{job.employer} · {(job.salaryMin||job.salaryMax)?`$${fmtK(job.salaryMin)}–${fmtK(job.salaryMax)}`:'pay undisclosed'}</p>
               <p style={row}><span style={k}>advert</span><br/>{(job.positionLevels||[]).join(' / ')||'—'}{job.minimumYearsExperience!=null?` · ${job.minimumYearsExperience}+ yrs`:''}</p>
+              {bf && <p style={row}><span style={k}>why this role exists</span><br/>
+                {bf.verdict==='bridge' ? `Reads like a capability bridge - hired to close a capability gap. Build words outweigh governance words ${bf.b}:${bf.f} in the ad's own text.`
+                 : bf.verdict==='firewall' ? `Reads like a governance firewall - hired to hold a control or liability line. Governance words outweigh build words ${bf.f}:${bf.b} in the ad's own text.`
+                 : bf.verdict==='mixed' ? `Mixed mandate - the ad asks for both delivery and control (build vs governance words ${bf.b}:${bf.f}).`
+                 : 'Too little duty text for a defensible bridge-vs-firewall read - withheld.'}
+                {' '}<span style={{...tag,color:tagCol.inferred,borderColor:tagCol.inferred+'55'}}>inferred</span></p>}
               <p style={row}><a href={job.mcfUrl} target="_blank" rel="noreferrer">open on MyCareersFuture →</a></p>
               <p style={hint}>Use “Advert → Real” to spotlight what the ad hides.</p></div>
           ) : selItem ? (
