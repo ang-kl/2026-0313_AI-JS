@@ -242,12 +242,79 @@ async function occupationFingerprint(title, skillPhrases) {
   };
 }
 
+// C1 (result-engine arc): candidate fingerprint. Mirrors occupationFingerprint, but the input is
+// a CANDIDATE's CV-evidence (skills/achievements) and there is NO self-declared title to anchor on -
+// so a CV resolves to a defensible occupation BLEND from its evidence, not one possibly-mislabelled
+// title. Same deterministic search + essential-skill-overlap scoring; results normalised to shares.
+// (Deliberately parallel to occupationFingerprint per the spec; kept separate so the live search-side
+// path is untouched. The transversal-vs-occupation-specific reuse-level weighting in the spec is a
+// documented C1.x refinement - ESCO essential skills are already occupation-specific, so the overlap
+// here is honest, just not yet reuse-level-weighted.)
+async function candidateFingerprint(skillPhrases) {
+  const phrases = (Array.isArray(skillPhrases) ? skillPhrases : []).map(p => String(p || '').trim()).filter(Boolean).slice(0, 30);
+  const phraseTokens = phrases.map(normTokens).filter(t => t.length);
+  if (phraseTokens.length < 3) return { candidates: [], fallback: true, reason: 'thin_cv' };
+
+  // 1) Search ESCO occupations on the candidate's most distinctive skills (no title seed).
+  const searchTerms = phrases.filter(p => p.length >= 4).slice(0, 8);
+  if (!searchTerms.length) return { candidates: [], fallback: true, reason: 'thin_cv' };
+  const searchResults = await Promise.allSettled(searchTerms.map((t, i) => searchOccupations(t, i < 3 ? 6 : 4)));
+  const tally = new Map();
+  searchResults.forEach(r => {
+    if (r.status !== 'fulfilled') return;
+    r.value.forEach((o, rank) => {
+      const cur = tally.get(o.uri) || { uri: o.uri, label: o.label, hits: 0 };
+      cur.hits += Math.max(1, 6 - rank);
+      tally.set(o.uri, cur);
+    });
+  });
+  const candidates = Array.from(tally.values()).sort((a, b) => b.hits - a.hits).slice(0, 14);
+  if (!candidates.length) return { candidates: [], fallback: true, reason: 'no_candidates' };
+
+  // 2) Essential-skill lists (cached, parallel) + 3) overlap score vs the CV evidence.
+  const details = await Promise.allSettled(candidates.map(c => getOccupationEssential(c.uri)));
+  const scored = candidates.map((c, i) => {
+    const d = (details[i].status === 'fulfilled') ? details[i].value : null;
+    if (!d || !d.skills.length) return null;
+    const occTokens = d.skills.map(normTokens);
+    const matchedSkills = [];
+    let matchCount = 0;
+    for (let pi = 0; pi < phraseTokens.length; pi++) {
+      for (let oi = 0; oi < occTokens.length; oi++) {
+        if (phraseMatch(phraseTokens[pi], occTokens[oi])) { matchCount++; matchedSkills.push(phrases[pi]); break; }
+      }
+    }
+    const denom = Math.max(phraseTokens.length, Math.min(d.skills.length, 25)) || 1;
+    return {
+      uri: c.uri, label: d.label || c.label, code: d.code || '', iscoMajor: iscoMajorFromCode(d.code, c.uri),
+      essentialCount: d.skills.length, matchCount, ratio: matchCount / denom, matchedSkills: matchedSkills.slice(0, 8),
+    };
+  }).filter(Boolean).filter(s => s.matchCount > 0);
+  if (!scored.length) return { candidates: [], fallback: true, reason: 'no_overlap' };
+
+  scored.sort((a, b) => (b.ratio - a.ratio) || (b.matchCount - a.matchCount) || a.label.localeCompare(b.label));
+  const top = scored.slice(0, 6);
+  const tot = top.reduce((a, s) => a + s.ratio, 0) || 1; // normalise overlap into a readable blend
+  top.forEach(s => { s.sharePct = Math.round((s.ratio / tot) * 100); });
+  return { candidates: top, phraseCount: phrases.length, fallback: false };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { action, title } = req.body || {};
+
+  if (action === 'candidateFingerprint') {
+    try {
+      const out = await candidateFingerprint(req.body?.skillPhrases);
+      return res.status(200).json(out);
+    } catch (err) {
+      console.error('ESCO candidateFingerprint error:', err.message);
+      return res.status(200).json({ candidates: [], fallback: true, reason: 'error', error: err.message });
+    }
+  }
 
   if (action === 'occupationFingerprint') {
     if (!title || typeof title !== 'string') {
