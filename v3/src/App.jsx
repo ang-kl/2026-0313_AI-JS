@@ -344,6 +344,16 @@
 // math is now scale-aware (computes the hub pixel from the live scrollWidth, not the hardcoded 1104).
 // No colour change (edges stay amber/indigo/cyan/violet - no red/green); nodes scale UP on desktop.
 // Additive; no frozen symbol touched. Build green. G1 (v3.2.2 -> v3.2.3).
+// v3.2.4 - 2026-06-10 - HDR #080 - Role-Skill Graph: floating JD panel + graph<->JD link (Human Lead
+// feedback C+D). C: a collapsible "Job description from MCF" panel above the graph (left-aligned,
+// collapsed by default) - the verbatim posting text (jobs[0].responsibilitiesText/description; "1 of
+// N sampled ads" caveat when aggregate) plus the numbered duties. D: each responsibility node now
+// carries an [n] badge; the JD panel lists the same numbered duties; tapping one lights up its skills
+// in the graph (reuses hoveredId). The NUMBER is the unique link key (red-green-safe); colour is an
+// assist from a 6-hue colourblind-safe rotation (_RG_LINK_HUES, no red/green) shared by both surfaces.
+// a11y review PASS (no red/green; number carries the link; aria-hidden badges + SR "Duty n:" label;
+// 44px targets after fix; violet badge darkened #6366f1 -> #4f46e5 for AA). Additive; no frozen symbol
+// touched. Build green. G1 (v3.2.3 -> v3.2.4).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1676,6 +1686,13 @@ const RG_NODE_STYLE = {
   responsibility: { label:"Responsibility",        color:"#b45309", bg:"#fef3c7", border:"#fcd34d" },
 };
 const RG_EDGE_COLOR = { "role-responsibility":"#d97706", "role-occupation":"#6366f1", "role-skill":"#0891b2", "occupation-skill":"#8b5cf6", "skill-responsibility":"#d97706" };
+// D (graph<->JD link): a colourblind-safe rotation (blue/orange/cyan/violet/amber/teal - no red/green).
+// The NUMBER [n] is the unique link key; colour is only a visual assist (it repeats past 6 items, which
+// is exactly why the number leads - honouring the red-green requirement). Same n -> same hue on both
+// the graph node badge and the JD-panel list, so a reader links by either.
+const _RG_LINK_HUES = ["#1e40af", "#9a3412", "#0e7490", "#4f46e5", "#b45309", "#0f766e"];
+function _respNum(nodeId) { const m = /^resp:r(\d+)$/.exec(String(nodeId || "")); return m ? Number(m[1]) : null; }
+function _respHue(n) { return _RG_LINK_HUES[((Number(n) || 1) - 1) % _RG_LINK_HUES.length]; }
 function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
 
 // 1) deterministic: pull the itemised responsibility statements the rest of the analysis already produced
@@ -7158,6 +7175,7 @@ function RoleGraphPanel({ result, title }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [showJson, setShowJson] = useState(false);
   const [showStmts, setShowStmts] = useState(false);
+  const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
   const [showCvProfile, setShowCvProfile] = useState(false);
   const [cvText, setCvText] = useState("");
   const [cv, setCv] = useState({ status: "idle" });
@@ -7305,6 +7323,9 @@ function RoleGraphPanel({ result, title }) {
                 <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${LEVELS[lvl].label}` : ""}</title>
                 <foreignObject x={p.x} y={p.yTop} width={p.w} height={p.h}>
                   <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 7, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
+                    {n.type === "responsibility" && _respNum(n.id) != null && (
+                      <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, color: "#fff", background: _respHue(_respNum(n.id)), borderRadius: 4, padding: "1px 5px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{_respNum(n.id)}</span>
+                    )}
                     <span style={{ flex: 1, minWidth: 0, fontSize: FONT, lineHeight: `${LINE_H}px`, color: st.color, fontWeight: n.type === "mcfRole" ? 700 : 500, overflowWrap: "anywhere", wordBreak: "break-word" }}>{n.label}</span>
                     {n.type === "iscoOccupation" && n.score != null && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: st.color }}>{n.score}</span>}
                   </div>
@@ -7352,6 +7373,60 @@ function RoleGraphPanel({ result, title }) {
                 {hdr("The role-skill graph")}
                 <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a responsibility to see the skills it needs (and back)"}</span>
               </div>
+              {/* C+D: collapsible JD panel (left) - verbatim MCF text + the numbered duties that
+                  match the [n] badges on the graph; tap a duty to light up its skills. */}
+              {(() => {
+                const rd = result && result.responsibilitiesData;
+                const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+                const respNodes = g.graph.nodes.filter(n => n.type === "responsibility")
+                  .map(n => ({ id: n.id, num: _respNum(n.id), label: n.label }))
+                  .filter(n => n.num != null).sort((a, b) => a.num - b.num);
+                const srcJob = jobs.find(j => j && (j.responsibilitiesText || j.description));
+                const rawJD = srcJob ? String(srcJob.responsibilitiesText || srcJob.description).trim() : "";
+                if (!respNodes.length && !rawJD) return null;
+                return (
+                  <div style={{ maxWidth: 520, margin: "10px 0", border: `1px solid ${C.border}`, borderRadius: 9, background: "#fbfdff" }}>
+                    <button onClick={() => setJdOpen(o => !o)} aria-expanded={jdOpen}
+                      style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "9px 13px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                        <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.text }}>Job description from MCF - trace it into the graph</span>
+                      </span>
+                      <span aria-hidden="true" style={{ fontSize: 11, color: C.muted, transform: jdOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+                    </button>
+                    {jdOpen && (
+                      <div style={{ padding: "0 13px 12px" }}>
+                        {respNodes.length > 0 && (
+                          <>
+                            <p style={{ margin: "2px 0 6px", fontSize: 10.5, color: C.textSub, lineHeight: 1.5 }}>The numbered duties below match the <strong>[n]</strong> badges on the left of the graph. Tap one to light up its skills.</p>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, maxHeight: 300, overflowY: "auto" }}>
+                              {respNodes.map(rn => {
+                                const on = hoveredId === rn.id;
+                                return (
+                                  <button key={rn.id} onClick={() => setHoveredId(h => h === rn.id ? null : rn.id)}
+                                    style={{ display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left", minHeight: 44, padding: "6px 8px", background: on ? "#eef2ff" : "transparent", border: `1px solid ${on ? "#c7d2fe" : "transparent"}`, borderRadius: 6, cursor: "pointer" }}>
+                                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, color: "#fff", background: _respHue(rn.num), borderRadius: 4, padding: "1px 5px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{rn.num}</span>
+                                    <span style={{ flex: 1, fontSize: 11.5, color: C.text, lineHeight: 1.45 }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Duty {rn.num}: </span>{rn.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+                        {rawJD ? (
+                          <>
+                            <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Verbatim posting text{jobs.length > 1 ? ` (1 of ${jobs.length} sampled ads)` : ""}</p>
+                            <div style={{ maxHeight: 220, overflowY: "auto", padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 11, color: C.textSub, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{rawJD}</div>
+                          </>
+                        ) : (
+                          <p style={{ margin: 0, fontSize: 11, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result - the numbered duties above are the extracted view.</p>
+                        )}
+                        <p style={{ margin: "7px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Posting text verbatim from MyCareersFuture; the [n] duties are the extracted responsibilities (AI-extracted). The number links the two; colour is an assist. Human decides.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {renderGraph(g.graph)}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
                 {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 3, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
