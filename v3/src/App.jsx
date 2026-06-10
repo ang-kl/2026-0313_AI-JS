@@ -191,6 +191,17 @@
 // stewardship-panel honesty caveats (FR1/BDF3/PW4) moved mutedLight -> textSub to clear WCAG AA
 // (2.5:1 -> 7.5:1). Audit verdict SHIP (no-LLM + no-number + honesty + no red/green all clean).
 // R-FREEZE clean. Auto-shipped under the standing hands-free V-1 sign-off. G1 (v3.1.6 -> v3.1.7).
+// v3.1.8 - 2026-06-10 - HDR #068 - ST3 (stewardship arc, goal protocol 3 - the stewardship shift):
+// new "Where you sit - human keeps vs AI takes" collapsible in the result Overview. Positions the
+// human at the governance node as AI commoditises procedural work: you KEEP the legal/moral/judgment
+// node (HUMAN-led skills + Accountability/Relational/Judgment duties); HAND the routine to AI
+// (Full-Automation skills + Activity duties). PURE deterministic composition of signals already
+// computed + tagged (skill levels + anatomy work-layers) - no new LLM call, no new prompt, no number
+// authored; inherits ~ AI estimate; the augmented middle stays in the panels above (noted in-copy);
+// empty-state guarded with non-complacent copy. Audit verdict SHIP (no-LLM/no-number gates clean,
+// honest two-pole framing, amber-vs-blue not red/green, AA footer). This CLOSES the goal's buildable
+// protocols: 1 (BF2), 3 (this), 5 (BDF3), 7 (FR1) all shipped; 9 (Sentinel) parked - no result-page
+// data source. R-FREEZE clean. Auto-shipped under the hands-free V-1 sign-off. G1 (v3.1.7 -> v3.1.8).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -3961,6 +3972,70 @@ function BdfStewardship({ result, title }) {
             </div>
           )}
           <p style={{ margin:"10px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- ST3: Stewardship Shift - "where you sit" (stewardship arc, goal protocol 3) -----------
+// As AI commoditises procedural execution, this panel positions the HUMAN at the governance node:
+// what must stay human (legal personhood, moral liability, judgment) vs what to hand to AI agents.
+// PURE deterministic COMPOSITION of signals already computed + tagged elsewhere - the LLM skill
+// levels (HUMAN-led vs Full-Automation) and the anatomy work-layers (Accountability/Relational/
+// Judgment stay human; Activity is routine) - no new LLM call, no new prompt, no number authored.
+// Inherits ~ AI estimate from those upstream classifications. Withheld if there is nothing to split.
+const _STEWARD_KEEP_LAYERS = new Set(["Accountability", "Relational", "Judgment"]);
+function StewardshipShift({ result }) {
+  const [open, setOpen] = useState(false);
+  const skills = (result && Array.isArray(result.skills)) ? result.skills : [];
+  const duties = (result && result.jobAnatomy && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties : [];
+  const uniq = a => Array.from(new Set(a.filter(Boolean)));
+  const keep = uniq([
+    ...skills.filter(s => s.level === "HUMAN").map(s => s.skill),
+    ...duties.filter(d => _STEWARD_KEEP_LAYERS.has(d.layer)).map(d => d.text),
+  ]).slice(0, 8);
+  const give = uniq([
+    ...skills.filter(s => s.level === "HIGH").map(s => s.skill),
+    ...duties.filter(d => d.layer === "Activity").map(d => d.text),
+  ]).slice(0, 8);
+  if (!keep.length && !give.length) return null; // nothing to split
+
+  const col = (heading, sub, items, color, bg, border, emptyMsg) => (
+    <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:8, padding:"10px 12px" }}>
+      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:800, color }}>{heading}</p>
+      <p style={{ margin:"0 0 7px", fontSize:10, color:C.muted }}>{sub}</p>
+      {items.length ? items.map((t, i) => (
+        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4 }}>
+          <span style={{ width:4, height:4, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
+          <span style={{ fontSize:11.5, color:C.text, lineHeight:1.5 }}>{t}</span>
+        </div>
+      )) : <p style={{ margin:0, fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{emptyMsg}</p>}
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }}>🧑‍⚖️</span>
+          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Where you sit - human keeps vs AI takes</span>
+        </div>
+        <span style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding:"12px 14px 14px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>As AI commoditises the procedural work, your value concentrates where a human must own the outcome - and where AI cannot hold legal or moral responsibility.</p>
+            <Prov kind="ai" small />
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:10 }}>
+            {col("You keep", "the governance node: judgment, accountability, trust", keep, "#1e40af", "#eef2ff", "#c7d2fe", "No clearly human-only skills surfaced for this role - treat that as a flag, not a comfort.")}
+            {col("Hand to AI agents", "commoditised procedural execution", give, "#9a3412", "#fff7ed", "#fed7aa", "Nothing here is fully automatable yet - more of the role stays human-shaped.")}
+          </div>
+          <p style={{ margin:"8px 0 0", fontSize:10.5, color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
+          <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
         </div>
       )}
     </div>
@@ -9185,6 +9260,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               />
               <ForensicReversal result={result} title={sel?.title || ""} />
               <BdfStewardship result={result} title={sel?.title || ""} />
+              <StewardshipShift result={result} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
