@@ -354,6 +354,18 @@
 // a11y review PASS (no red/green; number carries the link; aria-hidden badges + SR "Duty n:" label;
 // 44px targets after fix; violet badge darkened #6366f1 -> #4f46e5 for AA). Additive; no frozen symbol
 // touched. Build green. G1 (v3.2.3 -> v3.2.4).
+// v3.2.5 - 2026-06-10 - HDR #081 - E: Employer reality (true-fidelity; Human Lead's company-check
+// question). LIGHT + deterministic, NO new data source: MCF already returns postedCompany vs
+// hiringCompany; mcf.js now surfaces both (postedCompanyName/hiringCompanyName, additive - action:job
+// untouched). New companyReality(jobs) + EmployerReality panel (after AdLanguageScan) flags postings
+// where the poster != the hirer, or the company name matches a high-precision agency/staffing stem
+// list - the same title is a different reality at an outsourcer than at an end-employer. ADVISORY
+// only: chip "agency?" (with the question mark), "a heads-up, not a judgement", "a name signal, not
+// a registry check"; names quoted verbatim (● from MCF) + the flag is ✓ computed; withholds when no
+// company data. No LLM (D1-D8 N/A). Conformance audit PASS (high-precision stems - no
+// solutions/consulting/services; postedCompany!=hiringCompany is a verbatim fact; all hard gates);
+// a11y review PASS (no red/green - orange flag / blue clean, shape+label, 44px, aria). Additive; no
+// frozen symbol touched. Build green. G1 (v3.2.4 -> v3.2.5).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4941,6 +4953,95 @@ function EmployerFairScorecard({ cv, title }) {
             {copied ? "Scorecard copied" : "Copy scorecard"}
           </button>
           <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Every cell is one of the reads above - the scorecard authors no new number. It is a fairer lens, not a hire / no-hire verdict. AI-assisted; human decides. Source: this CV's reads.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// E (true-fidelity): Employer reality - is a "tech job" actually at an outsourcer / agency-posted?
+// LIGHT + deterministic, NO new data source: MCF already returns who POSTED the ad (postedCompany)
+// vs who is HIRING (hiringCompany); when they differ, or the company name reads as a recruitment /
+// staffing firm, the role's day-to-day may sit at a client, not the named employer. ADVISORY only -
+// a heads-up to verify, NEVER a verdict (many agency posts are genuine). Names quoted verbatim
+// (● from MCF); withholds when no company data.
+const _AGENCY_STEMS = ["recruit", "staffing", "manpower", "headhunt", "outsourc", "talent acquisition", "resourcing", "employment agency", "staff augmentation", "executive search", "search & selection", "search and selection"];
+function _coNorm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+function _isAgencyName(name) { const s = String(name || "").toLowerCase(); return _AGENCY_STEMS.some(st => s.includes(st)); }
+function companyReality(jobs) {
+  const arr = Array.isArray(jobs) ? jobs : [];
+  const withCo = arr.filter(j => j && (j.employer || j.postedCompanyName || j.hiringCompanyName));
+  if (!withCo.length) return null; // no company data - withhold over fabricate
+  const flagged = [];
+  for (const j of withCo) {
+    const posted = String(j.postedCompanyName || "").trim();
+    const hiring = String(j.hiringCompanyName || "").trim();
+    const emp = String(j.employer || "").trim();
+    const mismatch = !!(posted && hiring && _coNorm(posted) !== _coNorm(hiring));
+    const agencyName = _isAgencyName(posted) || _isAgencyName(hiring) || _isAgencyName(emp);
+    if (mismatch || agencyName) {
+      flagged.push({
+        company: emp || posted || hiring,
+        why: mismatch ? "posted by a different company than the named hirer" : "the company name reads as a recruitment / staffing firm",
+      });
+    }
+  }
+  // collapse duplicate companies
+  const byCo = new Map();
+  for (const f of flagged) { const k = _coNorm(f.company) + "|" + f.why; if (!byCo.has(k)) byCo.set(k, { ...f, count: 0 }); byCo.get(k).count++; }
+  return { scanned: withCo.length, flagged: Array.from(byCo.values()).slice(0, 8) };
+}
+
+function EmployerReality({ result }) {
+  const [open, setOpen] = useState(false);
+  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const cr = companyReality(jobs);
+  if (!cr) return null; // no company data
+  const any = cr.flagged.length > 0;
+
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🏢</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer reality - who is really hiring?</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "1px 9px" }}>
+            <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${cr.flagged.length} to check` : "direct employers"}
+          </span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+            <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+              {any
+                ? `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, some look agency-posted or come from staffing firms - the same title is a different reality at an outsourcer than at an end-employer.`
+                : `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, each names a direct employer - no agency or staffing pattern detected.`}
+            </p>
+            <Prov kind="computed" small />
+          </div>
+
+          {any && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+              {cr.flagged.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8 }}>
+                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 5, padding: "1px 7px" }}>agency?</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}>
+                    {f.company || "(unnamed)"} <span style={{ color: C.muted }}>- {f.why}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
+                    <Prov kind="mcf" small />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ padding: "8px 11px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 8, marginBottom: 6 }}>
+            <p style={{ margin: 0, fontSize: 10.5, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
+          </div>
+
+          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - company names are matched verbatim from the live postings (poster vs hirer + a fixed name-stem list), and human decides. Source: MyCareersFuture ({cr.scanned} postings). Confidence: a name signal, not a registry check. Time-window: the postings in this result.</p>
         </div>
       )}
     </div>
@@ -10305,6 +10406,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               <StewardshipShift result={result} />
               <DemandProof result={result} />
               <AdLanguageScan result={result} />
+              <EmployerReality result={result} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
