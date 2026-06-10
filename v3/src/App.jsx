@@ -224,6 +224,19 @@
 // Client-computed but deterministic + EPHEMERAL (not persisted) - spec AU-7 amendment recorded (spec
 // said server-recomputed; the guard protects a shared store, which this never writes). Audit SHIP.
 // R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.9 -> v3.1.10).
+// v3.1.11 - 2026-06-10 - HDR #071 - T3 (result-engine arc): True-Fit + Proof Ledger. New
+// scoreTrueFit(cvProfile, roleSkills) - the honest CV<->role match - and a "True-Fit + proof
+// ledger" panel in the CV result. Each role skill is matched against 3 evidence buckets in validity
+// order: A demonstrated (CV achievements), B certified (qualifications), C claimed (self-listed
+// skills/titles). A self-asserted skill is "claimed", NEVER "covered" - the anti-keyword-stuffing
+// rule (a claims-only CV caps at ~35/100; a demonstrator scores high). Rarity-weighted by ESCO
+// reuseLevel (occupation-specific > transversal), NOT token frequency; tier validity A 1.0 > B 0.7 >
+// C 0.35 (Schmidt-Hunter 1998). Deterministic (reuses _coverOne; no new LLM, no new prompt; inputs
+// LLM-extracted so tagged ~ AI estimate); withheld under 3 role skills. Proof ledger lists each
+// matched skill's tier + the unevidenced gaps. Audit verdict SHIP (no LLM number, claimed!=covered
+// verified, amber-vs-blue not red/green). Spec AU-7: built inline (not a matcher.js) + evidence-
+// bucket tiering (not per-work-layer) - source wins, core promises honoured. R-FREEZE + R007 clean.
+// Hands-free V-1 sign-off. G1 (v3.1.10 -> v3.1.11).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1805,6 +1818,43 @@ function scoreCVFit(cvText, cvProfile, skills, iscoCandidates) {
   return { escoCoverage: escoCov, families: fams, fitScore, band: fitScore >= 70 ? "READY" : fitScore >= 45 ? "DEVELOPING" : "STRETCH" };
 }
 
+// T3 (result-engine arc): True-Fit + Proof Ledger. The honest CV<->role match.
+// - Each role skill is matched against THREE evidence buckets, in validity order: A demonstrated
+//   (CV achievements - a work sample, the highest-validity predictor per Schmidt-Hunter 1998),
+//   B certified (qualifications), C claimed (the self-listed skills / titles - "claimed", NEVER
+//   "covered"). A self-asserted skill can never score as demonstrated - this is the anti-keyword-
+//   stuffing rule; a CV that only lists skills caps low.
+// - Weighted by skill RARITY (ESCO reuseLevel: occupation-specific > sector > cross-sector >
+//   transversal), NOT token frequency - rare role-defining skills count more than generic ones.
+// - Deterministic over the (LLM-extracted) CV + (ESCO/LLM) role skills; tagged ~ AI estimate.
+// Reuses the existing _coverOne coverage primitive (counts only).
+const _TRUEFIT_RARITY = { "occupation-specific": 1.0, "sector-specific": 0.75, "cross-sector": 0.5, "cross-sectoral": 0.5, "transversal": 0.4 };
+const _TRUEFIT_TIER = { A: { w: 1.0, label: "demonstrated" }, B: { w: 0.7, label: "certified" }, C: { w: 0.35, label: "claimed" } };
+function _truefitRarity(reuseLevel) { const k = String(reuseLevel || "").toLowerCase(); return _TRUEFIT_RARITY[k] != null ? _TRUEFIT_RARITY[k] : 0.6; }
+function scoreTrueFit(cvProfile, roleSkills) {
+  const skills = (roleSkills || []).filter(s => s && s.skill);
+  if (!cvProfile || skills.length < 3) return null;
+  const mk = arr => { const n = _phraseNorm((arr || []).join(" \n ")); return { n, t: new Set(n.split(" ").filter(x => x.length > 2)) }; };
+  const A = mk(cvProfile.achievements);                                                   // demonstrated outcomes
+  const B = mk(cvProfile.qualifications);                                                  // certs
+  const C = mk([...((cvProfile.skills) || []), ...((cvProfile.roleHistory || []).map(r => r && r.title))]); // self-asserted
+  const has = (bucket, kw) => _coverOne(bucket.n, bucket.t, [{ kw }]).covered.length > 0;
+  const ledger = [], gaps = [];
+  let got = 0, max = 0;
+  for (const s of skills) {
+    const rw = _truefitRarity(s.reuseLevel);
+    max += rw; // full credit only when demonstrated (tier A, w=1.0)
+    const tier = has(A, s.skill) ? "A" : has(B, s.skill) ? "B" : has(C, s.skill) ? "C" : null;
+    if (tier) { got += rw * _TRUEFIT_TIER[tier].w; ledger.push({ skill: s.skill, tier, rarity: s.reuseLevel || "" }); }
+    else gaps.push(s.skill);
+  }
+  const score = max ? Math.round((got / max) * 100) : 0;
+  const counts = { A: ledger.filter(l => l.tier === "A").length, B: ledger.filter(l => l.tier === "B").length, C: ledger.filter(l => l.tier === "C").length };
+  const order = { A: 0, B: 1, C: 2 };
+  ledger.sort((a, b) => (order[a.tier] - order[b.tier]) || a.skill.localeCompare(b.skill));
+  return { score, band: score >= 65 ? "strong" : score >= 40 ? "partial" : "thin", ledger: ledger.slice(0, 20), gaps: gaps.slice(0, 12), counts, total: skills.length };
+}
+
 async function narrateCVFit(title, fitSummary) {
   const SYS_CF =
 `ACT AS a careers coach. You are given a candidate's structured CV facts and a deterministic fit analysis against a target role and the ISCO-08 occupation families it resembles. Write an honest, grounded role-readiness read - never invent CV facts, only interpret the analysis given. Singapore context. Plain, candid, encouraging but realistic.
@@ -1869,7 +1919,10 @@ ${famLine || "n/a"}`;
       }
     }
   } catch (_) { anatomy = null; }
-  return { cvProfile, fit, narrative, blend, anatomy };
+  // T3: True-Fit + Proof Ledger - the rarity-weighted, evidence-tiered CV<->role match.
+  let trueFit = null;
+  try { trueFit = scoreTrueFit(cvProfile, skillSet); } catch (_) { trueFit = null; }
+  return { cvProfile, fit, narrative, blend, anatomy, trueFit };
 }
 
 async function rateSkills(title, skills) {
@@ -6656,6 +6709,40 @@ function RoleGraphPanel({ result, title }) {
                         <p style={{ margin: "6px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Your outcomes classified by work-layer (AI-classified), then scored by the same deterministic resilience engine the role uses. AI-assisted; human decides.</p>
                       </div>
                     )}
+                    {cv.trueFit && (() => {
+                      const tf = cv.trueFit;
+                      const bc = tf.band === "strong" ? "#1e40af" : tf.band === "partial" ? "#0e7490" : "#9a3412";
+                      const TIER_UI = { A: { label: "demonstrated", color: "#1e40af", bg: "#eef2ff", border: "#c7d2fe" }, B: { label: "certified", color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" }, C: { label: "claimed only", color: "#b45309", bg: "#fffbeb", border: "#fde68a" } };
+                      return (
+                      <div style={{ marginBottom: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>{subHdr("True-Fit + proof ledger - evidence, not keywords")}<Prov kind="ai" small /></div>
+                        <p style={{ margin: "0 0 7px" }}>
+                          <span style={{ fontSize: 22, fontWeight: 800, color: bc }}>{tf.score}</span><span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: C.textSub, marginLeft: 8 }}>{tf.band} fit</span>
+                          <span style={{ fontSize: 11, color: C.textSub, marginLeft: 8 }}>rarity-weighted; demonstrated &gt; certified &gt; claimed</span>
+                        </p>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 7 }}>
+                          {["A", "B", "C"].map(k => (
+                            <span key={k} style={{ fontSize: 11, fontWeight: 700, color: TIER_UI[k].color, background: TIER_UI[k].bg, border: `1px solid ${TIER_UI[k].border}`, borderRadius: 12, padding: "2px 9px" }}>{tf.counts[k]} {TIER_UI[k].label}</span>
+                          ))}
+                          {tf.gaps.length > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "2px 9px" }}>{tf.gaps.length} not evidenced</span>}
+                        </div>
+                        {tf.counts.C > 0 && <p style={{ margin: "0 0 7px", fontSize: 11, color: "#b45309", lineHeight: 1.5 }}><strong>{tf.counts.C} skill{tf.counts.C !== 1 ? "s are" : " is"} claimed only</strong> - listed on the CV but not shown in an achievement or backed by a qualification. A screener treats those as unproven; lead with the demonstrated ones.</p>}
+                        {tf.ledger.length > 0 && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 6 }}>
+                            {tf.ledger.map((l, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ width: 96, flexShrink: 0, fontSize: 10, fontWeight: 700, color: TIER_UI[l.tier].color, background: TIER_UI[l.tier].bg, border: `1px solid ${TIER_UI[l.tier].border}`, borderRadius: 5, padding: "1px 6px", textAlign: "center" }}>{TIER_UI[l.tier].label}</span>
+                                <span style={{ fontSize: 11.5, color: C.text, lineHeight: 1.4 }}>{_rgTrunc(l.skill, 42)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {tf.gaps.length > 0 && <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}><strong>Not evidenced:</strong> {tf.gaps.map(g => _rgTrunc(g, 30)).join(", ")}</p>}
+                        <p style={{ margin: "6px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>A self-listed skill is "claimed", never "covered" (anti-keyword-stuffing); weighted by skill rarity and evidence validity (Schmidt-Hunter 1998). Inputs AI-extracted; the match is deterministic. AI-assisted; human decides.</p>
+                      </div>
+                      );
+                    })()}
                     {f.families.length > 0 && (
                       <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
                         {f.families.slice(0, 6).map((fam, i) => (
