@@ -128,6 +128,17 @@
 // re-audited PASS (all 5 hard gates). Golden snapshot v3/script/r-snapshot.golden.json (replayable).
 // R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.0 -> v3.1.1). Deferred (logged, non-blocking):
 // failure-cache TTL/retry, 5-digit truncation guard, bad-SSOC echo flag, shared ENGINE_VERSION const.
+// v3.1.2 - 2026-06-10 - HDR #062 - PR A8 (result-engine arc, REWIRE->traceability): re-ground the
+// scoreJobAnatomy AI-resilience constants (expoRes / layRes / expoAuto + the 0.85 layer discount)
+// so every score TRACES to a citation - Autor-Levy-Murnane 2003 (routine vs non-routine), Felten et
+// al. 2021 (AIOE), Eloundou et al. 2023 (LLM exposure / cognitive-work inversion: Judgment ranks
+// below Relational), Brynjolfsson-Mitchell-Rock 2018 (SML). Honest scope: the 5-layer x 4-band
+// taxonomy is bespoke so NO source gives a per-cell decimal - the ORDERING is cited, the exact
+// values are tagged as a documented modeling choice (non-inventive contract: no invented numbers).
+// VALUES UNCHANGED -> proven ZERO score delta (HEAD vs A8 byte-identical on a duty matrix), so
+// JOB_ANATOMY_VERSION stays 'ja1' (cache valid, no needless recompute). Cited block kept byte-
+// identical across api/anatomy.js + App.jsx. Doc/traceability change; no number, prompt or render
+// touched. R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.1 -> v3.1.2).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -926,10 +937,31 @@ function scoreJobAnatomy(duties) {
   const layerW = {}; JOB_LAYER_ORDER.forEach(L => layerW[L] = 0);
   duties.forEach(d => { layerW[d.layer] = (layerW[d.layer] || 0) + w(d); });
   const layerMix = {}; JOB_LAYER_ORDER.forEach(L => layerMix[L] = Math.round((layerW[L] / totalW) * 100));
+  // --- AI-resilience rubric (A8: re-grounded so every score traces to a citation) --------
+  // This 5-layer x 4-band taxonomy is bespoke, so NO source gives a per-cell decimal. Per the
+  // non-inventive contract the ORDERING below is read from the named sources; the exact values
+  // are a calibrated 0-1 modeling choice, tagged as such (not a number read from any source).
+  // Sources: Autor, Levy & Murnane 2003 (routine vs non-routine task framework); Felten, Raj &
+  // Seamans 2021 (AIOE occupation exposure); Eloundou et al. 2023 "GPTs are GPTs" (LLM task
+  // exposure - the cognitive-work inversion); Brynjolfsson, Mitchell & Rock 2018 (SML rubric -
+  // social/judgment tasks score low for machine learning). MUST stay byte-identical to api/anatomy.js.
+  //
+  // expoRes: resilience = INVERSE of a duty's measured AI-exposure band (Felten/Eloundou) -
+  //   HUMAN (not exposed) fully resilient down to HIGH barely. Monotone decreasing (modeling choice).
   const expoRes  = { HUMAN:1.0, LOW:0.72, MEDIUM:0.38, HIGH:0.10 };
+  // layRes: resilience by job layer. Activity = routine execution (ALM 2003: most substitutable;
+  //   SML high-suitability) -> floor. Coordination = part-routine cognitive -> mid. Accountability
+  //   = human locus of liability (ALM non-routine; SML low-suitability) -> high. Relational =
+  //   non-routine INTERPERSONAL (ALM/SML: least substitutable) -> top. Judgment = non-routine
+  //   analytic: high, but BELOW Relational because Eloundou 2023 shows analytic work is now more
+  //   LLM-exposed than prior automation waves. Ordering cited; decimals a modeling choice.
   const layRes   = { Activity:0.15, Coordination:0.45, Accountability:0.90, Relational:0.95, Judgment:0.85 };
+  // expoAuto: automatability = the duty's exposure band read forward (Eloundou E0/E1/E2 -> low/
+  //   medium/high). Monotone increasing (modeling choice).
   const expoAuto = { HIGH:1.0, MEDIUM:0.60, LOW:0.25, HUMAN:0.05 };
   const wmean = fn => duties.reduce((a, d) => a + fn(d) * w(d), 0) / totalW;
+  // Per-duty resilience = max(exposure-resilience, layer-resilience x 0.85): the 0.85 discount
+  // lets a duty's MEASURED exposure override a generous layer default (modeling choice).
   const aiResilienceScore   = Math.round(100 * wmean(d => Math.max(expoRes[d.exposureNow] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
   const resilience2y        = Math.round(100 * wmean(d => Math.max(expoRes[d.exposure2y] ?? 0.4, (layRes[d.layer] ?? 0.2) * 0.85)));
   const automatabilityIndex = Math.round(100 * wmean(d => expoAuto[d.exposureNow] ?? 0.4));
