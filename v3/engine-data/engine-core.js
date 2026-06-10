@@ -141,9 +141,10 @@ export function computeEngine({ ssoc, title = null, skills = null, fingerprintIs
   const fpNorm = (Array.isArray(fingerprintIscos) ? fingerprintIscos : []).map(normFingerprintEntry).filter(Boolean);
   if (fpNorm.length) input.fingerprintIscos = [...new Set(fpNorm.map((f) => f.isco))];
 
-  if (!matches || !matches.length) {
-    // Non-inventive: unknown SSOC -> withhold the number, say why. (Computing from the
-    // fingerprint alone is a later, explicitly-specced path - not silently done here.)
+  const hasSsoc = !!(matches && matches.length);
+
+  if (!hasSsoc && !fpNorm.length) {
+    // Non-inventive: no usable evidence at all -> withhold the number, say why.
     return {
       ok: false,
       reason: ssocKey ? 'SSOC not found in SingStat correspondence table' : 'No SSOC provided',
@@ -151,20 +152,31 @@ export function computeEngine({ ssoc, title = null, skills = null, fingerprintIs
       occupation: null,
       exposure: null,
       provenance: PROV,
-      version: 'engine-2',
+      version: 'engine-3',
     };
   }
 
-  const partial = matches.some((m) => m.partial);
+  // partial describes the SSOC->ISCO mapping only; null when no SSOC prior exists.
+  const partial = hasSsoc ? matches.some((m) => m.partial) : null;
 
-  // E2: reconcile the SSOC prior with the skill evidence when the caller supplied it.
+  // E2: reconcile the SSOC prior with the skill evidence when both exist.
   // agree -> corroborated codes; conflict -> skill evidence wins; both lists surfaced.
-  const rec = fpNorm.length ? reconcile(ssocKey, fingerprintIscos) : null;
-  const iscoCodes = rec ? rec.iscoChosen : [...new Set(matches.map((m) => m.isco))];
-  const via = rec ? 'reconcile' : 'ssoc';
+  // H1 (engine-3): fingerprint-ONLY path - the main analyser flow searches roles by title
+  // (no MCF SSOC tag exists), so the skill evidence alone may carry the read (via:
+  // 'fingerprint'). Confidence is capped below 'high' there: one source, no corroboration.
+  const rec = hasSsoc && fpNorm.length ? reconcile(ssocKey, fingerprintIscos) : null;
+  const iscoCodes = rec ? rec.iscoChosen
+    : hasSsoc ? [...new Set(matches.map((m) => m.isco))]
+    : [...new Set(fpNorm.map((f) => f.isco))];
+  const via = rec ? 'reconcile' : hasSsoc ? 'ssoc' : 'fingerprint';
   const coherence = rec ? { status: rec.coherence, ssocIsco: rec.ssocIsco, fingerprintIscos: rec.fingerprintIscos } : null;
   const mirrorRoles = fpNorm.length ? mirrorRolesFor(fingerprintIscos) : null;
-  const label = (rec && ISCO_TITLE.get(iscoCodes[0])) || matches[0].title;
+  // Label the occupation from the TOP-WEIGHTED chosen code (audit W4: first-supplied order
+  // must not name the minor blend component); SSOC path keeps the SingStat row title.
+  const topChosen = mirrorRoles ? (mirrorRoles.find((m) => iscoCodes.includes(m.isco)) || null) : null;
+  const label = via === 'ssoc'
+    ? matches[0].title
+    : (topChosen && topChosen.title) || ISCO_TITLE.get(iscoCodes[0]) || (hasSsoc ? matches[0].title : null);
 
   // Union the SOC codes across every chosen ISCO (handles SSOC->multi-ISCO splits), then
   // aggregate AIOE once over the union so a split occupation is weighted as one.
@@ -189,17 +201,50 @@ export function computeEngine({ ssoc, title = null, skills = null, fingerprintIs
       coherence,
       mirrorRoles,
       provenance: PROV,
-      version: 'engine-2',
+      version: 'engine-3',
     };
   }
 
-  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-  const index = percentileOf(mean);
-  // confidence: clean single full ISCO + all SOCs scored = high; splits / missing scores lower
-  // it; a reconcile CONFLICT demotes one band (sources disagree - treat the code with caution).
   const allScored = vals.length === socs.length;
-  let confidence = !partial && iscoCodes.length === 1 && allScored ? 'high' : (partial || iscoCodes.length > 1) ? 'medium' : 'medium';
-  if (coherence && coherence.status === 'conflict') confidence = confidence === 'high' ? 'medium' : 'low';
+
+  // Index. SSOC/reconcile flat-average the SOC union (an SSOC split is ONE occupation, its
+  // codes weighted equally). The fingerprint path instead weights each ISCO group's mean AIOE
+  // by its evidence share, so the headline matches the mirror-role shares shown beside it - a
+  // 90/10 blend must NOT score the same as a 10/90 blend (the flat union ignored the weights).
+  let meanZ, zLo, zHi;
+  if (via === 'fingerprint') {
+    const wByIsco = new Map();
+    for (const f of fpNorm) wByIsco.set(f.isco, (wByIsco.get(f.isco) || 0) + f.weight);
+    const groups = iscoCodes
+      .map((isco) => ({ w: wByIsco.get(isco) || 0, exp: exposureForIsco(isco) }))
+      .filter((g) => g.exp && g.w > 0);
+    if (groups.length) {
+      const tw = groups.reduce((a, g) => a + g.w, 0);
+      meanZ = groups.reduce((a, g) => a + g.exp.zMean * g.w, 0) / tw;
+      zLo = Math.min(...groups.map((g) => g.exp.zRange[0]));
+      zHi = Math.max(...groups.map((g) => g.exp.zRange[1]));
+    }
+  }
+  if (meanZ === undefined) { // SSOC/reconcile path (and fingerprint fallback if no group scored)
+    meanZ = vals.reduce((a, b) => a + b, 0) / vals.length;
+    zLo = Math.min(...vals);
+    zHi = Math.max(...vals);
+  }
+  const index = percentileOf(meanZ);
+
+  // confidence, branched by via (no compute-then-overwrite ordering hazard):
+  // - fingerprint: single uncorroborated source, never 'high'. Coherent evidence (a dominant
+  //   occupation group, top share >= 40%) -> 'medium'; a scattered grab-bag -> 'low'.
+  // - ssoc/reconcile: clean single full ISCO + all SOCs scored = 'high', else 'medium';
+  //   a reconcile CONFLICT demotes one band (sources disagree - treat the code with caution).
+  let confidence;
+  if (via === 'fingerprint') {
+    const topShare = (mirrorRoles && mirrorRoles[0]) ? mirrorRoles[0].sharePct : 0;
+    confidence = topShare >= 40 ? 'medium' : 'low';
+  } else {
+    confidence = (!partial && iscoCodes.length === 1 && allScored) ? 'high' : 'medium';
+    if (coherence && coherence.status === 'conflict') confidence = confidence === 'high' ? 'medium' : 'low';
+  }
 
   return {
     ok: true,
@@ -215,8 +260,8 @@ export function computeEngine({ ssoc, title = null, skills = null, fingerprintIs
     exposure: {
       index, // AI-Exposure Index, 0-100
       band: bandOf(index),
-      zMean: round3(mean),
-      zRange: [round3(Math.min(...vals)), round3(Math.max(...vals))],
+      zMean: round3(meanZ),
+      zRange: [round3(zLo), round3(zHi)],
       socsUsed: socs.map((s) => ({ soc: s.soc, title: s.title, aioe: s.aioe == null ? null : round3(s.aioe), fromIsco: s.fromIsco })),
       socsWithScore: vals.length,
       source: 'AIOE (Felten, Raj & Seamans 2021)',
@@ -226,7 +271,7 @@ export function computeEngine({ ssoc, title = null, skills = null, fingerprintIs
     coherence, // { status: 'agree'|'conflict', ssocIsco, fingerprintIscos } | null
     mirrorRoles, // [{ isco, title, sharePct, index, band, zRange }] | null
     provenance: PROV,
-    version: 'engine-2',
+    version: 'engine-3',
   };
 }
 

@@ -115,6 +115,19 @@
 // LLM, no network, no render change (that is H1). Snapshot-stable: NHG 78 / PSD 74 / Metta 78
 // identical to the engine-1 baseline on the SSOC-only path. Conformance audit PASS (gates 1,3,4,5;
 // gate 2 N/A until H1). R-FREEZE clean. G1 gate confirmed by Human Lead (v3.0.22 -> v3.1.0).
+// v3.1.1 - 2026-06-10 - HDR #061 - PR H1 (result-engine arc, RADICAL-REPLACE): the deterministic
+// AI-Exposure Index becomes the result HEADLINE. New EngineHeadline panel reads /api/engine via the
+// role's ESCO skill-fingerprint (engine-3: adds a fingerprint-ONLY path, via:'fingerprint'); the old
+// LLM "N of M skills" line is DEMOTED below it (~ AI estimate, "not the page's headline figure").
+// Withhold-over-fabricate: no number shown when the chain can't be verified. Engine-3 also: weights
+// the fingerprint index by evidence share (a 90/10 blend no longer scores like 10/90), share-based
+// confidence (top group >=40% -> medium, scatter -> low, never high), top-weighted occupation label.
+// SSOC + reconcile paths byte-identical to the engine-2 baseline (NHG 78 / PSD 74 / Metta 78; agree
+// 78/high; conflict 84/low). Shipped after an xhigh code-review: 4 blocker/honesty fixes folded in
+// (cache keyed on evidence CONTENT not count; weighted index; confidence; demoted-line honesty) and
+// re-audited PASS (all 5 hard gates). Golden snapshot v3/script/r-snapshot.golden.json (replayable).
+// R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.0 -> v3.1.1). Deferred (logged, non-blocking):
+// failure-cache TTL/retry, 5-digit truncation guard, bad-SSOC echo flag, shared ENGINE_VERSION const.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -3358,6 +3371,110 @@ function PersonaToggle({ persona, onChange }) {
 }
 
 
+// ---- H1: deterministic AI-Exposure Index headline (P1 of the Placement Read) ----------
+// The engine, NOT the LLM, authors this number: ESCO skill-fingerprint -> ISCO-08 evidence
+// -> /api/engine (SSOC/ISCO/SOC/AIOE table lookups). Withhold-over-fabricate: on any failure
+// the panel shows an honest "withheld" line, never an invented index. Cache keyed by the
+// engine version so an engine bump recomputes; same role -> same number, every run.
+const _engineHeadlineCache = new Map(); // evidence-keyed -> /api/engine response
+// Stable string hash (djb2) -> base36, deterministic for a given evidence string.
+function _evidenceHash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+async function fetchEngineHeadline(title, skills, extraPhrases) {
+  // Key by the EVIDENCE CONTENT, not its count (review blocker 1): two roles with the same
+  // skill count must not collide. Hash the exact deduped, first-30 set that feeds the fingerprint
+  // (byte-mirrors getRoleMixCandidates), so a same-title re-analysis with different skills re-keys
+  // and identical evidence reuses the cache.  separator avoids concatenation collisions.
+  const evidence = Array.from(new Set([
+    ...((extraPhrases || []).map((s) => String(s || "").trim()).filter(Boolean)),
+    ...((skills || []).map((s) => s && s.skill).filter(Boolean)),
+  ])).slice(0, 30).join("");
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(evidence)}|engine-3`;
+  if (_engineHeadlineCache.has(key)) return _engineHeadlineCache.get(key);
+  const fp = await getRoleMixCandidates(title || "", skills || [], extraPhrases || []);
+  const cands = (fp && !fp.fallback && Array.isArray(fp.candidates)) ? fp.candidates : [];
+  const fingerprintIscos = cands.map(c => ({ code: c.code, ratio: c.ratio })).filter(c => c.code);
+  if (!fingerprintIscos.length) {
+    const out = { ok: false, reason: "no ESCO skill-evidence fingerprint resolved for this role" };
+    _engineHeadlineCache.set(key, out);
+    return out;
+  }
+  const res = await fetch("/api/engine", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: title || "", fingerprintIscos }),
+  });
+  if (!res.ok) throw new Error(`engine ${res.status}`);
+  const out = await res.json();
+  _engineHeadlineCache.set(key, out);
+  return out;
+}
+
+function EngineHeadline({ result, title }) {
+  const [eng, setEng] = useState({ status: "loading" });
+  useEffect(() => {
+    let cancelled = false;
+    const t0 = Date.now();
+    const extra = (((result || {}).responsibilitiesData || {}).jobs || []).flatMap(j => (j.skills || [])).slice(0, 20);
+    fetchEngineHeadline(title, (result && result.skills) || [], extra)
+      .then(j => { if (cancelled) return; logStep("engine_headline", j && j.ok ? "ok" : "withheld", Date.now() - t0, j && j.ok ? `index ${j.exposure.index} via ${j.occupation.via}` : (j && j.reason) || ""); setEng({ status: "done", j }); })
+      .catch(e => { if (cancelled) return; logStep("engine_headline", "error", Date.now() - t0, e && e.message); setEng({ status: "error" }); });
+    return () => { cancelled = true; };
+    // Re-runs when the result object changes (audit W-1): responsibilitiesData lands
+    // progressively, and the enriched duty phrases sharpen the fingerprint. The
+    // evidence-keyed cache dedupes, so unchanged evidence costs no extra API call.
+  }, [title, result]);
+
+  const box = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:16 };
+  const head = (
+    <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
+      <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+      {/* audit W-2: no "computed" chip before a computed value exists */}
+      {eng.status === "done" && eng.j && eng.j.ok ? <Prov kind="computed" /> : eng.status === "loading" ? null : <Prov kind="unverified" />}
+    </div>
+  );
+  if (eng.status === "loading") {
+    return (
+      <div style={box} aria-busy="true">
+        {head}
+        <p style={{ margin:0, fontSize:12, color:C.muted }}>Computing from this role's skill evidence (ESCO / ISCO-08 / AIOE tables)...</p>
+      </div>
+    );
+  }
+  const j = eng.status === "done" ? eng.j : null;
+  if (!j || !j.ok || !j.exposure) {
+    const why = (j && j.reason) || "the engine could not be reached";
+    return (
+      <div style={box}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
+          <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+          <Prov kind="unverified" />
+        </div>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.65 }}>
+          Index withheld - {why}. No number is shown when the data chain cannot be verified; the skill-by-skill view below still applies.
+        </p>
+      </div>
+    );
+  }
+  const exp = j.exposure;
+  const occ = j.occupation || {};
+  return (
+    <div style={box}>
+      {head}
+      <p style={{ margin:"0 0 8px" }} aria-label={`AI exposure index ${exp.index} out of 100, ${exp.band} band, ${exp.confidence} confidence`}>
+        <span style={{ fontSize:30, fontWeight:800, color:C.accent }}>{exp.index}</span>
+        <span style={{ fontSize:15, fontWeight:700, color:C.textSub }}>/100</span>
+        <span style={{ fontSize:12, fontWeight:700, color:C.textSub, marginLeft:10 }}>{exp.band} exposure - {exp.confidence} confidence</span>
+      </p>
+      <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.65 }}>
+        Deterministic: AIOE (Felten et al. 2021) via {occ.via === "fingerprint" ? "this role's ESCO skill evidence" : occ.via === "reconcile" ? "the SSOC tag reconciled with skill evidence" : "the posting's SSOC tag"} (ISCO {Array.isArray(occ.isco) ? occ.isco.join("/") : "-"}{occ.label ? ` - ${occ.label}` : ""}). Z-score range {exp.zRange[0]} to {exp.zRange[1]} - a range, never a faked point. Same evidence, same number, every run.
+      </p>
+    </div>
+  );
+}
+
 function ExposureBar({ skills }) {
   const cnt = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
   skills.forEach(s => { if (cnt[s.level] !== undefined) cnt[s.level]++; });
@@ -3365,12 +3482,13 @@ function ExposureBar({ skills }) {
   return (
     <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:16 }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-        <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI Exposure Overview</p>
-        <Prov kind="ai" />
+        <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>Skill-by-skill AI involvement</p>
+        <Prov kind="ai" small />
       </div>
-      <p style={{ margin:"0 0 10px" }}>
-        <span style={{ fontSize:26, fontWeight:800, color:C.accent }}>{cnt.HIGH + cnt.MEDIUM}</span>
-        <span style={{ fontSize:13, color:C.textSub, marginLeft:8 }}>of {total} skills have some level of AI involvement today</span>
+      {/* H1: demoted from the page headline - an LLM judgement per skill, secondary to the
+          computed AI-Exposure Index above. The count stays visible, just no longer leads. */}
+      <p style={{ margin:"0 0 10px", fontSize:13, color:C.textSub, lineHeight:1.6 }}>
+        <span style={{ fontWeight:700 }}>{cnt.HIGH + cnt.MEDIUM} of {total}</span> skills have some level of AI involvement today - an AI judgement per skill, shown for detail, not the page's headline figure.
       </p>
       {/* Stacked bar with 2px white gaps between segments */}
       <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:8, marginBottom:10 }}>
@@ -8639,6 +8757,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               })()}
               {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
               <ProvLegend />
+              <EngineHeadline result={result} title={sel?.title || ""} />
               <ExposureBar skills={result.skills} />
               <SkillSegments
                 skills={result.skills}
