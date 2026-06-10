@@ -300,6 +300,21 @@
 // C.muted -> C.textSub for WCAG AA (4.38:1 -> 7.53:1); no red/green; no new controls/touch targets;
 // R007 clean. Build green. (Earlier "no gap" port conclusion corrected: v3 had the data but not the
 // open reading list - source wins.) Additive; no frozen symbol touched. G1 (v3.1.14 -> v3.1.15).
+// v3.2.0 - 2026-06-10 - HDR #076 - B6 (result-engine arc EPIC CLOSER, P9): two render artifacts in
+// the CV result. (1) CandidateBrief - an exportable one-page read ASSEMBLING the existing reads
+// (blend "reads as", True-Fit score + A/B/C tiers, work anatomy resilientPct, fairness age-neutral)
+// + top gaps to evidence; each row keeps the Prov chip its source earned. (2) EmployerFairScorecard
+// (collapsible) - a capability-first screen grounded in Fuller "Hidden Workers" (2021) + STARs
+// (Skilled Through Alternative Routes): it scores demonstrated capability (True-Fit tier A/B, score,
+// resilient-work %, age-neutrality) and DELIBERATELY does NOT score the rigid proxies (degree
+// pedigree, employment gaps, exact prior-title match) that screen capable people out. Non-inventive:
+// authors NO new number (no composite "hireability score") - every cell is a pass-through of an
+// existing cv.* value; withholds when no True-Fit; copy-export carries the computed reads only, never
+// raw CV text. No LLM (D1-D8 N/A). Conformance audit PASS (every cell sourced, chip-matched, no new
+// number, Fuller/STARs grounding intact); a11y review PASS after fixing an R007 middot (-> "; ").
+// 44px copy buttons + toggle, aria, no red/green, "human decides" footers. CLOSES the result-engine
+// epic at v3.2.0 (E2,H1,A8,C1,C2,T3,D4,F5,F5.2,B6). Additive; no frozen symbol touched. R-FREEZE +
+// R007 clean. Hands-free V-1 sign-off. G1 (v3.1.15 -> v3.2.0, MINOR - epic close).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4647,6 +4662,127 @@ function AdLanguageScan({ result }) {
   );
 }
 
+// B6 (result-engine arc, the epic closer): two render artifacts that ASSEMBLE the already-computed
+// CV reads - they author NO new number (no composite "hireability score"). Each value keeps the
+// provenance its source panel earned. Both withhold when there is no True-Fit read.
+function _briefRows(cv) {
+  const tf = cv && cv.trueFit;
+  const rows = [];
+  if (cv && cv.blend && Array.isArray(cv.blend.candidates) && cv.blend.candidates[0]) {
+    const b = cv.blend.candidates[0];
+    rows.push({ k: "Reads as", v: `${b.label}${typeof b.sharePct === "number" ? ` (${b.sharePct}%)` : ""}`, prov: "ai" });
+  }
+  if (tf) rows.push({ k: "Role-fit", v: `${tf.score}/100 (${tf.band}) - ${tf.counts.A} demonstrated, ${tf.counts.B} certified, ${tf.counts.C} claimed-only`, prov: "ai" });
+  if (cv && cv.anatomy && typeof cv.anatomy.resilientPct === "number") rows.push({ k: "AI-resilient work", v: `${cv.anatomy.resilientPct}% of ${cv.anatomy.nOutcomes} outcomes in resilient layers`, prov: "ai" });
+  if (cv && cv.fairness && typeof cv.fairness.worst === "number") rows.push({ k: "Fairness", v: cv.fairness.invariant ? "age / graduation-year neutral (ratio 1.00)" : `review (ratio ${cv.fairness.worst.toFixed(2)})`, prov: "computed" });
+  return rows;
+}
+function _copy(text, done) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(() => { const el = document.createElement("textarea"); el.value = text; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done(); });
+  } else { const el = document.createElement("textarea"); el.value = text; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done(); }
+}
+
+function CandidateBrief({ cv, title }) {
+  const [copied, setCopied] = useState(false);
+  const tf = cv && cv.trueFit;
+  if (!tf) return null;
+  const rows = _briefRows(cv);
+  const gaps = (tf.gaps || []).slice(0, 6);
+  const briefText = [
+    `CANDIDATE BRIEF - ${title || "this role"}`,
+    ...rows.map(r => `${r.k}: ${r.v}`),
+    gaps.length ? `Top gaps to evidence: ${gaps.join(", ")}` : "",
+    "Assembled from this CV's reads (skills AI-extracted; matches deterministic). AI-assisted; human decides. Built from public ESCO data + the pasted CV; the CV itself is not stored.",
+  ].filter(Boolean).join("\n");
+
+  return (
+    <div style={{ marginBottom: 12, border: `1px solid #c7d2fe`, borderRadius: 10, background: "#f5f7ff", padding: "12px 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 7 }}>
+        <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
+        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: "#3730a3" }}>Candidate brief - your one-page read{title ? ` for ${toTitleCase(title)}` : ""}</p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 8 }}>
+        {rows.map((r, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ width: 92, flexShrink: 0, fontSize: 11, fontWeight: 700, color: C.textSub }}>{r.k}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>{r.v} <Prov kind={r.prov} small /></span>
+          </div>
+        ))}
+      </div>
+      {gaps.length > 0 && (
+        <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Lead by evidencing:</strong> {gaps.join(", ")}.</p>
+      )}
+      <button onClick={() => _copy(briefText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
+        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "#fff", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+        {copied ? "Brief copied" : "Copy brief"}
+      </button>
+      <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Assembled from the reads above - it authors no new score. AI-assisted; human decides. Source: this CV's reads. The CV text is not stored.</p>
+    </div>
+  );
+}
+
+function EmployerFairScorecard({ cv, title }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const tf = cv && cv.trueFit;
+  if (!tf) return null;
+  // every cell is an existing computed/derived value - capability, not rigid proxies
+  const cells = [
+    { k: "Demonstrated capability", v: `${tf.counts.A} skill${tf.counts.A !== 1 ? "s" : ""} shown in achievements, ${tf.counts.B} certified`, prov: "ai", why: "work-sample evidence (Schmidt-Hunter 1998), not self-claims" },
+    { k: "Role-fit (rarity + evidence)", v: `${tf.score}/100 (${tf.band})`, prov: "ai", why: "rare role-defining skills weighted above generic ones" },
+  ];
+  if (cv && cv.anatomy && typeof cv.anatomy.resilientPct === "number") cells.push({ k: "AI-resilient work", v: `${cv.anatomy.resilientPct}%`, prov: "ai", why: "share of the track record in accountability / relational / judgment layers" });
+  if (cv && cv.fairness && typeof cv.fairness.worst === "number") cells.push({ k: "Age / graduation-year neutral", v: cv.fairness.invariant ? "yes (ratio 1.00)" : `review (${cv.fairness.worst.toFixed(2)})`, prov: "computed", why: "the score does not move with age or graduation year" });
+  const NOT_SCORED = ["school or degree pedigree", "gaps in employment history", "an exact prior job-title match"];
+
+  const cardText = [
+    `EMPLOYER FAIR SCORECARD - ${title || "this role"}`,
+    "A capability-first screen (Fuller, Hidden Workers 2021; STARs - Skilled Through Alternative Routes).",
+    ...cells.map(c => `${c.k}: ${c.v}  [${c.why}]`),
+    `Deliberately NOT scored: ${NOT_SCORED.join("; ")} - the rigid filters that screen out capable people.`,
+    "Advisory; a fairer lens, not a hire/no-hire verdict. AI-assisted; human decides.",
+  ].join("\n");
+
+  return (
+    <div style={{ marginBottom: 12, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span aria-hidden="true" style={{ fontSize: 14 }}>📋</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer fair scorecard - capability, not pedigree</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <p style={{ margin: "0 0 9px", fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>A capability-first screen, grounded in Fuller's <em>Hidden Workers</em> (2021) and the STARs framework (Skilled Through Alternative Routes): it scores what a candidate can demonstrably do, not the rigid proxies that screen capable people out.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
+            {cells.map((c, i) => (
+              <div key={i} style={{ padding: "8px 11px", background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: C.text }}>{c.k}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}><span style={{ fontSize: 12, fontWeight: 800, color: "#1e40af" }}>{c.v}</span><Prov kind={c.prov} small /></span>
+                </div>
+                <p style={{ margin: "2px 0 0", fontSize: 10.5, color: C.muted, lineHeight: 1.45 }}>{c.why}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "8px 11px", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 8, marginBottom: 8 }}>
+            <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#3730a3" }}>Deliberately NOT scored</p>
+            <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{NOT_SCORED.join("; ")}. These are the rigid filters that, per Fuller's research, screen out capable workers; a fair screen weights demonstrated capability instead.</p>
+          </div>
+          <button onClick={() => _copy(cardText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
+            style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+            {copied ? "Scorecard copied" : "Copy scorecard"}
+          </button>
+          <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Every cell is one of the reads above - the scorecard authors no new number. It is a fairer lens, not a hire / no-hire verdict. AI-assisted; human decides. Source: this CV's reads.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // CoachMark removed in v1.8.9 - replaced with inline blink on first AI skill row
 
 // NxCopyButton - copy "What to do next" card with full context fields
@@ -7248,6 +7384,8 @@ function RoleGraphPanel({ result, title }) {
                       );
                     })()}
                     {cv.fairness && <FairnessAudit fairness={cv.fairness} />}
+                    {cv.trueFit && <CandidateBrief cv={cv} title={title} />}
+                    {cv.trueFit && <EmployerFairScorecard cv={cv} title={title} />}
                     {f.families.length > 0 && (
                       <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
                         {f.families.slice(0, 6).map((fam, i) => (
