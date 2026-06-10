@@ -255,6 +255,25 @@
 // jobs (not a re-fetch in mcf.js) - the action:"job" path stays frozen, jobs are already in
 // state, and the read is ephemeral/display-only; source wins, mcf.js prescription preserved.
 // R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.11 -> v3.1.12).
+// v3.1.13 - 2026-06-10 - HDR #073 - F5 (result-engine arc): Fairness self-audit (the p%-rule,
+// turned inward on OUR OWN engine). A disparate-impact check on an employer's hiring is impossible
+// here (no protected-attribute data; a ratio computed without it would fabricate a number) - so F5
+// PROVES our deterministic scorers are age / graduation-year blind instead. fairnessAudit(cvText,
+// cvProfile, roleSkills, iscoCandidates) runs the EXISTING scorers scoreCVFit + scoreTrueFit on two
+// inputs identical except for an injected age/grad proxy, and reports the four-fifths-style ratio
+// min/max of the scores (1.00 = invariant; verified in Node: 68/68 + 21/21 -> ratio 1.00). A drop
+// would catch a regression that wired age in. NEW FairnessAudit panel in the CV result (after
+// True-Fit): verdict (= Invariant / warn Shift found, by shape+label not colour), the per-variant
+// scores, a declared criterion, and a copyable WFA audit trail. The 0.80 benchmark (four-fifths;
+// origin US EEOC Uniform Guidelines 1978; formalised Feldman 2015) is a transparency yardstick on
+// OUR tool only - NOT a legal test for any employer; SG anchor TGFEP + Workforce Fairness Act 2025;
+// explicit no-legal-claim + scope (audits the deterministic scoring, not the AI extraction step,
+// not the employer). Every figure is a real engine output (no LLM in this read; D1-D8 N/A). Withhold
+// over fabricate: null under 3 role skills / on throw. Conformance audit PASS (all G-tests + 4
+// contract sub-questions + hard gates); a11y review colour-blind-clean (blue/orange, 44px copy
+// button after fix). Spec AU-7: built INLINE (not a new fairness.js) reusing the existing scorers,
+// and the "ad-language flags" accept criterion is deferred to F5.2 - source wins, prior preserved.
+// R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.12 -> v3.1.13).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -1873,6 +1892,54 @@ function scoreTrueFit(cvProfile, roleSkills) {
   return { score, band: score >= 65 ? "strong" : score >= 40 ? "partial" : "thin", ledger: ledger.slice(0, 20), gaps: gaps.slice(0, 12), counts, total: skills.length };
 }
 
+// F5 (result-engine arc): Fairness self-audit - the p%-rule, turned inward on OUR OWN engine.
+// We CANNOT audit an employer's hiring for disparate impact (no protected-attribute data; a ratio
+// computed without it would be a fabricated number - the contract forbids that). What we CAN do
+// honestly: PROVE our deterministic scorers are invariant to age and graduation year. We build two
+// inputs that are identical EXCEPT for an age / graduation-year proxy, run the SAME scorers
+// (scoreCVFit + scoreTrueFit), and report the four-fifths-style ratio min/max of the resulting
+// scores. Ratio 1.00 = the proxy does not move the score (the engine is age-blind, as the spec
+// accept criterion demands). A drop would catch a regression that wired age in. Every number is a
+// real output of running our engine - not invented. The 0.80 benchmark (four-fifths rule, origin
+// US EEOC Uniform Guidelines 1978; formalised Feldman et al. 2015) is applied ONLY as a
+// transparency yardstick on our own tool; SG anchor is TGFEP + the Workforce Fairness Act 2025
+// (merit-based assessment + an audit trail). We make NO legal claim about any employer.
+const _FAIR_THRESHOLD = 0.8; // four-fifths benchmark, applied to OUR tool only - not a legal test
+const _FAIR_PROXIES = [
+  { key: "younger", label: "Age 24, graduated 2023", grad: 2023, age: 24 },
+  { key: "older",   label: "Age 58, graduated 1989", grad: 1989, age: 58 },
+];
+function _fairRatio(vals) {
+  const xs = vals.filter(x => typeof x === "number");
+  if (xs.length < 2) return null;
+  const mx = Math.max(...xs), mn = Math.min(...xs);
+  if (mx <= 0) return 1; // both non-positive -> no spread -> invariant
+  return mn / mx;
+}
+function fairnessAudit(cvText, cvProfile, roleSkills, iscoCandidates) {
+  if (!cvProfile) return null;
+  const skills = (roleSkills || []).filter(s => s && s.skill);
+  if (skills.length < 3) return null; // not enough role skills to score meaningfully
+  const baseQuals = (cvProfile && Array.isArray(cvProfile.qualifications)) ? cvProfile.qualifications : [];
+  const rows = _FAIR_PROXIES.map(p => {
+    // identical CV, differing ONLY by the age / graduation-year proxy (raw-text banner feeds
+    // scoreCVFit; a "Graduated YYYY" qualification feeds the structured-field scoreTrueFit)
+    const text = `Age: ${p.age}. Graduated: ${p.grad}.\n${String(cvText || "")}`;
+    const prof = { ...cvProfile, qualifications: [`Graduated ${p.grad}`, ...baseQuals] };
+    let cvFit = null, trueFit = null;
+    try { const r = scoreCVFit(text, prof, skills, iscoCandidates || []); cvFit = r ? r.fitScore : null; } catch (_) { cvFit = null; }
+    try { const r = scoreTrueFit(prof, skills); trueFit = r ? r.score : null; } catch (_) { trueFit = null; }
+    return { key: p.key, label: p.label, cvFit, trueFit };
+  });
+  const cvRatio = _fairRatio(rows.map(r => r.cvFit));
+  const trueRatio = _fairRatio(rows.map(r => r.trueFit));
+  const ratios = [cvRatio, trueRatio].filter(x => typeof x === "number");
+  const worst = ratios.length ? Math.min(...ratios) : null;
+  const pass = worst == null ? null : worst >= _FAIR_THRESHOLD;
+  const invariant = worst === 1;
+  return { rows, cvRatio, trueRatio, worst, pass, invariant, threshold: _FAIR_THRESHOLD, nSkills: skills.length };
+}
+
 async function narrateCVFit(title, fitSummary) {
   const SYS_CF =
 `ACT AS a careers coach. You are given a candidate's structured CV facts and a deterministic fit analysis against a target role and the ISCO-08 occupation families it resembles. Write an honest, grounded role-readiness read - never invent CV facts, only interpret the analysis given. Singapore context. Plain, candid, encouraging but realistic.
@@ -1940,7 +2007,11 @@ ${famLine || "n/a"}`;
   // T3: True-Fit + Proof Ledger - the rarity-weighted, evidence-tiered CV<->role match.
   let trueFit = null;
   try { trueFit = scoreTrueFit(cvProfile, skillSet); } catch (_) { trueFit = null; }
-  return { cvProfile, fit, narrative, blend, anatomy, trueFit };
+  // F5: Fairness self-audit - prove the deterministic scorers are age / graduation-year invariant
+  // (the p%-rule turned on our own engine; deterministic, no number invented).
+  let fairness = null;
+  try { fairness = fairnessAudit(cvText, cvProfile, skillSet, (roleGraph && roleGraph.iscoCandidates) || []); } catch (_) { fairness = null; }
+  return { cvProfile, fit, narrative, blend, anatomy, trueFit, fairness };
 }
 
 async function rateSkills(title, skills) {
@@ -4338,6 +4409,87 @@ function DemandProof({ result }) {
           <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// F5 render: the Fairness self-audit block in the CV result. Always-shown (like True-Fit), with a
+// copyable audit trail (WFA-checkable). State by shape + label (= invariant / != shift), never
+// colour alone; blue (pass) / orange (flag), no red/green. Numbers are real engine outputs.
+function FairnessAudit({ fairness }) {
+  const [copied, setCopied] = useState(false);
+  if (!fairness || fairness.worst == null) return null;
+  const f = fairness;
+  const ok = f.pass !== false;
+  const pillColor = ok ? "#1e40af" : "#9a3412";
+  const pillBg = ok ? "#eef2ff" : "#fff7ed";
+  const pillBorder = ok ? "#c7d2fe" : "#fed7aa";
+  const ratioStr = r => (typeof r === "number" ? r.toFixed(2) : "n/a");
+  const scoreStr = x => (typeof x === "number" ? `${x}/100` : "n/a");
+
+  const auditText = [
+    "FAIRNESS SELF-AUDIT - SG Career View v3",
+    "What was tested: the deterministic CV scorers (CV-fit + True-Fit), for invariance to age and graduation year.",
+    "Method: two inputs identical except for an age / graduation-year proxy, scored by the same engine.",
+    `Variant A (${f.rows[0] ? f.rows[0].label : "?"}): CV-fit ${scoreStr(f.rows[0] && f.rows[0].cvFit)}, True-Fit ${scoreStr(f.rows[0] && f.rows[0].trueFit)}`,
+    `Variant B (${f.rows[1] ? f.rows[1].label : "?"}): CV-fit ${scoreStr(f.rows[1] && f.rows[1].cvFit)}, True-Fit ${scoreStr(f.rows[1] && f.rows[1].trueFit)}`,
+    `Adverse-impact ratio (min/max): CV-fit ${ratioStr(f.cvRatio)}, True-Fit ${ratioStr(f.trueRatio)}; worst ${ratioStr(f.worst)}`,
+    `Benchmark: four-fifths (${f.threshold.toFixed(2)}). Verdict: ${ok ? "PASS" : "REVIEW"}.`,
+    "Criterion: the four-fifths ratio (origin US EEOC Uniform Guidelines 1978; formalised Feldman et al. 2015) is used here ONLY as a transparency benchmark on our own tool. Singapore anchor: Tripartite Guidelines on Fair Employment Practices + Workforce Fairness Act 2025 (merit-based assessment; audit trail). We make NO legal claim about any employer.",
+    "Scope: this audits the deterministic scoring - not the AI extraction step that first reads the CV, and not the employer's hiring.",
+  ].join("\n");
+
+  const doCopy = () => {
+    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(auditText).then(done).catch(() => {
+        const el = document.createElement("textarea"); el.value = auditText; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done();
+      });
+    } else {
+      const el = document.createElement("textarea"); el.value = auditText; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done();
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 5 }}>
+        <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Fairness self-audit - does your age move the score?</p>
+        <Prov kind="computed" small />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 800, color: pillColor, background: pillBg, border: `1px solid ${pillBorder}`, borderRadius: 999, padding: "2px 11px" }}>
+          <span aria-hidden="true">{ok ? "=" : "⚠"}</span>{ok ? "Invariant" : "Shift found"}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: C.textSub }}>adverse-impact ratio {ratioStr(f.worst)}</span>
+        <span style={{ fontSize: 11, color: C.muted }}>benchmark {f.threshold.toFixed(2)}+</span>
+      </div>
+      <p style={{ margin: "0 0 7px", fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+        {ok
+          ? "Your CV-fit and True-Fit scores are the same whether the CV reads as a recent graduate or one from decades ago. Age and graduation year do not move our deterministic score."
+          : "Our scores shifted between the younger and older variant - a sign age or graduation year is leaking into the scoring. Flagged for a fix; do not rely on the score until resolved."}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 7 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, fontWeight: 700, color: C.muted }}>
+          <span style={{ flex: 1 }} />
+          <span style={{ width: 70, textAlign: "right" }}>CV-fit</span>
+          <span style={{ width: 70, textAlign: "right" }}>True-Fit</span>
+        </div>
+        {f.rows.map((r, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ flex: 1, fontSize: 11.5, color: C.text }}>{r.label}</span>
+            <span style={{ width: 70, textAlign: "right", fontSize: 11.5, fontWeight: 700, color: C.text }}>{scoreStr(r.cvFit)}</span>
+            <span style={{ width: 70, textAlign: "right", fontSize: 11.5, fontWeight: 700, color: C.text }}>{scoreStr(r.trueFit)}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: "8px 11px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, marginBottom: 7 }}>
+        <p style={{ margin: 0, fontSize: 10.5, color: C.textSub, lineHeight: 1.5 }}><strong>How to read this.</strong> The benchmark is the four-fifths rule (origin US EEOC 1978; formalised Feldman 2015), applied here ONLY as a yardstick on our own tool - not a legal test for any employer. Singapore anchor: the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025 (merit-based assessment, with an audit trail).</p>
+      </div>
+      <button onClick={doCopy}
+        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+        {copied ? "Audit trail copied" : "Copy audit trail"}
+      </button>
+      <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>This checks the deterministic scoring - not the AI step that first reads your CV, and not the employer's hiring. Human decides. Source: this engine's own scores on matched inputs. Confidence: deterministic (same inputs, same result). Time-window: structural (not time-based).</p>
     </div>
   );
 }
@@ -6940,6 +7092,7 @@ function RoleGraphPanel({ result, title }) {
                       </div>
                       );
                     })()}
+                    {cv.fairness && <FairnessAudit fairness={cv.fairness} />}
                     {f.families.length > 0 && (
                       <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
                         {f.families.slice(0, 6).map((fam, i) => (
