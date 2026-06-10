@@ -377,6 +377,17 @@
 // labelled close + FAB. No red/green; honest "verbatim from MCF" + "1 of N sampled" labels; R007 clean
 // (header middot -> hyphen). a11y review PASS 7/7 (focus-trap added per the WARN). Additive; no frozen
 // symbol touched. Build green. G1 (v3.2.5 -> v3.2.6).
+// v3.2.7 - 2026-06-10 - HDR #083 - job-ad drawer rework (Human Lead feedback). FIXES: (1) missing
+// company/role intro - the drawer now shows the FULL verbatim description (About company + About the
+// role + duties), not the R&R-only responsibilitiesText extract; (2) flat text -> _fmtJobAd parses
+// the posting into headings / bullets / paragraphs (deterministic, nothing reworded - structure
+// inferred from the text's own lines); (3) not movable -> the drawer is now a MOVABLE, NON-MODAL
+// floating window (drag the header via pointer events; read the analysis behind it; opens top-right);
+// (4) hidden behind the "Back to top" FAB -> the "Job ad" FAB moved to the bottom-LEFT (z 901) and
+// the window opens top-right (z 1001), clear of the bottom-right Top FAB (z 998). a11y: role=dialog +
+// aria-label, Escape + close-button dismiss, focus to close on open (non-modal -> no focus-trap, by
+// design); no red/green (navy/blue/slate); 44px targets; R007 clean. Self-reviewed against the §7
+// contract. Additive; no frozen symbol touched. Build green. G1 (v3.2.6 -> v3.2.7).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5064,33 +5075,51 @@ function EmployerReality({ result }) {
 // adding to the (formerly 4-6 screen) vertical scroll. Withholds when there is no posting text.
 function jobAdAvailable(result) {
   const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
-  return jobs.some(j => j && (j.responsibilitiesText || j.description));
+  return jobs.some(j => j && (j.description || j.responsibilitiesText));
+}
+// Light, deterministic JD formatter: turns the verbatim posting text into headings / bullets /
+// paragraphs for a professional read (no AI; nothing reworded - only structure inferred from the
+// text's own lines). A line is a HEADING if short, no trailing sentence punctuation, and either it
+// matches a known JD-section word or it is a <=6-word capitalised line; a bullet if it leads with a
+// bullet glyph; otherwise paragraph.
+const _JD_HEAD_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|capabilities|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer)\b/i;
+function _fmtJobAd(text) {
+  const lines = String(text || "").replace(/\r/g, "").split("\n").map(l => l.trim());
+  const blocks = []; let para = [];
+  const flush = () => { if (para.length) { blocks.push({ t: "p", text: para.join(" ") }); para = []; } };
+  for (const ln of lines) {
+    if (!ln) { flush(); continue; }
+    if (/^[•·▪‣o\-\*]\s+/.test(ln) || /^[•·▪]/.test(ln)) {
+      flush(); blocks.push({ t: "li", text: ln.replace(/^[•·▪‣o\-\*]\s*/, "").trim() }); continue;
+    }
+    const isHead = ln.length <= 64 && !/[.!?,;:]$/.test(ln) && (_JD_HEAD_RE.test(ln) || (ln.split(/\s+/).length <= 6 && /^[A-Z]/.test(ln)));
+    if (isHead) { flush(); blocks.push({ t: "h", text: ln }); continue; }
+    para.push(ln);
+  }
+  flush();
+  return blocks;
 }
 function JobAdFab({ onClick }) {
+  // bottom-LEFT so it never collides with the bottom-right "Back to top" FAB (z 998).
   return (
     <button onClick={onClick} aria-label="Open the job advertisement"
-      style={{ position: "fixed", right: 16, bottom: 16, zIndex: 900, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 24, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+      style={{ position: "fixed", left: 16, bottom: 20, zIndex: 901, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 24, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
       <span aria-hidden="true" style={{ fontSize: 15 }}>📄</span> Job ad
     </button>
   );
 }
+// A MOVABLE, NON-MODAL floating window (drag the header to reposition; read the analysis behind it).
+// Shows the FULL verbatim ad (description, not the R&R-only extract) - company intro, role intro and
+// duties - formatted into headings / bullets. Escape or the close button dismisses; opens top-right,
+// clear of the corner FABs.
 function JobAdDrawer({ result, open, onClose }) {
   const closeRef = useRef(null);
-  const dialogRef = useRef(null);
+  const dragRef = useRef(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  useEffect(() => { if (open) setPos({ x: 0, y: 0 }); }, [open]); // reset position each open
   useEffect(() => {
     if (!open) return;
-    // focus-trap: Escape closes; Tab/Shift+Tab loop within the dialog so focus cannot
-    // wander to the backgrounded page (WCAG 2.1.2 / 2.4.3 for an aria-modal dialog).
-    const onKey = e => {
-      if (e.key === "Escape") { onClose(); return; }
-      if (e.key === "Tab" && dialogRef.current) {
-        const f = dialogRef.current.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
-        if (!f.length) return;
-        const first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
+    const onKey = e => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     const t = setTimeout(() => { if (closeRef.current) closeRef.current.focus(); }, 30);
     return () => { document.removeEventListener("keydown", onKey); clearTimeout(t); };
@@ -5098,31 +5127,37 @@ function JobAdDrawer({ result, open, onClose }) {
   if (!open) return null;
   const rd = result && result.responsibilitiesData;
   const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
-  const job = jobs.find(j => j && (j.responsibilitiesText || j.description)) || jobs[0] || null;
-  const adText = job ? String(job.responsibilitiesText || job.description || "").trim() : "";
+  const job = jobs.find(j => j && (j.description || j.responsibilitiesText)) || jobs[0] || null;
+  const adText = job ? String(job.description || job.responsibilitiesText || "").trim() : "";
+  const blocks = _fmtJobAd(adText);
+  const onDown = e => { dragRef.current = { sx: e.clientX, sy: e.clientY, bx: pos.x, by: pos.y }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} };
+  const onMove = e => { if (!dragRef.current) return; setPos({ x: dragRef.current.bx + (e.clientX - dragRef.current.sx), y: dragRef.current.by + (e.clientY - dragRef.current.sy) }); };
+  const onUp = e => { if (dragRef.current) { dragRef.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {} } };
   return (
-    <div role="presentation" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(15,23,42,0.45)", display: "flex", justifyContent: "flex-end" }}>
-      <style>{`@keyframes adSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Job advertisement from MyCareersFuture" onClick={e => e.stopPropagation()}
-        style={{ width: "min(460px, 92vw)", height: "100%", maxHeight: "100%", background: C.surface, boxShadow: "-8px 0 28px rgba(0,0,0,0.22)", display: "flex", flexDirection: "column", animation: "adSlideIn 0.22s ease both" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "12px 16px", background: "#1e3a5f", flexShrink: 0 }}>
+    <div role="dialog" aria-label="Job advertisement from MyCareersFuture"
+      style={{ position: "fixed", top: 68, right: 18, zIndex: 1001, width: "min(440px, 94vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: "0 14px 44px rgba(0,0,0,0.30)", transform: `translate(${pos.x}px, ${pos.y}px)`, animation: "adFade 0.18s ease both" }}>
+      <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}}`}</style>
+      <div onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "#1e3a5f", borderRadius: "11px 11px 0 0", cursor: "move", touchAction: "none", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <span aria-hidden="true" style={{ color: "#93c5fd", fontSize: 14, letterSpacing: "-1px" }}>⠿</span>
           <div style={{ minWidth: 0 }}>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement</p>
             {job && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
           </div>
-          <button ref={closeRef} onClick={onClose} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 8, lineHeight: 1 }}>×</button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
-          {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 10.5, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
-          {adText ? (
-            <p style={{ margin: 0, fontSize: 12.5, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{adText}</p>
-          ) : (
-            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>
-          )}
-          {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 11.5, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
-        </div>
-        <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Human decides.</p>
+        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 8, lineHeight: 1 }}>×</button>
       </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
+        {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 10.5, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
+        {blocks.length ? blocks.map((b, i) => {
+          if (b.t === "h") return <p key={i} style={{ margin: i ? "14px 0 6px" : "0 0 6px", fontSize: 13, fontWeight: 800, color: "#1e3a5f" }}>{b.text}</p>;
+          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.6 }}>{b.text}</span></div>;
+          return <p key={i} style={{ margin: "0 0 9px", fontSize: 12.5, color: C.text, lineHeight: 1.7 }}>{b.text}</p>;
+        }) : <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
+        {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 11.5, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
+      </div>
+      <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Drag the header to move. Human decides.</p>
     </div>
   );
 }
