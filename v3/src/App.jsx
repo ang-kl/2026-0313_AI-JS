@@ -139,6 +139,13 @@
 // JOB_ANATOMY_VERSION stays 'ja1' (cache valid, no needless recompute). Cited block kept byte-
 // identical across api/anatomy.js + App.jsx. Doc/traceability change; no number, prompt or render
 // touched. R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.1 -> v3.1.2).
+// v3.1.3 - 2026-06-10 - HDR #063 - UX: when a job is selected, the in-result Role Graph now opens
+// CENTRED on the role hub. The graph is centre-rooted (R&R left / role middle / ISCO+ESCO right) in
+// a fixed 1104px-wide scroll canvas; on a narrow viewport the container previously opened at the
+// left edge, hiding the selected role off-screen to the right. RoleGraphPanel now scrolls the
+// container so the mcfRole hub (~x452, 1:1 with the viewBox) lands at the viewport centre once the
+// graph data is ready (clamped, no-op on desktop where the whole graph fits). Render-only, v3-only;
+// frozen door + engine untouched.
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5833,6 +5840,7 @@ function RoleGraphPanel({ result, title }) {
   const [showCvProfile, setShowCvProfile] = useState(false);
   const [cvText, setCvText] = useState("");
   const [cv, setCv] = useState({ status: "idle" });
+  const graphScrollRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
 
   // For a single MCF-posting analysis the pipeline (and its 6-step progress) is
@@ -5855,6 +5863,18 @@ function RoleGraphPanel({ result, title }) {
   const g = isPosting ? (result && result.roleGraphData) : graphState.g;
   const rgLoading = isPosting ? !(result && result.roleGraphData) : (graphState.status === "loading");
   const rgErrored = isPosting ? false : (graphState.status === "error");
+
+  // Centre the map on the selected role once the graph is ready. The graph is centre-rooted:
+  // the role hub sits mid-canvas (~x452 in the 1104px viewBox), so on a narrow viewport the
+  // scroll container would otherwise open at the left column with the selected role off-screen.
+  useEffect(() => {
+    const el = graphScrollRef.current;
+    if (!el || !g || g.fallback) return;
+    const ROLE_HUB_CX = 452; // mcfRole column centre: x 372 + w 160/2 (cols in renderGraph); SVG is 1:1 with its viewBox
+    const target = ROLE_HUB_CX - el.clientWidth / 2;
+    el.scrollLeft = Math.max(0, Math.min(target, el.scrollWidth - el.clientWidth));
+  }, [g]);
+
   const runCv = () => {
     if (!g || g.fallback || cvText.trim().length < 200) return;
     setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
@@ -5928,7 +5948,7 @@ function RoleGraphPanel({ result, title }) {
     const nodeDim = id => hi && !hi.has(id);
     const HEADS = ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
     return (
-      <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
+      <div ref={graphScrollRef} style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
         <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block", minWidth: 820 }} role="img" aria-label="Role-skill graph">
           {/* column headers (word-wrapped, full names) */}
           {byCol.map((c, ci) => (
