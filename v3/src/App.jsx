@@ -366,6 +366,17 @@
 // solutions/consulting/services; postedCompany!=hiringCompany is a verbatim fact; all hard gates);
 // a11y review PASS (no red/green - orange flag / blue clean, shape+label, 44px, aria). Additive; no
 // frozen symbol touched. Build green. G1 (v3.2.4 -> v3.2.5).
+// v3.2.6 - 2026-06-10 - HDR #082 - result-page IA (Human Lead feedback: 4-6 screens too long; float
+// the ads). (1) Deep Read tab: the 7 always-on "read" panels (Forensic Reversal, Strategy read, BDF,
+// Stewardship, Demand-Proof, Fair-hiring, Employer reality) moved OUT of the Overview stack into a new
+// "Deep Read" tab (gated on responsibilitiesData||jobAnatomy) - the Overview is now legend + segments
+// + nav, cutting ~3-4 screens. (2) Floating job-ad drawer: jobAdAvailable() + JobAdFab (fixed
+// bottom-right "Job ad") + JobAdDrawer (slide-in modal with the verbatim MCF posting) - the ad floats
+// off the vertical scroll, one tap from anywhere. Modal a11y: role=dialog + aria-modal + aria-label,
+// Escape + backdrop close, initial focus to the close btn, focus-trap (Tab loops in the dialog), 44px
+// labelled close + FAB. No red/green; honest "verbatim from MCF" + "1 of N sampled" labels; R007 clean
+// (header middot -> hyphen). a11y review PASS 7/7 (focus-trap added per the WARN). Additive; no frozen
+// symbol touched. Build green. G1 (v3.2.5 -> v3.2.6).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5048,6 +5059,74 @@ function EmployerReality({ result }) {
   );
 }
 
+// UI: float the ad. The verbatim MCF job advertisement lives in a slide-in drawer reachable from a
+// fixed floating button anywhere in the result - so the source ad is always one tap away WITHOUT
+// adding to the (formerly 4-6 screen) vertical scroll. Withholds when there is no posting text.
+function jobAdAvailable(result) {
+  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  return jobs.some(j => j && (j.responsibilitiesText || j.description));
+}
+function JobAdFab({ onClick }) {
+  return (
+    <button onClick={onClick} aria-label="Open the job advertisement"
+      style={{ position: "fixed", right: 16, bottom: 16, zIndex: 900, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 24, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+      <span aria-hidden="true" style={{ fontSize: 15 }}>📄</span> Job ad
+    </button>
+  );
+}
+function JobAdDrawer({ result, open, onClose }) {
+  const closeRef = useRef(null);
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    // focus-trap: Escape closes; Tab/Shift+Tab loop within the dialog so focus cannot
+    // wander to the backgrounded page (WCAG 2.1.2 / 2.4.3 for an aria-modal dialog).
+    const onKey = e => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Tab" && dialogRef.current) {
+        const f = dialogRef.current.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])');
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    const t = setTimeout(() => { if (closeRef.current) closeRef.current.focus(); }, 30);
+    return () => { document.removeEventListener("keydown", onKey); clearTimeout(t); };
+  }, [open, onClose]);
+  if (!open) return null;
+  const rd = result && result.responsibilitiesData;
+  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+  const job = jobs.find(j => j && (j.responsibilitiesText || j.description)) || jobs[0] || null;
+  const adText = job ? String(job.responsibilitiesText || job.description || "").trim() : "";
+  return (
+    <div role="presentation" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(15,23,42,0.45)", display: "flex", justifyContent: "flex-end" }}>
+      <style>{`@keyframes adSlideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}`}</style>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Job advertisement from MyCareersFuture" onClick={e => e.stopPropagation()}
+        style={{ width: "min(460px, 92vw)", height: "100%", maxHeight: "100%", background: C.surface, boxShadow: "-8px 0 28px rgba(0,0,0,0.22)", display: "flex", flexDirection: "column", animation: "adSlideIn 0.22s ease both" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "12px 16px", background: "#1e3a5f", flexShrink: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement</p>
+            {job && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
+          </div>
+          <button ref={closeRef} onClick={onClose} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 8, lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
+          {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 10.5, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
+          {adText ? (
+            <p style={{ margin: 0, fontSize: 12.5, color: C.text, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{adText}</p>
+          ) : (
+            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>
+          )}
+          {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 11.5, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
+        </div>
+        <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Human decides.</p>
+      </div>
+    </div>
+  );
+}
+
 // CoachMark removed in v1.8.9 - replaced with inline blink on first AI skill row
 
 // NxCopyButton - copy "What to do next" card with full context fields
@@ -8903,6 +8982,7 @@ export default function App() {
   const [subStep,   setSubStep]   = useState(0);
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
+  const [adDrawerOpen, setAdDrawerOpen] = useState(false); // floating job-ad drawer (UI: ads float, not embed)
   const [segmentPanelOpen, setSegmentPanelOpen] = useState(true); // v1.5.5: collapsible automation panel
   const [jumpToSkill, setJumpToSkill] = useState(null); // v1.5.5: skill name to jump to and pre-expand
   const [comparisons, setComparisons] = useState([]); // [{title, result}] max 3
@@ -9786,6 +9866,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     if (!r) return [];
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
+      ...((r.responsibilitiesData || r.jobAnatomy) ? [{ key:"deepread", label:"🔬 Deep Read", color:"#7c3aed" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
@@ -10400,13 +10481,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   }, 450);
                 }}
               />
-              <ForensicReversal result={result} title={sel?.title || ""} />
-              <StrategyRead result={result} title={sel?.title || ""} />
-              <BdfStewardship result={result} title={sel?.title || ""} />
-              <StewardshipShift result={result} />
-              <DemandProof result={result} />
-              <AdLanguageScan result={result} />
-              <EmployerReality result={result} />
+              {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
+                  (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
@@ -10465,6 +10541,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   firstBlinkSkill={firstBlinkSkill}
                   onRefreshPrompt={handleRefreshPrompt}
                 />}
+              {activeTab === "deepread" && (
+                <>
+                  <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The deeper, advisory reads of this role - why it exists, who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
+                  <ForensicReversal result={result} title={sel?.title || ""} />
+                  <StrategyRead result={result} title={sel?.title || ""} />
+                  <BdfStewardship result={result} title={sel?.title || ""} />
+                  <StewardshipShift result={result} />
+                  <DemandProof result={result} />
+                  <AdLanguageScan result={result} />
+                  <EmployerReality result={result} />
+                </>
+              )}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
               )}
@@ -10572,6 +10660,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {activeTab === "resume" && (
                 <ResumeCheckPanel result={result} title={sel?.title || ""} />
               )}
+
+              {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll */}
+              {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "" }); }} />}
+              <JobAdDrawer result={result} open={adDrawerOpen} onClose={() => setAdDrawerOpen(false)} />
 
               <Disclaimer />
 
