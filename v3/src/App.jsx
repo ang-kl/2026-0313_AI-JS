@@ -388,6 +388,15 @@
 // aria-label, Escape + close-button dismiss, focus to close on open (non-modal -> no focus-trap, by
 // design); no red/green (navy/blue/slate); 44px targets; R007 clean. Self-reviewed against the §7
 // contract. Additive; no frozen symbol touched. Build green. G1 (v3.2.6 -> v3.2.7).
+// v3.2.8 - 2026-06-10 - HDR #084 - job-ad drawer: FINISH point 2 (heading hierarchy + underline key
+// words) that v3.2.7 only partially did. _fmtJobAd now tags two heading levels - h2 (major sections:
+// About/The Role/Responsibilities/Requirements/What You'll Do, with a bottom rule) and h3 (sub-
+// sections: Capabilities, Leadership & Soft Skills). _jdTermRe + _jdEmphasize UNDERLINE the role's own
+// multi-word skill phrases where they appear in the ad (e.g. "stakeholder management", "enterprise
+// architecture") - a non-arbitrary link between the posting and the analysis; single/short skills
+// (Python) skipped to avoid spam. Underline is a non-colour cue (blue), colour-blind-safe; no AI,
+// nothing reworded. Verified: headings parse h2/h3, multi-word skills underline, short ones don't.
+// Additive; no frozen symbol touched. Build green. G1 (v3.2.7 -> v3.2.8).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5083,6 +5092,9 @@ function jobAdAvailable(result) {
 // matches a known JD-section word or it is a <=6-word capitalised line; a bullet if it leads with a
 // bullet glyph; otherwise paragraph.
 const _JD_HEAD_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|capabilities|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer)\b/i;
+// top-level JD sections render as h2; any other detected heading (Capabilities, Leadership & Soft
+// Skills, ...) renders as the smaller h3 - giving the two-level hierarchy.
+const _JD_MAJOR_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|your role|the opportunity|duties|overview|the opportunity)\b/i;
 function _fmtJobAd(text) {
   const lines = String(text || "").replace(/\r/g, "").split("\n").map(l => l.trim());
   const blocks = []; let para = [];
@@ -5093,11 +5105,31 @@ function _fmtJobAd(text) {
       flush(); blocks.push({ t: "li", text: ln.replace(/^[•·▪‣o\-\*]\s*/, "").trim() }); continue;
     }
     const isHead = ln.length <= 64 && !/[.!?,;:]$/.test(ln) && (_JD_HEAD_RE.test(ln) || (ln.split(/\s+/).length <= 6 && /^[A-Z]/.test(ln)));
-    if (isHead) { flush(); blocks.push({ t: "h", text: ln }); continue; }
+    if (isHead) { flush(); blocks.push({ t: _JD_MAJOR_RE.test(ln) ? "h2" : "h3", text: ln }); continue; }
     para.push(ln);
   }
   flush();
   return blocks;
+}
+// "underline key words": the role's own multi-word skill phrases, underlined where they appear in the
+// ad - a non-arbitrary link between the posting and the analysis (no AI; just the analysed skills).
+function _jdTermRe(result) {
+  const skills = (result && Array.isArray(result.skills)) ? result.skills : [];
+  const terms = Array.from(new Set(skills.map(s => String(s.skill || "").trim()).filter(t => t.split(/\s+/).length >= 2 && t.length >= 6)));
+  if (!terms.length) return null;
+  terms.sort((a, b) => b.length - a.length); // longer phrases first
+  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try { return new RegExp("(\\b(?:" + terms.slice(0, 40).map(esc).join("|") + ")\\b)", "gi"); } catch (_) { return null; }
+}
+function _jdEmphasize(text, re) {
+  const s = String(text || "");
+  if (!re) return s;
+  const parts = s.split(re);
+  if (parts.length < 2) return s;
+  // even indices = plain text (strings render keyless fine); odd = the matched key term, underlined
+  return parts.map((p, i) => (i % 2 === 1)
+    ? <u key={i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
+    : p);
 }
 function JobAdFab({ onClick }) {
   // bottom-LEFT so it never collides with the bottom-right "Back to top" FAB (z 998).
@@ -5130,6 +5162,7 @@ function JobAdDrawer({ result, open, onClose }) {
   const job = jobs.find(j => j && (j.description || j.responsibilitiesText)) || jobs[0] || null;
   const adText = job ? String(job.description || job.responsibilitiesText || "").trim() : "";
   const blocks = _fmtJobAd(adText);
+  const termRe = _jdTermRe(result);
   const onDown = e => { dragRef.current = { sx: e.clientX, sy: e.clientY, bx: pos.x, by: pos.y }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} };
   const onMove = e => { if (!dragRef.current) return; setPos({ x: dragRef.current.bx + (e.clientX - dragRef.current.sx), y: dragRef.current.by + (e.clientY - dragRef.current.sy) }); };
   const onUp = e => { if (dragRef.current) { dragRef.current = null; try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {} } };
@@ -5151,9 +5184,10 @@ function JobAdDrawer({ result, open, onClose }) {
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
         {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 10.5, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
         {blocks.length ? blocks.map((b, i) => {
-          if (b.t === "h") return <p key={i} style={{ margin: i ? "14px 0 6px" : "0 0 6px", fontSize: 13, fontWeight: 800, color: "#1e3a5f" }}>{b.text}</p>;
-          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.6 }}>{b.text}</span></div>;
-          return <p key={i} style={{ margin: "0 0 9px", fontSize: 12.5, color: C.text, lineHeight: 1.7 }}>{b.text}</p>;
+          if (b.t === "h2") return <p key={i} style={{ margin: i ? "16px 0 7px" : "0 0 7px", fontSize: 14.5, fontWeight: 800, color: "#1e3a5f", borderBottom: `1px solid ${C.border}`, paddingBottom: 3 }}>{b.text}</p>;
+          if (b.t === "h3") return <p key={i} style={{ margin: "12px 0 5px", fontSize: 12.5, fontWeight: 800, color: "#1e40af" }}>{b.text}</p>;
+          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.6 }}>{_jdEmphasize(b.text, termRe)}</span></div>;
+          return <p key={i} style={{ margin: "0 0 9px", fontSize: 12.5, color: C.text, lineHeight: 1.7 }}>{_jdEmphasize(b.text, termRe)}</p>;
         }) : <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
         {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 11.5, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
       </div>
