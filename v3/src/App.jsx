@@ -168,6 +168,18 @@
 // duty text removed; spec table un-broken). Spec carries an AU-7 amendment (built form differs from
 // the "~ AI estimate" note - source wins). No App.jsx logic change (journal entry only). R-FREEZE
 // clean. G1 gate confirmed by Human Lead (v3.1.4 -> v3.1.5).
+// v3.1.6 - 2026-06-10 - HDR #066 - BDF3 (stewardship arc, goal protocol 5): new collapsible
+// "Steward's map - boundary, dependency, feedback" panel in the result Overview. Boundary (the
+// deliberate do-NOT-own list that prevents scope creep), Dependency (upstream N-1 inputs ->
+// downstream N+1 deliverables), Feedback (balancing friction + reinforcing volume loops). Forward-
+// looking advice -> fully ~ AI estimate, NO number authored, grounded in the role's duty lines,
+// withheld under 3 duties, lazy-loaded, bdf1 cache tag. SYSTEM_BDF (JSON-only) D1-D8 audited PASS.
+// Both stewardship panels (BDF3 + FR1) moved to Opus 4.8 for sharper interpretive copy (lazy, only
+// on panel open). FR1 sub-header renamed off "Reverse-BDF" -> "Per top duty..." so only BDF3 owns
+// the BDF name (audit W1). Spec carries an AU-7 amendment (built ~ AI estimate, not the row's
+// "derived" - boundary/feedback have no deterministic source; source wins). This PR ships under a
+// standing hands-free V-1 sign-off for the stewardship loop (Human Lead, this session). R-FREEZE
+// clean. G1 confirmed (v3.1.5 -> v3.1.6).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -3674,7 +3686,7 @@ async function fetchForensicRead(title, statements) {
   const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|fr1`;
   if (_frCache.has(key)) return _frCache.get(key);
   const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nReverse-engineer.`, 700, 1, SYSTEM_FORENSIC);
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nReverse-engineer.`, 700, 1, SYSTEM_FORENSIC, "claude-opus-4-8");
   const o = extractJSON(raw, "forensic-reversal");
   // Non-inventive guards (audit C1/W1): a verb must actually occur in the duty text or it is
   // dropped; each cited duty index must exist AND that duty line must contain the verb; bdf
@@ -3771,7 +3783,7 @@ function ForensicReversal({ result, title }) {
               </div>
               {fr.read.bdf.length > 0 && (
                 <div style={{ marginBottom:10 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("Reverse-BDF: what the top duties consume and must deliver")}<Prov kind="ai" small /></div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("Per top duty: what it consumes and must deliver")}<Prov kind="ai" small /></div>
                   {fr.read.bdf.map((b, i) => {
                     const st = statements.find(s => Number(s.n) === b.n);
                     if (!st) return null; // audit C1: never render an LLM-cited duty number as text
@@ -3787,6 +3799,124 @@ function ForensicReversal({ result, title }) {
             </div>
           )}
           <p style={{ margin:"8px 0 0", fontSize:10, color:C.mutedLight, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- BDF3: Boundary-Dependency-Feedback stewardship panel (stewardship arc SS3, goal protocol 5) ----
+// The steward's MENTAL MODEL for the role - "shift from symptom-solving to architectural mapping":
+// Boundary (the deliberate Not-To-Do list that prevents scope creep), Dependency (N-1 upstream
+// inputs -> N+1 downstream deliverables), Feedback (balancing friction + reinforcing volume loops to
+// anticipate). This read is forward-looking advice, so it is fully LLM-authored and tagged ~ AI
+// estimate end to end: it narrates, it computes no number, nothing here is presented as measured.
+// Grounded in the role's own duty statements; withheld when there are too few to reason over.
+const _bdfCache = new Map(); // `${title}|${evidenceHash}|bdf1` -> read (bdf1 = prompt version; bump on SYSTEM_BDF change)
+const SYSTEM_BDF =
+`ACT AS a work-systems steward advising someone about to take on ONE advertised role. You are given its numbered duty statements. Apply the Boundary-Dependency-Feedback model so the person maps the role architecturally instead of just reacting to tasks. Be specific to THESE duties - never generic. Singapore workplace context, plain language, no hype.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "boundary": ["a 'do NOT own this' guardrail that keeps the role from scope creep, tied to the duties, under 14 words", ...],
+ "upstream": ["what or who this role must rely on as an input (N-1), under 12 words", ...],
+ "downstream": ["what this role must hand off / be judged on (N+1), under 12 words", ...],
+ "balancing": ["a friction loop that will resist or slow the work, under 16 words", ...],
+ "reinforcing": ["a success loop where doing the work well creates more demand or scope, under 16 words", ...]
+}
+boundary 2 to 4; upstream 2 to 3; downstream 2 to 3; balancing 1 to 2; reinforcing 1 to 2. No quote characters inside string values.`;
+
+async function fetchBdfRead(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|bdf1`;
+  if (_bdfCache.has(key)) return _bdfCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nMap the role.`, 750, 1, SYSTEM_BDF, "claude-opus-4-8");
+  const o = extractJSON(raw, "bdf-stewardship");
+  const arr = (x, n, cap) => (Array.isArray(x) ? x : []).map(s => String(s || "").trim()).filter(Boolean).slice(0, n).map(s => s.slice(0, cap));
+  const read = {
+    boundary: arr(o && o.boundary, 4, 110),
+    upstream: arr(o && o.upstream, 3, 90),
+    downstream: arr(o && o.downstream, 3, 90),
+    balancing: arr(o && o.balancing, 2, 130),
+    reinforcing: arr(o && o.reinforcing, 2, 130),
+  };
+  _bdfCache.set(key, read);
+  return read;
+}
+
+function BdfStewardship({ result, title }) {
+  const [open, setOpen] = useState(false);
+  const [bdf, setBdf] = useState({ status: "idle" });
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || bdf.status === "done" || bdf.status === "loading" || statements.length < 3) return;
+    setBdf({ status: "loading" });
+    const t0 = Date.now();
+    fetchBdfRead(title, statements)
+      .then(read => { logStep("bdf_stewardship", "ok", Date.now() - t0, `${read.boundary.length}b/${read.upstream.length + read.downstream.length}d`); setBdf({ status: "done", read }); })
+      .catch(e => { logStep("bdf_stewardship", "error", Date.now() - t0, e && e.message); setBdf({ status: "error" }); });
+  }
+
+  if (statements.length < 3) return null;
+  const sec = t => <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
+  const bullets = (items, color, bg, border) => (
+    <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+      {items.map((t, i) => (
+        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding:"6px 10px", background:bg, border:`1px solid ${border}`, borderRadius:7 }}>
+          <span style={{ width:5, height:5, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
+          <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.5 }}>{t}</p>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#3730a3" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }}>🧭</span>
+          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Steward's map - boundary, dependency, feedback</span>
+        </div>
+        <span style={{ fontSize:12, color: open ? "#c7d2fe" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding:"12px 14px 14px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
+            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>Map the role architecturally, not task-by-task: what to deliberately NOT own, what it depends on, and the loops to expect.</p>
+            <Prov kind="ai" small />
+          </div>
+          {bdf.status === "loading" && <p style={{ margin:0, fontSize:11.5, color:C.muted }} aria-busy="true">Mapping the role from {Math.min(14, statements.length)} duty lines...</p>}
+          {bdf.status === "error" && <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>The steward's map could not be completed - try reopening the panel.</p>}
+          {bdf.status === "done" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {bdf.read.boundary.length > 0 && (
+                <div>{sec("Boundary - do NOT own these (prevents scope creep)")}{bullets(bdf.read.boundary, "#9a3412", "#fff7ed", "#fed7aa")}</div>
+              )}
+              {(bdf.read.upstream.length > 0 || bdf.read.downstream.length > 0) && (
+                <div>
+                  {sec("Dependency - what feeds in, what you hand off")}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:8 }}>
+                    {bdf.read.upstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#0e7490" }}>← upstream (N-1)</p>{bullets(bdf.read.upstream, "#0e7490", "#ecfeff", "#a5f3fc")}</div>}
+                    {bdf.read.downstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#1e40af" }}>downstream (N+1) →</p>{bullets(bdf.read.downstream, "#1e40af", "#eef2ff", "#c7d2fe")}</div>}
+                  </div>
+                </div>
+              )}
+              {(bdf.read.balancing.length > 0 || bdf.read.reinforcing.length > 0) && (
+                <div>
+                  {sec("Feedback loops to expect")}
+                  {bdf.read.balancing.length > 0 && <div style={{ marginBottom:6 }}><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#b45309" }}>balancing (friction that resists)</p>{bullets(bdf.read.balancing, "#b45309", "#fffbeb", "#fde68a")}</div>}
+                  {bdf.read.reinforcing.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#3730a3" }}>reinforcing (success that creates more demand)</p>{bullets(bdf.read.reinforcing, "#3730a3", "#eef2ff", "#c7d2fe")}</div>}
+                </div>
+              )}
+            </div>
+          )}
+          <p style={{ margin:"10px 0 0", fontSize:10, color:C.mutedLight, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
         </div>
       )}
     </div>
@@ -9010,6 +9140,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 }}
               />
               <ForensicReversal result={result} title={sel?.title || ""} />
+              <BdfStewardship result={result} title={sel?.title || ""} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
