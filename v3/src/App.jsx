@@ -180,6 +180,17 @@
 // "derived" - boundary/feedback have no deterministic source; source wins). This PR ships under a
 // standing hands-free V-1 sign-off for the stewardship loop (Human Lead, this session). R-FREEZE
 // clean. G1 confirmed (v3.1.5 -> v3.1.6).
+// v3.1.7 - 2026-06-10 - HDR #067 - PW4 (stewardship arc, w34854): the "pro-worker lens". The
+// Skills-by-Automation-Segment panel now reframes each automation level present in the role via
+// Acemoglu, Autor & Johnson 2026 ("Building Pro-Worker AI"): its five categories (labor-augmenting,
+// capital-augmenting, automating, expertise-leveling, new-task-creating; only new-task-creating
+// unambiguously pro-worker) crosswalked to our 4 levels (HIGH->automating/replaces, MEDIUM->labor-
+// augmenting, LOW->expertise-leveling, HUMAN->new-task-creating), framing each as REPLACES vs
+// EMPOWERS the worker. Deterministic, NO LLM, NO number authored - a documented crosswalk (modeling
+// choice, cited, tagged "a framing, not a measurement"), like A8. Empty-state guarded. Also: the 3
+// stewardship-panel honesty caveats (FR1/BDF3/PW4) moved mutedLight -> textSub to clear WCAG AA
+// (2.5:1 -> 7.5:1). Audit verdict SHIP (no-LLM + no-number + honesty + no red/green all clean).
+// R-FREEZE clean. Auto-shipped under the standing hands-free V-1 sign-off. G1 (v3.1.6 -> v3.1.7).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2144,6 +2155,20 @@ const LEVELS = {
   HUMAN: { label:"Human-Led",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"♦"  },
 };
 
+// PW4 (stewardship arc): the pro-worker lens. Acemoglu, Autor & Johnson 2026 (NBER w34854,
+// "Building Pro-Worker AI") name five categories of technological change - labor-augmenting,
+// capital-augmenting, automating, expertise-leveling, new-task-creating - and argue ONLY
+// new-task-creating is unambiguously pro-worker (raises the value of human skill rather than
+// replacing it). This is a documented CROSSWALK from our 4 exposure levels to the nearest
+// category - a modeling choice, not a claim read from the paper - reframing each level as
+// whether AI here REPLACES the worker or makes the worker more valuable. No number, no LLM.
+const PWAI_LENS = {
+  HIGH:   { cat:"automating",         worker:"replaces", frame:"AI can do the task instead of the worker - the substitution the paper warns deskills when it only replaces." },
+  MEDIUM: { cat:"labor-augmenting",   worker:"empowers", frame:"AI raises the worker's output on the task - pro-worker when it makes human skill more valuable." },
+  LOW:    { cat:"expertise-leveling", worker:"empowers", frame:"AI lifts a less-expert worker toward competence - pro-worker; widens who can do the work." },
+  HUMAN:  { cat:"new-task-creating",  worker:"empowers", frame:"Stays human-led; the pro-worker frontier is AI creating NEW human tasks around it." },
+};
+
 // Provenance of a displayed value, so "computed" (deterministic, reproducible)
 // is visibly distinct from "AI estimate" (an LLM judgement that can vary per
 // run) and "from MCF" (verbatim posting fact). Colour-blind-safe (no red/green);
@@ -3633,6 +3658,25 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
               );
             })}
           </div>
+          {/* PW4: pro-worker lens - reframe the levels present as replace-vs-empower (w34854) */}
+          {(() => {
+            const present = ["HIGH", "MEDIUM", "LOW", "HUMAN"].filter(lvl => (groups[lvl] || []).length > 0);
+            if (!present.length) return null;
+            return (
+              <div style={{ marginTop:12, padding:"9px 11px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:8 }}>
+                <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.text }}>Pro-worker lens <span style={{ fontWeight:500, color:C.muted }}>- does AI here replace you, or make you more valuable?</span></p>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {present.map(lvl => { const c = LEVELS[lvl], p = PWAI_LENS[lvl]; return (
+                    <div key={lvl} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                      <span style={{ fontSize:10, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius:5, padding:"1px 7px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
+                      <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#9a3412" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
+                    </div>
+                  ); })}
+                </div>
+                <p style={{ margin:"7px 0 0", fontSize:10, color:C.textSub, lineHeight:1.55, fontStyle:"italic" }}>Lens after Acemoglu, Autor &amp; Johnson 2026 (NBER w34854, "Building Pro-Worker AI"): only new-task-creating is unambiguously pro-worker. A documented crosswalk from the levels above - a framing, not a measurement.</p>
+              </div>
+            );
+          })()}
         </div>
       )}
       {hasNoHuman && (
@@ -3798,7 +3842,7 @@ function ForensicReversal({ result, title }) {
               )}
             </div>
           )}
-          <p style={{ margin:"8px 0 0", fontSize:10, color:C.mutedLight, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
         </div>
       )}
     </div>
@@ -3916,7 +3960,7 @@ function BdfStewardship({ result, title }) {
               )}
             </div>
           )}
-          <p style={{ margin:"10px 0 0", fontSize:10, color:C.mutedLight, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
+          <p style={{ margin:"10px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
         </div>
       )}
     </div>
