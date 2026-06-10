@@ -404,6 +404,16 @@
 // pointer 1:1 (mouse + touch). Affordance: cursor grab on the header, a "(drag to move)" hint by the
 // title. Reopen still resets position (recoverable). No red/green; no frozen symbol. Build green.
 // G1 (v3.2.8 -> v3.2.9).
+// v3.2.10 - 2026-06-10 - HDR #086 - model leap (approved plan PR 1; goal: the AGENTIC AI analyst on
+// the frontier model; precedent HDR #059 Sonnet -> Opus). The two skill-pipeline advisory calls move
+// Opus 4.8 -> Fable 5: checkSkillRelevance (SYSTEM_RELEVANCE) and the per-skill prompt/next-phase
+// generator (SYSTEM_PROMPTS). claudeCall gains a fable branch FIRST in the timeout ladder (180s, same
+// as Opus; server allows 280s) and in the api_error telemetry tier. The latency-critical raters
+// (rateSkills/rateSkillsCompact/SYSTEM_RR) STAY on Haiku - they gate first render; the agentic-era
+// rubric (PR 2, v3.3.0) carries the upgrade on any model. The 3 deep-read panel calls
+// (forensic/rumelt/bdf) stay on Opus 4.8 (out of scope, separate cost call). No thinking param added
+// (Fable 5 rejects explicit disabled); api/claude.js untouched (frozen, model-agnostic). Build green.
+// G1 (v3.2.9 -> v3.2.10).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -441,9 +451,10 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     };
     if (systemPrompt) body.system = systemPrompt;
 
-    // Per-call fetch timeout: heavy models (Opus/Sonnet) get a long window;
-    // Opus reasons more than Sonnet, so it gets extra headroom. Haiku scales by size.
+    // Per-call fetch timeout: heavy models (Fable/Opus/Sonnet) get a long window;
+    // Fable 5 + Opus reason the most, so they get the full headroom. Haiku scales by size.
     const fetchTimeout =
+      model.includes("fable")  ? 180000 :
       model.includes("opus")   ? 180000 :
       model.includes("sonnet") ? 150000 :
       maxTokens > 2500         ? 90000  : 55000;
@@ -477,7 +488,7 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
       await new Promise(r => setTimeout(r, delay));
       return claudeCall(prompt, maxTokens, attempt + 1, systemPrompt, model);
     }
-    const tier = model.includes("opus") ? "opus" : model.includes("sonnet") ? "sonnet" : "haiku";
+    const tier = model.includes("fable") ? "fable" : model.includes("opus") ? "opus" : model.includes("sonnet") ? "sonnet" : "haiku";
     track("api_error", { model: tier, maxTokens, attempt });
     throw err;
   }
@@ -2310,7 +2321,7 @@ Be precise. A skill that appears in a clearly different field (e.g. chemistry sk
   const raw = await claudeCall(
 `Role: ${title}
 Score each skill for relevance to this role.
-Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-opus-4-8");
+Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-fable-5");
   const arr = extractJSON(raw, "relevance");
   return Array.isArray(arr) ? arr : [];
 }
@@ -2442,7 +2453,7 @@ ${batch.map(s => {
 Return pt exactly as assigned above. Do not substitute a different technique.`;
 
     try {
-      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
+      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-fable-5");
       const arr = extractJSON(raw, "prompts-batch");
       if (Array.isArray(arr)) {
         allResults.push(...arr);
