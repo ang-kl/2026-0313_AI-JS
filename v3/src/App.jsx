@@ -274,6 +274,21 @@
 // button after fix). Spec AU-7: built INLINE (not a new fairness.js) reusing the existing scorers,
 // and the "ad-language flags" accept criterion is deferred to F5.2 - source wins, prior preserved.
 // R-FREEZE + R007 clean. Hands-free V-1 sign-off. G1 (v3.1.12 -> v3.1.13).
+// v3.1.14 - 2026-06-10 - HDR #074 - F5.2 (result-engine arc): TGFEP ad-language scanner (the
+// deferred half of F5). scanAdLanguage(jobs) runs a fixed, high-precision pattern set over the live
+// MCF posting text (title + description, verbatim) and flags fair-hiring-prohibited wording (age
+// limits, gender/marital/race/nationality preferences) as a NEW collapsible "Fair-hiring language
+// check (TGFEP)" panel after Demand-Proof. ADVISORY ONLY (the D4-style discipline): every flag is
+// "worth reviewing", NEVER "illegal/discriminatory"; the exact phrase is quoted (● from MCF) so a
+// human judges; bona-fide exceptions acknowledged (language requirements deliberately NOT matched -
+// only race-preference "Chinese only", never "Mandarin-speaking"); clean "none flagged" state; no
+// employer named/shamed (flags collapse across postings by phrase). No LLM (D1-D8 N/A); no number
+// invented. Conformance audit caught + I FIXED a Critical: the first age pattern ("under NN") was
+// unanchored and false-positived on "under 30 clients" / "not more than 15 days" - re-anchored to
+// require an explicit age/years-old token; re-verified (7 false-positive cases now clean, 6 true
+// positives still flag). a11y review colour-blind-clean (orange flag / blue clean, shape+label =/warn,
+// 44px, aria). Spec AU-7: F5 deferred this to F5.2 - now shipped, inline (no fairness.js). R-FREEZE +
+// R007 clean. Hands-free V-1 sign-off. G1 (v3.1.13 -> v3.1.14).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4490,6 +4505,116 @@ function FairnessAudit({ fairness }) {
         {copied ? "Audit trail copied" : "Copy audit trail"}
       </button>
       <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>This checks the deterministic scoring - not the AI step that first reads your CV, and not the employer's hiring. Human decides. Source: this engine's own scores on matched inputs. Confidence: deterministic (same inputs, same result). Time-window: structural (not time-based).</p>
+    </div>
+  );
+}
+
+// F5.2 (result-engine arc): TGFEP ad-language scanner. Deterministic, high-precision patterns over
+// the live MCF posting text (title + description, both verbatim MCF fields). ADVISORY ONLY: it flags
+// phrases worth REVIEWING against the Tripartite Guidelines on Fair Employment Practices; it NEVER
+// calls an ad illegal or an employer discriminatory, and it acknowledges bona-fide exceptions (e.g.
+// a language genuinely required for the role - which is why language patterns are deliberately
+// EXCLUDED; only a race/religion preference like "Chinese only" is matched, not "Mandarin-speaking").
+// High false-positive cost -> high-precision patterns + an explicit caveat + the exact phrase quoted
+// so a human judges. No LLM, no number invented. Withhold cleanly: "no flags" when none match.
+const _TGFEP_PATTERNS = [
+  // age-led: "age 30", "max age of 35", "age below 40" (the word "age" anchors it - \b stops
+  // it firing inside "manage"/"average"/"language"). NOT bare "under 30" (that matches client
+  // counts, day limits etc. - the false-positive trap).
+  { dim: "Age",            re: /\b(?:max(?:imum)?\s*)?age\s*(?:of|is|below|under|above|over|between|:)?\s*\d{2}\b/gi,      note: "an explicit age limit" },
+  // years-old-anchored: "below 30 years old", "not older than 45 yrs old", "over 50 y.o."
+  { dim: "Age",            re: /\b(?:below|under|over|above|not\s*(?:more|older|younger)\s*than)\s*\d{2}\s*(?:years?\s*old|yrs?\s*old|y\.?o\.?)\b/gi, note: "an explicit age limit" },
+  { dim: "Age",            re: /\baged?\s*\d{2}\s*(?:-|to)\s*\d{2}\b/gi,                                                  note: "an age range" },
+  { dim: "Age",            re: /\b(?:young|youthful)\s+(?:and\s+)?(?:energetic|dynamic|vibrant)\b/gi,                     note: "age-coded wording" },
+  { dim: "Gender",         re: /\b(?:male|female|lady|ladies|gentlemen)\s+(?:only|preferred|candidates?\s+only)\b/gi,    note: "a gender preference" },
+  { dim: "Gender",         re: /\b(?:only|preferably)\s+(?:male|female)\b/gi,                                            note: "a gender preference" },
+  { dim: "Marital/family", re: /\bmust\s+be\s+(?:single|unmarried)\b/gi,                                                 note: "a marital-status preference" },
+  { dim: "Marital/family", re: /\bno\s+family\s+commitments?\b/gi,                                                       note: "a family-status preference" },
+  { dim: "Race/religion",  re: /\b(?:chinese|malay|indian|eurasian|muslim|christian|buddhist|hindu)\s+(?:only|preferred|candidates?\s+only)\b/gi, note: "a race or religion preference" },
+  { dim: "Nationality",    re: /\b(?:singaporeans?|locals?)\s+only\b/gi,                                                 note: "a nationality-only statement" },
+];
+function scanAdLanguage(jobs) {
+  const arr = Array.isArray(jobs) ? jobs : [];
+  if (!arr.length) return null;
+  const hits = [];
+  let scanned = 0;
+  for (const j of arr) {
+    const text = `${(j && j.title) || ""}. ${(j && j.description) || ""}`;
+    if (text.trim().length < 20) continue;
+    scanned++;
+    for (const p of _TGFEP_PATTERNS) {
+      const m = text.match(p.re);
+      if (m && m.length) {
+        const phrases = Array.from(new Set(m.map(x => x.trim().replace(/\s+/g, " ").toLowerCase()))).slice(0, 3);
+        for (const ph of phrases) hits.push({ dim: p.dim, note: p.note, phrase: ph });
+      }
+    }
+  }
+  if (!scanned) return null;
+  // collapse identical (dimension, phrase) across postings - show once with a count
+  const byKey = new Map();
+  for (const h of hits) {
+    const k = `${h.dim}|${h.phrase}`;
+    if (!byKey.has(k)) byKey.set(k, { ...h, count: 0 });
+    byKey.get(k).count++;
+  }
+  const flagged = Array.from(byKey.values()).sort((a, b) => b.count - a.count).slice(0, 12);
+  return { scanned, flagged, dims: Array.from(new Set(flagged.map(f => f.dim))) };
+}
+
+function AdLanguageScan({ result }) {
+  const [open, setOpen] = useState(false);
+  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const scan = scanAdLanguage(jobs);
+  if (!scan) return null; // no postings to scan
+  const any = scan.flagged.length > 0;
+  const headColor = open ? "#fff" : C.text;
+
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🔎</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: headColor }}>Fair-hiring language check (TGFEP)</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "1px 9px" }}>
+            <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${scan.flagged.length} to review` : "none flagged"}
+          </span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+            <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+              {any
+                ? `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found wording worth a look against Singapore's fair-hiring guidelines.`
+                : `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found no wording that trips the fair-hiring patterns. That is the common, good case.`}
+            </p>
+            <Prov kind="computed" small />
+          </div>
+
+          {any && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+              {scan.flagged.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8 }}>
+                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 5, padding: "1px 7px" }}>{f.dim}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}>
+                    "{f.phrase}" <span style={{ color: C.muted }}>- looks like {f.note}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
+                    <Prov kind="mcf" small />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ padding: "8px 11px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 8, marginBottom: 6 }}>
+            <p style={{ margin: 0, fontSize: 10.5, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
+          </div>
+
+          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - phrases are matched verbatim from the live postings by a fixed pattern set, and human decides. Source: MyCareersFuture ({scan.scanned} postings scanned). Confidence: high-precision patterns (favours fewer, surer flags). Time-window: the postings currently in this result.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -9779,6 +9904,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               <BdfStewardship result={result} title={sel?.title || ""} />
               <StewardshipShift result={result} />
               <DemandProof result={result} />
+              <AdLanguageScan result={result} />
 
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
