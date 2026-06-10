@@ -11,28 +11,45 @@
 
 **When:** before packaging ANY result-page PR. Asserts the "landing + search" surfaces did not move.
 
-**Run** (from repo root, against `main`):
+> **AU-7 amendment (11-06 '26, audit G1):** the prior Run block (superseded, kept for the record) extracted
+> symbols with the unanchored awk `"/$sym/{f=1} f{print} /^}/{if(f)exit}"` and reported via
+> `&& echo "FROZEN OK" || echo "BLOCK: ..."`. Two observed defects: (1) the unanchored pattern starts
+> matching at ANY line containing the symbol name - during T3 it matched `searchOccupations` inside an
+> HDR journal COMMENT and produced a false BLOCK; (2) the `|| echo` swallows the failing exit status, so
+> a real BLOCK could not stop a pipeline - the recipe printed BLOCK yet exited 0. The corrected block
+> below anchors the match to the function definition line (`^(async )?function <sym>(`) and accumulates
+> a `fail` flag that becomes the exit code. Source wins; prior preserved verbatim above.
+
+**Run** (from repo root, against `main`; exits non-zero on any BLOCK):
 ```bash
-# 1. Frozen symbols must be byte-identical to main.
+# 1. Frozen symbols must be byte-identical to main (anchored to the definition line).
 git fetch origin main
+fail=0
 for sym in searchOccupations detectFunctionKeyword lookupSeniorMgmt getEscoSkills \
            checkIscoCoherence getSkills getSkillsFromPosting ; do
   echo "== $sym =="
-  diff <(git show origin/main:v3/src/App.jsx | awk "/$sym/{f=1} f{print} /^}/{if(f)exit}") \
-       <(awk "/$sym/{f=1} f{print} /^}/{if(f)exit}" v3/src/App.jsx) \
-    && echo "FROZEN OK" || echo "BLOCK: $sym changed"
+  if diff <(git show origin/main:v3/src/App.jsx | awk -v s="$sym" '$0 ~ "^(async )?function "s"\\(" {f=1} f{print} f&&/^}/{exit}') \
+          <(awk -v s="$sym" '$0 ~ "^(async )?function "s"\\(" {f=1} f{print} f&&/^}/{exit}' v3/src/App.jsx) >/dev/null ; then
+    echo "FROZEN OK"
+  else
+    echo "BLOCK: $sym changed"; fail=1
+  fi
 done
 # 2. Data tables + claude proxy untouched.
-git diff --quiet origin/main -- v3/engine-data/aioe.js v3/engine-data/ssoc-isco.js \
-  v3/engine-data/isco-soc.js v3/engine-data/provenance.js v3/api/claude.js \
-  && echo "DATA+PROXY FROZEN OK" || echo "BLOCK: a frozen file changed"
+if git diff --quiet origin/main -- v3/engine-data/aioe.js v3/engine-data/ssoc-isco.js \
+   v3/engine-data/isco-soc.js v3/engine-data/provenance.js v3/api/claude.js ; then
+  echo "DATA+PROXY FROZEN OK"
+else
+  echo "BLOCK: a frozen file changed"; fail=1
+fi
 # 3. R005 globals still present.
 for g in C LEVELS PERSONA_CONFIG claudeCall extractJSON searchOccupations getSkills \
          rateSkills getEscoSkills escoUri escoDescription reuseLevel altLabels ; do
-  grep -q "\\b$g\\b" v3/src/App.jsx || echo "BLOCK: missing global $g"
+  grep -q "\\b$g\\b" v3/src/App.jsx || { echo "BLOCK: missing global $g"; fail=1; }
 done
+exit $fail
 ```
-**Expect:** all `FROZEN OK` / no `BLOCK`. Any `BLOCK` stops packaging and is surfaced to the Human Lead.
+**Expect:** all `FROZEN OK` / no `BLOCK` and exit code 0. Any `BLOCK` exits 1, stops packaging, and is surfaced to the Human Lead.
 
 ---
 
@@ -79,11 +96,12 @@ Report PASS/FAIL with file+line and a Critical/Warning/Suggestion fix list. Do n
 ```bash
 node --input-type=module -e '
 import { computeEngine } from "./engine-data/engine-core.js";
-// SSOC tags read from the Sample/ postings; Metta is the default Leap posting.
+// SSOCs as committed in v3/script/r-snapshot.golden.json (NHG/PSD title-matched from
+// SingStat; Metta is the real MCF tag, uuid 2320493d0e875075d4dbfa6a893b3fdb).
 const fixtures = [
-  { name: "NHG-AD-TechStratPlanning", ssoc: "<ssoc-from-sample>" },
-  { name: "PSD-SrMgr-JobRedesign",    ssoc: "<ssoc-from-sample>" },
-  { name: "Metta-TransformationMgr",  ssoc: "<ssoc-from-sample>" },
+  { name: "NHG-AD-TechStratPlanning", ssoc: "13304" },
+  { name: "PSD-SrMgr-JobRedesign",    ssoc: "12131" },
+  { name: "Metta-TransformationMgr",  ssoc: "13302" },
 ];
 for (const f of fixtures) {
   const a = JSON.stringify(computeEngine({ ssoc: f.ssoc }));

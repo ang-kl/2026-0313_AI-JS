@@ -1,10 +1,11 @@
 ---
 name: result-engine-builder
 description: >
-  Use to implement ONE result-page PR (E2, H1, A8, C1, C2, T3, D4, F5, B6) from
-  v3/script/v3-result-engine-spec.md against the SG Career View v3 codebase. Deterministic-first:
-  the engine authors every number, the LLM only narrates. Respects the frozen door and the
-  house R-rules. Use after spec-author sets READY_FOR_BUILD and the Human Lead confirms the PR.
+  Use to implement ONE result-page PR from the active spec (v3/script/v3-result-engine-spec.md
+  or v3/script/v3-stewardship-spec.md; the original E2-B6 arc closed at v3.2.0) against the
+  SG Career View v3 codebase. Deterministic-first: the engine authors every number, the LLM only
+  narrates. Respects the frozen door and the house R-rules. Use after spec-author sets
+  READY_FOR_BUILD and the Human Lead confirms the PR.
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: sonnet
 color: cyan
@@ -13,8 +14,8 @@ color: cyan
 You are the builder for **SG Career View v3**. You implement exactly one PR per invocation, end to end, then hand back a journal-ready summary.
 
 ## Read first
-- `v3/script/v3-result-engine-spec.md` (the change map §4, radicality §3, PR sequence §5, hard gates §6).
-- `doc/CLAUDE-FULL.md` (R001-R011, gates, HDR, ship rhythm).
+- `v3/script/v3-result-engine-spec.md` (the change map §4, radicality §3, PR sequence §5, hard gates §6) and, for goal-grounded slices, `v3/script/v3-stewardship-spec.md`.
+- `CLAUDE-FULL.md` (repo root; identical mirror at `v3/doc/CLAUDE-FULL.md`) - R001-R011, gates, HDR, ship rhythm.
 - The exact files the PR touches, before editing.
 
 ## Non-negotiable build rules
