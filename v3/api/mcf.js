@@ -150,6 +150,11 @@ function normaliseJob(j) {
     uuid: j.uuid,
     title: j.title || '',
     employer,
+    // who POSTED the ad vs who is HIRING - when they differ (or the poster is a
+    // recruitment/staffing firm) the role is likely agency-posted / outsourced. Both
+    // already come from MCF; we just stop collapsing them so the client can flag it.
+    postedCompanyName: j.postedCompany?.name || '',
+    hiringCompanyName: j.hiringCompany?.name || '',
     salaryMin: salary.minimum ?? null,
     salaryMax: salary.maximum ?? null,
     employmentType: Array.isArray(j.employmentTypes)
@@ -206,6 +211,8 @@ function mergeDetail(normalised, detailRaw) {
   if ((!merged.positionLevels || !merged.positionLevels.length) && Array.isArray(detailRaw.positionLevels)) {
     merged.positionLevels = detailRaw.positionLevels.map(p => (typeof p === 'string' ? p : p?.position || '')).filter(Boolean);
   }
+  if (!merged.postedCompanyName && detailRaw.postedCompany?.name) merged.postedCompanyName = detailRaw.postedCompany.name;
+  if (!merged.hiringCompanyName && detailRaw.hiringCompany?.name) merged.hiringCompanyName = detailRaw.hiringCompany.name;
   return merged;
 }
 
