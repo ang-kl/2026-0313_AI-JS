@@ -158,6 +158,16 @@
 // page (audit gate 1 re-verified after 2 guard fixes + a SYSTEM_FR name-collision rename). Crux
 // scorer proven deterministic. Loaded lazily on first open; cached by evidence hash, fr1 tag.
 // R-FREEZE clean. G1 gate confirmed by Human Lead (v3.1.3 -> v3.1.4).
+// v3.1.5 - 2026-06-10 - HDR #065 - BF2 (stewardship arc, goal protocol 1 / Rumelt kernel): the
+// Leap hub card (?view=leap, LeapView.jsx) now reads each role as a capability BRIDGE (hired to
+// close a capability gap) vs a governance FIREWALL (hired to hold a control/liability line).
+// Transparent + deterministic, NOT an LLM call (LeapView is LLM-free): a word-balance of the ad's
+// own title+description - build-stems vs governance-stems - counts shown, verdict hedged ("reads
+// like"), withheld under 4 stem hits, tagged with Leap's existing `inferred` vocabulary. Verified
+// on the real Metta posting (bridge 28:3). Audit PASS; 2 warnings fixed pre-merge (double-counted
+// duty text removed; spec table un-broken). Spec carries an AU-7 amendment (built form differs from
+// the "~ AI estimate" note - source wins). No App.jsx logic change (journal entry only). R-FREEZE
+// clean. G1 gate confirmed by Human Lead (v3.1.4 -> v3.1.5).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

@@ -45,6 +45,8 @@ No MAJOR-band change anywhere -> the arc stays v3.1.x (MINOR features per PR).
 | **PW4** | w34854 | REWIRE-lite | `App.jsx` help copy | w34854 task categories | each automation level carries its PWAI citation; zero score change (A8 idiom) |
 | **SN5** | goal 9 Sentinel | **PARKED** | - | paper SS8-SS9 | explicitly out of scope: Sentinel telemetry is post-hire ops; a result page has no process stream to watch. Recorded here so the parking is a decision, not an omission |
 
+> **AU-7 amendment (BF2, at build):** the BF2 row above reads *"bridge/firewall verdict, `~ AI estimate`"*. As built, the verdict is a TRANSPARENT derived word-balance of the ad's own text (build-stems vs governance-stems over title + description, counts shown, hedged "reads like", withheld under 4 stem hits), tagged with Leap's `inferred` vocabulary - NOT an LLM call. Rationale: LeapView is deliberately LLM-free and instant; a visible word-count the user can check beats an opaque model judgement, and "never presented as computed" still holds. Known limitation (audit W2): rare stem misfires (driver/police/transformer) can tip thin ads - mitigated by the hedge, the visible counts and the 4-hit withhold floor. Source wins; prior wording preserved in the table.
+
 ## SS4. FR1 change map (build first)
 
 One new collapsible panel in the result Overview: **"Forensic Reversal - why this role exists"**. Three reads, three honesty tags:
