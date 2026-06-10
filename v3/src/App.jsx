@@ -435,6 +435,20 @@
 // PASS (D1-D8 x4 templates; levelMaps still exactly 4 keys w/ HUMAN fallback; no numeric field; "Do
 // not name products" survives; no persistent rating cache so no key bump; engine untouched; R007
 // clean). Spec: stewardship-spec RB1 row added. G1 (v3.2.10 -> v3.3.0, MINOR - rating semantics).
+// v3.3.1 - 2026-06-11 - HDR #088 - governance true-up (goal-centric audit G1+G2+G3; docs/agents/
+// recipes only, NO app-code change - this entry + the 3-site bump are the only App/index edits).
+// G1: R-FREEZE recipe hardened with an AU-7 amendment - the prior unanchored awk false-BLOCKed on
+// HDR comments (observed in T3) and the `|| echo` masked the exit code so a real BLOCK could not
+// stop a pipeline; now anchored to `^(async )?function <sym>(` and exits non-zero on any BLOCK
+// (verified live: 7/7 FROZEN OK, flag propagates). G2: agent files refreshed - CLAUDE-FULL.md path
+// corrected (repo root, mirrored v3/doc/) in spec-author + result-engine-builder; builder's stale
+// "(E2...B6)" scope generalised to "the active spec" (that arc closed at v3.2.0); spec-author now
+// reads v3-stewardship-spec.md and writes slices to v3/script/; R-SNAPSHOT placeholders replaced
+// with the committed golden SSOCs (13304/12131/13302) - recipe now copy-paste runnable (verified:
+// DETERMINISTIC OK x3, NHG index 78 matches golden). G3: ledger true-up - SHIPPED markers added to
+// FR1 v3.1.4 / BF2 v3.1.5 / BDF3 v3.1.6 / PW4 v3.1.7 in the stewardship spec; EPIC CLOSED note
+// added to result-engine-spec SS5 (the E2-B6 table is the closed ledger, not the active queue).
+// G1 (v3.3.0 -> v3.3.1).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

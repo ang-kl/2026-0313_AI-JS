@@ -165,6 +165,8 @@ Each PR ships as one PR: PATCH/MINOR bump (G1) + HDR journal entry + `.serial-st
 
 **Fastest value, lowest risk first three:** E2 (unblocks the headline), H1 (the visible radical change), A8 (kills the last hand-coded constants). Then C1 -> C2 -> T3 (the candidate read).
 
+> **EPIC CLOSED (10-06 '26): all rows above SHIPPED; the arc landed at v3.2.0 with B6** (E2, H1, A8, C1, C2, T3, D4, F5 + F5.2, B6 - each row carries its SHIPPED tag and, where the build deviated, an AU-7 amendment). Later goal-grounded slices (RK1 Rumelt kernel, RB1 agentic rubric re-baseline, the Fable 5 model leap) are recorded in `v3-stewardship-spec.md` SS3 and the App.jsx HDR journal. New result-page slices start as a new row in the appropriate arc spec via `agent spec-author`; this table is the closed ledger of the first arc, not the active queue.
+
 ---
 
 ## §6. Non-inventive conformance (the control layer)
