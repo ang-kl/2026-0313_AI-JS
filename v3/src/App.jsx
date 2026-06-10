@@ -289,6 +289,17 @@
 // positives still flag). a11y review colour-blind-clean (orange flag / blue clean, shape+label =/warn,
 // 44px, aria). Spec AU-7: F5 deferred this to F5.2 - now shipped, inline (no fairness.js). R-FREEZE +
 // R007 clean. Hands-free V-1 sign-off. G1 (v3.1.13 -> v3.1.14).
+// v3.1.15 - 2026-06-10 - HDR #075 - v2 skills-list port (Human Lead request, "Both"). The v2
+// analysis experience showed the resolved skills WITH their ESCO descriptions open - a readable list
+// during the wait. v3 had the descriptions but hid them behind a tap and showed only a spinner. This
+// ports both: (1) Spinner gains a `skills` prop - during loading it now lists the resolved skills
+// (name + escoDescription) the moment they resolve (new loadingSkills state, set at "essential
+// skills found", cleared on reset / analysis start); (2) in the Skills tab, SkillRow now shows each
+// skill's escoDescription ALWAYS (moved out of the tap-to-expand block) - the deeper detail
+// (broader/narrower concepts, AI prompts) stays behind the tap. a11y: description text bumped
+// C.muted -> C.textSub for WCAG AA (4.38:1 -> 7.53:1); no red/green; no new controls/touch targets;
+// R007 clean. Build green. (Earlier "no gap" port conclusion corrected: v3 had the data but not the
+// open reading list - source wins.) Additive; no frozen symbol touched. G1 (v3.1.14 -> v3.1.15).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -3125,7 +3136,8 @@ function Tag({ level, small }) {
   );
 }
 
-function Spinner({ label, step, total, firstTime }) {
+function Spinner({ label, step, total, firstTime, skills }) {
+  const list = Array.isArray(skills) ? skills : [];
   return (
     <div style={{ padding:"40px 0 32px" }}>
       <div style={{ textAlign:"center", marginBottom:16 }}>
@@ -3143,6 +3155,22 @@ function Spinner({ label, step, total, firstTime }) {
           </div>
         )}
       </div>
+      {list.length > 0 && (
+        <div style={{ marginTop:14, animation:"fadeInUp 0.5s ease both" }}>
+          <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the ESCO taxonomy</p>
+          {list.map((s, i) => (
+            <div key={(s && (s.escoUri || s.skill)) || i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", marginBottom:6 }}>
+              <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+                <span style={{ flexShrink:0, fontSize:10, fontWeight:700, color:C.muted, minWidth:16 }}>{i+1}</span>
+                <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
+              </div>
+              {s && s.escoDescription && (
+                <p style={{ margin:"3px 0 0", paddingLeft:24, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
       {firstTime && (
         <div style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
@@ -5157,13 +5185,15 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
           </span>
         </div>
+        {/* ESCO description: always visible (the v2 "skills list" reading experience) - the deeper
+            detail (broader/narrower concepts, AI prompts) stays behind the tap below. */}
+        {item.escoDescription && (
+          <p style={{ margin:0, padding:"0 13px 10px 41px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+            {item.escoDescription}
+          </p>
+        )}
         {open && (
           <div style={{ padding:"2px 13px 11px 41px", borderTop:`1px solid ${c.border}` }}>
-            {item.escoDescription && (
-              <p style={{ margin:"8px 0 6px", fontSize:12, color:C.muted, lineHeight:1.6, fontStyle:"italic", borderLeft:`3px solid ${c.border}`, paddingLeft:8 }}>
-                {item.escoDescription}
-              </p>
-            )}
             {(item.broaderConcept || (item.narrowerSkills && item.narrowerSkills.length > 0)) && (
               <div style={{ margin:"4px 0 8px", display:"flex", flexWrap:"wrap", gap:6, alignItems:"center" }}>
                 {item.broaderConcept && (
@@ -8389,6 +8419,9 @@ export default function App() {
   const [sel,       setSel]       = useState(null);
   const [result,    setResult]    = useState(null);
   const [step,      setStep]      = useState("idle");
+  // The resolved ESCO skills (name + description) shown openly DURING the analysis wait - the v2
+  // "skills list" reading experience. Set the moment skills resolve; cleared when loading ends.
+  const [loadingSkills, setLoadingSkills] = useState([]);
   // L2 audit note: showExpect is set to true in doSearch and cleared after 2200ms.
   // The render condition (showExpect && step==="idle") means the indicator is only
   // visible during the sub-second window before step transitions to "searching".
@@ -8511,7 +8544,7 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step]);
 
-  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
+  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -8716,7 +8749,7 @@ export default function App() {
     setSel(occ); setStep("loading"); setSub(
       corpus ? `Analysing ${corpus.jobs.length} live MyCareersFuture postings for ${toTitleCase(occ.title)} as one role...`
       : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
-      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null);
+      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null); setLoadingSkills([]);
     setShowExpect(false);
     const total = persona ? 4 : 3;
     const _src = corpus ? "corpus" : posting ? "posting" : "esco";
@@ -8757,6 +8790,7 @@ export default function App() {
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
+      setLoadingSkills(Array.isArray(skills) ? skills : []); // surface the resolved list openly during the wait
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
       // Progression/crossover/context only need the title and group - no dependency on ratings
@@ -9687,7 +9721,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
