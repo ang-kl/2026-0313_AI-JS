@@ -645,6 +645,15 @@
 // Role-Mix grab-bag/mixed coherence verdict + the interview question to ask. Withheld under 3
 // duties. Deterministic end to end (~ derived); no LLM, no invented number; source/confidence/
 // time-window footer; 44px + aria. G1 (v3.0.66 -> v3.0.67).
+// v3.0.68 - 2026-06-12 - HDR #106 - PRO6: "Same job, other names" ("for the same role title,
+// sometimes there are also role titles with R&R similar... but different titles, how can you help"
+// - Human Lead). NEW AlsoAdvertisedAs panel rendered with the hero (both layouts): sibling titles
+// from THREE deterministic, individually-labelled sources - (1) the DIFFERENT titles the live MCF
+// postings behind this result used (cited with employer names, ● from MCF), (2) ESCO alternative
+// labels (registry verbatim, deduped against the ad titles, ✓), (3) the Role-Mix blend's occupation
+// labels ("the duties also read as", ◐). Tap a title -> handleAnalyseRole re-runs the full pipeline
+// for it. Withheld when no verifiable sibling exists; no LLM, no number authored; 44px chips +
+// aria-expanded; source/confidence/time-window footer. G1 (v3.0.67 -> v3.0.68).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5558,6 +5567,87 @@ function CompanyBackground({ result }) {
             {thirdParty && posted && <_AcraFacts label="Posted by" name={posted} rec={recs && recs.posted} flagAgency={_isAgencyName(posted)} />}
           </div>
           <p style={{ margin: 0, fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - register facts are shown verbatim or withheld (exact-name match only; a fuzzy match is never presented as fact), and human decides. Source: Entities Registered with ACRA, via data.gov.sg; poster-vs-hirer from the MyCareersFuture payload. Confidence: registry facts, not an endorsement. Time-window: the register as at this lookup.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// PRO6: Same job, other names - sibling titles for this role, so similar-R&R ads
+// under different titles are not missed. Three deterministic sources, each labelled:
+// (1) ESCO alternative labels (registry facts, verbatim), (2) the DIFFERENT titles
+// live MCF postings used for this same role's duties (cited with employer), (3) the
+// Role-Mix blend's occupation labels (the duties also read as...). No LLM; tapping
+// a title re-runs the normal analysis pipeline for it.
+function AlsoAdvertisedAs({ result, title, onAnalyse }) {
+  const [open, setOpen] = useState(false);
+  const me = _coNorm(toTitleCase(title || ""));
+  const esco = ((result && result.escoOccupation && result.escoOccupation.altLabels) || [])
+    .map(toTitleCase).filter(t => t && _coNorm(t) !== me);
+  const jobs = (result && result.responsibilitiesData && result.responsibilitiesData.jobs) || [];
+  const seen = new Map(); // normTitle -> { title, employers:Set }
+  jobs.forEach(j => {
+    const t = toTitleCase(String((j && j.title) || "").trim());
+    if (!t || _coNorm(t) === me) return;
+    const k = _coNorm(t);
+    if (!seen.has(k)) seen.set(k, { title: t, employers: new Set() });
+    if (j.employer) seen.get(k).employers.add(j.employer);
+  });
+  const fromAds = Array.from(seen.values()).slice(0, 6);
+  const blend = ((result && result.roleMix && !result.roleMix.fallback && result.roleMix.components) || [])
+    .map(c => toTitleCase(c.label || "")).filter(t => t && _coNorm(t) !== me).slice(0, 3);
+  const escoOnly = esco.filter(t => !seen.has(_coNorm(t))).slice(0, 6);
+  const total = escoOnly.length + fromAds.length + blend.length;
+  if (!total) return null; // nothing verifiable - withhold
+  const chip = (label, key) => (
+    <button key={key} onClick={() => onAnalyse && onAnalyse(label)}
+      title={`Analyse "${label}"`}
+      style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+      {label} <span aria-hidden="true" style={{ marginLeft: 6, color: C.mutedLight }}>&gt;</span>
+    </button>
+  );
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🏷️</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Same job, other names</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 999, padding: "2px 10px" }}>{total} sibling title{total !== 1 ? "s" : ""}</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+            Employers advertise this same set of responsibilities under different titles. Search these too, or you will miss live ads. Tap one to analyse it.
+          </p>
+          {fromAds.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>Seen in the live ads behind this result <Prov kind="mcf" small /></p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {fromAds.map((f, i) => (
+                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {chip(f.title, `ad${i}`)}
+                    {f.employers.size > 0 && <span style={{ fontSize: 10, color: C.muted }}>at {Array.from(f.employers).slice(0, 2).join(", ")}{f.employers.size > 2 ? ` +${f.employers.size - 2}` : ""}</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {escoOnly.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>Alternative titles on the ESCO register <Prov kind="computed" small /></p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{escoOnly.map((t, i) => chip(t, `esco${i}`))}</div>
+            </div>
+          )}
+          {blend.length > 0 && (
+            <div style={{ marginBottom: 4 }}>
+              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>The duties also read as (from the Role-Mix blend) <Prov kind="derived" small /></p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{blend.map((t, i) => chip(t, `mix${i}`))}</div>
+            </div>
+          )}
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - titles come verbatim from the ESCO register, the live postings behind this result, and the deterministic Role-Mix overlap; human decides which to chase. Source: ESCO v1.2; MyCareersFuture ({jobs.length} postings); Role-Mix. Confidence: named-source facts. Time-window: this result.</p>
         </div>
       )}
     </div>
@@ -11286,6 +11376,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   }, 450);
                 }}
               />
+              <AlsoAdvertisedAs result={result} title={sel?.title || ""} onAnalyse={(t) => handleAnalyseRole(t, "alias")} />
             </>
           );
           const uiNavBox = (
