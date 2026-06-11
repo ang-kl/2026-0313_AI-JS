@@ -61,6 +61,80 @@ async function resolveOccupation(title) {
   return { uri: chosen.uri, preferredLabel: chosen.title || '' };
 }
 
+// Disambiguate the occupation by OVERLAP with the posting's real skill phrases,
+// instead of blindly taking the top free-text search hit. Fixes the pattern where
+// a generic leadership title (e.g. "Senior Director Transformation Delivery")
+// collapses onto an IT-family ESCO occupation ("digital transformation manager")
+// and inherits its ICT-coded essential-skill list, even though the ad never
+// mentions coding/standards/attack vectors.
+//
+// Priority (each step is a stronger signal than the next):
+//   1. exact case-insensitive title match in the search results -> use it.
+//   2. else, among the search candidates, the one whose essential skills overlap
+//      the posting's skill phrases the most (overlap must be > 0).
+//   3. else, the top search hit (today's behaviour).
+// With no skillPhrases this is never called - resolveOccupation() is used as-is.
+async function resolveOccupationByOverlap(title, skillPhrases) {
+  const cleaned = cleanOccupationTitle(title);
+  const phrases = (skillPhrases || []).map(p => String(p || '').trim()).filter(Boolean);
+
+  // 1) Build the candidate POOL. A title-only search returns a weak, IT-leaning
+  //    pool for generic titles, so - like occupationFingerprint - we ALSO search
+  //    on the most distinctive skill phrases. This lets a better-fitting
+  //    occupation actually appear as a candidate before we overlap-score.
+  const searchTerms = [cleaned.slice(0, 120)];
+  for (const p of phrases.slice(0, 5)) if (p.length >= 4) searchTerms.push(p.slice(0, 120));
+  const searched = await Promise.allSettled(
+    searchTerms.map((t, i) => searchOccupations(t, i === 0 ? 10 : 5))
+  );
+  const titleResults = (searched[0].status === 'fulfilled') ? searched[0].value : [];
+  if (!titleResults.length && searched.every(s => s.status !== 'fulfilled' || !s.value.length)) {
+    throw new Error('No occupation found');
+  }
+  // Dedupe the pool, remembering the best (lowest) rank each occupation reached.
+  const pool = new Map(); // uri -> { uri, label, rank }
+  searched.forEach(r => {
+    if (r.status !== 'fulfilled') return;
+    r.value.forEach((o, rank) => {
+      const cur = pool.get(o.uri);
+      if (!cur || rank < cur.rank) pool.set(o.uri, { uri: o.uri, label: o.label, rank });
+    });
+  });
+  const candidates = Array.from(pool.values());
+  if (!candidates.length) throw new Error('No occupation found');
+
+  // 2) Exact title match always wins - the strongest possible signal.
+  const needle = cleaned.toLowerCase();
+  const exactMatch = candidates.find(c => c.label.toLowerCase() === needle);
+  if (exactMatch) return { uri: exactMatch.uri, preferredLabel: exactMatch.label, disambiguatedBy: 'exact' };
+
+  // 3) Overlap-score the pool against the posting's real skills.
+  const phraseTokens = phrases.map(normTokens).filter(t => t.length);
+  if (phraseTokens.length) {
+    const details = await Promise.allSettled(candidates.map(c => getOccupationEssential(c.uri)));
+    let best = null;
+    candidates.forEach((c, i) => {
+      const d = (details[i].status === 'fulfilled') ? details[i].value : null;
+      if (!d || !d.skills.length) return;
+      const occTokens = d.skills.map(normTokens);
+      let matchCount = 0;
+      for (const pt of phraseTokens) {
+        for (const ot of occTokens) { if (phraseMatch(pt, ot)) { matchCount++; break; } }
+      }
+      // overlap is the signal; the candidate's best search rank breaks ties.
+      const score = matchCount * 100 + Math.max(0, 10 - c.rank);
+      if (matchCount > 0 && (!best || score > best.score)) {
+        best = { uri: c.uri, preferredLabel: d.label || c.label, score, matchCount };
+      }
+    });
+    if (best) return { uri: best.uri, preferredLabel: best.preferredLabel, disambiguatedBy: 'overlap', matchCount: best.matchCount };
+  }
+
+  // 4) Fall back to the top title hit (today's behaviour).
+  const top = titleResults[0] || candidates.sort((a, b) => a.rank - b.rank)[0];
+  return { uri: top.uri, preferredLabel: top.label, disambiguatedBy: 'top_hit' };
+}
+
 // Returns essential skills + alt labels + ISCO major group for the occupation.
 async function fetchOccupationDetail(occupationUri) {
   const url = `${ESCO_BASE}/resource/occupation?uri=${encodeURIComponent(occupationUri)}&language=en&selectedVersion=${ESCO_VERSION}`;
@@ -334,9 +408,17 @@ export default async function handler(req, res) {
   }
 
   const trimmedTitle = title.trim().slice(0, 140);
+  const skillPhrases = (Array.isArray(req.body?.skillPhrases) ? req.body.skillPhrases : [])
+    .map(p => String(p || '').trim()).filter(Boolean).slice(0, 30);
 
   try {
-    const { uri: occupationUri, preferredLabel } = await resolveOccupation(trimmedTitle);
+    // When the posting's real skills are supplied, disambiguate by overlap so a
+    // generic title does not collapse onto an IT-family occupation. Otherwise
+    // keep the original top-hit resolution.
+    const resolved = skillPhrases.length
+      ? await resolveOccupationByOverlap(trimmedTitle, skillPhrases)
+      : await resolveOccupation(trimmedTitle);
+    const { uri: occupationUri, preferredLabel } = resolved;
     const { skills, altLabels, iscoMajor } = await fetchOccupationDetail(occupationUri);
 
     const details = await Promise.all(
@@ -358,6 +440,7 @@ export default async function handler(req, res) {
       escoVersion: ESCO_VERSION,
       needsHybrid: skills.length < HYBRID_THRESHOLD,
       skillCount: skills.length,
+      disambiguatedBy: resolved.disambiguatedBy || 'top_hit',
       escoOccupation: {
         uri: occupationUri,
         preferredLabel,
