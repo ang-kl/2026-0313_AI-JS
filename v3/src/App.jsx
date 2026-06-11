@@ -491,6 +491,17 @@
 // LEVELS. Withholds when no duties. a11y review 7/7 PASS (no red/green; accents blue #1e40af 8.72:1 /
 // cyan #0e7490 5.36:1; freq sub-note bumped C.mutedLight -> C.muted for AA). Spec CJ2 row SHIPPED.
 // Additive; no frozen symbol touched. G1 (v3.0.53 -> v3.0.54).
+// v3.0.55 - 2026-06-11 - HDR #093 - CJ3 (Candidate Journey station 5 "Rehearse"): Interview Rehearsal
+// panel. New `Rehearsal` panel + `🎤 Interview Prep` tab (gated >=3 duties), loads on tab open.
+// SYSTEM_REHEARSE: per real duty -> the competency interview question + a STAR scaffold of PROMPTS the
+// candidate fills from their own experience. The model authors the QUESTION + the empty prompts ONLY,
+// NEVER the candidate's answer/numbers/results - triple-locked: the prompt HARD RULE ("every STAR
+// field is a PROMPT not an example answer; never invent the candidate's experience, numbers, results;
+// no digits"), fetchRehearsal strips all digits + filters each question to a duty number that exists
+// (byN.has), and the render frames the STAR lines as "prompts for YOUR story ... the answers are yours
+// to supply". `~ AI estimate`; rehearse1 cache; claude-fable-5; withheld under thin duties; no Resume
+// dependency. Conformance D1-D8 PASS + a11y 7/7 PASS (#1e40af 8.6:1; no red/green). Spec CJ3 SHIPPED.
+// Additive; no frozen symbol touched. G1 (v3.0.54 -> v3.0.55).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5480,6 +5491,108 @@ function TaskPrep({ result }) {
   );
 }
 
+// ---- CJ3: Interview Rehearsal panel (Candidate Journey station 5 "Rehearse") ----
+// For the role's real duties, generate a likely competency interview QUESTION + an EMPTY STAR
+// scaffold (Situation/Task/Action/Result PROMPTS telling the candidate what to recall). The model
+// authors the question + the prompts ONLY - never the candidate's answer, numbers, or results
+// (human supplies the evidence; human decides). Each question must cite a real extracted duty
+// (verified). Fully ~ AI estimate; grounded in the duties; withheld under 3 duties. Loaded on tab
+// open, cached by evidence hash, rehearse1 tag, claude-fable-5.
+const _rehearseCache = new Map();
+const SYSTEM_REHEARSE =
+`ACT AS an interview coach preparing someone for ONE advertised role. You are given its numbered duty statements. For the most load-bearing duties, write the competency interview question that duty would prompt, plus a STAR scaffold the candidate fills from THEIR OWN experience. Singapore context, plain language.
+HARD RULE: every STAR field is a PROMPT telling the candidate what to recall - NOT an example answer. Never invent the candidate's experience, numbers, results, employers or outcomes. No digits in any field.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "questions": [
+  {"n":duty number,"q":"the likely competency question this duty prompts, under 24 words","s":"what to recall for the Situation, a prompt under 13 words","t":"...the Task you owned, prompt under 13 words","a":"...the Action you took, prompt under 13 words","r":"...the Result and what you learned, prompt under 13 words"}
+ ]
+}
+3 to 5 questions, each citing a duty number that exists in the given lines. Before output, re-check every cited duty number exists. No quote characters inside string values.`;
+
+async function fetchRehearsal(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|rehearse1`;
+  if (_rehearseCache.has(key)) return _rehearseCache.get(key);
+  const list = statements.slice(0, 12).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWrite the interview-rehearsal questions + STAR prompts.`, 900, 1, SYSTEM_REHEARSE, "claude-fable-5");
+  const o = extractJSON(raw, "rehearse") || {};
+  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "")]));
+  const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const questions = (Array.isArray(o.questions) ? o.questions : [])
+    .map(q => ({ n: Number(q && q.n), q: clean(q && q.q, 160), s: clean(q && q.s, 90), t: clean(q && q.t, 90), a: clean(q && q.a, 90), r: clean(q && q.r, 90) }))
+    .filter(q => byN.has(q.n) && q.q)
+    .slice(0, 5);
+  const read = { questions };
+  _rehearseCache.set(key, read);
+  return read;
+}
+
+function Rehearsal({ result, title }) {
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+  // prefer the Core duties as the load-bearing ones to rehearse
+  const ordered = (rd && Array.isArray(rd.responsibilities))
+    ? [...rd.responsibilities].filter(r => r && r.text)
+        .sort((a, b) => ({ Core: 0, Common: 1, Occasional: 2 }[a.freq || "Common"] - { Core: 0, Common: 1, Occasional: 2 }[b.freq || "Common"]))
+        .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() }))
+    : statements;
+  const [rh, setRh] = useState({ status: "idle" });
+
+  useEffect(() => {
+    if (statements.length < 3) { setRh({ status: "thin" }); return; }
+    let cancelled = false;
+    setRh({ status: "loading" });
+    const t0 = Date.now();
+    fetchRehearsal(title, ordered)
+      .then(read => { if (cancelled) return; logStep("rehearsal", "ok", Date.now() - t0, `${read.questions.length} q`); setRh({ status: "done", read }); })
+      .catch(e => { if (cancelled) return; logStep("rehearsal", "error", Date.now() - t0, e && e.message); setRh({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, statements.length]);
+
+  const STAR = [["s", "Situation"], ["t", "Task"], ["a", "Action"], ["r", "Result"]];
+  return (
+    <div>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: C.text }}>🎤 Interview rehearsal - questions this role's duties would raise</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>Each question maps to a real duty. The STAR lines are prompts for YOUR story - fill them from your own experience.</p>
+          <Prov kind="ai" small />
+        </div>
+      </div>
+      {rh.status === "thin" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Not enough extracted duties yet to build a grounded rehearsal - analyse a role with live postings.</p>}
+      {rh.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Drafting questions from the role's duties...</p>}
+      {rh.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The rehearsal could not be completed - try again in a moment.</p>}
+      {rh.status === "done" && (rh.read.questions.length ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {rh.read.questions.map((q, i) => {
+            const duty = statements.find(s => Number(s.n) === q.n);
+            return (
+              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", background: C.surface }}>
+                {duty && <p style={{ margin: "0 0 4px", fontSize: 10.5, color: C.muted, lineHeight: 1.45 }}>From the duty: {duty.text}</p>}
+                <p style={{ margin: "0 0 9px", fontSize: 13, fontWeight: 700, color: C.text, lineHeight: 1.5 }}>{q.q}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {STAR.map(([k, label]) => q[k] ? (
+                    <div key={k} style={{ display: "flex", gap: 8 }}>
+                      <span style={{ flexShrink: 0, width: 64, fontSize: 11, fontWeight: 800, color: "#1e40af" }}>{label}</span>
+                      <span style={{ flex: 1, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{q[k]}</span>
+                    </div>
+                  ) : null)}
+                </div>
+              </div>
+            );
+          })}
+          <p style={{ margin: "4px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The questions and the STAR prompts are AI-suggested from this role's duties - the answers, examples and results are yours to supply. Never invent experience you do not have.</p>
+        </div>
+      ) : (
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground questions in the role's duties.</p>
+      ))}
+    </div>
+  );
+}
+
 // CoachMark removed in v1.8.9 - replaced with inline blink on first AI skill row
 
 // NxCopyButton - copy "What to do next" card with full context fields
@@ -10224,6 +10337,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData || r.jobAnatomy) ? [{ key:"deepread", label:"🔬 Deep Read", color:"#7c3aed" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"taskprep", label:"🎯 Task Prep", color:"#0e7490" }] : []),
+      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length >= 3) ? [{ key:"rehearse", label:"🎤 Interview Prep", color:"#1a56db" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
@@ -10921,6 +11035,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               )}
               {activeTab === "taskprep" && result.responsibilitiesData && (
                 <TaskPrep result={result} />
+              )}
+              {activeTab === "rehearse" && result.responsibilitiesData && (
+                <Rehearsal result={result} title={sel?.title || ""} />
               )}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
