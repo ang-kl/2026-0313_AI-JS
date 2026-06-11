@@ -464,6 +464,21 @@
 // minor lines, and rewriting the record would be dishonest; this note is the AU-7 correction and the
 // counter resumes here. No code change beyond the 3-site bump + this entry + the spec §11 rule update.
 // G1 (v3.3.2 -> v3.0.52, scheme reconcile - NOT a minor roll).
+// v3.0.53 - 2026-06-11 - HDR #091 - CJ1 (Candidate Journey arc, goal paper section 3): Steward's
+// Praxis panel + grey off Resume Check. The arc turns the dashboard into a candidate operating
+// system (Understand -> Position -> Become -> Arm -> Rehearse); CJ1 builds station 3 "Become" and
+// completes the last buildable goal protocol. New StewardsPraxis panel in the Deep Read cluster
+// (after StewardshipShift): the four-phase shift from DOING to STEWARDING, tailored to the role -
+// Phase 1 redefine the cognitive baseline / 2 master the control surface / 3 treat AI as an
+// untrusted actor / 4 cultivate change leadership. The 4-phase FRAMEWORK is the paper's, fixed in
+// _PRAXIS_LABELS; SYSTEM_PRAXIS only fills the role-specific meaning + one move per phase (JSON-only,
+// "NO digits", grounded in the duties). fetchPraxis strips digits + re-derives the phase number from
+// [1,2,3,4] (never trusts the model's), withholds under 3 duties / empty, praxis1 cache, claude-fable-5.
+// Fully ~ AI estimate; authors no number; "human decides" footer. Resume Check greyed off per Human
+// Lead: buildTabs resume row paused:true; tab loop disabled = compareDisabled||paused, "(paused)"
+// label + aria-disabled + disabled attr (code KEPT, not deleted; state by text not colour alone).
+// Conformance D1-D8 PASS + a11y 7/7 PASS (badge 8.64:1, no red/green). Spec: new
+// v3-candidate-journey-spec.md (CJ1 row). Additive; no frozen symbol touched. G1 (v3.0.52 -> v3.0.53).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4381,6 +4396,115 @@ function StrategyRead({ result, title }) {
             )
           )}
           <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. An interpretive read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal protocol 1 + Rumelt, Good Strategy / Bad Strategy (2011).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- CJ1: Steward's Praxis panel (Candidate Journey, goal paper §3 - the 4-phase shift) ----
+// The candidate's transition from DOING the work to STEWARDING the AI that does it, tailored to THIS
+// role's duties. The four phases are the paper's framework verbatim (Redefine the cognitive baseline /
+// Master the control surface / Treat AI as an untrusted actor / Cultivate change leadership); the LLM
+// only narrates the role-specific meaning + one concrete move per phase. Fully ~ AI estimate; authors
+// no number; grounded in the role's own duty statements; withheld under 3 duties. Lazy on first open,
+// cached by evidence hash, praxis1 tag. Mirrors the governed FR1/RK1 pattern. New panel -> Fable 5.
+const _praxisCache = new Map(); // `${title}|${evidenceHash}|praxis1` -> read
+const SYSTEM_PRAXIS =
+`ACT AS an AI-stewardship coach advising someone about to take on ONE advertised role. You are given its numbered duty statements. Apply the four-phase Steward's Praxis - how THIS person shifts from doing the work to stewarding the AI that does it. Be specific to THESE duties; never generic. Singapore workplace context, plain language, no hype.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "phases": [
+  {"phase":1,"meaning":"for this role, what redefining the cognitive baseline (problem-framing + systems-thinking) looks like, under 24 words, NO digits","move":"one concrete move to build it this month, under 16 words, NO digits"},
+  {"phase":2,"meaning":"for this role, mastering the control surface (orchestrating and governing AI workflows), under 24 words, NO digits","move":"one concrete move, under 16 words, NO digits"},
+  {"phase":3,"meaning":"for this role, treating every AI agent as an untrusted actor (risk, least-privilege, checking the output), under 24 words, NO digits","move":"one concrete move, under 16 words, NO digits"},
+  {"phase":4,"meaning":"for this role, change leadership (turning probabilistic AI output into clear strategy; steadying people through the shift), under 24 words, NO digits","move":"one concrete move, under 16 words, NO digits"}
+ ]
+}
+Exactly 4 phases, in order 1 to 4. Ground every line in the given duties. No quote characters inside string values.`;
+
+async function fetchPraxis(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|praxis1`;
+  if (_praxisCache.has(key)) return _praxisCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWrite the four-phase Steward's Praxis for this role.`, 700, 1, SYSTEM_PRAXIS, "claude-fable-5");
+  const o = extractJSON(raw, "praxis") || {};
+  const noDigits = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const byPhase = new Map((Array.isArray(o.phases) ? o.phases : []).map(p => [Number(p && p.phase), p]));
+  const phases = [1, 2, 3, 4].map(n => {
+    const p = byPhase.get(n) || {};
+    return { phase: n, meaning: noDigits(p.meaning, 180), move: noDigits(p.move, 120) };
+  }).filter(p => p.meaning);
+  const read = { phases };
+  _praxisCache.set(key, read);
+  return read;
+}
+
+const _PRAXIS_LABELS = {
+  1: "Redefine the cognitive baseline",
+  2: "Master the control surface",
+  3: "Treat AI as an untrusted actor",
+  4: "Cultivate change leadership",
+};
+
+function StewardsPraxis({ result, title }) {
+  const [open, setOpen] = useState(false);
+  const [px, setPx] = useState({ status: "idle" });
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || px.status === "done" || px.status === "loading" || statements.length < 3) return;
+    setPx({ status: "loading" });
+    const t0 = Date.now();
+    fetchPraxis(title, statements)
+      .then(read => { logStep("stewards_praxis", "ok", Date.now() - t0, `${read.phases.length} phases`); setPx({ status: "done", read }); })
+      .catch(e => { logStep("stewards_praxis", "error", Date.now() - t0, e && e.message); setPx({ status: "error" }); });
+  }
+
+  if (statements.length < 3) return null; // too few duties to frame the shift
+
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🪜</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Steward's praxis - how you grow into this role as AI takes the routine</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          {px.status === "loading" && <p style={{ margin: 0, fontSize: 11.5, color: C.muted }} aria-busy="true">Mapping the four-phase shift from {Math.min(14, statements.length)} duty lines...</p>}
+          {px.status === "error" && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>The praxis read could not be completed - try again in a moment.</p>}
+          {px.status === "done" && (
+            px.read.phases.length ? (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
+                  <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>As the procedural work is commoditised by AI, the role asks you to steward it. Four moves get you there:</p>
+                  <Prov kind="ai" small />
+                </div>
+                {px.read.phases.map((p, i) => (
+                  <div key={p.phase} style={{ display: "flex", gap: 9, marginBottom: 9 }}>
+                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#fff", background: "#1e40af", borderRadius: 5, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>{p.phase}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: C.text }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Phase {p.phase}: </span>{_PRAXIS_LABELS[p.phase]}</p>
+                      <p style={{ margin: "0 0 2px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{p.meaning}</p>
+                      {p.move && <p style={{ margin: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>Move:</strong> {p.move}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>Withheld - the duty statements do not support a confident praxis read for this role.</p>
+            )
+          )}
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A coaching read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal paper section 3 (the Steward's Praxis).</p>
         </div>
       )}
     </div>
@@ -10032,7 +10156,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
       { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
-      { key:"resume",      label:"📄 Resume Check",            color:"#0e7490" },
+      { key:"resume",      label:"📄 Resume Check",            color:"#0e7490", paused:true },
     ];
   };
 
@@ -10654,21 +10778,24 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   {tabs.map(t => {
                     const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
                     const compareDisabled = t.key === "compare" && readyCount < 2;
-                    const compareLabel = t.key === "compare"
+                    // grey off (pause) - the state is carried by the "(paused)" text + aria-disabled,
+                    // never colour alone (a11y contract).
+                    const disabled = compareDisabled || !!t.paused;
+                    const label = t.key === "compare"
                       ? (readyCount >= 2 ? `⚖️ Compare (${readyCount})` : "⚖️ Compare")
-                      : t.label;
+                      : t.paused ? `${t.label} (paused)` : t.label;
                     return (
-                    <button key={t.key}
-                      onClick={() => { if (!compareDisabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
-                      title={compareDisabled ? "Add 2 or more roles to compare" : ""}
+                    <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
+                      onClick={() => { if (!disabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
+                      title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
                       style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 14px", borderRadius:20, fontSize:12, fontWeight:600,
-                        cursor: compareDisabled ? "not-allowed" : "pointer",
+                        cursor: disabled ? "not-allowed" : "pointer",
                         border:`2px solid ${activeTab===t.key ? t.color : C.border}`,
-                        background: compareDisabled ? C.bg : activeTab===t.key ? t.color : C.surface,
-                        color: compareDisabled ? C.mutedLight : activeTab===t.key ? "#fff" : C.textSub,
-                        opacity: compareDisabled ? 0.55 : 1,
+                        background: disabled ? C.bg : activeTab===t.key ? t.color : C.surface,
+                        color: disabled ? C.mutedLight : activeTab===t.key ? "#fff" : C.textSub,
+                        opacity: disabled ? 0.55 : 1,
                         transition:"all 0.15s", whiteSpace:"nowrap" }}>
-                      {compareLabel}
+                      {label}
                     </button>
                     );
                   })}
@@ -10707,6 +10834,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <StrategyRead result={result} title={sel?.title || ""} />
                   <BdfStewardship result={result} title={sel?.title || ""} />
                   <StewardshipShift result={result} />
+                  <StewardsPraxis result={result} title={sel?.title || ""} />
                   <DemandProof result={result} />
                   <AdLanguageScan result={result} />
                   <EmployerReality result={result} />
