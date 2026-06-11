@@ -678,6 +678,15 @@
 // Graph); the footer routes users there so True-Fit shows which duties their evidence covers.
 // cover1 cache; claude-fable-5; loads on tab open; withheld thin/ungrounded; ~ AI chip +
 // human-decides footer; 44px. G1 (v3.0.69 -> v3.0.70).
+// v3.0.71 - 2026-06-12 - HDR #109 - PRO3: "Explain this analysis" (Fable 5 "to help user
+// understand the analysis work" - Human Lead; CLOSES the Professional Read arc PRO1-PRO6). NEW
+// ExplainAnalysis at the bottom of the Navigation box (both layouts): "New here? How to read this
+// analysis" - SYSTEM_EXPLAIN picks five to seven of THE SECTIONS THIS RESULT ACTUALLY RENDERED
+// (the live tab list is the ground truth passed in; steps citing a missing key are dropped) and
+// says what to look for in each FOR THIS ROLE, plus the one-line reading thread; each step is a
+// tap-through chip to its tab. Narration only - authors no number (digits stripped); explain1
+// cache keyed title + tab-set hash; lazy on open; withheld under 4 tabs or ungrounded; ~ AI chip
+// + "authors no number" footer; 44px toggle + aria-expanded. G1 (v3.0.70 -> v3.0.71).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -6235,6 +6244,99 @@ function JourneySpine({ tabs, activeTab, onGo }) {
   );
 }
 
+// ---- PRO3: "Explain this analysis" - a reading guide for THIS result ----
+// Fable 5 narrates how to read the sections that ACTUALLY rendered for this role
+// (the live tab list is the ground truth; steps citing a tab that does not exist
+// are dropped). Narration only - the model authors no number (digits stripped);
+// lazy on open; cached per title + tab-set.
+const _explainCache = new Map();
+const SYSTEM_EXPLAIN =
+`ACT AS a patient guide to a job-analysis dashboard. You are given one role title and the list of result sections available for it (key: label pairs). Pick the five to seven sections that matter most for THIS role and say, for each, what the reader should look for there - specific to this role, not a generic description. Then give the one-line reading thread. Plain language, Singapore context.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "thread":"the reading order in one sentence, under 30 words, NO digits",
+ "steps": [
+  {"key":"a section key copied EXACTLY from the given list","why":"what to look for in this section for THIS role, under 22 words, NO digits"}
+ ]
+}
+5 to 7 steps. Every key must come from the given list - re-check before output. No quote characters inside string values.`;
+async function fetchExplain(title, tabList) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(tabList.map(t => t.key).join(","))}|explain1`;
+  if (_explainCache.has(key)) return _explainCache.get(key);
+  const list = tabList.map(t => `${t.key}: ${t.label}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nAvailable sections:\n${list}\n\nWrite the reading guide.`, 600, 1, SYSTEM_EXPLAIN, "claude-fable-5");
+  const o = extractJSON(raw, "explain") || {};
+  const valid = new Set(tabList.map(t => t.key));
+  const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const steps = (Array.isArray(o.steps) ? o.steps : [])
+    .map(s => ({ key: String(s && s.key || "").trim(), why: clean(s && s.why, 150) }))
+    .filter(s => valid.has(s.key) && s.why)
+    .slice(0, 7);
+  const read = { thread: clean(o.thread, 200), steps };
+  _explainCache.set(key, read);
+  return read;
+}
+function ExplainAnalysis({ title, tabs, onGo }) {
+  const [open, setOpen] = useState(false);
+  const [ex, setEx] = useState({ status: "idle" });
+  const tabList = (tabs || []).filter(t => !t.paused).map(t => ({ key: t.key, label: String(t.label || "").replace(/^[^ ]+ /, "") }));
+  const byKey = new Map(tabs.map(t => [t.key, t]));
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || ex.status === "done" || ex.status === "loading" || tabList.length < 4) return;
+    setEx({ status: "loading" });
+    const t0 = Date.now();
+    fetchExplain(title, tabList)
+      .then(read => { logStep("explain_analysis", "ok", Date.now() - t0, `${read.steps.length} steps`); setEx({ status: "done", read }); })
+      .catch(e => { logStep("explain_analysis", "error", Date.now() - t0, e && e.message); setEx({ status: "error" }); });
+  }
+  if (tabList.length < 4) return null;
+  return (
+    <div style={{ marginTop: 8, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 4px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: C.accent }}><span aria-hidden="true">💡</span> New here? How to read this analysis</span>
+        <span aria-hidden="true" style={{ fontSize: 12, color: C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "2px 4px 6px" }}>
+          {ex.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Writing the reading guide for this role...</p>}
+          {ex.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The guide could not be completed - reopen to retry.</p>}
+          {ex.status === "done" && (ex.read.steps.length ? (
+            <div>
+              {ex.read.thread && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                  <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{ex.read.thread}</p>
+                  <Prov kind="ai" small />
+                </div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {ex.read.steps.map((s, i) => {
+                  const t = byKey.get(s.key);
+                  return (
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <button onClick={() => onGo && onGo(s.key)}
+                        style={{ flexShrink: 0, minHeight: 32, padding: "4px 10px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                        {t ? t.label : s.key}
+                      </button>
+                      <p style={{ flex: 1, minWidth: 0, margin: "5px 0 0", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{s.why}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A reading guide, not a verdict - it authors no number; the sections it cites are the ones this result actually produced.</p>
+            </div>
+          ) : (
+            <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground a guide in this result's sections.</p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // CoachMark removed in v1.8.9 - replaced with inline blink on first AI skill row
 
 // NxCopyButton - copy "What to do next" card with full context fields
@@ -11654,6 +11756,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     );
                   })}
                 </div>
+                <ExplainAnalysis title={sel?.title || ""} tabs={tabs} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
               </div>
           );
           return (
