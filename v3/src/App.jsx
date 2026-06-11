@@ -582,6 +582,21 @@
 // vs utility card hierarchy, left journey rail) ships separately per the staged plan the Human
 // Lead approved. Verified: build green, desktop + 390px mobile screenshots, one type rhythm.
 // G1 (v3.0.60 -> v3.0.61).
+// v3.0.62 - 2026-06-11 - HDR #100 - UI2: structural layout behind ?ui=2 (stage 2 of the de-vibe).
+// Test it live at /?ui=2 (combines with ?tab= deep-links). On wide screens (>=1100px) the result
+// page becomes a two-zone grid: the Navigation box (journey spine + tab pills) docks as a STICKY
+// LEFT RAIL (300px) and the hero (AI-Exposure Index + exposure bar + segments) + active-tab content
+// flow on the right; the Prov badges legend is demoted to a footnote under the content. Narrow
+// screens stack rail-then-content. Implementation: the hero and Navigation box are extracted to
+// consts (uiHero/uiNavBox) inside the results IIFE so BOTH layouts assemble the exact same nodes -
+// the default UI renders the original order untouched (zero drift; flag captured once at mount via
+// useState initializer because the ?tab deep-link replaceStates the URL). Plus one default-UI bug
+// fix the audit surfaced: the blue app header could collide title/buttons on phones - now
+// flexWrap:"wrap" + flex:"1 0 200px" on the title so the buttons wrap UNDER it, never over it.
+// No data, no prompt, no number changed; frozen symbols byte-identical (R-FREEZE exit 0). Verified
+// in Chrome DevTools: ?ui=2 rail + sticky + footnote legend at 1440px, stacked at phone width,
+// default UI pixel-order unchanged. Flip ?ui=2 to default in a follow-up once the Human Lead
+// approves the A/B. G1 (v3.0.61 -> v3.0.62).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -9640,6 +9655,19 @@ export default function App() {
   // if a new analysis starts before the previous timer fires.
   const analysisCancelRef = useRef(0);
   const safetyTimerRef    = useRef(null);
+  // UI2 (stage 2 of the layout de-vibe, behind ?ui=2 for live A/B): captured once
+  // at mount (deep-link effects replaceState the URL later, so re-reads would lose it).
+  const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") === "2"; } catch (_) { return false; } });
+  const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 1100px)").matches; } catch (_) { return false; } });
+  useEffect(() => {
+    if (!uiV2) return;
+    try {
+      const mq = window.matchMedia("(min-width: 1100px)");
+      const fn = e => setUiWide(e.matches);
+      mq.addEventListener("change", fn);
+      return () => mq.removeEventListener("change", fn);
+    } catch (_) {}
+  }, [uiV2]);
   const queueBannerRef = useRef(null);
   const comparisonsRef = useRef([]);
   const debounceRef    = useRef(null); // v6: debounce timer for picker
@@ -10712,9 +10740,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           onCancel={() => setCompareWarning(null)}
         />
       )}
-      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box" }}>
+      {/* flexWrap: at phone widths the buttons wrap UNDER the title instead of overlapping it */}
+      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap" }}>
         <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
-        <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ flex:"1 0 200px", minWidth:0 }}>
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
@@ -10968,6 +10997,72 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
         {step === "results" && sel && result && (() => {
           const tabs = buildTabs(result);
+          // UI2: the hero (index + segments) and the Navigation box are consts so the
+          // ?ui=2 rail layout and the default layout assemble the SAME nodes - no drift.
+          const uiHero = (
+            <>
+              <EngineHeadline result={result} title={sel?.title || ""} />
+              <ExposureBar skills={result.skills} />
+              <SkillSegments
+                skills={result.skills}
+                hasNoHuman={result.skills.every(s => s.level !== "HUMAN")}
+                isOpen={segmentPanelOpen}
+                onToggle={() => setSegmentPanelOpen(p => !p)}
+                firstBlinkSkill={firstBlinkSkill}
+                onSkillClick={(skillName) => {
+                  setJumpToSkill(skillName);
+                  setActiveTab("skills");
+                  setSegmentPanelOpen(false);
+                  setTimeout(() => {
+                    const el = document.getElementById(`skill-${skillName.replace(/\s+/g,"-").toLowerCase()}`);
+                    if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+                  }, 450);
+                }}
+              />
+            </>
+          );
+          const uiNavBox = (
+              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface }}>
+                <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                  Navigation
+                </p>
+                <JourneySpine tabs={tabs} activeTab={activeTab} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
+                <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
+                  Tap a section to explore the results:
+                </p>
+                {tabs.some(t => t.key === "deepread") && (
+                  <p style={{ margin:"0 0 8px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>
+                    <span aria-hidden="true">🔬</span> <strong>Deep Read</strong> holds the stewardship reads - why this role exists, what stays human vs what to hand to AI, and whether the market and employer are what they seem.
+                  </p>
+                )}
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+                  {tabs.map(t => {
+                    const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
+                    const compareDisabled = t.key === "compare" && readyCount < 2;
+                    // grey off (pause) - the state is carried by the "(paused)" text + aria-disabled,
+                    // never colour alone (a11y contract).
+                    const disabled = compareDisabled || !!t.paused;
+                    const label = t.key === "compare"
+                      ? (readyCount >= 2 ? `⚖️ Compare (${readyCount})` : "⚖️ Compare")
+                      : t.paused ? `${t.label} (paused)` : t.label;
+                    return (
+                    <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
+                      onClick={() => { if (!disabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
+                      title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
+                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px", borderRadius: 16, fontSize:12, fontWeight:600,
+                        cursor: disabled ? "not-allowed" : "pointer",
+                        border:`2px solid ${activeTab===t.key ? t.color : C.border}`,
+                        background: disabled ? C.bg : activeTab===t.key ? t.color : C.surface,
+                        color: disabled ? C.mutedLight : activeTab===t.key ? "#fff" : C.textSub,
+                        opacity: disabled ? 0.55 : 1,
+                        transition:"all 0.15s", whiteSpace:"nowrap" }}>
+                      {label}
+                    </button>
+                    );
+                  })}
+                </div>
+              </div>
+          );
           return (
             <div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
@@ -11122,68 +11217,27 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 );
               })()}
               {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
-              <ProvLegend />
-              <EngineHeadline result={result} title={sel?.title || ""} />
-              <ExposureBar skills={result.skills} />
-              <SkillSegments
-                skills={result.skills}
-                hasNoHuman={result.skills.every(s => s.level !== "HUMAN")}
-                isOpen={segmentPanelOpen}
-                onToggle={() => setSegmentPanelOpen(p => !p)}
-                firstBlinkSkill={firstBlinkSkill}
-                onSkillClick={(skillName) => {
-                  setJumpToSkill(skillName);
-                  setActiveTab("skills");
-                  setSegmentPanelOpen(false);
-                  setTimeout(() => {
-                    const el = document.getElementById(`skill-${skillName.replace(/\s+/g,"-").toLowerCase()}`);
-                    if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
-                  }, 450);
-                }}
-              />
+              {/* UI2 (?ui=2, stage 2 of the layout de-vibe): on wide screens the Navigation
+                  box becomes a sticky LEFT RAIL and the hero + tab content sit right; the
+                  badges legend is demoted to a footnote after the content. The default UI
+                  renders the exact same nodes in the original order - zero drift. */}
+              {!uiV2 && (
+                <>
+                  <ProvLegend />
+                  {uiHero}
+                  {uiNavBox}
+                </>
+              )}
               {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
                   (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
-
-              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface }}>
-                <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
-                  Navigation
-                </p>
-                <JourneySpine tabs={tabs} activeTab={activeTab} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
-                <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
-                  Tap a section to explore the results:
-                </p>
-                {tabs.some(t => t.key === "deepread") && (
-                  <p style={{ margin:"0 0 8px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>
-                    <span aria-hidden="true">🔬</span> <strong>Deep Read</strong> holds the stewardship reads - why this role exists, what stays human vs what to hand to AI, and whether the market and employer are what they seem.
-                  </p>
+              <div style={uiV2 && uiWide ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
+                {uiV2 && (
+                  <div style={uiWide ? { position:"sticky", top:12 } : { marginBottom:14 }}>
+                    {uiNavBox}
+                  </div>
                 )}
-                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {tabs.map(t => {
-                    const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
-                    const compareDisabled = t.key === "compare" && readyCount < 2;
-                    // grey off (pause) - the state is carried by the "(paused)" text + aria-disabled,
-                    // never colour alone (a11y contract).
-                    const disabled = compareDisabled || !!t.paused;
-                    const label = t.key === "compare"
-                      ? (readyCount >= 2 ? `⚖️ Compare (${readyCount})` : "⚖️ Compare")
-                      : t.paused ? `${t.label} (paused)` : t.label;
-                    return (
-                    <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
-                      onClick={() => { if (!disabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
-                      title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
-                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px", borderRadius: 16, fontSize:12, fontWeight:600,
-                        cursor: disabled ? "not-allowed" : "pointer",
-                        border:`2px solid ${activeTab===t.key ? t.color : C.border}`,
-                        background: disabled ? C.bg : activeTab===t.key ? t.color : C.surface,
-                        color: disabled ? C.mutedLight : activeTab===t.key ? "#fff" : C.textSub,
-                        opacity: disabled ? 0.55 : 1,
-                        transition:"all 0.15s", whiteSpace:"nowrap" }}>
-                      {label}
-                    </button>
-                    );
-                  })}
-                </div>
-              </div>
+                <div style={uiV2 ? { minWidth:0 } : undefined}>
+                  {uiV2 && uiHero}
 
               {activeTab === "skills" && <SkillGroupedView
                   grouped={(() => {
@@ -11336,6 +11390,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {activeTab === "resume" && (
                 <ResumeCheckPanel result={result} title={sel?.title || ""} />
               )}
+
+              {/* UI2: the badges legend rides as a footnote under the content */}
+              {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
+                </div>
+              </div>
 
               {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll */}
               {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "" }); }} />}
