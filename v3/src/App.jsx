@@ -612,6 +612,21 @@
 // the deuteranopic Human Lead; labels still carry all meaning (never colour alone). What stayed:
 // every semantic hue family (level ambers/teals/purples, bar gradations, LinkedIn 0a66c2 + EU
 // 003399 brand, pink fairness flags). R-FREEZE exit 0. G1 (v3.0.63 -> v3.0.64).
+// v3.0.65 - 2026-06-12 - HDR #103 - PRO1: Company Background via the ACRA register + outsourced
+// flag (Professional Read arc opens; spec: v3-professional-read-spec.md). Human Lead's greatest
+// concern: "it is a tech job but outsourced by talent search company". Built: (1) api/datagov.js
+// gains action "acra" - live datastore_search on "Entities Registered with ACRA" (data.gov.sg,
+// DATA_GOV_SG_API_KEY sent when present); a NORMALISED EXACT-NAME guard withholds fuzzy hits
+// (verified live: the ranked search returns "FINTECH SOLUTIONS" for "PERCEPT SOLUTIONS" - never
+// shown); 24h cache; prefers a live registration over a deregistered namesake. (2) postingMeta now
+// carries postedCompanyName/hiringCompanyName from the MCF payload. (3) NEW CompanyBackground panel
+// in the Deep Read cluster (single-posting runs): register facts VERBATIM (UEN / entity type /
+// status with a deregistered warning / registered-since / address / same-name count) or withheld;
+// "posted by a third party" flag when poster != hirer (computed) and "reads as a staffing firm"
+// (shared _AGENCY_STEMS, derived) - with the explicit tech-role caution (iscoMajor 2/3): the seat,
+// manager and worksite may belong to a client, not the poster. No LLM, no number authored;
+// source/confidence/time-window footer; 44px + aria-expanded; flag by shape+text, not colour.
+// G1 (v3.0.64 -> v3.0.65).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5421,6 +5436,116 @@ function EmployerReality({ result }) {
   );
 }
 
+// PRO1: Company Background - the ACRA register read for THIS posting's companies.
+// Deterministic end to end: facts come verbatim from the "Entities Registered with
+// ACRA" dataset on data.gov.sg (exact-name match only - the API withholds on fuzzy);
+// the outsourced flag is poster-vs-hirer (computed, from the MCF payload) plus the
+// shared _isAgencyName stem list (derived, labelled). No LLM, no number authored.
+const _acraCache = new Map(); // name -> lookup result (or in-flight promise)
+async function _acraFetch(name) {
+  const k = _coNorm(name);
+  if (_acraCache.has(k)) return _acraCache.get(k);
+  const p = fetch("/api/datagov", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "acra", name }),
+  }).then(r => (r.ok ? r.json() : { matched: "none", reason: "http" }))
+    .catch(() => ({ matched: "none", reason: "network" }));
+  _acraCache.set(k, p);
+  const v = await p;
+  _acraCache.set(k, v);
+  return v;
+}
+
+function _AcraFacts({ label, name, rec, flagAgency }) {
+  // one company's register card - facts shown verbatim or withheld, never guessed
+  return (
+    <div style={{ flex: "1 1 240px", minWidth: 0, padding: "10px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+      <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text, overflowWrap: "anywhere" }}>
+        {name}
+        {flagAgency && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>reads as a staffing firm</span>}
+      </p>
+      {!rec && <p style={{ margin: 0, fontSize: 11, color: C.muted, fontStyle: "italic" }}>Checking the ACRA register...</p>}
+      {rec && rec.matched !== "exact" && (
+        <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>No exact match in the ACRA register for this name - facts withheld rather than guessed.</p>
+      )}
+      {rec && rec.matched === "exact" && (
+        <div style={{ fontSize: 11.5, color: C.textSub, lineHeight: 1.7 }}>
+          <div><strong>UEN:</strong> {rec.uen}</div>
+          <div><strong>Type:</strong> {rec.entityType || "-"}</div>
+          <div><strong>Status:</strong> {rec.status || "-"}{/de-?registered|struck/i.test(rec.status || "") && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#9a3412" }}>check before applying</span>}</div>
+          {rec.since && <div><strong>Registered since:</strong> {rec.since}</div>}
+          {(rec.street || rec.postal) && <div><strong>Registered address:</strong> {[rec.street, rec.postal].filter(Boolean).join(", ")}</div>}
+          {rec.namesakes > 0 && <div style={{ color: C.muted }}>{rec.namesakes} same-name entit{rec.namesakes === 1 ? "y" : "ies"} also on the register</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompanyBackground({ result }) {
+  const [open, setOpen] = useState(false);
+  const [recs, setRecs] = useState(null); // { hiring, posted }
+  const pm = result && result.postingMeta;
+  const posted = String((pm && pm.postedCompanyName) || "").trim();
+  const hiring = String((pm && pm.hiringCompanyName) || (pm && pm.employer) || "").trim();
+  const thirdParty = !!(posted && hiring && _coNorm(posted) !== _coNorm(hiring));
+  const agencyPoster = _isAgencyName(posted) || (!thirdParty && _isAgencyName(hiring));
+  useEffect(() => {
+    if (!open || recs || !hiring) return;
+    let on = true;
+    (async () => {
+      const h = await _acraFetch(hiring);
+      const p = thirdParty && posted ? await _acraFetch(posted) : null;
+      if (on) setRecs({ hiring: h, posted: p });
+    })();
+    return () => { on = false; };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!pm || !hiring) return null; // not a single-posting analysis - withhold
+  const techRole = result.iscoMajor === 2 || result.iscoMajor === 3;
+  const concern = thirdParty || agencyPoster;
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🗂️</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Company background - the ACRA register</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: concern ? "#9a3412" : "#1e40af", background: concern ? "#fff7ed" : "#eef2ff", border: `1px solid ${concern ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+            <span aria-hidden="true">{concern ? "⚑" : "="}</span>{thirdParty ? "posted by a third party" : agencyPoster ? "staffing-firm name" : "direct posting"}
+          </span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          {thirdParty && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
+              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+                <strong>This ad was posted by a different company than the named hirer.</strong> {techRole ? "For a tech/professional role that usually means a talent-search or outsourcing firm is in between - the seat, manager and worksite may belong to a client, not the poster. " : ""}Confirm the actual employer, worksite and reporting line before you invest.
+              </p>
+              <Prov kind="computed" small />
+            </div>
+          )}
+          {!thirdParty && agencyPoster && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
+              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+                <strong>The company name reads as a recruitment / staffing firm.</strong> {techRole ? "A tech title at a staffing firm is often a client-site contract, not an in-house seat. " : ""}Ask which client the role sits with.
+              </p>
+              <Prov kind="derived" small />
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+            <_AcraFacts label={thirdParty ? "Named hirer" : "Employer"} name={hiring} rec={recs && recs.hiring} flagAgency={_isAgencyName(hiring)} />
+            {thirdParty && posted && <_AcraFacts label="Posted by" name={posted} rec={recs && recs.posted} flagAgency={_isAgencyName(posted)} />}
+          </div>
+          <p style={{ margin: 0, fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - register facts are shown verbatim or withheld (exact-name match only; a fuzzy match is never presented as fact), and human decides. Source: Entities Registered with ACRA, via data.gov.sg; poster-vs-hirer from the MyCareersFuture payload. Confidence: registry facts, not an endorsement. Time-window: the register as at this lookup.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // UI: float the ad. The verbatim MCF job advertisement lives in a slide-in drawer reachable from a
 // fixed floating button anywhere in the result - so the source ad is always one tap away WITHOUT
 // adding to the (formerly 4-6 screen) vertical scroll. Withholds when there is no posting text.
@@ -10089,7 +10214,9 @@ export default function App() {
       const iscoMajor = (escoOccupation && Number.isInteger(escoOccupation.iscoMajor)) ? escoOccupation.iscoMajor : iscoMajorFromCode;
       const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null,
         source: corpus ? "corpus" : posting ? "posting" : "esco",
-        postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl } : null,
+        postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl,
+          // PRO1: who POSTED vs who is HIRING - the strongest outsourced-posting signal
+          postedCompanyName: posting.postedCompanyName || "", hiringCompanyName: posting.hiringCompanyName || "" } : null,
         corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null };
       const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : corpus ? `${toTitleCase(occ.title)} — across SG ads` : toTitleCase(occ.title);
       setResult(newResult);
@@ -11291,6 +11418,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <DemandProof result={result} />
                   <AdLanguageScan result={result} />
                   <EmployerReality result={result} />
+                  <CompanyBackground result={result} />
                 </>
               )}
               {activeTab === "taskprep" && result.responsibilitiesData && (

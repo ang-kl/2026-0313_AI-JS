@@ -54,6 +54,76 @@ const ISCO_TO_MOM = {
 // Module-scope cache: { [iscoMajor]: { value, expiresAt } }.
 const cache = new Map();
 
+// ---- PRO1: ACRA entity lookup ----------------------------------------------
+// "Entities Registered with ACRA" on data.gov.sg - live datastore search.
+// Fields: uen, entity_name, entity_type_desc, uen_status_desc, uen_issue_date,
+// reg_street_name, reg_postal_code. NOTE: the q= search is fuzzy/ranked, so a
+// NORMALISED EXACT-NAME guard decides whether we show anything at all -
+// withhold over a wrong company (the search returned "FINTECH SOLUTIONS" for
+// "PERCEPT SOLUTIONS" in testing; a fuzzy hit must never be presented as fact).
+const ACRA_RESOURCE_ID = process.env.ACRA_RESOURCE_ID || 'd_3f960c10fed6145404ca7b821f263b87';
+const ACRA_BASE = 'https://data.gov.sg/api/action/datastore_search';
+const ACRA_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // entities change rarely
+const acraCache = new Map(); // normName -> { value, expiresAt }
+
+// Normalise a company name for comparison: case, punctuation, and the legal
+// suffixes ACRA appends (PTE. LTD., LLP, ...) all stripped.
+function normCompanyName(s) {
+  return String(s || '')
+    .toUpperCase()
+    .replace(/\(([^)]*)\)/g, ' ')                  // drop parentheticals
+    .replace(/\b(PTE|PRIVATE|LTD|LIMITED|LLP|LLC|INC|CORP|CORPORATION|CO|COMPANY|SINGAPORE|SG|HOLDINGS?)\b\.?/g, ' ')
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function acraLookup(rawName) {
+  const norm = normCompanyName(rawName);
+  if (norm.length < 3) return { matched: 'none', reason: 'name_too_short' };
+  const cached = acraCache.get(norm);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const url = `${ACRA_BASE}?resource_id=${encodeURIComponent(ACRA_RESOURCE_ID)}&q=${encodeURIComponent(rawName.slice(0, 120))}&limit=10`;
+  let json = null;
+  try {
+    // DATA_GOV_SG_API_KEY (already provisioned for the trend action) is sent when
+    // present - the datastore endpoint is public, the key lifts rate limits.
+    const headers = { accept: 'application/json' };
+    if (process.env.DATA_GOV_SG_API_KEY) headers['x-api-key'] = process.env.DATA_GOV_SG_API_KEY;
+    const res = await fetchWithTimeout(url, { headers }, STEP_TIMEOUT_MS);
+    if (!res.ok) return { matched: 'none', reason: `http_${res.status}` };
+    json = await res.json();
+  } catch (err) {
+    return { matched: 'none', reason: err.name === 'AbortError' ? 'timeout' : 'error' };
+  }
+  const records = json?.result?.records || [];
+  // exact-name guard: only a record whose NORMALISED name equals the query's
+  // normalised name is presented; everything else is withheld.
+  const hits = records.filter(r => normCompanyName(r.entity_name) === norm);
+  if (!hits.length) {
+    const out = { matched: 'none', reason: 'no_exact_match' };
+    acraCache.set(norm, { value: out, expiresAt: Date.now() + ACRA_CACHE_TTL_MS });
+    return out;
+  }
+  // Prefer a live registration over a deregistered namesake.
+  const live = hits.find(r => /registered|live/i.test(r.uen_status_desc || '') && !/de-?registered/i.test(r.uen_status_desc || ''));
+  const r = live || hits[0];
+  const out = {
+    matched: 'exact',
+    uen: r.uen || '',
+    entityName: r.entity_name || '',
+    entityType: r.entity_type_desc || '',
+    status: r.uen_status_desc || '',
+    since: r.uen_issue_date || '',
+    street: r.reg_street_name || '',
+    postal: r.reg_postal_code || '',
+    namesakes: hits.length - 1,
+  };
+  acraCache.set(norm, { value: out, expiresAt: Date.now() + ACRA_CACHE_TTL_MS });
+  return out;
+}
+
 async function fetchWithTimeout(url, opts, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -178,6 +248,22 @@ export default async function handler(req, res) {
   }
 
   const { action, iscoMajor } = req.body || {};
+
+  // PRO1: ACRA entity lookup - { action:"acra", name:"<company>" }.
+  // Returns matched:"exact" with the register facts, or matched:"none"
+  // (withheld) - never a fuzzy guess presented as fact.
+  if (action === 'acra') {
+    const name = String(req.body?.name || '').trim();
+    if (name.length < 3) return res.status(400).json({ error: 'Invalid request. Required: action="acra", name=string' });
+    try {
+      const out = await acraLookup(name);
+      return res.status(200).json(out);
+    } catch (err) {
+      console.error('[datagov] acra error:', err.message);
+      return res.status(200).json({ matched: 'none', reason: 'error' });
+    }
+  }
+
   if (action !== 'trend' || !Number.isInteger(iscoMajor)) {
     return res.status(400).json({ error: 'Invalid request. Required: action="trend", iscoMajor=integer 1..9' });
   }
