@@ -654,6 +654,19 @@
 // labels ("the duties also read as", ◐). Tap a title -> handleAnalyseRole re-runs the full pipeline
 // for it. Withheld when no verifiable sibling exists; no LLM, no number authored; 44px chips +
 // aria-expanded; source/confidence/time-window footer. G1 (v3.0.67 -> v3.0.68).
+// v3.0.69 - 2026-06-12 - HDR #107 - PRO4: the Agentic Shift ("in this agentic movement, how would
+// you change the skill to craft agents" - Human Lead). NEW AgenticShift panel at the top of Skill
+// Analysis: the four AI ways STAY, but a fixed crosswalk (_AGENTIC_XWALK, deterministic copy) says
+// what each level's skill BECOMES when the move is crafting agents - Full Automation = owning an
+// agent (objective/checkpoints/audit, the untrusted-actor rule), AI-Augmented = designing the
+// handoff (what the agent drafts, what only you sign), AI-Assisted = sharp questions + demanding
+// sources, Human-Led = the governance node where new tasks grow around the agents (the pro-worker
+// frontier). Only the per-level skill COUNTS are computed. Plus ONE Fable 5 role-level advisory
+// line ("where to start here": which duty to delegate to an agent first + what control to keep) -
+// SYSTEM_AGENTIC JSON-only, NO digits (stripped), duty-grounded, agentic1 cache, lazy on open,
+// withheld under 3 duties or empty. Grounding: goal paper section 3 phases two and three + NBER
+// w34854 new-task-creating. ~ AI estimate chip; human-decides footer; 44px + aria.
+// G1 (v3.0.68 -> v3.0.69).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -4695,6 +4708,92 @@ function StewardsPraxis({ result, title }) {
             )
           )}
           <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A coaching read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal paper section 3 (the Steward's Praxis).</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- PRO4: the Agentic Shift - what each of the four AI ways BECOMES when the move ----
+// is to craft agents, not operate tools. The crosswalk is FIXED COPY per level
+// (deterministic; grounded in goal paper section 3 phase two "master the control
+// surface" + phase three "untrusted actor", and w34854's new-task-creating frontier);
+// only the counts are computed from this role's skills. ONE Fable 5 advisory line per
+// role (not per skill) is fetched lazily - no digits, duty-grounded, withheld thin.
+const _AGENTIC_XWALK = [
+  { level: "HIGH",   label: "Full Automation",  becomes: "The skill stops being doing and becomes owning an agent: you write the objective, fix the checkpoints, and audit the outcome - never assume it; verify it (the untrusted-actor rule)." },
+  { level: "MEDIUM", label: "AI-Augmented",     becomes: "You still direct each step today; the craft shifts to designing the handoff - decide what the agent drafts, what evidence it must attach, and what only you sign." },
+  { level: "LOW",    label: "AI-Assisted",      becomes: "The agent is a tireless researcher at your elbow; the craft is asking sharp questions, demanding sources, and keeping the judgement yours." },
+  { level: "HUMAN",  label: "Human-Led",        becomes: "No agent holds this - accountability, presence and trust stay with you. This is where new tasks grow around the agents: the pro-worker frontier." },
+];
+const _agenticCache = new Map(); // `${title}|${evidenceHash}|agentic1` -> line
+const SYSTEM_AGENTIC =
+`ACT AS an AI-workforce coach. You are given one advertised role's numbered duty statements. In ONE or TWO sentences, tell this person the single most useful way to start CRAFTING AGENTS for this role's actual duties (not generic advice): which duty to delegate to an agent first and what control to keep. Plain language, Singapore workplace context, no hype.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format: {"line":"the advice, under 50 words, NO digits"}
+Ground it in the given duties only. No quote characters inside string values.`;
+async function fetchAgenticLine(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|agentic1`;
+  if (_agenticCache.has(key)) return _agenticCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWhere should this person start crafting an agent, and what control must they keep?`, 300, 1, SYSTEM_AGENTIC, "claude-fable-5");
+  const o = extractJSON(raw, "agentic") || {};
+  const line = String(o.line || "").replace(/[0-9]/g, "").trim().slice(0, 360);
+  _agenticCache.set(key, line);
+  return line;
+}
+function AgenticShift({ result, title }) {
+  const [open, setOpen] = useState(false);
+  const [ax, setAx] = useState({ status: "idle" });
+  const skills = (result && result.skills) || [];
+  const counts = { HIGH: 0, MEDIUM: 0, LOW: 0, HUMAN: 0 };
+  skills.forEach(s => { if (counts[s.level] !== undefined) counts[s.level]++; });
+  const statements = ((result && result.responsibilitiesData && result.responsibilitiesData.responsibilities) || [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+  function handleToggle() {
+    const next = !open;
+    setOpen(next);
+    if (!next || ax.status === "done" || ax.status === "loading" || statements.length < 3) return;
+    setAx({ status: "loading" });
+    const t0 = Date.now();
+    fetchAgenticLine(title, statements)
+      .then(line => { logStep("agentic_shift", "ok", Date.now() - t0, `${line.length} chars`); setAx({ status: "done", line }); })
+      .catch(e => { logStep("agentic_shift", "error", Date.now() - t0, e && e.message); setAx({ status: "error" }); });
+  }
+  if (!skills.length) return null;
+  return (
+    <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={handleToggle} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🤖</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>The agentic shift - what each AI way becomes when you craft agents</span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
+            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>The four AI ways below still hold - but in the agentic movement each one changes what the SKILL is. Read your column counts through this lens:</p>
+            <Prov kind="computed" small />
+          </div>
+          {_AGENTIC_XWALK.map(x => (
+            <div key={x.level} style={{ display: "flex", gap: 9, marginBottom: 8 }}>
+              <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", height: "fit-content" }}>{x.label}{counts[x.level] > 0 ? ` - ${counts[x.level]} skill${counts[x.level] !== 1 ? "s" : ""}` : ""}</span>
+              <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{x.becomes}</p>
+            </div>
+          ))}
+          {statements.length >= 3 && (
+            <div style={{ marginTop: 10, padding: "8px 12px", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10 }}>
+              {ax.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading where to start for this role...</p>}
+              {ax.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The advisory line could not be completed - reopen to retry.</p>}
+              {ax.status === "done" && (ax.line
+                ? <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.55 }}><strong style={{ color: "#0369a1" }}>Where to start here:</strong> {ax.line} <Prov kind="ai" small /></p>
+                : <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duties do not support a confident starting point.</p>)}
+              {ax.status === "idle" && <p style={{ margin: 0, fontSize: 12, color: C.muted }}>One role-specific starting point loads when this panel opens.</p>}
+            </div>
+          )}
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The crosswalk is fixed copy - it computes nothing but the counts. Grounding: v3/goal paper section 3 (control surface, untrusted actor); NBER w34854 (new-task-creating). Source: this role's skill levels{statements.length >= 3 ? " + duty statements" : ""}.</p>
         </div>
       )}
     </div>
@@ -11597,6 +11696,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <div style={uiV2 ? { minWidth:0 } : undefined}>
                   {uiV2 && uiHero}
 
+              {activeTab === "skills" && <AgenticShift result={result} title={sel?.title || ""} />}
               {activeTab === "skills" && <SkillGroupedView
                   grouped={(() => {
                     const groupDef = [
