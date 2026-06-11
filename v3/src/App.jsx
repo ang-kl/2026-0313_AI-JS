@@ -479,6 +479,18 @@
 // label + aria-disabled + disabled attr (code KEPT, not deleted; state by text not colour alone).
 // Conformance D1-D8 PASS + a11y 7/7 PASS (badge 8.64:1, no red/green). Spec: new
 // v3-candidate-journey-spec.md (CJ1 row). Additive; no frozen symbol touched. G1 (v3.0.52 -> v3.0.53).
+// v3.0.54 - 2026-06-11 - HDR #092 - CJ2 (Candidate Journey station 4 "Arm"): Task Prep panel. Turns
+// the role's aims into concrete day-to-day TASKS the candidate can act on - the gap the Human Lead
+// flagged hardest ("aims & purpose but no tasks in detail"). New `TaskPrep` panel + `🎯 Task Prep`
+// tab (gated on responsibilities): a PURE deterministic render of data ALREADY on
+// result.responsibilitiesData.responsibilities (text/cat/freq/level/tool/how/kickstart/sk) - grouped
+// Core -> Common -> Occasional; each task card = what you'd do (◐ derived, extracted from the sampled
+// postings) + how AI engages it (~ AI estimate, with the AI_USAGE tool) + one move to prepare this
+// week (~) + the skills it draws on (mapped from result.skills via sk refs). NO new LLM call, NO
+// invented task, NO new number (D1-D8 N/A - no new prompt). Reuses the audited Tag/Prov/AI_USAGE/
+// LEVELS. Withholds when no duties. a11y review 7/7 PASS (no red/green; accents blue #1e40af 8.72:1 /
+// cyan #0e7490 5.36:1; freq sub-note bumped C.mutedLight -> C.muted for AA). Spec CJ2 row SHIPPED.
+// Additive; no frozen symbol touched. G1 (v3.0.53 -> v3.0.54).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5402,6 +5414,72 @@ function JobAdDrawer({ result, open, onClose }) {
   );
 }
 
+// ---- CJ2: Task Prep ("Arm") panel (Candidate Journey station 4) ----
+// Turns the role's AIMS into concrete day-to-day TASKS the candidate can act on: each EXTRACTED
+// duty -> how AI engages it -> one concrete prep step this week -> the skills behind it. PURE
+// deterministic render of data already on result.responsibilitiesData.responsibilities (text/cat/
+// freq/sk/level/tool/how/kickstart) - NO new LLM call, NO invented task, NO new number. Duties are
+// AI-extracted from the sampled postings (◐ derived); the AI-engagement + prep are AI judgements
+// (~ AI estimate). Grouped Core -> Common -> Occasional so the must-do tasks lead. Withholds when
+// there are no extracted responsibilities.
+const _TASKPREP_FREQ_ORDER = ["Core", "Common", "Occasional"];
+function TaskPrep({ result }) {
+  const rd = result && result.responsibilitiesData;
+  const resps = (rd && Array.isArray(rd.responsibilities)) ? rd.responsibilities.filter(r => r && r.text) : [];
+  if (!resps.length) return null;
+  const skillByN = new Map(((result && result.skills) || []).map(s => [s.n, s.skill]));
+  const groups = _TASKPREP_FREQ_ORDER
+    .map(f => ({ freq: f, items: resps.filter(r => (r.freq || "Common") === f) }))
+    .filter(g => g.items.length);
+  const FREQ_NOTE = { Core: "in nearly every posting", Common: "in most postings", Occasional: "in a few postings" };
+
+  return (
+    <div>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week.</p>
+          <Prov kind="derived" small />
+          <Prov kind="ai" small />
+        </div>
+        <p style={{ margin: 0, fontSize: 10.5, color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
+      </div>
+      {groups.map(g => (
+        <div key={g.freq} style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6, paddingBottom: 5, borderBottom: `2px solid ${C.border}` }}>
+            <span style={{ fontSize: 12, fontWeight: 800, color: C.text }}>{g.freq} tasks</span>
+            <span style={{ fontSize: 11, color: C.muted }}>({g.items.length})</span>
+            <span style={{ fontSize: 11, color: C.muted }}>· {FREQ_NOTE[g.freq]}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {g.items.map((r, i) => {
+              const sk = (Array.isArray(r.sk) ? r.sk : []).map(n => skillByN.get(n)).filter(Boolean).slice(0, 4);
+              return (
+                <div key={r.n != null ? r.n : i} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", background: C.surface }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
+                    <Tag level={r.level || "HUMAN"} small />
+                  </div>
+                  {r.how && (
+                    <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""} <Prov kind="ai" small /></p>
+                  )}
+                  {r.kickstart && (
+                    <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#0e7490" }}>Prepare this week:</strong> {r.kickstart} <Prov kind="ai" small /></p>
+                  )}
+                  {sk.length > 0 && (
+                    <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Skills it draws on:</strong> {sk.join(", ")}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <p style={{ margin: "4px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
+    </div>
+  );
+}
+
 // CoachMark removed in v1.8.9 - replaced with inline blink on first AI skill row
 
 // NxCopyButton - copy "What to do next" card with full context fields
@@ -10145,6 +10223,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return [
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData || r.jobAnatomy) ? [{ key:"deepread", label:"🔬 Deep Read", color:"#7c3aed" }] : []),
+      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"taskprep", label:"🎯 Task Prep", color:"#0e7490" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
@@ -10839,6 +10918,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <AdLanguageScan result={result} />
                   <EmployerReality result={result} />
                 </>
+              )}
+              {activeTab === "taskprep" && result.responsibilitiesData && (
+                <TaskPrep result={result} />
               )}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
