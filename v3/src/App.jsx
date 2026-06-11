@@ -597,6 +597,10 @@
 // in Chrome DevTools: ?ui=2 rail + sticky + footnote legend at 1440px, stacked at phone width,
 // default UI pixel-order unchanged. Flip ?ui=2 to default in a follow-up once the Human Lead
 // approves the A/B. G1 (v3.0.61 -> v3.0.62).
+// v3.0.63 - 2026-06-11 - HDR #101 - UI2 flip: the rail layout becomes the DEFAULT (Human Lead
+// approved the A/B with "1"). One-line change: uiV2 now true unless ?ui=1 - the original stacked
+// layout stays reachable at /?ui=1 as the escape hatch (same nodes either way, so no drift).
+// Sphere deep-links (/?tab=...) now land on the rail layout. G1 (v3.0.62 -> v3.0.63).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -9655,9 +9659,10 @@ export default function App() {
   // if a new analysis starts before the previous timer fires.
   const analysisCancelRef = useRef(0);
   const safetyTimerRef    = useRef(null);
-  // UI2 (stage 2 of the layout de-vibe, behind ?ui=2 for live A/B): captured once
+  // UI2 (stage 2 of the layout de-vibe): DEFAULT since v3.0.63 (Human Lead approved the
+  // A/B flip). ?ui=1 is the escape hatch back to the original stacked layout. Captured once
   // at mount (deep-link effects replaceState the URL later, so re-reads would lose it).
-  const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") === "2"; } catch (_) { return false; } });
+  const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") !== "1"; } catch (_) { return true; } });
   const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 1100px)").matches; } catch (_) { return false; } });
   useEffect(() => {
     if (!uiV2) return;
