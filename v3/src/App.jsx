@@ -537,6 +537,22 @@
 // the same way (min(5000, 1100 + n*45)). claude.js proxy byte-untouched (only the max_tokens VALUE
 // passed in changed); no LLM-authored number; deterministic guards downstream unchanged.
 // Additive; no frozen symbol touched (claude.js frozen, intact). G1 (v3.0.57 -> v3.0.58).
+// v3.0.59 - 2026-06-11 - HDR #097 - SPH1: /spherical - "The Analysis Sphere" gallery.
+// Phantom.land-style inside-a-sphere experience (Human Lead request): you stand at the centre of a
+// sphere lined with 64 cards (the 20 v3 analysis artifacts, cycled across 5 latitude rows); left-
+// drag to look around with damped lens easing + release inertia (GSAP power3.out decay), wheel to
+// tilt, arrow keys to rotate; click a card and it flies to the eye while the sphere dims, opening a
+// basic detail-page template (Back reverses the flight; ESC closes). NEW src/SphericalGallery.jsx
+// (Three.js + GSAP, both npm - the CSP allows no CDN); card faces are CanvasTextures (img-src
+// allows no external images; assets self-drawn in the house palette). main.jsx gains the /spherical
+// (or ?view=spherical) branch as a React.lazy chunk - three/gsap NEVER load on the main app path
+// (verified: index chunk byte-equivalent flow, gallery chunk 578kB fetched only on /spherical).
+// AU-7 (SPH1): the B6-era "main.jsx routing stays frozen" note is amended - this route addition was
+// explicitly chosen by the Human Lead ("Inside the React app"). A11y: role=application aria-label,
+// keyboard arrows + ESC, aria-modal dialog, 44px targets, deep-navy/blue/orange only (no red/green
+// state), prefers-reduced-motion skips intro/inertia/drift. Pure presentation - no LLM, no number.
+// Verified in Chrome DevTools: render, drag+inertia, wheel, click->detail, ESC->restore, console
+// clean (only local-only Vercel analytics 404s). G1 (v3.0.58 -> v3.0.59).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

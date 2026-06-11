@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import ReactDOM from 'react-dom/client'
 import App, { PipelineLogsView } from './App.jsx'
+// AU-7 (SPH1, Human Lead approved): /spherical - the Analysis Sphere gallery.
+// Lazy chunk so three/gsap never load on the main app path.
+const SphericalGallery = lazy(() => import('./SphericalGallery.jsx'))
 import LeapView from './LeapView.jsx'
 import RoleGraph from './RoleGraph.jsx'
 import DebugPanel from './DebugPanel.jsx'
@@ -23,10 +26,15 @@ const debugLogs = dmm === 'logs'
 const debugPanel = dmm === 'panel'
 const leap = params.get('view') === 'leap'
 const graph = params.get('view') === 'graph'
+const spherical = window.location.pathname.replace(/\/+$/, '') === '/spherical' || params.get('view') === 'spherical'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App />}
+    {spherical ? (
+      <Suspense fallback={<div style={{ position: 'fixed', inset: 0, background: '#0b1220', color: '#9aa5b4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif', fontSize: 14 }}>Entering the sphere...</div>}>
+        <SphericalGallery />
+      </Suspense>
+    ) : graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App />}
     <SpeedInsights />
   </React.StrictMode>,
 )
