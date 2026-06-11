@@ -232,7 +232,9 @@ Use the in-repo samples as golden inputs - do not invent test data.
 
 ## §11. Version-bump gate (do this, don't skip)
 
-When a PR lands: surface `Rule V-1 / G1` to the Human Lead - `Rule E2 fired: engine PR2 reconcile. Prescribed: bump v3.0.x -> v3.1.0 (minor, new feature). Confirm? (yes/no/modify)`. On yes: bump in **all three** per R003 (`App.jsx` line 1 header, `index.html` title, `README` version), write the HDR journal entry, bump `.serial-state.yml`. The epic closes at **v3.2.0** when B6 ships.
+When a PR lands: surface `Rule V-1 / G1` to the Human Lead. On yes: bump in **all three** per R003 (`App.jsx` line 1 header, `index.html` title, `package.json` version), write the HDR journal entry, bump `.serial-state.yml`.
+
+> **AU-7 amendment (11-06 '26, Human Lead directive - supersedes the minor-roll wording above):** the version scheme is a **FLAT patch line `v3.0.<N>`**. Every PR increments the patch only (`v3.0.52 -> v3.0.53 -> ...`). **Do NOT roll to `v3.1.0` until the patch reaches `v3.0.999`.** The first-arc text below (E2 -> v3.1.0, epic close at v3.2.0) is the prior wording, kept verbatim for the record; in practice those 30 ships should have been `v3.0.23 .. v3.0.52`. The live build was reconciled to **v3.0.52** (HDR #090); historical PR titles (#53-#82) and HDR entries were left as-shipped. Source wins; prior preserved. ~~The epic closes at v3.2.0 when B6 ships.~~ (superseded: there is no minor roll for these arcs.)
 
 ```
 [HDR] #NNN | HH:MM:SS SGT DD-M-YY | v3.1.N | NNNkb | N,NNN lines
