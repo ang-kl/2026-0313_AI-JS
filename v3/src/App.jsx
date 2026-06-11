@@ -667,6 +667,17 @@
 // withheld under 3 duties or empty. Grounding: goal paper section 3 phases two and three + NBER
 // w34854 new-task-creating. ~ AI estimate chip; human-decides footer; 44px + aria.
 // G1 (v3.0.68 -> v3.0.69).
+// v3.0.70 - 2026-06-12 - HDR #108 - PRO2: Cover Letter Workbench ("how to craft the cover letter
+// through the ads" - Human Lead). NEW "Cover Letter" tab (gated >=3 duties, like Interview Prep):
+// SYSTEM_COVER designs a FOUR-PARAGRAPH scaffold (Opening / First proof / Second proof / Close) -
+// the model authors each paragraph's PURPOSE + fill-in PROMPTS only, never a sample sentence or
+// the candidate's claims (the Rehearsal triple-lock: HARD RULE in the prompt + digit strip + the
+// two proof paragraphs must cite DIFFERENT real duty numbers, filtered byN.has). Each proof shows
+// "Answers the duty: ..." verbatim from the ad. "Copy the scaffold" button exports plain text with
+// the supply-your-own-truth rule appended. CV text is never read here (it stays in the Role
+// Graph); the footer routes users there so True-Fit shows which duties their evidence covers.
+// cover1 cache; claude-fable-5; loads on tab open; withheld thin/ungrounded; ~ AI chip +
+// human-decides footer; 44px. G1 (v3.0.69 -> v3.0.70).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -6050,6 +6061,130 @@ function Rehearsal({ result, title }) {
   );
 }
 
+// ---- PRO2: Cover Letter Workbench ("how to craft the cover letter through the ads") ----
+// Same triple-lock as Rehearsal: the model authors paragraph PURPOSES + fill-in
+// PROMPTS only - never the candidate's claims, employers, numbers or outcomes
+// (HARD RULE + digit strip + duty-exists filter). Each evidence paragraph cites a
+// real duty n from the ad; the candidate supplies the story. CV text is never read
+// here (it stays in the Role Graph); the prompts ask for YOUR evidence.
+const _coverCache = new Map();
+const SYSTEM_COVER =
+`ACT AS a careers coach helping someone draft a cover letter for ONE advertised role. You are given its numbered duty statements. Design a four-paragraph scaffold: for each paragraph give its purpose in this letter and the fill-in prompts the candidate answers from THEIR OWN history. Singapore hiring context, plain language, no cliches.
+HARD RULE: every prompt tells the candidate what to supply - NOT example text. Never write a sample sentence, never invent experience, employers, numbers or outcomes. No digits in any field.
+Return ONLY a JSON object. No text before or after, no markdown fences.
+Format:
+{
+ "paragraphs": [
+  {"k":"open","title":"Opening","purpose":"what this paragraph must do for THIS role, under 20 words","prompts":["what the candidate should state or recall, under 16 words", "..."]},
+  {"k":"evidence1","title":"First proof","n":duty number,"purpose":"under 20 words","prompts":["...", "..."]},
+  {"k":"evidence2","title":"Second proof","n":duty number,"purpose":"under 20 words","prompts":["...", "..."]},
+  {"k":"close","title":"Close","purpose":"under 20 words","prompts":["...", "..."]}
+ ]
+}
+Exactly 4 paragraphs in this order. evidence1 and evidence2 must cite DIFFERENT duty numbers that exist in the given lines - re-check before output. 2 or 3 prompts per paragraph. No quote characters inside string values.`;
+
+async function fetchCoverScaffold(title, statements) {
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|cover1`;
+  if (_coverCache.has(key)) return _coverCache.get(key);
+  const list = statements.slice(0, 12).map(s => `${s.n}:${s.text}`).join("\n");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nDesign the four-paragraph cover-letter scaffold.`, 800, 1, SYSTEM_COVER, "claude-fable-5");
+  const o = extractJSON(raw, "cover") || {};
+  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "")]));
+  const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
+  const paragraphs = (Array.isArray(o.paragraphs) ? o.paragraphs : [])
+    .map(p => ({
+      k: String(p && p.k || ""), title: clean(p && p.title, 40), n: p && p.n != null ? Number(p.n) : null,
+      purpose: clean(p && p.purpose, 140),
+      prompts: (Array.isArray(p && p.prompts) ? p.prompts : []).map(x => clean(x, 110)).filter(Boolean).slice(0, 3),
+    }))
+    .filter(p => p.title && p.purpose && p.prompts.length)
+    .filter(p => (p.k !== "evidence1" && p.k !== "evidence2") || byN.has(p.n))
+    .slice(0, 4);
+  const read = { paragraphs };
+  _coverCache.set(key, read);
+  return read;
+}
+
+function CoverLetter({ result, title }) {
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+  const [cl, setCl] = useState({ status: "idle" });
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (statements.length < 3) { setCl({ status: "thin" }); return; }
+    let cancelled = false;
+    setCl({ status: "loading" });
+    const t0 = Date.now();
+    fetchCoverScaffold(title, statements)
+      .then(read => { if (cancelled) return; logStep("cover_letter", "ok", Date.now() - t0, `${read.paragraphs.length} paras`); setCl({ status: "done", read }); })
+      .catch(e => { if (cancelled) return; logStep("cover_letter", "error", Date.now() - t0, e && e.message); setCl({ status: "error" }); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, statements.length]);
+
+  const copyScaffold = () => {
+    if (cl.status !== "done") return;
+    const lines = [`Cover letter scaffold - ${toTitleCase(title)}`, ""];
+    cl.read.paragraphs.forEach(p => {
+      const duty = p.n != null ? statements.find(s => Number(s.n) === p.n) : null;
+      lines.push(`${p.title}${duty ? ` (answers the duty: ${duty.text})` : ""}`);
+      lines.push(`Purpose: ${p.purpose}`);
+      p.prompts.forEach(pr => lines.push(`- ${pr}`));
+      lines.push("");
+    });
+    lines.push("Rule: every line of the letter must be YOUR true experience - the prompts only tell you what to supply.");
+    try { navigator.clipboard.writeText(lines.join("\n")).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); } catch (_) {}
+  };
+
+  return (
+    <div>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>✉️ Cover letter workbench - built from this ad's duties</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>A four-paragraph scaffold. The prompts tell you what to supply from your own history - nothing here is written for you, so nothing can be invented about you.</p>
+          <Prov kind="ai" small />
+        </div>
+      </div>
+      {cl.status === "thin" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Not enough extracted duties yet to ground a letter - analyse a role with live postings.</p>}
+      {cl.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Designing the scaffold from the role's duties...</p>}
+      {cl.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The scaffold could not be completed - try again in a moment.</p>}
+      {cl.status === "done" && (cl.read.paragraphs.length ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {cl.read.paragraphs.map((p, i) => {
+            const duty = p.n != null ? statements.find(s => Number(s.n) === p.n) : null;
+            return (
+              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", background: C.surface }}>
+                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: C.text }}><span aria-hidden="true" style={{ color: "#1e40af" }}>{i + 1}.</span> {p.title}</p>
+                {duty && <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>Answers the duty: {duty.text}</p>}
+                <p style={{ margin: "0 0 8px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{p.purpose}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {p.prompts.map((pr, j) => (
+                    <div key={j} style={{ display: "flex", gap: 8 }}>
+                      <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#1e40af" }}>&gt;</span>
+                      <span style={{ flex: 1, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{pr}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            <button onClick={copyScaffold} style={{ minHeight: 44, padding: "10px 18px", borderRadius: 10, border: `2px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              {copied ? "Copied" : "Copy the scaffold"}
+            </button>
+            <span style={{ fontSize: 11, color: C.muted }}>Paste it next to your draft and answer each prompt in your own words.</span>
+          </div>
+          <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The scaffold and prompts are AI-suggested from this ad's duties - every sentence of the letter is yours to write from true experience. Tip: paste your CV in the Role Graph tab first; its True-Fit read shows which duties your evidence already covers - lead with those.</p>
+        </div>
+      ) : (
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground the scaffold in the role's duties.</p>
+      ))}
+    </div>
+  );
+}
+
 // ---- CJ4: Journey storyboard spine (Candidate Journey - the onboarding flow) ----
 // A compact storyboard at the top of the Navigation box that sequences the 5 stations
 // (Understand -> Position -> Become -> Arm -> Rehearse) so the candidate is self-directed.
@@ -11011,6 +11146,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       ...((r.responsibilitiesData || r.jobAnatomy) ? [{ key:"deepread", label:"🔬 Deep Read", color:"#7c3aed" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"taskprep", label:"🎯 Task Prep", color:"#0e7490" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length >= 3) ? [{ key:"rehearse", label:"🎤 Interview Prep", color:"#1a56db" }] : []),
+      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length >= 3) ? [{ key:"coverletter", label:"✉️ Cover Letter", color:"#0e7490" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
@@ -11741,6 +11877,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               )}
               {activeTab === "rehearse" && result.responsibilitiesData && (
                 <Rehearsal result={result} title={sel?.title || ""} />
+              )}
+              {activeTab === "coverletter" && result.responsibilitiesData && (
+                <CoverLetter result={result} title={sel?.title || ""} />
               )}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
