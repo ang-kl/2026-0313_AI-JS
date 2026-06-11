@@ -1,0 +1,941 @@
+{
+  "generated": "08-06-'26 21:52 SGT",
+  "role": {
+    "uuid": "a359c3692d4b5f03869071eff58fd47f",
+    "source_url": "https://www.mycareersfuture.gov.sg/job/x-a359c3692d4b5f03869071eff58fd47f"
+  },
+  "engine": {
+    "ok": true,
+    "input": {
+      "ssoc": "21222",
+      "title": "Salesforce Data Analyst (Graduate Program)"
+    },
+    "occupation": {
+      "ssoc": "21222",
+      "isco": [
+        "2120"
+      ],
+      "label": "Mathematicians, actuaries and statisticians",
+      "soc": [
+        "15-2011",
+        "15-2021",
+        "15-2031",
+        "15-2041",
+        "19-3022"
+      ],
+      "via": "ssoc",
+      "partial": false
+    },
+    "exposure": {
+      "index": 98,
+      "band": "high",
+      "zMean": 1.44,
+      "zRange": [
+        1.383,
+        1.516
+      ],
+      "socsUsed": [
+        {
+          "soc": "15-2011",
+          "title": "Actuaries",
+          "aioe": 1.516,
+          "fromIsco": "2120"
+        },
+        {
+          "soc": "15-2021",
+          "title": "Mathematicians",
+          "aioe": 1.472,
+          "fromIsco": "2120"
+        },
+        {
+          "soc": "15-2031",
+          "title": "Operations Research Analysts",
+          "aioe": 1.4,
+          "fromIsco": "2120"
+        },
+        {
+          "soc": "15-2041",
+          "title": "Statisticians",
+          "aioe": 1.383,
+          "fromIsco": "2120"
+        },
+        {
+          "soc": "19-3022",
+          "title": "Survey Researchers",
+          "aioe": 1.427,
+          "fromIsco": "2120"
+        }
+      ],
+      "socsWithScore": 5,
+      "source": "AIOE (Felten, Raj & Seamans 2021)",
+      "crosswalk": "SSOC->ISCO-08->SOC 2010->AIOE",
+      "confidence": "high"
+    },
+    "coherence": null,
+    "mirrorRoles": null,
+    "provenance": {
+      "aioe": {
+        "name": "AI Occupational Exposure (AIOE)",
+        "measure": "AIOE standardized index (z-score, mean 0 / SD 1)",
+        "occupations": 774,
+        "socVintage": "2010 SOC",
+        "source": "Felten, Raj & Seamans (2021), Strategic Management Journal 42(12):2195-2217",
+        "url": "https://github.com/AIOE-Data/AIOE",
+        "file": "AIOE_DataAppendix.xlsx (Appendix A)",
+        "retrieved": "2026-06-08",
+        "license": "No license file in repo; used with required academic citation + source link.",
+        "citation": "Felten E, Raj M, Seamans R (2021). Occupational, industry, and geographic exposure to artificial intelligence: A novel dataset and its potential uses. Strategic Management Journal 42(12):2195-2217."
+      },
+      "ssocIsco": {
+        "name": "SSOC 2020 - ISCO-08 correspondence",
+        "vintage": "SSOC 2020",
+        "source": "Singapore Department of Statistics (SingStat)",
+        "url": "https://www.singstat.gov.sg/standard-classifications/national-classifications/singapore-standard-occupational-classification-ssoc",
+        "file": "SSOC2020-ISCO08 correspondence (updated 20 Mar 2020)",
+        "retrieved": "2026-06-08",
+        "cardinality": "many-to-many (most many-to-one; ~16% partial splits)",
+        "license": "SingStat Terms of Use: free reproduction with source acknowledgement.",
+        "attribution": "Source: Singapore Department of Statistics, SSOC 2020 - Correspondence Table with ISCO-08."
+      },
+      "iscoSoc": {
+        "name": "ISCO-08 - SOC 2010 crosswalk",
+        "socVintage": "2010 SOC",
+        "source": "U.S. Bureau of Labor Statistics (BLS) / SOC Policy Committee",
+        "url": "https://www.bls.gov/soc/soccrosswalks.htm",
+        "file": "ISCO_SOC_Crosswalk.xls (Aug 2012, updated Jun 2015)",
+        "retrieved": "2026-06-08",
+        "cardinality": "many-to-many (carry all matches)",
+        "license": "U.S. federal government work - public domain."
+      },
+      "chain": "SSOC -> ISCO-08 (SingStat) -> SOC 2010 (BLS) -> AIOE (Felten et al.). AIOE and BLS crosswalk share the 2010 SOC vintage (clean join, no extra hop).",
+      "indexTransform": "AI-Exposure Index (0-100) = percentile rank of the occupation's AIOE (unweighted mean across mapped SOC codes) among all 774 AIOE occupations. Raw z-mean and z-range are carried for fidelity."
+    },
+    "version": "engine-1"
+  },
+  "columns": [
+    {
+      "key": "role",
+      "title": "Role",
+      "sub": "🇸🇬 MyCareersFuture posting"
+    },
+    {
+      "key": "occupation",
+      "title": "Occupation",
+      "sub": "SSOC → ISCO (computed)"
+    },
+    {
+      "key": "skill",
+      "title": "Skills",
+      "sub": "MCF skill tags"
+    },
+    {
+      "key": "responsibility",
+      "title": "Responsibilities",
+      "sub": "from the job description"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "role",
+      "col": "role",
+      "label": "Salesforce Data Analyst (Graduate Program)",
+      "status": "stated",
+      "prov": "mcf",
+      "meta": {
+        "employer": "Capgemini Singapore  PTE. LTD.",
+        "salary": [
+          4000,
+          4400
+        ],
+        "seniority": "Fresh/entry level",
+        "ssoc": "21222",
+        "vacancies": 1,
+        "categories": [
+          "Consulting",
+          "Information Technology"
+        ]
+      }
+    },
+    {
+      "id": "occ",
+      "col": "occupation",
+      "label": "Mathematicians, actuaries and statisticians",
+      "status": "computed",
+      "prov": "computed",
+      "meta": {
+        "isco": [
+          "2120"
+        ],
+        "soc": [
+          "15-2011",
+          "15-2021",
+          "15-2031",
+          "15-2041",
+          "19-3022"
+        ],
+        "ssoc": "21222"
+      }
+    },
+    {
+      "id": "sk0",
+      "col": "skill",
+      "label": "JSON",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk1",
+      "col": "skill",
+      "label": "Integration",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk2",
+      "col": "skill",
+      "label": "Data Mapping",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk3",
+      "col": "skill",
+      "label": "XML",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk4",
+      "col": "skill",
+      "label": "Salesforce",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk5",
+      "col": "skill",
+      "label": "MuleSoft",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk6",
+      "col": "skill",
+      "label": "Data model",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk7",
+      "col": "skill",
+      "label": "Cloud",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk8",
+      "col": "skill",
+      "label": "API",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk9",
+      "col": "skill",
+      "label": "Data",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "sk10",
+      "col": "skill",
+      "label": "Testing",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re0",
+      "col": "responsibility",
+      "label": "We are seeking a Salesforce Data Analyst to support large-scale system integration projects involving Salesforce and multiple external systems.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re1",
+      "col": "responsibility",
+      "label": "You will start by assisting in data mapping and integration work between Salesforce and APIs (e.g. MuleSoft), gaining hands‑on exposure to how data flows across systems. This includes understanding Salesforce data models, integration payloads, and transformation logic.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re2",
+      "col": "responsibility",
+      "label": "You will also support testing activities (SIT/UAT) and work closely with experienced consultants across Salesforce, integration, and functional teams.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re3",
+      "col": "responsibility",
+      "label": "Over time, this role can evolve into a Business Analyst or Developer track, depending on project needs and your interests.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re4",
+      "col": "responsibility",
+      "label": "This role is suited for individuals who are detail-oriented, structured, and proactive, and who are interested in understanding how enterprise systems connect and operate end‑to‑end.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re5",
+      "col": "responsibility",
+      "label": "Data Mapping & Integration Support",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re6",
+      "col": "responsibility",
+      "label": "Work closely with functional, integration (MuleSoft) and data migration teams to support end‑to‑end delivery.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re7",
+      "col": "responsibility",
+      "label": "Assist in mapping data between Salesforce objects and external systems via APIs.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re8",
+      "col": "responsibility",
+      "label": "Analyse field definitions, data structures, and relationships across systems.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re9",
+      "col": "responsibility",
+      "label": "Support the documentation of data templates, mappings, transformation logic and integration requirements.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re10",
+      "col": "responsibility",
+      "label": "Work with senior consultants to clarify data inconsistencies, edge cases, and validation rules.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re11",
+      "col": "responsibility",
+      "label": "Review API payloads (JSON/XML) to understand how data is exchanged between systems.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re12",
+      "col": "responsibility",
+      "label": "Perform data patching when required.",
+      "status": "stated",
+      "prov": "mcf"
+    },
+    {
+      "id": "re13",
+      "col": "responsibility",
+      "label": "Maintain clear and well-structured documentation such as data mapping sheets, integration specifications (functional level), test scenarios and results.",
+      "status": "stated",
+      "prov": "mcf"
+    }
+  ],
+  "edges": [
+    {
+      "a": "role",
+      "b": "occ",
+      "kind": "computed"
+    },
+    {
+      "a": "role",
+      "b": "sk0",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk1",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk2",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk3",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk4",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk5",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk6",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk7",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk8",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk9",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "sk10",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re0",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re1",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re2",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re3",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re4",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re5",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re6",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re7",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re8",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re9",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re10",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re11",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re12",
+      "kind": "stated"
+    },
+    {
+      "a": "role",
+      "b": "re13",
+      "kind": "stated"
+    },
+    {
+      "a": "sk0",
+      "b": "re11",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk1",
+      "b": "re0",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk1",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk1",
+      "b": "re2",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk1",
+      "b": "re5",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk2",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk2",
+      "b": "re5",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk2",
+      "b": "re7",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk2",
+      "b": "re13",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk3",
+      "b": "re11",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk4",
+      "b": "re0",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk4",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk4",
+      "b": "re2",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk4",
+      "b": "re7",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk5",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk5",
+      "b": "re6",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk6",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk6",
+      "b": "re0",
+      "kind": "inferred",
+      "score": 0.5
+    },
+    {
+      "a": "sk6",
+      "b": "re5",
+      "kind": "inferred",
+      "score": 0.5
+    },
+    {
+      "a": "sk6",
+      "b": "re6",
+      "kind": "inferred",
+      "score": 0.5
+    },
+    {
+      "a": "sk8",
+      "b": "re11",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk9",
+      "b": "re0",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk9",
+      "b": "re1",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk9",
+      "b": "re5",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk9",
+      "b": "re6",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk10",
+      "b": "re2",
+      "kind": "inferred",
+      "score": 1
+    },
+    {
+      "a": "sk10",
+      "b": "re13",
+      "kind": "inferred",
+      "score": 1
+    }
+  ],
+  "corroboration": [
+    {
+      "title": "Frontend Developer (Android)",
+      "seniority": "Executive",
+      "salary": [
+        4000,
+        8000
+      ],
+      "posted": "2026-06-08",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/frontend-developer-capgemini-singapore-5e5a2fff6ebe4802d12de53976719549"
+    },
+    {
+      "title": "Senior Backend Developer (Java)",
+      "seniority": "Senior Executive",
+      "salary": [
+        5000,
+        10000
+      ],
+      "posted": "2026-06-08",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/senior-backend-developer-capgemini-singapore-ace1dfd2ce946feb3af55d55a4096171"
+    },
+    {
+      "title": "Salesforce Data Analyst (Graduate Program)",
+      "seniority": "Fresh/entry level",
+      "salary": [
+        4000,
+        4400
+      ],
+      "posted": "2026-06-08",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-a359c3692d4b5f03869071eff58fd47f"
+    },
+    {
+      "title": "PMO / Project Coordinator",
+      "seniority": "Professional",
+      "salary": [
+        4000,
+        6000
+      ],
+      "posted": "2026-06-08",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/pmo-project-coordinator-capgemini-singapore-900bcb7e311057a3d443569ab3d1427b"
+    },
+    {
+      "title": "Software Engineer (Generative AI Engineer)",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-06-05",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-capgemini-singapore-194569e1a832e770ae25931eef0132e5"
+    },
+    {
+      "title": "Software Engineer, Quality & Platform (GenAI)",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-06-05",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-quality-platform-capgemini-singapore-fbea40678044e6ebe378f71c142a22a2"
+    },
+    {
+      "title": "Software Engineer (Full Stack / GenAI Applications)",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-06-05",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/software-engineer-capgemini-singapore-516b900370694064714a202749c05b84"
+    },
+    {
+      "title": "DevSecOps Engineer",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-06-05",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/devsecops-engineer-capgemini-singapore-055aafb0666e4647ba7daa4c204cc7ff"
+    },
+    {
+      "title": "Product Manager",
+      "seniority": "Professional",
+      "salary": [
+        5000,
+        10000
+      ],
+      "posted": "2026-06-04",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/product-manager-capgemini-singapore-05edd2909963c227c86ca11fe7f871b7"
+    },
+    {
+      "title": "UX Designer",
+      "seniority": "Senior Executive",
+      "salary": [
+        5000,
+        10000
+      ],
+      "posted": "2026-06-03",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/ux-designer-capgemini-singapore-b5a5754cc3922335b81575e8dcfd8f8e"
+    },
+    {
+      "title": "X-Ray / CT Imaging Engineer",
+      "seniority": "Executive",
+      "salary": [
+        4000,
+        8000
+      ],
+      "posted": "2026-06-03",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/x-ray-ct-imaging-engineer-capgemini-singapore-a9b30742ebbf76367f5a9fbee540a123"
+    },
+    {
+      "title": "Business Analyst (Data Migration)",
+      "seniority": "Junior Executive",
+      "salary": [
+        4000,
+        6000
+      ],
+      "posted": "2026-06-03",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/business-analyst-capgemini-singapore-910a918361dc6ae182c3db98c4c13a74"
+    },
+    {
+      "title": "Salesforce Developer",
+      "seniority": "Executive",
+      "salary": [
+        7000,
+        14000
+      ],
+      "posted": "2026-06-02",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-developer-capgemini-singapore-e887719cfc99767944fb8daa15798c51"
+    },
+    {
+      "title": "Delivery Executive (Digital & Integration SME)",
+      "seniority": "Middle Management",
+      "salary": [
+        25000,
+        32000
+      ],
+      "posted": "2026-05-26",
+      "url": "https://www.mycareersfuture.gov.sg/job/banking-finance/delivery-executive-capgemini-singapore-bdf75430dbc3725dacd0a32c21bdc38c"
+    },
+    {
+      "title": "Salesforce Business Analyst",
+      "seniority": "Senior Executive",
+      "salary": [
+        6000,
+        12000
+      ],
+      "posted": "2026-05-26",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/salesforce-business-analyst-capgemini-singapore-faa6636950ebc601c190494f5a5f120b"
+    },
+    {
+      "title": "Cybersecurity Operations Lead",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-05-22",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/cybersecurity-operations-lead-capgemini-singapore-8410b488a017c808a32ec77bdda6f9ca"
+    },
+    {
+      "title": "Senior Frontend Engineer",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-05-21",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/senior-frontend-engineer-capgemini-singapore-db68a91faa7ec8b31abbace9d5a47f3a"
+    },
+    {
+      "title": "Software Developer (Salesforce) (Graduate Program) - 2026 Hires",
+      "seniority": "Fresh/entry level",
+      "salary": [
+        4000,
+        4400
+      ],
+      "posted": "2026-05-21",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/software-developer-2026-hires-capgemini-singapore-f177e2b49f99f97d793e127319e418ff"
+    },
+    {
+      "title": "Full Stack Engineer",
+      "seniority": "Professional",
+      "salary": [
+        7000,
+        9000
+      ],
+      "posted": "2026-05-21",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/full-stack-engineer-capgemini-singapore-5fce1097bb4ce8a0447988e906697947"
+    },
+    {
+      "title": "IT Support Specialist",
+      "seniority": "Fresh/entry level",
+      "salary": [
+        3000,
+        5000
+      ],
+      "posted": "2026-05-19",
+      "url": "https://www.mycareersfuture.gov.sg/job/information-technology/support-specialist-capgemini-singapore-2ea334af3aad52525493e56405c67c2b"
+    },
+    {
+      "title": "System Support Engineer",
+      "seniority": "Executive",
+      "salary": [
+        4000,
+        7000
+      ],
+      "posted": "2026-05-14",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/system-support-engineer-capgemini-singapore-8e08a112fa694559c9d4cc7c580dc6b0"
+    },
+    {
+      "title": "Software Developer (.NET)",
+      "seniority": "Senior Executive",
+      "salary": [
+        5000,
+        10000
+      ],
+      "posted": "2026-05-14",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/software-developer-capgemini-singapore-d6753a1a70628d2e4dd27f5d0db21fca"
+    },
+    {
+      "title": "Senior Automation Tester (Tosca)",
+      "seniority": "Professional",
+      "salary": [
+        6500,
+        11500
+      ],
+      "posted": "2026-05-13",
+      "url": "https://www.mycareersfuture.gov.sg/job/information-technology/senior-automation-tester-capgemini-singapore-4a00e3c1a30b612c460d0a2245a3a73c"
+    },
+    {
+      "title": "Tosca Test Manager",
+      "seniority": "Manager",
+      "salary": [
+        5000,
+        8000
+      ],
+      "posted": "2026-05-13",
+      "url": "https://www.mycareersfuture.gov.sg/job/information-technology/tosca-test-manager-capgemini-singapore-c659a3288a4d192b57c4fade0c13cb04"
+    },
+    {
+      "title": "Test Manager (Information System)",
+      "seniority": "Senior Executive",
+      "salary": [
+        7000,
+        12000
+      ],
+      "posted": "2026-05-13",
+      "url": "https://www.mycareersfuture.gov.sg/job/information-technology/test-manager-capgemini-singapore-675ef7d03646e00d6c1fe4aeb93057fe"
+    },
+    {
+      "title": "Software Applications Test Manager (Banking Applications)",
+      "seniority": "Manager",
+      "salary": [
+        9000,
+        13000
+      ],
+      "posted": "2026-05-13",
+      "url": "https://www.mycareersfuture.gov.sg/job/banking-finance/software-applications-test-manager-capgemini-singapore-6fbe6097103e681c7ba75f33a174c062"
+    },
+    {
+      "title": "System Analyst (Financial Service)",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9800
+      ],
+      "posted": "2026-05-13",
+      "url": "https://www.mycareersfuture.gov.sg/job/information-technology/system-analyst-capgemini-singapore-b21d5f21290cf86dbfaad0e34d83c01b"
+    },
+    {
+      "title": ".NET Developer",
+      "seniority": "Senior Executive",
+      "salary": [
+        5000,
+        10000
+      ],
+      "posted": "2026-05-11",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/net-developer-capgemini-singapore-c7fb03b25429b8eececaee54655145ed"
+    },
+    {
+      "title": "Digital Business Analyst",
+      "seniority": "Professional",
+      "salary": [
+        6000,
+        9000
+      ],
+      "posted": "2026-05-11",
+      "url": "https://www.mycareersfuture.gov.sg/job/consulting/digital-business-analyst-capgemini-singapore-2133674ebd8920b3de21edc8bbadf1b7"
+    }
+  ]
+}
