@@ -20,12 +20,21 @@
 > below anchors the match to the function definition line (`^(async )?function <sym>(`) and accumulates
 > a `fail` flag that becomes the exit code. Source wins; prior preserved verbatim above.
 
+> **AU-7 amendment (ESCO-DIS, v3.0.57):** `getEscoSkills` is REMOVED from the byte-identical
+> list below and demoted to a contract check (step 3 already greps it as a required global). Reason:
+> spec §1 AU-7 (ESCO-DIS) made the occupation resolver an ADDITIVE + OPT-IN skill-overlap fix - the
+> one-arg `getEscoSkills(title)` call path is unchanged, but the signature gained an optional second
+> arg, so a byte-identical assertion would false-BLOCK a deliberate, Human-Lead-approved change.
+> `resolveOccupation` (the original resolver) stays byte-frozen via the file check on `api/esco.js`
+> being additive-only. Prior list preserved in git history; source wins.
+
 **Run** (from repo root, against `main`; exits non-zero on any BLOCK):
 ```bash
 # 1. Frozen symbols must be byte-identical to main (anchored to the definition line).
+#    getEscoSkills demoted to a contract check (step 3) per AU-7 ESCO-DIS - additive optional arg.
 git fetch origin main
 fail=0
-for sym in searchOccupations detectFunctionKeyword lookupSeniorMgmt getEscoSkills \
+for sym in searchOccupations detectFunctionKeyword lookupSeniorMgmt \
            checkIscoCoherence getSkills getSkillsFromPosting ; do
   echo "== $sym =="
   if diff <(git show origin/main:v3/src/App.jsx | awk -v s="$sym" '$0 ~ "^(async )?function "s"\\(" {f=1} f{print} f&&/^}/{exit}') \

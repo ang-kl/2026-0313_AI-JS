@@ -512,6 +512,21 @@
 // 44px targets; locked stations stay focusable (aria-disabled only, click guarded). Conformance + a11y
 // 7/7 PASS. Spec CJ4 SHIPPED; the Candidate Journey arc is now complete (CJ1-CJ4).
 // Additive; no frozen symbol touched. G1 (v3.0.55 -> v3.0.56).
+// v3.0.57 - 2026-06-11 - HDR #095 - ESCO-DIS: occupation disambiguation by skill overlap.
+// Bug (Human Lead): generic titles flooded a non-IT role with "ICT..." skills - e.g. Senior
+// Director Transformation Delivery resolved (blind top-hit) to ESCO "digital transformation
+// manager" and inherited its ICT-coded essential skills (Implement ICT Coding Conventions,
+// Attack Vectors, ...). Root cause: resolveOccupation took results[0] with no role-family guard.
+// Fix (ADDITIVE + OPT-IN, frozen-door AU-7 ESCO-DIS approved): api/esco.js gains a NEW
+// resolveOccupationByOverlap(title, skillPhrases) - widens the candidate pool by searching on the
+// ad's real skills too (like occupationFingerprint), then picks the occupation with the most
+// skill-overlap; exact title match still wins; no-overlap falls back to the top hit. The original
+// resolveOccupation is byte-untouched and still used when no phrases are passed. getEscoSkills
+// gains an OPTIONAL skillPhrases arg (one-arg path unchanged); posting/corpus runs feed
+// posting.skills/corpus.skills. Deterministic - no LLM, no number. R-FREEZE updated to a contract
+// check for getEscoSkills; verified exit 0. Tested: the Senior Director case moves off the
+// ICT-heavy occupation to a closer-overlap one.
+// Additive; resolveOccupation/getEscoSkills one-arg contract intact. G1 (v3.0.56 -> v3.0.57).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -884,14 +899,17 @@ Return ${count} ESCO v1.2 occupations matching this term, ordered by relevance.
   });
 }
 
-async function getEscoSkills(title) {
+async function getEscoSkills(title, skillPhrases) {
   // v2: fetch canonical ESCO essential skills via api/esco proxy
-  // Falls back to getSkills() if ESCO returns zero skills
+  // Falls back to getSkills() if ESCO returns zero skills.
+  // skillPhrases (optional, from the live posting) let the API disambiguate the
+  // occupation by overlap, so a generic title does not collapse onto an IT-family
+  // ESCO occupation and inherit its ICT-coded skill list.
   try {
     const res = await fetch('/api/esco', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'skills', title })
+      body: JSON.stringify({ action: 'skills', title, skillPhrases: (skillPhrases || []).slice(0, 30) })
     });
     if (!res.ok) throw new Error(`api/esco HTTP ${res.status}`);
     const data = await res.json();
@@ -9854,11 +9872,14 @@ export default function App() {
       let _tEsco; try { _tEsco = performance.now(); } catch (_) { _tEsco = 0; }
       let escoResult, skills;
       try {
-        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle);
+        // Feed the live posting's real skills so the ESCO occupation is picked by
+        // overlap, not a blind top-hit (stops generic titles inheriting ICT skills).
+        const _escoPhrases = (posting && posting.skills) || (corpus && corpus.skills) || [];
+        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle, _escoPhrases);
         skills = escoResult ? escoResult.skills : null;
         if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
         if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
-        logStep("esco_skills", "ok", _msSince(_tEsco), `${(skills || []).length} skills ${escoResult ? "ESCO" : corpus ? "corpus" : "AI"}`);
+        logStep("esco_skills", "ok", _msSince(_tEsco), `${(skills || []).length} skills ${escoResult ? `ESCO/${escoResult.disambiguatedBy || "top_hit"}` : corpus ? "corpus" : "AI"}`);
       } catch (e) { logStep("esco_skills", "error", _msSince(_tEsco), e && e.message); throw e; }
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;

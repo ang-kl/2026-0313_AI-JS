@@ -32,6 +32,23 @@ These are the "landing + searching the role" you asked to protect. **Radicality:
 
 **Guard rule (new, propose as R011):** before any result-page PR is packaged, run `recipe R-FREEZE` (see `recipes/`) - a grep/diff that asserts the frozen symbols above are byte-identical to `main`. A non-zero diff on a frozen symbol **blocks packaging** (mirrors R005 grep-before-packaging).
 
+> **AU-7 amendment (ESCO-DIS, v3.0.57, Human Lead approved):** the "Search -> occupation
+> resolution" row is NARROWED, not unfrozen. Source-wins reason: the live bug the Human Lead
+> flagged ("ICT... skills" flooding a non-IT role, e.g. *Senior Director Transformation Delivery*
+> -> ESCO `digital transformation manager` -> ICT-coded essential skills) lives INSIDE the frozen
+> resolver and cannot be fixed without touching it. The fix is deliberately ADDITIVE + OPT-IN:
+>   - `api/esco.js` gains a NEW `resolveOccupationByOverlap(title, skillPhrases)` (the existing
+>     `resolveOccupation` is byte-untouched). The `skills` handler calls the new resolver ONLY when
+>     `skillPhrases` are supplied; with none it uses the old `resolveOccupation` -> identical output.
+>   - `getEscoSkills(title, skillPhrases)` in App.jsx gains an OPTIONAL second arg; called with one
+>     arg it behaves exactly as before. Posting/corpus runs now pass the ad's real skills so the
+>     occupation is picked by skill-overlap (pool widened by skill-phrase search, like
+>     `occupationFingerprint`), not a blind top-hit. Exact title match still wins; no-overlap falls
+>     back to the top hit. No LLM, no number authored - deterministic ESCO search + token overlap.
+> R-FREEZE is updated: `getEscoSkills` moves from byte-identical assertion to a CONTRACT check (the
+> one-arg call path is unchanged); `resolveOccupation` stays byte-frozen. Prior wording preserved
+> above per AU-7.
+
 > Note on v2: the repo-root app (`src/App.jsx`, the "AI skilling" v2 lineage at `v2_2026-04-08/v2_0_7/`) is **out of scope**. A v3-only change leaves v2's build output identical (per `doc/v3-leap-view.md` deploy note). Do not edit v2 to achieve a v3 result.
 
 ---
