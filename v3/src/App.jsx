@@ -627,6 +627,14 @@
 // manager and worksite may belong to a client, not the poster. No LLM, no number authored;
 // source/confidence/time-window footer; 44px + aria-expanded; flag by shape+text, not colour.
 // G1 (v3.0.64 -> v3.0.65).
+// v3.0.66 - 2026-06-12 - HDR #104 - PRO1.1: ACRA lookup hardening (live-probe findings). Two
+// defects from the v3.0.65 live probe: (1) datastore_search 409s "q is invalid" on punctuation
+// (the trailing dot in "DBS BANK LTD.") - q is now sanitised to letters/digits/spaces/&/-;
+// (2) the fuzzy ranker drowns common tokens, so big-name employers missed. Fix: two-step lookup -
+// filters= EXACT entity_name equality FIRST (verified live: "DBS BANK LTD." -> UEN 196800306E,
+// Registered, first try), sanitised q + exact-name guard as fallback. Statutory boards (e.g.
+// GovTech) are not in the ACRA-issued dataset - honestly withheld. api/datagov.js only; no UI
+// change. G1 (v3.0.65 -> v3.0.66).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

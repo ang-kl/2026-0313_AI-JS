@@ -84,20 +84,36 @@ async function acraLookup(rawName) {
   const cached = acraCache.get(norm);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
 
-  const url = `${ACRA_BASE}?resource_id=${encodeURIComponent(ACRA_RESOURCE_ID)}&q=${encodeURIComponent(rawName.slice(0, 120))}&limit=10`;
-  let json = null;
-  try {
-    // DATA_GOV_SG_API_KEY (already provisioned for the trend action) is sent when
-    // present - the datastore endpoint is public, the key lifts rate limits.
-    const headers = { accept: 'application/json' };
-    if (process.env.DATA_GOV_SG_API_KEY) headers['x-api-key'] = process.env.DATA_GOV_SG_API_KEY;
-    const res = await fetchWithTimeout(url, { headers }, STEP_TIMEOUT_MS);
-    if (!res.ok) return { matched: 'none', reason: `http_${res.status}` };
-    json = await res.json();
-  } catch (err) {
-    return { matched: 'none', reason: err.name === 'AbortError' ? 'timeout' : 'error' };
+  // PRO1.1: two-step lookup. (1) filters= EXACT entity_name equality on the raw
+  // uppercased name - precise, immune to the fuzzy ranker drowning common tokens
+  // ("DBS BANK LTD." resolves first try). (2) Fall back to a SANITISED q search
+  // (datastore_search 409s "q is invalid" on punctuation like the trailing dot in
+  // "LTD.") - the exact-name guard below still decides what may be shown.
+  // DATA_GOV_SG_API_KEY (already provisioned for the trend action) is sent when
+  // present - the datastore endpoint is public, the key lifts rate limits.
+  const headers = { accept: 'application/json' };
+  if (process.env.DATA_GOV_SG_API_KEY) headers['x-api-key'] = process.env.DATA_GOV_SG_API_KEY;
+  async function hit(url) {
+    try {
+      const res = await fetchWithTimeout(url, { headers }, STEP_TIMEOUT_MS);
+      if (!res.ok) return { err: `http_${res.status}` };
+      return { json: await res.json() };
+    } catch (err) {
+      return { err: err.name === 'AbortError' ? 'timeout' : 'error' };
+    }
   }
-  const records = json?.result?.records || [];
+  let records = [];
+  const exactFilter = encodeURIComponent(JSON.stringify({ entity_name: rawName.toUpperCase().trim().slice(0, 120) }));
+  const r1 = await hit(`${ACRA_BASE}?resource_id=${encodeURIComponent(ACRA_RESOURCE_ID)}&filters=${exactFilter}&limit=5`);
+  if (r1.json?.result?.records?.length) {
+    records = r1.json.result.records;
+  } else {
+    const q = rawName.replace(/[^A-Za-z0-9 &-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (q.length < 3) return { matched: 'none', reason: 'name_too_short' };
+    const r2 = await hit(`${ACRA_BASE}?resource_id=${encodeURIComponent(ACRA_RESOURCE_ID)}&q=${encodeURIComponent(q)}&limit=20`);
+    if (r2.err && r1.err) return { matched: 'none', reason: r2.err };
+    records = r2.json?.result?.records || [];
+  }
   // exact-name guard: only a record whose NORMALISED name equals the query's
   // normalised name is presented; everything else is withheld.
   const hits = records.filter(r => normCompanyName(r.entity_name) === norm);
