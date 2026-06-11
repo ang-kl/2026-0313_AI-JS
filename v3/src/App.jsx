@@ -635,6 +635,16 @@
 // Registered, first try), sanitised q + exact-name guard as fallback. Statutory boards (e.g.
 // GovTech) are not in the ACRA-issued dataset - honestly withheld. api/datagov.js only; no UI
 // change. G1 (v3.0.65 -> v3.0.66).
+// v3.0.67 - 2026-06-12 - HDR #105 - PRO5: Work-Mode Mix ("the ads has mix of supervision,
+// teamwork, self-contributor, how would you address" - Human Lead). NEW WorkModeMix panel in the
+// Role-Mix tab: each extracted duty classified by FIXED people-signals (precedence supervision >
+// teamwork > self-contributor; "manage a team" is supervision, "manage monthly reports" is solo -
+// 8/8 unit cases pass); labelled segment bar (S/T/I letters + counts, never colour alone) + per-
+// duty evidence rows showing the MATCHED SIGNAL so the reader can disagree; when all three modes
+// hold >=20% the panel flags "boss, teammate AND solo deliverer in one seat" and ties to the
+// Role-Mix grab-bag/mixed coherence verdict + the interview question to ask. Withheld under 3
+// duties. Deterministic end to end (~ derived); no LLM, no invented number; source/confidence/
+// time-window footer; 44px + aria. G1 (v3.0.66 -> v3.0.67).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -7819,6 +7829,112 @@ function CompareWarningModal({ onConfirm, onCancel }) {
   );
 }
 
+// PRO5: Work-Mode Mix - does this ad blend supervision, teamwork and solo
+// delivery? Deterministic end to end: each extracted duty is classified by
+// FIXED keyword signals (people-leadership > collaboration > self-contributor
+// precedence; the matched signal is shown as evidence). No LLM, no invented
+// number - counts are pass-through arithmetic over the duty texts (~ derived).
+const _WORK_MODES = {
+  supervision: {
+    label: "Supervision", color: "#1e40af", bg: "#eef2ff", bdr: "#c7d2fe", icon: "S",
+    re: /\b(supervis\w*|mentor\w*|coach\w*|lead(?:s|ing)? (?:a |the )?(?:team|squad|crew|department|group|pod)|manag(?:e|es|ing) (?:a |the )?(?:team|staff|people|headcount|direct reports?|engineers?|analysts?|vendors?|contractors?)|oversee\w*|performance review\w*|hire\w*|recruit\w*|delegat\w*|appraisal\w*|line manage\w*)\b/i,
+  },
+  teamwork: {
+    label: "Teamwork", color: "#0e7490", bg: "#ecfeff", bdr: "#a5f3fc", icon: "T",
+    re: /\b(collaborat\w*|cross-functional\w*|work (?:closely |hand in hand )?with|partner(?:s|ing)? with|liais\w*|coordinat\w* with|stakeholders?|align\w* with|support(?:s|ing)? the team|joint(?:ly)?|together with)\b/i,
+  },
+  solo: {
+    label: "Self-contributor", color: "#b45309", bg: "#fffbeb", bdr: "#fcd9a0", icon: "I",
+    re: /./, // the default bucket - delivery duties with no people signal
+  },
+};
+function workModeMix(responsibilities) {
+  const resp = Array.isArray(responsibilities) ? responsibilities : [];
+  if (resp.length < 3) return null; // too thin to call a mix - withhold
+  const perDuty = resp.map(r => {
+    const text = String(r.text || "");
+    for (const key of ["supervision", "teamwork"]) {
+      const m = text.match(_WORK_MODES[key].re);
+      if (m) return { n: r.n, text, mode: key, signal: m[0] };
+    }
+    return { n: r.n, text, mode: "solo", signal: "" };
+  });
+  const counts = { supervision: 0, teamwork: 0, solo: 0 };
+  perDuty.forEach(d => { counts[d.mode]++; });
+  const total = perDuty.length;
+  const pct = k => Math.round((counts[k] / total) * 100);
+  const present = Object.keys(counts).filter(k => counts[k] > 0);
+  const minShare = Math.min(...present.map(pct));
+  const mixed = present.length === 3 && minShare >= 20;
+  return { perDuty, counts, total, pct, present, mixed };
+}
+function WorkModeMix({ result }) {
+  const [open, setOpen] = useState(false);
+  const resp = (result && result.responsibilitiesData && result.responsibilitiesData.responsibilities) || [];
+  const wm = workModeMix(resp);
+  if (!wm) return null;
+  const order = ["supervision", "teamwork", "solo"];
+  const coherence = result.roleMix && result.roleMix.coherence;
+  return (
+    <div style={{ marginTop: 16, marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14 }} aria-hidden="true">🧮</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Work-mode mix - boss, teammate, or solo?</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: wm.mixed ? "#9a3412" : "#1e40af", background: wm.mixed ? "#fff7ed" : "#eef2ff", border: `1px solid ${wm.mixed ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+            <span aria-hidden="true">{wm.mixed ? "⚑" : "="}</span>{wm.mixed ? "all three mixed" : `${_WORK_MODES[order.find(k => wm.counts[k] === Math.max(...order.map(o2 => wm.counts[o2])))].label.toLowerCase()} leads`}
+          </span>
+        </div>
+        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ padding: "12px 14px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+              How the {wm.total} extracted duties split across the three ways of working - classified by fixed people-signals in each duty's own words.
+            </p>
+            <Prov kind="derived" small />
+          </div>
+          {/* the mix bar - each segment labelled by letter + count, never colour alone */}
+          <div style={{ display: "flex", width: "100%", height: 26, borderRadius: 6, overflow: "hidden", border: `1px solid ${C.border}`, marginBottom: 6 }} role="img"
+            aria-label={order.map(k => `${_WORK_MODES[k].label}: ${wm.counts[k]} of ${wm.total} duties`).join("; ")}>
+            {order.map(k => wm.counts[k] > 0 && (
+              <div key={k} style={{ width: `${wm.pct(k)}%`, minWidth: 34, background: _WORK_MODES[k].color, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "#fff" }} aria-hidden="true">{_WORK_MODES[k].icon} {wm.counts[k]}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+            {order.map(k => wm.counts[k] > 0 && (
+              <span key={k} style={{ fontSize: 11, color: _WORK_MODES[k].color, fontWeight: 700 }}>{_WORK_MODES[k].icon} = {_WORK_MODES[k].label} ({wm.counts[k]} dut{wm.counts[k] === 1 ? "y" : "ies"}, {wm.pct(k)}%)</span>
+            ))}
+          </div>
+          {wm.mixed && (
+            <div style={{ padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, marginBottom: 10 }}>
+              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+                <strong>This ad asks for a boss, a teammate AND a solo deliverer in one seat.</strong> A genuinely three-way mandate is rare; more often the role design is unsettled{coherence === "grabbag" ? " - and the Role-Mix read above already calls this bundle a grab-bag" : coherence === "mixed" ? " - consistent with the mixed bundle the Role-Mix read found" : ""}. Ask at interview: which mode fills most of the week, and which single mode is the job REALLY scored on?
+              </p>
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {wm.perDuty.map(d => (
+              <div key={d.n} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", background: _WORK_MODES[d.mode].bg, border: `1px solid ${_WORK_MODES[d.mode].bdr}`, borderRadius: 6 }}>
+                <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: _WORK_MODES[d.mode].color, minWidth: 14 }} title={_WORK_MODES[d.mode].label}>{_WORK_MODES[d.mode].icon}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+                  {d.text}
+                  {d.signal && <span style={{ color: C.muted, fontSize: 11 }}> - signal: "{d.signal.toLowerCase()}"</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - a fixed signal list over the duties' own words; the matched signal is shown so you can disagree, and human decides. Source: the extracted responsibilities ({wm.total} duties). Confidence: a wording signal, not an org-chart fact. Time-window: this result.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // v3.2: RoleMixPanel - decomposes a live posting into the ESCO occupations it
 // actually blends (fingerprint %, posted-as-vs-actually, bundle coherence,
 // per-component AI exposure, and a skilling priority). Numbers are deterministic
@@ -11444,7 +11560,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               )}
 
               {activeTab === "rolemix" && result.roleMix && (
-                <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
+                <>
+                  <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
+                  <WorkModeMix result={result} />
+                </>
               )}
 
               {activeTab === "foundation" && result.foundationData && (
