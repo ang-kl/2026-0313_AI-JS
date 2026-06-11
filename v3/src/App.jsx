@@ -527,6 +527,16 @@
 // check for getEscoSkills; verified exit 0. Tested: the Senior Director case moves off the
 // ICT-heavy occupation to a closer-overlap one.
 // Additive; resolveOccupation/getEscoSkills one-arg contract intact. G1 (v3.0.56 -> v3.0.57).
+// v3.0.58 - 2026-06-11 - HDR #096 - rateSkills token budget bug ("Could not parse JSON for
+// ratings"). Bug (Human Lead log): a Data Analyst posting returned 36 ESCO skills; rateSkills
+// hard-capped max_tokens at a flat 3500 (tuned for 25 skills), so the JSON response truncated,
+// extractJSON threw, and the WHOLE analysis errored (a 22-skill role worked fine - confirming the
+// count was the trigger). Fix: the rating token budget now SCALES with skill count
+// (min(8000, 1600 + n*110)), with one retry at the 8k Haiku ceiling on a parse blip before giving
+// up - so one flaky/truncated response no longer kills the result page. rateSkillsCompact scaled
+// the same way (min(5000, 1100 + n*45)). claude.js proxy byte-untouched (only the max_tokens VALUE
+// passed in changed); no LLM-authored number; deterministic guards downstream unchanged.
+// Additive; no frozen symbol touched (claude.js frozen, intact). G1 (v3.0.57 -> v3.0.58).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2304,14 +2314,26 @@ Good example: "Clinical Documentation" as MEDIUM with DOCS - AI drafts, clinicia
 Good example: "Routine Compliance Reporting" as HIGH with AGENT - an agent compiles, checks and files the report; human reviews the outcome`;
 
   const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
-  const raw = await claudeCall(
+  const userMsg =
 `Occupation: ${title}
 Rate each skill for AI automation impact. Singapore and ASEAN context applies.
-Skills to rate: ${skillList}`, 3500, 1, SYSTEM_RATE);
-  // Token note: budget reduced from 4950 to 3500. Token audit showed 25-skill response
-  // at ~1720 tokens worst case, leaving ~1230 headroom at 3500. The 4950 figure was
-  // ~3230 tokens over worst case - the reduction removes waste while keeping safe margin.
-  const arr = extractJSON(raw, "ratings");
+Skills to rate: ${skillList}`;
+  // Token budget MUST scale with the skill count, or a long ESCO list (seen: 36 skills)
+  // overflows the cap, the JSON response truncates, and extractJSON throws "Could not
+  // parse JSON for ratings" - which kills the whole analysis. Audit: ~69 output tokens
+  // per rated skill worst case; budget = base + per-skill headroom, capped at the Haiku
+  // 8k output ceiling. (Was a flat 3500, tuned for 25 skills - it broke at 36.)
+  const ratingsTokens = n => Math.min(8000, 1600 + n * 110);
+  let arr;
+  try {
+    const raw = await claudeCall(userMsg, ratingsTokens(skills.length), 1, SYSTEM_RATE);
+    arr = extractJSON(raw, "ratings");
+  } catch (e) {
+    // One retry at the max budget before giving up - guards a rare truncation/format blip
+    // so a single flaky rating response does not error the entire result page.
+    const raw2 = await claudeCall(userMsg, 8000, 1, SYSTEM_RATE);
+    arr = extractJSON(raw2, "ratings");
+  }
   if (!Array.isArray(arr)) throw new Error("ratings: expected array");
   const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
   return arr.map(x => {
@@ -2595,12 +2617,12 @@ CRITICAL: If a=NA then l MUST be HUMAN. Physical, tactile, and face-to-face skil
 OFFICE SUITE RULE: Skills named "Microsoft Office", "Office Suite", "Spreadsheets", "Excel", "Word", "PowerPoint" or similar general productivity suite skills must be rated MEDIUM at most - never HIGH.`;
 
   const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
+  // Scale with skill count so a long ESCO list does not truncate (compact = 4 fields,
+  // ~29 output tokens/skill worst case). Was a flat 2200 tuned for 25 skills.
+  const compactTokens = Math.min(5000, 1100 + skills.length * 45);
   const raw = await claudeCall(
 `Occupation: ${title}
-Skills to rate: ${skillList}`, 2200, 2, SYSTEM_COMPACT);
-  // Token note: budget reduced from 3080 to 2200. Token audit showed 25-skill compact
-  // response at ~720 tokens worst case (only 4 fields vs 8 in full rateSkills).
-  // 2200 gives ~1480 headroom - ample margin for the stripped-down format.
+Skills to rate: ${skillList}`, compactTokens, 2, SYSTEM_COMPACT);
   const arr = extractJSON(raw, "compact-ratings");
   if (!Array.isArray(arr)) throw new Error("compact-ratings: expected array");
   const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
