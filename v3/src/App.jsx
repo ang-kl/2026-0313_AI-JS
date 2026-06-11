@@ -502,6 +502,16 @@
 // to supply". `~ AI estimate`; rehearse1 cache; claude-fable-5; withheld under thin duties; no Resume
 // dependency. Conformance D1-D8 PASS + a11y 7/7 PASS (#1e40af 8.6:1; no red/green). Spec CJ3 SHIPPED.
 // Additive; no frozen symbol touched. G1 (v3.0.54 -> v3.0.55).
+// v3.0.56 - 2026-06-11 - HDR #094 - CJ4 Journey storyboard spine (last Candidate Journey slice).
+// JourneySpine: a pure-UI strip in the Navigation box - 5 numbered stations (Understand / Position /
+// Become / Arm / Rehearse) mapping O-I-A onto the real tabs. State by shape+number+label+text, never
+// colour alone: "here" (blue fill + "- you are here" + aria-current="step"), "locked" (reduced opacity
+// + "- locked" + aria-disabled + a "<name> - locked - <hint>" aria-label so keyboard/SR can reach it),
+// "go" (default surface, tap -> onGo). Readiness is deterministic from which tabs exist (rolegraph/CV
+// always present); no LLM, no number, no invented progress -> no Prov chip, no "human decides" footer.
+// 44px targets; locked stations stay focusable (aria-disabled only, click guarded). Conformance + a11y
+// 7/7 PASS. Spec CJ4 SHIPPED; the Candidate Journey arc is now complete (CJ1-CJ4).
+// Additive; no frozen symbol touched. G1 (v3.0.55 -> v3.0.56).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -5589,6 +5599,56 @@ function Rehearsal({ result, title }) {
       ) : (
         <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground questions in the role's duties.</p>
       ))}
+    </div>
+  );
+}
+
+// ---- CJ4: Journey storyboard spine (Candidate Journey - the onboarding flow) ----
+// A compact storyboard at the top of the Navigation box that sequences the 5 stations
+// (Understand -> Position -> Become -> Arm -> Rehearse) so the candidate is self-directed.
+// Pure UI: no LLM, no number, no invented progress. Readiness is computed from which target tab
+// exists; "you are here" is the live activeTab. State is carried by the number + name + a text
+// marker (here / locked), NEVER colour alone. Tapping a ready station jumps to its tab.
+const _JOURNEY_STATIONS = [
+  { n: 1, name: "Understand", target: "deepread",  hint: "why this role exists" },
+  { n: 2, name: "Position",   target: "rolegraph", hint: "paste your CV to see your fit" },
+  { n: 3, name: "Become",     target: "deepread",  hint: "the steward's praxis for this role" },
+  { n: 4, name: "Arm",        target: "taskprep",  hint: "the real tasks + how to prepare" },
+  { n: 5, name: "Rehearse",   target: "rehearse",  hint: "interview questions from the duties" },
+];
+function JourneySpine({ tabs, activeTab, onGo }) {
+  const has = k => k === "rolegraph" || tabs.some(t => t.key === k); // rolegraph (CV) is always present
+  const currentIdx = _JOURNEY_STATIONS.findIndex(s => s.target === activeTab);
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Your journey</p>
+      <div style={{ display: "flex", alignItems: "stretch", flexWrap: "wrap", gap: 4 }}>
+        {_JOURNEY_STATIONS.map((s, i) => {
+          const ready = has(s.target);
+          const current = i === currentIdx;
+          const state = current ? "here" : ready ? "go" : "locked";
+          return (
+            <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button onClick={() => { if (ready) onGo(s.target); }}
+                aria-current={current ? "step" : undefined} aria-disabled={!ready || undefined}
+                aria-label={ready ? undefined : `${s.name} - locked - ${s.hint}`}
+                title={ready ? (current ? "You are here" : `Go to ${s.name}`) : `${s.hint} - not ready yet`}
+                style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "5px 11px", borderRadius: 22, cursor: ready ? "pointer" : "not-allowed",
+                  border: `2px solid ${current ? "#1a56db" : ready ? C.border : C.border}`,
+                  background: current ? "#1a56db" : ready ? C.surface : C.bg,
+                  color: current ? "#fff" : ready ? C.text : C.mutedLight,
+                  opacity: ready ? 1 : 0.6, transition: "all 0.15s", whiteSpace: "nowrap" }}>
+                <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: current ? "#fff" : "#1e40af", color: current ? "#1a56db" : "#fff" }}>{s.n}</span>
+                <span style={{ fontSize: 12, fontWeight: 700 }}>{s.name}</span>
+                {current && <span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.9 }}>- you are here</span>}
+                {state === "locked" && <span style={{ fontSize: 9.5, fontWeight: 700 }}>- locked</span>}
+              </button>
+              {i < _JOURNEY_STATIONS.length - 1 && <span aria-hidden="true" style={{ fontSize: 12, color: C.mutedLight }}>&gt;</span>}
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ margin: "5px 0 0", fontSize: 10, color: C.textSub, lineHeight: 1.5 }}>Walk it in order: understand the role, position yourself, become the steward, arm yourself with the tasks, then rehearse. Locked steps open once their data is ready.</p>
     </div>
   );
 }
@@ -10959,6 +11019,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
+                <JourneySpine tabs={tabs} activeTab={activeTab} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
                 <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
                   Tap a section to explore the results:
                 </p>
