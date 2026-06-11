@@ -569,6 +569,19 @@
 // opens that tab, validated against buildTabs, falling back to "skills". Verified in Chrome
 // DevTools with an injected save: real card faces, dock animation, interlink swap, deep-link
 // restore (engine index honestly withheld when unreachable). G1 (v3.0.59 -> v3.0.60).
+// v3.0.61 - 2026-06-11 - HDR #099 - UI1: design-token sweep (stage 1 of the layout de-vibe).
+// Human Lead: "the layout for v3 looks vibe-coded" - audit quantified it: 22 distinct font sizes
+// (9/9.5/10/10.5/11/11.5/12/12.5/13/13.5/14/14.5/15/16/17/18/19/20/21/22/24/30/32), 17 border
+// radii (2..24 + 999), 116 padding variants, 110 hex colours. Stage 1 normalises mechanically
+// (deterministic script, no hand edits): type scale -> {10,11,12,13,14,16,18,22,30} (152 remaps),
+// radius scale -> {0,6,10,16,999,"50%"} (232 remaps), odd paddings rounded UP to even px (222 - up
+// only, touch targets never shrink). Colours intentionally DEFERRED: the hue families are semantic
+// (level/prov/persona) - collapsing them is stage-2 component work, not regex work. Layout itself
+// unchanged; frozen logic symbols byte-identical (R-FREEZE exit 0 - they carry no styles). Stage 2
+// (?ui=2 structural: sticky header incl. the 390px title/V2-button overlap fix, grouped tabs, hero
+// vs utility card hierarchy, left journey rail) ships separately per the staged plan the Human
+// Lead approved. Verified: build green, desktop + 390px mobile screenshots, one type rhythm.
+// G1 (v3.0.60 -> v3.0.61).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -2712,7 +2725,7 @@ function Prov({ kind, small }) {
 }
 function ProvLegend() {
   return (
-    <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding:"8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, fontSize:11, color:C.textSub }}>
+    <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, fontSize:11, color:C.textSub }}>
       <span style={{ fontWeight:700, color:C.text }}>Badges, where shown:</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="mcf" /> posting facts</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="computed" /> deterministic, reproducible</span>
@@ -3424,7 +3437,7 @@ async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGrou
 function Tag({ level, small }) {
   const c = LEVELS[level] || LEVELS.HUMAN;
   return (
-    <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:small?"2px 7px":"3px 9px", borderRadius:20, fontSize:small?10:11, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
+    <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:small?"2px 7px":"3px 9px", borderRadius: 16, fontSize:small?10:11, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
       {c.icon} {c.label}
     </span>
   );
@@ -3433,7 +3446,7 @@ function Tag({ level, small }) {
 function Spinner({ label, step, total, firstTime, skills }) {
   const list = Array.isArray(skills) ? skills : [];
   return (
-    <div style={{ padding:"40px 0 32px" }}>
+    <div style={{ padding: "40px 0 32px" }}>
       <div style={{ textAlign:"center", marginBottom:16 }}>
         <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
         <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
@@ -3453,13 +3466,13 @@ function Spinner({ label, step, total, firstTime, skills }) {
         <div style={{ marginTop:14, animation:"fadeInUp 0.5s ease both" }}>
           <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the ESCO taxonomy</p>
           {list.map((s, i) => (
-            <div key={(s && (s.escoUri || s.skill)) || i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"9px 12px", marginBottom:6 }}>
+            <div key={(s && (s.escoUri || s.skill)) || i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", marginBottom:6 }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
                 <span style={{ flexShrink:0, fontSize:10, fontWeight:700, color:C.muted, minWidth:16 }}>{i+1}</span>
                 <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
               </div>
               {s && s.escoDescription && (
-                <p style={{ margin:"3px 0 0", paddingLeft:24, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
+                <p style={{ margin:"3px 0 0", paddingLeft:24, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
               )}
             </div>
           ))}
@@ -3467,15 +3480,15 @@ function Spinner({ label, step, total, firstTime, skills }) {
       )}
       {firstTime && (
         <div style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:10 }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
+            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
               You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across four automation levels: <strong>Full Automation</strong> (AI - including AI agents - completes it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
             </p>
           </div>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.7 }}>
+            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
               <strong>Skill Analysis</strong> contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide. <strong>Career Progression</strong> shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers. <strong>Role Crossover</strong> highlights the transferable skills that open doors to adjacent roles. <strong>Skill Categories</strong> groups skills into thematic clusters for structured learning. <strong>Role Context</strong> maps how the role operates across sectors and organisations in Singapore and the ASEAN region.
             </p>
           </div>
@@ -3488,7 +3501,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
 function FeedbackLink() {
   return (
     <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
-      style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, color:C.teal, fontWeight:600, textDecoration:"none", background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:20, padding:"5px 12px", marginTop:10 }}>
+      style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, color:C.teal, fontWeight:600, textDecoration:"none", background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 16, padding: "6px 12px", marginTop:10 }}>
       ✉ feedback@takearoundabout.com
     </a>
   );
@@ -3531,7 +3544,7 @@ function ErrBox({ msg, query }) {
 
   if (isBusy) {
     return (
-      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.green }}>The analyser has had a wonderful day</p>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
           So many searches today that it has reached its daily limit - which is a good thing, really. It resets overnight, so please do come back tomorrow. Thank you for your patience and interest - it genuinely means a lot.
@@ -3542,7 +3555,7 @@ function ErrBox({ msg, query }) {
 
   if (isOverload) {
     return (
-      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>The analyser is catching its breath</p>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
           A few too many requests at once - please give it a minute and try again. It should be back with you shortly.
@@ -3553,7 +3566,7 @@ function ErrBox({ msg, query }) {
 
   if (isDowntime) {
     return (
-      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>Something unexpected happened</p>
         <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
           Apologies for the inconvenience. Please try again in a moment - this is usually a brief hiccup. If it keeps happening, we would genuinely appreciate a note so we can look into it.
@@ -3566,7 +3579,7 @@ function ErrBox({ msg, query }) {
 
   if (isNotFound) {
     return (
-      <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
           No match found for "{query}"
         </p>
@@ -3583,7 +3596,7 @@ function ErrBox({ msg, query }) {
 
   if (isInvalid || isTooLong) {
     return (
-      <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
         <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
           {isTooLong ? "That job title is a little long" : "That does not quite look like a job title"}
         </p>
@@ -3599,7 +3612,7 @@ function ErrBox({ msg, query }) {
 
   // Generic fallback - always show actual error for diagnosing
   return (
-    <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:8, padding:"12px 16px", marginBottom:12 }}>
+    <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
       <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>Something went wrong</p>
       <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.65 }}>
         Please try again in a moment. If it keeps happening, we would appreciate a quick note.
@@ -3613,7 +3626,7 @@ function ErrBox({ msg, query }) {
 
 function Tab({ label, active, onClick, colour }) {
   return (
-    <button onClick={onClick} className="tab-label" style={{ padding:"8px 13px", fontSize:13, fontWeight:700, cursor:"pointer", border:"none", borderBottom:`3px solid ${active ? colour : "transparent"}`, background:"transparent", color:active ? colour : C.muted, transition:"colour 0.15s", whiteSpace:"nowrap" }}>
+    <button onClick={onClick} className="tab-label" style={{ padding: "8px 14px", fontSize:13, fontWeight:700, cursor:"pointer", border:"none", borderBottom:`3px solid ${active ? colour : "transparent"}`, background:"transparent", color:active ? colour : C.muted, transition:"colour 0.15s", whiteSpace:"nowrap" }}>
       {label}
     </button>
   );
@@ -3630,10 +3643,10 @@ const AUDIENCE = [
 function IntroCard({ onPersonaSelect, toggleRef }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <div style={{ padding:"10px 4px 8px" }}>
-        <p className="t-heading" style={{ margin:0, fontSize:17, color:C.text, fontWeight:800, lineHeight:1.3, letterSpacing:"-0.01em" }}>Explore how AI fits into role skills - and where humans still lead.</p>
+      <div style={{ padding: "10px 4px 8px" }}>
+        <p className="t-heading" style={{ margin:0, fontSize: 16, color:C.text, fontWeight:800, lineHeight:1.3, letterSpacing:"-0.01em" }}>Explore how AI fits into role skills - and where humans still lead.</p>
       </div>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:0 }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:0 }}>
         <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:600, color:C.muted, letterSpacing:"0.03em", textTransform:"uppercase" }}>
           Who is this most useful for?
         </p>
@@ -3646,11 +3659,11 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
                   onPersonaSelect(a.persona);
                   setTimeout(() => toggleRef.current?.scrollIntoView({ behavior:"smooth", block:"center" }), 50);
                 } : undefined}
-                style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"7px 10px", borderRadius:7, border: clickable ? `1px solid ${C.border}` : "none", background: clickable ? C.bg : "transparent", cursor: clickable ? "pointer" : "default", transition:"border-color 0.15s, background 0.15s" }}
+                style={{ display:"flex", alignItems:"flex-start", gap:10, padding: "8px 10px", borderRadius: 6, border: clickable ? `1px solid ${C.border}` : "none", background: clickable ? C.bg : "transparent", cursor: clickable ? "pointer" : "default", transition:"border-color 0.15s, background 0.15s" }}
                 onMouseEnter={clickable ? e => { e.currentTarget.style.borderColor = a.persona === "fresh" ? PERSONA_CONFIG.fresh.border : PERSONA_CONFIG.crossover.border; e.currentTarget.style.background = a.persona === "fresh" ? PERSONA_CONFIG.fresh.bg : PERSONA_CONFIG.crossover.bg; } : undefined}
                 onMouseLeave={clickable ? e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg; } : undefined}
               >
-                <span style={{ fontSize:15, flexShrink:0, marginTop:1 }}>{a.icon}</span>
+                <span style={{ fontSize: 16, flexShrink:0, marginTop:1 }}>{a.icon}</span>
                 <div style={{ flex:1 }}>
                   <span style={{ fontSize:12, fontWeight:700, color:C.text }}>{a.label} </span>
                   <span style={{ fontSize:12, color:C.textSub }}>{a.line}</span>
@@ -3703,14 +3716,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
       <div style={{ display:"flex", gap:8, marginBottom:12 }}>
         <input type="text" value={localQuery} onChange={e => setLocalQuery(e.target.value)}
           onKeyDown={e => e.key === "Enter" && localQuery.trim() && onSearchAgain(localQuery.trim())}
-          style={{ flex:1, background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius:7, color:C.text, padding:"10px 13px", fontSize:15, outline:"none", fontFamily:"inherit" }} autoFocus />
+          style={{ flex:1, background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "10px 14px", fontSize: 16, outline:"none", fontFamily:"inherit" }} autoFocus />
         <button onClick={() => localQuery.trim() && onSearchAgain(localQuery.trim())}
-          style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"10px 18px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+          style={{ background:C.eu, border:"none", borderRadius: 6, color:"#fff", padding: "10px 18px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
           Search
         </button>
       </div>
       {/* Heading only - no redundant instructions */}
-      <div style={{ background:C.surface, border:`2px solid ${C.accent}`, borderRadius:10, padding:"12px 16px", marginBottom:12 }}>
+      <div style={{ background:C.surface, border:`2px solid ${C.accent}`, borderRadius:10, padding: "12px 16px", marginBottom:12 }}>
         {(() => {
           const wordCount = query.trim().split(/\s+/).length;
           const cap1 = 30; // 1-word generic cap
@@ -3729,7 +3742,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           );
         })()}
         {functionKeywordNotice && (
-          <div style={{ margin:"8px 0 0", padding:"10px 12px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
+          <div style={{ margin:"8px 0 0", padding: "10px 12px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
             <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:"#1e40af", lineHeight:1.5 }}>
               ℹ "{toTitleCase(functionKeywordNotice.keyword)}" is a function area, not a specific job title.
             </p>
@@ -3739,14 +3752,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <button
                 onClick={onDismissFunctionNotice}
-                style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#1d4ed8", border:"none", borderRadius:5, padding:"4px 12px", cursor:"pointer" }}>
+                style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#1d4ed8", border:"none", borderRadius: 6, padding: "4px 12px", cursor:"pointer" }}>
                 Proceed anyway
               </button>
             </div>
           </div>
         )}
         {noExactMatch && (
-          <div style={{ margin:"8px 0 0", padding:"8px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
+          <div style={{ margin:"8px 0 0", padding: "8px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:600, color:"#92400e", lineHeight:1.5 }}>
               {/^(Deputy|Vice|Assistant|Acting|Co-|Associate|Joint)\s+/i.test(noExactMatch) ? `"${noExactMatch}" is not a standard ESCO title - ESCO maps roles by function, not by seniority prefix. Showing the closest functional equivalents below. The skills and AI analysis will reflect the seniority level you described.` : `We could not find an exact match for "${noExactMatch}". Showing the closest roles found.`}
             </p>
@@ -3766,7 +3779,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           const isCapped = cap && !pickerFullLoading && occs.length >= cap;
           if (isCapped) {
             return (
-              <div style={{ margin:"8px 0 0", padding:"8px 10px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
+              <div style={{ margin:"8px 0 0", padding: "8px 10px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
                 <p style={{ margin:0, fontSize:12, fontWeight:600, color:"#1e40af", lineHeight:1.5 }}>
                   {wordCount <= 1
                     ? `"${query.trim()}" matches hundreds of roles in ESCO. We are showing the 30 closest. Add your sector or the type of role - e.g. "${query.trim()} Healthcare" or "Senior ${query.trim()}" - to see a more focused list.`
@@ -3785,7 +3798,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
 
       {/* Persona reminder if set */}
       {persona && (
-        <div style={{ background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}`, borderRadius:7, padding:"8px 14px", marginBottom:10, fontSize:12, color:safePersona(persona).color }}>
+        <div style={{ background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}`, borderRadius: 6, padding: "8px 14px", marginBottom:10, fontSize:12, color:safePersona(persona).color }}>
           {safePersona(persona).icon} Foundation skills will be generated for: <strong>{safePersona(persona).label}</strong>
         </div>
       )}
@@ -3810,13 +3823,13 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
                 const s = {};
                 sectorGroups.forEach(g => { s[g.sector] = !allOpen; });
                 setExpandedSectors(s);
-              }} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius:5, fontSize:10, color:C.accent, cursor:"pointer", padding:"3px 10px", fontWeight:600, flexShrink:0 }}>
+              }} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize:10, color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600, flexShrink:0 }}>
                 {sectorGroups.every(g => expandedSectors[g.sector]) ? "Collapse all" : "Expand all"}
               </button>
             )}
           </div>
           {pickerFullLoading && (
-            <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", marginBottom:10, background:"#eef2ff", border:"1px solid #93c5fd", borderRadius:7 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px", marginBottom:10, background:"#eef2ff", border:"1px solid #93c5fd", borderRadius: 6 }}>
               <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #93c5fd", borderTop:"2px solid #0f766e", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
               <p style={{ margin:0, fontSize:13, fontWeight:500, color:"#1e40af", lineHeight:1.5 }}>
                 Loading more roles - please wait.
@@ -3824,14 +3837,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
             </div>
           )}
           {pickerFullError && !pickerFullLoading && (
-            <div style={{ padding:"9px 14px", marginBottom:10, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7 }}>
+            <div style={{ padding: "10px 14px", marginBottom:10, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
               <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.5 }}>
                 Showing the closest matches found. Search again if you need more results.
               </p>
             </div>
           )}
           {showNudge && (
-            <div style={{ position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)", zIndex:200, maxWidth:340, width:"calc(100% - 32px)", background:"#1e40af", borderRadius:12, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>
+            <div style={{ position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)", zIndex:200, maxWidth:340, width:"calc(100% - 32px)", background:"#1e40af", borderRadius: 10, padding: "12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>
               <button
                 onClick={() => { browseRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setNudgeDismissed(true); }}
                 style={{ flex:1, background:"transparent", border:"none", cursor:"pointer", textAlign:"left", padding:0 }}>
@@ -3844,7 +3857,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
               </button>
               <button
                 onClick={() => setNudgeDismissed(true)}
-                style={{ background:"rgba(255,255,255,0.15)", border:"none", borderRadius:8, color:"#fff", fontSize:16, lineHeight:1, padding:"4px 8px", cursor:"pointer", flexShrink:0 }}>
+                style={{ background:"rgba(255,255,255,0.15)", border:"none", borderRadius: 10, color:"#fff", fontSize:16, lineHeight:1, padding: "4px 8px", cursor:"pointer", flexShrink:0 }}>
                 ✕
               </button>
             </div>
@@ -3852,15 +3865,15 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           {sectorGroups.map(g => (
             <div key={g.sector} style={{ marginBottom:8 }}>
               <button onClick={() => toggleSector(g.sector)}
-                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:expandedSectors[g.sector] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
+                style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:expandedSectors[g.sector] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ fontSize:12, fontWeight:700, color:C.text }}>{g.sector}</span>
-                  <span style={{ fontSize:11, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px" }}>{g.items.length}</span>
+                  <span style={{ fontSize:11, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{g.items.length}</span>
                 </div>
                 <span style={{ fontSize:10, color:C.muted }}>{expandedSectors[g.sector] ? "▲" : "▼"}</span>
               </button>
               {expandedSectors[g.sector] && (
-                <div style={{ border:`1px solid ${C.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding:"6px 6px 2px" }}>
+                <div style={{ border:`1px solid ${C.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding: "6px 6px 2px" }}>
                   {g.items.map((o) => <OccCard key={o.title} o={o} onSelect={onSelect} />)}
                 </div>
               )}
@@ -3872,7 +3885,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
               return (
                 <button
                   onClick={() => setBrowseDisplayCount(c => c + PAGE_SIZE)}
-                  style={{ width:"100%", marginTop:8, padding:"10px 16px", background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius:8, fontSize:13, fontWeight:600, color:C.accent, cursor:"pointer", textAlign:"center" }}>
+                  style={{ width:"100%", marginTop:8, padding: "10px 16px", background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 10, fontSize:13, fontWeight:600, color:C.accent, cursor:"pointer", textAlign:"center" }}>
                   Explore more roles ↓
                 </button>
               );
@@ -3898,10 +3911,10 @@ function OccCard({ o, onSelect }) {
     <div onClick={() => onSelect(o)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ background: hovered ? C.accentSoft : C.surface, border:`1px solid ${hovered ? C.accent : C.border}`, borderRadius:7, padding:"11px 14px", marginBottom:5, cursor:"pointer", transition:"all 0.15s" }}>
+      style={{ background: hovered ? C.accentSoft : C.surface, border:`1px solid ${hovered ? C.accent : C.border}`, borderRadius: 6, padding: "12px 14px", marginBottom:5, cursor:"pointer", transition:"all 0.15s" }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 }}>
         <p className="t-body" style={{ margin:"0 0 2px", fontSize:14, fontWeight:600, color: hovered ? C.accent : C.text, flex:1 }}>{toTitleCase(o.title)}</p>
-        {o.isAltLabel && <span style={{ fontSize:9, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt label</span>}
+        {o.isAltLabel && <span style={{ fontSize: 10, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt label</span>}
       </div>
       <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.5 }}>
         {o.iscoCode && <span style={{ color:C.mutedLight }}>ISCO-08: {o.iscoCode} · </span>}
@@ -3920,7 +3933,7 @@ function CommunityNote() {
         {open ? "▲ close" : "▼ Note by builder"}
       </button>
       {open && (
-        <div style={{ marginTop:10, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"16px 20px" }}>
+        <div style={{ marginTop:10, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
             This tool is completely free to use. The underlying sources I draw from are openly available, and it did not feel right to charge for something built on public knowledge.
           </p>
@@ -3934,7 +3947,7 @@ function CommunityNote() {
             P.S. This is a side hobby - built in spare moments out of genuine curiosity about where work is heading. I hope it is useful to someone out there.
           </p>
           <a href="https://www.linkedin.com/in/angadrian" target="_blank" rel="noreferrer"
-            style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#0a66c2", fontWeight:600, textDecoration:"none", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius:20, padding:"6px 14px" }}>
+            style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#0a66c2", fontWeight:600, textDecoration:"none", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 16, padding: "6px 14px" }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
             Adrian K. L. Ang - linkedin.com/in/angadrian
           </a>
@@ -3954,7 +3967,7 @@ function Tagline() {
 
 function DeviceNote() {
   return (
-    <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:8, padding:"8px 13px", marginTop:8 }}>
+    <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "8px 14px", marginTop:8 }}>
       <span style={{ fontSize:14, flexShrink:0 }}>💡</span>
       <p style={{ margin:0, fontSize:11, color:"#78350f", lineHeight:1.6 }}>
         Best explored on a wider screen - results span multiple tabs and detailed breakdowns.
@@ -3970,7 +3983,7 @@ const safePersona = (p) => PERSONA_CONFIG[p] || { label:"", icon:"", color:C.mut
 function PersonaToggle({ persona, onChange }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"10px 14px" }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "10px 14px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
           <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Adds a foundation skills plan to the analysis</p>
           <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>optional</span>
@@ -3980,7 +3993,7 @@ function PersonaToggle({ persona, onChange }) {
             const active = persona === key;
             return (
               <div key={key} onClick={() => { if (!active) track("persona_selected", { persona: key }); onChange(active ? null : key); }}
-                style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 11px", borderRadius:7, border:`1.5px solid ${active ? cfg.border : C.border}`, background:active ? cfg.bg : C.bg, cursor:"pointer", transition:"border-color 0.15s, background 0.15s", userSelect:"none" }}>
+                style={{ display:"flex", alignItems:"center", gap:9, padding: "10px 12px", borderRadius: 6, border:`1.5px solid ${active ? cfg.border : C.border}`, background:active ? cfg.bg : C.bg, cursor:"pointer", transition:"border-color 0.15s, background 0.15s", userSelect:"none" }}>
                 <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${active ? cfg.color : C.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: active ? cfg.bg : "transparent", transition:"all 0.15s" }}>
                   {active && <div style={{ width:10, height:10, borderRadius:"50%", background:cfg.color }} />}
                 </div>
@@ -3994,7 +4007,7 @@ function PersonaToggle({ persona, onChange }) {
           })}
         </div>
         {persona && (
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, padding:"6px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, padding: "6px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
             <p style={{ margin:0, fontSize:11, color:safePersona(persona).color }}>
               <strong>{safePersona(persona).label}</strong> selected - foundation skills plan will be included in the analysis.
             </p>
@@ -4067,10 +4080,10 @@ function EngineHeadline({ result, title }) {
     // evidence-keyed cache dedupes, so unchanged evidence costs no extra API call.
   }, [title, result]);
 
-  const box = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:16 };
+  const box = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:16 };
   const head = (
     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-      <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+      <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
       {/* audit W-2: no "computed" chip before a computed value exists */}
       {eng.status === "done" && eng.j && eng.j.ok ? <Prov kind="computed" /> : eng.status === "loading" ? null : <Prov kind="unverified" />}
     </div>
@@ -4089,7 +4102,7 @@ function EngineHeadline({ result, title }) {
     return (
       <div style={box}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-          <p style={{ margin:0, fontSize:15, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+          <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
           <Prov kind="unverified" />
         </div>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.65 }}>
@@ -4105,7 +4118,7 @@ function EngineHeadline({ result, title }) {
       {head}
       <p style={{ margin:"0 0 8px" }} aria-label={`AI exposure index ${exp.index} out of 100, ${exp.band} band, ${exp.confidence} confidence`}>
         <span style={{ fontSize:30, fontWeight:800, color:C.accent }}>{exp.index}</span>
-        <span style={{ fontSize:15, fontWeight:700, color:C.textSub }}>/100</span>
+        <span style={{ fontSize: 16, fontWeight:700, color:C.textSub }}>/100</span>
         <span style={{ fontSize:12, fontWeight:700, color:C.textSub, marginLeft:10 }}>{exp.band} exposure - {exp.confidence} confidence</span>
       </p>
       <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.65 }}>
@@ -4120,7 +4133,7 @@ function ExposureBar({ skills }) {
   skills.forEach(s => { if (cnt[s.level] !== undefined) cnt[s.level]++; });
   const total = skills.length || 1;
   return (
-    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 18px", marginBottom:16 }}>
+    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:16 }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
         <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>Skill-by-skill AI involvement</p>
         <Prov kind="ai" small />
@@ -4131,10 +4144,10 @@ function ExposureBar({ skills }) {
         <span style={{ fontWeight:700 }}>{cnt.HIGH + cnt.MEDIUM} of {total}</span> skills have some level of AI involvement today - an AI judgement per skill, shown for detail, not the page's headline figure.
       </p>
       {/* Stacked bar with 2px white gaps between segments */}
-      <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:8, marginBottom:10 }}>
+      <div style={{ display:"flex", gap:2, borderRadius: 6, overflow:"hidden", height:8, marginBottom:10 }}>
         {Object.entries(cnt).map(([l,n]) => n > 0 && (
           <div key={l} title={`${LEVELS[l].label}: ${n}`}
-            style={{ width:`calc(${(n/total)*100}% - 2px)`, background:LEVELS[l].color, borderRadius:3, transition:"width 0.3s" }} />
+            style={{ width:`calc(${(n/total)*100}% - 2px)`, background:LEVELS[l].color, borderRadius: 6, transition:"width 0.3s" }} />
         ))}
       </div>
       {/* Inline legend - aligned */}
@@ -4158,7 +4171,7 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={onToggle}
-        style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: isOpen ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: isOpen ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: isOpen ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: isOpen ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:14 }}>📊</span>
           <span style={{ fontSize:13, fontWeight:700, color: isOpen ? "#fff" : C.text }}>Skills by Automation Segment</span>
@@ -4166,8 +4179,8 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
         <span style={{ fontSize:12, color: isOpen ? "#93c5fd" : C.muted, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {isOpen && (
-        <div style={{ padding:"10px 12px 12px" }}>
-          <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:10, padding:"7px 10px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
+        <div style={{ padding: "10px 12px 12px" }}>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:10, padding: "8px 10px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
             <span style={{ fontSize:12, flexShrink:0, marginTop:1 }}>ℹ️</span>
             <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.65 }}>
               Each column groups skills by AI involvement level today. <strong style={{ color:"#075985" }}>Tap any skill name</strong> to open its AI prompt and step-by-step guide in the Skill Analysis tab.
@@ -4177,7 +4190,7 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
             {Object.entries(groups).map(([lvl, items]) => {
               const c = LEVELS[lvl];
               return (
-                <div key={lvl} style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius:8, padding:"10px 12px" }}>
+                <div key={lvl} style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:7 }}>
                     <span>{c.icon}</span>
                     <span style={{ fontSize:11, fontWeight:700, color:c.color }}>{c.label}</span>
@@ -4187,7 +4200,7 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
                     ? <p style={{ margin:0, fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>None assessed at this level</p>
                     : items.map((s,i) => (
                       <button key={i} onClick={() => onSkillClick && onSkillClick(s.skill)}
-                        style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4, background: (firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? c.bg : "transparent", border:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `1.5px solid ${c.border}` : "none", borderRadius:5, padding:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "2px 6px 2px 4px" : 0, cursor:"pointer", textAlign:"left", width:"100%", animation:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "skillBlink 0.85s ease-in-out infinite" : undefined, boxShadow:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `0 0 8px 2px ${c.bg}` : undefined }}>
+                        style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4, background: (firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? c.bg : "transparent", border:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `1.5px solid ${c.border}` : "none", borderRadius: 6, padding:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "2px 6px 2px 4px" : 0, cursor:"pointer", textAlign:"left", width:"100%", animation:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "skillBlink 0.85s ease-in-out infinite" : undefined, boxShadow:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `0 0 8px 2px ${c.bg}` : undefined }}>
                         <span style={{ width:4, height:4, borderRadius:"50%", background:c.color, flexShrink:0, marginTop:5 }} />
                         <span style={{ fontSize:11, color:c.color, lineHeight:1.5, textDecoration:"underline", textDecorationColor:`${c.color}60`, textUnderlineOffset:2, fontWeight:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? 700 : 400 }}>{s.skill}</span>
                         {(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) && <span style={{ marginLeft:4, fontSize:10, color:c.color, flexShrink:0, alignSelf:"center" }}>← tap</span>}
@@ -4203,12 +4216,12 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
             const present = ["HIGH", "MEDIUM", "LOW", "HUMAN"].filter(lvl => (groups[lvl] || []).length > 0);
             if (!present.length) return null;
             return (
-              <div style={{ marginTop:12, padding:"9px 11px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:8 }}>
+              <div style={{ marginTop:12, padding: "10px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10 }}>
                 <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.text }}>Pro-worker lens <span style={{ fontWeight:500, color:C.muted }}>- does AI here replace you, or make you more valuable?</span></p>
                 <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {present.map(lvl => { const c = LEVELS[lvl], p = PWAI_LENS[lvl]; return (
                     <div key={lvl} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
-                      <span style={{ fontSize:10, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius:5, padding:"1px 7px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
+                      <span style={{ fontSize:10, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius: 6, padding: "2px 8px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
                       <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#9a3412" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
                     </div>
                   ); })}
@@ -4220,7 +4233,7 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
         </div>
       )}
       {hasNoHuman && (
-        <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginTop:10, padding:"8px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:7 }}>
+        <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginTop:10, padding: "8px 12px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius: 6 }}>
           <span style={{ fontSize:13, flexShrink:0 }}>♦</span>
           <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.65 }}>
             <strong style={{ color:C.text }}>No Human-Led skills shown?</strong> For this role, all essential skills were assessed as having some level of AI involvement today. Human-Led only applies where AI genuinely cannot help - think crisis judgment, physical care, or building trust with real people at stake. If that does not feel right, check the Skill Analysis tab for the full reasoning.
@@ -4324,7 +4337,7 @@ function ForensicReversal({ result, title }) {
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={handleToggle} aria-expanded={open}
-        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#155e75" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#155e75" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:14 }}>🔎</span>
           <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Forensic Reversal - why this role exists</span>
@@ -4332,35 +4345,35 @@ function ForensicReversal({ result, title }) {
         <span style={{ fontSize:12, color: open ? "#a5f3fc" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && crux && (
-        <div style={{ padding:"12px 14px 14px" }}>
+        <div style={{ padding: "12px 14px 14px" }}>
           {/* 1. crux anomaly - deterministic, derived from the sampled ads */}
           <div style={{ marginBottom:12 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("The acute need that likely triggered this hire")}<Prov kind="derived" small /></div>
             {crux.ok ? (
               <div>
                 {crux.top.map((c, i) => (
-                  <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding:"7px 10px", marginBottom:6, background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:7 }}>
+                  <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding: "8px 10px", marginBottom:6, background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 6 }}>
                     <span style={{ fontSize:11, fontWeight:800, color:"#0e7490", flexShrink:0 }}>{i + 1}</span>
                     <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.55 }}>{c.st.text} <span style={{ fontSize:10, color:"#0e7490", fontWeight:700, whiteSpace:"nowrap" }}>distinctiveness {c.score} vs {crux.adCount} ads</span></p>
                   </div>
                 ))}
-                <p style={{ margin:0, fontSize:10.5, color:C.muted, lineHeight:1.6 }}>The duty lines LEAST shared with {crux.adCount} similar ads - the hyper-specific 20% in the boilerplate. Derived from this sample, not a verbatim posting fact.</p>
+                <p style={{ margin:0, fontSize: 11, color:C.muted, lineHeight:1.6 }}>The duty lines LEAST shared with {crux.adCount} similar ads - the hyper-specific 20% in the boilerplate. Derived from this sample, not a verbatim posting fact.</p>
               </div>
             ) : (
-              <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>Withheld - only {crux.adCount} comparable ads in the sample (need 4+ for a defensible distinctiveness read).</p>
+              <p style={{ margin:0, fontSize: 12, color:C.textSub }}>Withheld - only {crux.adCount} comparable ads in the sample (need 4+ for a defensible distinctiveness read).</p>
             )}
           </div>
           {/* 2 + 3. verb mandate + reverse-BDF - LLM read, loaded on first open */}
-          {fr.status === "loading" && <p style={{ margin:0, fontSize:11.5, color:C.muted }} aria-busy="true">Isolating the operational mandate from {Math.min(14, statements.length)} duty lines...</p>}
-          {fr.status === "error" && <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>The mandate read could not be completed - the deterministic crux read above still stands.</p>}
+          {fr.status === "loading" && <p style={{ margin:0, fontSize: 12, color:C.muted }} aria-busy="true">Isolating the operational mandate from {Math.min(14, statements.length)} duty lines...</p>}
+          {fr.status === "error" && <p style={{ margin:0, fontSize: 12, color:C.textSub }}>The mandate read could not be completed - the deterministic crux read above still stands.</p>}
           {fr.status === "done" && (
             <div>
               <div style={{ marginBottom:10 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("The verb mandate behind the noun-title")}<Prov kind="ai" small /></div>
-                {fr.read.mandate ? <p style={{ margin:"0 0 7px", fontSize:12.5, color:C.text, fontWeight:600, lineHeight:1.55 }}>{fr.read.mandate}</p> : null}
+                {fr.read.mandate ? <p style={{ margin:"0 0 7px", fontSize: 13, color:C.text, fontWeight:600, lineHeight:1.55 }}>{fr.read.mandate}</p> : null}
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                   {verbCounts.map(v => (
-                    <span key={v.verb} style={{ fontSize:11, color:"#1e40af", background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:12, padding:"3px 10px", fontWeight:600 }}>{v.verb}{v.count > 1 ? ` x${v.count}` : ""}</span>
+                    <span key={v.verb} style={{ fontSize:11, color:"#1e40af", background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "4px 10px", fontWeight:600 }}>{v.verb}{v.count > 1 ? ` x${v.count}` : ""}</span>
                   ))}
                 </div>
                 {verbCounts.length === 0 && <p style={{ margin:0, fontSize:11, color:C.muted }}>No verbs survived the verification guard (each must appear verbatim in the duty text) - read withheld.</p>}
@@ -4372,7 +4385,7 @@ function ForensicReversal({ result, title }) {
                     const st = statements.find(s => Number(s.n) === b.n);
                     if (!st) return null; // audit C1: never render an LLM-cited duty number as text
                     return (
-                      <div key={i} style={{ padding:"6px 10px", marginBottom:5, background:C.surface, border:`1px solid ${C.border}`, borderRadius:7 }}>
+                      <div key={i} style={{ padding: "6px 10px", marginBottom:5, background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
                         <p style={{ margin:"0 0 3px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{st.text}</p>
                         <p style={{ margin:0, fontSize:11, color:C.text, lineHeight:1.5 }}><strong style={{ color:"#0e7490" }}>consumes:</strong> {b.inputs || "-"} <strong style={{ color:"#1e40af", marginLeft:8 }}>delivers:</strong> {b.outputs || "-"}</p>
                       </div>
@@ -4456,7 +4469,7 @@ function StrategyRead({ result, title }) {
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={handleToggle} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }} aria-hidden="true">🧭</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Strategy read - the obstacle this role is hired to resolve</span>
@@ -4465,14 +4478,14 @@ function StrategyRead({ result, title }) {
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          {rk.status === "loading" && <p style={{ margin: 0, fontSize: 11.5, color: C.muted }} aria-busy="true">Reading the role through Rumelt's kernel from {Math.min(14, statements.length)} duty lines...</p>}
-          {rk.status === "error" && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>The strategy read could not be completed - try again in a moment.</p>}
+          {rk.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading the role through Rumelt's kernel from {Math.min(14, statements.length)} duty lines...</p>}
+          {rk.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The strategy read could not be completed - try again in a moment.</p>}
           {rk.status === "done" && (
             rk.read.diagnosis ? (
               <div>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Diagnosis - the obstacle behind the vacancy")}<Prov kind="ai" small /></div>
-                  <p style={{ margin: 0, fontSize: 12.5, color: C.text, fontWeight: 600, lineHeight: 1.55 }}>{rk.read.diagnosis}</p>
+                  <p style={{ margin: 0, fontSize: 13, color: C.text, fontWeight: 600, lineHeight: 1.55 }}>{rk.read.diagnosis}</p>
                 </div>
                 {rk.read.guidingPolicy && (
                   <div style={{ marginBottom: 10 }}>
@@ -4487,9 +4500,9 @@ function StrategyRead({ result, title }) {
                       const st = statements.find(s => Number(s.n) === a.n);
                       if (!st) return null; // never render an LLM-cited duty number as text
                       return (
-                        <div key={i} style={{ padding: "6px 10px", marginBottom: 5, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}>
+                        <div key={i} style={{ padding: "6px 10px", marginBottom: 5, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}>
                           <p style={{ margin: "0 0 3px", fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{st.text}</p>
-                          <p style={{ margin: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>enacts:</strong> {a.action}</p>
+                          <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>enacts:</strong> {a.action}</p>
                         </div>
                       );
                     })}
@@ -4497,7 +4510,7 @@ function StrategyRead({ result, title }) {
                 )}
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>Withheld - the duty statements do not support a confident strategy diagnosis for this role.</p>
+              <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duty statements do not support a confident strategy diagnosis for this role.</p>
             )
           )}
           <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. An interpretive read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal protocol 1 + Rumelt, Good Strategy / Bad Strategy (2011).</p>
@@ -4576,7 +4589,7 @@ function StewardsPraxis({ result, title }) {
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={handleToggle} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }} aria-hidden="true">🪜</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Steward's praxis - how you grow into this role as AI takes the routine</span>
@@ -4585,28 +4598,28 @@ function StewardsPraxis({ result, title }) {
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          {px.status === "loading" && <p style={{ margin: 0, fontSize: 11.5, color: C.muted }} aria-busy="true">Mapping the four-phase shift from {Math.min(14, statements.length)} duty lines...</p>}
-          {px.status === "error" && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>The praxis read could not be completed - try again in a moment.</p>}
+          {px.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Mapping the four-phase shift from {Math.min(14, statements.length)} duty lines...</p>}
+          {px.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The praxis read could not be completed - try again in a moment.</p>}
           {px.status === "done" && (
             px.read.phases.length ? (
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
-                  <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>As the procedural work is commoditised by AI, the role asks you to steward it. Four moves get you there:</p>
+                  <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>As the procedural work is commoditised by AI, the role asks you to steward it. Four moves get you there:</p>
                   <Prov kind="ai" small />
                 </div>
                 {px.read.phases.map((p, i) => (
                   <div key={p.phase} style={{ display: "flex", gap: 9, marginBottom: 9 }}>
-                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#fff", background: "#1e40af", borderRadius: 5, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>{p.phase}</span>
+                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#fff", background: "#1e40af", borderRadius: 6, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>{p.phase}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: C.text }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Phase {p.phase}: </span>{_PRAXIS_LABELS[p.phase]}</p>
-                      <p style={{ margin: "0 0 2px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{p.meaning}</p>
-                      {p.move && <p style={{ margin: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>Move:</strong> {p.move}</p>}
+                      <p style={{ margin: "0 0 2px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{p.meaning}</p>
+                      {p.move && <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>Move:</strong> {p.move}</p>}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub }}>Withheld - the duty statements do not support a confident praxis read for this role.</p>
+              <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duty statements do not support a confident praxis read for this role.</p>
             )
           )}
           <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A coaching read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal paper section 3 (the Steward's Praxis).</p>
@@ -4678,7 +4691,7 @@ function BdfStewardship({ result, title }) {
   const bullets = (items, color, bg, border) => (
     <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
       {items.map((t, i) => (
-        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding:"6px 10px", background:bg, border:`1px solid ${border}`, borderRadius:7 }}>
+        <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding: "6px 10px", background:bg, border:`1px solid ${border}`, borderRadius: 6 }}>
           <span style={{ width:5, height:5, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
           <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.5 }}>{t}</p>
         </div>
@@ -4689,7 +4702,7 @@ function BdfStewardship({ result, title }) {
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={handleToggle} aria-expanded={open}
-        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#3730a3" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#3730a3" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:14 }}>🧭</span>
           <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Steward's map - boundary, dependency, feedback</span>
@@ -4697,13 +4710,13 @@ function BdfStewardship({ result, title }) {
         <span style={{ fontSize:12, color: open ? "#c7d2fe" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
-        <div style={{ padding:"12px 14px 14px" }}>
+        <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>Map the role architecturally, not task-by-task: what to deliberately NOT own, what it depends on, and the loops to expect.</p>
+            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>Map the role architecturally, not task-by-task: what to deliberately NOT own, what it depends on, and the loops to expect.</p>
             <Prov kind="ai" small />
           </div>
-          {bdf.status === "loading" && <p style={{ margin:0, fontSize:11.5, color:C.muted }} aria-busy="true">Mapping the role from {Math.min(14, statements.length)} duty lines...</p>}
-          {bdf.status === "error" && <p style={{ margin:0, fontSize:11.5, color:C.textSub }}>The steward's map could not be completed - try reopening the panel.</p>}
+          {bdf.status === "loading" && <p style={{ margin:0, fontSize: 12, color:C.muted }} aria-busy="true">Mapping the role from {Math.min(14, statements.length)} duty lines...</p>}
+          {bdf.status === "error" && <p style={{ margin:0, fontSize: 12, color:C.textSub }}>The steward's map could not be completed - try reopening the panel.</p>}
           {bdf.status === "done" && (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {bdf.read.boundary.length > 0 && (
@@ -4758,13 +4771,13 @@ function StewardshipShift({ result }) {
   if (!keep.length && !give.length) return null; // nothing to split
 
   const col = (heading, sub, items, color, bg, border, emptyMsg) => (
-    <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:8, padding:"10px 12px" }}>
+    <div style={{ background:bg, border:`1px solid ${border}`, borderRadius: 10, padding: "10px 12px" }}>
       <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:800, color }}>{heading}</p>
       <p style={{ margin:"0 0 7px", fontSize:10, color:C.muted }}>{sub}</p>
       {items.length ? items.map((t, i) => (
         <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4 }}>
           <span style={{ width:4, height:4, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
-          <span style={{ fontSize:11.5, color:C.text, lineHeight:1.5 }}>{t}</span>
+          <span style={{ fontSize: 12, color:C.text, lineHeight:1.5 }}>{t}</span>
         </div>
       )) : <p style={{ margin:0, fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{emptyMsg}</p>}
     </div>
@@ -4773,7 +4786,7 @@ function StewardshipShift({ result }) {
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:14 }}>🧑‍⚖️</span>
           <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Where you sit - human keeps vs AI takes</span>
@@ -4781,16 +4794,16 @@ function StewardshipShift({ result }) {
         <span style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
-        <div style={{ padding:"12px 14px 14px" }}>
+        <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
-            <p style={{ margin:0, fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>As AI commoditises the procedural work, your value concentrates where a human must own the outcome - and where AI cannot hold legal or moral responsibility.</p>
+            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>As AI commoditises the procedural work, your value concentrates where a human must own the outcome - and where AI cannot hold legal or moral responsibility.</p>
             <Prov kind="ai" small />
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:10 }}>
             {col("You keep", "the governance node: judgment, accountability, trust", keep, "#1e40af", "#eef2ff", "#c7d2fe", "No clearly human-only skills surfaced for this role - treat that as a flag, not a comfort.")}
             {col("Hand to AI agents", "commoditised procedural execution", give, "#9a3412", "#fff7ed", "#fed7aa", "Nothing here is fully automatable yet - more of the role stays human-shaped.")}
           </div>
-          <p style={{ margin:"8px 0 0", fontSize:10.5, color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
+          <p style={{ margin:"8px 0 0", fontSize: 11, color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
           <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
         </div>
       )}
@@ -4884,7 +4897,7 @@ function DemandProof({ result }) {
   const maxBand = Math.max(1, ...bandRows.map(b => dp.bands[b.key]));
 
   const stat = (label, val, kind) => (
-    <div style={{ padding:"8px 10px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8 }}>
+    <div style={{ padding: "8px 10px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius: 10 }}>
       <span style={{ fontSize:18, fontWeight:800, color:C.text, display:"block", marginBottom:2 }}>{val}</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
         <span style={{ fontSize:10, color:C.muted }}>{label}</span>
@@ -4894,7 +4907,7 @@ function DemandProof({ result }) {
   );
   const salCell = (label, val) => (
     <div style={{ textAlign:"center", flex:1 }}>
-      <p style={{ margin:"0 0 1px", fontSize:9.5, color:C.muted, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
+      <p style={{ margin:"0 0 1px", fontSize: 10, color:C.muted, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
       <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.text }}>{fmtSGD(val)}</p>
     </div>
   );
@@ -4902,7 +4915,7 @@ function DemandProof({ result }) {
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding:"11px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
+        style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <span style={{ fontSize:14 }} aria-hidden="true">📡</span>
           <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Demand-Proof - is the market actually hiring this?</span>
@@ -4910,15 +4923,15 @@ function DemandProof({ result }) {
         <span aria-hidden="true" style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
-        <div style={{ padding:"12px 14px 14px" }}>
+        <div style={{ padding: "12px 14px 14px" }}>
           {/* verdict - shape + label + text, never colour alone */}
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:800, color:v.color, background:v.bg, border:`1px solid ${v.border}`, borderRadius:999, padding:"2px 11px" }}>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:800, color:v.color, background:v.bg, border:`1px solid ${v.border}`, borderRadius:999, padding: "2px 12px" }}>
               <span aria-hidden="true">{v.glyph}</span>{v.label}
             </span>
             <Prov kind="computed" small />
           </div>
-          <p style={{ margin:"0 0 10px", fontSize:11.5, color:C.textSub, lineHeight:1.55 }}>{v.line}</p>
+          <p style={{ margin:"0 0 10px", fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{v.line}</p>
 
           {/* counts */}
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(118px,1fr))", gap:8, marginBottom:10 }}>
@@ -4929,7 +4942,7 @@ function DemandProof({ result }) {
 
           {/* salary spread */}
           {dp.salary ? (
-            <div style={{ marginBottom:10, padding:"9px 11px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8 }}>
+            <div style={{ marginBottom:10, padding: "10px 12px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius: 10 }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
                 <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.text }}>Monthly salary spread (rough)</p>
                 <Prov kind="derived" small />
@@ -4954,7 +4967,7 @@ function DemandProof({ result }) {
                 return (
                   <div key={b.key} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
                     <span style={{ fontSize:11, color:C.textSub, width:118, flexShrink:0 }}>{b.label}</span>
-                    <div style={{ flex:1, height:8, background:"#eef2f7", borderRadius:4, overflow:"hidden" }}>
+                    <div style={{ flex:1, height:8, background:"#eef2f7", borderRadius: 6, overflow:"hidden" }}>
                       <div style={{ width:`${(c / maxBand) * 100}%`, height:"100%", background:"#1e40af" }} />
                     </div>
                     <span style={{ fontSize:11, fontWeight:700, color:C.text, width:18, textAlign:"right" }}>{c}</span>
@@ -4966,8 +4979,8 @@ function DemandProof({ result }) {
           ) : null}
 
           {/* Fair Consideration caveat - information only, NOT a per-post ghost label */}
-          <div style={{ padding:"8px 11px", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:8, marginBottom:6 }}>
-            <p style={{ margin:0, fontSize:10.5, color:"#9a3412", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
+          <div style={{ padding: "8px 12px", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius: 10, marginBottom:6 }}>
+            <p style={{ margin:0, fontSize: 11, color:"#9a3412", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
           </div>
 
           <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
@@ -5021,13 +5034,13 @@ function FairnessAudit({ fairness }) {
         <Prov kind="computed" small />
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 800, color: pillColor, background: pillBg, border: `1px solid ${pillBorder}`, borderRadius: 999, padding: "2px 11px" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 800, color: pillColor, background: pillBg, border: `1px solid ${pillBorder}`, borderRadius: 999, padding: "2px 12px" }}>
           <span aria-hidden="true">{ok ? "=" : "⚠"}</span>{ok ? "Invariant" : "Shift found"}
         </span>
         <span style={{ fontSize: 12, fontWeight: 700, color: C.textSub }}>adverse-impact ratio {ratioStr(f.worst)}</span>
         <span style={{ fontSize: 11, color: C.muted }}>benchmark {f.threshold.toFixed(2)}+</span>
       </div>
-      <p style={{ margin: "0 0 7px", fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+      <p style={{ margin: "0 0 7px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
         {ok
           ? "Your CV-fit and True-Fit scores are the same whether the CV reads as a recent graduate or one from decades ago. Age and graduation year do not move our deterministic score."
           : "Our scores shifted between the younger and older variant - a sign age or graduation year is leaking into the scoring. Flagged for a fix; do not rely on the score until resolved."}
@@ -5040,20 +5053,20 @@ function FairnessAudit({ fairness }) {
         </div>
         {f.rows.map((r, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ flex: 1, fontSize: 11.5, color: C.text }}>{r.label}</span>
-            <span style={{ width: 70, textAlign: "right", fontSize: 11.5, fontWeight: 700, color: C.text }}>{scoreStr(r.cvFit)}</span>
-            <span style={{ width: 70, textAlign: "right", fontSize: 11.5, fontWeight: 700, color: C.text }}>{scoreStr(r.trueFit)}</span>
+            <span style={{ flex: 1, fontSize: 12, color: C.text }}>{r.label}</span>
+            <span style={{ width: 70, textAlign: "right", fontSize: 12, fontWeight: 700, color: C.text }}>{scoreStr(r.cvFit)}</span>
+            <span style={{ width: 70, textAlign: "right", fontSize: 12, fontWeight: 700, color: C.text }}>{scoreStr(r.trueFit)}</span>
           </div>
         ))}
       </div>
-      <div style={{ padding: "8px 11px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, marginBottom: 7 }}>
-        <p style={{ margin: 0, fontSize: 10.5, color: C.textSub, lineHeight: 1.5 }}><strong>How to read this.</strong> The benchmark is the four-fifths rule (origin US EEOC 1978; formalised Feldman 2015), applied here ONLY as a yardstick on our own tool - not a legal test for any employer. Singapore anchor: the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025 (merit-based assessment, with an audit trail).</p>
+      <div style={{ padding: "8px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 7 }}>
+        <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}><strong>How to read this.</strong> The benchmark is the four-fifths rule (origin US EEOC 1978; formalised Feldman 2015), applied here ONLY as a yardstick on our own tool - not a legal test for any employer. Singapore anchor: the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025 (merit-based assessment, with an audit trail).</p>
       </div>
       <button onClick={doCopy}
-        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
         {copied ? "Audit trail copied" : "Copy audit trail"}
       </button>
-      <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>This checks the deterministic scoring - not the AI step that first reads your CV, and not the employer's hiring. Human decides. Source: this engine's own scores on matched inputs. Confidence: deterministic (same inputs, same result). Time-window: structural (not time-based).</p>
+      <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>This checks the deterministic scoring - not the AI step that first reads your CV, and not the employer's hiring. Human decides. Source: this engine's own scores on matched inputs. Confidence: deterministic (same inputs, same result). Time-window: structural (not time-based).</p>
     </div>
   );
 }
@@ -5122,11 +5135,11 @@ function AdLanguageScan({ result }) {
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }} aria-hidden="true">🔎</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: headColor }}>Fair-hiring language check (TGFEP)</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "1px 9px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${scan.flagged.length} to review` : "none flagged"}
           </span>
         </div>
@@ -5135,7 +5148,7 @@ function AdLanguageScan({ result }) {
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
               {any
                 ? `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found wording worth a look against Singapore's fair-hiring guidelines.`
                 : `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found no wording that trips the fair-hiring patterns. That is the common, good case.`}
@@ -5146,9 +5159,9 @@ function AdLanguageScan({ result }) {
           {any && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {scan.flagged.map((f, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8 }}>
-                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 5, padding: "1px 7px" }}>{f.dim}</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
+                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>{f.dim}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
                     "{f.phrase}" <span style={{ color: C.muted }}>- looks like {f.note}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
                   </span>
@@ -5157,8 +5170,8 @@ function AdLanguageScan({ result }) {
             </div>
           )}
 
-          <div style={{ padding: "8px 11px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 8, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: 10.5, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
+          <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
+            <p style={{ margin: 0, fontSize: 11, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
           </div>
 
           <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - phrases are matched verbatim from the live postings by a fixed pattern set, and human decides. Source: MyCareersFuture ({scan.scanned} postings scanned). Confidence: high-precision patterns (favours fewer, surer flags). Time-window: the postings currently in this result.</p>
@@ -5206,7 +5219,7 @@ function CandidateBrief({ cv, title }) {
     <div style={{ marginBottom: 12, border: `1px solid #c7d2fe`, borderRadius: 10, background: "#f5f7ff", padding: "12px 14px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 7 }}>
         <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
-        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 800, color: "#3730a3" }}>Candidate brief - your one-page read{title ? ` for ${toTitleCase(title)}` : ""}</p>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#3730a3" }}>Candidate brief - your one-page read{title ? ` for ${toTitleCase(title)}` : ""}</p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 8 }}>
         {rows.map((r, i) => (
@@ -5217,13 +5230,13 @@ function CandidateBrief({ cv, title }) {
         ))}
       </div>
       {gaps.length > 0 && (
-        <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Lead by evidencing:</strong> {gaps.join(", ")}.</p>
+        <p style={{ margin: "0 0 8px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Lead by evidencing:</strong> {gaps.join(", ")}.</p>
       )}
       <button onClick={() => _copy(briefText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
-        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "#fff", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "#fff", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
         {copied ? "Brief copied" : "Copy brief"}
       </button>
-      <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Assembled from the reads above - it authors no new score. AI-assisted; human decides. Source: this CV's reads. The CV text is not stored.</p>
+      <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Assembled from the reads above - it authors no new score. AI-assisted; human decides. Source: this CV's reads. The CV text is not stored.</p>
     </div>
   );
 }
@@ -5253,7 +5266,7 @@ function EmployerFairScorecard({ cv, title }) {
   return (
     <div style={{ marginBottom: 12, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span aria-hidden="true" style={{ fontSize: 14 }}>📋</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer fair scorecard - capability, not pedigree</span>
@@ -5262,27 +5275,27 @@ function EmployerFairScorecard({ cv, title }) {
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          <p style={{ margin: "0 0 9px", fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>A capability-first screen, grounded in Fuller's <em>Hidden Workers</em> (2021) and the STARs framework (Skilled Through Alternative Routes): it scores what a candidate can demonstrably do, not the rigid proxies that screen capable people out.</p>
+          <p style={{ margin: "0 0 9px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>A capability-first screen, grounded in Fuller's <em>Hidden Workers</em> (2021) and the STARs framework (Skilled Through Alternative Routes): it scores what a candidate can demonstrably do, not the rigid proxies that screen capable people out.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
             {cells.map((c, i) => (
-              <div key={i} style={{ padding: "8px 11px", background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 8 }}>
+              <div key={i} style={{ padding: "8px 12px", background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 10 }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, color: C.text }}>{c.k}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{c.k}</span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}><span style={{ fontSize: 12, fontWeight: 800, color: "#1e40af" }}>{c.v}</span><Prov kind={c.prov} small /></span>
                 </div>
-                <p style={{ margin: "2px 0 0", fontSize: 10.5, color: C.muted, lineHeight: 1.45 }}>{c.why}</p>
+                <p style={{ margin: "2px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>{c.why}</p>
               </div>
             ))}
           </div>
-          <div style={{ padding: "8px 11px", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 8, marginBottom: 8 }}>
+          <div style={{ padding: "8px 12px", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, marginBottom: 8 }}>
             <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#3730a3" }}>Deliberately NOT scored</p>
             <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{NOT_SCORED.join("; ")}. These are the rigid filters that, per Fuller's research, screen out capable workers; a fair screen weights demonstrated capability instead.</p>
           </div>
           <button onClick={() => _copy(cardText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
-            style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "5px 12px", cursor: "pointer", transition: "all 0.2s" }}>
+            style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
             {copied ? "Scorecard copied" : "Copy scorecard"}
           </button>
-          <p style={{ margin: "7px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Every cell is one of the reads above - the scorecard authors no new number. It is a fairer lens, not a hire / no-hire verdict. AI-assisted; human decides. Source: this CV's reads.</p>
+          <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Every cell is one of the reads above - the scorecard authors no new number. It is a fairer lens, not a hire / no-hire verdict. AI-assisted; human decides. Source: this CV's reads.</p>
         </div>
       )}
     </div>
@@ -5332,11 +5345,11 @@ function EmployerReality({ result }) {
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }} aria-hidden="true">🏢</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer reality - who is really hiring?</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "1px 9px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${cr.flagged.length} to check` : "direct employers"}
           </span>
         </div>
@@ -5345,7 +5358,7 @@ function EmployerReality({ result }) {
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
               {any
                 ? `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, some look agency-posted or come from staffing firms - the same title is a different reality at an outsourcer than at an end-employer.`
                 : `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, each names a direct employer - no agency or staffing pattern detected.`}
@@ -5356,9 +5369,9 @@ function EmployerReality({ result }) {
           {any && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {cr.flagged.map((f, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8 }}>
-                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 5, padding: "1px 7px" }}>agency?</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: C.text, lineHeight: 1.5 }}>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
+                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>agency?</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
                     {f.company || "(unnamed)"} <span style={{ color: C.muted }}>- {f.why}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
                   </span>
@@ -5367,8 +5380,8 @@ function EmployerReality({ result }) {
             </div>
           )}
 
-          <div style={{ padding: "8px 11px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 8, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: 10.5, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
+          <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
+            <p style={{ margin: 0, fontSize: 11, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
           </div>
 
           <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - company names are matched verbatim from the live postings (poster vs hirer + a fixed name-stem list), and human decides. Source: MyCareersFuture ({cr.scanned} postings). Confidence: a name signal, not a registry check. Time-window: the postings in this result.</p>
@@ -5434,8 +5447,8 @@ function JobAdFab({ onClick }) {
   // bottom-LEFT so it never collides with the bottom-right "Back to top" FAB (z 998).
   return (
     <button onClick={onClick} aria-label="Open the job advertisement"
-      style={{ position: "fixed", left: 16, bottom: 20, zIndex: 901, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 24, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-      <span aria-hidden="true" style={{ fontSize: 15 }}>📄</span> Job ad
+      style={{ position: "fixed", left: 16, bottom: 20, zIndex: 901, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
+      <span aria-hidden="true" style={{ fontSize: 16 }}>📄</span> Job ad
     </button>
   );
 }
@@ -5479,28 +5492,28 @@ function JobAdDrawer({ result, open, onClose }) {
   };
   return (
     <div role="dialog" aria-label="Job advertisement from MyCareersFuture"
-      style={{ position: "fixed", top: 68, right: 18, zIndex: 1001, width: "min(440px, 94vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, boxShadow: "0 14px 44px rgba(0,0,0,0.30)", transform: `translate(${pos.x}px, ${pos.y}px)`, animation: "adFade 0.18s ease both" }}>
+      style={{ position: "fixed", top: 68, right: 18, zIndex: 1001, width: "min(440px, 94vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: "0 14px 44px rgba(0,0,0,0.30)", transform: `translate(${pos.x}px, ${pos.y}px)`, animation: "adFade 0.18s ease both" }}>
       <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}}`}</style>
       <div onPointerDown={onDragStart}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "#1e3a5f", borderRadius: "11px 11px 0 0", cursor: "grab", touchAction: "none", userSelect: "none", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: 15, cursor: "grab" }}>⠿</span>
+          <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: 16, cursor: "grab" }}>⠿</span>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: 9.5, fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: 10, fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
             {job && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
           </div>
         </div>
-        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 8, lineHeight: 1 }}>×</button>
+        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 10, lineHeight: 1 }}>×</button>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
-        {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 10.5, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
+        {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 11, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
         {blocks.length ? blocks.map((b, i) => {
-          if (b.t === "h2") return <p key={i} style={{ margin: i ? "16px 0 7px" : "0 0 7px", fontSize: 14.5, fontWeight: 800, color: "#1e3a5f", borderBottom: `1px solid ${C.border}`, paddingBottom: 3 }}>{b.text}</p>;
-          if (b.t === "h3") return <p key={i} style={{ margin: "12px 0 5px", fontSize: 12.5, fontWeight: 800, color: "#1e40af" }}>{b.text}</p>;
-          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 12.5, color: C.text, lineHeight: 1.6 }}>{_jdEmphasize(b.text, termRe)}</span></div>;
-          return <p key={i} style={{ margin: "0 0 9px", fontSize: 12.5, color: C.text, lineHeight: 1.7 }}>{_jdEmphasize(b.text, termRe)}</p>;
+          if (b.t === "h2") return <p key={i} style={{ margin: i ? "16px 0 7px" : "0 0 7px", fontSize: 14, fontWeight: 800, color: "#1e3a5f", borderBottom: `1px solid ${C.border}`, paddingBottom: 3 }}>{b.text}</p>;
+          if (b.t === "h3") return <p key={i} style={{ margin: "12px 0 5px", fontSize: 13, fontWeight: 800, color: "#1e40af" }}>{b.text}</p>;
+          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{_jdEmphasize(b.text, termRe)}</span></div>;
+          return <p key={i} style={{ margin: "0 0 9px", fontSize: 13, color: C.text, lineHeight: 1.7 }}>{_jdEmphasize(b.text, termRe)}</p>;
         }) : <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
-        {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 11.5, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
+        {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 12, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
       </div>
       <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Drag the header to move. Human decides.</p>
     </div>
@@ -5529,13 +5542,13 @@ function TaskPrep({ result }) {
   return (
     <div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
           <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week.</p>
           <Prov kind="derived" small />
           <Prov kind="ai" small />
         </div>
-        <p style={{ margin: 0, fontSize: 10.5, color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
+        <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
       </div>
       {groups.map(g => (
         <div key={g.freq} style={{ marginBottom: 16 }}>
@@ -5548,16 +5561,16 @@ function TaskPrep({ result }) {
             {g.items.map((r, i) => {
               const sk = (Array.isArray(r.sk) ? r.sk : []).map(n => skillByN.get(n)).filter(Boolean).slice(0, 4);
               return (
-                <div key={r.n != null ? r.n : i} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", background: C.surface }}>
+                <div key={r.n != null ? r.n : i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", background: C.surface }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
                     <Tag level={r.level || "HUMAN"} small />
                   </div>
                   {r.how && (
-                    <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""} <Prov kind="ai" small /></p>
+                    <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""} <Prov kind="ai" small /></p>
                   )}
                   {r.kickstart && (
-                    <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#0e7490" }}>Prepare this week:</strong> {r.kickstart} <Prov kind="ai" small /></p>
+                    <p style={{ margin: "0 0 4px", fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#0e7490" }}>Prepare this week:</strong> {r.kickstart} <Prov kind="ai" small /></p>
                   )}
                   {sk.length > 0 && (
                     <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Skills it draws on:</strong> {sk.join(", ")}</p>
@@ -5568,7 +5581,7 @@ function TaskPrep({ result }) {
           </div>
         </div>
       ))}
-      <p style={{ margin: "4px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
+      <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
     </div>
   );
 }
@@ -5638,7 +5651,7 @@ function Rehearsal({ result, title }) {
   return (
     <div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: C.text }}>🎤 Interview rehearsal - questions this role's duties would raise</p>
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>🎤 Interview rehearsal - questions this role's duties would raise</p>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>Each question maps to a real duty. The STAR lines are prompts for YOUR story - fill them from your own experience.</p>
           <Prov kind="ai" small />
@@ -5652,21 +5665,21 @@ function Rehearsal({ result, title }) {
           {rh.read.questions.map((q, i) => {
             const duty = statements.find(s => Number(s.n) === q.n);
             return (
-              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", background: C.surface }}>
-                {duty && <p style={{ margin: "0 0 4px", fontSize: 10.5, color: C.muted, lineHeight: 1.45 }}>From the duty: {duty.text}</p>}
+              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", background: C.surface }}>
+                {duty && <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>From the duty: {duty.text}</p>}
                 <p style={{ margin: "0 0 9px", fontSize: 13, fontWeight: 700, color: C.text, lineHeight: 1.5 }}>{q.q}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                   {STAR.map(([k, label]) => q[k] ? (
                     <div key={k} style={{ display: "flex", gap: 8 }}>
                       <span style={{ flexShrink: 0, width: 64, fontSize: 11, fontWeight: 800, color: "#1e40af" }}>{label}</span>
-                      <span style={{ flex: 1, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{q[k]}</span>
+                      <span style={{ flex: 1, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{q[k]}</span>
                     </div>
                   ) : null)}
                 </div>
               </div>
             );
           })}
-          <p style={{ margin: "4px 0 0", fontSize: 10.5, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The questions and the STAR prompts are AI-suggested from this role's duties - the answers, examples and results are yours to supply. Never invent experience you do not have.</p>
+          <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The questions and the STAR prompts are AI-suggested from this role's duties - the answers, examples and results are yours to supply. Never invent experience you do not have.</p>
         </div>
       ) : (
         <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground questions in the role's duties.</p>
@@ -5705,15 +5718,15 @@ function JourneySpine({ tabs, activeTab, onGo }) {
                 aria-current={current ? "step" : undefined} aria-disabled={!ready || undefined}
                 aria-label={ready ? undefined : `${s.name} - locked - ${s.hint}`}
                 title={ready ? (current ? "You are here" : `Go to ${s.name}`) : `${s.hint} - not ready yet`}
-                style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "5px 11px", borderRadius: 22, cursor: ready ? "pointer" : "not-allowed",
+                style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "6px 12px", borderRadius: 16, cursor: ready ? "pointer" : "not-allowed",
                   border: `2px solid ${current ? "#1a56db" : ready ? C.border : C.border}`,
                   background: current ? "#1a56db" : ready ? C.surface : C.bg,
                   color: current ? "#fff" : ready ? C.text : C.mutedLight,
                   opacity: ready ? 1 : 0.6, transition: "all 0.15s", whiteSpace: "nowrap" }}>
                 <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: current ? "#fff" : "#1e40af", color: current ? "#1a56db" : "#fff" }}>{s.n}</span>
                 <span style={{ fontSize: 12, fontWeight: 700 }}>{s.name}</span>
-                {current && <span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.9 }}>- you are here</span>}
-                {state === "locked" && <span style={{ fontSize: 9.5, fontWeight: 700 }}>- locked</span>}
+                {current && <span style={{ fontSize: 10, fontWeight: 700, opacity: 0.9 }}>- you are here</span>}
+                {state === "locked" && <span style={{ fontSize: 10, fontWeight: 700 }}>- locked</span>}
               </button>
               {i < _JOURNEY_STATIONS.length - 1 && <span aria-hidden="true" style={{ fontSize: 12, color: C.mutedLight }}>&gt;</span>}
             </div>
@@ -5767,7 +5780,7 @@ function NxCopyButton({ nxDisplay, promptTech, prep, automationLevel, applyText,
   };
   return (
     <button onClick={handleNxCopy}
-      style={{ fontSize:10, fontWeight:600, color: nxCopied ? "#1e40af" : C.muted, background: nxCopied ? "#dbeafe" : "transparent", border:`1px solid ${nxCopied ? "#c7d2fe" : C.border}`, borderRadius:5, padding:"2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
+      style={{ fontSize:10, fontWeight:600, color: nxCopied ? "#1e40af" : C.muted, background: nxCopied ? "#dbeafe" : "transparent", border:`1px solid ${nxCopied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
       {nxCopied ? "Copied. Ready to Paste" : "Copy Instructions"}
     </button>
   );
@@ -5850,35 +5863,35 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
   const nxStyle = NX_STYLE[automationLevel] || NX_STYLE.MEDIUM;
 
   return (
-    <div style={{ marginTop:8, background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7, padding:"10px 12px" }}>
+    <div style={{ marginTop:8, background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6, padding: "10px 12px" }}>
       {prep && (
-        <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding:"6px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:5 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding: "6px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
           <span style={{ fontSize:13, flexShrink:0, lineHeight:1 }}>📋</span>
           <p style={{ margin:0, fontSize:11, color:"#92400e", lineHeight:1.5, fontStyle:"italic" }}>{prep}</p>
         </div>
       )}
       {twoStep && (
-        <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding:"6px 10px", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius:5 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding: "6px 10px", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius: 6 }}>
           <span style={{ fontSize:13, flexShrink:0, lineHeight:1 }}>💬</span>
           <p style={{ margin:0, fontSize:10, color:"#7c3aed", lineHeight:1.5 }}><strong>Multi-turn prompt</strong> - continue the conversation after the first response. Each follow-up sharpens the output further.</p>
         </div>
       )}
       <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:6 }}>
           <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
-          {readiness === "ready"                           && <span style={{ fontSize:9, fontWeight:600, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
-          {(readiness === "quick-prep" || readiness === "prepare") && <span style={{ fontSize:9, fontWeight:600, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Quick prep first</span>}
-          {readiness === "deep-prep"                       && <span style={{ fontSize:9, fontWeight:600, color:"#7c3aed", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius:4, padding:"1px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Prep needed</span>}
+          {readiness === "ready"                           && <span style={{ fontSize: 10, fontWeight:600, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
+          {(readiness === "quick-prep" || readiness === "prepare") && <span style={{ fontSize: 10, fontWeight:600, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Quick prep first</span>}
+          {readiness === "deep-prep"                       && <span style={{ fontSize: 10, fontWeight:600, color:"#7c3aed", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Prep needed</span>}
           {tech && (
             <div style={{ position:"relative", display:"inline-flex" }}>
               <span
                 onMouseEnter={() => setTechTooltipVisible(true)}
                 onMouseLeave={() => setTechTooltipVisible(false)}
                 onTouchStart={e => { e.stopPropagation(); setTechTooltipVisible(v => !v); }}
-                style={{ fontSize:9, fontWeight:700, color:tech.color, background:tech.bg, border:`1px solid ${tech.border}`, borderRadius:10, padding:"1px 7px", whiteSpace:"nowrap", cursor:"help" }}>
+                style={{ fontSize: 10, fontWeight:700, color:tech.color, background:tech.bg, border:`1px solid ${tech.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap", cursor:"help" }}>
                 {tech.level} {tech.label}
               </span>
               {techTooltipVisible && (
-                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1e293b", color:"#f1f5f9", fontSize:10, lineHeight:1.55, padding:"8px 11px", borderRadius:7, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
+                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1e293b", color:"#f1f5f9", fontSize:10, lineHeight:1.55, padding: "8px 12px", borderRadius: 6, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
                   <strong style={{ display:"block", marginBottom:3, color:"#e2e8f0" }}>{tech.label}</strong>
                   {tech.desc}
                 </div>
@@ -5886,14 +5899,14 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
             </div>
           )}
       </div>
-      <pre className="t-meta" style={{ margin:"0 0 8px", fontSize:11, color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius:5, padding:"6px 9px", whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</pre>
+      <pre className="t-meta" style={{ margin:"0 0 8px", fontSize:11, color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius: 6, padding: "6px 10px", whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</pre>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:6 }}>
         <p style={{ margin:0, fontSize:10, color:"#0369a1", lineHeight:1.5, opacity:0.8, flex:1 }}>
           Paste into any AI tool. Edit <strong>[bracketed]</strong> parts to fit your context.
           {tech && <span> This prompt uses a <strong>{tech.label.toLowerCase()}</strong> - hover the badge above to learn why.</span>}
         </p>
         <button onClick={handleCopy}
-          style={{ flexShrink:0, padding:"5px 14px", fontSize:11, fontWeight:700, color: copied ? "#1e40af" : "#0369a1", background: copied ? "#dbeafe" : "#e0f2fe", border:`1.5px solid ${copied ? "#c7d2fe" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
+          style={{ flexShrink:0, padding: "6px 14px", fontSize:11, fontWeight:700, color: copied ? "#1e40af" : "#0369a1", background: copied ? "#dbeafe" : "#e0f2fe", border:`1.5px solid ${copied ? "#c7d2fe" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
           {copied ? "Copied. Ready to Paste" : "Copy Prompt"}
         </button>
       </div>
@@ -5901,7 +5914,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
         const nxText = nextPhase.replace(/^Next phase:\s*/i, "").replace(/^Your next move:\s*/i, "").replace(/^What to do next:\s*/i, "");
         const nxDisplay = nxText.charAt(0).toUpperCase() + nxText.slice(1);
         return (
-          <div style={{ marginTop:10, padding:"12px 16px", background:"#fff", border:`1px solid ${C.border}`, borderRadius:7 }}>
+          <div style={{ marginTop:10, padding: "12px 16px", background:"#fff", border:`1px solid ${C.border}`, borderRadius: 6 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
               <p style={{ margin:0, fontSize:12, fontWeight:700, color:nxStyle.color }}>What to do Next</p>
               <NxCopyButton nxDisplay={nxDisplay} promptTech={promptTech} prep={prep} automationLevel={automationLevel} applyText={applyText} aiTool={aiTool} aiHow={aiHow} nxCopied={nxCopied} onNxCopy={() => { setNxCopied(true); setCopied(false); setTimeout(() => setNxCopied(false), 2500); }} promptText={text} />
@@ -5939,7 +5952,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
         return (
           <button
             onClick={e => { e.stopPropagation(); onSearch(role); }}
-            style={{ marginTop:8, padding:"5px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#0369a1", border:"none", borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", gap:5, textAlign:"left", width:"100%" }}>
+            style={{ marginTop:8, padding: "6px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#0369a1", border:"none", borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", gap:5, textAlign:"left", width:"100%" }}>
             <span>Similar roles to {role} &#8594;</span>
           </button>
         );
@@ -5974,9 +5987,9 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
   return (
     <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:9000, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background:C.bg, borderRadius:12, width:"100%", maxWidth:480, boxShadow:"0 8px 32px rgba(0,0,0,0.22)", overflow:"hidden" }}>
+        style={{ background:C.bg, borderRadius: 10, width:"100%", maxWidth:480, boxShadow:"0 8px 32px rgba(0,0,0,0.22)", overflow:"hidden" }}>
         {/* Header */}
-        <div style={{ padding:"14px 16px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10 }}>
+        <div style={{ padding: "14px 16px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10 }}>
           <div>
             <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>Who uses this skill?</p>
             <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub }}>Roles where <strong style={{ color:C.accent }}>{skillName}</strong> is a primary defining capability</p>
@@ -5985,9 +5998,9 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
         </div>
 
         {/* Body - scrollable for mobile */}
-        <div style={{ padding:"10px 16px 16px", overflowY:"auto", maxHeight:"60vh", WebkitOverflowScrolling:"touch" }}>
+        <div style={{ padding: "10px 16px 16px", overflowY:"auto", maxHeight:"60vh", WebkitOverflowScrolling:"touch" }}>
           {loading ? (
-            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"20px 0" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding: "20px 0" }}>
               <span style={{ width:14, height:14, border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite" }} />
               <p style={{ margin:0, fontSize:12, color:C.muted }}>Finding roles where this skill defines the job...</p>
             </div>
@@ -5998,12 +6011,12 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
               const isQueued = queued[ex.role];
               const queueFull = queueCount >= 3 && !isQueued;
               return (
-                <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:8, padding:"10px 12px", background:C.surface }}>
+                <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:8, padding: "10px 12px", background:C.surface }}>
                   <div style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:8 }}>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap", marginBottom:3 }}>
                         <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{ex.role}</p>
-                        <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:12, padding:"1px 8px", flexShrink:0 }}>{ex.sector}</span>
+                        <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{ex.sector}</span>
                       </div>
                       <p style={{ margin:0, fontSize:12, color:C.textSub }}>{ex.why}</p>
                     </div>
@@ -6012,7 +6025,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
                     <button
                       onClick={() => handleQueue(ex.role)}
                       disabled={queueFull || isQueued}
-                      style={{ flex:"1 1 auto", padding:"5px 10px", fontSize:12, fontWeight:700,
+                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize:12, fontWeight:700,
                         color: isQueued ? "#1e40af" : queueFull ? C.muted : C.accent,
                         background: isQueued ? "#eef2ff" : queueFull ? C.surface : C.accentSoft,
                         border: `1.5px solid ${isQueued ? "#c7d2fe" : queueFull ? C.border : "#c3d3f5"}`,
@@ -6021,7 +6034,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
                     </button>
                     <button
                       onClick={() => handleOpenTab(ex.role)}
-                      style={{ flex:"1 1 auto", padding:"5px 10px", fontSize:12, fontWeight:700,
+                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize:12, fontWeight:700,
                         color:C.textSub, background:C.surface,
                         border:`1.5px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
                       Explore similar role ↗
@@ -6038,9 +6051,9 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
           )}
         </div>
         {/* Bottom close button - always visible on mobile */}
-        <div style={{ padding:"10px 16px", borderTop:`1px solid ${C.border}`, display:"flex", justifyContent:"center" }}>
+        <div style={{ padding: "10px 16px", borderTop:`1px solid ${C.border}`, display:"flex", justifyContent:"center" }}>
           <button onClick={onClose}
-            style={{ width:"100%", maxWidth:300, padding:"9px 0", fontSize:13, fontWeight:700, color:C.muted, background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, cursor:"pointer" }}>
+            style={{ width:"100%", maxWidth:300, padding: "10px 0", fontSize:13, fontWeight:700, color:C.muted, background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, cursor:"pointer" }}>
             Close
           </button>
         </div>
@@ -6084,7 +6097,7 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
   const toggleGroup = (level) => setExpandedGroups(p => ({ ...p, [level]: !p[level] }));
   return (
     <div>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", marginBottom:12 }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:12 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
           <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.muted }}>
             {(() => {
@@ -6095,21 +6108,21 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
               return `${result.skills?.length||0} skills`;
             })()}
           </p>
-          <button onClick={toggleAll} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius:5, fontSize:12, color:C.accent, cursor:"pointer", padding:"3px 10px", fontWeight:600 }}>
+          <button onClick={toggleAll} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize:12, color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600 }}>
             {allExpanded ? "Collapse all" : "Expand all"}
           </button>
         </div>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>Skills are ordered by automation level - Human-Led first, Full Automation last. Tap any group header to expand or collapse.</p>
         <p style={{ margin:"5px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>Ratings reflect general occupational exposure across the role. They are not calibrated to seniority, organisation size, or sector. Results are AI-generated and may differ between searches.</p>
       </div>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
         <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:C.text }}>How does a skill map to this role?</p>
         <p style={{ margin:"0 0 8px", fontSize:12, color:C.muted, lineHeight:1.5 }}>Enter any skill to see where it appears in this role and how AI is affecting it. In English for best results.</p>
         <div style={{ display:"flex", gap:8 }}>
           <input type="text" value={skillInputQuery} onChange={e => onSkillQueryChange(e.target.value)} onKeyDown={e => e.key === "Enter" && onSkillSearch && onSkillSearch(skillInputQuery)} placeholder="e.g. facilitation, Excel, managing conflict..."
-            style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:6, color:C.text, padding:"8px 11px", fontSize:14, outline:"none", fontFamily:"inherit" }} />
+            style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:6, color:C.text, padding: "8px 12px", fontSize:14, outline:"none", fontFamily:"inherit" }} />
           <button onClick={() => onSkillSearch && onSkillSearch(skillInputQuery)} disabled={!skillInputQuery.trim() || !onSkillSearch}
-            style={{ padding:"8px 16px", fontSize:11, fontWeight:700, color:"#fff", background:skillInputQuery.trim() ? C.accent : C.border, border:"none", borderRadius:6, cursor:skillInputQuery.trim() ? "pointer" : "not-allowed", whiteSpace:"nowrap", flexShrink:0 }}>
+            style={{ padding: "8px 16px", fontSize:11, fontWeight:700, color:"#fff", background:skillInputQuery.trim() ? C.accent : C.border, border:"none", borderRadius:6, cursor:skillInputQuery.trim() ? "pointer" : "not-allowed", whiteSpace:"nowrap", flexShrink:0 }}>
             Search
           </button>
         </div>
@@ -6120,39 +6133,39 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
           </div>
         )}
         {skillInputResult && skillInputResult.status === "match" && (
-          <div style={{ marginTop:8, padding:"8px 11px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:6 }}>
+          <div style={{ marginTop:8, padding: "8px 12px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:6 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
               <div>
                 <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:C.accent }}>Found in this role - <strong>{skillInputResult.match}</strong></p>
                 <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
               </div>
-              <button onClick={jumpToMatch} style={{ flexShrink:0, padding:"4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:C.accent, border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
+              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:C.accent, border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
                 Jump to skill ↓
               </button>
             </div>
           </div>
         )}
         {skillInputResult && skillInputResult.status === "close" && (
-          <div style={{ marginTop:8, padding:"8px 11px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
+          <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
               <div>
                 <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:"#b45309" }}>Closest match - <strong>{skillInputResult.close}</strong></p>
                 <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
               </div>
-              <button onClick={jumpToMatch} style={{ flexShrink:0, padding:"4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#b45309", border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
+              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#b45309", border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
                 Jump to skill ↓
               </button>
             </div>
           </div>
         )}
         {skillInputResult && skillInputResult.status === "unrelated" && (
-          <div style={{ marginTop:8, padding:"8px 11px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
+          <div style={{ marginTop:8, padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
             <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:600, color:C.muted }}>This skill is not in the profile for this role.</p>
             <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
           </div>
         )}
         {skillInputResult && skillInputResult.status === "suggestion" && (
-          <div style={{ marginTop:8, padding:"8px 11px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
+          <div style={{ marginTop:8, padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
             <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:600, color:C.muted }}>Could not quite place that.</p>
             <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.suggestion || skillInputResult.explanation}</p>
           </div>
@@ -6161,7 +6174,7 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
       {grouped.map((g, gIdx) => (
         <div key={g.level} style={{ marginBottom:10 }}>
           <button onClick={() => toggleGroup(g.level)}
-            style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"9px 13px", background:g.bg, border:`1px solid ${g.border}`, borderRadius:expandedGroups[g.level] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
+            style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:g.bg, border:`1px solid ${g.border}`, borderRadius:expandedGroups[g.level] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ fontSize:13 }}>{g.icon}</span>
               <span style={{ fontSize:13, fontWeight:700, color:g.color }}>{g.label}</span>
@@ -6170,8 +6183,8 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
             <span style={{ fontSize:10, color:g.color, opacity:0.7 }}>{expandedGroups[g.level] ? "▲ collapse" : "▼ expand"}</span>
           </button>
           {expandedGroups[g.level] && (
-            <div style={{ border:`1px solid ${g.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding:"8px 8px 4px", background:C.bg }}>
-              <p style={{ margin:"0 0 8px", fontSize:12, color:g.color, lineHeight:1.5, padding:"0 5px", fontStyle:"italic" }}>{g.sub}</p>
+            <div style={{ border:`1px solid ${g.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding: "8px 8px 4px", background:C.bg }}>
+              <p style={{ margin:"0 0 8px", fontSize:12, color:g.color, lineHeight:1.5, padding: "0 6px", fontStyle:"italic" }}>{g.sub}</p>
               {g.skills.map((s, i) => {
                 const isHighlighted = !!(skillInputResult && (skillInputResult.match?.toLowerCase()===s.skill.toLowerCase()||skillInputResult.close?.toLowerCase()===s.skill.toLowerCase()));
                 const isJumpTarget = !!(jumpToSkill && jumpToSkill.toLowerCase() === s.skill.toLowerCase());
@@ -6231,18 +6244,18 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
           onClose={() => setShowExperts(false)}
         />
       )}
-      <div id={`skill-${item.skill.replace(/\s+/g,"-").toLowerCase()}`} ref={matchRef || null} onClick={() => { if (!open) track("skill_expanded", { level: item.level, skillType: item.skillType }); setOpen(o => !o); }} style={{ border:`2px solid ${blinkActive ? c.border : highlight ? c.border : open ? c.border : C.border}`, borderRadius:7, marginBottom:5, background: blinkActive ? c.bg : highlight ? c.bg : open ? c.bg : C.surface, cursor:"pointer", transition:"background 0.3s, border 0.3s", boxShadow: blinkActive ? `0 0 0 3px ${c.bg}, 0 0 12px ${c.bg}` : highlight ? `0 0 0 3px ${c.bg}` : "none", borderLeft: jumpHighlight ? `5px solid ${c.border}` : undefined, animation: blinkActive ? "skillBlink 0.9s ease-in-out infinite" : undefined }}>
-        <div style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 13px" }}>
+      <div id={`skill-${item.skill.replace(/\s+/g,"-").toLowerCase()}`} ref={matchRef || null} onClick={() => { if (!open) track("skill_expanded", { level: item.level, skillType: item.skillType }); setOpen(o => !o); }} style={{ border:`2px solid ${blinkActive ? c.border : highlight ? c.border : open ? c.border : C.border}`, borderRadius: 6, marginBottom:5, background: blinkActive ? c.bg : highlight ? c.bg : open ? c.bg : C.surface, cursor:"pointer", transition:"background 0.3s, border 0.3s", boxShadow: blinkActive ? `0 0 0 3px ${c.bg}, 0 0 12px ${c.bg}` : highlight ? `0 0 0 3px ${c.bg}` : "none", borderLeft: jumpHighlight ? `5px solid ${c.border}` : undefined, animation: blinkActive ? "skillBlink 0.9s ease-in-out infinite" : undefined }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px" }}>
           <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.muted, fontWeight:700, flexShrink:0 }}>{idx+1}</span>
           <div style={{ flex:1, minWidth:0 }}>
             <p className="t-body" style={{ margin:0, fontSize:14, color:C.text, fontWeight:500 }}>{item.skill}</p>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginTop:1 }}>
               <p style={{ margin:0, fontSize:12, color:C.muted }}>{item.skillType === "soft-skill" ? "Soft Skill" : "Technical Skill"}</p>
               {item.isExtended && (
-                <span style={{ fontSize:9, color:"#6b7280", background:"#f3f4f6", border:"1px solid #d1d5db", borderRadius:4, padding:"1px 6px", fontWeight:600, flexShrink:0 }}>Contextualised</span>
+                <span style={{ fontSize: 10, color:"#6b7280", background:"#f3f4f6", border:"1px solid #d1d5db", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0 }}>Contextualised</span>
               )}
               {item.relevanceScore === 3 && (
-                <span title="AI assessed this skill as potentially from an adjacent occupation - it may not fully apply to this role" style={{ fontSize:9, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:4, padding:"1px 6px", fontWeight:600, flexShrink:0, cursor:"help" }}>⚠ May not apply</span>
+                <span title="AI assessed this skill as potentially from an adjacent occupation - it may not fully apply to this role" style={{ fontSize: 10, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0, cursor:"help" }}>⚠ May not apply</span>
               )}
               {item.escoUri && (
                 <a
@@ -6250,7 +6263,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  style={{ fontSize:10, color:"#2563eb", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:4, padding:"1px 5px", textDecoration:"none", fontFamily:"monospace", flexShrink:0, whiteSpace:"nowrap" }}
+                  style={{ fontSize:10, color:"#2563eb", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius: 6, padding: "2px 6px", textDecoration:"none", fontFamily:"monospace", flexShrink:0, whiteSpace:"nowrap" }}
                 >
                   ESCO {item.escoUri.split("/").pop().slice(0,8)}
                 </a>
@@ -6259,19 +6272,19 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
           </div>
           <Tag level={item.level} small />
           <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-            {autoOpen && open && <span style={{ fontSize:9, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap any skill to explore</span>}
+            {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap any skill to explore</span>}
             <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
           </span>
         </div>
         {/* ESCO description: always visible (the v2 "skills list" reading experience) - the deeper
             detail (broader/narrower concepts, AI prompts) stays behind the tap below. */}
         {item.escoDescription && (
-          <p style={{ margin:0, padding:"0 13px 10px 41px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+          <p style={{ margin:0, padding: "0 14px 10px 42px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
             {item.escoDescription}
           </p>
         )}
         {open && (
-          <div style={{ padding:"2px 13px 11px 41px", borderTop:`1px solid ${c.border}` }}>
+          <div style={{ padding: "2px 14px 12px 42px", borderTop:`1px solid ${c.border}` }}>
             {(item.broaderConcept || (item.narrowerSkills && item.narrowerSkills.length > 0)) && (
               <div style={{ margin:"4px 0 8px", display:"flex", flexWrap:"wrap", gap:6, alignItems:"center" }}>
                 {item.broaderConcept && (
@@ -6294,18 +6307,18 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
               {c.icon} {item.tool === "NA" ? "Note:" : "Apply:"} {item.kickstart || AI_USAGE[item.tool] || ""}
             </p>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 11px", flex:"1 1 110px" }}>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"1 1 110px" }}>
                 <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>AI Tool</p>
                 <p style={{ margin:0, fontSize:12, color:C.accent, fontWeight:600 }}>{item.tool}</p>
               </div>
-              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 11px", flex:"3 1 200px" }}>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"3 1 200px" }}>
                 <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Approach</p>
                 <p style={{ margin:0, fontSize:12, color:C.textSub }}>{item.how}</p>
               </div>
             </div>
             {item.level !== "HUMAN" && (
               item.promptLoading
-                ? <div style={{ marginTop:8, padding:"10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:7 }}>
+                ? <div style={{ marginTop:8, padding: "10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
                       <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>
@@ -6314,11 +6327,11 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                     </div>
                   </div>
                 : item.promptFailed
-                  ? <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
+                  ? <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
                       <p style={{ margin:0, fontSize:11, color:"#92400e" }}>Failed to generate the prompt syntax. Please click refresh.</p>
                       <button
                         onClick={e => { e.stopPropagation(); track("prompt_refresh", { level: item.level }); onRefreshPrompt && onRefreshPrompt(item.n); }}
-                        style={{ flexShrink:0, fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius:5, padding:"3px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ flexShrink:0, fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         ↻ Refresh
                       </button>
                     </div>
@@ -6329,7 +6342,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             {/* Who uses this skill */}
             <button
               onClick={e => { e.stopPropagation(); setShowExperts(true); }}
-              style={{ marginTop:10, display:"inline-flex", alignItems:"center", gap:5, padding:"5px 12px", fontSize:11, fontWeight:700, color:C.textSub, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
+              style={{ marginTop:10, display:"inline-flex", alignItems:"center", gap:5, padding: "6px 12px", fontSize:11, fontWeight:700, color:C.textSub, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
               <span style={{ fontSize:13 }}>🔍</span> Who uses this skill?
             </button>
           </div>
@@ -6346,14 +6359,14 @@ function FoundationCard({ item }) {
   const catIcon = CATEGORY_ICONS[item.category] || "📌";
   return (
     <div onClick={() => setOpen(o => !o)}
-      style={{ border:`1px solid ${open ? pc.border : C.border}`, borderRadius:8, marginBottom:7, background:open ? pc.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px" }}>
+      style={{ border:`1px solid ${open ? pc.border : C.border}`, borderRadius: 10, marginBottom:7, background:open ? pc.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px" }}>
         <span style={{ fontSize:18, flexShrink:0 }}>{catIcon}</span>
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text }}>{item.skill}</p>
           <p style={{ margin:"2px 0 0", fontSize:12, color:C.muted }}>{item.category}</p>
         </div>
-        <span style={{ fontSize:11, fontWeight:700, color:pc.color, background:pc.bg, border:`1px solid ${pc.border}`, borderRadius:12, padding:"2px 9px", whiteSpace:"nowrap", flexShrink:0 }}>
+        <span style={{ fontSize:11, fontWeight:700, color:pc.color, background:pc.bg, border:`1px solid ${pc.border}`, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink:0 }}>
           {pc.icon} {item.priority}
         </span>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
@@ -6361,13 +6374,13 @@ function FoundationCard({ item }) {
         </span>
       </div>
       {open && (
-        <div style={{ padding:"4px 14px 12px 42px", borderTop:`1px solid ${pc.border}` }}>
+        <div style={{ padding: "4px 14px 12px 42px", borderTop:`1px solid ${pc.border}` }}>
           <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:8 }}>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:"7px 12px", flex:"2 1 180px" }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "8px 12px", flex:"2 1 180px" }}>
               <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Why AI Cannot Replace This</p>
               <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{item.why}</p>
             </div>
-            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:6, padding:"7px 12px", flex:"2 1 180px" }}>
+            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:6, padding: "8px 12px", flex:"2 1 180px" }}>
               <p style={{ margin:"0 0 2px", fontSize:10, color:C.green, textTransform:"uppercase", fontWeight:700 }}>Learning Action</p>
               <p style={{ margin:0, fontSize:12, color:"#1e40af", fontWeight:600, lineHeight:1.5 }}>{item.action}</p>
             </div>
@@ -6385,7 +6398,7 @@ function FoundationPanel({ data, persona }) {
   data.foundations.forEach(f => { if (grouped[f.priority]) grouped[f.priority].push(f); });
   return (
     <div>
-      <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding:"12px 16px", marginBottom:16, display:"flex", gap:12, alignItems:"flex-start" }}>
+      <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding: "12px 16px", marginBottom:16, display:"flex", gap:12, alignItems:"flex-start" }}>
         <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
         <div>
           <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:cfg.color }}>Foundation Skills for: {cfg.label}</p>
@@ -6429,7 +6442,7 @@ function AutomationBar({ skills, small }) {
   ];
   return (
     <div>
-      <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:small?6:10, marginBottom:small?4:8 }}>
+      <div style={{ display:"flex", gap:2, borderRadius: 6, overflow:"hidden", height:small?6:10, marginBottom:small?4:8 }}>
         {bars.map(b => counts[b.key] > 0 && (
           <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, transition:"flex 0.3s" }} />
         ))}
@@ -6559,18 +6572,18 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
   ];
   return (
     <div style={{ marginTop:0 }}>
-      <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+      <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 10, padding: "10px 14px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
         <p style={{ margin:0, fontSize:12, color:"#0369a1" }}>Commonalities, differences and development needs across your selected roles.</p>
         <span style={{ fontSize:11, fontWeight:600, color:"#0369a1", flexShrink:0, marginLeft:10 }}>{ready.length} of 3 roles</span>
       </div>
       {/* Section 1 - Overlap */}
-      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
+      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 14px", marginBottom:14 }}>
         <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:800, color:"#1e40af", lineHeight:1.3 }}>
           {allShared.length > 0 ? `Transferable strengths - shared across all ${ready.length} roles` : `Transferable strengths across all ${ready.length} roles`}
         </p>
         {allShared.length > 0
           ? <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: pairShared.length > 0 ? 10 : 0 }}>
-              {allShared.map((s, i) => <span key={i} style={{ fontSize:12, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius:12, padding:"2px 9px" }}>{toTitleCase(s)}</span>)}
+              {allShared.map((s, i) => <span key={i} style={{ fontSize:12, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{toTitleCase(s)}</span>)}
             </div>
           : <p style={{ margin:"0 0 10px", fontSize:12, color:C.muted, fontStyle:"italic" }}>No skills shared across all roles - each draws on a distinct skill set.</p>
         }
@@ -6578,20 +6591,20 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           <div key={i} style={{ marginTop:8, paddingTop:8, borderTop:"1px dashed #c7d2fe" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#0e7490" }}>{pair.label} also share</p>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-              {pair.skills.map((s, j) => <span key={j} style={{ fontSize:12, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:12, padding:"2px 8px" }}>{toTitleCase(s)}</span>)}
+              {pair.skills.map((s, j) => <span key={j} style={{ fontSize:12, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px" }}>{toTitleCase(s)}</span>)}
             </div>
           </div>
         ))}
       </div>
       {/* Section 2 - Automation bars */}
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:14 }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:14 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
           <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches each role</p>
           <div style={{ display:"flex", gap:10, flexWrap:"wrap", justifyContent:"flex-end" }}>
             {levelBar.map(b => (
               <span key={b.key} style={{ display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ width:10, height:10, borderRadius:2, background:b.color, flexShrink:0, display:"inline-block" }} />
-                <span style={{ fontSize:9, color:b.color, fontWeight:700 }}>{b.label}</span>
+                <span style={{ width:10, height:10, borderRadius: 6, background:b.color, flexShrink:0, display:"inline-block" }} />
+                <span style={{ fontSize: 10, color:b.color, fontWeight:700 }}>{b.label}</span>
               </span>
             ))}
           </div>
@@ -6610,7 +6623,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                   {c.result.skills.length}{c.result.skills.length < 25 ? " skills ↓" : " skills"}
                 </span>
               </div>
-              <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:12, marginBottom:4 }}>
+              <div style={{ display:"flex", gap:2, borderRadius: 6, overflow:"hidden", height:12, marginBottom:4 }}>
                 {levelBar.map(b => counts[b.key] > 0 && <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, minWidth:4 }} />)}
               </div>
               <div style={{ display:"flex", gap:8, flexWrap:"nowrap", overflowX:"auto" }}>
@@ -6629,7 +6642,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         const max = Math.max(...counts);
         const roles = ready.filter(c => c.result.skills.length < max).map(c => c.title);
         return (
-        <div style={{ margin:"-4px 0 14px", padding:"7px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
+        <div style={{ margin:"-4px 0 14px", padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
           <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skill count varies across roles</p>
           <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.5 }}>
             {roles.join(" and ")} {roles.length === 1 ? "has" : "have"} fewer skills assessed than the others — ESCO lists fewer essential skills for {roles.length === 1 ? "this occupation type" : "these occupation types"}. The comparison still reflects each role's full profile.
@@ -6644,7 +6657,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         if (!respSomeReady) return null;
         if (!respReadyAll) {
           return (
-            <div style={{ background:"#fcfaff", border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>
+            <div style={{ background:"#fcfaff", border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ width:11, height:11, border:`2px solid ${C.purpleBdr}`, borderTop:`2px solid ${C.purple}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
               <p style={{ margin:0, fontSize:12, color:C.purple }}>Building the Responsibilities comparison from live job postings…</p>
             </div>
@@ -6663,12 +6676,12 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         const dLvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
         return (
           <div style={{ marginBottom:14 }}>
-            <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+            <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
               <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities — from live job postings</p>
               <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>What each role is actually expected to do, and how exposed those duties are to AI.</p>
             </div>
             {/* shared duties */}
-            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+            <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
               <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#1e40af" }}>Duties shared across all {ready.length} roles</p>
               {sharedDuties.length > 0
                 ? sharedDuties.map((d, i) => (
@@ -6681,7 +6694,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
               }
             </div>
             {/* per-role bars + top duties */}
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
               {ready.map((c, i) => {
                 const rd = c.result.responsibilitiesData.responsibilities;
                 const counts = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
@@ -6694,10 +6707,10 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                       <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
                       <span style={{ fontSize:10, color:C.muted, flexShrink:0, marginLeft:8 }}>{rd.length} duties · {counts.HUMAN} Human-Led</span>
                     </div>
-                    <div style={{ display:"flex", gap:2, borderRadius:4, overflow:"hidden", height:10, marginBottom:6 }}>
+                    <div style={{ display:"flex", gap:2, borderRadius: 6, overflow:"hidden", height:10, marginBottom:6 }}>
                       {respLevelBar.map(b => counts[b.key] > 0 && <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, minWidth:4 }} />)}
                     </div>
-                    <p style={{ margin:"0 0 4px", fontSize:9, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most distinctive / human-led duties</p>
+                    <p style={{ margin:"0 0 4px", fontSize: 10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most distinctive / human-led duties</p>
                     {top.map((r, j) => (
                       <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
                         <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
@@ -6718,11 +6731,11 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         if (!withMix.length) return null;
         return (
           <div style={{ marginBottom:14 }}>
-            <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
+            <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
               <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what each posting actually is</p>
               <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>For roles analysed from a live MyCareersFuture listing: the ESCO occupations the ad blends, and whether the posted title matches the duty mix.</p>
             </div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
               {ready.map((c, i) => {
                 const rm = c.result.roleMix;
                 const has = !!(rm && !rm.fallback && rm.components && rm.components.length);
@@ -6733,21 +6746,21 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                       <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
                       {has ? (
                         <span style={{ display:"inline-flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
-                          <span style={{ fontSize:10, fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding:"1px 8px" }}>{coh.label}</span>
-                          {rm.mismatch && <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding:"1px 8px" }}>title ≠ duties</span>}
+                          <span style={{ fontSize:10, fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding: "2px 8px" }}>{coh.label}</span>
+                          {rm.mismatch && <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding: "2px 8px" }}>title ≠ duties</span>}
                         </span>
                       ) : <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{rm && rm.fallback ? "not available" : "ESCO analysis — no posting mix"}</span>}
                     </div>
                     {has && (
                       <>
-                        <div style={{ display:"flex", height:10, borderRadius:4, overflow:"hidden", marginBottom:6 }}>
+                        <div style={{ display:"flex", height:10, borderRadius: 6, overflow:"hidden", marginBottom:6 }}>
                           {rm.components.map((cmp,j) => <div key={j} title={`${cmp.label} ${cmp.pct}%`} style={{ flex:cmp.pct, background:palette[j%palette.length], minWidth:4 }} />)}
                           {rm.otherPct > 0 && <div title={`Other roles ${rm.otherPct}%`} style={{ flex:rm.otherPct, background:"#cbd5e1", minWidth:4 }} />}
                         </div>
                         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                           {rm.components.map((cmp,j) => (
                             <span key={j} style={{ fontSize:11, fontWeight:600, color:palette[j%palette.length], display:"inline-flex", alignItems:"center", gap:4 }}>
-                              <span style={{ width:8, height:8, borderRadius:2, background:palette[j%palette.length] }} />{cmp.label} <span style={{ fontWeight:800 }}>{cmp.pct}%</span>
+                              <span style={{ width:8, height:8, borderRadius: 6, background:palette[j%palette.length] }} />{cmp.label} <span style={{ fontWeight:800 }}>{cmp.pct}%</span>
                             </span>
                           ))}
                           {rm.otherPct > 0 && <span style={{ fontSize:11, color:"#64748b" }}>Other {rm.otherPct}%</span>}
@@ -6787,13 +6800,13 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           display:"grid", gridTemplateColumns:cols, gap:10, marginBottom:0,
           ...(border ? { borderTop:`2px solid ${C.border}`, paddingTop:11, marginTop:14 } : {})
         });
-        const cellStyle = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" };
+        const cellStyle = { background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" };
 
         return (
           <div ref={panelRef}>
             {/* Narrow: stacked role selector - all roles visible, active highlighted */}
             {isNarrow && (
-              <div style={{ marginTop:16, marginBottom:20, padding:"12px 0 4px", borderTop:`2px solid ${C.border}` }}>
+              <div style={{ marginTop:16, marginBottom:20, padding: "12px 0 4px", borderTop:`2px solid ${C.border}` }}>
                 <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                   Select a role to view details below
                 </p>
@@ -6803,7 +6816,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                   return (
                     <div key={i} style={{
                       display:"flex", alignItems:"center", justifyContent:"space-between",
-                      padding:"10px 14px", marginBottom:6, borderRadius:8,
+                      padding: "10px 14px", marginBottom:6, borderRadius: 10,
                       border:`2px solid ${isActive ? C.accent : C.border}`,
                       background: isActive ? C.accentSoft : C.surface,
                       cursor: isActive ? "default" : "pointer",
@@ -6834,7 +6847,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                         <button
                           onClick={e => { e.stopPropagation(); onAnalyse && onAnalyse(c.title, "compare"); }}
                           style={{ background:C.accent, border:"none", borderRadius:6,
-                            color:"#fff", padding:"3px 10px", fontSize:12, fontWeight:700,
+                            color:"#fff", padding: "4px 10px", fontSize:12, fontWeight:700,
                             cursor:"pointer", flexShrink:0, marginLeft:8 }}>
                           Analyse →
                         </button>
@@ -6870,7 +6883,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             <div style={{ display:"grid", gridTemplateColumns: isNarrow ? "1fr" : cols, gap:10, marginBottom:0 }}>
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, insight }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:"none", borderBottom:"none", borderRadius:0, paddingTop:0, paddingBottom:8 }}>
-                  <div style={{ background:insight.bg, border:`1px solid ${insight.border}`, borderRadius:6, padding:"5px 9px" }}>
+                  <div style={{ background:insight.bg, border:`1px solid ${insight.border}`, borderRadius:6, padding: "6px 10px" }}>
                     <p className="result-text-sm" style={{ margin:0, fontSize:12, color:insight.color, fontWeight:600, lineHeight:1.4 }}>{insight.text}</p>
                   </div>
                 </div>
@@ -6950,7 +6963,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, missingVsOthers }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:`2px solid ${C.border}`, borderBottom:"none", borderRadius:0, paddingTop:11, paddingBottom:8 }}>
                   <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Only in other roles</p>
-                  <p style={{ margin:"0 0 6px", fontSize:9, color:C.mutedLight, lineHeight:1.4, fontStyle:"italic" }}>Skills those roles need that this one does not</p>
+                  <p style={{ margin:"0 0 6px", fontSize: 10, color:C.mutedLight, lineHeight:1.4, fontStyle:"italic" }}>Skills those roles need that this one does not</p>
                   {missingVsOthers.length > 0
                     ? missingVsOthers.map((o, j) => (
                         <div key={j} style={{ marginBottom:10 }}>
@@ -6992,11 +7005,11 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         );
       })()}
       {/* Section 4 - AI comparison summary - teal, humble tone */}
-      <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:8, padding:"14px 16px", marginBottom:14 }}>
+      <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "14px 16px", marginBottom:14 }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:800, color:"#0e7490", letterSpacing:"-0.01em", lineHeight:1.3 }}>Comparing these roles</p>
         <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
           {ready.map((c, i) => (
-            <span key={i} style={{ fontSize:12, fontWeight:700, color:"#0e7490", background:"#fff", border:"1.5px solid #0e7490", borderRadius:12, padding:"3px 10px" }}>
+            <span key={i} style={{ fontSize:12, fontWeight:700, color:"#0e7490", background:"#fff", border:"1.5px solid #0e7490", borderRadius: 10, padding: "4px 10px" }}>
               {toTitleCase(c.title)}
             </span>
           ))}
@@ -7018,14 +7031,14 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             )}
             {/* Next step */}
             {aiSummary.nextstep && (
-              <div style={{ background:"#fff", border:"1px solid #a5f3fc", borderRadius:6, padding:"7px 10px", marginBottom: aiSummary.warning ? 8 : 0 }}>
+              <div style={{ background:"#fff", border:"1px solid #a5f3fc", borderRadius:6, padding: "8px 10px", marginBottom: aiSummary.warning ? 8 : 0 }}>
                 <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>A suggested next step</p>
                 <p className="t-sub" style={{ margin:0, fontSize:12, color:"#0c4a6e", lineHeight:1.6 }}>{aiSummary.nextstep}</p>
               </div>
             )}
             {/* Warning - only shown if present */}
             {aiSummary.warning && (
-              <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6, padding:"7px 10px", marginTop:8 }}>
+              <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6, padding: "8px 10px", marginTop:8 }}>
                 <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.06em" }}>Worth being aware of</p>
                 <p className="t-sub" style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.6 }}>{aiSummary.warning}</p>
               </div>
@@ -7048,7 +7061,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
 
       </div>
       {ready.length < 3 && onAddThird && (
-        <button onClick={onAddThird} style={{ width:"100%", padding:"10px 14px", fontSize:12, fontWeight:700, color:C.accent, background:C.accentSoft, border:"2px dashed #c3d3f5", borderRadius:8, cursor:"pointer", textAlign:"center" }}>
+        <button onClick={onAddThird} style={{ width:"100%", padding: "10px 14px", fontSize:12, fontWeight:700, color:C.accent, background:C.accentSoft, border:"2px dashed #c3d3f5", borderRadius: 10, cursor:"pointer", textAlign:"center" }}>
           + Add a third role to compare
         </button>
       )}
@@ -7061,10 +7074,10 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
   if (!data) return null;
   return (
     <div>
-      <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+      <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
           <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0e7490" }}>Role Context</p>
-          <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:999, padding:"1px 8px" }}>~ AI estimate · illustrative</span>
+          <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:999, padding: "2px 8px" }}>~ AI estimate · illustrative</span>
         </div>
         <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
           Typical sectors where this <em>title</em> tends to appear, generated by AI for orientation — <strong>not derived from this specific posting</strong>. Use it as a prompt for your own research, not as fact about this employer.
@@ -7078,9 +7091,9 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
         const isOpen = open === i;
         return (
           <div key={i} onClick={() => setOpen(isOpen ? null : i)}
-            style={{ border:`1px solid ${isOpen ? "#a5f3fc" : C.border}`, borderRadius:8, marginBottom:8, background:isOpen ? "#ecfeff" : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 16px" }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", background:"#ecfeff", border:"1px solid #a5f3fc", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:15 }}>
+            style={{ border:`1px solid ${isOpen ? "#a5f3fc" : C.border}`, borderRadius: 10, marginBottom:8, background:isOpen ? "#ecfeff" : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
+              <div style={{ width:32, height:32, borderRadius:"50%", background:"#ecfeff", border:"1px solid #a5f3fc", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize: 16 }}>
                 🏢
               </div>
               <div style={{ flex:1, minWidth:0 }}>
@@ -7088,12 +7101,12 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
                 <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{sector.note}</p>
               </div>
               <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-                {firstAnalysis && i === 0 && isOpen && <span style={{ fontSize:9, color:"#0e7490", fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+                {firstAnalysis && i === 0 && isOpen && <span style={{ fontSize: 10, color:"#0e7490", fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
                 <span style={{ fontSize:10, color:C.mutedLight }}>{isOpen ? "▲" : `▼ ${sectorSkills.length} skills`}</span>
               </span>
             </div>
             {isOpen && (
-              <div style={{ padding:"4px 16px 12px 60px", borderTop:"1px solid #a5f3fc" }}>
+              <div style={{ padding: "4px 16px 12px 60px", borderTop:"1px solid #a5f3fc" }}>
                 <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>
                   Skills from your role relevant to this sector
                 </p>
@@ -7153,7 +7166,7 @@ function CategoryPanel({ skills }) {
   const hasAltLabels = skills.some(s => s.altLabels && s.altLabels.length > 0);
 
   const SectionHeader = ({ label, isOpen, onToggle, accent }) => (
-    <button onClick={onToggle} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:isOpen ? "#1e3a5f" : C.surface, border:`1px solid ${isOpen ? "#1e3a5f" : C.border}`, borderRadius: isOpen ? "8px 8px 0 0" : 8, cursor:"pointer", marginBottom:0 }}>
+    <button onClick={onToggle} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:isOpen ? "#1e3a5f" : C.surface, border:`1px solid ${isOpen ? "#1e3a5f" : C.border}`, borderRadius: isOpen ? "8px 8px 0 0" : 8, cursor:"pointer", marginBottom:0 }}>
       <span style={{ fontSize:13, fontWeight:700, color: isOpen ? "#fff" : C.text }}>{label}</span>
       <span style={{ fontSize:11, color: isOpen ? "#93c5fd" : C.muted }}>{isOpen ? "▲" : "▼"}</span>
     </button>
@@ -7164,15 +7177,15 @@ function CategoryPanel({ skills }) {
 
       {/* Section 1 - Skill Reusability */}
       {hasReuse && (
-        <div style={{ border:`1px solid ${C.border}`, borderRadius:8 }}>
-          <button onClick={() => {}} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#1e3a5f", border:"none", borderRadius:8, cursor:"default" }}>
+        <div style={{ border:`1px solid ${C.border}`, borderRadius: 10 }}>
+          <button onClick={() => {}} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:"#1e3a5f", border:"none", borderRadius: 10, cursor:"default" }}>
             <div>
               <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>Skill Reusability</span>
               <span style={{ fontSize:10, color:"#93c5fd", marginLeft:8 }}>from ESCO taxonomy</span>
             </div>
             <span style={{ fontSize:10, color:"#93c5fd" }}>tap a pill to expand</span>
           </button>
-          <div style={{ padding:"10px 14px", borderTop:"1px solid #1e3a5f" }}>
+          <div style={{ padding: "10px 14px", borderTop:"1px solid #1e3a5f" }}>
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
               {reuseOrder.filter(r => reuseGroups[r].tech.length + reuseGroups[r].soft.length > 0).map(r => {
                 const count = reuseGroups[r].tech.length + reuseGroups[r].soft.length;
@@ -7180,7 +7193,7 @@ function CategoryPanel({ skills }) {
                 const isOpen = openReuse === r;
                 return (
                   <button key={r} onClick={() => setOpenReuse(isOpen ? null : r)}
-                    style={{ display:"flex", alignItems:"center", gap:4, background: isOpen ? col.text : col.bg, border:`1px solid ${col.border}`, borderRadius:6, padding:"4px 10px", cursor:"pointer" }}>
+                    style={{ display:"flex", alignItems:"center", gap:4, background: isOpen ? col.text : col.bg, border:`1px solid ${col.border}`, borderRadius:6, padding: "4px 10px", cursor:"pointer" }}>
                     <span style={{ fontSize:12, fontWeight:700, color: isOpen ? "#fff" : col.text }}>{count}</span>
                     <span style={{ fontSize:12, color: isOpen ? "#fff" : col.text }}>{r}</span>
                     <span style={{ fontSize:10, color: isOpen ? "#fff" : col.text }}>{isOpen ? "▲" : "▼"}</span>
@@ -7192,7 +7205,7 @@ function CategoryPanel({ skills }) {
               Transversal - all sectors. Cross-sector - broadly portable. Sector-specific - one sector. Occupation-specific - narrowly defined.
             </p>
             {openReuse && reuseGroups[openReuse] && (
-              <div style={{ marginTop:8, padding:"10px 12px", background:reuseColour[openReuse].bg, border:`1px solid ${reuseColour[openReuse].border}`, borderRadius:7 }}>
+              <div style={{ marginTop:8, padding: "10px 12px", background:reuseColour[openReuse].bg, border:`1px solid ${reuseColour[openReuse].border}`, borderRadius: 6 }}>
                 {reuseGroups[openReuse].tech.length > 0 && (
                   <>
                     <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.05em" }}>Technical ({reuseGroups[openReuse].tech.length})</p>
@@ -7222,38 +7235,38 @@ function CategoryPanel({ skills }) {
       )}
 
       {/* Section 2 - Technical and Soft Skills */}
-      <div style={{ border:`1px solid ${C.border}`, borderRadius:8 }}>
+      <div style={{ border:`1px solid ${C.border}`, borderRadius: 10 }}>
         <SectionHeader label={`Technical and Soft Skills - ${tech.length} Technical · ${soft.length} Soft`} isOpen={openSkillCat} onToggle={() => setOpenSkillCat(o => !o)} />
         {openSkillCat && (
-          <div style={{ padding:"12px 14px", borderTop:`1px solid ${C.border}` }}>
+          <div style={{ padding: "12px 14px", borderTop:`1px solid ${C.border}` }}>
             <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
               Technical skills tend to be more exposed to AI automation. Soft skills are generally more resilient.
             </p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(260px,100%), 1fr))", gap:14 }}>
               {/* Technical */}
-              <div style={{ border:`1px solid ${C.accent}30`, borderRadius:8, padding:"10px 12px" }}>
+              <div style={{ border:`1px solid ${C.accent}30`, borderRadius: 10, padding: "10px 12px" }}>
                 <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.06em" }}>Technical Skills ({tech.length})</p>
                 {tech.length === 0
                   ? <p style={{ fontSize:12, color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
                   : tech.map((s,i) => (
-                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding:"5px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding: "6px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
                       <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
                       <span style={{ fontSize:12, color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
-                      {s.reuseLevel && <span style={{ fontSize:9, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius:4, padding:"1px 5px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
+                      {s.reuseLevel && <span style={{ fontSize: 10, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
                     </div>
                   ))
                 }
               </div>
               {/* Soft */}
-              <div style={{ border:`1px solid ${C.purple}30`, borderRadius:8, padding:"10px 12px" }}>
+              <div style={{ border:`1px solid ${C.purple}30`, borderRadius: 10, padding: "10px 12px" }}>
                 <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.06em" }}>Soft Skills ({soft.length})</p>
                 {soft.length === 0
                   ? <p style={{ fontSize:12, color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
                   : soft.map((s,i) => (
-                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding:"5px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding: "6px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
                       <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
                       <span style={{ fontSize:12, color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
-                      {s.reuseLevel && <span style={{ fontSize:9, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius:4, padding:"1px 5px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
+                      {s.reuseLevel && <span style={{ fontSize: 10, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
                     </div>
                   ))
                 }
@@ -7265,19 +7278,19 @@ function CategoryPanel({ skills }) {
 
       {/* Section 3 - Alternative Labels */}
       {hasAltLabels && (
-        <div style={{ border:`1px solid ${C.border}`, borderRadius:8 }}>
+        <div style={{ border:`1px solid ${C.border}`, borderRadius: 10 }}>
           <SectionHeader label="Alternative Labels (ESCO)" isOpen={openAltLabels} onToggle={() => setOpenAltLabels(o => !o)} />
           {openAltLabels && (
-            <div style={{ padding:"12px 14px", borderTop:`1px solid ${C.border}` }}>
+            <div style={{ padding: "12px 14px", borderTop:`1px solid ${C.border}` }}>
               <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
                 Alternative names used in the ESCO taxonomy for each skill - useful for CV writing, job descriptions, and search.
               </p>
               {skills.filter(s => s.altLabels && s.altLabels.length > 0).sort((a,b) => a.skill.localeCompare(b.skill)).map((s,i) => (
-                <div key={i} style={{ marginBottom:8, padding:"7px 10px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:7 }}>
+                <div key={i} style={{ marginBottom:8, padding: "8px 10px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
                   <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.text }}>{s.skill}</p>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
                     {s.altLabels.map((a,j) => (
-                      <span key={j} style={{ fontSize:11, color:C.textSub, background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:4, padding:"1px 7px" }}>{a}</span>
+                      <span key={j} style={{ fontSize:11, color:C.textSub, background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius: 6, padding: "2px 8px" }}>{a}</span>
                     ))}
                   </div>
                 </div>
@@ -7300,10 +7313,10 @@ function Disclaimer() {
         <span style={{ fontSize:12, color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
           A note on how to use this
         </span>
-        <span style={{ fontSize:9, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
+        <span style={{ fontSize: 10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
-        <div style={{ marginTop:8, padding:"10px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:7 }}>
+        <div style={{ marginTop:8, padding: "10px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
           <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
             Results are AI-generated, indicative, and may vary between searches. They are a starting point for reflection and do not constitute professional career, legal, employment, or HR advice. Ratings reflect general occupational trends, not individual performance or seniority level.
           </p>
@@ -7332,11 +7345,11 @@ function ResultFooter() {
             Share feedback
           </a>
           <button onClick={() => setOpen(o => o === "method" ? false : "method")}
-            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding:"2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
             Methodology
           </button>
           <button onClick={() => setOpen(o => o === "legal" ? false : "legal")}
-            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding:"2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
             Legal
           </button>
           <a href="/terms.html" target="_blank" rel="noreferrer"
@@ -7346,7 +7359,7 @@ function ResultFooter() {
         </div>
       </div>
       {open === "legal" && (
-        <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"16px 20px" }}>
+        <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Legal notice</p>
             <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize:16, color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
@@ -7364,13 +7377,13 @@ function ResultFooter() {
             <strong style={{ color:C.text }}>ISCO-08</strong> - Occupation codes used in this tool are sourced from the International Standard Classification of Occupations (ISCO-08), © 2012 International Labour Organization (ILO), reproduced via the ESCO v1.2 API under ESCO&apos;s CC BY 4.0 licence. The ILO name and emblem are not used. No endorsement by the ILO is implied.
           </p>
           <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:20, padding:"5px 14px" }}>
+            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 16, padding: "6px 14px" }}>
             Read full Terms of Use &#8599;
           </a>
         </div>
       )}
       {open === "method" && (
-        <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"16px 20px" }}>
+        <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Methodology</p>
             <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize:16, color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
@@ -7411,25 +7424,25 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
   const relevantSkills = skills.filter(s => s.level === "HIGH" || s.level === "MEDIUM").slice(0, 4);
   return (
     <div onClick={() => setOpen(o => !o)}
-      style={{ border:`1px solid ${open ? d.border : C.border}`, borderRadius:8, marginBottom:8, background:open ? d.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
+      style={{ border:`1px solid ${open ? d.border : C.border}`, borderRadius: 10, marginBottom:8, background:open ? d.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
         <div style={{ width:34, height:34, borderRadius:"50%", background:d.bg, border:`1px solid ${d.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>
           {d.icon}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
             <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{item.role}</p>
-            <span style={{ fontSize:10, fontWeight:700, color:d.colour, background:d.bg, border:`1px solid ${d.border}`, borderRadius:12, padding:"1px 8px", flexShrink:0 }}>{d.label}</span>
+            <span style={{ fontSize:10, fontWeight:700, color:d.colour, background:d.bg, border:`1px solid ${d.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{d.label}</span>
           </div>
           <p style={{ margin:0, fontSize:12, color:C.textSub }}>{item.note}</p>
         </div>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-          {autoOpen && open && <span style={{ fontSize:9, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+          {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
           <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
         </span>
       </div>
       {open && (
-        <div style={{ padding:"4px 16px 12px 62px", borderTop:`1px solid ${d.border}` }}>
+        <div style={{ padding: "4px 16px 12px 62px", borderTop:`1px solid ${d.border}` }}>
           <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:d.colour, textTransform:"uppercase", letterSpacing:"0.06em" }}>
             Skills from your current role that will transfer
           </p>
@@ -7449,7 +7462,7 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
             Based on your current role's highest-automation skills. See Skill Analysis tab for the full breakdown.
           </p>
           {item.gap && item.gap.length > 0 && (
-            <div style={{ marginTop:10, padding:"7px 10px", background:C.surface, border:`1px solid ${d.border}`, borderRadius:6 }}>
+            <div style={{ marginTop:10, padding: "8px 10px", background:C.surface, border:`1px solid ${d.border}`, borderRadius:6 }}>
               <p style={{ margin:"0 0 5px", fontSize:10, fontWeight:700, color:d.color, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                 Skills to develop for this role
               </p>
@@ -7472,18 +7485,18 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
           <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
             <button
               onClick={e => { e.stopPropagation(); onAnalyse(item.role); }}
-              style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:"#fff", background:d.color, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:"#fff", background:d.color, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Analyse here
             </button>
             <button
               onClick={e => { e.stopPropagation(); window.open(`${window.location.origin}${window.location.pathname}?role=${encodeURIComponent(item.role)}`, "_blank"); }}
-              style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Open in new tab ↗
             </button>
             {onQueue && onQueueCount < 3 && (
               <button
                 onClick={e => { e.stopPropagation(); onQueue(item.role); }}
-                style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
                 ＋ Compare
               </button>
             )}
@@ -7499,7 +7512,7 @@ function ProgressionPanel({ items, skills, onAnalyse, onQueue, onQueueCount, fir
   const sorted = [...items].sort((a, b) => (dirOrder[a.dir] ?? 1) - (dirOrder[b.dir] ?? 1));
   return (
     <div>
-      <div style={{ background:C.accentSoft, border:"1px solid #c3d3f5", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+      <div style={{ background:C.accentSoft, border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
         <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>Career Progression within This Sphere</p>
         <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
           Natural next steps - upward, lateral, or deeper specialist - within the same functional or professional hierarchy. Expand each role to see which of your current skills transfer directly.
@@ -7525,27 +7538,27 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
   const displaySkills = bridgeSkills.length > 0 ? bridgeSkills : fallback;
   return (
     <div onClick={() => setOpen(o => !o)}
-      style={{ border:`1px solid ${open ? C.greenBdr : C.border}`, borderRadius:8, marginBottom:8, background:open ? C.greenBg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px" }}>
+      style={{ border:`1px solid ${open ? C.greenBdr : C.border}`, borderRadius: 10, marginBottom:8, background:open ? C.greenBg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
         <div style={{ width:34, height:34, borderRadius:"50%", background:C.greenBg, border:`1px solid ${C.greenBdr}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>
           🔄
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
             <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{item.role}</p>
-            <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:12, padding:"1px 8px", flexShrink:0 }}>{item.sector}</span>
+            <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{item.sector}</span>
           </div>
           <p style={{ margin:0, fontSize:12, color:C.textSub }}>
             Bridge skill: <strong style={{ color:C.green }}>{item.bridge}</strong>
           </p>
         </div>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-          {autoOpen && open && <span style={{ fontSize:9, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+          {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
           <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
         </span>
       </div>
       {open && (
-        <div style={{ padding:"4px 16px 12px 62px", borderTop:`1px solid ${C.greenBdr}` }}>
+        <div style={{ padding: "4px 16px 12px 62px", borderTop:`1px solid ${C.greenBdr}` }}>
           <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
             Skills from your current role most useful here
           </p>
@@ -7562,7 +7575,7 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
             Human-led and AI-assisted skills tend to transfer best across sectors. See Skill Analysis tab for the full breakdown.
           </p>
           {item.newSkills && item.newSkills.length > 0 && (
-            <div style={{ marginTop:10, padding:"7px 10px", background:C.surface, border:`1px solid ${C.greenBdr}`, borderRadius:6 }}>
+            <div style={{ marginTop:10, padding: "8px 10px", background:C.surface, border:`1px solid ${C.greenBdr}`, borderRadius:6 }}>
               <p style={{ margin:"0 0 5px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                 New skills this role may require
               </p>
@@ -7577,18 +7590,18 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
           <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
             <button
               onClick={e => { e.stopPropagation(); onAnalyse(item.role); }}
-              style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:"#fff", background:C.green, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:"#fff", background:C.green, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Analyse here
             </button>
             <button
               onClick={e => { e.stopPropagation(); window.open(`${window.location.origin}${window.location.pathname}?role=${encodeURIComponent(item.role)}`, "_blank"); }}
-              style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Open in new tab ↗
             </button>
             {onQueue && onQueueCount < 3 && (
               <button
                 onClick={e => { e.stopPropagation(); onQueue(item.role); }}
-                style={{ padding:"5px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
                 ＋ Compare
               </button>
             )}
@@ -7603,7 +7616,7 @@ function CrossoverPanel({ items, skills, onAnalyse, onQueue, onQueueCount, first
   const sorted = [...items].sort((a, b) => a.role.localeCompare(b.role));
   return (
     <div>
-      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
         <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}>Career Crossover to Other Roles</p>
         <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
           Roles in different sectors or functions where your existing skills transfer directly - helping you pivot without starting from scratch. Expand each role to see which skills carry over.
@@ -7623,18 +7636,18 @@ function CrossoverPanel({ items, skills, onAnalyse, onQueue, onQueueCount, first
 function CompareWarningModal({ onConfirm, onCancel }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-      <div style={{ background:"#fff", borderRadius:12, padding:"20px 22px", maxWidth:340, width:"100%", boxShadow:"0 8px 32px rgba(0,0,0,0.18)" }}>
+      <div style={{ background:"#fff", borderRadius: 10, padding: "20px 22px", maxWidth:340, width:"100%", boxShadow:"0 8px 32px rgba(0,0,0,0.18)" }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#1a202c" }}>Start a new analysis?</p>
         <p style={{ margin:"0 0 16px", fontSize:12, color:"#4a5568", lineHeight:1.6 }}>
           You have an active role comparison below. Starting a new analysis will clear it and begin fresh.
         </p>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={onConfirm}
-            style={{ flex:1, padding:"8px 14px", fontSize:12, fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius:7, cursor:"pointer" }}>
+            style={{ flex:1, padding: "8px 14px", fontSize:12, fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
             Yes, start fresh
           </button>
           <button onClick={onCancel}
-            style={{ flex:1, padding:"8px 14px", fontSize:12, fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius:7, cursor:"pointer" }}>
+            style={{ flex:1, padding: "8px 14px", fontSize:12, fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 6, cursor:"pointer" }}>
             Keep comparison
           </button>
         </div>
@@ -7651,7 +7664,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   if (!roleMix) return null;
   if (roleMix.fallback) {
     return (
-      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Role-Mix unavailable</p>
         <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
           We couldn't decompose this posting against the ESCO occupation library right now (the lookup was unavailable or no occupation overlapped enough). Re-run the analysis in a moment.
@@ -7673,7 +7686,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   const priByLabel = {}; (nar.skillingPriority||[]).forEach(p => { priByLabel[(p.component||"").toLowerCase()] = p; });
   return (
     <div>
-      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:3 }}>
           <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
           <Prov kind="ai" />
@@ -7685,16 +7698,16 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
         </p>
       </div>
 
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:12 }}>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:12 }}>
         <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Occupation mix</p>
-        <div style={{ display:"flex", height:16, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+        <div style={{ display:"flex", height:16, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
           {comps.map((c,i) => <div key={i} title={`${c.label} ${c.pct}%`} style={{ flex:c.pct, background:palette[i%palette.length], minWidth:6 }} />)}
           {roleMix.otherPct > 0 && <div title={`Other roles ${roleMix.otherPct}%`} style={{ flex:roleMix.otherPct, background:"#cbd5e1", minWidth:6 }} />}
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {comps.map((c,i) => (
             <span key={i} style={{ fontSize:12, fontWeight:600, color:palette[i%palette.length], display:"inline-flex", alignItems:"center", gap:5 }}>
-              <span style={{ width:9, height:9, borderRadius:2, background:palette[i%palette.length] }} />
+              <span style={{ width:9, height:9, borderRadius: 6, background:palette[i%palette.length] }} />
               {c.label} <span style={{ fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}>· posted title</span> : null}
             </span>
           ))}
@@ -7703,7 +7716,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
       </div>
 
       <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:14 }}>
-        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#eef2ff", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#c7d2fe"}`, borderRadius:8, padding:"10px 14px" }}>
+        <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#eef2ff", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#c7d2fe"}`, borderRadius: 10, padding: "10px 14px" }}>
           <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#1e40af", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
           <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#1e40af", lineHeight:1.5 }}>
             {nar.postedAsNote || (roleMix.mismatch
@@ -7711,7 +7724,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
               : `The posted title (${roleMix.nominalLabel || title}) matches the main duty cluster.`)}
           </p>
         </div>
-        <div style={{ flex:"1 1 240px", background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:8, padding:"10px 14px" }}>
+        <div style={{ flex:"1 1 240px", background:coh.bg, border:`1px solid ${coh.border}`, borderRadius: 10, padding: "10px 14px" }}>
           <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:coh.color, textTransform:"uppercase", letterSpacing:"0.05em" }}>Bundle coherence: {coh.label}</p>
           <p style={{ margin:0, fontSize:12, color:coh.color, lineHeight:1.5 }}>
             {nar.coherenceNote || (roleMix.coherenceKey === "coherent" ? "A focused blend of closely related roles." : roleMix.coherenceKey === "grabbag" ? "A wide spread across unrelated roles — a stretched req." : "A moderate spread across a few roles.")}
@@ -7722,13 +7735,13 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
       {comps.map((c,i) => {
         const pri = priByLabel[c.label.toLowerCase()];
         return (
-          <div key={i} style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${palette[i%palette.length]}`, borderRadius:8, marginBottom:10, background:C.surface, padding:"12px 14px" }}>
+          <div key={i} style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${palette[i%palette.length]}`, borderRadius: 10, marginBottom:10, background:C.surface, padding: "12px 14px" }}>
             <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, flexWrap:"wrap", marginBottom:6 }}>
               <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{c.label} <span style={{ color:palette[i%palette.length], fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}> · matches the posted title</span> : null}</p>
               <span style={{ fontSize:11, color:C.muted }}>{c.skills.length} duties · AI-exposed {c.exposure.aiExposedPct}% · human-led {c.exposure.humanPct}%</span>
             </div>
             {c.exposure.n > 0 && (
-              <div style={{ display:"flex", height:8, borderRadius:4, overflow:"hidden", marginBottom:8 }}>
+              <div style={{ display:"flex", height:8, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
                 {levelBar.map(b => c.exposure.counts[b.key] > 0 && <div key={b.key} style={{ flex:c.exposure.counts[b.key], background:b.color, minWidth:3 }} />)}
               </div>
             )}
@@ -7745,7 +7758,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
               c.matchedSkills.length > 0 && <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Overlaps on: {c.matchedSkills.slice(0,5).join(", ")}</p>
             )}
             {pri && (
-              <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:6, padding:"7px 10px" }}>
+              <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:6, padding: "8px 10px" }}>
                 <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#a16207", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skilling priority</p>
                 <p style={{ margin:0, fontSize:12, color:"#713f12", lineHeight:1.5 }}>{pri.why}{pri.action ? <> — <strong>{pri.action}</strong></> : null}</p>
               </div>
@@ -7755,17 +7768,17 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
       })}
 
       {roleMix.crossCutting && roleMix.crossCutting.length > 0 && (
-        <div style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:"#f8fafc", padding:"10px 14px" }}>
+        <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:"#f8fafc", padding: "10px 14px" }}>
           <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Cross-cutting ({roleMix.crossCutting.length})</p>
           <p style={{ margin:"0 0 6px", fontSize:11, color:C.mutedLight }}>Skills that didn't map cleanly to one occupation component.</p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize:11, color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px" }}>{s.skill}</span>)}
+            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize:11, color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{s.skill}</span>)}
           </div>
         </div>
       )}
 
       {nar.skillingPriority && nar.skillingPriority.length > 0 && (
-        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 14px" }}>
           <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — given this is a {comps.length}-way blend</p>
           <ol style={{ margin:0, paddingLeft:18 }}>
             {nar.skillingPriority.map((p,i) => (
@@ -7785,7 +7798,7 @@ function JobAnatomyView({ anatomy, title }) {
   if (!anatomy) return null;
   if (anatomy.fallback || !anatomy.duties || !anatomy.duties.length) {
     return (
-      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
         <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily — try again tomorrow.</p>
       </div>
@@ -7806,33 +7819,33 @@ function JobAnatomyView({ anatomy, title }) {
     ...(oc.scopeRegions || []),
     (oc.tools && oc.tools.length) ? `tools: ${oc.tools.slice(0,5).join(", ")}` : null,
   ].filter(Boolean);
-  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize:9.5, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius:8, padding:"1px 7px", whiteSpace:"nowrap" }}>{m.label}</span>; };
+  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize: 10, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius: 10, padding: "2px 8px", whiteSpace:"nowrap" }}>{m.label}</span>; };
   return (
     <div>
-      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
         <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>🧬 Job Anatomy — what this role actually is</p>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
         <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} · duty frequencies are real counts · work-layer & AI-exposure are classification labels, the scores are computed — not generated prose.</p>
       </div>
 
       <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-        <div style={{ flex:"1 1 200px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+        <div style={{ flex:"1 1 200px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
           <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
-          <p style={{ margin:0, fontSize:32, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
-          <div style={{ display:"flex", height:7, borderRadius:4, overflow:"hidden", background:"#eef1f5", marginTop:8 }}>
+          <p style={{ margin:0, fontSize: 30, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
+          <div style={{ display:"flex", height:7, borderRadius: 6, overflow:"hidden", background:"#eef1f5", marginTop:8 }}>
             <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
           </div>
           <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>≈ {a.resilience2y}/100 by ~2027 · automatability now {a.automatabilityIndex}/100</p>
         </div>
-        <div style={{ flex:"2 1 320px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px" }}>
+        <div style={{ flex:"2 1 320px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
           <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
-          <div style={{ display:"flex", height:14, borderRadius:5, overflow:"hidden", marginBottom:8 }}>
+          <div style={{ display:"flex", height:14, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
             {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
           </div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
             {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
               <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
-                <span style={{ width:8, height:8, borderRadius:2, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
+                <span style={{ width:8, height:8, borderRadius: 6, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
               </span>
             ))}
           </div>
@@ -7841,7 +7854,7 @@ function JobAnatomyView({ anatomy, title }) {
       </div>
 
       {ocBits.length > 0 && (
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
           <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
           <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" · ")}{(oc.stakeholders && oc.stakeholders.length) ? ` · works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
         </div>
@@ -7850,13 +7863,13 @@ function JobAnatomyView({ anatomy, title }) {
       {(nar.whatTheJobReallyIs || nar.whatSupervisorsExpect) && (
         <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
           {nar.whatTheJobReallyIs && (
-            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px" }}>
               <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What this job really is</p>
               <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatTheJobReallyIs}</p>
             </div>
           )}
           {nar.whatSupervisorsExpect && (
-            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 14px" }}>
+            <div style={{ flex:"1 1 280px", background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px" }}>
               <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What supervisors actually expect</p>
               <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatSupervisorsExpect}</p>
             </div>
@@ -7864,16 +7877,16 @@ function JobAnatomyView({ anatomy, title }) {
         </div>
       )}
 
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", marginBottom:14 }}>
-        <p style={{ margin:0, padding:"9px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties — frequency · work layer · AI exposure now → ~2027</p>
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, overflow:"hidden", marginBottom:14 }}>
+        <p style={{ margin:0, padding: "10px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties — frequency · work layer · AI exposure now → ~2027</p>
         {sortedDuties.map((d, i) => {
           const L = JOB_LAYERS[d.layer] || JOB_LAYERS.Activity;
           return (
-            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap", padding:"9px 14px", borderBottom: i < sortedDuties.length-1 ? `1px solid ${C.border}` : "none", borderLeft:`3px solid ${L.color}` }}>
+            <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap", padding: "10px 14px", borderBottom: i < sortedDuties.length-1 ? `1px solid ${C.border}` : "none", borderLeft:`3px solid ${L.color}` }}>
               <div style={{ flex:"3 1 200px", minWidth:0 }}>
-                <p style={{ margin:0, fontSize:12.5, color:C.text, lineHeight:1.45 }}>{d.text}</p>
+                <p style={{ margin:0, fontSize: 13, color:C.text, lineHeight:1.45 }}>{d.text}</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4, alignItems:"center" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding:"1px 8px" }}>{L.label}</span>
+                  <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding: "2px 8px" }}>{L.label}</span>
                   <span style={{ fontSize:10, color:C.muted }}>in {d.count}/{d.of} ads</span>
                   {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>· {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
                 </div>
@@ -7889,7 +7902,7 @@ function JobAnatomyView({ anatomy, title }) {
       </div>
 
       {nar.prepFocus && nar.prepFocus.length > 0 && (
-        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"12px 14px" }}>
+        <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 14px" }}>
           <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — build the layers AI can't take</p>
           <ol style={{ margin:0, paddingLeft:18 }}>
             {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
@@ -8005,7 +8018,7 @@ function RoleGraphPanel({ result, title }) {
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
   const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
   const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
-  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
 
   // --- layered SVG graph layout ---
@@ -8067,12 +8080,12 @@ function RoleGraphPanel({ result, title }) {
     const nodeDim = id => hi && !hi.has(id);
     const HEADS = ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
     return (
-      <div ref={graphScrollRef} style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 8, background: "#fbfdff" }}>
+      <div ref={graphScrollRef} style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 10, background: "#fbfdff" }}>
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block", width: "100%", height: "auto", minWidth: 880 }} role="img" aria-label="Role-skill graph">
           {/* column headers (word-wrapped, full names) */}
           {byCol.map((c, ci) => (
             <foreignObject key={"cap" + ci} x={c.x} y={3} width={c.w} height={HEAD_H}>
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: 10.5, fontWeight: 800, color: RG_NODE_STYLE[c.type].color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.25, fontFamily: "inherit" }}>{HEADS[ci]}</div>
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: 11, fontWeight: 800, color: RG_NODE_STYLE[c.type].color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.25, fontFamily: "inherit" }}>{HEADS[ci]}</div>
             </foreignObject>
           ))}
           {/* curved edges */}
@@ -8100,9 +8113,9 @@ function RoleGraphPanel({ result, title }) {
               <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.18 : 1 }}>
                 <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${LEVELS[lvl].label}` : ""}</title>
                 <foreignObject x={p.x} y={p.yTop} width={p.w} height={p.h}>
-                  <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 7, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
+                  <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 6, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
                     {n.type === "responsibility" && _respNum(n.id) != null && (
-                      <span style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, color: "#fff", background: _respHue(_respNum(n.id)), borderRadius: 4, padding: "1px 5px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{_respNum(n.id)}</span>
+                      <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#fff", background: _respHue(_respNum(n.id)), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{_respNum(n.id)}</span>
                     )}
                     <span style={{ flex: 1, minWidth: 0, fontSize: FONT, lineHeight: `${LINE_H}px`, color: st.color, fontWeight: n.type === "mcfRole" ? 700 : 500, overflowWrap: "anywhere", wordBreak: "break-word" }}>{n.label}</span>
                     {n.type === "iscoOccupation" && n.score != null && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: st.color }}>{n.score}</span>}
@@ -8123,7 +8136,7 @@ function RoleGraphPanel({ result, title }) {
         <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities → infers the work activities & skills behind each → maps them to <strong>ESCO</strong> skills → reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) → assembles an API-ready <strong>role → occupation → skill → responsibility</strong> graph and a skill-analysis card. Then a pasted CV can be scored against all of it.</p>
         <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>🔒 If you paste a CV below, it's sent for analysis and <strong>not stored</strong> — not in our database, not in analytics.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 10.5, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 12, padding: "2px 9px" }}>{i + 1}. {s}</span>)}
+          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 11, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
         </div>
       </div>
 
@@ -8140,7 +8153,7 @@ function RoleGraphPanel({ result, title }) {
       {!rgLoading && g && (g.fallback ? (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
           <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
-          <p style={{ margin: 0, fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
+          <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
         </div>
       ) : (
         <>
@@ -8163,28 +8176,28 @@ function RoleGraphPanel({ result, title }) {
                 const rawJD = srcJob ? String(srcJob.responsibilitiesText || srcJob.description).trim() : "";
                 if (!respNodes.length && !rawJD) return null;
                 return (
-                  <div style={{ maxWidth: 520, margin: "10px 0", border: `1px solid ${C.border}`, borderRadius: 9, background: "#fbfdff" }}>
+                  <div style={{ maxWidth: 520, margin: "10px 0", border: `1px solid ${C.border}`, borderRadius: 10, background: "#fbfdff" }}>
                     <button onClick={() => setJdOpen(o => !o)} aria-expanded={jdOpen}
-                      style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "9px 13px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
+                      style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
                         <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
-                        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.text }}>Job description from MCF - trace it into the graph</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Job description from MCF - trace it into the graph</span>
                       </span>
                       <span aria-hidden="true" style={{ fontSize: 11, color: C.muted, transform: jdOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
                     </button>
                     {jdOpen && (
-                      <div style={{ padding: "0 13px 12px" }}>
+                      <div style={{ padding: "0 14px 12px" }}>
                         {respNodes.length > 0 && (
                           <>
-                            <p style={{ margin: "2px 0 6px", fontSize: 10.5, color: C.textSub, lineHeight: 1.5 }}>The numbered duties below match the <strong>[n]</strong> badges on the left of the graph. Tap one to light up its skills.</p>
+                            <p style={{ margin: "2px 0 6px", fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>The numbered duties below match the <strong>[n]</strong> badges on the left of the graph. Tap one to light up its skills.</p>
                             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, maxHeight: 300, overflowY: "auto" }}>
                               {respNodes.map(rn => {
                                 const on = hoveredId === rn.id;
                                 return (
                                   <button key={rn.id} onClick={() => setHoveredId(h => h === rn.id ? null : rn.id)}
                                     style={{ display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left", minHeight: 44, padding: "6px 8px", background: on ? "#eef2ff" : "transparent", border: `1px solid ${on ? "#c7d2fe" : "transparent"}`, borderRadius: 6, cursor: "pointer" }}>
-                                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 9, fontWeight: 800, color: "#fff", background: _respHue(rn.num), borderRadius: 4, padding: "1px 5px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{rn.num}</span>
-                                    <span style={{ flex: 1, fontSize: 11.5, color: C.text, lineHeight: 1.45 }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Duty {rn.num}: </span>{rn.label}</span>
+                                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#fff", background: _respHue(rn.num), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{rn.num}</span>
+                                    <span style={{ flex: 1, fontSize: 12, color: C.text, lineHeight: 1.45 }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Duty {rn.num}: </span>{rn.label}</span>
                                   </button>
                                 );
                               })}
@@ -8207,7 +8220,7 @@ function RoleGraphPanel({ result, title }) {
               })()}
               {renderGraph(g.graph)}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
-                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 3, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
+                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 6, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
                 <span style={{ fontSize: 11, color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
               </div>
               {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
@@ -8218,7 +8231,7 @@ function RoleGraphPanel({ result, title }) {
           {g.narrative && card(
             <>
               {hdr("Skill-analysis card — what this role actually means")}
-              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
+              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 12 }}>
                 {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
                 {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
@@ -8233,22 +8246,22 @@ function RoleGraphPanel({ result, title }) {
             <>
               {hdr("ISCO-08 occupations this role reverse-maps to — trading-style ranking")}
               <div style={{ margin: "0 0 6px" }}><Prov kind="computed" /></div>
-              <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
+              <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
               {g.iscoCandidates.map((c, i) => (
-                <div key={i} style={{ padding: "8px 10px", borderRadius: 8, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
+                <div key={i} style={{ padding: "8px 10px", borderRadius: 10, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 12, fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
-                    {c.code ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 10.5, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
-                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "1px 7px" }}>matches the posted title</span>}
+                    {c.code ? <span style={{ fontSize: 11, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 11, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
+                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 8px" }}>matches the posted title</span>}
                     <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
                   </div>
-                  <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }} /></div>
+                  <div style={{ display: "flex", height: 6, borderRadius: 6, overflow: "hidden", background: "#eef1f5", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }} /></div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
                     {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
-                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 3, background: "#eef1f5", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
+                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#eef1f5", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
                     ))}
                   </div>
-                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 10.5, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "1px 7px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
+                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 11, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
                 </div>
               ))}
             </>
@@ -8272,8 +8285,8 @@ function RoleGraphPanel({ result, title }) {
                 const inf = (g.analysed && g.analysed.statements && g.analysed.statements[g.statements.indexOf(st) + 1]) || null;
                 const mapped = g.mapping.edges.filter(e => e.respId === st.id).map(e => ((result.skills || [])[e.skillIdx] || {}).skill).filter(Boolean);
                 return (
-                  <div key={st.id} style={{ padding: "8px 10px", borderRadius: 7, background: C.bg, border: `1px solid ${C.border}`, marginBottom: 6 }}>
-                    <p style={{ margin: "0 0 4px", fontSize: 12.5, color: C.text, lineHeight: 1.5 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 2, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
+                  <div key={st.id} style={{ padding: "8px 10px", borderRadius: 6, background: C.bg, border: `1px solid ${C.border}`, marginBottom: 6 }}>
+                    <p style={{ margin: "0 0 4px", fontSize: 13, color: C.text, lineHeight: 1.5 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 6, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
                     {inf && inf.activities.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Activities:</strong> {inf.activities.join(" · ")}</p>}
                     {inf && inf.skills.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Implied skills:</strong> {inf.skills.join(" · ")}</p>}
                     {inf && inf.signals.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Signals:</strong> {inf.signals.join(" · ")}</p>}
@@ -8291,8 +8304,8 @@ function RoleGraphPanel({ result, title }) {
                 <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
                 <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
               </div></div>
-              <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
-              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#0f172a", color: "#e2e8f0", borderRadius: 7, padding: "10px 12px", fontSize: 11, lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
+              <p style={{ margin: "0 0 8px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
+              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#0f172a", color: "#e2e8f0", borderRadius: 6, padding: "10px 12px", fontSize: 11, lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
             </>
           )}
 
@@ -8301,23 +8314,23 @@ function RoleGraphPanel({ result, title }) {
             <>
               {hdr("CV ingress — score a CV against this role, its ESCO skills & ISCO-08 families")}
               <textarea value={cvText} onChange={e => setCvText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of a CV here…"
-                style={{ width: "100%", minHeight: 130, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+                style={{ width: "100%", minHeight: 130, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-                <button onClick={runCv} disabled={cvText.trim().length < 200 || cv.status === "loading"} style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (cvText.trim().length < 200 || cv.status === "loading") ? C.mutedLight : "#4338ca", border: "none", borderRadius: 7, cursor: (cvText.trim().length < 200 || cv.status === "loading") ? "not-allowed" : "pointer" }}>{cv.status === "loading" ? "Scoring…" : "Score this CV"}</button>
+                <button onClick={runCv} disabled={cvText.trim().length < 200 || cv.status === "loading"} style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (cvText.trim().length < 200 || cv.status === "loading") ? C.mutedLight : "#4338ca", border: "none", borderRadius: 6, cursor: (cvText.trim().length < 200 || cv.status === "loading") ? "not-allowed" : "pointer" }}>{cv.status === "loading" ? "Scoring…" : "Score this CV"}</button>
                 {cvText && <button onClick={() => { setCvText(""); setCv({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
                 <span style={{ fontSize: 11, color: C.mutedLight }}>{cvText.trim().length < 200 ? `${cvText.trim().length}/200 chars min` : `${cvText.length} chars${cvText.length >= 8000 ? " (capped)" : ""}`}</span>
               </div>
               {cv.status === "loading" && <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 11, height: 11, border: "2px solid #c7d2fe", borderTop: "2px solid #4338ca", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} /><p style={{ margin: 0, fontSize: 12, color: C.muted }}>Parsing the CV and scoring fit…</p></div>}
-              {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 12.5, color: "#b45309" }}>That didn't go through — please try again.</p>}
+              {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 13, color: "#b45309" }}>That didn't go through — please try again.</p>}
               {cv.status === "done" && cv.fit && (() => {
                 const f = cv.fit; const bc = f.band === "READY" ? "#1e40af" : f.band === "DEVELOPING" ? "#b45309" : "#9a3412";
                 const bl = f.band === "READY" ? "Role-ready" : f.band === "DEVELOPING" ? "Developing — close some gaps" : "A stretch right now";
                 return (
                   <div style={{ marginTop: 14 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10, padding: "10px 12px", borderRadius: 8, background: bc + "12", border: `1.5px solid ${bc}55` }}>
-                      <span style={{ fontSize: 24, fontWeight: 800, color: bc }}>{f.fitScore}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10, padding: "10px 12px", borderRadius: 10, background: bc + "12", border: `1.5px solid ${bc}55` }}>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: bc }}>{f.fitScore}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
                       <span style={{ fontSize: 13, fontWeight: 800, color: bc }}>{bl}</span>
-                      <span style={{ fontSize: 11.5, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
+                      <span style={{ fontSize: 12, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
                     </div>
                     <div style={{ marginBottom: 10 }}>{subHdr(`Target-role ESCO skills — covered ${f.escoCoverage.covered.length}/${f.escoCoverage.total}`)}
                       {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#1e40af", "#eef2ff", "#c7d2fe", "cc" + i))}
@@ -8329,29 +8342,29 @@ function RoleGraphPanel({ result, title }) {
                         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>{subHdr("What your CV reads as - an occupation blend from your skills, not your job title")}<Prov kind="ai" small /></div>
                         {cv.blend.candidates.map((b, i) => (
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                            <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(b.label, 32)}{b.code ? <span style={{ color: C.mutedLight }}> ·{b.code}</span> : null}</span>
-                            <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${b.sharePct}%`, height: "100%", background: "#4338ca" }} /></div>
+                            <span style={{ width: 200, flexShrink: 0, fontSize: 12, color: C.textSub }}>{_rgTrunc(b.label, 32)}{b.code ? <span style={{ color: C.mutedLight }}> ·{b.code}</span> : null}</span>
+                            <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${b.sharePct}%`, height: "100%", background: "#4338ca" }} /></div>
                             <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{b.sharePct}%</span>
                           </div>
                         ))}
-                        <p style={{ margin: "3px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Derived from your CV's skills (AI-extracted) matched to ESCO occupations - a defensible blend to compare against the single title you would write at the top of your CV. AI-assisted; human decides.</p>
+                        <p style={{ margin: "3px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Derived from your CV's skills (AI-extracted) matched to ESCO occupations - a defensible blend to compare against the single title you would write at the top of your CV. AI-assisted; human decides.</p>
                       </div>
                     )}
                     {cv.anatomy && cv.anatomy.layerMix && (
                       <div style={{ marginBottom: 12 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>{subHdr("Your work anatomy - where your own track record sits")}<Prov kind="ai" small /></div>
                         <p style={{ margin: "0 0 6px", fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: cv.anatomy.resilientPct >= 50 ? "#1e40af" : "#9a3412" }}>{cv.anatomy.resilientPct}%</strong> of your {cv.anatomy.nOutcomes} stated outcomes sit in the AI-resilient layers (accountability, relational, judgment){cv.anatomy.resilientPct >= 50 ? " - that concentration is your edge as AI commoditises the routine." : " - more of your evidence is in layers AI is reaching; lead with the human-owned outcomes."}</p>
-                        <div style={{ display: "flex", gap: 2, height: 8, borderRadius: 4, overflow: "hidden", marginBottom: 6 }}>
+                        <div style={{ display: "flex", gap: 2, height: 8, borderRadius: 6, overflow: "hidden", marginBottom: 6 }}>
                           {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => <div key={L} title={`${JOB_LAYERS[L].label} ${cv.anatomy.layerMix[L]}%`} style={{ flex: cv.anatomy.layerMix[L], background: JOB_LAYERS[L].color, minWidth: 5 }} />)}
                         </div>
                         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                           {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => (
                             <span key={L} style={{ fontSize: 11, fontWeight: 600, color: JOB_LAYERS[L].color, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 2, background: JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight: 800 }}>{cv.anatomy.layerMix[L]}%</span>
+                              <span style={{ width: 8, height: 8, borderRadius: 6, background: JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight: 800 }}>{cv.anatomy.layerMix[L]}%</span>
                             </span>
                           ))}
                         </div>
-                        <p style={{ margin: "6px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Your outcomes classified by work-layer (AI-classified), then scored by the same deterministic resilience engine the role uses. AI-assisted; human decides.</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Your outcomes classified by work-layer (AI-classified), then scored by the same deterministic resilience engine the role uses. AI-assisted; human decides.</p>
                       </div>
                     )}
                     {cv.trueFit && (() => {
@@ -8368,23 +8381,23 @@ function RoleGraphPanel({ result, title }) {
                         </p>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 7 }}>
                           {["A", "B", "C"].map(k => (
-                            <span key={k} style={{ fontSize: 11, fontWeight: 700, color: TIER_UI[k].color, background: TIER_UI[k].bg, border: `1px solid ${TIER_UI[k].border}`, borderRadius: 12, padding: "2px 9px" }}>{tf.counts[k]} {TIER_UI[k].label}</span>
+                            <span key={k} style={{ fontSize: 11, fontWeight: 700, color: TIER_UI[k].color, background: TIER_UI[k].bg, border: `1px solid ${TIER_UI[k].border}`, borderRadius: 10, padding: "2px 10px" }}>{tf.counts[k]} {TIER_UI[k].label}</span>
                           ))}
-                          {tf.gaps.length > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: "2px 9px" }}>{tf.gaps.length} not evidenced</span>}
+                          {tf.gaps.length > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 10px" }}>{tf.gaps.length} not evidenced</span>}
                         </div>
                         {tf.counts.C > 0 && <p style={{ margin: "0 0 7px", fontSize: 11, color: "#b45309", lineHeight: 1.5 }}><strong>{tf.counts.C} skill{tf.counts.C !== 1 ? "s are" : " is"} claimed only</strong> - listed on the CV but not shown in an achievement or backed by a qualification. A screener treats those as unproven; lead with the demonstrated ones.</p>}
                         {tf.ledger.length > 0 && (
                           <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 6 }}>
                             {tf.ledger.map((l, i) => (
                               <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ width: 96, flexShrink: 0, fontSize: 10, fontWeight: 700, color: TIER_UI[l.tier].color, background: TIER_UI[l.tier].bg, border: `1px solid ${TIER_UI[l.tier].border}`, borderRadius: 5, padding: "1px 6px", textAlign: "center" }}>{TIER_UI[l.tier].label}</span>
-                                <span style={{ fontSize: 11.5, color: C.text, lineHeight: 1.4 }}>{_rgTrunc(l.skill, 42)}</span>
+                                <span style={{ width: 96, flexShrink: 0, fontSize: 10, fontWeight: 700, color: TIER_UI[l.tier].color, background: TIER_UI[l.tier].bg, border: `1px solid ${TIER_UI[l.tier].border}`, borderRadius: 6, padding: "2px 6px", textAlign: "center" }}>{TIER_UI[l.tier].label}</span>
+                                <span style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>{_rgTrunc(l.skill, 42)}</span>
                               </div>
                             ))}
                           </div>
                         )}
                         {tf.gaps.length > 0 && <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}><strong>Not evidenced:</strong> {tf.gaps.map(g => _rgTrunc(g, 30)).join(", ")}</p>}
-                        <p style={{ margin: "6px 0 0", fontSize: 10.5, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>A self-listed skill is "claimed", never "covered" (anti-keyword-stuffing); weighted by skill rarity and evidence validity (Schmidt-Hunter 1998). Inputs AI-extracted; the match is deterministic. AI-assisted; human decides.</p>
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>A self-listed skill is "claimed", never "covered" (anti-keyword-stuffing); weighted by skill rarity and evidence validity (Schmidt-Hunter 1998). Inputs AI-extracted; the match is deterministic. AI-assisted; human decides.</p>
                       </div>
                       );
                     })()}
@@ -8396,19 +8409,19 @@ function RoleGraphPanel({ result, title }) {
                         {f.families.slice(0, 6).map((fam, i) => (
                           <div key={i} style={{ marginBottom: 6 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ width: 200, flexShrink: 0, fontSize: 11.5, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
-                              <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#1e40af" : fam.coverage >= 35 ? "#b45309" : "#9a3412" }} /></div>
+                              <span style={{ width: 200, flexShrink: 0, fontSize: 12, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
+                              <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#1e40af" : fam.coverage >= 35 ? "#b45309" : "#9a3412" }} /></div>
                               <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{fam.coverage}%</span>
                             </div>
-                            {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 10.5, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
+                            {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 11, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
                           </div>
                         ))}
                       </div>
                     )}
                     {cv.narrative && (
-                      <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 8, padding: "12px 14px" }}>
-                        <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
-                        {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
+                      <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "12px 14px" }}>
+                        <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
+                        {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px,100%), 1fr))", gap: 10 }}>
                           {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1e40af" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
                           {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
@@ -8420,11 +8433,11 @@ function RoleGraphPanel({ result, title }) {
                       <div style={{ marginTop: 10 }}>
                         <button onClick={() => setShowCvProfile(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showCvProfile ? "hide what we extracted" : "show what we extracted from the CV"}</button>
                         {showCvProfile && (
-                          <div style={{ marginTop: 8, padding: "8px 10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7 }}>
-                            {cv.cvProfile.roleHistory.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Roles:</strong> {cv.cvProfile.roleHistory.map(r => r.title + (r.years ? ` (${r.years})` : "")).join(" · ")}</p>}
-                            {cv.cvProfile.qualifications.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Qualifications:</strong> {cv.cvProfile.qualifications.join(" · ")}</p>}
-                            {cv.cvProfile.skills.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Skills:</strong> {cv.cvProfile.skills.join(", ")}</p>}
-                            {cv.cvProfile.achievements.length > 0 && <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Achievements:</strong> {cv.cvProfile.achievements.join(" · ")}</p>}
+                          <div style={{ marginTop: 8, padding: "8px 10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6 }}>
+                            {cv.cvProfile.roleHistory.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Roles:</strong> {cv.cvProfile.roleHistory.map(r => r.title + (r.years ? ` (${r.years})` : "")).join(" · ")}</p>}
+                            {cv.cvProfile.qualifications.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Qualifications:</strong> {cv.cvProfile.qualifications.join(" · ")}</p>}
+                            {cv.cvProfile.skills.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Skills:</strong> {cv.cvProfile.skills.join(", ")}</p>}
+                            {cv.cvProfile.achievements.length > 0 && <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Achievements:</strong> {cv.cvProfile.achievements.join(" · ")}</p>}
                           </div>
                         )}
                       </div>
@@ -8489,7 +8502,7 @@ function ResumeCheckPanel({ result, title }) {
       .catch((e) => { logStep("resume_check", "error", _msSince(_tC), e && e.message); setCheck({ status: "error" }); });
   };
 
-  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "2px 9px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
   const tierChips = (tier, label) => {
@@ -8524,7 +8537,7 @@ function ResumeCheckPanel({ result, title }) {
       ].map(([icon, lbl, k, sub], i) => {
         const st = _GATE_STATE[gateStates[k]];
         return (
-          <div key={i} style={{ flex: "1 1 130px", minWidth: 120, background: st.bg, border: `1.5px solid ${st.border}`, borderRadius: 9, padding: "8px 10px" }}>
+          <div key={i} style={{ flex: "1 1 130px", minWidth: 120, background: st.bg, border: `1.5px solid ${st.border}`, borderRadius: 10, padding: "8px 10px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <span style={{ fontSize: 14 }}>{icon}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: st.color }}>{lbl}</span>
@@ -8562,7 +8575,7 @@ function ResumeCheckPanel({ result, title }) {
             <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not enough role data yet to build a screening profile — try again in a moment, or paste a résumé below.</p>
           ) : (
             <>
-              {profile.narrative && profile.narrative.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{profile.narrative.headline}{profile.narrative.aiBar ? <> <strong style={{ color: C.teal }}>The bar to clear:</strong> {profile.narrative.aiBar}</> : null}</p>}
+              {profile.narrative && profile.narrative.headline && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{profile.narrative.headline}{profile.narrative.aiBar ? <> <strong style={{ color: C.teal }}>The bar to clear:</strong> {profile.narrative.aiBar}</> : null}</p>}
               {profile.requiredQuals && profile.requiredQuals.length > 0 && (
                 <div style={{ marginBottom: 10 }}>{sectionHdr(`Required qualifications — the hard filters (${profile.requiredQuals.length})`)}
                   {profile.requiredQuals.map((q, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{q.kw}</strong>{q.why ? ` — ${q.why}` : ""}</span></div>)}
@@ -8584,7 +8597,7 @@ function ResumeCheckPanel({ result, title }) {
                 </div>
               )}
               {profile.keywordGaps && profile.keywordGaps.length > 0 && (
-                <div style={{ marginTop: 8, padding: "7px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 7 }}>
+                <div style={{ marginTop: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 6 }}>
                   <p style={{ margin: 0, fontSize: 11, color: "#92400e", lineHeight: 1.5 }}><strong>Most often missing</strong> on résumés checked against this role: {profile.keywordGaps.slice(0, 6).map(g => `${g.kw} (${g.miss}/${g.of})`).join(" · ")}</p>
                 </div>
               )}
@@ -8597,7 +8610,7 @@ function ResumeCheckPanel({ result, title }) {
       {card(
         <>
           <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: C.text }}>Format invariants — Gate 1 fails ~23% of résumés before ranking</p>
-          <p style={{ margin: "0 0 8px", fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>These hold across all six dominant ATS. The pasted-text check below will mark the ones it can see; the rest you verify in your document.</p>
+          <p style={{ margin: "0 0 8px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>These hold across all six dominant ATS. The pasted-text check below will mark the ones it can see; the rest you verify in your document.</p>
           {(check.status === "done" ? check.parsed.checklist : parseCheck("").checklist).map((c, i) => {
             const showState = check.status === "done";
             const mark = !showState || c.ok === null ? "○" : c.ok ? "✓" : "✗";
@@ -8617,13 +8630,13 @@ function ResumeCheckPanel({ result, title }) {
         <>
           <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Which ATS is this employer using? <span style={{ fontWeight: 400, color: C.muted }}>(optional)</span></p>
           <input value={appUrl} onChange={e => setAppUrl(e.target.value.slice(0, 300))} placeholder="Paste the job-application page URL (e.g. …myworkdayjobs.com/…)"
-            style={{ width: "100%", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "8px 10px", fontSize: 12.5, outline: "none", fontFamily: "inherit" }} />
-          {appUrl.trim() && !ats && <p style={{ margin: "8px 0 0", fontSize: 11.5, color: C.muted, fontStyle: "italic" }}>Not one of the six big ATS (Workday / Greenhouse / Lever / Taleo / iCIMS / SAP SuccessFactors) by URL — many employers use those, or a smaller vendor; the format invariants above still apply.</p>}
+            style={{ width: "100%", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "8px 10px", fontSize: 13, outline: "none", fontFamily: "inherit" }} />
+          {appUrl.trim() && !ats && <p style={{ margin: "8px 0 0", fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not one of the six big ATS (Workday / Greenhouse / Lever / Taleo / iCIMS / SAP SuccessFactors) by URL — many employers use those, or a smaller vendor; the format invariants above still apply.</p>}
           {ats && (
-            <div style={{ marginTop: 10, padding: "10px 12px", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 8 }}>
-              <p style={{ margin: "0 0 4px", fontSize: 12.5, fontWeight: 800, color: C.teal }}>{ats.name}</p>
-              <p style={{ margin: "0 0 3px", fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Parser:</strong> {ats.parserGen}. <strong>Weak on:</strong> {ats.weakness}.</p>
-              <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}>{ats.behavior}</p>
+            <div style={{ marginTop: 10, padding: "10px 12px", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10 }}>
+              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: C.teal }}>{ats.name}</p>
+              <p style={{ margin: "0 0 3px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Parser:</strong> {ats.parserGen}. <strong>Weak on:</strong> {ats.weakness}.</p>
+              <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{ats.behavior}</p>
             </div>
           )}
         </>
@@ -8634,10 +8647,10 @@ function ResumeCheckPanel({ result, title }) {
         <>
           <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Paste your résumé text</p>
           <textarea value={resumeText} onChange={e => setResumeText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of your résumé here…"
-            style={{ width: "100%", minHeight: 140, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 7, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
+            style={{ width: "100%", minHeight: 140, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
             <button onClick={runCheck} disabled={resumeText.trim().length < 200 || check.status === "loading" || !profile}
-              style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? C.mutedLight : C.teal, border: "none", borderRadius: 7, cursor: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? "not-allowed" : "pointer" }}>
+              style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? C.mutedLight : C.teal, border: "none", borderRadius: 6, cursor: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? "not-allowed" : "pointer" }}>
               {check.status === "loading" ? "Checking…" : "Run it through the 3 gates"}
             </button>
             {resumeText && <button onClick={() => { setResumeText(""); setCheck({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
@@ -8674,8 +8687,8 @@ function ResumeCheckPanel({ result, title }) {
               <>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🚪 Gate 1 — Parse / format</p>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: pColor }}>{parsed.score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
-                  <span style={{ fontSize: 11.5, color: C.muted }}>~{parsed.words} words · ~{parsed.pages} page{parsed.pages === 1 ? "" : "s"} of text</span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: pColor }}>{parsed.score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                  <span style={{ fontSize: 12, color: C.muted }}>~{parsed.words} words · ~{parsed.pages} page{parsed.pages === 1 ? "" : "s"} of text</span>
                 </div>
                 {parsed.flags.length === 0
                   ? <p style={{ margin: 0, fontSize: 12, color: "#1e40af" }}>No text-level parsing red flags detected in the pasted text. (Still verify the layout invariants above in your actual file.)</p>
@@ -8693,11 +8706,11 @@ function ResumeCheckPanel({ result, title }) {
               <>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🔑 Gate 2 — Keyword match (exact, tiered)</p>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: g2Color }}>{kw.gate2Score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: g2Color }}>{kw.gate2Score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
                 </div>
                 {/* exact-title lever */}
                 {tm && tm.target && (
-                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 7, background: tm.matched ? "#eef2ff" : "#fff7ed", border: `1px solid ${tm.matched ? "#c7d2fe" : "#fed7aa"}` }}>
+                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 6, background: tm.matched ? "#eef2ff" : "#fff7ed", border: `1px solid ${tm.matched ? "#c7d2fe" : "#fed7aa"}` }}>
                     <p style={{ margin: 0, fontSize: 12, color: tm.matched ? "#1e40af" : "#9a3412", lineHeight: 1.5 }}>
                       {tm.matched
                         ? <><strong>Title mirrored.</strong> Your most-recent role title matches the target ("{tm.found || tm.target}") — that's the biggest single lever (≈10× interview likelihood).</>
@@ -8711,20 +8724,20 @@ function ResumeCheckPanel({ result, title }) {
                 {tierChips(kw.tiers.softSkills, "Soft skills")}
                 {/* placement */}
                 {kw.placement && kw.placement.n > 0 && (
-                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 7 }}>
-                    <p style={{ margin: 0, fontSize: 11.5, color: "#92400e", lineHeight: 1.5 }}><strong>Placement:</strong> {kw.placement.n} matched skill{kw.placement.n === 1 ? "" : "s"} appear only in your standalone Skills list, not inside a dated job entry — ATS give more experience weight to skills shown in dated bullets: {kw.placement.onlyInSkillsList.slice(0, 8).map(c => c.kw).join(", ")}.</p>
+                  <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 6 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "#92400e", lineHeight: 1.5 }}><strong>Placement:</strong> {kw.placement.n} matched skill{kw.placement.n === 1 ? "" : "s"} appear only in your standalone Skills list, not inside a dated job entry — ATS give more experience weight to skills shown in dated bullets: {kw.placement.onlyInSkillsList.slice(0, 8).map(c => c.kw).join(", ")}.</p>
                   </div>
                 )}
                 {/* stuffing */}
                 {kw.stuffing && kw.stuffing.length > 0 && (
-                  <div style={{ marginBottom: 8, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}>
-                    <p style={{ margin: 0, fontSize: 11.5, color: "#9a3412", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
+                  <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 6 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
                   </div>
                 )}
                 {/* acronym tips */}
                 {kw.acronymTips && kw.acronymTips.length > 0 && (
-                  <div style={{ padding: "7px 10px", background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 7 }}>
-                    <p style={{ margin: 0, fontSize: 11.5, color: C.textSub, lineHeight: 1.5 }}><strong>Acronyms:</strong> include both the acronym and the spelled-out form once each so both keyword variants match — {kw.acronymTips.slice(0, 4).map(t => `${t.acronym} / ${t.full} (you have the ${t.have})`).join("; ")}.</p>
+                  <div style={{ padding: "8px 10px", background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 6 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Acronyms:</strong> include both the acronym and the spelled-out form once each so both keyword variants match — {kw.acronymTips.slice(0, 4).map(t => `${t.acronym} / ${t.full} (you have the ${t.have})`).join("; ")}.</p>
                   </div>
                 )}
               </>
@@ -8735,13 +8748,13 @@ function ResumeCheckPanel({ result, title }) {
               <>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
                   <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🤖 Gate 3 — Semantic / AI rank</p>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: bandColor, background: bandColor + "1a", border: `1px solid ${bandColor}55`, borderRadius: 12, padding: "2px 10px" }}>{scr.verdict === "STRONG" ? "Strong fit" : scr.verdict === "POSSIBLE" ? "Possible fit" : "Unlikely fit"}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: bandColor, background: bandColor + "1a", border: `1px solid ${bandColor}55`, borderRadius: 10, padding: "2px 10px" }}>{scr.verdict === "STRONG" ? "Strong fit" : scr.verdict === "POSSIBLE" ? "Possible fit" : "Unlikely fit"}</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
                   {Object.entries(scr.scores || {}).map(([dim, val], i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ width: 150, flexShrink: 0, fontSize: 11, color: C.textSub }}>{dim}</span>
-                      <div style={{ flex: 1, height: 8, borderRadius: 4, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#1e40af" : val >= 40 ? "#b45309" : "#9a3412" }} /></div>
+                      <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#eef1f5" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#1e40af" : val >= 40 ? "#b45309" : "#9a3412" }} /></div>
                       <span style={{ width: 28, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{val}</span>
                     </div>
                   ))}
@@ -8767,14 +8780,14 @@ function ResumeCheckPanel({ result, title }) {
             {adv && (
               <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "14px 16px" }}>
                 <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: C.green }}>How to fix it</p>
-                {adv.headline && <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.textSub, lineHeight: 1.6 }}>{adv.headline}</p>}
-                {adv.titleAdvice && <div style={{ marginBottom: 8, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Mirror the title:</strong> {adv.titleAdvice}</p></div>}
-                {adv.placementAdvice && <div style={{ marginBottom: 8, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Move it into a dated bullet:</strong> {adv.placementAdvice}</p></div>}
+                {adv.headline && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{adv.headline}</p>}
+                {adv.titleAdvice && <div style={{ marginBottom: 8, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Mirror the title:</strong> {adv.titleAdvice}</p></div>}
+                {adv.placementAdvice && <div style={{ marginBottom: 8, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Move it into a dated bullet:</strong> {adv.placementAdvice}</p></div>}
                 {adv.mustAdd.length > 0 && (
                   <div style={{ marginBottom: 10 }}>{sectionHdr("Add these keywords (with a template bullet — fill in honestly)")}
                     {adv.mustAdd.map((m, i) => (
-                      <div key={i} style={{ marginBottom: 7, padding: "7px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7 }}>
-                        <p style={{ margin: 0, fontSize: 12.5, fontWeight: 700, color: C.green }}>{m.keyword}{m.why ? <span style={{ fontWeight: 400, color: C.muted }}> — {m.why}</span> : null}</p>
+                      <div key={i} style={{ marginBottom: 7, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.green }}>{m.keyword}{m.why ? <span style={{ fontWeight: 400, color: C.muted }}> — {m.why}</span> : null}</p>
                         {m.exampleBullet && <p style={{ margin: "3px 0 0", fontSize: 12, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>“{m.exampleBullet}”</p>}
                       </div>
                     ))}
@@ -8786,8 +8799,8 @@ function ResumeCheckPanel({ result, title }) {
                   </div>
                 )}
                 {adv.donts.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Don't")}{adv.donts.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{d}</span></div>)}</div>}
-                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "7px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 7 }}><p style={{ margin: 0, fontSize: 11.5, color: "#9a3412", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
-                {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 7, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
+                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
+                {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
               </div>
             )}
             <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative simulation grounded in <a href="https://github.com/ang-kl/2026-0313_AI-JS/blob/main/v3/doc/Report-ATS.md" target="_blank" rel="noopener noreferrer" style={{ color: C.mutedLight }}>v3/doc/Report-ATS.md</a> — not an actual ATS; real systems vary by employer. Never add anything to your résumé that isn't true.</p>
@@ -8803,11 +8816,11 @@ function ResumeCheckPanel({ result, title }) {
 // the Skill Analysis family of views (analysis, categories, seniority bands,
 // crossover roles, sector context, persona foundations).
 function RespCatBadge({ cat }) {
-  return <span style={{ fontSize:10, fontWeight:600, color:C.purple, background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>{cat}</span>;
+  return <span style={{ fontSize:10, fontWeight:600, color:C.purple, background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{cat}</span>;
 }
 function RespFreqBadge({ freq }) {
   const f = RESP_FREQ[freq] || RESP_FREQ.Common;
-  return <span style={{ fontSize:10, fontWeight:600, color:f.color, background:f.bg, border:`1px solid ${f.border}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>{f.label}</span>;
+  return <span style={{ fontSize:10, fontWeight:600, color:f.color, background:f.bg, border:`1px solid ${f.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{f.label}</span>;
 }
 
 // One responsibility row. Rendered flush inside a per-level group container -
@@ -8820,7 +8833,7 @@ function ResponsibilityCard({ r, skillByN, autoOpen, last }) {
   const hasMore = (r.level !== "HUMAN" && (r.how || r.kickstart));
   return (
     <div style={{ borderLeft:`3px solid ${lv.color}`, borderBottom: last ? "none" : `1px solid ${C.border}`, background:C.surface }}>
-      <div onClick={() => hasMore && setOpen(o => !o)} style={{ padding:"9px 14px", cursor: hasMore ? "pointer" : "default" }}>
+      <div onClick={() => hasMore && setOpen(o => !o)} style={{ padding: "10px 14px", cursor: hasMore ? "pointer" : "default" }}>
         <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
           <div style={{ width:104, flexShrink:0, marginTop:1 }}><Tag level={r.level} small /></div>
           <div style={{ flex:1, minWidth:0 }}>
@@ -8829,7 +8842,7 @@ function ResponsibilityCard({ r, skillByN, autoOpen, last }) {
               <RespCatBadge cat={r.cat} />
               <RespFreqBadge freq={r.freq} />
               {mapped.map((s,i) => (
-                <span key={i} style={{ fontSize:10, color:C.textSub, background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:10, padding:"1px 8px", whiteSpace:"nowrap" }}>↳ {s.skill}</span>
+                <span key={i} style={{ fontSize:10, color:C.textSub, background:"#f8fafc", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>↳ {s.skill}</span>
               ))}
               {hasMore && <span style={{ fontSize:10, color:C.mutedLight, marginLeft:"auto" }}>{open ? "▲ less" : "▼ how AI applies"}</span>}
             </div>
@@ -8860,7 +8873,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
   if (data.fallback || !data.responsibilities || data.responsibilities.length === 0) {
     const thin = data.reason === "no_jobs" || data.reason === "thin_corpus" || data.reason === "empty_analysis";
     return (
-      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding:"20px 18px" }}>
+      <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Responsibilities Analysis unavailable</p>
         <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
           {thin
@@ -8890,7 +8903,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
   return (
     <div>
       {/* Header */}
-      <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding:"12px 16px", marginBottom:14 }}>
+      <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
         <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities Analysis</p>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{data.summary || "The duties this role is expected to perform, drawn from live job postings."}</p>
         <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
@@ -8903,7 +8916,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         {tabDefs.map(t => (
           <button key={t.key}
             onClick={() => { setSubTab(t.key); track("tab_viewed", { tab: "responsibilities:"+t.key }); }}
-            style={{ padding:"6px 12px", borderRadius:18, fontSize:11.5, fontWeight:600, cursor:"pointer",
+            style={{ padding: "6px 12px", borderRadius: 16, fontSize: 12, fontWeight:600, cursor:"pointer",
               border:`2px solid ${active===t.key ? C.purple : C.border}`,
               background: active===t.key ? C.purple : C.surface,
               color: active===t.key ? "#fff" : C.textSub, whiteSpace:"nowrap" }}>
@@ -8923,7 +8936,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         const firstAiKey = ["LOW","MEDIUM","HIGH"].find(k => resps.some(r => r.level === k));
         return (
           <div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px", marginBottom:16 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:16 }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
                 <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
                 <Prov kind="ai" small />
@@ -8940,7 +8953,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
                     <span style={{ fontSize:11, color:C.muted }}>({items.length})</span>
                     <span style={{ fontSize:11, color:C.mutedLight }}>· {m.sub}</span>
                   </div>
-                  <div style={{ border:`1px solid ${C.border}`, borderRadius:8, overflow:"hidden", background:C.surface }}>
+                  <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, overflow:"hidden", background:C.surface }}>
                     {items.map((r, i) => (
                       <ResponsibilityCard key={r.n} r={r} skillByN={skillByN} last={i === items.length - 1}
                         autoOpen={firstAnalysis && m.key === firstAiKey && i === 0} />
@@ -8967,11 +8980,11 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         ];
         return (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-            <div style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+            <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
               <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By function</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(260px,100%), 1fr))", gap:12 }}>
                 {RESP_CATEGORIES.filter(c => byCat[c] && byCat[c].length).map(c => (
-                  <div key={c} style={{ border:`1px solid ${C.purpleBdr}`, borderRadius:8, padding:"10px 12px", background:"#fcfaff" }}>
+                  <div key={c} style={{ border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 12px", background:"#fcfaff" }}>
                     <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>{c} ({byCat[c].length})</p>
                     {[...byCat[c]].sort((a,b) => (lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((r,i) => (
                       <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
@@ -8983,7 +8996,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
                 ))}
               </div>
             </div>
-            <div style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"12px 14px" }}>
+            <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
               <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By AI exposure</p>
               {levelMeta.filter(m => byLevel[m.key] && byLevel[m.key].length).map(m => (
                 <div key={m.key} style={{ marginBottom:12 }}>
@@ -9004,20 +9017,20 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {/* ---- By Seniority ---- */}
       {active === "bands" && data.respProgression && (
         <div>
-          <div style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <div style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>How responsibilities shift with seniority</p>
             <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Hands-on duties give way to oversight, strategy, and stakeholder work as the role grows.</p>
           </div>
           {data.respProgression.bands.map((b, i) => (
-            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding: "12px 14px", borderBottom:`1px solid ${C.border}` }}>
                 <span style={{ width:26, height:26, borderRadius:"50%", background:"#e8f0fe", border:"1px solid #c3d3f5", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:C.accent, flexShrink:0 }}>{i+1}</span>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{b.name}</p>
                   {b.note && <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{b.note}</p>}
                 </div>
               </div>
-              <div style={{ padding:"10px 14px" }}>
+              <div style={{ padding: "10px 14px" }}>
                 {b.duties.map((d, j) => (
                   <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
                     <span style={{ width:5, height:5, borderRadius:"50%", background:C.accent, flexShrink:0, marginTop:6 }} />
@@ -9033,15 +9046,15 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {/* ---- Crossover ---- */}
       {active === "crossover" && (
         <div>
-          <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}>Roles whose day-to-day overlaps with yours</p>
             <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer — a credible pivot, not a restart.</p>
           </div>
           {data.respCrossover.map((x, i) => (
-            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface, padding:"12px 14px" }}>
+            <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface, padding: "12px 14px" }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:8 }}>
                 <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{x.role}</p>
-                {x.sector && <span style={{ fontSize:11, color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding:"1px 8px" }}>{x.sector}</span>}
+                {x.sector && <span style={{ fontSize:11, color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "2px 8px" }}>{x.sector}</span>}
               </div>
               {x.shared.length > 0 && (
                 <div style={{ marginBottom:8 }}>
@@ -9073,15 +9086,15 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {/* ---- By Sector ---- */}
       {active === "context" && data.respContext && (
         <div>
-          <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:8, padding:"10px 14px", marginBottom:14 }}>
+          <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
             <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.teal }}>How the role's duties differ by sector</p>
             {data.respContext.department && <p style={{ margin:"4px 0 0", fontSize:12, color:C.textSub }}><strong style={{ color:C.teal }}>Department:</strong> {data.respContext.department.charAt(0).toUpperCase() + data.respContext.department.slice(1)}.</p>}
           </div>
           {data.respContext.sectors.map((sec, i) => {
             const duties = (sec.duties || []).map(n => respByN[n]).filter(Boolean);
             return (
-              <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, marginBottom:10, background:C.surface }}>
-                <div style={{ display:"flex", alignItems:"center", gap:10, padding:"11px 14px", borderBottom: duties.length ? `1px solid ${C.border}` : "none" }}>
+              <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, padding: "12px 14px", borderBottom: duties.length ? `1px solid ${C.border}` : "none" }}>
                   <span style={{ width:28, height:28, borderRadius:"50%", background:C.tealBg, border:`1px solid ${C.tealBdr}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🏢</span>
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{sec.name}</p>
@@ -9089,7 +9102,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
                   </div>
                 </div>
                 {duties.length > 0 && (
-                  <div style={{ padding:"10px 14px" }}>
+                  <div style={{ padding: "10px 14px" }}>
                     <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.teal, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most central duties here</p>
                     {duties.map((r,j) => (
                       <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
@@ -9112,7 +9125,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         data.foundationResp.foundations.forEach(f => { (grouped[f.priority] || grouped.Develop).push(f); });
         return (
           <div>
-            <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding:"12px 16px", marginBottom:14, display:"flex", gap:12, alignItems:"flex-start" }}>
+            <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding: "12px 16px", marginBottom:14, display:"flex", gap:12, alignItems:"flex-start" }}>
               <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
               <div>
                 <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:cfg.color }}>Responsibilities to master first — for: {cfg.label}</p>
@@ -9123,7 +9136,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
               <div key={prio} style={{ marginBottom:16 }}>
                 <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color: prio==="Must-Have"?"#9a3412":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
                 {items.map((f, i) => (
-                  <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"11px 14px", marginBottom:8, background:C.surface }}>
+                  <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:8, background:C.surface }}>
                     <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
                     {f.why && <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>Why:</strong> {f.why}</p>}
                     {f.action && <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>This week:</strong> {f.action}</p>}
@@ -9168,17 +9181,17 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
         <p style={{ margin: "0 0 6px", fontSize: 14, color: C.textSub }}>{job.employer}</p>
       )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
           {fmtSalary(job.salaryMin, job.salaryMax)}
         </span>
         {job.employmentType && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.employmentType}</span>
+          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.employmentType}</span>
         )}
         {Array.isArray(job.positionLevels) && job.positionLevels.length > 0 && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.positionLevels.join(", ")}</span>
+          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.positionLevels.join(", ")}</span>
         )}
         {job.minimumYearsExperience != null && job.minimumYearsExperience > 0 && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
+          <span style={{ fontSize: 13, color: C.muted, background: "#f1f5f9", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
         )}
       </div>
       {hasDetail && (
@@ -9195,7 +9208,7 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
                 <div style={{ marginBottom: hasCats ? 8 : 0 }}>
                   <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills listed</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: 12, color: C.textSub, background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>{s}</span>)}
+                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: 12, color: C.textSub, background: "#f8fafc", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{s}</span>)}
                   </div>
                 </div>
               )}
@@ -9203,7 +9216,7 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
                 <div>
                   <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Categories</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: 12, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>{cc}</span>)}
+                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: 12, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>{cc}</span>)}
                   </div>
                 </div>
               )}
@@ -9218,13 +9231,13 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
         <div style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
           {onAnalysePosting && (
             <button onClick={() => onAnalysePosting(job)}
-              style={{ padding: "5px 12px", fontSize: 13, fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
+              style={{ padding: "6px 12px", fontSize: 13, fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
               📊 Analyse this posting
             </button>
           )}
           {onQueuePosting && canQueue && (
             <button onClick={() => onQueuePosting(job)}
-              style={{ padding: "5px 12px", fontSize: 13, fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
+              style={{ padding: "6px 12px", fontSize: 13, fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
               ＋ Compare
             </button>
           )}
@@ -9397,14 +9410,14 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
   return (
     <div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "15px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 21, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
+        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
         <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
           Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing — or analyse all of them as one role. Postings refresh daily.
         </p>
         {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
           <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
-            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 8, color: "#fff", padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 10, color: "#fff", padding: "10px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
             📊 Analyse all {state.jobs.length}{state.capped ? "+" : ""} postings as one role →
           </button>
         )}
@@ -9433,19 +9446,19 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       {!state.loading && state.jobs.length > 0 && (
         <>
           {archGroups.length >= 2 && (
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", marginBottom: 12 }}>
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
               <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 These {state.jobs.length}{state.capped ? "+" : ""} postings fall into {archGroups.length} {archLabel} — tap to filter
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 <button onClick={() => { setSectorFilter(null); setPage(0); }}
-                  style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                  style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
                     border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
                   All ({freshGrad ? state.jobs.filter(isFresh).length : state.jobs.length})
                 </button>
                 {archGroups.map(g => (
                   <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
-                    style={{ fontSize: 12, fontWeight: 600, borderRadius: 14, padding: "3px 11px", cursor: "pointer",
+                    style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
                       border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
                     {g.name} ({freshGrad ? g.jobs.filter(isFresh).length : g.jobs.length})
                   </button>
@@ -9460,16 +9473,16 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
-              <span style={{ fontSize: 13, fontWeight: 700, color: state.approximate ? "#92400e" : "#0e7490", background: state.approximate ? C.amberBg : C.tealBg, border: `1px solid ${state.approximate ? C.amberBdr : C.tealBdr}`, borderRadius: 12, padding: "2px 10px" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: state.approximate ? "#92400e" : "#0e7490", background: state.approximate ? C.amberBg : C.tealBg, border: `1px solid ${state.approximate ? C.amberBdr : C.tealBdr}`, borderRadius: 10, padding: "2px 10px" }}>
                 {tierLabel}
               </span>
             )}
           </div>
           {freshGrad && baseJobs.length === 0 && state.jobs.length > 0 && (
-            <p style={{ margin: "0 0 10px", fontSize: 12.5, color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
+            <p style={{ margin: "0 0 10px", fontSize: 13, color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
           )}
           {freshGrad && state.capped && baseJobs.length > 0 && (
-            <p style={{ margin: "0 0 10px", fontSize: 11.5, color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
+            <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
@@ -9480,13 +9493,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           {totalPages > 1 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={safePage === 0}
-                style={{ padding: "5px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage === 0 ? C.mutedLight : "#0e7490", cursor: safePage === 0 ? "not-allowed" : "pointer" }}>‹ Prev</button>
+                style={{ padding: "6px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage === 0 ? C.mutedLight : "#0e7490", cursor: safePage === 0 ? "not-allowed" : "pointer" }}>‹ Prev</button>
               {Array.from({ length: totalPages }, (_, i) => i).map(i => (
                 <button key={i} onClick={() => setPage(i)}
-                  style={{ minWidth: 30, padding: "5px 8px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${i === safePage ? "#0e7490" : C.border}`, background: i === safePage ? "#0e7490" : C.surface, color: i === safePage ? "#fff" : C.textSub, cursor: "pointer" }}>{i + 1}</button>
+                  style={{ minWidth: 30, padding: "6px 8px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${i === safePage ? "#0e7490" : C.border}`, background: i === safePage ? "#0e7490" : C.surface, color: i === safePage ? "#fff" : C.textSub, cursor: "pointer" }}>{i + 1}</button>
               ))}
               <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={safePage >= totalPages - 1}
-                style={{ padding: "5px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage >= totalPages - 1 ? C.mutedLight : "#0e7490", cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer" }}>Next ›</button>
+                style={{ padding: "6px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage >= totalPages - 1 ? C.mutedLight : "#0e7490", cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer" }}>Next ›</button>
             </div>
           )}
           <p style={{ margin: "14px 0 0", fontSize: 12, color: C.muted, textAlign: "right" }}>
@@ -9522,12 +9535,12 @@ export function PipelineLogsView() {
   }, []);
   useEffect(() => { load(); }, [load]);
   const fmt = ts => { try { return new Date(ts).toLocaleString(); } catch (_) { return String(ts || ""); } };
-  const td = { padding: "3px 8px", borderBottom: "1px solid #eee", verticalAlign: "top", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" };
+  const td = { padding: "4px 8px", borderBottom: "1px solid #eee", verticalAlign: "top", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" };
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px", fontSize: 12, color: C.text }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
         <h1 style={{ fontSize: 16, margin: 0 }}>Pipeline step log</h1>
-        <button onClick={load} style={{ fontSize: 12, padding: "3px 10px", cursor: "pointer" }}>refresh</button>
+        <button onClick={load} style={{ fontSize: 12, padding: "4px 10px", cursor: "pointer" }}>refresh</button>
         <span style={{ color: C.muted }}>{state.status === "loading" ? "loading…" : `${state.logs.length} rows (newest first)`}</span>
       </div>
       {state.status === "error" && <p style={{ color: "#9a3412" }}>Could not load - the store may be unavailable.</p>}
@@ -9535,7 +9548,7 @@ export function PipelineLogsView() {
       {!!state.logs.length && (
         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
           <thead><tr style={{ textAlign: "left", color: C.muted }}>
-            <th style={{ padding: "3px 8px" }}>ts</th><th style={{ padding: "3px 8px" }}>session</th><th style={{ padding: "3px 8px" }}>role</th><th style={{ padding: "3px 8px" }}>source</th><th style={{ padding: "3px 8px" }}>step</th><th style={{ padding: "3px 8px" }}>status</th><th style={{ padding: "3px 8px" }}>ms</th><th style={{ padding: "3px 8px" }}>detail</th>
+            <th style={{ padding: "4px 8px" }}>ts</th><th style={{ padding: "4px 8px" }}>session</th><th style={{ padding: "4px 8px" }}>role</th><th style={{ padding: "4px 8px" }}>source</th><th style={{ padding: "4px 8px" }}>step</th><th style={{ padding: "4px 8px" }}>status</th><th style={{ padding: "4px 8px" }}>ms</th><th style={{ padding: "4px 8px" }}>detail</th>
           </tr></thead>
           <tbody>
             {state.logs.map((r, i) => (
@@ -10699,17 +10712,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           onCancel={() => setCompareWarning(null)}
         />
       )}
-      <div style={{ background:C.eu, padding:"10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box" }}>
+      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box" }}>
         <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
         <div style={{ flex:1, minWidth:0 }}>
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
-          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding:"5px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0 }}>
+          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0 }}>
           V2 - ESCO EU skillsets
         </a>
         {step !== "idle" && (
-          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding:"5px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
+          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
             New Search
           </button>
         )}
@@ -10724,9 +10737,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           style={{
             position: "fixed", bottom: 24, right: 18, zIndex: 998,
             display: "flex", alignItems: "center", gap: 5,
-            padding: "7px 13px 7px 10px",
+            padding: "8px 14px 8px 10px",
             background: "rgba(26,86,219,0.92)", backdropFilter: "blur(6px)",
-            border: "none", borderRadius: 20,
+            border: "none", borderRadius: 16,
             color: "#fff", fontSize: 12, fontWeight: 700,
             cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
             animation: "fadeInUp 0.25s ease",
@@ -10738,11 +10751,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       )}
 
       {toast && (
-        <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding:"12px 20px", fontSize:13, fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
+        <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding: "12px 20px", fontSize:13, fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
           <span>{toast.msg}</span>
           {toast.action === "compare" && (
             <button onClick={() => { setActiveTab("compare"); setToast(null); track("tab_viewed", { tab:"compare" }); }}
-              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding:"4px 12px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding: "4px 12px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
               View comparison →
             </button>
           )}
@@ -10766,18 +10779,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
                 ].map(m => (
                   <div key={m.k}
-                    style={{ flex:1, display:"flex", flexDirection:"column", borderRadius:8, overflow:"hidden",
+                    style={{ flex:1, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
                       border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
                       background: searchMode===m.k ? C.accentSoft : C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
                       onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
-                      style={{ textAlign:"left", padding:"7px 11px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
+                      style={{ textAlign:"left", padding: "8px 12px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
                     </button>
                     {m.k === "jobs" && (
                       <label title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
-                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"0 11px 8px", cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
+                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding: "0 12px 8px", cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
                         <input type="checkbox" checked={freshGrad} aria-label="Fresh grads - roles under 4 years experience"
                           onChange={e => { if (searchMode !== "jobs") { setSearchMode("jobs"); setOccs([]); setErr(""); } setFreshGrad(e.target.checked); }}
                           style={{ width:15, height:15, accentColor:C.accent, cursor:"pointer", margin:0 }} />
@@ -10794,8 +10807,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
                   placeholder={searchMode==="jobs" ? 'Job title to browse live SG postings...' : 'Enter a job title to begin...'}
-                  style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:7, color:C.text, padding:"11px 13px", fontSize:16, outline:"none", fontFamily:"inherit" }} autoFocus />
-                <button onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius:7, color:"#fff", padding:"11px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+                  style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, outline:"none", fontFamily:"inherit" }} autoFocus />
+                <button onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius: 6, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
                   {searchMode==="jobs" ? "Browse" : "Search"}
                 </button>
               </div>
@@ -10812,7 +10825,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       </p>
                       {occs.slice(0,5).map((o,i) => (
                         <div key={i} onClick={() => { track("occupation_selected",{auto:false}); doAnalyse(o); }}
-                          style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:7, padding:"9px 13px", marginBottom:4, cursor:"pointer", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8, transition:"all 0.12s" }}
+                          style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6, padding: "10px 14px", marginBottom:4, cursor:"pointer", display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8, transition:"all 0.12s" }}
                           onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
                           onMouseLeave={e=>{ e.currentTarget.style.background=C.surface; e.currentTarget.style.borderColor=C.border; }}>
                           <div style={{ flex:1 }}>
@@ -10822,7 +10835,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               {(o.description||"").slice(0,90)}{(o.description||"").length>90?"...":""}
                             </p>
                           </div>
-                          {o.isAltLabel && <span style={{ fontSize:9, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:8, padding:"2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt</span>}
+                          {o.isAltLabel && <span style={{ fontSize: 10, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt</span>}
                         </div>
                       ))}
                       {occs.length > 5 && (
@@ -10842,7 +10855,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <span style={{ color:C.textSub }}>Software Developer</span>
               </p>
               {showExpect ? (
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, padding:"8px 10px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:7 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, padding: "8px 10px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 6 }}>
                   <span style={{ width:12, height:12, border:"2px solid #c3d3f5", borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
                   <p style={{ margin:0, fontSize:12, color:C.accent, lineHeight:1.5, fontWeight:600 }}>
                     Looking up your role - analysis on the way
@@ -10926,21 +10939,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Tap or click a tab below to explore the results:</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   <button onClick={() => setActiveTab("compare")}
-                    style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 14px",
-                      borderRadius:20, fontSize:12, fontWeight:600, cursor:"pointer",
+                    style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px",
+                      borderRadius: 16, fontSize:12, fontWeight:600, cursor:"pointer",
                       border:"2px solid #1a56db", background:"#1a56db", color:"#fff", whiteSpace:"nowrap" }}>
                     {"⚖️ Compare (" + comparisons.filter(c => c.result && c.result.skills).length + ")"}
                   </button>
                   <button onClick={() => setActiveTab("skills")}
-                    style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 14px",
-                      borderRadius:20, fontSize:12, fontWeight:600, cursor:"pointer",
+                    style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px",
+                      borderRadius: 16, fontSize:12, fontWeight:600, cursor:"pointer",
                       border:`2px solid ${C.border}`, background:C.surface, color:C.textSub, whiteSpace:"nowrap" }}>
                     ← Back to last role
                   </button>
                 </div>
               </div>
-              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"15px 18px", marginBottom:16 }}>
-                <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize:19, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
+                <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
                 
               </div>
               <ComparisonPanel
@@ -10957,8 +10970,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           const tabs = buildTabs(result);
           return (
             <div>
-              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"15px 18px", marginBottom:16 }}>
-                <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize:19, fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
+                <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize: 18, fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
                 {result.description && <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.6 }}>{result.description}</p>}
                 {result.iscoGroup && <p style={{ margin:"6px 0 0", fontSize:10, color:C.mutedLight }}>ESCO v1.2.1 · {result.iscoGroup}{sel.iscoCode ? <span> · <a href="https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08" target="_blank" rel="noopener noreferrer" style={{ color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>ISCO-08: {sel.iscoCode}</a></span> : ""}</p>}
                 {result.escoCanonicalTitle && (
@@ -10968,37 +10981,37 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 )}
                 {result.source === "posting" && (
                   <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
-                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
                     {result.postingMeta && result.postingMeta.employer ? <span style={{ color:C.textSub }}>· {result.postingMeta.employer}</span> : null}
                     {result.postingMeta && result.postingMeta.mcfUrl ? <a href={result.postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>· Open posting →</a> : null}
                   </p>
                 )}
                 {result.source === "corpus" && (
                   <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
-                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding:"1px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
                     <span style={{ color:C.textSub }}>· aggregated from what real SG employers ask for, not one cherry-picked ad</span>
                   </p>
                 )}
                 {/* ESCO coherence notice */}
                 {escoCoherenceStatus === "checking" && (
-                  <div style={{ marginTop:8, padding:"7px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7, display:"flex", alignItems:"center", gap:8 }}>
+                  <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, display:"flex", alignItems:"center", gap:8 }}>
                     <div style={{ width:10, height:10, borderRadius:"50%", border:"2px solid #fcd9a0", borderTop:"2px solid #d97706", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
                     <p style={{ margin:0, fontSize:11, color:"#92400e" }}>The ESCO skills shown may not fully match this role as defined by ISCO-08 - AI is checking...</p>
                   </div>
                 )}
                 {escoCoherenceStatus === "suspect" && (
-                  <div style={{ marginTop:8, padding:"8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:7 }}>
+                  <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
                     <p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#92400e" }}>⚠ The ESCO skills shown may not fully match this role as defined by ISCO-08.</p>
                     <p style={{ margin:"0 0 8px", fontSize:11, color:"#92400e", lineHeight:1.5 }}>Some skills may be from an adjacent occupation and may not be directly relevant to this role. You can refresh the skills using AI, or search again with a more specific title.</p>
                     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                       <button
                         onClick={() => { setEscoCoherenceStatus(null); doAnalyse(sel, { forceHybrid: true }); }}
-                        style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#d97706", border:"1px solid #b45309", borderRadius:5, padding:"4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#d97706", border:"1px solid #b45309", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         ↻ Refresh skills with AI
                       </button>
                       <button
                         onClick={() => { setStep("idle"); setResult(null); setEscoCoherenceStatus(null); window.scrollTo({ top:0, behavior:"smooth" }); }}
-                        style={{ fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius:5, padding:"4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         Search again
                       </button>
                     </div>
@@ -11019,7 +11032,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       {comparisons.length > 0 && (
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
                           {comparisons.map((c, i) => (
-                            <span key={i} style={{ fontSize:10, color: c.result ? C.green : C.accent, background: c.result ? C.greenBg : C.accentSoft, border:`1px solid ${c.result ? C.greenBdr : "#c3d3f5"}`, borderRadius:12, padding:"2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
+                            <span key={i} style={{ fontSize:10, color: c.result ? C.green : C.accent, background: c.result ? C.greenBg : C.accentSoft, border:`1px solid ${c.result ? C.greenBdr : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
                               {c.result ? "✓" : "⏳"} {c.title}
                               <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize:11, color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>
                             </span>
@@ -11035,7 +11048,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               const updated = [...comparisons, { title: currentTitle, result }];
                               softReset(updated);
                             }}
-                            style={{ fontSize:11, fontWeight:700, color: inSession ? "#fff" : C.accent, background: inSession ? C.accent : C.accentSoft, border:`1px solid ${inSession ? C.accent : "#c3d3f5"}`, borderRadius:20, padding:"5px 14px", cursor:"pointer" }}>
+                            style={{ fontSize:11, fontWeight:700, color: inSession ? "#fff" : C.accent, background: inSession ? C.accent : C.accentSoft, border:`1px solid ${inSession ? C.accent : "#c3d3f5"}`, borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
                             {inSession ? "＋ Add this role to comparison" : "＋ Start comparison with this role"}
                           </button>
                         )}
@@ -11046,7 +11059,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               track("tab_viewed", { tab:"compare" });
                               setTimeout(() => tabBarRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }), 80);
                             }}
-                            style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#0e7490", border:"none", borderRadius:20, padding:"5px 14px", cursor:"pointer" }}>
+                            style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#0e7490", border:"none", borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
                             ⚖️ View comparison →
                           </button>
                         )}
@@ -11055,7 +11068,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   );
                 })()}
                 {persona && result.foundationData && (
-                  <div style={{ marginTop:8, padding:"5px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
+                  <div style={{ marginTop:8, padding: "6px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
                     <span style={{ fontSize:11, color:safePersona(persona).color }}>
                       {safePersona(persona).icon} <strong>{safePersona(persona).label}</strong> - foundation skills included
                     </span>
@@ -11070,7 +11083,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 const pendingCount = comparisons.filter(c => !c.result).length;
                 const totalCount = comparisons.length;
                 return (
-                <div ref={queueBannerRef} style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius:8, padding:"10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
+                <div ref={queueBannerRef} style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
                   <div>
                     <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>
                       ⚖️ {totalCount} role{totalCount !== 1 ? "s" : ""} queued to compare
@@ -11090,7 +11103,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     )}
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {comparisons.map((c, i) => (
-                        <span key={i} style={{ fontSize:10, color: c.result ? "#1e40af" : C.accent, background: c.result ? "#eef2ff" : "#fff", border:`1px solid ${c.result ? "#c7d2fe" : "#c3d3f5"}`, borderRadius:12, padding:"1px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
+                        <span key={i} style={{ fontSize:10, color: c.result ? "#1e40af" : C.accent, background: c.result ? "#eef2ff" : "#fff", border:`1px solid ${c.result ? "#c7d2fe" : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
                           {c.result ? "✓" : "⏳"} {c.title}
                           {!c.result && <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize:11, color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>}
                         </span>
@@ -11099,7 +11112,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   </div>
                   <button onClick={runQueuedComparisons}
                     disabled={isRunningComparison}
-                    style={{ padding:"7px 16px", fontSize:12, fontWeight:700, color:"#fff", background: isRunningComparison ? C.muted : C.accent, border:"none", borderRadius:6, cursor: isRunningComparison ? "not-allowed" : "pointer", flexShrink:0, display:"inline-flex", alignItems:"center", gap:6, opacity: isRunningComparison ? 0.8 : 1 }}>
+                    style={{ padding: "8px 16px", fontSize:12, fontWeight:700, color:"#fff", background: isRunningComparison ? C.muted : C.accent, border:"none", borderRadius:6, cursor: isRunningComparison ? "not-allowed" : "pointer", flexShrink:0, display:"inline-flex", alignItems:"center", gap:6, opacity: isRunningComparison ? 0.8 : 1 }}>
                     {isRunningComparison
                       ? <><span style={{ width:11, height:11, border:"2px solid rgba(255,255,255,0.4)", borderTop:"2px solid #fff", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} /> Analysing ({compareStep}/{comparisons.length * 3 + 1})...</>
                       : "▶ Run comparison"
@@ -11131,7 +11144,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
                   (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
 
-              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding:"10px 12px 8px", background:C.surface }}>
+              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
@@ -11158,7 +11171,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
                       onClick={() => { if (!disabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
                       title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
-                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"7px 14px", borderRadius:20, fontSize:12, fontWeight:600,
+                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px", borderRadius: 16, fontSize:12, fontWeight:600,
                         cursor: disabled ? "not-allowed" : "pointer",
                         border:`2px solid ${activeTab===t.key ? t.color : C.border}`,
                         background: disabled ? C.bg : activeTab===t.key ? t.color : C.surface,
@@ -11250,29 +11263,29 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 return (
                 <div>
                   {/* Compare tab title */}
-                  <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"15px 18px", marginBottom:16 }}>
-                    <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize:19, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
+                  <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
+                    <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
                     
                   </div>
                   {comparisons.length < 2 ? (
-                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"32px 20px", textAlign:"center" }}>
-                      <p style={{ margin:"0 0 8px", fontSize:15, color:C.textSub }}>You need at least 2 roles to compare.</p>
+                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
+                      <p style={{ margin:"0 0 8px", fontSize: 16, color:C.textSub }}>You need at least 2 roles to compare.</p>
                       <p style={{ margin:0, fontSize:12, color:C.muted }}>Use the <strong>+ Add this role</strong> button or tap <strong>+ Compare</strong> on any career path card.</p>
                     </div>
                   ) : isRunningComparison ? (
-                    <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding:"32px 20px", textAlign:"center" }}>
+                    <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
                       <div style={{ width:36, height:36, margin:"0 auto 14px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
                       <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#0369a1" }}>Building comparison</p>
                       <p style={{ margin:"0 0 4px", fontSize:12, color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"0 0 16px" }}>
                         <span style={{ fontSize:11, color:C.muted }}>Step {compareStep} of {comparisons.filter(c=>!c.result).length * 3 + 2}</span>
-                        <span style={{ fontSize:11, fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding:"2px 9px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
+                        <span style={{ fontSize:11, fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding: "2px 10px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
                           {Math.floor(compareElapsed/60)}:{String(compareElapsed%60).padStart(2,"0")}
                         </span>
                       </div>
                       <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
                         {comparisons.map((c, i) => (
-                          <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius:12, padding:"4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+                          <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
                             {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>✓</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
                             <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
                           </span>
@@ -11296,7 +11309,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       }}
                     />
                   ) : (
-                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"24px 20px", textAlign:"center" }}>
+                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "24px 20px", textAlign:"center" }}>
                       <p style={{ margin:0, fontSize:13, color:C.muted }}>Roles are still being analysed. Please wait.</p>
                     </div>
                   )}
