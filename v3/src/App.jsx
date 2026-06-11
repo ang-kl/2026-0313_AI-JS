@@ -456,6 +456,14 @@
 // role exists, what stays human vs what to hand to AI, and whether the market and employer are what
 // they seem." C.textSub (AA), ASCII hyphens (R007), microscope glyph aria-hidden, no colour-state,
 // no new control. Additive; no frozen symbol touched. G1 (v3.3.1 -> v3.3.2).
+// v3.0.52 - 2026-06-11 - HDR #090 - VERSION SCHEME RECONCILE (Human Lead directive). The scheme is a
+// FLAT patch line v3.0.<N>; never roll to v3.1.0 until v3.0.999. The result-engine + stewardship arcs
+// wrongly used the minor lines v3.1.x / v3.2.x / v3.3.x for 30 ships after the real last v3.0.22.
+// Reconciled: this live build = v3.0.22 + 30 = v3.0.52; forward is v3.0.53, v3.0.54 ... The historical
+// HDR entries + merged PR titles (#53-#82) are LEFT verbatim - those PRs genuinely shipped under the
+// minor lines, and rewriting the record would be dishonest; this note is the AU-7 correction and the
+// counter resumes here. No code change beyond the 3-site bump + this entry + the spec §11 rule update.
+// G1 (v3.3.2 -> v3.0.52, scheme reconcile - NOT a minor roll).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
