@@ -687,12 +687,6 @@
 // tap-through chip to its tab. Narration only - authors no number (digits stripped); explain1
 // cache keyed title + tab-set hash; lazy on open; withheld under 4 tabs or ungrounded; ~ AI chip
 // + "authors no number" footer; 44px toggle + aria-expanded. G1 (v3.0.70 -> v3.0.71).
-// v3.0.72 - 2026-06-12 - HDR #110 - VAULT: snapshot vault/v3.0.71 (repo root). The v3 app source
-// at v3.0.71 (the Professional Read arc close) copied verbatim into vault/v3.0.71/ - same
-// convention as the gia repo's git-tracked vault/v<version>/ snapshots; excludes node_modules,
-// dist, .vercel. No app code changed in this PR beyond this journal entry + the 3-site bump
-// (house rule: every PR bumps). ~/.claude/.last_vault bumped to the vault date.
-// G1 (v3.0.71 -> v3.0.72).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {

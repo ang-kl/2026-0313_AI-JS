@@ -1,0 +1,90 @@
+{
+  "_note": "R-SNAPSHOT golden - engine-3 (H1). NHG/PSD ssoc title-matched from SingStat (PDFs carry no MCF tag); Metta ssoc is the real MCF tag (uuid 2320493d0e875075d4dbfa6a893b3fdb). Inputs stored in the engine-accepted shape so they replay verbatim.",
+  "fixtures": {
+    "NHG-AD-TechStratPlanning": {
+      "input": {
+        "ssoc": "13304"
+      },
+      "index": 78,
+      "zMean": 1.06,
+      "zRange": [
+        1.06,
+        1.06
+      ],
+      "isco": [
+        "1330"
+      ],
+      "via": "ssoc",
+      "confidence": "high",
+      "version": "engine-3"
+    },
+    "PSD-SrMgr-JobRedesign": {
+      "input": {
+        "ssoc": "12131"
+      },
+      "index": 74,
+      "zMean": 0.965,
+      "zRange": [
+        0.965,
+        0.965
+      ],
+      "isco": [
+        "1213"
+      ],
+      "via": "ssoc",
+      "confidence": "high",
+      "version": "engine-3"
+    },
+    "Metta-TransformationMgr": {
+      "input": {
+        "ssoc": "13302"
+      },
+      "index": 78,
+      "zMean": 1.06,
+      "zRange": [
+        1.06,
+        1.06
+      ],
+      "isco": [
+        "1330"
+      ],
+      "via": "ssoc",
+      "confidence": "high",
+      "version": "engine-3"
+    },
+    "fingerprint-only-example": {
+      "input": {
+        "fingerprintIscos": [
+          {
+            "code": "2421",
+            "ratio": 0.62
+          },
+          {
+            "code": "1213",
+            "ratio": 0.31
+          },
+          {
+            "code": "1330",
+            "ratio": 0.18
+          }
+        ]
+      },
+      "index": 83,
+      "zMean": 1.204,
+      "zRange": [
+        0.965,
+        1.432
+      ],
+      "isco": [
+        "2421",
+        "1213",
+        "1330"
+      ],
+      "via": "fingerprint",
+      "confidence": "medium",
+      "version": "engine-3",
+      "topShare": 56,
+      "label": "Management and organization analysts"
+    }
+  }
+}
