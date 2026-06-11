@@ -1,81 +1,192 @@
 // SphericalGallery.jsx - "The Analysis Sphere" (/spherical)
 // Phantom.land-style inside-a-sphere gallery of the v3 analysis artifacts.
-// You stand at the centre of a sphere lined with cards (one per result-page
-// artifact); left-drag to look around with damped lens easing + release
-// inertia, wheel to tilt, click a card to fly it forward and open a basic
-// detail page. Three.js renders; GSAP animates; card faces are canvas-drawn
-// (CSP allows no external images). Pure presentation - no LLM, no number.
-// Palette: blues/oranges only (no red/green); reduced-motion respected.
+// SPH1: drag to look around with damped lens easing + release inertia, wheel
+// to tilt, click a card to open it. SPH2 (Human Lead): after an analysis
+// completes the cards show the REAL results of your last run (read from the
+// locally saved analysis - never invented), the artifacts interlink, and on
+// click the sphere swings out to the LEFT MARGIN (you see it from outside as
+// a small turning ball) while the card's detail opens in the centre, with a
+// deep-link back into the analyser at that exact tab. Three.js renders; GSAP
+// animates; card faces are canvas-drawn (CSP allows no external images).
+// Pure presentation - every figure is a pass-through of a stored computed
+// value; no LLM, no new number. Blues/oranges only; reduced-motion respected.
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { gsap } from "gsap";
 
 // ---- the artifacts (externalised strings; one card per result-page read) ----
+// key = artifact id; tab = the analyser tab the deep-link opens; related = the
+// interlink chips shown on the detail page.
 const ARTIFACTS = [
-  { icon: "\u{1F4CB}", title: "Skill Analysis",     line: "Every essential skill rated against today's AI frontier", hue: "#1a56db" },
-  { icon: "\u{1F4C8}", title: "Career Progression", line: "Realistic next roles with the skill gaps named",          hue: "#1e40af" },
-  { icon: "\u{1F500}", title: "Role Crossover",     line: "Transferable skills that open adjacent doors",            hue: "#0e7490" },
-  { icon: "\u{1F5C2}", title: "Skill Categories",   line: "Thematic clusters for structured learning",               hue: "#b45309" },
-  { icon: "\u{1F30F}", title: "Role Context",       line: "How the role operates across SG and ASEAN sectors",       hue: "#1a56db" },
-  { icon: "\u{1F4BC}", title: "Live SG Jobs",       line: "Real MyCareersFuture postings, read as one role",         hue: "#0e7490" },
-  { icon: "\u{1F9ED}", title: "Role Mix",           line: "The occupations a messy job ad actually blends",          hue: "#1e40af" },
-  { icon: "\u{1F4DC}", title: "Responsibilities",   line: "The duties employers list, extracted and rated",          hue: "#b45309" },
-  { icon: "\u{1F9EC}", title: "Job Anatomy",        line: "Each duty's work layer and its AI exposure",              hue: "#1a56db" },
-  { icon: "\u{1F52C}", title: "Deep Read",          line: "Why this vacancy exists - the stewardship reads",         hue: "#1e40af" },
-  { icon: "\u{1F6E1}", title: "Steward's Praxis",   line: "The four-phase shift from operator to steward",           hue: "#0e7490" },
-  { icon: "\u{1F3AF}", title: "Task Prep",          line: "The real tasks plus how to prepare this week",            hue: "#b45309" },
-  { icon: "\u{1F3A4}", title: "Interview Prep",     line: "Duty-grounded questions with STAR scaffolds",             hue: "#1a56db" },
-  { icon: "⚖",    title: "True-Fit Score",     line: "Evidence-tiered CV fit - demonstrated beats claimed",     hue: "#1e40af" },
-  { icon: "\u{1F91D}", title: "Fairness Lens",      line: "Reads the ad's language for tilt and exclusion",          hue: "#0e7490" },
-  { icon: "\u{1F4C7}", title: "Candidate Brief",    line: "Your one-page evidence pack, every cell sourced",         hue: "#b45309" },
-  { icon: "\u{1F3E2}", title: "Employer Scorecard", line: "Scores the employer's ad like they score you",            hue: "#1a56db" },
-  { icon: "\u{1F4CA}", title: "Demand Proof",       line: "Is the demand real - posting flow and salary bands",      hue: "#1e40af" },
-  { icon: "\u{1F50D}", title: "Ad Language Scan",   line: "Boilerplate, buzzwords and what the ad avoids saying",    hue: "#0e7490" },
-  { icon: "\u{1F5FA}", title: "Journey Spine",      line: "Five stations from job-read to rehearsed and ready",      hue: "#b45309" },
+  { key: "skills",    tab: "skills",           icon: "\u{1F4CB}", title: "Skill Analysis",     line: "Every essential skill rated against today's AI frontier", hue: "#1a56db", related: ["category", "taskprep", "journey"] },
+  { key: "progression", tab: "progression",    icon: "\u{1F4C8}", title: "Career Progression", line: "Realistic next roles with the skill gaps named",          hue: "#1e40af", related: ["crossover", "skills"] },
+  { key: "crossover", tab: "crossover",        icon: "\u{1F500}", title: "Role Crossover",     line: "Transferable skills that open adjacent doors",            hue: "#0e7490", related: ["progression", "category"] },
+  { key: "category",  tab: "category",         icon: "\u{1F5C2}", title: "Skill Categories",   line: "Thematic clusters for structured learning",               hue: "#b45309", related: ["skills", "crossover"] },
+  { key: "context",   tab: "context",          icon: "\u{1F30F}", title: "Role Context",       line: "How the role operates across SG and ASEAN sectors",       hue: "#1a56db", related: ["mcf_jobs", "skills"] },
+  { key: "mcf_jobs",  tab: "mcf_jobs",         icon: "\u{1F4BC}", title: "Live SG Jobs",       line: "Real MyCareersFuture postings, read as one role",         hue: "#0e7490", related: ["demand", "responsibilities", "rolemix"] },
+  { key: "rolemix",   tab: "rolemix",          icon: "\u{1F9ED}", title: "Role Mix",           line: "The occupations a messy job ad actually blends",          hue: "#1e40af", related: ["mcf_jobs", "jobanatomy"] },
+  { key: "responsibilities", tab: "responsibilities", icon: "\u{1F4DC}", title: "Responsibilities", line: "The duties employers list, extracted and rated",      hue: "#b45309", related: ["taskprep", "jobanatomy", "rehearse"] },
+  { key: "jobanatomy", tab: "jobanatomy",      icon: "\u{1F9EC}", title: "Job Anatomy",        line: "Each duty's work layer and its AI exposure",              hue: "#1a56db", related: ["responsibilities", "deepread"] },
+  { key: "deepread",  tab: "deepread",         icon: "\u{1F52C}", title: "Deep Read",          line: "Why this vacancy exists - the stewardship reads",         hue: "#1e40af", related: ["praxis", "adscan", "demand"] },
+  { key: "praxis",    tab: "deepread",         icon: "\u{1F6E1}", title: "Steward's Praxis",   line: "The four-phase shift from operator to steward",           hue: "#0e7490", related: ["deepread", "journey"] },
+  { key: "taskprep",  tab: "taskprep",         icon: "\u{1F3AF}", title: "Task Prep",          line: "The real tasks plus how to prepare this week",            hue: "#b45309", related: ["responsibilities", "rehearse", "journey"] },
+  { key: "rehearse",  tab: "rehearse",         icon: "\u{1F3A4}", title: "Interview Prep",     line: "Duty-grounded questions with STAR scaffolds",             hue: "#1a56db", related: ["taskprep", "journey"] },
+  { key: "truefit",   tab: "rolegraph",        icon: "⚖",    title: "True-Fit Score",     line: "Evidence-tiered CV fit - demonstrated beats claimed",     hue: "#1e40af", related: ["brief", "fairness"] },
+  { key: "fairness",  tab: "rolegraph",        icon: "\u{1F91D}", title: "Fairness Lens",      line: "Reads the ad's language for tilt and exclusion",          hue: "#0e7490", related: ["adscan", "scorecard"] },
+  { key: "brief",     tab: "rolegraph",        icon: "\u{1F4C7}", title: "Candidate Brief",    line: "Your one-page evidence pack, every cell sourced",         hue: "#b45309", related: ["truefit", "rehearse"] },
+  { key: "scorecard", tab: "rolegraph",        icon: "\u{1F3E2}", title: "Employer Scorecard", line: "Scores the employer's ad like they score you",            hue: "#1a56db", related: ["fairness", "demand"] },
+  { key: "demand",    tab: "deepread",         icon: "\u{1F4CA}", title: "Demand Proof",       line: "Is the demand real - posting flow and salary bands",      hue: "#1e40af", related: ["mcf_jobs", "deepread"] },
+  { key: "adscan",    tab: "deepread",         icon: "\u{1F50D}", title: "Ad Language Scan",   line: "Boilerplate, buzzwords and what the ad avoids saying",    hue: "#0e7490", related: ["deepread", "fairness"] },
+  { key: "journey",   tab: "skills",           icon: "\u{1F5FA}", title: "Journey Spine",      line: "Five stations from job-read to rehearsed and ready",      hue: "#b45309", related: ["skills", "taskprep", "rehearse"] },
 ];
-
+const byKey = Object.fromEntries(ARTIFACTS.map(a => [a.key, a]));
+const PRAXIS_PHASES = ["Redefine the cognitive baseline", "Master the control surface", "Treat AI as an untrusted actor", "Cultivate change leadership"];
 const BG = "#0b1220"; // deep navy - inside-the-sphere darkness (no red/green anywhere)
 
+// ---- the saved analysis (written by App.jsx on completion; CV never saved) --
+function loadLast() {
+  try {
+    const raw = localStorage.getItem("sgcv3_last_v1");
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s || s.v !== 1 || !s.result || !Array.isArray(s.result.skills) || !s.result.skills.length) return null;
+    return s;
+  } catch (_) { return null; }
+}
+
+// Deterministic per-artifact read of the saved result. Every line/row is a
+// pass-through of an already-computed value - nothing is authored here.
+// Returns { line, rows, locked } - locked carries the unlock hint instead.
+function statsFor(key, saved) {
+  if (!saved) return null;
+  const r = saved.result || {};
+  const skills = r.skills || [];
+  const resp = (r.responsibilitiesData && r.responsibilitiesData.responsibilities) || [];
+  const jobs = (r.responsibilitiesData && r.responsibilitiesData.jobs) || [];
+  const duties = (r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties) || [];
+  const comps = (r.roleMix && !r.roleMix.fallback && r.roleMix.components) || [];
+  const lvl = { HIGH: 0, MEDIUM: 0, LOW: 0, HUMAN: 0 };
+  skills.forEach(s => { if (lvl[s.level] !== undefined) lvl[s.level]++; });
+  const name = x => (x && (x.role || x.title || x.name)) || "";
+  const trunc = (s, n) => { s = String(s || ""); return s.length > n ? s.slice(0, n - 3) + "..." : s; };
+  switch (key) {
+    case "skills":
+      return { line: `${skills.length} skills: ${lvl.HIGH} full-auto / ${lvl.MEDIUM} augmented / ${lvl.LOW} assisted / ${lvl.HUMAN} human-led`,
+        rows: skills.slice(0, 6).map(s => `${s.skill} - ${s.level === "HUMAN" ? "Human-Led" : s.level === "HIGH" ? "Full Automation" : s.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}`) };
+    case "progression": {
+      const p = r.progressionData || [];
+      if (!p.length) return { locked: "progression did not load on the last run" };
+      return { line: `${p.length} career paths mapped`, rows: p.slice(0, 5).map(x => trunc(name(x), 44)).filter(Boolean) };
+    }
+    case "crossover": {
+      const c = r.crossoverData || [];
+      if (!c.length) return { locked: "crossover did not load on the last run" };
+      return { line: `${c.length} adjacent roles found`, rows: c.slice(0, 5).map(x => trunc(name(x), 44)).filter(Boolean) };
+    }
+    case "category": {
+      const tech = skills.filter(s => (s.skillType || s.type) === "technical").length;
+      return { line: `${tech} technical / ${skills.length - tech} human-side skills`,
+        rows: [`${tech} technical skills`, `${skills.length - tech} soft / human-side skills`, `${lvl.HUMAN} stay human-led`] };
+    }
+    case "context": {
+      const secs = (r.contextData && r.contextData.sectors) || [];
+      if (!secs.length) return { locked: "context did not load on the last run" };
+      return { line: `${secs.length} sectors mapped`, rows: secs.slice(0, 5).map(s => trunc(s.name, 44)).filter(Boolean) };
+    }
+    case "mcf_jobs":
+      if (!jobs.length) return { locked: "no live postings were captured on the last run" };
+      return { line: `${jobs.length} live MyCareersFuture postings read`,
+        rows: [r.corpusMeta ? `aggregate of ${r.corpusMeta.jobCount} ads` : r.postingMeta ? `single ad: ${trunc(r.postingMeta.employer || "employer withheld", 36)}` : `${jobs.length} postings behind the responsibilities read`] };
+    case "rolemix":
+      if (!comps.length) return { locked: "role-mix did not resolve on the last run" };
+      return { line: `${comps.length}-part blend: ${trunc(comps[0].label, 30)} leads`,
+        rows: comps.slice(0, 4).map(c => `${c.pct}% ${trunc(c.label, 38)}`) };
+    case "responsibilities": {
+      if (!resp.length) return { locked: "no duties were extracted on the last run" };
+      const core = resp.filter(x => x.freq === "Core").length;
+      return { line: `${resp.length} duties: ${core} core`, rows: resp.slice(0, 4).map(x => trunc(x.text, 52)) };
+    }
+    case "jobanatomy":
+      if (!duties.length) return { locked: "anatomy did not resolve on the last run" };
+      return { line: `${duties.length} duties layered by AI exposure`,
+        rows: duties.slice(0, 4).map(d => `${trunc(d.text || d.duty || "", 40)}${d.layer ? ` [${d.layer}]` : ""}`) };
+    case "deepread":
+      if (!resp.length) return { locked: "deep read unlocks once duties are extracted" };
+      return { line: "stewardship reads ready for this role",
+        rows: ["Forensic reversal - why the post exists", "Strategy read - keep vs hand to AI", "Demand proof + ad language scan", "Steward's praxis - the four phases"] };
+    case "praxis":
+      return { line: "the four phases, tailored to this role's duties", rows: PRAXIS_PHASES };
+    case "taskprep": {
+      if (!resp.length) return { locked: "task prep unlocks once duties are extracted" };
+      const f = { Core: 0, Common: 0, Occasional: 0 };
+      resp.forEach(x => { if (f[x.freq] !== undefined) f[x.freq]++; });
+      return { line: `${resp.length} tasks armed: ${f.Core} core / ${f.Common} common / ${f.Occasional} occasional`,
+        rows: resp.slice(0, 4).map(x => trunc(x.text, 52)) };
+    }
+    case "rehearse":
+      if (resp.length < 3) return { locked: "interview prep unlocks at 3+ extracted duties" };
+      return { line: `questions grounded in ${Math.min(resp.length, 5)} real duties`,
+        rows: resp.slice(0, 4).map(x => trunc(x.text, 52)) };
+    case "truefit": case "fairness": case "brief": case "scorecard":
+      return { locked: "paste your CV in the Role Graph tab to unlock this read" };
+    case "demand":
+      if (!jobs.length) return { locked: "demand proof needs live postings from a run" };
+      return { line: `read from ${jobs.length} live postings`, rows: [`${jobs.length} postings in the sample`, "salary bands + posting flow live in Deep Read"] };
+    case "adscan":
+      if (!r.postingMeta) return { locked: "open one live ad in the analyser to unlock the scan" };
+      return { line: `scanned: ${trunc(r.postingMeta.employer || "the posting", 36)}`, rows: ["boilerplate share", "buzzword density", "what the ad avoids saying"] };
+    case "journey":
+      return { line: "five stations, walkable in order", rows: ["1 Understand", "2 Position", "3 Become", "4 Arm", "5 Rehearse"] };
+    default:
+      return null;
+  }
+}
+
 // ---- canvas card texture (no external images; CSP-safe) --------------------
-function drawCard(a) {
+function drawCard(a, roleTitle, stat) {
   const W = 512, H = 640, r = 36;
   const cv = document.createElement("canvas");
   cv.width = W; cv.height = H;
   const x = cv.getContext("2d");
   x.clearRect(0, 0, W, H);
-  // rounded card
   x.beginPath(); x.roundRect(0, 0, W, H, r);
   const g = x.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#eef2f7");
   x.fillStyle = g; x.fill();
-  // accent top band
+  // accent top band - carries YOUR role title once an analysis is saved
   x.save(); x.beginPath(); x.roundRect(0, 0, W, 112, [r, r, 0, 0]); x.fillStyle = a.hue; x.fill();
   x.fillStyle = "rgba(255,255,255,0.92)";
   x.font = "700 30px Arial, sans-serif";
-  x.fillText("SG CAREER VIEW v3", 36, 68);
+  const band = roleTitle ? roleTitle.toUpperCase().slice(0, 24) : "SG CAREER VIEW v3";
+  x.fillText(band, 36, 68);
   x.restore();
-  // icon
-  x.font = "150px Arial, sans-serif";
+  x.font = "130px Arial, sans-serif";
   x.textAlign = "center";
-  x.fillText(a.icon, W / 2, 320);
-  // title
+  x.fillText(a.icon, W / 2, 295);
   x.fillStyle = "#1a202c";
   x.font = "800 44px Arial, sans-serif";
-  x.fillText(a.title, W / 2, 420);
-  // description, wrapped to two lines
+  x.fillText(a.title, W / 2, 390);
   x.fillStyle = "#4a5568";
-  x.font = "400 28px Arial, sans-serif";
-  const words = a.line.split(" "); const lines = [""];
-  for (const w of words) {
-    const t = (lines[lines.length - 1] + " " + w).trim();
-    if (x.measureText(t).width > W - 96) lines.push(w); else lines[lines.length - 1] = t;
+  x.font = "400 27px Arial, sans-serif";
+  const wrap = (text, width) => {
+    const words = String(text).split(" "); const lines = [""];
+    for (const w of words) {
+      const t = (lines[lines.length - 1] + " " + w).trim();
+      if (x.measureText(t).width > width) lines.push(w); else lines[lines.length - 1] = t;
+    }
+    return lines;
+  };
+  wrap(a.line, W - 96).slice(0, 2).forEach((ln, i) => x.fillText(ln, W / 2, 442 + i * 37));
+  // the real read (or the unlock hint) - SPH2
+  if (stat) {
+    x.font = "700 26px Arial, sans-serif";
+    x.fillStyle = stat.locked ? "#9aa5b4" : a.hue;
+    wrap(stat.locked ? "locked: " + stat.locked : stat.line, W - 84).slice(0, 2).forEach((ln, i) => x.fillText(ln, W / 2, 532 + i * 34));
   }
-  lines.slice(0, 3).forEach((ln, i) => x.fillText(ln, W / 2, 478 + i * 40));
-  // footer rule + chip
   x.strokeStyle = "#dde3ec"; x.lineWidth = 2;
-  x.beginPath(); x.moveTo(48, H - 72); x.lineTo(W - 48, H - 72); x.stroke();
-  x.fillStyle = "#9aa5b4"; x.font = "600 24px Arial, sans-serif";
-  x.fillText("an artifact of the analysis", W / 2, H - 32);
+  x.beginPath(); x.moveTo(48, H - 60); x.lineTo(W - 48, H - 60); x.stroke();
+  x.fillStyle = "#9aa5b4"; x.font = "600 23px Arial, sans-serif";
+  x.fillText(roleTitle ? "your last analysis" : "an artifact of the analysis", W / 2, H - 24);
   const tex = new THREE.CanvasTexture(cv);
   tex.anisotropy = 8; tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -84,20 +195,25 @@ function drawCard(a) {
 // ---- the gallery ------------------------------------------------------------
 export default function SphericalGallery() {
   const hostRef = useRef(null);
-  const apiRef = useRef(null);        // imperative bridge: { close() }
-  const [detail, setDetail] = useState(null); // selected artifact -> overlay page
+  const apiRef = useRef(null);        // imperative bridge: { close, show }
+  const [detail, setDetail] = useState(null); // { a, stat, layout } -> docked panel
+  const [hasSave, setHasSave] = useState(false);
   const detailRef = useRef(null);
+  const savedRef = useRef(null);
 
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const saved = loadLast();
+    savedRef.current = saved;
+    setHasSave(!!saved);
 
     // scene / camera / renderer
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(BG);
     scene.fog = new THREE.Fog(BG, 16, 30);
-    const camera = new THREE.PerspectiveCamera(72, host.clientWidth / host.clientHeight, 0.1, 60);
+    const camera = new THREE.PerspectiveCamera(72, host.clientWidth / host.clientHeight, 0.1, 120);
     camera.position.set(0, 0, 0.001);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -122,13 +238,14 @@ export default function SphericalGallery() {
       const w = ringR * gap * 0.58, h = w * 1.22;
       for (let i = 0; i < row.n; i++, k++) {
         const a = ARTIFACTS[k % ARTIFACTS.length];
-        if (!texCache.has(a.title)) texCache.set(a.title, drawCard(a));
-        const mat = new THREE.MeshBasicMaterial({ map: texCache.get(a.title), transparent: true });
+        if (!texCache.has(a.key)) texCache.set(a.key, drawCard(a, saved ? saved.title : "", statsFor(a.key, saved)));
+        // DoubleSide so the ball stays visible from OUTSIDE when docked left
+        const mat = new THREE.MeshBasicMaterial({ map: texCache.get(a.key), transparent: true, side: THREE.DoubleSide });
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
-        const theta = i * gap + (row.lat === 0 ? 0 : gap / 2); // stagger alternate rows
+        const theta = i * gap + (row.lat === 0 ? 0 : gap / 2);
         mesh.position.set(ringR * Math.sin(theta), R * Math.sin(phi), -ringR * Math.cos(theta));
         mesh.lookAt(0, 0, 0);
-        mesh.userData = { artifact: a, baseScale: 1 };
+        mesh.userData = { artifact: a };
         group.add(mesh); cards.push(mesh);
       }
     }
@@ -137,7 +254,7 @@ export default function SphericalGallery() {
     if (!reduced) {
       cards.forEach((m, i) => {
         m.scale.setScalar(0.001);
-        gsap.to(m.scale, { x: 1, y: 1, z: 1, duration: 0.9, delay: 0.18 + (i % 15) * 0.05 + Math.floor(i / 15) * 0.12, ease: "back.out(1.5)" });
+        gsap.to(m.scale, { x: 1, y: 1, z: 1, duration: 0.9, delay: 0.18 + (i % 16) * 0.05 + Math.floor(i / 16) * 0.12, ease: "back.out(1.5)" });
       });
     }
 
@@ -146,7 +263,7 @@ export default function SphericalGallery() {
     let lon = 0, lat = 0, tLon = 0, tLat = 0;
     let dragging = false, moved = 0, px = 0, py = 0, vLon = 0, vLat = 0;
     let lastInteract = performance.now();
-    let open = false; // detail page showing
+    let open = false; // docked-left detail showing
 
     const el = renderer.domElement;
     el.style.cursor = "grab";
@@ -157,7 +274,6 @@ export default function SphericalGallery() {
       dragging = true; moved = 0; px = e.clientX; py = e.clientY; vLon = 0; vLat = 0;
       el.style.cursor = "grabbing";
       el.setPointerCapture && el.setPointerCapture(e.pointerId);
-      gsap.killTweensOf(inertia);
       lastInteract = performance.now();
     };
     const onMove = (e) => {
@@ -169,14 +285,11 @@ export default function SphericalGallery() {
       tLon += vLon; tLat = THREE.MathUtils.clamp(tLat + vLat, -LAT_MAX, LAT_MAX);
       e.preventDefault();
     };
-    const inertia = { v: 0 };
     const onUp = (e) => {
       if (!dragging) return;
       dragging = false; el.style.cursor = "grab";
       if (moved < 7) { pick(e); return; }
       if (reduced) return;
-      // release inertia: carry the last drag velocity and decay it out
-      inertia.v = 1;
       const iv = { lon: vLon * 14, lat: vLat * 10 };
       gsap.to(iv, {
         lon: 0, lat: 0, duration: 1.4, ease: "power3.out",
@@ -223,32 +336,44 @@ export default function SphericalGallery() {
       if (m) { gsap.to(m.scale, { x: 1.09, y: 1.09, z: 1.09, duration: 0.35, ease: "power2.out" }); el.style.cursor = "pointer"; }
       else el.style.cursor = dragging ? "grabbing" : "grab";
     }
-    function pick(e) {
-      const m = cast(e);
-      if (!m || open) return;
+
+    // SPH2 dock: the sphere swings out to the left margin (camera pulls
+    // OUTSIDE; the ball keeps turning) and the detail shows in the centre.
+    // Portrait viewports dock the ball to the top instead, detail below.
+    function dockOpen(artifact) {
       open = true;
-      // fly the card toward the eye while the rest of the sphere falls away
-      const dir = m.position.clone().normalize();
-      const tl = gsap.timeline();
-      cards.forEach(c => { if (c !== m) tl.to(c.material, { opacity: 0.06, duration: 0.55, ease: "power2.inOut" }, 0); });
-      tl.to(m.position, { x: dir.x * 3.4, y: dir.y * 3.4, z: dir.z * 3.4, duration: 0.7, ease: "power3.inOut" }, 0);
-      tl.to(m.scale, { x: 1.18, y: 1.18, z: 1.18, duration: 0.7, ease: "power3.inOut" }, 0);
-      tl.add(() => setDetail({ ...m.userData.artifact }));
-      // closing reverses the flight and restores the sphere
+      if (hovered) { gsap.to(hovered.scale, { x: 1, y: 1, z: 1, duration: 0.3 }); hovered = null; }
+      el.style.cursor = "default";
+      const portrait = host.clientHeight > host.clientWidth * 1.05;
+      const dur = reduced ? 0 : 1.0;
+      gsap.to(camera.position, { z: 30, duration: dur, ease: "power3.inOut" });
+      gsap.to(group.position, { x: portrait ? 0 : -10.5, y: portrait ? 8 : 0, duration: dur, ease: "power3.inOut" });
+      gsap.to(group.scale, { x: 0.55, y: 0.55, z: 0.55, duration: dur, ease: "power3.inOut" });
+      gsap.to(scene.fog, { near: 26, far: 75, duration: dur, ease: "power2.inOut" });
+      const show = (a) => setDetail({ a, stat: statsFor(a.key, savedRef.current), layout: portrait ? "sheet" : "side" });
+      gsap.delayedCall(reduced ? 0 : 0.45, () => show(artifact));
       apiRef.current = {
+        show, // interlink chips swap the detail while the ball stays docked
         close: () => {
           const node = detailRef.current;
           const done = () => {
             setDetail(null);
-            const back = gsap.timeline({ onComplete: () => { open = false; } });
-            back.to(m.position, { x: dir.x * R, y: dir.y * R, z: dir.z * R, duration: 0.6, ease: "power3.inOut" }, 0);
-            back.to(m.scale, { x: 1, y: 1, z: 1, duration: 0.6, ease: "power3.inOut" }, 0);
-            cards.forEach(c => { if (c !== m) back.to(c.material, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 0.1); });
+            const d2 = reduced ? 0 : 0.9;
+            gsap.to(camera.position, { z: 0.001, duration: d2, ease: "power3.inOut" });
+            gsap.to(group.position, { x: 0, y: 0, duration: d2, ease: "power3.inOut" });
+            gsap.to(group.scale, { x: 1, y: 1, z: 1, duration: d2, ease: "power3.inOut" });
+            gsap.to(scene.fog, { near: 16, far: 30, duration: d2, ease: "power2.inOut", onComplete: () => { open = false; } });
+            if (reduced) open = false;
           };
-          if (node && !reduced) gsap.to(node, { autoAlpha: 0, yPercent: 6, duration: 0.32, ease: "power2.in", onComplete: done });
+          if (node && !reduced) gsap.to(node, { autoAlpha: 0, yPercent: 6, duration: 0.3, ease: "power2.in", onComplete: done });
           else done();
         },
       };
+    }
+    function pick(e) {
+      const m = cast(e);
+      if (!m || open) return;
+      dockOpen(m.userData.artifact);
     }
 
     el.addEventListener("pointerdown", onDown);
@@ -257,11 +382,12 @@ export default function SphericalGallery() {
     el.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
 
-    // frame loop: lens-damped easing toward the target + idle drift
+    // frame loop: lens-damped easing + idle drift; the docked ball keeps turning
     let raf = 0;
     const tick = () => {
       raf = requestAnimationFrame(tick);
-      if (!reduced && !dragging && !open && performance.now() - lastInteract > 3500) tLon += 0.00045; // idle drift
+      if (!reduced && !dragging && !open && performance.now() - lastInteract > 3500) tLon += 0.00045;
+      if (!reduced && open) tLon += 0.0035; // the docked ball turns so it reads as a sphere
       lon += (tLon - lon) * 0.075;
       lat += (tLat - lat) * 0.075;
       group.rotation.y = lon;
@@ -292,51 +418,84 @@ export default function SphericalGallery() {
     };
   }, []);
 
-  // detail page entrance
+  // detail panel entrance (also re-fires when an interlink chip swaps content)
   useEffect(() => {
     const node = detailRef.current;
     if (!detail || !node) return;
     const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) { gsap.set(node, { autoAlpha: 1, yPercent: 0 }); return; }
-    gsap.fromTo(node, { autoAlpha: 0, yPercent: 8 }, { autoAlpha: 1, yPercent: 0, duration: 0.5, ease: "power3.out", delay: 0.15 });
+    gsap.fromTo(node, { autoAlpha: 0, yPercent: 6 }, { autoAlpha: 1, yPercent: 0, duration: 0.45, ease: "power3.out" });
   }, [detail]);
 
   const ui = { fontFamily: "Arial, sans-serif" };
+  const roleTitle = savedRef.current ? savedRef.current.title : "";
+  const side = detail && detail.layout === "side";
+  const panelPos = side
+    ? { left: "42%", right: 26, top: "50%", transform: "translateY(-50%)", maxWidth: 600 }
+    : { left: 12, right: 12, bottom: 12, maxHeight: "58vh" };
   return (
     <div style={{ position: "fixed", inset: 0, background: BG, overflow: "hidden", ...ui }}>
       <div ref={hostRef} role="application" tabIndex={0} aria-label="The Analysis Sphere - drag or use arrow keys to look around the gallery of analysis artifacts; click a card to open it" style={{ position: "absolute", inset: 0, outline: "none" }} />
-      {/* lens vignette */}
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "radial-gradient(ellipse at center, rgba(11,18,32,0) 52%, rgba(11,18,32,0.78) 100%)" }} />
-      {/* brand + exit */}
       <div style={{ position: "absolute", top: 18, left: 22, color: "#e8f0fe", zIndex: 3 }}>
         <p style={{ margin: 0, fontSize: 13, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase" }}>SG Career View</p>
-        <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9aa5b4" }}>The Analysis Sphere - every artifact of one job read</p>
+        <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9aa5b4" }}>
+          {hasSave ? `The Analysis Sphere - your last read: ${roleTitle}` : "The Analysis Sphere - every artifact of one job read"}
+        </p>
       </div>
       <a href="/" style={{ position: "absolute", top: 14, right: 18, zIndex: 3, color: "#e8f0fe", background: "rgba(26,86,219,0.32)", border: "1px solid rgba(232,240,254,0.35)", borderRadius: 22, padding: "11px 18px", minHeight: 44, display: "inline-flex", alignItems: "center", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
         Open the analyser
       </a>
-      {/* hint */}
       {!detail && (
         <p style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", margin: 0, color: "#e8f0fe", fontSize: 12.5, zIndex: 3, pointerEvents: "none", background: "rgba(11,18,32,0.78)", border: "1px solid rgba(232,240,254,0.18)", borderRadius: 20, padding: "9px 18px", whiteSpace: "nowrap" }}>
-          Drag to look around <span aria-hidden="true">- </span>scroll to tilt <span aria-hidden="true">- </span>click a card to open it
+          {hasSave ? "Your results are on the cards - click one to open it" : "Drag to look around - scroll to tilt - click a card to open it"}
         </p>
       )}
-      {/* detail page (basic template) */}
+      {/* SPH2 detail - the sphere is docked as a turning ball; this panel holds the card's read */}
       {detail && (
-        <div ref={detailRef} role="dialog" aria-modal="true" aria-label={detail.title} style={{ position: "absolute", inset: 0, zIndex: 4, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(180deg, rgba(11,18,32,0.55), rgba(11,18,32,0.88))", visibility: "hidden" }}>
-          <div style={{ width: "min(92vw, 560px)", background: "#ffffff", borderRadius: 18, padding: "30px 30px 24px", boxShadow: "0 30px 80px rgba(0,0,0,0.5)", borderTop: `6px solid ${detail.hue}` }}>
-            <p aria-hidden="true" style={{ margin: 0, fontSize: 54, lineHeight: 1 }}>{detail.icon}</p>
-            <h1 style={{ margin: "12px 0 6px", fontSize: 28, color: "#1a202c" }}>{detail.title}</h1>
-            <p style={{ margin: "0 0 14px", fontSize: 15, color: "#4a5568", lineHeight: 1.6 }}>{detail.line}.</p>
-            <p style={{ margin: "0 0 20px", fontSize: 13, color: "#5b6878", lineHeight: 1.65, background: "#f5f7fa", border: "1px solid #dde3ec", borderRadius: 10, padding: "12px 14px" }}>
-              This is one artifact of the full analysis. Run any job title or live SG posting through the analyser and this card becomes a real, sourced read - deterministic numbers, provenance on every figure, AI as narration only.
-            </p>
+        <div ref={detailRef} role="dialog" aria-modal="true" aria-label={detail.a.title} style={{ position: "absolute", zIndex: 4, visibility: "hidden", ...panelPos }}>
+          <div style={{ background: "#ffffff", borderRadius: 18, padding: "26px 28px 22px", boxShadow: "0 30px 80px rgba(0,0,0,0.55)", borderTop: `6px solid ${detail.a.hue}`, maxHeight: side ? "84vh" : "56vh", overflowY: "auto" }}>
+            <p aria-hidden="true" style={{ margin: 0, fontSize: 46, lineHeight: 1 }}>{detail.a.icon}</p>
+            <h1 style={{ margin: "10px 0 4px", fontSize: 26, color: "#1a202c" }}>{detail.a.title}</h1>
+            {roleTitle && <p style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: detail.a.hue, textTransform: "uppercase", letterSpacing: "0.06em" }}>{roleTitle}</p>}
+            <p style={{ margin: "0 0 12px", fontSize: 14.5, color: "#4a5568", lineHeight: 1.6 }}>{detail.a.line}.</p>
+            {detail.stat && !detail.stat.locked && (
+              <div style={{ margin: "0 0 14px", background: "#f5f7fa", border: "1px solid #dde3ec", borderRadius: 10, padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 8px", fontSize: 13.5, fontWeight: 700, color: "#1a202c" }}>{detail.stat.line}</p>
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {(detail.stat.rows || []).map((row, i) => (
+                    <li key={i} style={{ fontSize: 12.5, color: "#4a5568", lineHeight: 1.7 }}>{row}</li>
+                  ))}
+                </ul>
+                <p style={{ margin: "8px 0 0", fontSize: 10.5, color: "#9aa5b4" }}>From your saved analysis - computed values, shown as stored. AI-assisted; human decides.</p>
+              </div>
+            )}
+            {detail.stat && detail.stat.locked && (
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5b6878", background: "#f5f7fa", border: "1px dashed #9aa5b4", borderRadius: 10, padding: "12px 14px" }}>
+                Locked: {detail.stat.locked}.
+              </p>
+            )}
+            {!detail.stat && (
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5b6878", background: "#f5f7fa", border: "1px solid #dde3ec", borderRadius: 10, padding: "12px 14px" }}>
+                Run any job title or live SG posting through the analyser and this card fills with your real, sourced read - deterministic numbers, provenance on every figure, AI as narration only.
+              </p>
+            )}
+            {/* interlink chips - the related artifacts */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "0 0 16px" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#9aa5b4", alignSelf: "center" }}>Linked:</span>
+              {(detail.a.related || []).map(rk => byKey[rk] && (
+                <button key={rk} onClick={() => apiRef.current && apiRef.current.show(byKey[rk])}
+                  style={{ minHeight: 32, padding: "5px 12px", borderRadius: 16, border: `1.5px solid ${byKey[rk].hue}`, background: "#ffffff", color: byKey[rk].hue, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  {byKey[rk].icon} {byKey[rk].title}
+                </button>
+              ))}
+            </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button onClick={() => apiRef.current && apiRef.current.close()} style={{ minHeight: 44, padding: "10px 22px", borderRadius: 10, border: "2px solid #dde3ec", background: "#ffffff", color: "#1a202c", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                 Back to the sphere
               </button>
-              <a href="/" style={{ minHeight: 44, padding: "10px 22px", borderRadius: 10, background: "#1a56db", color: "#ffffff", fontSize: 14, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
-                Try it on a real job
+              <a href={hasSave && detail.stat && !detail.stat.locked ? `/?tab=${detail.a.tab}` : "/"} style={{ minHeight: 44, padding: "10px 22px", borderRadius: 10, background: "#1a56db", color: "#ffffff", fontSize: 14, fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center" }}>
+                {hasSave && detail.stat && !detail.stat.locked ? "Open this in the analyser" : "Run an analysis"}
               </a>
             </div>
           </div>

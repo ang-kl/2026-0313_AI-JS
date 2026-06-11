@@ -553,6 +553,22 @@
 // state), prefers-reduced-motion skips intro/inertia/drift. Pure presentation - no LLM, no number.
 // Verified in Chrome DevTools: render, drag+inertia, wheel, click->detail, ESC->restore, console
 // clean (only local-only Vercel analytics 404s). G1 (v3.0.58 -> v3.0.59).
+// v3.0.60 - 2026-06-11 - HDR #098 - SPH2: the sphere shows YOUR results + dock-left detail.
+// Human Lead: "after analysis completes, each of the cards in the sphere will show the results and
+// analysis and interlink as well. when click on the card of the sphere, the sphere will swing align
+// to the left margin as a sphere and show in the centre the card details". Built: (1) App persists
+// the completed analysis to localStorage (sgcv3_last_v1; CV NEVER persisted - cv lives in separate
+// state; quota fallback strips per-skill prose); (2) /spherical reads it - every card face carries
+// the role title + a real stat line (statsFor: pure pass-through counts of stored computed values,
+// nothing authored; CV-side artifacts show "locked" with the unlock hint); (3) click now DOCKS the
+// sphere to the left margin - camera pulls OUTSIDE (z 0.001->30), group scales 0.55 + shifts left
+// (top on portrait), fog widens 16/30->26/75, materials DoubleSide so the ball reads from outside,
+// and it keeps turning - while the detail panel opens centre/right with the artifact's real rows;
+// (4) artifacts INTERLINK via related chips that swap the detail in place; (5) "Open this in the
+// analyser" deep-links /?tab=<key> - App restores the saved analysis (setSel/setResult/results) and
+// opens that tab, validated against buildTabs, falling back to "skills". Verified in Chrome
+// DevTools with an injected save: real card faces, dock animation, interlink swap, deep-link
+// restore (engine index honestly withheld when unreachable). G1 (v3.0.59 -> v3.0.60).
 import { useState, useCallback, useRef, useEffect } from "react";
 
 const C = {
@@ -9651,6 +9667,47 @@ export default function App() {
           doAnalyse({ title: tidyRole, iscoCode: "", iscoGroup: "", description: "" });
         });
     }
+  }, []);
+
+  // SPH2: persist the completed analysis locally so the Analysis Sphere
+  // (/spherical) can show the REAL artifacts of your last run, and the
+  // ?tab= deep-link below can restore it. CV data is NEVER persisted -
+  // result carries only the role-side reads (cv lives in separate state).
+  // Best-effort: quota/serialisation failures are silently skipped.
+  useEffect(() => {
+    if (!result || !sel || step !== "results") return;
+    const payload = { v: 1, savedAt: Date.now(), title: toTitleCase(sel.title || ""),
+      sel: { title: sel.title || "", iscoCode: sel.iscoCode || "", iscoGroup: sel.iscoGroup || "", description: sel.description || "" },
+      result };
+    try { localStorage.setItem("sgcv3_last_v1", JSON.stringify(payload)); }
+    catch (_) {
+      // quota: retry without the heaviest per-skill prose fields
+      try {
+        const slim = { ...payload, result: { ...result, skills: (result.skills || []).map(s => ({ ...s, prompt: "", promptTech: "", nextPhase: "" })) } };
+        localStorage.setItem("sgcv3_last_v1", JSON.stringify(slim));
+      } catch (_) { /* skip - sphere falls back to generic cards */ }
+    }
+  }, [result, sel, step]);
+
+  // SPH2: ?tab= deep-link from the Analysis Sphere - restore the saved
+  // analysis and open the requested tab. Validates the tab against the
+  // tabs the saved result actually supports; falls back to "skills".
+  useEffect(() => {
+    try {
+      const tabParam = new URLSearchParams(window.location.search).get("tab");
+      if (!tabParam) return;
+      const raw = localStorage.getItem("sgcv3_last_v1");
+      window.history.replaceState({}, "", window.location.pathname);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (!saved || saved.v !== 1 || !saved.result || !saved.sel || !Array.isArray(saved.result.skills) || !saved.result.skills.length) return;
+      setSel(saved.sel);
+      setResult(saved.result);
+      setStep("results");
+      const keys = new Set(buildTabs(saved.result).filter(t => !t.paused).map(t => t.key));
+      setActiveTab(keys.has(tabParam) ? tabParam : "skills");
+      track("sphere_deeplink", { tab: tabParam });
+    } catch (_) { /* malformed save - stay on idle */ }
   }, []);
 
   // v6: debounced instant-search — fires 280ms after user stops typing
