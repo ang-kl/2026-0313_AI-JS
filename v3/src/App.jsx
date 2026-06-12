@@ -693,7 +693,30 @@
 // dist, .vercel. No app code changed in this PR beyond this journal entry + the 3-site bump
 // (house rule: every PR bumps). ~/.claude/.last_vault bumped to the vault date.
 // G1 (v3.0.71 -> v3.0.72).
-import { useState, useCallback, useRef, useEffect } from "react";
+// v3.0.73 - 2026-06-12 - HDR #111 - LUX1: professional landing + analysis-loading upgrade.
+// Human Lead: landing and background-analysis screens "look vibe coded - upgrade to progressive
+// professional 3js and advanced web app loading styled". Built: (1) NEW src/AmbientBackdrop.jsx -
+// a Three.js ambient constellation (house blues/teal + sparse amber, no red/green) behind the
+// landing (calm) and searching/loading (active) screens; PROGRESSIVE: a pure-CSS gradient wash
+// paints instantly, `three` is dynamically imported only after mount as a lazy chunk - the main
+// bundle stays three-free (same contract as /spherical); prefers-reduced-motion / WebGL failure
+// leaves the static wash; pauses when the tab hides; DPR capped 1.75; aria-hidden + pointer-events
+// none (decorative only - nothing encoded in it). (2) Spinner rebuilt as an advanced loading
+// console: determinate conic progress ring with % + step count when step/total known (indeterminate
+// dual-tone arc otherwise), gradient sweep bar, numbered step rail (done = filled + check, current =
+// outlined + pulse, pending = muted - shape+label, never colour alone), staggered skill-card
+// reveal; role=status aria-live=polite; reduced-motion kills all animation. (3) Landing search
+// card + IntroCard restyled glass-professional (blur, layered shadows, same copy/structure).
+// (4) ErrBox: the raw Anthropic 400 "credit balance is too low" billing message (seen live
+// 2026-06-12) no longer renders verbatim - a calm blue "taking a short pause" notice shows
+// instead (CLIENT-side only: api/claude.js is FROZEN and byte-untouched; a proxy-side CAPACITY
+// mapping is proposed as a follow-up AU for the Human Lead). Header/main gain zIndex so the
+// fixed backdrop sits beneath everything. Pure presentation - no LLM, no number.
+// G1 (v3.0.72 -> v3.0.73).
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
+
+// LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
+const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
 
 const C = {
   bg:         "#f5f7fa",
@@ -3554,50 +3577,89 @@ function Tag({ level, small }) {
   );
 }
 
+// LUX1: advanced loading console. Determinate (step/total known) shows a conic
+// progress ring with % + step rail; indeterminate shows a dual-tone arc. State
+// on the rail is shape+label (filled+check / outlined+pulse / muted), never
+// colour alone. role=status announces label changes; prefers-reduced-motion
+// disables every animation via the scoped .ldx rule.
 function Spinner({ label, step, total, firstTime, skills }) {
   const list = Array.isArray(skills) ? skills : [];
+  const determinate = !!(step && total);
+  const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
+  const ringMask = "radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px))";
   return (
-    <div style={{ padding: "40px 0 32px" }}>
-      <div style={{ textAlign:"center", marginBottom:16 }}>
-        <div style={{ width:36, height:36, margin:"0 auto 14px", border:`3px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-        <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
-        <p style={{ color:C.text, fontSize:12, margin:"0 0 8px", fontWeight:600, lineHeight:1.6, maxWidth:300, marginLeft:"auto", marginRight:"auto" }}>{label}</p>
-        {step && total && (
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, marginTop:4 }}>
-            <div style={{ display:"flex", gap:4 }}>
-              {Array.from({length:total}).map((_,i) => (
-                <div key={i} style={{ width:8, height:8, borderRadius:"50%", background: i < step ? C.accent : C.border, transition:"background 0.3s" }} />
-              ))}
+    <div role="status" aria-live="polite" style={{ padding: "44px 0 32px", position:"relative" }}>
+      <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}`}</style>
+      <div style={{ maxWidth: 620, margin: "0 auto" }}>
+        <div style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
+          {/* progress ring */}
+          <div aria-hidden="true" style={{ width:76, height:76, margin:"0 auto 16px", position:"relative" }}>
+            {determinate ? (
+              <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
+            ) : (
+              <div className="ldx" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(from 0deg, transparent 0deg 40deg, ${C.accent} 170deg, ${C.teal} 260deg, transparent 320deg 360deg)`, WebkitMask:ringMask, mask:ringMask, animation:"sp 1.1s linear infinite" }} />
+            )}
+            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
+              {determinate ? (
+                <>
+                  <span style={{ fontSize:17, fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
+                  <span style={{ fontSize:9, fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                </>
+              ) : (
+                <span className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
+              )}
             </div>
-            <span style={{ fontSize:11, color:C.muted }}>{step} of {total}</span>
           </div>
-        )}
-      </div>
+          <p style={{ color:C.text, fontSize:13, margin:"0 auto", fontWeight:700, lineHeight:1.6, maxWidth:340, letterSpacing:"-0.005em" }}>{label}</p>
+          {/* gradient sweep bar */}
+          <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
+            {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
+            <div className="ldx" style={{ position:"absolute", top:0, bottom:0, left:0, width:"34%", background:"linear-gradient(90deg, transparent, rgba(26,86,219,0.35), transparent)", animation:"ldxSweep 1.5s ease-in-out infinite" }} />
+          </div>
+          {/* step rail - done = filled + check, current = outlined + pulse, pending = muted */}
+          {determinate && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:14, flexWrap:"wrap" }}>
+              {Array.from({ length: total }).map((_, i) => {
+                const done = i < step - 1, current = i === step - 1;
+                return (
+                  <span key={i} className={current ? "ldx" : undefined} style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:26, height:26, padding:"0 7px", borderRadius:13, fontSize:11, fontWeight:800, fontVariantNumeric:"tabular-nums",
+                    background: done ? C.accent : current ? C.accentSoft : "transparent",
+                    border: `1.5px solid ${done || current ? C.accent : C.border}`,
+                    color: done ? "#fff" : current ? C.accent : C.mutedLight,
+                    animation: current ? "ldxBreathe 1.3s ease-in-out infinite" : "none" }}>
+                    {done ? "✓" : i + 1}
+                  </span>
+                );
+              })}
+              <span style={{ fontSize:11, color:C.muted, fontWeight:600, marginLeft:4 }}>{step} of {total}</span>
+            </div>
+          )}
+        </div>
       {list.length > 0 && (
-        <div style={{ marginTop:14, animation:"fadeInUp 0.5s ease both" }}>
+        <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
           <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the ESCO taxonomy</p>
           {list.map((s, i) => (
-            <div key={(s && (s.escoUri || s.skill)) || i} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", marginBottom:6 }}>
+            <div key={(s && (s.escoUri || s.skill)) || i} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-                <span style={{ flexShrink:0, fontSize:10, fontWeight:700, color:C.muted, minWidth:16 }}>{i+1}</span>
+                <span style={{ flexShrink:0, fontSize:10, fontWeight:800, color:C.accent, minWidth:18, fontVariantNumeric:"tabular-nums" }}>{String(i+1).padStart(2,"0")}</span>
                 <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
               </div>
               {s && s.escoDescription && (
-                <p style={{ margin:"3px 0 0", paddingLeft:24, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
+                <p style={{ margin:"3px 0 0", paddingLeft:26, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
               )}
             </div>
           ))}
         </div>
       )}
       {firstTime && (
-        <div style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:10 }}>
+        <div className="ldx" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
+          <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
             <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
               You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across four automation levels: <strong>Full Automation</strong> (AI - including AI agents - completes it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
             </p>
           </div>
-          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
+          <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
             <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
               <strong>Skill Analysis</strong> contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide. <strong>Career Progression</strong> shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers. <strong>Role Crossover</strong> highlights the transferable skills that open doors to adjacent roles. <strong>Skill Categories</strong> groups skills into thematic clusters for structured learning. <strong>Role Context</strong> maps how the role operates across sectors and organisations in Singapore and the ASEAN region.
@@ -3605,6 +3667,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -3651,7 +3714,23 @@ function ErrBox({ msg, query }) {
   const isTooLong  = msg && msg.toLowerCase().includes("too long");
   const isBusy     = msg && (msg.toLowerCase().includes("busy day") || msg.toLowerCase().includes("reached our limit"));
   const isOverload = msg && msg.toLowerCase().includes("overwhelmed");
-  const isDowntime = !isNotFound && !isInvalid && !isTooLong && !isBusy && !isOverload && msg?.toLowerCase().includes("went wrong");
+  // LUX1: upstream AI capacity paused (proxy CAPACITY mapping; also catches a raw
+  // provider billing message if an older deploy passes it through verbatim)
+  const isCapacity = msg && (msg.toLowerCase().includes("top up its ai capacity") || msg.toLowerCase().includes("credit balance is too low"));
+  const isDowntime = !isNotFound && !isInvalid && !isTooLong && !isBusy && !isOverload && !isCapacity && msg?.toLowerCase().includes("went wrong");
+
+  if (isCapacity) {
+    return (
+      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
+        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#1e40af" }}>The analyser is taking a short pause</p>
+        <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+          Its AI capacity for the period has been used up and is being topped up. Nothing is wrong on your side - please check back a little later. Thank you for your patience.
+        </p>
+        <FeedbackLink />
+        <DiagSteps />
+      </div>
+    );
+  }
 
   if (isBusy) {
     return (
@@ -3754,10 +3833,11 @@ const AUDIENCE = [
 function IntroCard({ onPersonaSelect, toggleRef }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <div style={{ padding: "10px 4px 8px" }}>
-        <p className="t-heading" style={{ margin:0, fontSize: 16, color:C.text, fontWeight:800, lineHeight:1.3, letterSpacing:"-0.01em" }}>Explore how AI fits into role skills - and where humans still lead.</p>
+      <div style={{ padding: "12px 4px 10px" }}>
+        {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
+        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.3, letterSpacing:"-0.015em", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Explore how AI fits into role skills - and where humans still lead.</p>
       </div>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:0 }}>
+      <div style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
         <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:600, color:C.muted, letterSpacing:"0.03em", textTransform:"uppercase" }}>
           Who is this most useful for?
         </p>
@@ -11429,6 +11509,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", width:"100%", maxWidth:"100vw", overflowX:"hidden", position:"relative" }}>
       {/* © Adrian K. L. Ang | takearoundabout.com | Original source - unauthorised redistribution is not permitted */}
 
+      {/* LUX1: ambient Three.js field behind the landing + analysis screens (decorative only;
+          lazy chunk - three stays out of the main bundle; reduced-motion/WebGL-less -> CSS wash) */}
+      {(step === "idle" || step === "error" || step === "searching" || step === "loading") && (
+        <Suspense fallback={null}>
+          <AmbientBackdrop mode={step === "searching" || step === "loading" ? "active" : "calm"} />
+        </Suspense>
+      )}
+
       {compareWarning && (
         <CompareWarningModal
           onConfirm={() => {
@@ -11441,7 +11529,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         />
       )}
       {/* flexWrap: at phone widths the buttons wrap UNDER the title instead of overlapping it */}
-      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap" }}>
+      {/* position+zIndex: keeps the solid header above the fixed LUX1 backdrop layer */}
+      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap", position:"relative", zIndex:1 }}>
         <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
         <div style={{ flex:"1 0 200px", minWidth:0 }}>
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
@@ -11491,12 +11580,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           <button onClick={() => setToast(null)} style={{ background:"transparent", border:"none", color:"rgba(255,255,255,0.7)", fontSize:18, cursor:"pointer", padding:0, lineHeight:1, flexShrink:0 }}>×</button>
         </div>
       )}
-      <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser">
+      <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
 
         {(step === "idle" || step === "error") && (
           <>
-            {/* Search box - TOP of screen, first thing user sees */}
-            <div style={{ background:C.surface, border:`2px solid ${C.accent}`, borderRadius:10, padding:14, marginBottom:10 }}>
+            {/* Search box - TOP of screen, first thing user sees. LUX1: glass card over the ambient field */}
+            <div style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:"1px solid #c3d3f5", borderRadius:14, padding:16, marginBottom:12, boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.06)" }}>
               <span id="search-hint" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>
                 Type a job title such as Nurse, Financial Analyst or Software Engineer to see AI impact on role skills
               </span>
