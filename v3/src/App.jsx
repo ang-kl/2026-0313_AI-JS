@@ -713,6 +713,14 @@
 // mapping is proposed as a follow-up AU for the Human Lead). Header/main gain zIndex so the
 // fixed backdrop sits beneath everything. Pure presentation - no LLM, no number.
 // G1 (v3.0.72 -> v3.0.73).
+// v3.0.74 - 2026-06-13 - HDR #112 - LUX2: round particles (Human Lead: "why give square balloon
+// on first page"). Three.js PointsMaterial draws untextured points as SQUARES - the v3.0.73
+// backdrop showed small drifting squares on the landing. Fix in AmbientBackdrop.jsx only: a
+// 64px canvas-drawn radial-gradient sprite (white core feathering to transparent - CSP-safe,
+// self-drawn like the sphere's CanvasTextures) is set as the PointsMaterial map, so each point
+// renders as a soft round glow dot tinted by its vertex colour (house blues/teal/amber
+// unchanged); size 2.6 -> 3.2 to compensate for the feathered edge; sprite disposed in cleanup.
+// No other file touched; no LLM, no number. G1 (v3.0.73 -> v3.0.74).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.

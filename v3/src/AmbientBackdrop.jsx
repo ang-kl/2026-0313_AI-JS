@@ -81,7 +81,20 @@ export default function AmbientBackdrop({ mode = "calm" }) {
       const pGeo = new THREE.BufferGeometry();
       pGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       pGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      const pMat = new THREE.PointsMaterial({ size: 2.6, vertexColors: true, transparent: true, opacity: MODES.calm.pointOpacity, sizeAttenuation: true, depthWrite: false });
+      // LUX2: PointsMaterial with no map draws SQUARES - draw a soft circular
+      // glow sprite on a canvas (CSP-safe, self-drawn like the sphere's cards)
+      // so each point renders as a round, feathered dot tinted by vertexColors.
+      const spriteCanvas = document.createElement("canvas");
+      spriteCanvas.width = spriteCanvas.height = 64;
+      const sctx = spriteCanvas.getContext("2d");
+      const grad = sctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grad.addColorStop(0, "rgba(255,255,255,1)");
+      grad.addColorStop(0.35, "rgba(255,255,255,0.85)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      sctx.fillStyle = grad;
+      sctx.fillRect(0, 0, 64, 64);
+      const sprite = new THREE.CanvasTexture(spriteCanvas);
+      const pMat = new THREE.PointsMaterial({ size: 3.2, map: sprite, vertexColors: true, transparent: true, opacity: MODES.calm.pointOpacity, sizeAttenuation: true, depthWrite: false });
       const points = new THREE.Points(pGeo, pMat);
       scene.add(points);
 
@@ -165,7 +178,7 @@ export default function AmbientBackdrop({ mode = "calm" }) {
         window.removeEventListener("pointermove", onPointer);
         window.removeEventListener("resize", onResize);
         document.removeEventListener("visibilitychange", onVis);
-        pGeo.dispose(); pMat.dispose(); lGeo.dispose(); lMat.dispose();
+        pGeo.dispose(); pMat.dispose(); sprite.dispose(); lGeo.dispose(); lMat.dispose();
         renderer.dispose();
         if (renderer.domElement.parentNode) renderer.domElement.parentNode.removeChild(renderer.domElement);
       };
