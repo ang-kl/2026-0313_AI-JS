@@ -721,6 +721,30 @@
 // renders as a soft round glow dot tinted by its vertex colour (house blues/teal/amber
 // unchanged); size 2.6 -> 3.2 to compensate for the feathered edge; sprite disposed in cleanup.
 // No other file touched; no LLM, no number. G1 (v3.0.73 -> v3.0.74).
+// v3.0.75 - 2026-06-14 - HDR #113 - LUX3: professional landing + analyse polish (Human Lead:
+// "professionally upgrade v3 landing + analyse - keep it type-heavy, low whitespace, don't
+// drastically alter; modern hover micro-animations + a text clip-path reveal on hover;
+// awwwards-grade; mobile-friendly"). Type-forward refinement, NOT a teardown - copy + layout
+// structure unchanged. (1) New namespaced .lux-* CSS micro-interaction layer in the global
+// style block: luxRise staggered entrance; .lux-lift spring hover (translateY + shadow);
+// .lux-clip TEXT CLIP-PATH REVEAL (an accent twin wipes across the word on row hover via
+// clip-path inset, content:attr(data-text)); .lux-uline / .tab-label underline wipe; .lux-cta
+// button sheen-sweep + .lux-arrow nudge; .lux-search focus-within glow ring; .lux-focus
+// keyboard ring. ALL effects are pure CSS (zero JS, no GSAP on the main path - the captivating
+// 3D layer stays the LUX1/LUX2 Three.js backdrop) and ALL collapse to nothing under
+// prefers-reduced-motion. (2) Typography quality: body gains text-rendering:optimizeLegibility
+// + font-smoothing + kern/liga/calt; root font stack enriched with Inter/system-ui/-apple-system
+// fallbacks (no external font - v3 CSP forbids it); hero + labels get tighter tracking +
+// text-wrap:balance. (3) IntroCard audience rows: 01-04 index numerals, clip-path label reveal,
+// lift, arrow nudge, AND are now keyboard-operable (role=button/tabIndex/Enter+Space - they were
+// click-only divs). PersonaToggle tiles likewise gain keyboard access + lift + clip reveal.
+// (4) Search shell focus-within ring; CTA gains a trailing arrow. a11y: no red/green, state never
+// by colour alone, focus rings added, reduced-motion honoured, 44px targets intact. a11y-review
+// follow-ups folded in pre-merge: the search input dropped its inline outline:none and took the
+// .lux-focus per-element ring (the focus-within shell glow was parent-only - WCAG 2.4.7); the
+// persona "remove" control became keyboard-operable (role=button / tabIndex / Enter+Space /
+// aria-label). Pure presentation - no LLM, no number, frozen door untouched.
+// G1 (v3.0.74 -> v3.0.75).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -3599,7 +3623,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
     <div role="status" aria-live="polite" style={{ padding: "44px 0 32px", position:"relative" }}>
       <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}`}</style>
       <div style={{ maxWidth: 620, margin: "0 auto" }}>
-        <div style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
+        <div className="lux-rise" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
           <div aria-hidden="true" style={{ width:76, height:76, margin:"0 auto 16px", position:"relative" }}>
             {determinate ? (
@@ -3618,7 +3642,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
               )}
             </div>
           </div>
-          <p style={{ color:C.text, fontSize:13, margin:"0 auto", fontWeight:700, lineHeight:1.6, maxWidth:340, letterSpacing:"-0.005em" }}>{label}</p>
+          <p style={{ color:C.text, fontSize:13.5, margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
           {/* gradient sweep bar */}
           <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
             {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
@@ -3841,33 +3865,38 @@ const AUDIENCE = [
 function IntroCard({ onPersonaSelect, toggleRef }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <div style={{ padding: "12px 4px 10px" }}>
+      <div className="lux-rise" style={{ padding: "12px 4px 10px" }}>
         {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
-        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.3, letterSpacing:"-0.015em", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Explore how AI fits into role skills - and where humans still lead.</p>
+        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Explore how AI fits into role skills - and where humans still lead.</p>
       </div>
-      <div style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
-        <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:600, color:C.muted, letterSpacing:"0.03em", textTransform:"uppercase" }}>
+      <div className="lux-rise" style={{ "--lux-d":"0.06s", background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
+        <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
           Who is this most useful for?
         </p>
         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
           {AUDIENCE.map((a, i) => {
             const clickable = !!a.persona;
+            const accent = clickable ? (a.persona === "fresh" ? PERSONA_CONFIG.fresh.color : PERSONA_CONFIG.crossover.color) : C.accent;
             return (
               <div key={i}
+                className={clickable ? "lux-row lux-lift lux-focus" : "lux-row"}
+                role={clickable ? "button" : undefined} tabIndex={clickable ? 0 : undefined}
                 onClick={clickable ? () => {
                   onPersonaSelect(a.persona);
                   setTimeout(() => toggleRef.current?.scrollIntoView({ behavior:"smooth", block:"center" }), 50);
                 } : undefined}
-                style={{ display:"flex", alignItems:"flex-start", gap:10, padding: "8px 10px", borderRadius: 6, border: clickable ? `1px solid ${C.border}` : "none", background: clickable ? C.bg : "transparent", cursor: clickable ? "pointer" : "default", transition:"border-color 0.15s, background 0.15s" }}
+                onKeyDown={clickable ? e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPersonaSelect(a.persona); setTimeout(() => toggleRef.current?.scrollIntoView({ behavior:"smooth", block:"center" }), 50); } } : undefined}
+                style={{ display:"flex", alignItems:"flex-start", gap:10, padding: "9px 11px", borderRadius: 8, border: clickable ? `1px solid ${C.border}` : "1px solid transparent", background: clickable ? C.bg : "transparent", cursor: clickable ? "pointer" : "default", ["--lux-clip"]: accent }}
                 onMouseEnter={clickable ? e => { e.currentTarget.style.borderColor = a.persona === "fresh" ? PERSONA_CONFIG.fresh.border : PERSONA_CONFIG.crossover.border; e.currentTarget.style.background = a.persona === "fresh" ? PERSONA_CONFIG.fresh.bg : PERSONA_CONFIG.crossover.bg; } : undefined}
                 onMouseLeave={clickable ? e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg; } : undefined}
               >
-                <span style={{ fontSize: 16, flexShrink:0, marginTop:1 }}>{a.icon}</span>
+                <span aria-hidden="true" style={{ flexShrink:0, marginTop:2, fontSize:10, fontWeight:800, color:C.mutedLight, fontFamily:"'IBM Plex Mono',ui-monospace,monospace", fontVariantNumeric:"tabular-nums", letterSpacing:"0.02em", minWidth:16 }}>{String(i+1).padStart(2,"0")}</span>
+                <span style={{ fontSize: 16, flexShrink:0, marginTop:1, lineHeight:1 }}>{a.icon}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:C.text }}>{a.label} </span>
-                  <span style={{ fontSize:12, color:C.textSub }}>{a.line}</span>
+                  <span className="lux-clip" data-text={a.label} style={{ fontSize:12.5, fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>{a.label}</span>
+                  <span style={{ fontSize:12, color:C.textSub }}>{" " + a.line}</span>
                 </div>
-                {clickable && <span style={{ fontSize:11, color:C.mutedLight, flexShrink:0, marginTop:2 }}>&#8595;</span>}
+                {clickable && <span className="lux-arrow" aria-hidden="true" style={{ fontSize:12, color:accent, flexShrink:0, marginTop:2, fontWeight:700 }}>&#8595;</span>}
               </div>
             );
           })}
@@ -4190,15 +4219,18 @@ function PersonaToggle({ persona, onChange }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap:8 }}>
           {Object.entries(PERSONA_CONFIG).map(([key, cfg]) => {
             const active = persona === key;
+            const toggle = () => { if (!active) track("persona_selected", { persona: key }); onChange(active ? null : key); };
             return (
-              <div key={key} onClick={() => { if (!active) track("persona_selected", { persona: key }); onChange(active ? null : key); }}
-                style={{ display:"flex", alignItems:"center", gap:9, padding: "10px 12px", borderRadius: 6, border:`1.5px solid ${active ? cfg.border : C.border}`, background:active ? cfg.bg : C.bg, cursor:"pointer", transition:"border-color 0.15s, background 0.15s", userSelect:"none" }}>
+              <div key={key} className="lux-row lux-lift lux-focus" role="button" tabIndex={0} aria-pressed={active}
+                onClick={toggle}
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
+                style={{ display:"flex", alignItems:"center", gap:9, padding: "10px 12px", borderRadius: 8, border:`1.5px solid ${active ? cfg.border : C.border}`, background:active ? cfg.bg : C.bg, cursor:"pointer", userSelect:"none", ["--lux-clip"]: cfg.color }}>
                 <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${active ? cfg.color : C.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: active ? cfg.bg : "transparent", transition:"all 0.15s" }}>
                   {active && <div style={{ width:10, height:10, borderRadius:"50%", background:cfg.color }} />}
                 </div>
                 <span style={{ fontSize:16, flexShrink:0, lineHeight:1 }}>{cfg.icon}</span>
                 <div style={{ minWidth:0 }}>
-                  <p style={{ margin:0, fontSize:12, fontWeight:700, color:active ? cfg.color : C.text, wordBreak:"break-word" }}>{cfg.label}</p>
+                  <p style={{ margin:0 }}><span className="lux-clip" data-text={cfg.label} style={{ fontSize:12, fontWeight:700, color:active ? cfg.color : C.text, wordBreak:"break-word" }}>{cfg.label}</span></p>
                   <p style={{ margin:"1px 0 0", fontSize:10, color:C.muted }}>{PERSONA_SHORT[key]}</p>
                 </div>
               </div>
@@ -4210,7 +4242,9 @@ function PersonaToggle({ persona, onChange }) {
             <p style={{ margin:0, fontSize:11, color:safePersona(persona).color }}>
               <strong>{safePersona(persona).label}</strong> selected - foundation skills plan will be included in the analysis.
             </p>
-            <span onClick={e => { e.stopPropagation(); onChange(null); }}
+            <span className="lux-focus" role="button" tabIndex={0} aria-label="Remove foundation skills plan"
+              onClick={e => { e.stopPropagation(); onChange(null); }}
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChange(null); } }}
               style={{ fontSize:11, color:C.muted, cursor:"pointer", textDecoration:"underline", textUnderlineOffset:2, marginLeft:12, whiteSpace:"nowrap", flexShrink:0 }}>
               remove
             </span>
@@ -11429,7 +11463,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     <style>{`
       *, *::before, *::after { box-sizing: border-box; }
       html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; font-size: 16px; }
-      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
+      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; }
       #root { width: 100%; max-width: 100vw; overflow-x: hidden; }
       img, video { max-width: 100%; }
       :root {
@@ -11512,9 +11546,72 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
+
+      /* ── LUX3: modern micro-interaction layer (landing + analyse) ───────────
+         Type-forward, low-whitespace; zero JS / zero bundle cost (no GSAP on the
+         main path). Every effect degrades to nothing under reduced-motion. */
+      @keyframes luxRise { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: none; } }
+      /* staggered entrance - drop .lux-rise on a block; --lux-d sets the delay */
+      .lux-rise { animation: luxRise 0.62s cubic-bezier(0.22, 0.8, 0.24, 1) both; animation-delay: var(--lux-d, 0s); }
+      /* spring lift on hover (cards, rows, persona tiles) */
+      .lux-lift { transition: transform 0.38s cubic-bezier(0.22, 0.8, 0.24, 1), box-shadow 0.38s ease, border-color 0.22s ease, background 0.22s ease; will-change: transform; }
+      .lux-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(15, 40, 105, 0.13); }
+      .lux-lift:active { transform: translateY(0); transition-duration: 0.08s; }
+      /* text-based clip-path reveal: an accent twin wipes across the word on hover
+         of the element OR an ancestor .lux-row. Needs data-text on the node. */
+      .lux-clip { position: relative; display: inline-block; }
+      .lux-clip::after {
+        content: attr(data-text); position: absolute; inset: 0; white-space: inherit;
+        color: var(--lux-clip, #1a56db); clip-path: inset(0 100% 0 0);
+        transition: clip-path 0.45s cubic-bezier(0.65, 0, 0.35, 1); pointer-events: none;
+      }
+      .lux-clip:hover::after, .lux-row:hover .lux-clip::after, .lux-row:focus-visible .lux-clip::after { clip-path: inset(0 0 0 0); }
+      /* underline wipe (tabs, links) - scaleX from the left */
+      .lux-uline { position: relative; }
+      .lux-uline::after {
+        content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 2px;
+        background: currentColor; transform: scaleX(0); transform-origin: left center;
+        transition: transform 0.34s cubic-bezier(0.65, 0, 0.35, 1); border-radius: 2px;
+      }
+      .lux-uline:hover::after { transform: scaleX(1); }
+      /* arrow nudge on parent hover */
+      .lux-arrow { transition: transform 0.3s cubic-bezier(0.22, 0.8, 0.24, 1); }
+      .lux-row:hover .lux-arrow { transform: translateY(3px); }
+      .lux-cta:hover .lux-arrow { transform: translateX(4px); }
+      /* CTA button: sheen sweep + press */
+      .lux-cta { position: relative; overflow: hidden; transition: transform 0.18s ease, box-shadow 0.28s ease, filter 0.2s ease; }
+      .lux-cta::before {
+        content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+        background: linear-gradient(100deg, transparent, rgba(255,255,255,0.32), transparent);
+        transform: translateX(-180%); transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.24, 1); pointer-events: none;
+      }
+      .lux-cta:hover { box-shadow: 0 8px 22px rgba(0, 51, 153, 0.30); filter: saturate(1.06); }
+      .lux-cta:hover::before { transform: translateX(320%); }
+      .lux-cta:active { transform: scale(0.975); }
+      /* search shell glow when a field inside is focused (base ring lives here so
+         :focus-within can override it - an inline box-shadow could not be) */
+      .lux-search { border: 1px solid #c3d3f5; box-shadow: 0 10px 40px rgba(15, 40, 105, 0.10), 0 1px 2px rgba(15, 40, 105, 0.06); transition: box-shadow 0.3s ease, border-color 0.3s ease; }
+      .lux-search:focus-within { border-color: #1a56db; box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.13), 0 12px 44px rgba(15, 40, 105, 0.14); }
+      /* modern, consistent keyboard focus ring */
+      .lux-focus:focus-visible { outline: 2px solid #1a56db; outline-offset: 2px; border-radius: 8px; }
+      /* tab hover - colour lift + underline wipe for the inactive ones */
+      .tab-label { position: relative; transition: color 0.18s ease; }
+      .tab-label::after {
+        content: ""; position: absolute; left: 8px; right: 8px; bottom: 0; height: 2px;
+        background: currentColor; transform: scaleX(0); transform-origin: left center;
+        transition: transform 0.32s cubic-bezier(0.65, 0, 0.35, 1); opacity: 0.55; border-radius: 2px;
+      }
+      .tab-label:hover::after { transform: scaleX(1); }
+      @media (prefers-reduced-motion: reduce) {
+        .lux-rise { animation: none !important; opacity: 1 !important; transform: none !important; }
+        .lux-lift, .lux-lift:hover, .lux-lift:active { transform: none !important; box-shadow: none; }
+        .lux-clip::after { transition: none !important; }
+        .lux-uline::after, .tab-label::after, .lux-arrow, .lux-cta::before { transition: none !important; }
+        .lux-cta:active { transform: none !important; }
+      }
     `}</style>
     <div data-author="Adrian K. L. Ang" data-origin="takearoundabout.com" data-build="v5-2026"
-      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Segoe UI',sans-serif", width:"100%", maxWidth:"100vw", overflowX:"hidden", position:"relative" }}>
+      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", width:"100%", maxWidth:"100vw", overflowX:"hidden", position:"relative" }}>
       {/* © Adrian K. L. Ang | takearoundabout.com | Original source - unauthorised redistribution is not permitted */}
 
       {/* LUX1: ambient Three.js field behind the landing + analysis screens (decorative only;
@@ -11592,8 +11689,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
         {(step === "idle" || step === "error") && (
           <>
-            {/* Search box - TOP of screen, first thing user sees. LUX1: glass card over the ambient field */}
-            <div style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:"1px solid #c3d3f5", borderRadius:14, padding:16, marginBottom:12, boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.06)" }}>
+            {/* Search box - TOP of screen, first thing user sees. LUX1 glass + LUX3 focus glow.
+                border/shadow live in .lux-search so :focus-within can light the ring. */}
+            <div className="lux-search lux-rise" style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", borderRadius:14, padding:16, marginBottom:12 }}>
               <span id="search-hint" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>
                 Type a job title such as Nurse, Financial Analyst or Software Engineer to see AI impact on role skills
               </span>
@@ -11628,14 +11726,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               </div>
 
               <div style={{ display:"flex", gap:8 }}>
-                <input type="search" id="job-title-search" name="job-title" autoComplete="off"
+                <input type="search" id="job-title-search" name="job-title" autoComplete="off" className="lux-focus"
                   aria-label={searchMode==="jobs" ? "Enter a job title to browse postings" : "Enter a job title to search"} aria-describedby="search-hint"
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
                   placeholder={searchMode==="jobs" ? 'Job title to browse live SG postings...' : 'Enter a job title to begin...'}
-                  style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, outline:"none", fontFamily:"inherit" }} autoFocus />
-                <button onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius: 6, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
-                  {searchMode==="jobs" ? "Browse" : "Search"}
+                  style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, fontFamily:"inherit" }} autoFocus />
+                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
+                  <span>{searchMode==="jobs" ? "Browse" : "Search"}</span>
+                  <span className="lux-arrow" aria-hidden="true" style={{ fontSize:15, lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
               {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
@@ -11696,11 +11795,13 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             </div>
             {/* Intro card - below search box */}
             <IntroCard onPersonaSelect={setPersona} toggleRef={toggleRef} />
-            {/* Persona toggle - after intro card */}
-            <div ref={toggleRef}><PersonaToggle persona={persona} onChange={setPersona} /></div>
-            <CommunityNote />
-            <Tagline />
-            <DeviceNote />
+            {/* Persona toggle - after intro card. LUX3: staggered entrance down the stack. */}
+            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} /></div>
+            <div className="lux-rise" style={{ "--lux-d":"0.18s" }}>
+              <CommunityNote />
+              <Tagline />
+              <DeviceNote />
+            </div>
           </>
         )}
 
