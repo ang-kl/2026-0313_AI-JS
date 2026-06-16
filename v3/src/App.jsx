@@ -11469,7 +11469,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       :root {
         --app-height: 100svh;
         --content-pad: 12px;
-        --content-max: 820px;
+        --content-max: none;
         --base-font: 14px;
       }
       @supports (height: 100svh) {
@@ -11479,12 +11479,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       .site-title { white-space: nowrap; font-size: 14px; }
       @media (min-width: 768px) { .site-title { font-size: 16px; } }
       @media (max-width: 479px) { .site-title { white-space: normal; font-size: 13px; } }
-      @media (min-width: 900px)  { :root { --content-pad: 32px; --content-max: 900px; } }
-      @media (min-width: 1200px) { :root { --content-max: 1000px; } }
-      @media (min-width: 1600px) { :root { --content-max: 1080px; } }
-      @media (min-width: 2000px) { :root { --content-max: 1200px; --base-font: 17px; } html { font-size: 18px; } }
-      @media (min-width: 2560px) { :root { --content-max: 1320px; --base-font: 18px; } html { font-size: 20px; } }
-      .main-content { max-width: var(--content-max); margin: 0 auto; padding: var(--content-pad) 16px; }
+      @media (min-width: 900px)  { :root { --content-pad: 24px; } }
+      @media (min-width: 1200px) { :root { --content-pad: 28px; } }
+      @media (min-width: 1600px) { :root { --content-pad: 32px; } }
+      @media (min-width: 2000px) { :root { --base-font: 17px; } html { font-size: 18px; } }
+      @media (min-width: 2560px) { :root { --base-font: 18px; } html { font-size: 20px; } }
+      .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
       /* Tablet and notebook font scaling */
       @media (min-width: 768px) {
@@ -11975,6 +11975,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <ExplainAnalysis title={sel?.title || ""} tabs={tabs} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
               </div>
           );
+          const navBlocksGraph = uiV2 && activeTab === "rolegraph";
           return (
             <div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
@@ -12142,9 +12143,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               )}
               {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
                   (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
-              <div style={uiV2 && uiWide ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
+              <div style={uiV2 && uiWide && !navBlocksGraph ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
                 {uiV2 && (
-                  <div style={uiWide ? { position:"sticky", top:12 } : { marginBottom:14 }}>
+                  <div style={uiWide && !navBlocksGraph ? { position:"sticky", top:12 } : { marginBottom:14 }}>
                     {uiNavBox}
                   </div>
                 )}
