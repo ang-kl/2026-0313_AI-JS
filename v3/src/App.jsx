@@ -3867,7 +3867,7 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
     <div style={{ marginBottom:10 }}>
       <div className="lux-rise" style={{ padding: "12px 4px 10px" }}>
         {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
-        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Explore how AI fits into role skills - and where humans still lead.</p>
+        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Start with a job title. Choose the closest role. Then analyse it.</p>
       </div>
       <div className="lux-rise" style={{ "--lux-d":"0.06s", background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
         <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
@@ -11469,7 +11469,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       :root {
         --app-height: 100svh;
         --content-pad: 12px;
-        --content-max: 820px;
+        --content-max: none;
         --base-font: 14px;
       }
       @supports (height: 100svh) {
@@ -11479,12 +11479,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       .site-title { white-space: nowrap; font-size: 14px; }
       @media (min-width: 768px) { .site-title { font-size: 16px; } }
       @media (max-width: 479px) { .site-title { white-space: normal; font-size: 13px; } }
-      @media (min-width: 900px)  { :root { --content-pad: 32px; --content-max: 900px; } }
-      @media (min-width: 1200px) { :root { --content-max: 1000px; } }
-      @media (min-width: 1600px) { :root { --content-max: 1080px; } }
-      @media (min-width: 2000px) { :root { --content-max: 1200px; --base-font: 17px; } html { font-size: 18px; } }
-      @media (min-width: 2560px) { :root { --content-max: 1320px; --base-font: 18px; } html { font-size: 20px; } }
-      .main-content { max-width: var(--content-max); margin: 0 auto; padding: var(--content-pad) 16px; }
+      @media (min-width: 900px)  { :root { --content-pad: 24px; } }
+      @media (min-width: 1200px) { :root { --content-pad: 28px; } }
+      @media (min-width: 1600px) { :root { --content-pad: 32px; } }
+      @media (min-width: 2000px) { :root { --base-font: 17px; } html { font-size: 18px; } }
+      @media (min-width: 2560px) { :root { --base-font: 18px; } html { font-size: 20px; } }
+      .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
       /* Tablet and notebook font scaling */
       @media (min-width: 768px) {
@@ -11693,14 +11693,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 border/shadow live in .lux-search so :focus-within can light the ring. */}
             <div className="lux-search lux-rise" style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", borderRadius:14, padding:16, marginBottom:12 }}>
               <span id="search-hint" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>
-                Type a job title such as Nurse, Financial Analyst or Software Engineer to see AI impact on role skills
+                Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture postings.
               </span>
+              <div style={{ marginBottom:12 }}>
+                <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize:24, fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
+                  Understand a Singapore job before you apply
+                </h2>
+                <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.55 }}>
+                  Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture postings.
+                </p>
+              </div>
 
               {/* v3.2: mode toggle - analyse a role (ESCO) vs browse live SG job postings */}
               <div style={{ display:"flex", gap:6, marginBottom:10 }}>
                 {[
-                  { k:"role", label:"🔎 Analyse a role", sub:"ESCO essential skills" },
-                  { k:"jobs", label:"🇸🇬 Browse SG jobs", sub:"live MyCareersFuture postings" },
+                  { k:"role", label:"🔎 Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
+                  { k:"jobs", label:"🇸🇬 Browse SG jobs", source:"Source: MyCareersFuture postings", desc:"Explore current Singapore openings and compare what employers are asking for." },
                 ].map(m => (
                   <div key={m.k}
                     style={{ flex:1, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
@@ -11710,7 +11718,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
                       style={{ textAlign:"left", padding: "8px 12px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
-                      <span style={{ display:"block", fontSize:10, color:C.muted }}>{m.sub}</span>
+                      {m.source && <span style={{ display:"block", marginTop:2, fontSize:11, fontWeight:700, color:C.textSub }}>{m.source}</span>}
+                      <span style={{ display:"block", marginTop:2, fontSize:11, color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
                     </button>
                     {m.k === "jobs" && (
                       <label title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
@@ -11725,15 +11734,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 ))}
               </div>
 
+              <label htmlFor="job-title-search" style={{ display:"block", margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.text }}>
+                Job title or role
+              </label>
               <div style={{ display:"flex", gap:8 }}>
                 <input type="search" id="job-title-search" name="job-title" autoComplete="off" className="lux-focus"
-                  aria-label={searchMode==="jobs" ? "Enter a job title to browse postings" : "Enter a job title to search"} aria-describedby="search-hint"
+                  aria-label="Job title or role" aria-describedby="search-hint"
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
-                  placeholder={searchMode==="jobs" ? 'Job title to browse live SG postings...' : 'Enter a job title to begin...'}
+                  placeholder="e.g. Data Analyst, Operations Manager, HR Executive"
                   style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, fontFamily:"inherit" }} autoFocus />
-                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG job postings" : "Search for job title"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
-                  <span>{searchMode==="jobs" ? "Browse" : "Search"}</span>
+                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
+                  <span>{searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize:15, lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
@@ -11963,6 +11975,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <ExplainAnalysis title={sel?.title || ""} tabs={tabs} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
               </div>
           );
+          const navBlocksGraph = uiV2 && activeTab === "rolegraph";
           return (
             <div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
@@ -12130,9 +12143,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               )}
               {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
                   (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
-              <div style={uiV2 && uiWide ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
+              <div style={uiV2 && uiWide && !navBlocksGraph ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
                 {uiV2 && (
-                  <div style={uiWide ? { position:"sticky", top:12 } : { marginBottom:14 }}>
+                  <div style={uiWide && !navBlocksGraph ? { position:"sticky", top:12 } : { marginBottom:14 }}>
                     {uiNavBox}
                   </div>
                 )}
