@@ -5934,7 +5934,10 @@ const _PILLAR_MAP = {
   // PL5: "understand-s1" renders first (why-the-org-wants-this-role: ForensicReversal +
   // Role Context department read + SYSTEM_WHY_ROLE narration). "rolegraph" is section 2.
   "understand":   ["understand-s1", "rolegraph", "responsibilities", "jobanatomy", "rolemix"],
-  "position":     ["progression", "crossover", "context", "compare", "mcf_jobs"],
+  // PL6: "position-market" renders after context; holds the four market/employer reads
+  // (DemandProof, AdLanguageScan, EmployerReality, CompanyBackground) pulled from deepread.
+  // compare + mcf_jobs follow as position utility.
+  "position":     ["progression", "crossover", "context", "position-market", "compare", "mcf_jobs"],
   "become":       ["deepread"],
   "ai-readiness": ["skills", "category"],
   "arm":          ["taskprep", "foundation"],
@@ -10771,21 +10774,33 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         </div>
       );
     }
+    if (key === "position-market") {
+      // PL6: market/employer reads pulled from deepread and placed under Position.
+      // "Where the role sits in the market" includes is-the-demand-real and is-the-employer-real.
+      // Each component self-guards (returns null) when MCF data is absent.
+      if (!result.responsibilitiesData) return null;
+      return (
+        <div key="position-market">
+          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Market and employer reads - is the demand real, is the ad fair, and is the employer what it seems? Each panel opens on tap; each carries its own source badge.</p>
+          <DemandProof result={result} />
+          <AdLanguageScan result={result} />
+          <EmployerReality result={result} />
+          <CompanyBackground result={result} />
+        </div>
+      );
+    }
     if (key === "deepread") {
       if (!(result.responsibilitiesData || result.jobAnatomy)) return null;
       return (
         <div key="deepread">
           {/* PL5: ForensicReversal moved to Understand section 1 (understand-s1). */}
+          {/* PL6: DemandProof/AdLanguageScan/EmployerReality/CompanyBackground moved to Position (position-market). */}
           {/* Stewardship reads stay here under Become. */}
-          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The stewardship reads of this role - who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
+          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The stewardship reads of this role - who it is hired to be, and what the craft demands. Each panel opens on tap; each carries its own source badge.</p>
           <StrategyRead result={result} title={sel?.title || ""} />
           <BdfStewardship result={result} title={sel?.title || ""} />
           <StewardshipShift result={result} />
           <StewardsPraxis result={result} title={sel?.title || ""} />
-          <DemandProof result={result} />
-          <AdLanguageScan result={result} />
-          <EmployerReality result={result} />
-          <CompanyBackground result={result} />
         </div>
       );
     }
