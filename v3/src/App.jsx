@@ -11662,7 +11662,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       /* Upgrade the existing LUX chrome to the soft-UI language */
       .lux-lift:hover { box-shadow: var(--neo-raise-lg) !important; }
       .lux-search { background: var(--neo-base) !important; border: none !important; box-shadow: var(--neo-inset) !important; }
-      .lux-search:focus-within { box-shadow: var(--neo-inset), 0 0 0 3px rgba(26, 86, 219, 0.18) !important; }
+      /* keep the inset well, but the keyboard focus halo must stay clearly
+         visible on the darker --neo-base (>=3:1) - solid-strength blue ring */
+      .lux-search:focus-within { box-shadow: var(--neo-inset), 0 0 0 3px rgba(26, 86, 219, 0.85) !important; }
       .lux-cta { box-shadow: var(--neo-raise-sm) !important; }
       .lux-cta:hover { box-shadow: var(--neo-raise-lg) !important; filter: saturate(1.04); }
       .lux-cta:active { box-shadow: var(--neo-inset) !important; transform: translateY(1px); }
