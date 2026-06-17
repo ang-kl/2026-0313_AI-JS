@@ -763,15 +763,30 @@
 // beacon -> connect-src 'self' already allows it, no CSP change. No LLM, no number.
 // SETUP REQUIRED: add ALERT_WEBHOOK_URL (your Slack/Discord webhook) in the v3 Vercel project.
 // G1 (v3.0.75 -> v3.0.76).
+// v3.0.77 - 2026-06-17 - HDR #115 - NEO + MCF RECENCY (Human Lead directives "change the v3 UI
+// to be more neo-skeuomorphism" and "i keep getting similar MCF ads each day ... sort by latest
+// ... categorize into two buckets - new and last search"). Two parts, both presentational /
+// behaviour only - no engine, prompt, or Prov-chip surface touched. (1) NEO: a soft-UI skin -
+// base bg -> #e6ebf2 (the neutral canvas surfaces extrude from), neutral border softened, a NEO
+// token set (raise/raiseSm/inset dual shadows), the shared card() helpers + a .main-content-scoped
+// retrofit turn the standard white card signature into extruded soft surfaces, and the LUX chrome
+// (search/CTA/lift) becomes inset/raised. Text stays dark, semantic chips stay coloured, the
+// keyboard focus halo was restored to >=3:1 on the new base (a11y review FAIL -> fixed). (2) MCF
+// RECENCY: the MyCareersFuture panel now sorts postings newest-posted first (verbatim postedDate)
+// and splits them into NEW vs SEEN-BEFORE against a device-local, best-effort memory (localStorage
+// mcfSeen.v1, bounded + pruned). "New" is keyed on the first-seen DAY so reloads don't flip it; the
+// Seen-before bucket is ordered by when each ad first entered your searches. Clearly labelled as
+// your own on-device history, NOT an MCF fact, so it carries no "from MCF" provenance. No LLM, no
+// number. G1 (v3.0.76 -> v3.0.77).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
 
 const C = {
-  bg:         "#f5f7fa",
+  bg:         "#e6ebf2",
   surface:    "#ffffff",
-  border:     "#dde3ec",
+  border:     "#e3e9f1",
   accent:     "#1a56db",
   accentSoft: "#e8f0fe",
   eu:         "#003399",
@@ -792,6 +807,17 @@ const C = {
   amber:      "#b45309",
   amberBg:    "#fffbeb",
   amberBdr:   "#fcd9a0",
+};
+
+// NEO (neo-skeuomorphic / soft-UI): monochrome extruded soft-shadow tokens.
+// Skin only - text stays dark and semantic chips stay coloured, so the §7
+// contrast / no-red-green / honesty contract is untouched. The dual shadow
+// (cool dark bottom-right + light top-left) extrudes a surface from the
+// matching neutral base C.bg; the inset variant sinks inputs/pressed states.
+const NEO = {
+  raise:   "6px 6px 14px rgba(174,189,212,0.55), -6px -6px 13px rgba(255,255,255,0.9)",
+  raiseSm: "4px 4px 9px rgba(174,189,212,0.5), -4px -4px 9px rgba(255,255,255,0.9)",
+  inset:   "inset 3px 3px 7px rgba(174,189,212,0.5), inset -3px -3px 7px rgba(255,255,255,0.85)",
 };
 
 async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
@@ -8852,7 +8878,7 @@ function RoleGraphPanel({ result, title }) {
     ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); logStep("cv_ingress", "ok", _msSince(_tCv), `fit=${r.fit ? r.fit.fitScore : 0} ${r.fit ? r.fit.band : "?"}`); }).catch((e) => { logStep("cv_ingress", "error", _msSince(_tCv), e && e.message); setCv({ status: "error" }); });
   };
 
-  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
   const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
@@ -9341,7 +9367,7 @@ function ResumeCheckPanel({ result, title }) {
 
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
-  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const tierChips = (tier, label) => {
     if (!tier || !tier.total) return null;
     return (
@@ -9996,7 +10022,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
 
 // v3.1: a single live-job card, with an expandable "responsibilities & skills"
 // section sourced from the scraped posting text.
-function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting, canQueue }) {
+function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue }) {
   const [open, setOpen] = useState(false);
   const detail = (job.responsibilitiesText || job.description || "").trim();
   const hasSkills = Array.isArray(job.skills) && job.skills.length > 0;
@@ -10014,6 +10040,13 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
           <span style={{ fontSize: 13, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
         )}
       </div>
+      {seen && (
+        seen.isNew ? (
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>✦ New since you last looked</span>
+        ) : (
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>↩ Seen before{fmtSeenDate && seen.firstSeen ? ` · since ${fmtSeenDate(seen.firstSeen)}` : ""}</span>
+        )
+      )}
       {job.employer && (
         <p style={{ margin: "0 0 6px", fontSize: 14, color: C.textSub }}>{job.employer}</p>
       )}
@@ -10135,22 +10168,91 @@ function clusterPostingsBySkills(jobs) {
   return out.length >= 2 ? out : [];
 }
 
+// ── MCF "seen before" memory ──────────────────────────────────────────────
+// Device-local recall of which postings a given title has surfaced before, so
+// the panel can split today's results into genuinely NEW ads vs ones already
+// seen on an earlier day (the "i keep getting the same ads each day" problem).
+// localStorage ONLY - this is the visitor's own browsing history, never an MCF
+// fact, so it carries no "from MCF" provenance. Robust to same-day reloads:
+// "new" is keyed on the first-seen DAY, not on each page load, so refreshing
+// the page does not flip today's new ads into "seen".
+const MCF_SEEN_KEY = "mcfSeen.v1";
+const MCF_SEEN_MAX_PER_TITLE = 400;      // bound storage; prune oldest by lastSeen
+const MCF_SEEN_MAX_TITLES = 60;          // bound number of remembered titles
+const seenDayKey = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toISOString().slice(0, 10); };
+const seenTitleKey = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ").slice(0, 80);
+
+function _loadSeenAll() {
+  try { return JSON.parse(localStorage.getItem(MCF_SEEN_KEY) || "{}") || {}; }
+  catch (_) { return {}; }
+}
+function _saveSeenAll(all) {
+  try { localStorage.setItem(MCF_SEEN_KEY, JSON.stringify(all)); } catch (_) {}
+}
+
+// Classify the current postings against this title's history, then record this
+// sighting. Returns { info: { [uuid]: { firstSeen, lastSeen, isNew } }, newCount,
+// seenCount }. Best-effort: any storage failure degrades to "all new" and never
+// blocks the panel.
+function recordAndClassifySeen(title, jobs) {
+  const info = {};
+  let newCount = 0, seenCount = 0;
+  const key = seenTitleKey(title);
+  if (!key || !Array.isArray(jobs) || !jobs.length) return { info, newCount, seenCount };
+  try {
+    const all = _loadSeenAll();
+    let store = all[key] || {};
+    const now = Date.now();
+    const today = seenDayKey(now);
+    for (const j of jobs) {
+      const uuid = j && j.uuid;
+      if (!uuid) continue;
+      const prev = store[uuid];
+      const firstSeen = (prev && prev.f) ? prev.f : now;
+      const isNew = seenDayKey(firstSeen) === today;   // first surfaced today => NEW
+      store[uuid] = { f: firstSeen, l: now };
+      info[uuid] = { firstSeen, lastSeen: now, isNew };
+      if (isNew) newCount++; else seenCount++;
+    }
+    // prune this title's memory to the most-recently-seen MCF_SEEN_MAX_PER_TITLE
+    const entries = Object.entries(store);
+    if (entries.length > MCF_SEEN_MAX_PER_TITLE) {
+      entries.sort((a, b) => (b[1].l || 0) - (a[1].l || 0));
+      store = Object.fromEntries(entries.slice(0, MCF_SEEN_MAX_PER_TITLE));
+    }
+    all[key] = store;
+    // prune the number of remembered titles (drop the least-recently-touched)
+    const titleKeys = Object.keys(all);
+    if (titleKeys.length > MCF_SEEN_MAX_TITLES) {
+      const lastTouch = (k) => Object.values(all[k]).reduce((m, v) => Math.max(m, v.l || 0), 0);
+      titleKeys.sort((a, b) => lastTouch(b) - lastTouch(a)).slice(MCF_SEEN_MAX_TITLES).forEach(k => { delete all[k]; });
+    }
+    _saveSeenAll(all);
+  } catch (_) { /* memory is best-effort; never block the panel */ }
+  return { info, newCount, seenCount };
+}
+
+// Latest-first by verbatim MCF postedDate; undated postings sink to the bottom.
+const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - (Date.parse((a && a.postedDate) || "") || 0);
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
-  const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
+  const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
   const PER_PAGE = 10;
-  useEffect(() => { setPage(0); }, [freshGrad]); // reset paging when the fresh-grad filter toggles
+  useEffect(() => { setPage(0); }, [freshGrad, recencyFilter]); // reset paging when a filter toggles
 
   useEffect(() => {
     let cancelled = false;
     setState(s => ({ ...s, loading: true, error: null }));
     setPage(0);
     setSectorFilter(null);
+    setRecencyFilter(null);
     (async () => {
       try {
         const res = await fetch("/api/mcf", {
@@ -10166,9 +10268,16 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         });
         const data = await res.json();
         if (cancelled) return;
+        // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
+        // this title's device-local history (and record this sighting).
+        const sortedJobs = (Array.isArray(data.jobs) ? data.jobs : []).slice().sort(byLatestPosted);
+        const seen = recordAndClassifySeen(sel?.title || "", sortedJobs);
         setState({
           loading: false,
-          jobs: Array.isArray(data.jobs) ? data.jobs : [],
+          jobs: sortedJobs,
+          seenInfo: seen.info,
+          newCount: seen.newCount,
+          seenCount: seen.seenCount,
           tier: data.tier || 0,
           message: data.message || "",
           approximate: !!data.approximate,
@@ -10179,7 +10288,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         track("v3_mcf_loaded", { tier: data.tier || 0, count: (data.jobs || []).length, fallback: !!data.fallback });
       } catch (err) {
         if (cancelled) return;
-        setState({ loading: false, jobs: [], tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+        setState({ loading: false, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
         track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
       }
     })();
@@ -10240,10 +10349,25 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   // fresh-grad scout: only EXPLICIT entry/junior roles - an unstated experience bar is NOT claimed to be < 4
   const isFresh = j => j.minimumYearsExperience != null && j.minimumYearsExperience < 4;
   const baseJobs = (activeArch ? activeArch.jobs : state.jobs).filter(j => !freshGrad || isFresh(j));
-  const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
+  // NEW vs SEEN-BEFORE split (device-local memory). Counts reflect the current
+  // archetype + fresh-grad filter so the chips match what filtering will show.
+  const seenInfo = state.seenInfo || {};
+  const isNewJob = j => { const s = seenInfo[j.uuid]; return s ? s.isNew : true; };
+  const newInView = baseJobs.filter(isNewJob).length;
+  const seenInView = baseJobs.length - newInView;
+  const hasSeenHistory = seenInView > 0; // only offer the split once a title has prior sightings
+  // Apply the recency bucket. The SEEN-BEFORE bucket is sorted by when each ad
+  // first entered your searches (most-recent first); NEW stays latest-posted.
+  const viewJobs =
+    recencyFilter === "new"  ? baseJobs.filter(isNewJob) :
+    recencyFilter === "seen" ? baseJobs.filter(j => !isNewJob(j)).slice()
+                                 .sort((a, b) => (seenInfo[b.uuid]?.firstSeen || 0) - (seenInfo[a.uuid]?.firstSeen || 0)) :
+    baseJobs;
+  const totalPages = Math.max(1, Math.ceil(viewJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+  const pageJobs = viewJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
   const canQueue = (queueCount || 0) < 3;
+  const fmtSeenDate = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short" }); };
 
   return (
     <div>
@@ -10303,9 +10427,36 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
               </div>
             </div>
           )}
+          {hasSeenHistory && (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                {newInView} new since you last looked · {seenInView} from a previous search — tap to filter
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {[
+                  { k: null,   label: `All (${baseJobs.length})` },
+                  { k: "new",  label: `✦ New (${newInView})` },
+                  { k: "seen", label: `↩ Seen before (${seenInView})` },
+                ].map(opt => {
+                  const on = recencyFilter === opt.k;
+                  return (
+                    <button key={opt.label} onClick={() => { setRecencyFilter(opt.k); setPage(0); }}
+                      style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
+                        border: `2px solid ${on ? "#0e7490" : C.border}`, background: on ? "#0e7490" : C.surface, color: on ? "#fff" : C.textSub }}>
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ margin: "7px 0 0", fontSize: 10, color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>
+                “New” vs “Seen before” is remembered on this device only — your own search history for this title, not data from MyCareersFuture. Postings are sorted newest-posted first; the “Seen before” list is ordered by when each ad first showed up in your searches.
+              </p>
+            </div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${baseJobs.length}${state.capped && !freshGrad ? "+" : ""} posting${baseJobs.length === 1 ? "" : "s"}`}
+              {activeArch ? `${viewJobs.length} in “${activeArch.name}”` : `${viewJobs.length}${state.capped && !freshGrad && !recencyFilter ? "+" : ""} posting${viewJobs.length === 1 ? "" : "s"}`}
+              {recencyFilter === "new" ? " · new only" : recencyFilter === "seen" ? " · seen before" : ""}
               {freshGrad ? ` · fresh-grad filter (< 4 yrs exp)` : ""}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
@@ -10324,6 +10475,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
               <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                seen={state.seenCount > 0 ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
                 onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
             ))}
           </div>
@@ -11612,6 +11764,53 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         .lux-clip::after { transition: none !important; }
         .lux-uline::after, .tab-label::after, .lux-arrow, .lux-cta::before { transition: none !important; }
         .lux-cta:active { transform: none !important; }
+      }
+
+      /* ── NEO: neo-skeuomorphic (soft-UI) skin ─────────────────────────────
+         Monochrome extruded shadows over a single neutral base (C.bg). Skin
+         only: no layout or semantic change. Text stays dark and the Prov /
+         status chips keep their colours, so the §7 contrast, no-red-green and
+         honesty-footer contract is untouched. All transitions degrade flat
+         under prefers-reduced-motion via the block above + the guard below. */
+      :root {
+        --neo-base: #e6ebf2;
+        --neo-dark: rgba(174, 189, 212, 0.55);
+        --neo-light: rgba(255, 255, 255, 0.9);
+        --neo-raise: 6px 6px 14px var(--neo-dark), -6px -6px 13px var(--neo-light);
+        --neo-raise-lg: 9px 9px 22px var(--neo-dark), -9px -9px 20px var(--neo-light);
+        --neo-raise-sm: 4px 4px 9px var(--neo-dark), -4px -4px 9px var(--neo-light);
+        --neo-inset: inset 3px 3px 7px var(--neo-dark), inset -3px -3px 7px var(--neo-light);
+      }
+      /* Retrofit the standard white card signature (C.surface + card radius)
+         across the whole result subtree into a soft extruded surface. The
+         compound selector requires BOTH the white background AND a card radius
+         so coloured chips and inputs are never matched. */
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 10px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 14px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 16px"] {
+        box-shadow: var(--neo-raise) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+      }
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 6px"] {
+        box-shadow: var(--neo-raise-sm) !important;
+        border-color: rgba(255, 255, 255, 0.55) !important;
+      }
+      /* Reusable neo primitives for components that opt in explicitly */
+      .neo-surface { background: #fff; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: var(--neo-raise); }
+      .neo-inset { box-shadow: var(--neo-inset) !important; border-color: transparent !important; }
+      .neo-press { transition: box-shadow 0.16s ease, transform 0.12s ease; }
+      .neo-press:active { box-shadow: var(--neo-inset) !important; transform: translateY(1px); }
+      /* Upgrade the existing LUX chrome to the soft-UI language */
+      .lux-lift:hover { box-shadow: var(--neo-raise-lg) !important; }
+      .lux-search { background: var(--neo-base) !important; border: none !important; box-shadow: var(--neo-inset) !important; }
+      /* keep the inset well, but the keyboard focus halo must stay clearly
+         visible on the darker --neo-base (>=3:1) - solid-strength blue ring */
+      .lux-search:focus-within { box-shadow: var(--neo-inset), 0 0 0 3px rgba(26, 86, 219, 0.85) !important; }
+      .lux-cta { box-shadow: var(--neo-raise-sm) !important; }
+      .lux-cta:hover { box-shadow: var(--neo-raise-lg) !important; filter: saturate(1.04); }
+      .lux-cta:active { box-shadow: var(--neo-inset) !important; transform: translateY(1px); }
+      @media (prefers-reduced-motion: reduce) {
+        .neo-press, .neo-press:active { transition: none !important; transform: none !important; }
       }
     `}</style>
     <div data-author="Adrian K. L. Ang" data-origin="takearoundabout.com" data-build="v5-2026"
