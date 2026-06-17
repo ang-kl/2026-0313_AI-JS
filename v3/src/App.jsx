@@ -9696,6 +9696,7 @@ export default function App() {
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
   const [activePillar, setActivePillar] = useState("understand"); // PL3: five-pillar nav; default = first pillar
+  const [activeNavSection, setActiveNavSection] = useState(null); // PL-NAV: last child section clicked in the nav tree
   const [adDrawerOpen, setAdDrawerOpen] = useState(false); // floating job-ad drawer (UI: ads float, not embed)
   const [segmentPanelOpen, setSegmentPanelOpen] = useState(true); // v1.5.5: collapsible automation panel
   const [jumpToSkill, setJumpToSkill] = useState(null); // v1.5.5: skill name to jump to and pre-expand
@@ -10731,6 +10732,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
   // pillar-section render (renderSection guards on data presence instead).
   function handlePillarSelect(key) {
     setActivePillar(key);
+    setActiveNavSection(null); // PL-NAV: clear section focus when pillar-level nav fires
     setSegmentPanelOpen(false);
     track("pillar_viewed", { pillar: key });
   }
@@ -10976,6 +10978,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
   // PL4: renderPillarView - renders the lead-question header then each section for the
   // active pillar, stacked vertically. Sections whose data is absent render nothing (guarded
   // inside renderSection). Lead question is a real heading (a11y: PL10/section-7).
+  // PL-NAV: each section is wrapped in a stable id div (id="sec-<key>") so the nav tree
+  // child click can scrollIntoView the target. Empty wrappers are suppressed (null guard).
   function renderPillarView() {
     const keys = _PILLAR_MAP[activePillar] || [];
     const question = _PILLAR_QUESTION[activePillar] || "";
@@ -10986,7 +10990,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             {question}
           </h2>
         )}
-        {keys.map(k => renderSection(k))}
+        {keys.map(k => {
+          const sec = renderSection(k);
+          if (!sec) return null;
+          return <div key={k} id={"sec-" + k}>{sec}</div>;
+        })}
       </div>
     );
   }
@@ -11497,46 +11505,126 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           // longer renders these components; they render only under their respective pillars.
           // UI2: the Navigation box is a const so the ?ui=2 rail layout and the default layout
           // assemble the SAME nodes - no drift.
+          // PL-NAV: build a key->label lookup from buildTabs (source of truth) +
+          // synthetic section keys not in buildTabs. Labels stay in sync because
+          // this lookup is derived from the same tabs array used by buildTabs.
+          const navLabels = new Map(tabs.map(t => [t.key, t.label]));
+          navLabels.set("understand-s1",  "Why this role exists");
+          navLabels.set("understand-also", "Same job, other names");
+          navLabels.set("position-market", "Market & employer reality");
+          navLabels.set("ai-hero",         "AI-Exposure overview");
+
+          // PL-NAV: data-presence guard for all keys in _PILLAR_MAP.
+          // Regular buildTabs keys: check the tabs Set (buildTabs already applied all guards).
+          // Synthetic keys: explicit data checks mirroring renderSection guards.
+          const tabKeySet = new Set(tabs.map(t => t.key));
+          const syntheticPresent = {
+            "understand-s1":  !!(result.responsibilitiesData || result.contextData),
+            "understand-also": true,
+            "position-market": !!result.responsibilitiesData,
+            "ai-hero":         true,
+          };
+          function navKeyPresent(k) {
+            if (Object.prototype.hasOwnProperty.call(syntheticPresent, k)) return syntheticPresent[k];
+            return tabKeySet.has(k);
+          }
+
+          // PL-NAV: child click handler (R006: named function, not a multi-line arrow in a
+          // JSX prop). Sets activePillar to the child's owner pillar, marks the active section,
+          // and scrolls the section wrapper into view via its stable id ("sec-<key>").
+          function handleNavChildClick(pillarKey, sectionKey) {
+            handlePillarSelect(pillarKey);
+            setActiveNavSection(sectionKey);
+            setTimeout(() => {
+              document.getElementById("sec-" + sectionKey)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 80);
+          }
+
           const uiNavBox = (
-              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface }}>
-                <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
+              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface, boxShadow:NEO.raiseSm }}>
+                <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
-                {/* JourneySpine removed (PL3) - superseded by PillarBar in the header region */}
-                <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
-                  Tap a section to explore the results:
-                </p>
-                {tabs.some(t => t.key === "deepread") && (
-                  <p style={{ margin:"0 0 8px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>
-                    <span aria-hidden="true">🔬</span> <strong>Deep Read</strong> holds the stewardship reads - why this role exists, what stays human vs what to hand to AI, and whether the market and employer are what they seem.
-                  </p>
-                )}
-                <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-                  {tabs.map(t => {
-                    const readyCount = comparisons.filter(c => c.result && c.result.skills).length;
-                    const compareDisabled = t.key === "compare" && readyCount < 2;
-                    // grey off (pause) - the state is carried by the "(paused)" text + aria-disabled,
-                    // never colour alone (a11y contract).
-                    const disabled = compareDisabled || !!t.paused;
-                    const label = t.key === "compare"
-                      ? (readyCount >= 2 ? `Compare (${readyCount})` : "Compare")
-                      : t.paused ? `${t.label} (paused)` : t.label;
-                    // PL4: find which pillar owns this tab key and navigate there on click.
-                    const ownerPillar = Object.keys(_PILLAR_MAP).find(pk => _PILLAR_MAP[pk].includes(t.key)) || "understand";
-                    const isActivePillarTab = _PILLAR_MAP[activePillar] && _PILLAR_MAP[activePillar].includes(t.key);
+                {/* PL-NAV: pillar-grouped tree - driven from _PILLARS + _PILLAR_MAP.
+                    Each parent = pillar number + name; children = sections under that pillar.
+                    Active pillar branch is expanded; others collapsed.
+                    State encoded by shape (number badge) + label + text ("- active"), NOT colour alone. */}
+                <div role="tree" aria-label="Section navigation">
+                  {_PILLARS.map(p => {
+                    const isActive = activePillar === p.key;
+                    const sectionKeys = (_PILLAR_MAP[p.key] || []).filter(k => navKeyPresent(k));
                     return (
-                    <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
-                      onClick={() => { if (!disabled) { handlePillarSelect(ownerPillar); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
-                      title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
-                      style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px", borderRadius: 16, fontSize:12, fontWeight:600,
-                        cursor: disabled ? "not-allowed" : "pointer",
-                        border:`2px solid ${isActivePillarTab ? t.color : C.border}`,
-                        background: disabled ? C.bg : isActivePillarTab ? t.color : C.surface,
-                        color: disabled ? C.mutedLight : isActivePillarTab ? "#fff" : C.textSub,
-                        opacity: disabled ? 0.55 : 1,
-                        transition:"all 0.15s", whiteSpace:"nowrap" }}>
-                      {label}
-                    </button>
+                      <div key={p.key} role="treeitem" aria-expanded={isActive}>
+                        {/* Pillar parent row */}
+                        <button
+                          aria-current={isActive ? "page" : undefined}
+                          onClick={() => handlePillarSelect(p.key)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 7,
+                            width: "100%", minHeight: 44,
+                            padding: "8px 10px", marginBottom: 2,
+                            borderRadius: 8, cursor: "pointer",
+                            border: `2px solid ${isActive ? C.accent : C.border}`,
+                            background: isActive ? C.accentSoft : C.surface,
+                            boxShadow: isActive ? NEO.inset : NEO.raiseSm,
+                            color: isActive ? C.accent : C.textSub,
+                            fontWeight: isActive ? 700 : 600,
+                            fontSize: 13, textAlign: "left",
+                            outline: "none", transition: "all 0.15s",
+                          }}
+                          onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
+                          onBlur={e => { e.currentTarget.style.boxShadow = isActive ? NEO.inset : NEO.raiseSm; }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{
+                              flexShrink: 0, width: 20, height: 20, borderRadius: "50%",
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              fontSize: 10, fontWeight: 800,
+                              background: isActive ? C.accent : "#e3e9f1",
+                              color: isActive ? "#fff" : C.muted,
+                            }}
+                          >{p.n}</span>
+                          <span style={{ flex: 1 }}>{p.name}</span>
+                          {isActive && <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>- active</span>}
+                          <span aria-hidden="true" style={{ fontSize: 11, color: C.mutedLight, transform: isActive ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>&#9660;</span>
+                        </button>
+                        {/* Child section rows - visible only when this pillar is active */}
+                        {isActive && sectionKeys.length > 0 && (
+                          <div role="group" style={{ paddingLeft: 14, marginBottom: 6 }}>
+                            {sectionKeys.map(k => {
+                              const lbl = navLabels.get(k) || k;
+                              const isActiveChild = activeNavSection === k;
+                              return (
+                                <button
+                                  key={k}
+                                  role="treeitem"
+                                  aria-current={isActiveChild ? "true" : undefined}
+                                  onClick={() => handleNavChildClick(p.key, k)}
+                                  style={{
+                                    display: "flex", alignItems: "center", gap: 6,
+                                    width: "100%", minHeight: 44,
+                                    padding: "7px 10px", marginBottom: 2,
+                                    borderRadius: 6, cursor: "pointer",
+                                    border: `1.5px solid ${isActiveChild ? C.accent : C.border}`,
+                                    background: isActiveChild ? C.accentSoft : "transparent",
+                                    color: isActiveChild ? C.accent : C.textSub,
+                                    fontWeight: isActiveChild ? 700 : 500,
+                                    fontSize: 12, textAlign: "left",
+                                    outline: "none", transition: "all 0.12s",
+                                  }}
+                                  onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
+                                  onBlur={e => { e.currentTarget.style.boxShadow = "none"; }}
+                                >
+                                  {isActiveChild && <span aria-hidden="true" style={{ flexShrink: 0, width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />}
+                                  <span>{lbl}</span>
+                                  {isActiveChild && <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>- here</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
