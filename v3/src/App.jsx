@@ -769,9 +769,9 @@ import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react"
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
 
 const C = {
-  bg:         "#f5f7fa",
+  bg:         "#e6ebf2",
   surface:    "#ffffff",
-  border:     "#dde3ec",
+  border:     "#e3e9f1",
   accent:     "#1a56db",
   accentSoft: "#e8f0fe",
   eu:         "#003399",
@@ -792,6 +792,17 @@ const C = {
   amber:      "#b45309",
   amberBg:    "#fffbeb",
   amberBdr:   "#fcd9a0",
+};
+
+// NEO (neo-skeuomorphic / soft-UI): monochrome extruded soft-shadow tokens.
+// Skin only - text stays dark and semantic chips stay coloured, so the §7
+// contrast / no-red-green / honesty contract is untouched. The dual shadow
+// (cool dark bottom-right + light top-left) extrudes a surface from the
+// matching neutral base C.bg; the inset variant sinks inputs/pressed states.
+const NEO = {
+  raise:   "6px 6px 14px rgba(174,189,212,0.55), -6px -6px 13px rgba(255,255,255,0.9)",
+  raiseSm: "4px 4px 9px rgba(174,189,212,0.5), -4px -4px 9px rgba(255,255,255,0.9)",
+  inset:   "inset 3px 3px 7px rgba(174,189,212,0.5), inset -3px -3px 7px rgba(255,255,255,0.85)",
 };
 
 async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
@@ -8852,7 +8863,7 @@ function RoleGraphPanel({ result, title }) {
     ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); logStep("cv_ingress", "ok", _msSince(_tCv), `fit=${r.fit ? r.fit.fitScore : 0} ${r.fit ? r.fit.band : "?"}`); }).catch((e) => { logStep("cv_ingress", "error", _msSince(_tCv), e && e.message); setCv({ status: "error" }); });
   };
 
-  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
   const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
@@ -9341,7 +9352,7 @@ function ResumeCheckPanel({ result, title }) {
 
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
-  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 14, ...(extra || {}) }}>{children}</div>;
+  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const tierChips = (tier, label) => {
     if (!tier || !tier.total) return null;
     return (
@@ -11612,6 +11623,51 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         .lux-clip::after { transition: none !important; }
         .lux-uline::after, .tab-label::after, .lux-arrow, .lux-cta::before { transition: none !important; }
         .lux-cta:active { transform: none !important; }
+      }
+
+      /* ── NEO: neo-skeuomorphic (soft-UI) skin ─────────────────────────────
+         Monochrome extruded shadows over a single neutral base (C.bg). Skin
+         only: no layout or semantic change. Text stays dark and the Prov /
+         status chips keep their colours, so the §7 contrast, no-red-green and
+         honesty-footer contract is untouched. All transitions degrade flat
+         under prefers-reduced-motion via the block above + the guard below. */
+      :root {
+        --neo-base: #e6ebf2;
+        --neo-dark: rgba(174, 189, 212, 0.55);
+        --neo-light: rgba(255, 255, 255, 0.9);
+        --neo-raise: 6px 6px 14px var(--neo-dark), -6px -6px 13px var(--neo-light);
+        --neo-raise-lg: 9px 9px 22px var(--neo-dark), -9px -9px 20px var(--neo-light);
+        --neo-raise-sm: 4px 4px 9px var(--neo-dark), -4px -4px 9px var(--neo-light);
+        --neo-inset: inset 3px 3px 7px var(--neo-dark), inset -3px -3px 7px var(--neo-light);
+      }
+      /* Retrofit the standard white card signature (C.surface + card radius)
+         across the whole result subtree into a soft extruded surface. The
+         compound selector requires BOTH the white background AND a card radius
+         so coloured chips and inputs are never matched. */
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 10px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 14px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 16px"] {
+        box-shadow: var(--neo-raise) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+      }
+      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 6px"] {
+        box-shadow: var(--neo-raise-sm) !important;
+        border-color: rgba(255, 255, 255, 0.55) !important;
+      }
+      /* Reusable neo primitives for components that opt in explicitly */
+      .neo-surface { background: #fff; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px; box-shadow: var(--neo-raise); }
+      .neo-inset { box-shadow: var(--neo-inset) !important; border-color: transparent !important; }
+      .neo-press { transition: box-shadow 0.16s ease, transform 0.12s ease; }
+      .neo-press:active { box-shadow: var(--neo-inset) !important; transform: translateY(1px); }
+      /* Upgrade the existing LUX chrome to the soft-UI language */
+      .lux-lift:hover { box-shadow: var(--neo-raise-lg) !important; }
+      .lux-search { background: var(--neo-base) !important; border: none !important; box-shadow: var(--neo-inset) !important; }
+      .lux-search:focus-within { box-shadow: var(--neo-inset), 0 0 0 3px rgba(26, 86, 219, 0.18) !important; }
+      .lux-cta { box-shadow: var(--neo-raise-sm) !important; }
+      .lux-cta:hover { box-shadow: var(--neo-raise-lg) !important; filter: saturate(1.04); }
+      .lux-cta:active { box-shadow: var(--neo-inset) !important; transform: translateY(1px); }
+      @media (prefers-reduced-motion: reduce) {
+        .neo-press, .neo-press:active { transition: none !important; transform: none !important; }
       }
     `}</style>
     <div data-author="Adrian K. L. Ang" data-origin="takearoundabout.com" data-build="v5-2026"
