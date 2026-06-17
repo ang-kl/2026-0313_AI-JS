@@ -3638,11 +3638,13 @@ function Spinner({ label, step, total, firstTime, skills }) {
         .ldx-shell{max-width:620px;margin:0 auto}
         .ldx-card{max-width:620px;margin-left:auto;margin-right:auto}
         .ldx-skills-grid{display:block}
+        @media (min-width:640px){.ldx-skills-grid{display:grid;grid-template-columns:repeat(2,1fr);column-gap:10px;align-items:start}}
         @media (min-width:860px){
           .ldx-shell{max-width:min(1180px,93vw)}
-          .ldx-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px;align-items:start}
           .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        }`}</style>
+        }
+        @media (min-width:1024px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
+        @media (min-width:1180px){.ldx-shell{max-width:min(1320px,94vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
       <div className="ldx-shell">
         <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
@@ -11266,7 +11268,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         --app-height: 100svh;
         --content-pad: 12px;
         --content-max: none;
-        --base-font: 14px;
+        --base-font: 15px;
       }
       @supports (height: 100svh) {
         :root { --app-height: 100svh; }
@@ -11284,34 +11286,34 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
       /* Tablet and notebook font scaling */
       @media (min-width: 768px) {
-        body { font-size: 15px; }
-        .t-body { font-size: 15px !important; }
-        .t-label { font-size: 13px !important; }
-        .t-meta { font-size: 12px !important; }
+        body { font-size: 16px; }
+        .t-body { font-size: 16px !important; }
+        .t-label { font-size: 14px !important; }
+        .t-meta { font-size: 13px !important; }
         .t-heading { font-size: 18px !important; }
-        .t-sub { font-size: 13px !important; }
+        .t-sub { font-size: 14px !important; }
       }
       @media (min-width: 1024px) {
-        body { font-size: 16px; }
-        .t-body { font-size: 16px !important; }
-        .t-label { font-size: 14px !important; }
-        .t-meta { font-size: 13px !important; }
+        body { font-size: 17px; }
+        .t-body { font-size: 17px !important; }
+        .t-label { font-size: 15px !important; }
+        .t-meta { font-size: 14px !important; }
         .t-heading { font-size: 20px !important; }
-        .t-sub { font-size: 14px !important; }
-        .result-text-sm { font-size: 13px !important; }
-        .result-text-xs { font-size: 12px !important; }
-        .result-label { font-size: 12px !important; }
+        .t-sub { font-size: 15px !important; }
+        .result-text-sm { font-size: 14px !important; }
+        .result-text-xs { font-size: 13px !important; }
+        .result-label { font-size: 13px !important; }
       }
       @media (min-width: 1280px) {
-        body { font-size: 16px; }
-        .t-body { font-size: 16px !important; }
-        .t-label { font-size: 14px !important; }
-        .t-meta { font-size: 13px !important; }
+        body { font-size: 17px; }
+        .t-body { font-size: 17px !important; }
+        .t-label { font-size: 15px !important; }
+        .t-meta { font-size: 14px !important; }
         .t-heading { font-size: 21px !important; }
-        .t-sub { font-size: 14px !important; }
-        .result-text-sm { font-size: 13px !important; }
-        .result-text-xs { font-size: 12px !important; }
-        .result-label { font-size: 12px !important; }
+        .t-sub { font-size: 15px !important; }
+        .result-text-sm { font-size: 14px !important; }
+        .result-text-xs { font-size: 13px !important; }
+        .result-label { font-size: 13px !important; }
       }
       /* Retina MacBook 1200-1440 CSS px: tab label lift */
       @media (min-width: 1200px) and (max-width: 1500px) {
@@ -11319,26 +11321,26 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
       /* 2K and 4K scaling - font-size on html cascades via rem */
       @media (min-width: 2000px) {
-        body { font-size: 18px; }
-        .t-body { font-size: 18px !important; }
-        .t-label { font-size: 15px !important; }
-        .t-meta { font-size: 14px !important; }
-        .t-heading { font-size: 24px !important; }
-        .t-sub { font-size: 16px !important; }
-        .result-text-sm { font-size: 15px !important; }
-        .result-text-xs { font-size: 13px !important; }
-        .result-label { font-size: 13px !important; }
-      }
-      @media (min-width: 2560px) {
-        body { font-size: 20px; }
-        .t-body { font-size: 20px !important; }
-        .t-label { font-size: 17px !important; }
+        body { font-size: 19px; }
+        .t-body { font-size: 19px !important; }
+        .t-label { font-size: 16px !important; }
         .t-meta { font-size: 15px !important; }
-        .t-heading { font-size: 28px !important; }
+        .t-heading { font-size: 24px !important; }
         .t-sub { font-size: 17px !important; }
         .result-text-sm { font-size: 16px !important; }
         .result-text-xs { font-size: 14px !important; }
         .result-label { font-size: 14px !important; }
+      }
+      @media (min-width: 2560px) {
+        body { font-size: 21px; }
+        .t-body { font-size: 21px !important; }
+        .t-label { font-size: 18px !important; }
+        .t-meta { font-size: 16px !important; }
+        .t-heading { font-size: 28px !important; }
+        .t-sub { font-size: 18px !important; }
+        .result-text-sm { font-size: 17px !important; }
+        .result-text-xs { font-size: 15px !important; }
+        .result-label { font-size: 15px !important; }
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
@@ -11546,7 +11548,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize:24, fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
                   Understand a Singapore job before you apply
                 </h2>
-                <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.55 }}>
+                <p style={{ margin:0, fontSize:14, color:C.textSub, lineHeight:1.55 }}>
                   Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture postings.
                 </p>
               </div>
