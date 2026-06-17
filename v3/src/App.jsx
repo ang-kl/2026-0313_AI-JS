@@ -745,6 +745,24 @@
 // persona "remove" control became keyboard-operable (role=button / tabIndex / Enter+Space /
 // aria-label). Pure presentation - no LLM, no number, frozen door untouched.
 // G1 (v3.0.74 -> v3.0.75).
+// v3.0.76 - 2026-06-14 - HDR #114 - ALERT: unify the outage notice + builder webhook alert
+// (Human Lead: "fresh 'taking a short pause' notice whenever Anthropic is unavailable, and
+// send a message to me via messaging/notification"). Two parts. (1) UNIFY: ErrBox no longer
+// shows a different message per failure class - capacity/credit, overload (429/529), server
+// (5xx), timeout, auth, and any unrecognised error now ALL fall through to ONE calm "taking a
+// short pause" notice, and the generic fallback no longer prints the raw provider string (this
+// closes the original "credit balance is too low" leak for good). Daily-cap (isBusy) and
+// user-input errors (no-match / invalid / too-long) stay distinct - they need different,
+// accurate guidance and are NOT outages. (2) ALERT: NEW api/alert.js (additive; api/claude.js
+// stays FROZEN) forwards a short message to an incoming webhook (Slack/Discord; carries both
+// `text` and `content`) so the builder is told when the service is down. claudeCall fires a
+// debounced (10-min), best-effort beacon to /api/alert ONLY after its retries are exhausted -
+// a genuine persistent outage, not a blip. No user/CV data is sent (error text + model tier +
+// path + timestamp only); /api/alert no-ops until ALERT_WEBHOOK_URL is set in the deploy env;
+// alerting can never affect the visitor (always 2xx, all failures swallowed). Same-origin
+// beacon -> connect-src 'self' already allows it, no CSP change. No LLM, no number.
+// SETUP REQUIRED: add ALERT_WEBHOOK_URL (your Slack/Discord webhook) in the v3 Vercel project.
+// G1 (v3.0.75 -> v3.0.76).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -824,8 +842,31 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     }
     const tier = model.includes("fable") ? "fable" : model.includes("opus") ? "opus" : model.includes("sonnet") ? "sonnet" : "haiku";
     track("api_error", { model: tier, maxTokens, attempt });
+    _alertOutage(err, tier); // builder-side webhook ping (debounced, best-effort, never throws)
     throw err;
   }
+}
+
+// ALERT (v3.0.76): fire a debounced, best-effort beacon to /api/alert so the BUILDER is told
+// when the AI service is unavailable (credit/capacity, overload, 5xx, timeout, auth). Only
+// reached after claudeCall has exhausted its retries, so it signals a genuine, persistent
+// outage - not a transient blip. Client-side 10-min debounce caps one ping per outage window
+// even when many calls fail at once. No user/CV data is sent - error text + model tier + path
+// only. /api/alert no-ops unless ALERT_WEBHOOK_URL is configured in the deploy env.
+let _lastOutageAlert = 0;
+function _alertOutage(err, tier) {
+  try {
+    const now = Date.now();
+    if (now - _lastOutageAlert < 10 * 60 * 1000) return;
+    _lastOutageAlert = now;
+    const detail = String((err && err.message) || "").slice(0, 300);
+    const payload = JSON.stringify({ tier: tier || "", detail, ts: new Date().toISOString(), path: (typeof location !== "undefined" ? location.pathname : "") });
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      navigator.sendBeacon("/api/alert", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/alert", { method: "POST", headers: { "content-type": "application/json" }, body: payload, keepalive: true }).catch(() => {});
+    }
+  } catch (_) { /* alerting must never affect the app */ }
 }
 
 
@@ -3745,24 +3786,11 @@ function ErrBox({ msg, query }) {
   const isInvalid  = msg && msg.toLowerCase().includes("does not look like");
   const isTooLong  = msg && msg.toLowerCase().includes("too long");
   const isBusy     = msg && (msg.toLowerCase().includes("busy day") || msg.toLowerCase().includes("reached our limit"));
-  const isOverload = msg && msg.toLowerCase().includes("overwhelmed");
-  // LUX1: upstream AI capacity paused (proxy CAPACITY mapping; also catches a raw
-  // provider billing message if an older deploy passes it through verbatim)
-  const isCapacity = msg && (msg.toLowerCase().includes("top up its ai capacity") || msg.toLowerCase().includes("credit balance is too low"));
-  const isDowntime = !isNotFound && !isInvalid && !isTooLong && !isBusy && !isOverload && !isCapacity && msg?.toLowerCase().includes("went wrong");
-
-  if (isCapacity) {
-    return (
-      <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#1e40af" }}>The analyser is taking a short pause</p>
-        <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
-          Its AI capacity for the period has been used up and is being topped up. Nothing is wrong on your side - please check back a little later. Thank you for your patience.
-        </p>
-        <FeedbackLink />
-        <DiagSteps />
-      </div>
-    );
-  }
+  // ALERT/UNIFY (v3.0.76): every AI-service problem that is NOT a daily cap (isBusy) or a
+  // user-input issue (isNotFound / isInvalid / isTooLong) now falls through to ONE calm
+  // "taking a short pause" notice below - capacity/credit, overload, 5xx, timeout, auth, or
+  // any unrecognised error. The visitor never sees a raw provider message and is never asked
+  // to debug; the builder is alerted out-of-band by the /api/alert webhook (see claudeCall).
 
   if (isBusy) {
     return (
@@ -3771,30 +3799,6 @@ function ErrBox({ msg, query }) {
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
           So many searches today that it has reached its daily limit - which is a good thing, really. It resets overnight, so please do come back tomorrow. Thank you for your patience and interest - it genuinely means a lot.
         </p>
-      </div>
-    );
-  }
-
-  if (isOverload) {
-    return (
-      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>The analyser is catching its breath</p>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
-          A few too many requests at once - please give it a minute and try again. It should be back with you shortly.
-        </p>
-      </div>
-    );
-  }
-
-  if (isDowntime) {
-    return (
-      <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>Something unexpected happened</p>
-        <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
-          Apologies for the inconvenience. Please try again in a moment - this is usually a brief hiccup. If it keeps happening, we would genuinely appreciate a note so we can look into it.
-        </p>
-        <FeedbackLink />
-        <DiagSteps />
       </div>
     );
   }
@@ -3832,14 +3836,14 @@ function ErrBox({ msg, query }) {
     );
   }
 
-  // Generic fallback - always show actual error for diagnosing
+  // Default: the AI service is briefly unavailable (capacity/credit, overload, 5xx, timeout,
+  // auth, or anything unrecognised). ONE calm notice; no raw provider text; no ask to debug.
   return (
-    <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-      <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.amber }}>Something went wrong</p>
-      <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.65 }}>
-        Please try again in a moment. If it keeps happening, we would appreciate a quick note.
+    <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
+      <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#1e40af" }}>The analyser is taking a short pause</p>
+      <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+        It is briefly unavailable and should be back shortly - nothing is wrong on your side. Please check back in a little while. Thank you for your patience.
       </p>
-      {msg && <p style={{ margin:"0 0 6px", fontSize:10, color:C.muted, fontFamily:"monospace", wordBreak:"break-all" }}>{msg}</p>}
       <FeedbackLink />
       <DiagSteps />
     </div>
