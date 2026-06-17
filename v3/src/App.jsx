@@ -5750,52 +5750,79 @@ function TaskPrep({ result }) {
 
 // [PL2 removed] CoverLetter component, _coverCache, SYSTEM_COVER, fetchCoverScaffold -- removed (PL2)
 
-// ---- CJ4: Journey storyboard spine (Candidate Journey - the onboarding flow) ----
-// A compact storyboard at the top of the Navigation box that sequences the 5 stations
-// (Understand -> Position -> Become -> Arm -> Rehearse) so the candidate is self-directed.
-// Pure UI: no LLM, no number, no invented progress. Readiness is computed from which target tab
-// exists; "you are here" is the live activeTab. State is carried by the number + name + a text
-// marker (here / locked), NEVER colour alone. Tapping a ready station jumps to its tab.
-const _JOURNEY_STATIONS = [
-  { n: 1, name: "Understand", target: "deepread",  hint: "why this role exists" },
-  { n: 2, name: "Position",   target: "rolegraph", hint: "paste your CV to see your fit" },
-  { n: 3, name: "Become",     target: "deepread",  hint: "the steward's praxis for this role" },
-  { n: 4, name: "Arm",        target: "taskprep",  hint: "the real tasks + how to prepare" },
-  // { n: 5, name: "Rehearse", target: "rehearse", hint: "..." } -- removed (PL2)
+// ---- [PL3 removed] CJ4: JourneySpine / _JOURNEY_STATIONS -- removed (PL3) ----
+// Superseded by PillarBar + _PILLARS below. G2 tombstone: do not restore.
+// _JOURNEY_STATIONS (dead-coded PL3): was [Understand/deepread, Position/rolegraph, Become/deepread, Arm/taskprep]
+// JourneySpine (dead-coded PL3): was a compact storyboard strip in the Navigation box.
+
+// ---- PL3: Five-pillar model + PillarBar header nav ----
+// _PILLARS is the locked five-pillar model confirmed by Human Lead (17-06-26).
+// Each pillar has: n (display number), key (state key, lowercase), name (display label).
+// PL4 will add lead questions + _PILLAR_MAP tab grouping; PL3 only introduces the nav primitive.
+const _PILLARS = [
+  { n: 1, key: "understand",    name: "Understand"    },
+  { n: 2, key: "position",      name: "Position"      },
+  { n: 3, key: "become",        name: "Become"        },
+  { n: 4, key: "ai-readiness",  name: "AI Readiness"  },
+  { n: 5, key: "arm",           name: "Arm"           },
 ];
-function JourneySpine({ tabs, activeTab, onGo }) {
-  const has = k => k === "rolegraph" || tabs.some(t => t.key === k); // rolegraph (CV) is always present
-  const currentIdx = _JOURNEY_STATIONS.findIndex(s => s.target === activeTab);
+
+// Representative tab to jump to when a pillar is selected (PL3 interim wiring).
+// PL4 will replace this with a full _PILLAR_MAP grouping.
+const _PILLAR_TAB = {
+  "understand":   "deepread",
+  "position":     "context",
+  "become":       "deepread",
+  "ai-readiness": "skills",
+  "arm":          "taskprep",
+};
+
+// PillarBar: five numbered pillar buttons rendered in the result header region.
+// Active state encoded by shape (filled circle badge) + number + label + text ("- active"),
+// NEVER colour alone. aria-current="page" on the active pillar. 44px minHeight.
+// Keyboard-focusable; visible focus ring via outline. No red/green.
+function PillarBar({ activePillar, onSelect }) {
   return (
-    <div style={{ marginBottom: 10 }}>
-      <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Your journey</p>
-      <div style={{ display: "flex", alignItems: "stretch", flexWrap: "wrap", gap: 4 }}>
-        {_JOURNEY_STATIONS.map((s, i) => {
-          const ready = has(s.target);
-          const current = i === currentIdx;
-          const state = current ? "here" : ready ? "go" : "locked";
+    <div style={{ marginBottom: 12 }}>
+      <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Five pillars</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {_PILLARS.map((p) => {
+          const active = activePillar === p.key;
           return (
-            <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button onClick={() => { if (ready) onGo(s.target); }}
-                aria-current={current ? "step" : undefined} aria-disabled={!ready || undefined}
-                aria-label={ready ? undefined : `${s.name} - locked - ${s.hint}`}
-                title={ready ? (current ? "You are here" : `Go to ${s.name}`) : `${s.hint} - not ready yet`}
-                style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "6px 12px", borderRadius: 16, cursor: ready ? "pointer" : "not-allowed",
-                  border: `2px solid ${current ? "#1a56db" : ready ? C.border : C.border}`,
-                  background: current ? "#1a56db" : ready ? C.surface : C.bg,
-                  color: current ? "#fff" : ready ? C.text : C.mutedLight,
-                  opacity: ready ? 1 : 0.6, transition: "all 0.15s", whiteSpace: "nowrap" }}>
-                <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: current ? "#fff" : "#1e40af", color: current ? "#1a56db" : "#fff" }}>{s.n}</span>
-                <span style={{ fontSize: 12, fontWeight: 700 }}>{s.name}</span>
-                {current && <span style={{ fontSize: 10, fontWeight: 700, opacity: 0.9 }}>- you are here</span>}
-                {state === "locked" && <span style={{ fontSize: 10, fontWeight: 700 }}>- locked</span>}
-              </button>
-              {i < _JOURNEY_STATIONS.length - 1 && <span aria-hidden="true" style={{ fontSize: 12, color: C.mutedLight }}>&gt;</span>}
-            </div>
+            <button
+              key={p.key}
+              aria-current={active ? "page" : undefined}
+              onClick={() => onSelect(p.key)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                minHeight: 44, padding: "6px 14px", borderRadius: 20,
+                cursor: "pointer", border: "2px solid",
+                borderColor: active ? "#1a56db" : C.border,
+                background: active ? "#1a56db" : C.surface,
+                color: active ? "#fff" : C.textSub,
+                fontWeight: active ? 700 : 600,
+                fontSize: 13, transition: "all 0.15s", whiteSpace: "nowrap",
+                outline: "none",
+              }}
+              onFocus={(e) => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
+              onBlur={(e) => { e.currentTarget.style.boxShadow = "none"; }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  flexShrink: 0, fontSize: 10, fontWeight: 800,
+                  width: 18, height: 18, borderRadius: "50%",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  background: active ? "#fff" : "#1e40af",
+                  color: active ? "#1a56db" : "#fff",
+                }}
+              >{p.n}</span>
+              <span>{p.name}</span>
+              {active && <span style={{ fontSize: 10, fontWeight: 700 }}>- active</span>}
+            </button>
           );
         })}
       </div>
-      <p style={{ margin: "5px 0 0", fontSize: 10, color: C.textSub, lineHeight: 1.5 }}>Walk it in order: understand the role, position yourself, become the steward, then arm yourself with the tasks. Locked steps open once their data is ready.</p>
     </div>
   );
 }
@@ -9481,6 +9508,7 @@ export default function App() {
   const [subStep,   setSubStep]   = useState(0);
   const [err,       setErr]       = useState("");
   const [activeTab, setActiveTab] = useState("skills");
+  const [activePillar, setActivePillar] = useState("understand"); // PL3: five-pillar nav; default = first pillar
   const [adDrawerOpen, setAdDrawerOpen] = useState(false); // floating job-ad drawer (UI: ads float, not embed)
   const [segmentPanelOpen, setSegmentPanelOpen] = useState(true); // v1.5.5: collapsible automation panel
   const [jumpToSkill, setJumpToSkill] = useState(null); // v1.5.5: skill name to jump to and pre-expand
@@ -10510,6 +10538,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     }
   };
 
+  // PL3: pillar selection handler - sets activePillar and jumps activeTab to the
+  // representative tab for that pillar (interim wiring; PL4 will replace with _PILLAR_MAP).
+  function handlePillarSelect(key) {
+    setActivePillar(key);
+    const target = _PILLAR_TAB[key];
+    if (target) { setActiveTab(target); setSegmentPanelOpen(false); track("pillar_viewed", { pillar: key }); }
+  }
+
   return (
     <>
     <style>{`
@@ -11040,7 +11076,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
-                <JourneySpine tabs={tabs} activeTab={activeTab} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
+                {/* JourneySpine removed (PL3) - superseded by PillarBar in the header region */}
                 <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>
                   Tap a section to explore the results:
                 </p>
@@ -11187,6 +11223,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 )}
 
               </div>
+
+              {/* PL3: PillarBar - five-pillar header nav (top of result view, below role title card) */}
+              <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
 
               {/* Queued comparison banner */}
               {comparisons.filter(c => !c.result).length > 0 && (() => {
