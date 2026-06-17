@@ -778,6 +778,20 @@
 // Seen-before bucket is ordered by when each ad first entered your searches. Clearly labelled as
 // your own on-device history, NOT an MCF fact, so it carries no "from MCF" provenance. No LLM, no
 // number. G1 (v3.0.76 -> v3.0.77).
+// v3.0.78 - 2026-06-17 - HDR #116 - PILLARS arc + refinements (Human Lead directive: replace the
+// abstract journey metaphor with five plain-question pillars, and a run of UX refinements). This
+// version reconciles the string with the whole arc that landed as separate PRs (R003). Shipped:
+// PL1 excise CV-fit from RoleGraphPanel; PL2 remove Rehearse / Cover Letter / Resume Check; PL3
+// PillarBar header (Understand / Position / Become / AI Readiness / Arm) replacing JourneySpine;
+// PL4 pillar VIEW shell + _PILLAR_MAP + lead-question headers; PL5 Understand s1 "why the org
+// wants this role" (net-new SYSTEM_WHY_ROLE, D1-D8 8/8) + Role-Graph tree s2; PL6 market/employer
+// reads to Position; PL7/PL8 Become stewardship reads + AI Readiness pillar (the AI-exposure hero
+// de-duplicated to AI Readiness only). Then: pillar-grouped NAV tree (from _PILLAR_MAP); Task Prep
+// collapsible bands/cards; AI-resilience score reconciled into AI Readiness next to the Exposure
+// Index ("complementary, not the same number"); TGFEP + Employer-reality hide-when-clean; jargon
+// <Term> glossary tooltips; +1 detail font + 1/2/3/4-column analysis screen; liquid-glass floating
+// nav rail beside the title card. Presentation/IA only - no engine number authored, moved, or
+// recomputed across the arc; engine + frozen door untouched throughout. G1 (v3.0.77 -> v3.0.78).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
