@@ -2367,204 +2367,9 @@ async function buildRoleGraph(result, title, onStep) {
   return out;
 }
 
-// --- CV ingress ---
-async function extractCV(cvText) {
-  const SYS_CV =
-`ACT AS a CV-parsing engine. Extract structured facts from the candidate's CV text. Output only what is present - never invent. No prose, no advice.
-Return ONLY a JSON object. No text/fences.
-Format:
-{
- "roleHistory": [{"title":"job title as written","years":"duration or dates as written, or empty"}],   // most recent first, up to 8
- "skills": ["a skill / tool / domain the CV evidences", ...],   // up to 30
- "qualifications": ["a degree / certification / licence as written", ...],   // up to 10
- "achievements": ["a concrete achievement line, lightly summarised, under 18 words", ...]   // up to 8
-}
-No quote characters inside any string value.`;
-  try {
-    const raw = await claudeCall(`Candidate CV text:\n${String(cvText || "").slice(0, 7000)}\n\nExtract.`, 1600, 1, SYS_CV);
-    const o = extractJSON(raw, "extract-cv");
-    if (!o) return null;
-    const ss = x => String(x || "").replace(/"/g, "").trim();
-    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 90)).filter(Boolean).slice(0, n) : [];
-    return {
-      roleHistory: (Array.isArray(o.roleHistory) ? o.roleHistory : []).map(r => ({ title: ss(r && (r.title || r.role)).slice(0, 90), years: ss(r && (r.years || r.dates)).slice(0, 40) })).filter(r => r.title).slice(0, 8),
-      skills: arrS(o.skills, 30, 60), qualifications: arrS(o.qualifications, 10, 90), achievements: arrS(o.achievements, 8, 140),
-    };
-  } catch (_) { return null; }
-}
+// --- CV ingress removed (PL1) ---
 
-function scoreCVFit(cvText, cvProfile, skills, iscoCandidates) {
-  const corpus = [String(cvText || ""), ...((cvProfile && cvProfile.skills) || []), ...((cvProfile && cvProfile.achievements) || []), ...((cvProfile && cvProfile.roleHistory) || []).map(r => r.title), ...((cvProfile && cvProfile.qualifications) || [])].join(" \n ");
-  const rNorm = _phraseNorm(corpus);
-  const rToks = new Set(rNorm.split(" ").filter(t => t.length > 2));
-  const escoCov = _coverOne(rNorm, rToks, (skills || []).map(s => ({ kw: s.skill })));
-  const fams = (iscoCandidates || []).slice(0, 8).map(c => {
-    const cov = _coverOne(rNorm, rToks, (c.matchedSkills || []).map(m => ({ kw: m })));
-    return { uri: c.uri, label: c.label, code: c.code, iscoMajor: c.iscoMajor, roleScore: c.score, coverage: cov.score, covered: cov.covered.map(x => x.kw), missing: cov.missing.map(x => x.kw), total: cov.total };
-  }).filter(f => f.total > 0).sort((a, b) => b.coverage - a.coverage);
-  const bestFam = fams[0] ? fams[0].coverage : escoCov.score;
-  const fitScore = Math.round(0.6 * escoCov.score + 0.4 * bestFam);
-  return { escoCoverage: escoCov, families: fams, fitScore, band: fitScore >= 70 ? "READY" : fitScore >= 45 ? "DEVELOPING" : "STRETCH" };
-}
-
-// T3 (result-engine arc): True-Fit + Proof Ledger. The honest CV<->role match.
-// - Each role skill is matched against THREE evidence buckets, in validity order: A demonstrated
-//   (CV achievements - a work sample, the highest-validity predictor per Schmidt-Hunter 1998),
-//   B certified (qualifications), C claimed (the self-listed skills / titles - "claimed", NEVER
-//   "covered"). A self-asserted skill can never score as demonstrated - this is the anti-keyword-
-//   stuffing rule; a CV that only lists skills caps low.
-// - Weighted by skill RARITY (ESCO reuseLevel: occupation-specific > sector > cross-sector >
-//   transversal), NOT token frequency - rare role-defining skills count more than generic ones.
-// - Deterministic over the (LLM-extracted) CV + (ESCO/LLM) role skills; tagged ~ AI estimate.
-// Reuses the existing _coverOne coverage primitive (counts only).
-const _TRUEFIT_RARITY = { "occupation-specific": 1.0, "sector-specific": 0.75, "cross-sector": 0.5, "cross-sectoral": 0.5, "transversal": 0.4 };
-const _TRUEFIT_TIER = { A: { w: 1.0, label: "demonstrated" }, B: { w: 0.7, label: "certified" }, C: { w: 0.35, label: "claimed" } };
-function _truefitRarity(reuseLevel) { const k = String(reuseLevel || "").toLowerCase(); return _TRUEFIT_RARITY[k] != null ? _TRUEFIT_RARITY[k] : 0.6; }
-function scoreTrueFit(cvProfile, roleSkills) {
-  const skills = (roleSkills || []).filter(s => s && s.skill);
-  if (!cvProfile || skills.length < 3) return null;
-  const mk = arr => { const n = _phraseNorm((arr || []).join(" \n ")); return { n, t: new Set(n.split(" ").filter(x => x.length > 2)) }; };
-  const A = mk(cvProfile.achievements);                                                   // demonstrated outcomes
-  const B = mk(cvProfile.qualifications);                                                  // certs
-  const C = mk([...((cvProfile.skills) || []), ...((cvProfile.roleHistory || []).map(r => r && r.title))]); // self-asserted
-  const has = (bucket, kw) => _coverOne(bucket.n, bucket.t, [{ kw }]).covered.length > 0;
-  const ledger = [], gaps = [];
-  let got = 0, max = 0;
-  for (const s of skills) {
-    const rw = _truefitRarity(s.reuseLevel);
-    max += rw; // full credit only when demonstrated (tier A, w=1.0)
-    const tier = has(A, s.skill) ? "A" : has(B, s.skill) ? "B" : has(C, s.skill) ? "C" : null;
-    if (tier) { got += rw * _TRUEFIT_TIER[tier].w; ledger.push({ skill: s.skill, tier, rarity: s.reuseLevel || "" }); }
-    else gaps.push(s.skill);
-  }
-  const score = max ? Math.round((got / max) * 100) : 0;
-  const counts = { A: ledger.filter(l => l.tier === "A").length, B: ledger.filter(l => l.tier === "B").length, C: ledger.filter(l => l.tier === "C").length };
-  const order = { A: 0, B: 1, C: 2 };
-  ledger.sort((a, b) => (order[a.tier] - order[b.tier]) || a.skill.localeCompare(b.skill));
-  return { score, band: score >= 65 ? "strong" : score >= 40 ? "partial" : "thin", ledger: ledger.slice(0, 20), gaps: gaps.slice(0, 12), counts, total: skills.length };
-}
-
-// F5 (result-engine arc): Fairness self-audit - the p%-rule, turned inward on OUR OWN engine.
-// We CANNOT audit an employer's hiring for disparate impact (no protected-attribute data; a ratio
-// computed without it would be a fabricated number - the contract forbids that). What we CAN do
-// honestly: PROVE our deterministic scorers are invariant to age and graduation year. We build two
-// inputs that are identical EXCEPT for an age / graduation-year proxy, run the SAME scorers
-// (scoreCVFit + scoreTrueFit), and report the four-fifths-style ratio min/max of the resulting
-// scores. Ratio 1.00 = the proxy does not move the score (the engine is age-blind, as the spec
-// accept criterion demands). A drop would catch a regression that wired age in. Every number is a
-// real output of running our engine - not invented. The 0.80 benchmark (four-fifths rule, origin
-// US EEOC Uniform Guidelines 1978; formalised Feldman et al. 2015) is applied ONLY as a
-// transparency yardstick on our own tool; SG anchor is TGFEP + the Workforce Fairness Act 2025
-// (merit-based assessment + an audit trail). We make NO legal claim about any employer.
-const _FAIR_THRESHOLD = 0.8; // four-fifths benchmark, applied to OUR tool only - not a legal test
-const _FAIR_PROXIES = [
-  { key: "younger", label: "Age 24, graduated 2023", grad: 2023, age: 24 },
-  { key: "older",   label: "Age 58, graduated 1989", grad: 1989, age: 58 },
-];
-function _fairRatio(vals) {
-  const xs = vals.filter(x => typeof x === "number");
-  if (xs.length < 2) return null;
-  const mx = Math.max(...xs), mn = Math.min(...xs);
-  if (mx <= 0) return 1; // both non-positive -> no spread -> invariant
-  return mn / mx;
-}
-function fairnessAudit(cvText, cvProfile, roleSkills, iscoCandidates) {
-  if (!cvProfile) return null;
-  const skills = (roleSkills || []).filter(s => s && s.skill);
-  if (skills.length < 3) return null; // not enough role skills to score meaningfully
-  const baseQuals = (cvProfile && Array.isArray(cvProfile.qualifications)) ? cvProfile.qualifications : [];
-  const rows = _FAIR_PROXIES.map(p => {
-    // identical CV, differing ONLY by the age / graduation-year proxy (raw-text banner feeds
-    // scoreCVFit; a "Graduated YYYY" qualification feeds the structured-field scoreTrueFit)
-    const text = `Age: ${p.age}. Graduated: ${p.grad}.\n${String(cvText || "")}`;
-    const prof = { ...cvProfile, qualifications: [`Graduated ${p.grad}`, ...baseQuals] };
-    let cvFit = null, trueFit = null;
-    try { const r = scoreCVFit(text, prof, skills, iscoCandidates || []); cvFit = r ? r.fitScore : null; } catch (_) { cvFit = null; }
-    try { const r = scoreTrueFit(prof, skills); trueFit = r ? r.score : null; } catch (_) { trueFit = null; }
-    return { key: p.key, label: p.label, cvFit, trueFit };
-  });
-  const cvRatio = _fairRatio(rows.map(r => r.cvFit));
-  const trueRatio = _fairRatio(rows.map(r => r.trueFit));
-  const ratios = [cvRatio, trueRatio].filter(x => typeof x === "number");
-  const worst = ratios.length ? Math.min(...ratios) : null;
-  const pass = worst == null ? null : worst >= _FAIR_THRESHOLD;
-  const invariant = worst === 1;
-  return { rows, cvRatio, trueRatio, worst, pass, invariant, threshold: _FAIR_THRESHOLD, nSkills: skills.length };
-}
-
-async function narrateCVFit(title, fitSummary) {
-  const SYS_CF =
-`ACT AS a careers coach. You are given a candidate's structured CV facts and a deterministic fit analysis against a target role and the ISCO-08 occupation families it resembles. Write an honest, grounded role-readiness read - never invent CV facts, only interpret the analysis given. Singapore context. Plain, candid, encouraging but realistic.
-Return ONLY a JSON object. No text/fences.
-Format:
-{
- "readiness": "READY" | "DEVELOPING" | "STRETCH",
- "explanation": "2-3 sentences on how ready this candidate is and why, under 55 words",
- "transferableStrengths": ["a strength from the CV that transfers to this role, under 14 words", ...],   // 2 to 5
- "gapsToClose": ["a concrete gap to close, under 14 words", ...],   // 2 to 5
- "nextSteps": ["a concrete next step, under 14 words", ...]   // 2 to 4
-}
-No quote characters inside any string value.`;
-  try {
-    const raw = await claudeCall(`Target role: ${title}\n${fitSummary}\n\nWrite the readiness read.`, 1000, 1, SYS_CF);
-    const o = extractJSON(raw, "cv-fit-narrative");
-    if (!o) return null;
-    const ss = x => String(x || "").replace(/"/g, "").trim();
-    const arrS = (x, n, len) => Array.isArray(x) ? x.map(v => ss(v).slice(0, len || 100)).filter(Boolean).slice(0, n) : [];
-    const readiness = ["READY", "DEVELOPING", "STRETCH"].includes(o.readiness) ? o.readiness : null;
-    return { readiness, explanation: ss(o.explanation).slice(0, 360), transferableStrengths: arrS(o.transferableStrengths, 5, 110), gapsToClose: arrS(o.gapsToClose, 5, 110), nextSteps: arrS(o.nextSteps, 4, 110) };
-  } catch (_) { return null; }
-}
-
-async function ingestCV(cvText, roleGraph, title, allSkills) {
-  const cvProfile = await extractCV(cvText);
-  const graphSkills = (roleGraph && roleGraph.graph) ? roleGraph.graph.nodes.filter(n => n.type === "escoSkill").map(n => ({ skill: n.label })) : [];
-  const skillSet = (Array.isArray(allSkills) && allSkills.length) ? allSkills : graphSkills;
-  const fit = scoreCVFit(cvText, cvProfile, skillSet, (roleGraph && roleGraph.iscoCandidates) || []);
-  const famLine = fit.families.slice(0, 5).map(f => `${f.label}: ${f.coverage}% of its core skills evidenced (${f.covered.slice(0, 5).join(", ") || "few"})`).join("\n");
-  const fitSummary = `CV role history: ${(cvProfile && cvProfile.roleHistory || []).map(r => r.title + (r.years ? ` (${r.years})` : "")).join("; ") || "n/a"}
-CV qualifications: ${(cvProfile && cvProfile.qualifications || []).join(", ") || "n/a"}
-Fit score (deterministic): ${fit.fitScore}/100 (band ${fit.band}); target-role ESCO-skill coverage ${fit.escoCoverage.score}% (${fit.escoCoverage.covered.length}/${fit.escoCoverage.total}); missing key skills: ${fit.escoCoverage.missing.slice(0, 10).map(x => x.kw).join(", ") || "none"}
-Closest ISCO-08 families by CV overlap:
-${famLine || "n/a"}`;
-  const narrative = await narrateCVFit(title, fitSummary);
-  // C1: a defensible occupation BLEND from the CV's own skill evidence (not the self-declared title).
-  let blend = null;
-  try {
-    const cvSkills = (cvProfile && Array.isArray(cvProfile.skills)) ? cvProfile.skills : [];
-    if (cvSkills.length >= 3) {
-      const res = await fetch("/api/esco", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "candidateFingerprint", skillPhrases: cvSkills }) });
-      if (res.ok) { const b = await res.json(); if (b && !b.fallback && Array.isArray(b.candidates) && b.candidates.length) blend = b; }
-    }
-  } catch (_) { blend = null; }
-  // C2: candidate anatomy - run the deterministic resilience engine on the CV's OWN outcomes.
-  // classifyDuties (LLM) tags each achievement's layer + exposure; scoreJobAnatomy is the same
-  // pure, deterministic function the job anatomy uses (no number the client can fabricate - re-run
-  // gives the same result). Ephemeral (not persisted), so no shared-store write concern. The
-  // signal of interest: how much of the person's track record sits in the AI-resilient layers
-  // (Accountability/Relational/Judgment) vs the exposed Activity layer.
-  let anatomy = null;
-  try {
-    const outcomes = (cvProfile && Array.isArray(cvProfile.achievements)) ? cvProfile.achievements : [];
-    if (outcomes.length >= 3) {
-      const duties = outcomes.map((t, i) => ({ n: i + 1, kind: "outcome", text: t }));
-      const classified = await classifyDuties("the candidate's own track record", duties);
-      if (classified.length) {
-        const a = scoreJobAnatomy(classified);
-        const resilientPct = (a.layerMix.Accountability || 0) + (a.layerMix.Relational || 0) + (a.layerMix.Judgment || 0);
-        anatomy = { ...a, resilientPct, nOutcomes: outcomes.length };
-      }
-    }
-  } catch (_) { anatomy = null; }
-  // T3: True-Fit + Proof Ledger - the rarity-weighted, evidence-tiered CV<->role match.
-  let trueFit = null;
-  try { trueFit = scoreTrueFit(cvProfile, skillSet); } catch (_) { trueFit = null; }
-  // F5: Fairness self-audit - prove the deterministic scorers are age / graduation-year invariant
-  // (the p%-rule turned on our own engine; deterministic, no number invented).
-  let fairness = null;
-  try { fairness = fairnessAudit(cvText, cvProfile, skillSet, (roleGraph && roleGraph.iscoCandidates) || []); } catch (_) { fairness = null; }
-  return { cvProfile, fit, narrative, blend, anatomy, trueFit, fairness };
-}
+// scoreCVFit, scoreTrueFit, fairnessAudit, narrateCVFit, ingestCV removed (PL1)
 
 async function rateSkills(title, skills) {
   // Lean structural rating on Haiku - fast, fits within token limit
@@ -5352,86 +5157,7 @@ function DemandProof({ result }) {
   );
 }
 
-// F5 render: the Fairness self-audit block in the CV result. Always-shown (like True-Fit), with a
-// copyable audit trail (WFA-checkable). State by shape + label (= invariant / != shift), never
-// colour alone; blue (pass) / orange (flag), no red/green. Numbers are real engine outputs.
-function FairnessAudit({ fairness }) {
-  const [copied, setCopied] = useState(false);
-  if (!fairness || fairness.worst == null) return null;
-  const f = fairness;
-  const ok = f.pass !== false;
-  const pillColor = ok ? "#1e40af" : "#9a3412";
-  const pillBg = ok ? "#eef2ff" : "#fff7ed";
-  const pillBorder = ok ? "#c7d2fe" : "#fed7aa";
-  const ratioStr = r => (typeof r === "number" ? r.toFixed(2) : "n/a");
-  const scoreStr = x => (typeof x === "number" ? `${x}/100` : "n/a");
-
-  const auditText = [
-    "FAIRNESS SELF-AUDIT - SG Career View v3",
-    "What was tested: the deterministic CV scorers (CV-fit + True-Fit), for invariance to age and graduation year.",
-    "Method: two inputs identical except for an age / graduation-year proxy, scored by the same engine.",
-    `Variant A (${f.rows[0] ? f.rows[0].label : "?"}): CV-fit ${scoreStr(f.rows[0] && f.rows[0].cvFit)}, True-Fit ${scoreStr(f.rows[0] && f.rows[0].trueFit)}`,
-    `Variant B (${f.rows[1] ? f.rows[1].label : "?"}): CV-fit ${scoreStr(f.rows[1] && f.rows[1].cvFit)}, True-Fit ${scoreStr(f.rows[1] && f.rows[1].trueFit)}`,
-    `Adverse-impact ratio (min/max): CV-fit ${ratioStr(f.cvRatio)}, True-Fit ${ratioStr(f.trueRatio)}; worst ${ratioStr(f.worst)}`,
-    `Benchmark: four-fifths (${f.threshold.toFixed(2)}). Verdict: ${ok ? "PASS" : "REVIEW"}.`,
-    "Criterion: the four-fifths ratio (origin US EEOC Uniform Guidelines 1978; formalised Feldman et al. 2015) is used here ONLY as a transparency benchmark on our own tool. Singapore anchor: Tripartite Guidelines on Fair Employment Practices + Workforce Fairness Act 2025 (merit-based assessment; audit trail). We make NO legal claim about any employer.",
-    "Scope: this audits the deterministic scoring - not the AI extraction step that first reads the CV, and not the employer's hiring.",
-  ].join("\n");
-
-  const doCopy = () => {
-    const done = () => { setCopied(true); setTimeout(() => setCopied(false), 2000); };
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(auditText).then(done).catch(() => {
-        const el = document.createElement("textarea"); el.value = auditText; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done();
-      });
-    } else {
-      const el = document.createElement("textarea"); el.value = auditText; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done();
-    }
-  };
-
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 5 }}>
-        <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Fairness self-audit - does your age move the score?</p>
-        <Prov kind="computed" small />
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 800, color: pillColor, background: pillBg, border: `1px solid ${pillBorder}`, borderRadius: 999, padding: "2px 12px" }}>
-          <span aria-hidden="true">{ok ? "=" : "⚠"}</span>{ok ? "Invariant" : "Shift found"}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: C.textSub }}>adverse-impact ratio {ratioStr(f.worst)}</span>
-        <span style={{ fontSize: 11, color: C.muted }}>benchmark {f.threshold.toFixed(2)}+</span>
-      </div>
-      <p style={{ margin: "0 0 7px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
-        {ok
-          ? "Your CV-fit and True-Fit scores are the same whether the CV reads as a recent graduate or one from decades ago. Age and graduation year do not move our deterministic score."
-          : "Our scores shifted between the younger and older variant - a sign age or graduation year is leaking into the scoring. Flagged for a fix; do not rely on the score until resolved."}
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 7 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 10, fontWeight: 700, color: C.muted }}>
-          <span style={{ flex: 1 }} />
-          <span style={{ width: 70, textAlign: "right" }}>CV-fit</span>
-          <span style={{ width: 70, textAlign: "right" }}>True-Fit</span>
-        </div>
-        {f.rows.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ flex: 1, fontSize: 12, color: C.text }}>{r.label}</span>
-            <span style={{ width: 70, textAlign: "right", fontSize: 12, fontWeight: 700, color: C.text }}>{scoreStr(r.cvFit)}</span>
-            <span style={{ width: 70, textAlign: "right", fontSize: 12, fontWeight: 700, color: C.text }}>{scoreStr(r.trueFit)}</span>
-          </div>
-        ))}
-      </div>
-      <div style={{ padding: "8px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, marginBottom: 7 }}>
-        <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}><strong>How to read this.</strong> The benchmark is the four-fifths rule (origin US EEOC 1978; formalised Feldman 2015), applied here ONLY as a yardstick on our own tool - not a legal test for any employer. Singapore anchor: the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025 (merit-based assessment, with an audit trail).</p>
-      </div>
-      <button onClick={doCopy}
-        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
-        {copied ? "Audit trail copied" : "Copy audit trail"}
-      </button>
-      <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>This checks the deterministic scoring - not the AI step that first reads your CV, and not the employer's hiring. Human decides. Source: this engine's own scores on matched inputs. Confidence: deterministic (same inputs, same result). Time-window: structural (not time-based).</p>
-    </div>
-  );
-}
+// PL1: FairnessAudit component removed (CV-fit flow, dead-coded per G2).
 
 // F5.2 (result-engine arc): TGFEP ad-language scanner. Deterministic, high-precision patterns over
 // the live MCF posting text (title + description, both verbatim MCF fields). ADVISORY ONLY: it flags
@@ -5543,126 +5269,7 @@ function AdLanguageScan({ result }) {
   );
 }
 
-// B6 (result-engine arc, the epic closer): two render artifacts that ASSEMBLE the already-computed
-// CV reads - they author NO new number (no composite "hireability score"). Each value keeps the
-// provenance its source panel earned. Both withhold when there is no True-Fit read.
-function _briefRows(cv) {
-  const tf = cv && cv.trueFit;
-  const rows = [];
-  if (cv && cv.blend && Array.isArray(cv.blend.candidates) && cv.blend.candidates[0]) {
-    const b = cv.blend.candidates[0];
-    rows.push({ k: "Reads as", v: `${b.label}${typeof b.sharePct === "number" ? ` (${b.sharePct}%)` : ""}`, prov: "ai" });
-  }
-  if (tf) rows.push({ k: "Role-fit", v: `${tf.score}/100 (${tf.band}) - ${tf.counts.A} demonstrated, ${tf.counts.B} certified, ${tf.counts.C} claimed-only`, prov: "ai" });
-  if (cv && cv.anatomy && typeof cv.anatomy.resilientPct === "number") rows.push({ k: "AI-resilient work", v: `${cv.anatomy.resilientPct}% of ${cv.anatomy.nOutcomes} outcomes in resilient layers`, prov: "ai" });
-  if (cv && cv.fairness && typeof cv.fairness.worst === "number") rows.push({ k: "Fairness", v: cv.fairness.invariant ? "age / graduation-year neutral (ratio 1.00)" : `review (ratio ${cv.fairness.worst.toFixed(2)})`, prov: "computed" });
-  return rows;
-}
-function _copy(text, done) {
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(done).catch(() => { const el = document.createElement("textarea"); el.value = text; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done(); });
-  } else { const el = document.createElement("textarea"); el.value = text; document.body.appendChild(el); el.select(); try { document.execCommand("copy"); } catch (_) {} document.body.removeChild(el); done(); }
-}
-
-function CandidateBrief({ cv, title }) {
-  const [copied, setCopied] = useState(false);
-  const tf = cv && cv.trueFit;
-  if (!tf) return null;
-  const rows = _briefRows(cv);
-  const gaps = (tf.gaps || []).slice(0, 6);
-  const briefText = [
-    `CANDIDATE BRIEF - ${title || "this role"}`,
-    ...rows.map(r => `${r.k}: ${r.v}`),
-    gaps.length ? `Top gaps to evidence: ${gaps.join(", ")}` : "",
-    "Assembled from this CV's reads (skills AI-extracted; matches deterministic). AI-assisted; human decides. Built from public ESCO data + the pasted CV; the CV itself is not stored.",
-  ].filter(Boolean).join("\n");
-
-  return (
-    <div style={{ marginBottom: 12, border: `1px solid #c7d2fe`, borderRadius: 10, background: "#f5f7ff", padding: "12px 14px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 7 }}>
-        <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#3730a3" }}>Candidate brief - your one-page read{title ? ` for ${toTitleCase(title)}` : ""}</p>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 8 }}>
-        {rows.map((r, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ width: 92, flexShrink: 0, fontSize: 11, fontWeight: 700, color: C.textSub }}>{r.k}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>{r.v} <Prov kind={r.prov} small /></span>
-          </div>
-        ))}
-      </div>
-      {gaps.length > 0 && (
-        <p style={{ margin: "0 0 8px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Lead by evidencing:</strong> {gaps.join(", ")}.</p>
-      )}
-      <button onClick={() => _copy(briefText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
-        style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "#fff", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
-        {copied ? "Brief copied" : "Copy brief"}
-      </button>
-      <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Assembled from the reads above - it authors no new score. AI-assisted; human decides. Source: this CV's reads. The CV text is not stored.</p>
-    </div>
-  );
-}
-
-function EmployerFairScorecard({ cv, title }) {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const tf = cv && cv.trueFit;
-  if (!tf) return null;
-  // every cell is an existing computed/derived value - capability, not rigid proxies
-  const cells = [
-    { k: "Demonstrated capability", v: `${tf.counts.A} skill${tf.counts.A !== 1 ? "s" : ""} shown in achievements, ${tf.counts.B} certified`, prov: "ai", why: "work-sample evidence (Schmidt-Hunter 1998), not self-claims" },
-    { k: "Role-fit (rarity + evidence)", v: `${tf.score}/100 (${tf.band})`, prov: "ai", why: "rare role-defining skills weighted above generic ones" },
-  ];
-  if (cv && cv.anatomy && typeof cv.anatomy.resilientPct === "number") cells.push({ k: "AI-resilient work", v: `${cv.anatomy.resilientPct}%`, prov: "ai", why: "share of the track record in accountability / relational / judgment layers" });
-  if (cv && cv.fairness && typeof cv.fairness.worst === "number") cells.push({ k: "Age / graduation-year neutral", v: cv.fairness.invariant ? "yes (ratio 1.00)" : `review (${cv.fairness.worst.toFixed(2)})`, prov: "computed", why: "the score does not move with age or graduation year" });
-  const NOT_SCORED = ["school or degree pedigree", "gaps in employment history", "an exact prior job-title match"];
-
-  const cardText = [
-    `EMPLOYER FAIR SCORECARD - ${title || "this role"}`,
-    "A capability-first screen (Fuller, Hidden Workers 2021; STARs - Skilled Through Alternative Routes).",
-    ...cells.map(c => `${c.k}: ${c.v}  [${c.why}]`),
-    `Deliberately NOT scored: ${NOT_SCORED.join("; ")} - the rigid filters that screen out capable people.`,
-    "Advisory; a fairer lens, not a hire/no-hire verdict. AI-assisted; human decides.",
-  ].join("\n");
-
-  return (
-    <div style={{ marginBottom: 12, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
-        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span aria-hidden="true" style={{ fontSize: 14 }}>📋</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer fair scorecard - capability, not pedigree</span>
-        </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
-      </button>
-      {open && (
-        <div style={{ padding: "12px 14px 14px" }}>
-          <p style={{ margin: "0 0 9px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>A capability-first screen, grounded in Fuller's <em>Hidden Workers</em> (2021) and the STARs framework (Skilled Through Alternative Routes): it scores what a candidate can demonstrably do, not the rigid proxies that screen capable people out.</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 10 }}>
-            {cells.map((c, i) => (
-              <div key={i} style={{ padding: "8px 12px", background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10 }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{c.k}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}><span style={{ fontSize: 12, fontWeight: 800, color: "#1e40af" }}>{c.v}</span><Prov kind={c.prov} small /></span>
-                </div>
-                <p style={{ margin: "2px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>{c.why}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ padding: "8px 12px", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, marginBottom: 8 }}>
-            <p style={{ margin: "0 0 3px", fontSize: 11, fontWeight: 700, color: "#3730a3" }}>Deliberately NOT scored</p>
-            <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{NOT_SCORED.join("; ")}. These are the rigid filters that, per Fuller's research, screen out capable workers; a fair screen weights demonstrated capability instead.</p>
-          </div>
-          <button onClick={() => _copy(cardText, () => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
-            style={{ minHeight: 44, fontSize: 11, fontWeight: 600, color: copied ? "#1e40af" : C.muted, background: copied ? "#dbeafe" : "transparent", border: `1px solid ${copied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", transition: "all 0.2s" }}>
-            {copied ? "Scorecard copied" : "Copy scorecard"}
-          </button>
-          <p style={{ margin: "7px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Every cell is one of the reads above - the scorecard authors no new number. It is a fairer lens, not a hire / no-hire verdict. AI-assisted; human decides. Source: this CV's reads.</p>
-        </div>
-      )}
-    </div>
-  );
-}
+// PL1: _briefRows, _copy, CandidateBrief, EmployerFairScorecard removed (CV-fit flow, dead-coded per G2).
 
 // E (true-fidelity): Employer reality - is a "tech job" actually at an outsourcer / agency-posted?
 // LIGHT + deterministic, NO new data source: MCF already returns who POSTED the ad (postedCompany)
@@ -8790,10 +8397,9 @@ function JobAnatomyView({ anatomy, title }) {
 }
 
 // v3.4: RoleGraphPanel - the MyCareersFuture role -> ESCO -> ISCO-08 intelligence
-// pipeline + CV ingress. Shows the layered role-skill graph (role -> ISCO-08
+// pipeline. Shows the layered role-skill graph (role -> ISCO-08
 // candidates -> ESCO skills -> responsibilities), the trading-style ISCO ranking,
-// the skill-analysis card, the API-ready node/edge JSON, and a pasted-CV fit read.
-// CV text -> /api/claude only, never stored.
+// the skill-analysis card, and the API-ready node/edge JSON.
 const _RG_PIPE = ["Source role", "Itemise statements", "Infer activities/skills", "Map → ESCO skills", "Reverse-map → ISCO-08", "Trading-score & rank", "Build graph + card"];
 // The 6 pipeline steps surfaced to the user while the Role Graph builds for an MCF
 // posting (RoleGraphStepCard). `short` mirrors _RG_PIPE[0..5]; `full` is the exact
@@ -8843,9 +8449,6 @@ function RoleGraphPanel({ result, title }) {
   const [showJson, setShowJson] = useState(false);
   const [showStmts, setShowStmts] = useState(false);
   const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
-  const [showCvProfile, setShowCvProfile] = useState(false);
-  const [cvText, setCvText] = useState("");
-  const [cv, setCv] = useState({ status: "idle" });
   const graphScrollRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
 
@@ -8856,7 +8459,7 @@ function RoleGraphPanel({ result, title }) {
 
   useEffect(() => {
     let cancelled = false;
-    setCv({ status: "idle" }); setHoveredId(null);
+    setHoveredId(null);
     if (isPosting) { setGraphState({ status: "loading" }); return () => { cancelled = true; }; }
     setGraphState({ status: "loading" });
     let _tG; try { _tG = performance.now(); } catch (_) { _tG = 0; }
@@ -8882,14 +8485,6 @@ function RoleGraphPanel({ result, title }) {
     const target = (ROLE_HUB_CX / VIEWBOX_W) * el.scrollWidth - el.clientWidth / 2;
     el.scrollLeft = Math.max(0, Math.min(target, el.scrollWidth - el.clientWidth));
   }, [g]);
-
-  const runCv = () => {
-    if (!g || g.fallback || cvText.trim().length < 200) return;
-    setCv({ status: "loading" }); track("rolegraph_cv_started", { occupation: title });
-    let _tCv; try { _tCv = performance.now(); } catch (_) { _tCv = 0; }
-    logStep("cv_ingress", "start", 0, title);
-    ingestCV(cvText, g, title, (result && result.skills) || []).then(r => { setCv({ status: "done", ...r }); track("rolegraph_cv_done", { occupation: title, fit: r.fit ? r.fit.fitScore : 0, band: r.fit ? r.fit.band : "?" }); logStep("cv_ingress", "ok", _msSince(_tCv), `fit=${r.fit ? r.fit.fitScore : 0} ${r.fit ? r.fit.band : "?"}`); }).catch((e) => { logStep("cv_ingress", "error", _msSince(_tCv), e && e.message); setCv({ status: "error" }); });
-  };
 
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
@@ -9009,8 +8604,7 @@ function RoleGraphPanel({ result, title }) {
     <div>
       <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
         <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities → infers the work activities & skills behind each → maps them to <strong>ESCO</strong> skills → reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) → assembles an API-ready <strong>role → occupation → skill → responsibility</strong> graph and a skill-analysis card. Then a pasted CV can be scored against all of it.</p>
-        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>🔒 If you paste a CV below, it's sent for analysis and <strong>not stored</strong> — not in our database, not in analytics.</p>
+        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to <strong>ESCO</strong> skills - reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready <strong>role - occupation - skill - responsibility</strong> graph and a skill-analysis card.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
           {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 11, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
         </div>
@@ -9185,145 +8779,8 @@ function RoleGraphPanel({ result, title }) {
             </>
           )}
 
-          {/* ---- CV ingress ---- */}
-          {card(
-            <>
-              {hdr("CV ingress — score a CV against this role, its ESCO skills & ISCO-08 families")}
-              <textarea value={cvText} onChange={e => setCvText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of a CV here…"
-                style={{ width: "100%", minHeight: 130, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-                <button onClick={runCv} disabled={cvText.trim().length < 200 || cv.status === "loading"} style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (cvText.trim().length < 200 || cv.status === "loading") ? C.mutedLight : "#4338ca", border: "none", borderRadius: 6, cursor: (cvText.trim().length < 200 || cv.status === "loading") ? "not-allowed" : "pointer" }}>{cv.status === "loading" ? "Scoring…" : "Score this CV"}</button>
-                {cvText && <button onClick={() => { setCvText(""); setCv({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
-                <span style={{ fontSize: 11, color: C.mutedLight }}>{cvText.trim().length < 200 ? `${cvText.trim().length}/200 chars min` : `${cvText.length} chars${cvText.length >= 8000 ? " (capped)" : ""}`}</span>
-              </div>
-              {cv.status === "loading" && <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}><span style={{ width: 11, height: 11, border: "2px solid #c7d2fe", borderTop: "2px solid #4338ca", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} /><p style={{ margin: 0, fontSize: 12, color: C.muted }}>Parsing the CV and scoring fit…</p></div>}
-              {cv.status === "error" && <p style={{ margin: "12px 0 0", fontSize: 13, color: "#b45309" }}>That didn't go through — please try again.</p>}
-              {cv.status === "done" && cv.fit && (() => {
-                const f = cv.fit; const bc = f.band === "READY" ? "#1e40af" : f.band === "DEVELOPING" ? "#b45309" : "#9a3412";
-                const bl = f.band === "READY" ? "Role-ready" : f.band === "DEVELOPING" ? "Developing — close some gaps" : "A stretch right now";
-                return (
-                  <div style={{ marginTop: 14 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10, padding: "10px 12px", borderRadius: 10, background: bc + "12", border: `1.5px solid ${bc}55` }}>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: bc }}>{f.fitScore}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: bc }}>{bl}</span>
-                      <span style={{ fontSize: 12, color: C.textSub }}>= 60% target-role ESCO-skill coverage ({f.escoCoverage.score}%) + 40% best ISCO-08-family overlap</span>
-                    </div>
-                    <div style={{ marginBottom: 10 }}>{subHdr(`Target-role ESCO skills — covered ${f.escoCoverage.covered.length}/${f.escoCoverage.total}`)}
-                      {f.escoCoverage.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#1e40af", "#eef2ff", "#c7d2fe", "cc" + i))}
-                      {f.escoCoverage.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "cp" + i))}
-                      {f.escoCoverage.missing.slice(0, 24).map((m, i) => chip(`✗ ${m.kw || m}`, "#9a3412", "#fff7ed", "#fed7aa", "cm" + i))}
-                    </div>
-                    {cv.blend && Array.isArray(cv.blend.candidates) && cv.blend.candidates.length > 0 && (
-                      <div style={{ marginBottom: 12 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>{subHdr("What your CV reads as - an occupation blend from your skills, not your job title")}<Prov kind="ai" small /></div>
-                        {cv.blend.candidates.map((b, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                            <span style={{ width: 200, flexShrink: 0, fontSize: 12, color: C.textSub }}>{_rgTrunc(b.label, 32)}{b.code ? <span style={{ color: C.mutedLight }}> ·{b.code}</span> : null}</span>
-                            <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#f5f7fa" }}><div style={{ width: `${b.sharePct}%`, height: "100%", background: "#4338ca" }} /></div>
-                            <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{b.sharePct}%</span>
-                          </div>
-                        ))}
-                        <p style={{ margin: "3px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Derived from your CV's skills (AI-extracted) matched to ESCO occupations - a defensible blend to compare against the single title you would write at the top of your CV. AI-assisted; human decides.</p>
-                      </div>
-                    )}
-                    {cv.anatomy && cv.anatomy.layerMix && (
-                      <div style={{ marginBottom: 12 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>{subHdr("Your work anatomy - where your own track record sits")}<Prov kind="ai" small /></div>
-                        <p style={{ margin: "0 0 6px", fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: cv.anatomy.resilientPct >= 50 ? "#1e40af" : "#9a3412" }}>{cv.anatomy.resilientPct}%</strong> of your {cv.anatomy.nOutcomes} stated outcomes sit in the AI-resilient layers (accountability, relational, judgment){cv.anatomy.resilientPct >= 50 ? " - that concentration is your edge as AI commoditises the routine." : " - more of your evidence is in layers AI is reaching; lead with the human-owned outcomes."}</p>
-                        <div style={{ display: "flex", gap: 2, height: 8, borderRadius: 6, overflow: "hidden", marginBottom: 6 }}>
-                          {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => <div key={L} title={`${JOB_LAYERS[L].label} ${cv.anatomy.layerMix[L]}%`} style={{ flex: cv.anatomy.layerMix[L], background: JOB_LAYERS[L].color, minWidth: 5 }} />)}
-                        </div>
-                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                          {JOB_LAYER_ORDER.filter(L => cv.anatomy.layerMix[L] > 0).map(L => (
-                            <span key={L} style={{ fontSize: 11, fontWeight: 600, color: JOB_LAYERS[L].color, display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 8, height: 8, borderRadius: 6, background: JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight: 800 }}>{cv.anatomy.layerMix[L]}%</span>
-                            </span>
-                          ))}
-                        </div>
-                        <p style={{ margin: "6px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>Your outcomes classified by work-layer (AI-classified), then scored by the same deterministic resilience engine the role uses. AI-assisted; human decides.</p>
-                      </div>
-                    )}
-                    {cv.trueFit && (() => {
-                      const tf = cv.trueFit;
-                      const bc = tf.band === "strong" ? "#1e40af" : tf.band === "partial" ? "#0e7490" : "#9a3412";
-                      const TIER_UI = { A: { label: "demonstrated", color: "#1e40af", bg: "#eef2ff", border: "#c7d2fe" }, B: { label: "certified", color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" }, C: { label: "claimed only", color: "#b45309", bg: "#fffbeb", border: "#fde68a" } };
-                      return (
-                      <div style={{ marginBottom: 12 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>{subHdr("True-Fit + proof ledger - evidence, not keywords")}<Prov kind="ai" small /></div>
-                        <p style={{ margin: "0 0 7px" }}>
-                          <span style={{ fontSize: 22, fontWeight: 800, color: bc }}>{tf.score}</span><span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: C.textSub, marginLeft: 8 }}>{tf.band} fit</span>
-                          <span style={{ fontSize: 11, color: C.textSub, marginLeft: 8 }}>rarity-weighted; demonstrated &gt; certified &gt; claimed</span>
-                        </p>
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 7 }}>
-                          {["A", "B", "C"].map(k => (
-                            <span key={k} style={{ fontSize: 11, fontWeight: 700, color: TIER_UI[k].color, background: TIER_UI[k].bg, border: `1px solid ${TIER_UI[k].border}`, borderRadius: 10, padding: "2px 10px" }}>{tf.counts[k]} {TIER_UI[k].label}</span>
-                          ))}
-                          {tf.gaps.length > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: C.muted, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 10px" }}>{tf.gaps.length} not evidenced</span>}
-                        </div>
-                        {tf.counts.C > 0 && <p style={{ margin: "0 0 7px", fontSize: 11, color: "#b45309", lineHeight: 1.5 }}><strong>{tf.counts.C} skill{tf.counts.C !== 1 ? "s are" : " is"} claimed only</strong> - listed on the CV but not shown in an achievement or backed by a qualification. A screener treats those as unproven; lead with the demonstrated ones.</p>}
-                        {tf.ledger.length > 0 && (
-                          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 6 }}>
-                            {tf.ledger.map((l, i) => (
-                              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ width: 96, flexShrink: 0, fontSize: 10, fontWeight: 700, color: TIER_UI[l.tier].color, background: TIER_UI[l.tier].bg, border: `1px solid ${TIER_UI[l.tier].border}`, borderRadius: 6, padding: "2px 6px", textAlign: "center" }}>{TIER_UI[l.tier].label}</span>
-                                <span style={{ fontSize: 12, color: C.text, lineHeight: 1.4 }}>{_rgTrunc(l.skill, 42)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {tf.gaps.length > 0 && <p style={{ margin: 0, fontSize: 11, color: C.textSub, lineHeight: 1.5 }}><strong>Not evidenced:</strong> {tf.gaps.map(g => _rgTrunc(g, 30)).join(", ")}</p>}
-                        <p style={{ margin: "6px 0 0", fontSize: 11, color: C.textSub, lineHeight: 1.5, fontStyle: "italic" }}>A self-listed skill is "claimed", never "covered" (anti-keyword-stuffing); weighted by skill rarity and evidence validity (Schmidt-Hunter 1998). Inputs AI-extracted; the match is deterministic. AI-assisted; human decides.</p>
-                      </div>
-                      );
-                    })()}
-                    {cv.fairness && <FairnessAudit fairness={cv.fairness} />}
-                    {cv.trueFit && <CandidateBrief cv={cv} title={title} />}
-                    {cv.trueFit && <EmployerFairScorecard cv={cv} title={title} />}
-                    {f.families.length > 0 && (
-                      <div style={{ marginBottom: cv.narrative ? 12 : 0 }}>{subHdr("Transferable-skills map — how this CV overlaps each ISCO-08 family")}
-                        {f.families.slice(0, 6).map((fam, i) => (
-                          <div key={i} style={{ marginBottom: 6 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ width: 200, flexShrink: 0, fontSize: 12, color: C.textSub }}>{_rgTrunc(fam.label, 32)}{fam.code ? <span style={{ color: C.mutedLight }}> ·{fam.code}</span> : null}</span>
-                              <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#f5f7fa" }}><div style={{ width: `${fam.coverage}%`, height: "100%", background: fam.coverage >= 60 ? "#1e40af" : fam.coverage >= 35 ? "#b45309" : "#9a3412" }} /></div>
-                              <span style={{ width: 30, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{fam.coverage}%</span>
-                            </div>
-                            {fam.covered.length > 0 && <p style={{ margin: "2px 0 0 0", paddingLeft: 208, fontSize: 11, color: C.muted, lineHeight: 1.4 }}>shared: {fam.covered.slice(0, 6).join(", ")}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {cv.narrative && (
-                      <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "12px 14px" }}>
-                        <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: C.green }}>Role-readiness{cv.narrative.readiness ? ` — ${cv.narrative.readiness === "READY" ? "ready" : cv.narrative.readiness === "DEVELOPING" ? "developing" : "a stretch"}` : ""}</p>
-                        {cv.narrative.explanation && <p style={{ margin: "0 0 8px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{cv.narrative.explanation}</p>}
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(200px,100%), 1fr))", gap: 10 }}>
-                          {cv.narrative.transferableStrengths.length > 0 && <div>{subHdr("Transferable strengths")}{cv.narrative.transferableStrengths.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1e40af" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
-                          {cv.narrative.gapsToClose.length > 0 && <div>{subHdr("Gaps to close")}{cv.narrative.gapsToClose.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
-                          {cv.narrative.nextSteps.length > 0 && <div>{subHdr("Next steps")}{cv.narrative.nextSteps.map((s, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#4338ca" }}>→</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{s}</span></div>)}</div>}
-                        </div>
-                      </div>
-                    )}
-                    {cv.cvProfile && (
-                      <div style={{ marginTop: 10 }}>
-                        <button onClick={() => setShowCvProfile(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showCvProfile ? "hide what we extracted" : "show what we extracted from the CV"}</button>
-                        {showCvProfile && (
-                          <div style={{ marginTop: 8, padding: "8px 10px", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6 }}>
-                            {cv.cvProfile.roleHistory.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Roles:</strong> {cv.cvProfile.roleHistory.map(r => r.title + (r.years ? ` (${r.years})` : "")).join(" · ")}</p>}
-                            {cv.cvProfile.qualifications.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Qualifications:</strong> {cv.cvProfile.qualifications.join(" · ")}</p>}
-                            {cv.cvProfile.skills.length > 0 && <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Skills:</strong> {cv.cvProfile.skills.join(", ")}</p>}
-                            {cv.cvProfile.achievements.length > 0 && <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Achievements:</strong> {cv.cvProfile.achievements.join(" · ")}</p>}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </>
-          )}
-          <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis — ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Never add anything to a CV that isn't true.</p>
+          {/* CV ingress removed (PL1) */}
+          <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
         </>
       ))}
     </div>
