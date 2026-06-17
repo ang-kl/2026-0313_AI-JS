@@ -11798,7 +11798,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           }
 
           const uiNavBox = (
-              <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface, boxShadow:NEO.raiseSm }}>
+              <div ref={tabBarRef} style={{ marginBottom:14, border:"1px solid rgba(255,255,255,0.55)", borderRadius:10, padding: "10px 12px 8px", background:"rgba(255,255,255,0.8)", backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", boxShadow:"0 10px 30px rgba(15,40,105,0.14), 0 2px 6px rgba(15,40,105,0.08)" }}>
                 <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
@@ -11891,8 +11891,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           // PL4: rolegraph is now stacked within the Understand pillar view, not a solo tab.
           // The nav rail stays active (grid always on); navBlocksGraph is retired.
           const navBlocksGraph = false;
-          return (
-            <div>
+          // uiWide layout: extract shared head content as variables to avoid JSX duplication
+          // across the two layout branches (wide two-column grid vs single-column stack).
+          const uiTitleCard = (
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
                 <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize: 18, fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
                 {result.description && <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.6 }}>{result.description}</p>}
@@ -11998,7 +11999,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 )}
 
               </div>
-
+          );
+          const uiPillarBarAndBanner = (
+            <>
               {/* PL3: PillarBar - five-pillar header nav (top of result view, below role title card) */}
               <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
 
@@ -12046,43 +12049,50 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 </div>
                 );
               })()}
-              {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
-              {/* UI2 (?ui=2, stage 2 of the layout de-vibe): on wide screens the Navigation
-                  box becomes a sticky LEFT RAIL and the tab content sits right; the
-                  badges legend is demoted to a footnote after the content. The default UI
-                  renders the exact same nodes in the original order - zero drift.
-                  PL8: uiHero removed; AI-exposure and role-identity panels now render inside
-                  their respective pillar views (ai-hero under AI Readiness; understand-also
-                  under Understand). */}
-              {!uiV2 && (
+            </>
+          );
+          return (
+            <div>
+              {/* UI2 wide: two-column grid - sticky liquid-glass nav rail left, all result content right.
+                  uiNavBox renders exactly once per layout path (left col or stacked above). */}
+              {(uiV2 && uiWide) ? (
+                <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
+                  {/* Left rail: sticky liquid-glass nav */}
+                  <div style={{ position:"sticky", top:12 }}>{uiNavBox}</div>
+                  {/* Right column: title card + pillarbar + banner + pillar content + legend */}
+                  <div style={{ minWidth:0 }}>
+                    {uiTitleCard}
+                    {uiPillarBarAndBanner}
+                    {/* PL4: pillar view */}
+                    {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
+                    {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
+                    {renderPillarView()}
+                    {/* UI2: badges legend as footnote */}
+                    <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>
+                  </div>
+                </div>
+              ) : (
+                /* non-wide (mobile/tablet) or !uiV2: single-column stacked layout.
+                   Order matches original: title card, pillarbar+banner, then legacy
+                   ProvLegend+nav block (!uiV2) or stacked nav (uiV2 narrow), then pillar content. */
                 <>
-                  <ProvLegend />
-                  {uiNavBox}
+                  {uiTitleCard}
+                  {uiPillarBarAndBanner}
+                  {!uiV2 && (
+                    <>
+                      <ProvLegend />
+                      {uiNavBox}
+                    </>
+                  )}
+                  {uiV2 && <div style={{ marginBottom:14 }}>{uiNavBox}</div>}
+                  {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
+                  {/* PL4: pillar view */}
+                  {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
+                  {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
+                  {renderPillarView()}
+                  {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
                 </>
               )}
-              {/* The 7 "read" panels moved out of the always-on Overview into the Deep Read tab
-                  (IA fix: the Overview was 4-6 screens tall). They render under activeTab==="deepread". */}
-              <div style={uiV2 && uiWide && !navBlocksGraph ? { display:"grid", gridTemplateColumns:"300px minmax(0,1fr)", gap:16, alignItems:"start" } : undefined}>
-                {uiV2 && (
-                  <div style={uiWide && !navBlocksGraph ? { position:"sticky", top:12 } : { marginBottom:14 }}>
-                    {uiNavBox}
-                  </div>
-                )}
-                <div style={uiV2 ? { minWidth:0 } : undefined}>
-
-              {/* PL4: pillar view - lead question h2 + stacked sections for the active pillar.
-                  renderPillarView() calls renderSection(key) for each key in _PILLAR_MAP[activePillar];
-                  absent-data sections render nothing (guarded inside renderSection).
-                  The old activeTab === "key" gates are retired here; tab keys are re-grouped
-                  to pillars via _PILLAR_MAP. PL2 tombstones retained as comments below. */}
-              {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
-              {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
-              {renderPillarView()}
-
-              {/* UI2: the badges legend rides as a footnote under the content */}
-              {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
-                </div>
-              </div>
 
               {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll */}
               {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "" }); }} />}
