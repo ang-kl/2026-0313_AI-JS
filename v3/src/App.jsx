@@ -5846,6 +5846,111 @@ function JobAdDrawer({ result, open, onClose }) {
 // (~ AI estimate). Grouped Core -> Common -> Occasional so the must-do tasks lead. Withholds when
 // there are no extracted responsibilities.
 const _TASKPREP_FREQ_ORDER = ["Core", "Common", "Occasional"];
+const _TASKPREP_FREQ_NOTE = { Core: "in nearly every posting", Common: "in most postings", Occasional: "in a few postings" };
+
+// TaskCard: a single collapsible duty row. Summary row (always visible): duty
+// text + AI-level Tag + chevron. Detail (on expand): How AI engages, Prepare
+// this week, Skills it draws on - all verbatim from the engine, Prov chips
+// intact. R006: toggle handler extracted (named fn above return).
+function TaskCard({ r, skillByN }) {
+  const [open, setOpen] = useState(false);
+  const sk = (Array.isArray(r.sk) ? r.sk : []).map(n => skillByN.get(n)).filter(Boolean).slice(0, 4);
+  const cardId = `tc-${r.n != null ? r.n : r.text.slice(0, 20).replace(/\s/g, "-")}`;
+
+  function handleToggle() { setOpen(o => !o); }
+  function handleKey(e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleToggle(); } }
+
+  return (
+    <div style={{ border: `1px solid ${C.border}`, borderRadius: 10, background: C.surface, boxShadow: open ? NEO.raiseSm : "none", transition: "box-shadow 0.2s" }}>
+      {/* Summary row - always visible, acts as the expand toggle */}
+      <button
+        id={cardId}
+        aria-expanded={open}
+        aria-controls={`${cardId}-detail`}
+        onClick={handleToggle}
+        onKeyDown={handleKey}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", borderRadius: 10 }}
+      >
+        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
+        <Tag level={r.level || "HUMAN"} small />
+        <span
+          aria-hidden="true"
+          style={{ fontSize: 11, color: C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginLeft: 4 }}
+        >▼</span>
+      </button>
+      {/* Detail panel - revealed on expand */}
+      {open && (
+        <div id={`${cardId}-detail`} role="region" aria-labelledby={cardId} style={{ padding: "0 12px 10px" }}>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
+            {r.how && (
+              <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>
+                <strong style={{ color: "#1e40af" }}>How AI engages:</strong>{" "}
+                {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""}{" "}
+                <Prov kind="ai" small />
+              </p>
+            )}
+            {r.kickstart && (
+              <p style={{ margin: "0 0 4px", fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+                <strong style={{ color: "#0e7490" }}>Prepare this week:</strong>{" "}
+                {r.kickstart}{" "}
+                <Prov kind="ai" small />
+              </p>
+            )}
+            {sk.length > 0 && (
+              <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+                <strong style={{ color: C.textSub }}>Skills it draws on:</strong>{" "}
+                {sk.join(", ")}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// BandSection: a collapsible frequency band (Core / Common / Occasional).
+// First band is open by default; others collapsed to a header row.
+// R006: toggle handler extracted (named fn above return).
+function BandSection({ freq, items, skillByN, defaultOpen }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  const note = _TASKPREP_FREQ_NOTE[freq] || "";
+  const bandId = `band-${freq.toLowerCase()}`;
+
+  function handleToggle() { setOpen(o => !o); }
+  function handleKey(e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleToggle(); } }
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      {/* Band header - always visible, toggles the entire band */}
+      <button
+        id={bandId}
+        aria-expanded={open}
+        aria-controls={`${bandId}-body`}
+        onClick={handleToggle}
+        onKeyDown={handleKey}
+        style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: open ? C.accentSoft : C.surface, border: `1px solid ${open ? C.accent : C.border}`, borderRadius: open ? "9px 9px 0 0" : 9, cursor: "pointer", textAlign: "left", transition: "background 0.2s, border-color 0.2s" }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 800, color: open ? C.accent : C.text }}>{freq} tasks</span>
+        <span style={{ fontSize: 11, color: C.muted, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 7px" }}>{items.length}</span>
+        <span style={{ fontSize: 11, color: C.muted, flex: 1 }}>- {note}</span>
+        <span
+          aria-hidden="true"
+          style={{ fontSize: 11, color: open ? C.accent : C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+        >▼</span>
+      </button>
+      {/* Band body - task cards */}
+      {open && (
+        <div id={`${bandId}-body`} role="region" aria-labelledby={bandId} style={{ border: `1px solid ${C.accent}`, borderTop: "none", borderRadius: "0 0 9px 9px", padding: "8px 8px 4px", display: "flex", flexDirection: "column", gap: 6 }}>
+          {items.map((r, i) => (
+            <TaskCard key={r.n != null ? r.n : i} r={r} skillByN={skillByN} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TaskPrep({ result }) {
   const rd = result && result.responsibilitiesData;
   const resps = (rd && Array.isArray(rd.responsibilities)) ? rd.responsibilities.filter(r => r && r.text) : [];
@@ -5854,10 +5959,10 @@ function TaskPrep({ result }) {
   const groups = _TASKPREP_FREQ_ORDER
     .map(f => ({ freq: f, items: resps.filter(r => (r.freq || "Common") === f) }))
     .filter(g => g.items.length);
-  const FREQ_NOTE = { Core: "in nearly every posting", Common: "in most postings", Occasional: "in a few postings" };
 
   return (
     <div>
+      {/* Panel header */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
         <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
@@ -5867,36 +5972,9 @@ function TaskPrep({ result }) {
         </div>
         <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
       </div>
-      {groups.map(g => (
-        <div key={g.freq} style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6, paddingBottom: 5, borderBottom: `2px solid ${C.border}` }}>
-            <span style={{ fontSize: 12, fontWeight: 800, color: C.text }}>{g.freq} tasks</span>
-            <span style={{ fontSize: 11, color: C.muted }}>({g.items.length})</span>
-            <span style={{ fontSize: 11, color: C.muted }}>· {FREQ_NOTE[g.freq]}</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {g.items.map((r, i) => {
-              const sk = (Array.isArray(r.sk) ? r.sk : []).map(n => skillByN.get(n)).filter(Boolean).slice(0, 4);
-              return (
-                <div key={r.n != null ? r.n : i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 12px", background: C.surface }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6 }}>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
-                    <Tag level={r.level || "HUMAN"} small />
-                  </div>
-                  {r.how && (
-                    <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""} <Prov kind="ai" small /></p>
-                  )}
-                  {r.kickstart && (
-                    <p style={{ margin: "0 0 4px", fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#0e7490" }}>Prepare this week:</strong> {r.kickstart} <Prov kind="ai" small /></p>
-                  )}
-                  {sk.length > 0 && (
-                    <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Skills it draws on:</strong> {sk.join(", ")}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {/* Band sections - first band open, rest collapsed */}
+      {groups.map((g, idx) => (
+        <BandSection key={g.freq} freq={g.freq} items={g.items} skillByN={skillByN} defaultOpen={idx === 0} />
       ))}
       <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
     </div>
