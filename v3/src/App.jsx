@@ -820,6 +820,144 @@ const NEO = {
   inset:   "inset 3px 3px 7px rgba(174,189,212,0.5), inset -3px -3px 7px rgba(255,255,255,0.85)",
 };
 
+// ---- GLOSSARY + Term tooltip -----------------------------------------------
+// Plain-language definitions for jargon shown in results. Extend freely.
+// R007: ASCII only, hyphens not em/en dashes.
+const _GLOSSARY = {
+  "AI-Exposure Index":
+    "A 0-100 score showing how exposed this occupation is to AI tools, computed deterministically from the AIOE (AI Occupational Exposure) dataset (Felten et al. 2021) via the ESCO-to-ISCO-to-SOC crosswalk. Same evidence always gives the same number - no AI guess involved.",
+  "AI-resilience score":
+    "How well the role's duties are likely to resist AI displacement, scored 0-100. It is the inverse of each duty's AI-exposure band, weighted by how often that duty appears and discounted by the work-layer (Relational and Accountability duties score higher than Activity). Higher is more resilient.",
+  "automatability":
+    "The share of this role's duties that AI or automation could plausibly take over today, expressed as a 0-100 index. It reads the AI-exposure band of each duty forward - HIGH exposure duties contribute most to the index.",
+  "z-range":
+    "The spread of SOC occupation z-scores that sit behind the AI-Exposure Index. A narrow range means the occupation group is tightly clustered; a wide range means the index blends roles with very different exposure levels. Shown as a min-to-max interval, never a single invented point.",
+  "skill-proximity":
+    "What fraction of the ESCO essential skills for a candidate ISCO-08 occupation match the skills extracted from this role's posting. Computed as the ESCO skill-overlap ratio (0-100%). Makes up 45% of the trading-style ISCO ranking score.",
+  "responsibility-overlap":
+    "How many of this role's extracted responsibility statements are covered by skills from a candidate ISCO-08 occupation. Computed by matching ESCO skill names against each responsibility; expressed as a 0-100% share. Makes up 35% of the ranking score.",
+  "confidence":
+    "A self-rated certainty signal for the ISCO-08 reverse-map: the number of matched skills divided by 8, capped at 100%, and discounted if fewer than 5 essential skills matched. It is advisory - high confidence means more evidence, not a guarantee of fit. Makes up 20% of the ranking score.",
+  "crossover":
+    "A role in a different sector whose day-to-day responsibilities substantially overlap with your current one. In this app, crossover roles are identified by matching the actual duty statements - not just the job title - so the pivot is grounded in transferable work, not a guess.",
+  "work-layer":
+    "A classification of each duty by the type of work it represents: Activity (routine execution), Coordination, Accountability (owns outcomes and decisions), Relational (people and trust), or Judgment (non-routine analysis). The layer mix shows where most of a role's effort sits and predicts how much of it AI is likely to reach.",
+  "exposure band":
+    "A four-level label assigned to each skill or duty: Human-led (AI not involved), Low, Medium, or High AI involvement. Bands come from the AIOE and Eloundou et al. 2023 classification; they describe AI involvement today and a separate 2-year projection.",
+  "AIOE":
+    "AI Occupational Exposure index - a dataset by Felten, Raj and Seamans (2021) that scores each US SOC occupation by how exposed it is to AI capabilities. This app maps Singapore SSOC and ESCO occupations to SOC codes and reads off the AIOE percentile to form the AI-Exposure Index.",
+  "ISCO-08":
+    "International Standard Classification of Occupations (2008 revision), published by the ILO. A four-digit code groups similar jobs. This app uses ISCO-08 as the crosswalk backbone: ESCO skills map to ISCO-08 occupations, and ISCO-08 maps to US SOC codes for the AIOE lookup.",
+  "ESCO":
+    "European Skills, Competences, Qualifications and Occupations taxonomy (v1.2) - an open, machine-readable list of occupations and the essential skills each requires. Skills shown in this app are drawn directly from the ESCO API; each skill is a citable entry, not AI-invented.",
+  "SSOC":
+    "Singapore Standard Occupational Classification - Singapore's national coding system for jobs, maintained by MOM and singstat. MCF postings carry an SSOC tag; the app maps it to ISCO-08 as the first step in the exposure-index chain.",
+  "MyCareersFuture":
+    "Singapore's national job portal (jobs.gov.sg), operated by Workforce Singapore (WSG). The roles analysed in this app are live MCF postings; all job fields shown with the 'from MCF' badge are taken verbatim from those postings, not generated.",
+};
+
+// Term - wraps visible text with a glossary bubble (hover / focus / tap).
+// Usage: <Term k="AI-Exposure Index">AI-Exposure Index</Term>
+// The trigger is a real <button> so it is keyboard-focusable and tap-friendly.
+// Bubble appears above the trigger when space allows, below otherwise.
+// Esc closes; tap-outside closes. aria-describedby links the bubble text.
+// No animation relied on for visibility (instant toggle); optional CSS fade is
+// guarded by prefers-reduced-motion via a class set on <html> at the end.
+let _termIdSeq = 0;
+function Term({ k, children }) {
+  const def = _GLOSSARY[k];
+  if (!def) return <>{children}</>;
+  const [open, setOpen] = useState(false);
+  const idRef = useRef(null);
+  if (!idRef.current) idRef.current = "term-" + (++_termIdSeq);
+  const btnRef = useRef(null);
+  const bubbleRef = useRef(null);
+  // Separate hover state so hover and click/tap are independent.
+  // open = click/tap toggle; hovered = mouse hover.
+  const [hovered, setHovered] = useState(false);
+  const visible = open || hovered;
+
+  // Close on Esc
+  function handleKeyDown(e) {
+    if (e.key === "Escape" && visible) { e.stopPropagation(); setOpen(false); setHovered(false); }
+    if ((e.key === "Enter" || e.key === " ") && e.target === btnRef.current) { e.preventDefault(); setOpen(o => !o); }
+  }
+
+  // Close toggle on blur (focus leaves the button)
+  function handleBlur(e) {
+    // relatedTarget is the element receiving focus; if it is inside the bubble, keep open
+    if (bubbleRef.current && bubbleRef.current.contains(e.relatedTarget)) return;
+    setOpen(false);
+  }
+
+  function handleMouseEnter() { setHovered(true); }
+  function handleMouseLeave() { setHovered(false); }
+
+  const wrapStyle = { position: "relative", display: "inline" };
+  const btnStyle = {
+    background: "none",
+    border: "none",
+    padding: "0 0 1px",
+    margin: 0,
+    font: "inherit",
+    color: "inherit",
+    cursor: "help",
+    textDecoration: "underline dotted",
+    textDecorationColor: C.mutedLight,
+    textUnderlineOffset: "3px",
+    lineHeight: "inherit",
+    verticalAlign: "baseline",
+    // Minimum 44px tap target via min-height on the inline container is impractical,
+    // so we pad top/bottom and use a larger line-height to give adequate touch area.
+    display: "inline",
+  };
+  const bubbleStyle = {
+    position: "absolute",
+    bottom: "calc(100% + 6px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: 260,
+    maxWidth: "min(260px, calc(100vw - 24px))",
+    background: C.surface,
+    border: `1px solid ${C.border}`,
+    borderRadius: 10,
+    padding: "10px 12px",
+    boxShadow: NEO.raiseSm,
+    zIndex: 9999,
+    pointerEvents: "auto",
+  };
+  return (
+    <span style={wrapStyle}>
+      <button
+        ref={btnRef}
+        type="button"
+        style={btnStyle}
+        aria-expanded={visible}
+        aria-describedby={visible ? idRef.current : undefined}
+        onClick={() => setOpen(o => !o)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {children}<sup style={{ fontSize: "0.65em", lineHeight: 1, marginLeft: 1, color: C.mutedLight, userSelect: "none" }}>i</sup>
+      </button>
+      {visible && (
+        <span
+          ref={bubbleRef}
+          id={idRef.current}
+          role="tooltip"
+          style={bubbleStyle}
+        >
+          <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.text, marginBottom: 4 }}>{k}</span>
+          <span style={{ display: "block", fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>{def}</span>
+        </span>
+      )}
+    </span>
+  );
+}
+// ---------------------------------------------------------------------------
+
 async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
   try {
     const body = {
@@ -3552,7 +3690,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
         </div>
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
-          <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the ESCO taxonomy</p>
+          <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
           <div className="ldx-skills-grid">
           {list.map((s, i) => (
             <div key={(s && (s.escoUri || s.skill)) || i} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
@@ -4164,7 +4302,7 @@ function EngineHeadline({ result, title }) {
   const box = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:16 };
   const head = (
     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-      <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+      <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
       {/* audit W-2: no "computed" chip before a computed value exists */}
       {eng.status === "done" && eng.j && eng.j.ok ? <Prov kind="computed" /> : eng.status === "loading" ? null : <Prov kind="unverified" />}
     </div>
@@ -4183,7 +4321,7 @@ function EngineHeadline({ result, title }) {
     return (
       <div style={box}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-          <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}>AI-Exposure Index</p>
+          <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
           <Prov kind="unverified" />
         </div>
         <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.65 }}>
@@ -4200,10 +4338,10 @@ function EngineHeadline({ result, title }) {
       <p style={{ margin:"0 0 8px" }} aria-label={`AI exposure index ${exp.index} out of 100, ${exp.band} band, ${exp.confidence} confidence`}>
         <span style={{ fontSize:30, fontWeight:800, color:C.accent }}>{exp.index}</span>
         <span style={{ fontSize: 16, fontWeight:700, color:C.textSub }}>/100</span>
-        <span style={{ fontSize:12, fontWeight:700, color:C.textSub, marginLeft:10 }}>{exp.band} exposure - {exp.confidence} confidence</span>
+        <span style={{ fontSize:12, fontWeight:700, color:C.textSub, marginLeft:10 }}><Term k="exposure band">{exp.band} exposure</Term> - <Term k="confidence">{exp.confidence} confidence</Term></span>
       </p>
       <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.65 }}>
-        Deterministic: AIOE (Felten et al. 2021) via {occ.via === "fingerprint" ? "this role's ESCO skill evidence" : occ.via === "reconcile" ? "the SSOC tag reconciled with skill evidence" : "the posting's SSOC tag"} (ISCO {Array.isArray(occ.isco) ? occ.isco.join("/") : "-"}{occ.label ? ` - ${occ.label}` : ""}). Z-score range {exp.zRange[0]} to {exp.zRange[1]} - a range, never a faked point. Same evidence, same number, every run.
+        Deterministic: <Term k="AIOE">AIOE</Term> (Felten et al. 2021) via {occ.via === "fingerprint" ? "this role's ESCO skill evidence" : occ.via === "reconcile" ? "the SSOC tag reconciled with skill evidence" : "the posting's SSOC tag"} (ISCO {Array.isArray(occ.isco) ? occ.isco.join("/") : "-"}{occ.label ? ` - ${occ.label}` : ""}). <Term k="z-range">Z-score range {exp.zRange[0]} to {exp.zRange[1]}</Term> - a range, never a faked point. Same evidence, same number, every run.
       </p>
     </div>
   );
@@ -8381,14 +8519,14 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
       <div>
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-            <p style={{ margin:0, fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
+            <p style={{ margin:0, fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="AI-resilience score">AI-resilience score</Term></p>
             <Prov kind="computed" small />
           </div>
           <p style={{ margin:0, fontSize: 30, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
           <div style={{ display:"flex", height:7, borderRadius: 6, overflow:"hidden", background:"#f5f7fa", marginTop:8 }}>
             <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
           </div>
-          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - automatability now {a.automatabilityIndex}/100</p>
+          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - <Term k="automatability">automatability</Term> now {a.automatabilityIndex}/100</p>
           <p style={{ margin:"6px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.trajectory2y.line}</p>
           <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
         </div>
@@ -8406,7 +8544,7 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
       </div>
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
+        <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="work-layer">Work-layer mix</Term></p>
         <div style={{ display:"flex", height:14, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
           {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
         </div>
@@ -8806,9 +8944,9 @@ function RoleGraphPanel({ result, title }) {
           {/* ISCO-08 ranking */}
           {g.iscoCandidates.length > 0 && card(
             <>
-              {hdr("ISCO-08 occupations this role reverse-maps to — trading-style ranking")}
+              {hdr(<><Term k="ISCO-08">ISCO-08</Term> occupations this role reverse-maps to - trading-style ranking</>)}
               <div style={{ margin: "0 0 6px" }}><Prov kind="computed" /></div>
-              <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Score = 45% skill-proximity (ESCO essential-skill overlap) + 35% responsibility-overlap + 20% evidence/confidence{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
+              <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Score = 45% <Term k="skill-proximity">skill-proximity</Term> (ESCO essential-skill overlap) + 35% <Term k="responsibility-overlap">responsibility-overlap</Term> + 20% evidence/<Term k="confidence">confidence</Term>{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
               {g.iscoCandidates.map((c, i) => (
                 <div key={i} style={{ padding: "8px 10px", borderRadius: 10, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
@@ -8820,7 +8958,7 @@ function RoleGraphPanel({ result, title }) {
                   <div style={{ display: "flex", height: 6, borderRadius: 6, overflow: "hidden", background: "#f5f7fa", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }} /></div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
                     {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
-                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.muted }}>{lbl}<span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#f5f7fa", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
+                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.muted }}><Term k={lbl}>{lbl}</Term><span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#f5f7fa", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
                     ))}
                   </div>
                   {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 11, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
@@ -9118,8 +9256,8 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {active === "crossover" && (
         <div>
           <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}>Roles whose day-to-day overlaps with yours</p>
-            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer — a credible pivot, not a restart.</p>
+            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}><Term k="crossover">Crossover</Term> roles - whose day-to-day overlaps with yours</p>
+            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer - a credible pivot, not a restart.</p>
           </div>
           {data.respCrossover.map((x, i) => (
             <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface, padding: "12px 14px" }}>
