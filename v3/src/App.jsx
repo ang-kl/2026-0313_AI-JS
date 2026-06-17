@@ -6020,7 +6020,10 @@ const _PILLAR_MAP = {
   "become":       ["deepread"],
   // PL8: "ai-hero" prepended - renders EngineHeadline + ExposureBar + SkillSegments +
   // AgenticShift (AI-exposure headline and 4-band rubric) before the per-skill sections.
-  "ai-readiness": ["ai-hero", "skills", "category"],
+  // SPLIT: "ai-anatomy" renders JobAnatomyView view="airisk" (AI-resilience score +
+  // automatability + trajectory) directly under the Exposure Index in AI Readiness.
+  // The work-layer structural view stays in Understand under "jobanatomy".
+  "ai-readiness": ["ai-hero", "ai-anatomy", "skills", "category"],
   "arm":          ["taskprep", "foundation"],
 };
 
@@ -8339,13 +8342,17 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
 
 // v3.2: JobAnatomyView - the "predictive" read: work-layer mix + AI-resilience
 // score + per-duty AI exposure (now -> ~2 years) + org-context, from buildJobAnatomy.
-function JobAnatomyView({ anatomy, title }) {
+// view="structure" (default): header + work-layer mix + org-context + narrative + duties + prep.
+// view="airisk": AI-resilience score + resilience2y + automatability + trajectory2y line.
+// Both views read from the same anatomy object; no value is recomputed or re-derived.
+function JobAnatomyView({ anatomy, title, view = "structure" }) {
   if (!anatomy) return null;
   if (anatomy.fallback || !anatomy.duties || !anatomy.duties.length) {
+    if (view === "airisk") return null; // airisk block is silent when anatomy is unavailable
     return (
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
         <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
-        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily — try again tomorrow.</p>
+        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily - try again tomorrow.</p>
       </div>
     );
   }
@@ -8365,43 +8372,56 @@ function JobAnatomyView({ anatomy, title }) {
     (oc.tools && oc.tools.length) ? `tools: ${oc.tools.slice(0,5).join(", ")}` : null,
   ].filter(Boolean);
   const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize: 10, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius: 10, padding: "2px 8px", whiteSpace:"nowrap" }}>{m.label}</span>; };
-  return (
-    <div>
-      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>🧬 Job Anatomy — what this role actually is</p>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
-        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} · duty frequencies are real counts · work-layer & AI-exposure are classification labels, the scores are computed — not generated prose.</p>
-      </div>
 
-      <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
-        <div style={{ flex:"1 1 200px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
-          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
+  // --- airisk view: AI-resilience score + automatability + 2-year trajectory ---
+  if (view === "airisk") {
+    return (
+      <div>
+        <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+            <p style={{ margin:0, fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>AI-resilience score</p>
+            <Prov kind="computed" small />
+          </div>
           <p style={{ margin:0, fontSize: 30, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
           <div style={{ display:"flex", height:7, borderRadius: 6, overflow:"hidden", background:"#f5f7fa", marginTop:8 }}>
             <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
           </div>
-          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>≈ {a.resilience2y}/100 by ~2027 · automatability now {a.automatabilityIndex}/100</p>
+          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - automatability now {a.automatabilityIndex}/100</p>
+          <p style={{ margin:"6px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.trajectory2y.line}</p>
+          <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
         </div>
-        <div style={{ flex:"2 1 320px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px" }}>
-          <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
-          <div style={{ display:"flex", height:14, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
-            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
-          </div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
-            {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
-              <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
-                <span style={{ width:8, height:8, borderRadius: 6, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
-              </span>
-            ))}
-          </div>
-          <p style={{ margin:"8px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line} {a.trajectory2y.line}</p>
+      </div>
+    );
+  }
+
+  // --- structure view (default): header + work-layer mix + org-context + narrative + duties + prep ---
+  return (
+    <div>
+      <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>Job Anatomy - what this role actually is</p>
+        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
+        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.</p>
+      </div>
+
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
+        <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Work-layer mix</p>
+        <div style={{ display:"flex", height:14, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
+          {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
         </div>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
+            <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
+              <span style={{ width:8, height:8, borderRadius: 6, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
+            </span>
+          ))}
+        </div>
+        <p style={{ margin:"8px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line}</p>
       </div>
 
       {ocBits.length > 0 && (
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
           <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
-          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" · ")}{(oc.stakeholders && oc.stakeholders.length) ? ` · works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
+          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" - ")}{(oc.stakeholders && oc.stakeholders.length) ? ` - works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
         </div>
       )}
 
@@ -8423,7 +8443,7 @@ function JobAnatomyView({ anatomy, title }) {
       )}
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, overflow:"hidden", marginBottom:14 }}>
-        <p style={{ margin:0, padding: "10px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties — frequency · work layer · AI exposure now → ~2027</p>
+        <p style={{ margin:0, padding: "10px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties - frequency - work layer - AI exposure now to ~2027</p>
         {sortedDuties.map((d, i) => {
           const L = JOB_LAYERS[d.layer] || JOB_LAYERS.Activity;
           return (
@@ -8433,7 +8453,7 @@ function JobAnatomyView({ anatomy, title }) {
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4, alignItems:"center" }}>
                   <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding: "2px 8px" }}>{L.label}</span>
                   <span style={{ fontSize:10, color:C.muted }}>in {d.count}/{d.of} ads</span>
-                  {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>· {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
+                  {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>- {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
                 </div>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, marginTop:1 }}>
@@ -8448,9 +8468,9 @@ function JobAnatomyView({ anatomy, title }) {
 
       {nar.prepFocus && nar.prepFocus.length > 0 && (
         <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 14px" }}>
-          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — build the layers AI can't take</p>
+          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare - build the layers AI can't take</p>
           <ol style={{ margin:0, paddingLeft:18 }}>
-            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
+            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> - {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
           </ol>
         </div>
       )}
@@ -10879,6 +10899,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         </div>
       );
     }
+    if (key === "ai-anatomy") {
+      // SPLIT: AI-resilience score + automatability + trajectory2y from Job Anatomy,
+      // rendered directly under the Exposure Index in AI Readiness. The Exposure Index
+      // (ai-hero above) shows how far AI reaches the occupation class; the resilience
+      // score here shows how much the specific duties resist it - complementary views,
+      // not the same number. Work-layer structural view remains in Understand ("jobanatomy").
+      if (!result.jobAnatomy || result.jobAnatomy.fallback) return null;
+      if (!result.jobAnatomy.duties || result.jobAnatomy.duties.length === 0) return null;
+      return (
+        <div key="ai-anatomy">
+          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Exposure (above) is how far AI reaches this occupation; resilience is how much these specific duties resist it - complementary views, not the same number.</p>
+          <JobAnatomyView anatomy={result.jobAnatomy} title={sel?.title || ""} view="airisk" />
+        </div>
+      );
+    }
     if (key === "skills") {
       // PL8: AgenticShift moved to ai-hero (above); it is an AI-readiness read, not a
       // per-skill detail. [PL8] AgenticShift -- moved to ai-hero renderSection branch.
@@ -10945,9 +10980,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       return <ResponsibilitiesPanel key="responsibilities" data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />;
     }
     if (key === "jobanatomy") {
+      // SPLIT: structure view only - work-layer mix + org-context + narrative + duties.
+      // AI-resilience score / automatability / trajectory moved to AI Readiness ("ai-anatomy").
       if (!result.jobAnatomy || result.jobAnatomy.fallback) return null;
       if (!result.jobAnatomy.duties || result.jobAnatomy.duties.length === 0) return null;
-      return <JobAnatomyView key="jobanatomy" anatomy={result.jobAnatomy} title={sel?.title || ""} />;
+      return <JobAnatomyView key="jobanatomy" anatomy={result.jobAnatomy} title={sel?.title || ""} view="structure" />;
     }
     if (key === "rolemix") {
       if (!result.roleMix || result.roleMix.fallback || !result.roleMix.components || result.roleMix.components.length === 0) return null;
