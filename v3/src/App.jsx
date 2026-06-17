@@ -5758,7 +5758,6 @@ function TaskPrep({ result }) {
 // ---- PL3: Five-pillar model + PillarBar header nav ----
 // _PILLARS is the locked five-pillar model confirmed by Human Lead (17-06-26).
 // Each pillar has: n (display number), key (state key, lowercase), name (display label).
-// PL4 will add lead questions + _PILLAR_MAP tab grouping; PL3 only introduces the nav primitive.
 const _PILLARS = [
   { n: 1, key: "understand",    name: "Understand"    },
   { n: 2, key: "position",      name: "Position"      },
@@ -5767,14 +5766,29 @@ const _PILLARS = [
   { n: 5, key: "arm",           name: "Arm"           },
 ];
 
-// Representative tab to jump to when a pillar is selected (PL3 interim wiring).
-// PL4 will replace this with a full _PILLAR_MAP grouping.
-const _PILLAR_TAB = {
-  "understand":   "deepread",
-  "position":     "context",
-  "become":       "deepread",
-  "ai-readiness": "skills",
-  "arm":          "taskprep",
+// [PL4 removed] _PILLAR_TAB -- G2 tombstone: superseded by _PILLAR_MAP below. Do not restore.
+// _PILLAR_TAB (dead-coded PL4): was { understand:"deepread", position:"context", become:"deepread", "ai-readiness":"skills", arm:"taskprep" }
+
+// ---- PL4: Pillar VIEW shell - _PILLAR_MAP + _PILLAR_QUESTION ----
+// _PILLAR_MAP: ordered pillar key -> ordered array of result tab keys that belong to it.
+// Every live buildTabs key appears in exactly ONE pillar array (cross-checked; zero orphans).
+// Keys follow the PL2 ledger + spec-PL4 placement for conditional/un-ledgered tabs.
+const _PILLAR_MAP = {
+  "understand":   ["rolegraph", "responsibilities", "jobanatomy", "rolemix"],
+  "position":     ["progression", "crossover", "context", "compare", "mcf_jobs"],
+  "become":       ["deepread"],
+  "ai-readiness": ["skills", "category"],
+  "arm":          ["taskprep", "foundation"],
+};
+
+// _PILLAR_QUESTION: fixed plain-language lead question for each pillar (PL0 directive copy).
+// R007: hyphens only, ASCII only.
+const _PILLAR_QUESTION = {
+  "understand":   "What is this role and why does it exist?",
+  "position":     "Where does this role sit in the market?",
+  "become":       "What is the craft to own, and what stays human?",
+  "ai-readiness": "Which parts of my job is AI taking, helping, or leaving to me - and what do I do about each?",
+  "arm":          "What are the real tasks, and how do I prepare?",
 };
 
 // PillarBar: five numbered pillar buttons rendered in the result header region.
@@ -10444,7 +10458,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     logStep("Building comparison...");
     setIsRunningComparison(false);
     track("comparison_completed");
-    setActiveTab("compare");
+    // PL4: compare lives under the Position pillar; navigate there.
+    setActivePillar("position");
     setTimeout(() => tabBarRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }), 150);
     showToast("Comparison ready", null);
   }, []);
@@ -10538,12 +10553,209 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     }
   };
 
-  // PL3: pillar selection handler - sets activePillar and jumps activeTab to the
-  // representative tab for that pillar (interim wiring; PL4 will replace with _PILLAR_MAP).
+  // PL4: pillar selection handler - sets activePillar only.
+  // The tab strip is superseded by the pillar view; activeTab is no longer used to gate
+  // pillar-section render (renderSection guards on data presence instead).
   function handlePillarSelect(key) {
     setActivePillar(key);
-    const target = _PILLAR_TAB[key];
-    if (target) { setActiveTab(target); setSegmentPanelOpen(false); track("pillar_viewed", { pillar: key }); }
+    setSegmentPanelOpen(false);
+    track("pillar_viewed", { pillar: key });
+  }
+
+  // PL4: buildSkillGroups - extracted from the SkillGroupedView grouped prop (R006: no
+  // multi-line arrow in a JSX prop; extract to a named function above the return).
+  function buildSkillGroups() {
+    const groupDef = [
+      { level:"HUMAN",  label:"Human-Led",      sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"\u{1F7E6}" },
+      { level:"LOW",    label:"AI-Assisted",     sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"\u{1F535}" },
+      { level:"MEDIUM", label:"AI-Augmented",    sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"\u{1F7E1}" },
+      { level:"HIGH",   label:"Full Automation", sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"\u{1F7E7}" },
+    ];
+    return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
+  }
+
+  // PL4: renderSection(key) - returns the JSX for a single result section by tab key.
+  // Guards on data presence mirror the conditions in buildTabs so absent data renders nothing.
+  // The panels are MOVED here unchanged - no internal edit, Prov chips intact (PL2 ledger).
+  // R006: this is a named function, not a multi-line arrow in a JSX prop.
+  function renderSection(key) {
+    if (!result) return null;
+    if (key === "skills") {
+      return (
+        <div key="skills">
+          <AgenticShift result={result} title={sel?.title || ""} />
+          <SkillGroupedView
+            grouped={buildSkillGroups()}
+            result={result}
+            onSearch={handleSearchFromSkill}
+            skillInputResult={skillInputResult}
+            skillInputQuery={skillInputQuery}
+            onSkillSearch={handleSkillSearch}
+            onSkillQueryChange={setSkillInputQuery}
+            firstAnalysis={!hasAnalysedOnce.current}
+            onQueue={handleQueueRole}
+            queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
+            currentRole={sel?.title || ""}
+            jumpToSkill={jumpToSkill}
+            onJumpHandled={() => setJumpToSkill(null)}
+            firstBlinkSkill={firstBlinkSkill}
+            onRefreshPrompt={handleRefreshPrompt}
+          />
+        </div>
+      );
+    }
+    if (key === "deepread") {
+      if (!(result.responsibilitiesData || result.jobAnatomy)) return null;
+      return (
+        <div key="deepread">
+          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The deeper, advisory reads of this role - why it exists, who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
+          <ForensicReversal result={result} title={sel?.title || ""} />
+          <StrategyRead result={result} title={sel?.title || ""} />
+          <BdfStewardship result={result} title={sel?.title || ""} />
+          <StewardshipShift result={result} />
+          <StewardsPraxis result={result} title={sel?.title || ""} />
+          <DemandProof result={result} />
+          <AdLanguageScan result={result} />
+          <EmployerReality result={result} />
+          <CompanyBackground result={result} />
+        </div>
+      );
+    }
+    if (key === "taskprep") {
+      if (!result.responsibilitiesData) return null;
+      if (!(result.responsibilitiesData.responsibilities && result.responsibilitiesData.responsibilities.length > 0)) return null;
+      return <TaskPrep key="taskprep" result={result} />;
+    }
+    if (key === "responsibilities") {
+      if (!result.responsibilitiesData) return null;
+      if (!(result.responsibilitiesData.responsibilities && result.responsibilitiesData.responsibilities.length > 0)) return null;
+      return <ResponsibilitiesPanel key="responsibilities" data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />;
+    }
+    if (key === "jobanatomy") {
+      if (!result.jobAnatomy || result.jobAnatomy.fallback) return null;
+      if (!result.jobAnatomy.duties || result.jobAnatomy.duties.length === 0) return null;
+      return <JobAnatomyView key="jobanatomy" anatomy={result.jobAnatomy} title={sel?.title || ""} />;
+    }
+    if (key === "rolemix") {
+      if (!result.roleMix || result.roleMix.fallback || !result.roleMix.components || result.roleMix.components.length === 0) return null;
+      return (
+        <div key="rolemix">
+          <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
+          <WorkModeMix result={result} />
+        </div>
+      );
+    }
+    if (key === "foundation") {
+      if (!result.foundationData) return null;
+      return <FoundationPanel key="foundation" data={result.foundationData} persona={persona} />;
+    }
+    if (key === "progression") {
+      if (!result.progressionData) return null;
+      return <ProgressionPanel key="progression" items={result.progressionData} skills={result.skills} onAnalyse={(r) => handleAnalyseRole(r, "progression")} onQueue={handleQueueRole} onQueueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)} firstAnalysis={!hasAnalysedOnce.current} />;
+    }
+    if (key === "crossover") {
+      if (!result.crossoverData) return null;
+      return <CrossoverPanel key="crossover" items={result.crossoverData} skills={result.skills} onAnalyse={(r) => handleAnalyseRole(r, "crossover")} onQueue={handleQueueRole} onQueueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)} firstAnalysis={!hasAnalysedOnce.current} />;
+    }
+    if (key === "category") {
+      return <CategoryPanel key="category" skills={result.skills} />;
+    }
+    if (key === "context") {
+      if (!result.contextData) return null;
+      return <RoleContextPanel key="context" data={result.contextData} skills={result.skills} firstAnalysis={!hasAnalysedOnce.current} />;
+    }
+    if (key === "compare") {
+      const readyComps = comparisons.filter(c => c.result && c.result.skills);
+      return (
+        <div key="compare">
+          <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
+            <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>Compare</h2>
+          </div>
+          {comparisons.length < 2 ? (
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
+              <p style={{ margin:"0 0 8px", fontSize: 16, color:C.textSub }}>You need at least 2 roles to compare.</p>
+              <p style={{ margin:0, fontSize:12, color:C.muted }}>Use the <strong>+ Add this role</strong> button or tap <strong>+ Compare</strong> on any career path card.</p>
+            </div>
+          ) : isRunningComparison ? (
+            <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
+              <div style={{ width:36, height:36, margin:"0 auto 14px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
+              <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#0369a1" }}>Building comparison</p>
+              <p style={{ margin:"0 0 4px", fontSize:12, color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"0 0 16px" }}>
+                <span style={{ fontSize:11, color:C.muted }}>Step {compareStep} of {comparisons.filter(c=>!c.result).length * 3 + 2}</span>
+                <span style={{ fontSize:11, fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding: "2px 10px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
+                  {Math.floor(compareElapsed/60)}:{String(compareElapsed%60).padStart(2,"0")}
+                </span>
+              </div>
+              <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
+                {comparisons.map((c, i) => (
+                  <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+                    {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>&#x2713;</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
+                    <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
+                  </span>
+                ))}
+              </div>
+              {comparisons.some(c => c.result) && (
+                <p style={{ margin:0, fontSize:11, color:"#1e40af", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
+              )}
+            </div>
+          ) : readyComps.length >= 2 ? (
+            <ComparisonPanel
+              comparisons={comparisons}
+              onRemove={removeFromComparison}
+              onAnalyse={handleAnalyseRole}
+              currentTitle={toTitleCase(sel?.title || "")}
+              onAddThird={() => {
+                const currentTitle = toTitleCase(sel?.title || "");
+                const alreadyIn = comparisons.find(c => c.title === currentTitle);
+                const updated = alreadyIn ? comparisons : [...comparisons, { title: currentTitle, result }];
+                softReset(updated);
+              }}
+            />
+          ) : (
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "24px 20px", textAlign:"center" }}>
+              <p style={{ margin:0, fontSize:13, color:C.muted }}>Roles are still being analysed. Please wait.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (key === "mcf_jobs") {
+      return (
+        <McfJobsPanel
+          key="mcf_jobs"
+          sel={sel}
+          skills={result.skills}
+          escoOccupation={result.escoOccupation}
+          onAnalysePosting={handleAnalysePosting}
+          onQueuePosting={handleQueuePosting}
+          onAnalyseCorpus={handleAnalyseCorpus}
+          queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
+        />
+      );
+    }
+    if (key === "rolegraph") {
+      return <RoleGraphPanel key="rolegraph" result={result} title={sel?.title || ""} />;
+    }
+    return null;
+  }
+
+  // PL4: renderPillarView - renders the lead-question header then each section for the
+  // active pillar, stacked vertically. Sections whose data is absent render nothing (guarded
+  // inside renderSection). Lead question is a real heading (a11y: PL10/section-7).
+  function renderPillarView() {
+    const keys = _PILLAR_MAP[activePillar] || [];
+    const question = _PILLAR_QUESTION[activePillar] || "";
+    return (
+      <div>
+        {question && (
+          <h2 style={{ margin:"0 0 16px", fontSize:17, fontWeight:700, color:C.text, lineHeight:1.4 }}>
+            {question}
+          </h2>
+        )}
+        {keys.map(k => renderSection(k))}
+      </div>
+    );
   }
 
   return (
@@ -10816,7 +11028,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding: "12px 20px", fontSize:13, fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
           <span>{toast.msg}</span>
           {toast.action === "compare" && (
-            <button onClick={() => { setActiveTab("compare"); setToast(null); track("tab_viewed", { tab:"compare" }); }}
+            <button onClick={() => { setActivePillar("position"); setToast(null); track("pillar_viewed", { pillar:"position" }); }}
               style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding: "4px 12px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
               View comparison →
             </button>
@@ -11060,7 +11272,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 firstBlinkSkill={firstBlinkSkill}
                 onSkillClick={(skillName) => {
                   setJumpToSkill(skillName);
-                  setActiveTab("skills");
+                  setActivePillar("ai-readiness"); // PL4: skills lives under AI Readiness pillar
                   setSegmentPanelOpen(false);
                   setTimeout(() => {
                     const el = document.getElementById(`skill-${skillName.replace(/\s+/g,"-").toLowerCase()}`);
@@ -11093,17 +11305,20 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     // never colour alone (a11y contract).
                     const disabled = compareDisabled || !!t.paused;
                     const label = t.key === "compare"
-                      ? (readyCount >= 2 ? `⚖️ Compare (${readyCount})` : "⚖️ Compare")
+                      ? (readyCount >= 2 ? `Compare (${readyCount})` : "Compare")
                       : t.paused ? `${t.label} (paused)` : t.label;
+                    // PL4: find which pillar owns this tab key and navigate there on click.
+                    const ownerPillar = Object.keys(_PILLAR_MAP).find(pk => _PILLAR_MAP[pk].includes(t.key)) || "understand";
+                    const isActivePillarTab = _PILLAR_MAP[activePillar] && _PILLAR_MAP[activePillar].includes(t.key);
                     return (
                     <button key={t.key} aria-disabled={disabled || undefined} disabled={!!t.paused}
-                      onClick={() => { if (!disabled) { setActiveTab(t.key); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
+                      onClick={() => { if (!disabled) { handlePillarSelect(ownerPillar); setSegmentPanelOpen(false); track("tab_viewed", { tab: t.key }); } }}
                       title={compareDisabled ? "Add 2 or more roles to compare" : t.paused ? "Paused for now" : ""}
                       style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px", borderRadius: 16, fontSize:12, fontWeight:600,
                         cursor: disabled ? "not-allowed" : "pointer",
-                        border:`2px solid ${activeTab===t.key ? t.color : C.border}`,
-                        background: disabled ? C.bg : activeTab===t.key ? t.color : C.surface,
-                        color: disabled ? C.mutedLight : activeTab===t.key ? "#fff" : C.textSub,
+                        border:`2px solid ${isActivePillarTab ? t.color : C.border}`,
+                        background: disabled ? C.bg : isActivePillarTab ? t.color : C.surface,
+                        color: disabled ? C.mutedLight : isActivePillarTab ? "#fff" : C.textSub,
                         opacity: disabled ? 0.55 : 1,
                         transition:"all 0.15s", whiteSpace:"nowrap" }}>
                       {label}
@@ -11111,10 +11326,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     );
                   })}
                 </div>
-                <ExplainAnalysis title={sel?.title || ""} tabs={tabs} onGo={(k) => { setActiveTab(k); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
+                <ExplainAnalysis title={sel?.title || ""} tabs={tabs} onGo={(k) => { const pk = Object.keys(_PILLAR_MAP).find(p => _PILLAR_MAP[p].includes(k)) || "understand"; handlePillarSelect(pk); setSegmentPanelOpen(false); track("tab_viewed", { tab: k }); }} />
               </div>
           );
-          const navBlocksGraph = uiV2 && activeTab === "rolegraph";
+          // PL4: rolegraph is now stacked within the Understand pillar view, not a solo tab.
+          // The nav rail stays active (grid always on); navBlocksGraph is retired.
+          const navBlocksGraph = false;
           return (
             <div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
@@ -11199,15 +11416,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                             {inSession ? "＋ Add this role to comparison" : "＋ Start comparison with this role"}
                           </button>
                         )}
-                        {/* View comparison button - when 2+ ready */}
+                        {/* View comparison button - when 2+ ready; PL4: navigate to Position pillar (compare lives there) */}
                         {readyCount >= 2 && (
                           <button onClick={() => {
-                              setActiveTab("compare");
-                              track("tab_viewed", { tab:"compare" });
+                              handlePillarSelect("position");
                               setTimeout(() => tabBarRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }), 80);
                             }}
                             style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#0e7490", border:"none", borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
-                            ⚖️ View comparison →
+                            Compare →
                           </button>
                         )}
                       </div>
@@ -11294,159 +11510,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <div style={uiV2 ? { minWidth:0 } : undefined}>
                   {uiV2 && uiHero}
 
-              {activeTab === "skills" && <AgenticShift result={result} title={sel?.title || ""} />}
-              {activeTab === "skills" && <SkillGroupedView
-                  grouped={(() => {
-                    const groupDef = [
-                      { level:"HUMAN",  label:"Human-Led",        sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"🟦" },
-                      { level:"LOW",    label:"AI-Assisted",       sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490",  bg:"#ecfeff", border:"#a5f3fc",  icon:"🔵" },
-                      { level:"MEDIUM", label:"AI-Augmented",      sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"🟡" },
-                      { level:"HIGH",   label:"Full Automation",   sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#9a3412", bg:"#fff7ed", border:"#fed7aa", icon:"🟧" },
-                    ];
-                    return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
-                  })()}
-                  result={result}
-                  onSearch={handleSearchFromSkill}
-                  skillInputResult={skillInputResult}
-                  skillInputQuery={skillInputQuery}
-                  onSkillSearch={handleSkillSearch}
-                  onSkillQueryChange={setSkillInputQuery}
-                  firstAnalysis={!hasAnalysedOnce.current}
-                  onQueue={handleQueueRole}
-                  queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
-                  currentRole={sel?.title || ""}
-                  jumpToSkill={jumpToSkill}
-                  onJumpHandled={() => setJumpToSkill(null)}
-                  firstBlinkSkill={firstBlinkSkill}
-                  onRefreshPrompt={handleRefreshPrompt}
-                />}
-              {activeTab === "deepread" && (
-                <>
-                  <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The deeper, advisory reads of this role - why it exists, who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
-                  <ForensicReversal result={result} title={sel?.title || ""} />
-                  <StrategyRead result={result} title={sel?.title || ""} />
-                  <BdfStewardship result={result} title={sel?.title || ""} />
-                  <StewardshipShift result={result} />
-                  <StewardsPraxis result={result} title={sel?.title || ""} />
-                  <DemandProof result={result} />
-                  <AdLanguageScan result={result} />
-                  <EmployerReality result={result} />
-                  <CompanyBackground result={result} />
-                </>
-              )}
-              {activeTab === "taskprep" && result.responsibilitiesData && (
-                <TaskPrep result={result} />
-              )}
-              {/* activeTab === "rehearse" -- removed (PL2) */}
-              {/* activeTab === "coverletter" -- removed (PL2) */}
-              {activeTab === "responsibilities" && result.responsibilitiesData && (
-                <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
-              )}
-
-              {activeTab === "jobanatomy" && result.jobAnatomy && (
-                <JobAnatomyView anatomy={result.jobAnatomy} title={sel?.title || ""} />
-              )}
-
-              {activeTab === "rolemix" && result.roleMix && (
-                <>
-                  <RoleMixPanel roleMix={result.roleMix} skills={result.skills} postingMeta={result.postingMeta} title={sel?.title || ""} />
-                  <WorkModeMix result={result} />
-                </>
-              )}
-
-              {activeTab === "foundation" && result.foundationData && (
-                <FoundationPanel data={result.foundationData} persona={persona} />
-              )}
-
-              {activeTab === "progression" && result.progressionData && (
-                <ProgressionPanel items={result.progressionData} skills={result.skills} onAnalyse={(r) => handleAnalyseRole(r, "progression")} onQueue={handleQueueRole} onQueueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)} firstAnalysis={!hasAnalysedOnce.current} />
-              )}
-
-              {activeTab === "crossover" && result.crossoverData && (
-                <CrossoverPanel items={result.crossoverData} skills={result.skills} onAnalyse={(r) => handleAnalyseRole(r, "crossover")} onQueue={handleQueueRole} onQueueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)} firstAnalysis={!hasAnalysedOnce.current} />
-              )}
-
-              {activeTab === "category" && <CategoryPanel skills={result.skills} />}
-              {activeTab === "context" && result.contextData && (
-                <RoleContextPanel data={result.contextData} skills={result.skills} firstAnalysis={!hasAnalysedOnce.current} />
-              )}
-              {/* Compare tab content */}
-              {activeTab === "compare" && (() => {
-                const readyComps = comparisons.filter(c => c.result && c.result.skills);
-                return (
-                <div>
-                  {/* Compare tab title */}
-                  <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
-                    <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
-                    
-                  </div>
-                  {comparisons.length < 2 ? (
-                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
-                      <p style={{ margin:"0 0 8px", fontSize: 16, color:C.textSub }}>You need at least 2 roles to compare.</p>
-                      <p style={{ margin:0, fontSize:12, color:C.muted }}>Use the <strong>+ Add this role</strong> button or tap <strong>+ Compare</strong> on any career path card.</p>
-                    </div>
-                  ) : isRunningComparison ? (
-                    <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
-                      <div style={{ width:36, height:36, margin:"0 auto 14px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-                      <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#0369a1" }}>Building comparison</p>
-                      <p style={{ margin:"0 0 4px", fontSize:12, color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
-                      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"0 0 16px" }}>
-                        <span style={{ fontSize:11, color:C.muted }}>Step {compareStep} of {comparisons.filter(c=>!c.result).length * 3 + 2}</span>
-                        <span style={{ fontSize:11, fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding: "2px 10px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
-                          {Math.floor(compareElapsed/60)}:{String(compareElapsed%60).padStart(2,"0")}
-                        </span>
-                      </div>
-                      <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
-                        {comparisons.map((c, i) => (
-                          <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
-                            {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>✓</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
-                            <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
-                          </span>
-                        ))}
-                      </div>
-                      {comparisons.some(c => c.result) && (
-                        <p style={{ margin:0, fontSize:11, color:"#1e40af", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
-                      )}
-                    </div>
-                  ) : readyComps.length >= 2 ? (
-                    <ComparisonPanel
-                      comparisons={comparisons}
-                      onRemove={removeFromComparison}
-                      onAnalyse={handleAnalyseRole}
-                      currentTitle={toTitleCase(sel?.title || "")}
-                      onAddThird={() => {
-                        const currentTitle = toTitleCase(sel?.title || "");
-                        const alreadyIn = comparisons.find(c => c.title === currentTitle);
-                        const updated = alreadyIn ? comparisons : [...comparisons, { title: currentTitle, result }];
-                        softReset(updated);
-                      }}
-                    />
-                  ) : (
-                    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "24px 20px", textAlign:"center" }}>
-                      <p style={{ margin:0, fontSize:13, color:C.muted }}>Roles are still being analysed. Please wait.</p>
-                    </div>
-                  )}
-                </div>
-                );
-              })()}
-
-              {activeTab === "mcf_jobs" && (
-                <McfJobsPanel
-                  sel={sel}
-                  skills={result.skills}
-                  escoOccupation={result.escoOccupation}
-                  onAnalysePosting={handleAnalysePosting}
-                  onQueuePosting={handleQueuePosting}
-                  onAnalyseCorpus={handleAnalyseCorpus}
-                  queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
-                />
-              )}
-
-              {activeTab === "rolegraph" && (
-                <RoleGraphPanel result={result} title={sel?.title || ""} />
-              )}
-
-              {/* activeTab === "resume" -- removed (PL2) */}
+              {/* PL4: pillar view - lead question h2 + stacked sections for the active pillar.
+                  renderPillarView() calls renderSection(key) for each key in _PILLAR_MAP[activePillar];
+                  absent-data sections render nothing (guarded inside renderSection).
+                  The old activeTab === "key" gates are retired here; tab keys are re-grouped
+                  to pillars via _PILLAR_MAP. PL2 tombstones retained as comments below. */}
+              {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
+              {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
+              {renderPillarView()}
 
               {/* UI2: the badges legend rides as a footnote under the content */}
               {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
