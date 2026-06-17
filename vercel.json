@@ -1,6 +1,7 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)v3'",
   "regions": ["sin1", "hnd1"],
   "functions": {
     "api/claude.js": { "maxDuration": 300 },
