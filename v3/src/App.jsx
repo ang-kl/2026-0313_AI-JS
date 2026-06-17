@@ -10194,14 +10194,14 @@ function _saveSeenAll(all) {
 }
 
 // Classify the current postings against this title's history, then record this
-// sighting. Returns { info: { [uuid]: { firstSeen, lastSeen, isNew } }, newCount,
-// seenCount }. Best-effort: any storage failure degrades to "all new" and never
-// blocks the panel.
+// sighting. Returns the map { [uuid]: { firstSeen, lastSeen, isNew } }; the
+// new/seen counts are derived in the view from this map, so they are not
+// duplicated here. Best-effort: any storage failure degrades to "all new" and
+// never blocks the panel.
 function recordAndClassifySeen(title, jobs) {
   const info = {};
-  let newCount = 0, seenCount = 0;
   const key = seenTitleKey(title);
-  if (!key || !Array.isArray(jobs) || !jobs.length) return { info, newCount, seenCount };
+  if (!key || !Array.isArray(jobs) || !jobs.length) return info;
   try {
     const all = _loadSeenAll();
     let store = all[key] || {};
@@ -10215,7 +10215,6 @@ function recordAndClassifySeen(title, jobs) {
       const isNew = seenDayKey(firstSeen) === today;   // first surfaced today => NEW
       store[uuid] = { f: firstSeen, l: now };
       info[uuid] = { firstSeen, lastSeen: now, isNew };
-      if (isNew) newCount++; else seenCount++;
     }
     // prune this title's memory to the most-recently-seen MCF_SEEN_MAX_PER_TITLE
     const entries = Object.entries(store);
@@ -10224,15 +10223,17 @@ function recordAndClassifySeen(title, jobs) {
       store = Object.fromEntries(entries.slice(0, MCF_SEEN_MAX_PER_TITLE));
     }
     all[key] = store;
-    // prune the number of remembered titles (drop the least-recently-touched)
+    // prune the number of remembered titles (drop the least-recently-touched).
+    // Compute each title's last-touch ONCE up front, not inside the comparator.
     const titleKeys = Object.keys(all);
     if (titleKeys.length > MCF_SEEN_MAX_TITLES) {
-      const lastTouch = (k) => Object.values(all[k]).reduce((m, v) => Math.max(m, v.l || 0), 0);
-      titleKeys.sort((a, b) => lastTouch(b) - lastTouch(a)).slice(MCF_SEEN_MAX_TITLES).forEach(k => { delete all[k]; });
+      const lastTouch = {};
+      for (const k of titleKeys) lastTouch[k] = Object.values(all[k]).reduce((m, v) => Math.max(m, v.l || 0), 0);
+      titleKeys.sort((a, b) => lastTouch[b] - lastTouch[a]).slice(MCF_SEEN_MAX_TITLES).forEach(k => { delete all[k]; });
     }
     _saveSeenAll(all);
   } catch (_) { /* memory is best-effort; never block the panel */ }
-  return { info, newCount, seenCount };
+  return info;
 }
 
 // Latest-first by verbatim MCF postedDate; undated postings sink to the bottom.
@@ -10243,7 +10244,7 @@ const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - 
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
-  const [state, setState] = useState({ loading: true, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], seenInfo: {}, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
@@ -10274,13 +10275,11 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
         // this title's device-local history (and record this sighting).
         const sortedJobs = (Array.isArray(data.jobs) ? data.jobs : []).slice().sort(byLatestPosted);
-        const seen = recordAndClassifySeen(sel?.title || "", sortedJobs);
+        const seenInfo = recordAndClassifySeen(sel?.title || "", sortedJobs);
         setState({
           loading: false,
           jobs: sortedJobs,
-          seenInfo: seen.info,
-          newCount: seen.newCount,
-          seenCount: seen.seenCount,
+          seenInfo,
           tier: data.tier || 0,
           message: data.message || "",
           approximate: !!data.approximate,
@@ -10291,7 +10290,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         track("v3_mcf_loaded", { tier: data.tier || 0, count: (data.jobs || []).length, fallback: !!data.fallback });
       } catch (err) {
         if (cancelled) return;
-        setState({ loading: false, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+        setState({ loading: false, jobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
         track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
       }
     })();
@@ -10478,7 +10477,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
               <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                seen={state.seenCount > 0 ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
+                seen={hasSeenHistory ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
                 onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
             ))}
           </div>
