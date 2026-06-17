@@ -763,6 +763,21 @@
 // beacon -> connect-src 'self' already allows it, no CSP change. No LLM, no number.
 // SETUP REQUIRED: add ALERT_WEBHOOK_URL (your Slack/Discord webhook) in the v3 Vercel project.
 // G1 (v3.0.75 -> v3.0.76).
+// v3.0.77 - 2026-06-17 - HDR #115 - NEO + MCF RECENCY (Human Lead directives "change the v3 UI
+// to be more neo-skeuomorphism" and "i keep getting similar MCF ads each day ... sort by latest
+// ... categorize into two buckets - new and last search"). Two parts, both presentational /
+// behaviour only - no engine, prompt, or Prov-chip surface touched. (1) NEO: a soft-UI skin -
+// base bg -> #e6ebf2 (the neutral canvas surfaces extrude from), neutral border softened, a NEO
+// token set (raise/raiseSm/inset dual shadows), the shared card() helpers + a .main-content-scoped
+// retrofit turn the standard white card signature into extruded soft surfaces, and the LUX chrome
+// (search/CTA/lift) becomes inset/raised. Text stays dark, semantic chips stay coloured, the
+// keyboard focus halo was restored to >=3:1 on the new base (a11y review FAIL -> fixed). (2) MCF
+// RECENCY: the MyCareersFuture panel now sorts postings newest-posted first (verbatim postedDate)
+// and splits them into NEW vs SEEN-BEFORE against a device-local, best-effort memory (localStorage
+// mcfSeen.v1, bounded + pruned). "New" is keyed on the first-seen DAY so reloads don't flip it; the
+// Seen-before bucket is ordered by when each ad first entered your searches. Clearly labelled as
+// your own on-device history, NOT an MCF fact, so it carries no "from MCF" provenance. No LLM, no
+// number. G1 (v3.0.76 -> v3.0.77).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
