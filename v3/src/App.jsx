@@ -10179,7 +10179,10 @@ function clusterPostingsBySkills(jobs) {
 const MCF_SEEN_KEY = "mcfSeen.v1";
 const MCF_SEEN_MAX_PER_TITLE = 400;      // bound storage; prune oldest by lastSeen
 const MCF_SEEN_MAX_TITLES = 60;          // bound number of remembered titles
-const seenDayKey = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toISOString().slice(0, 10); };
+// First-seen DAY key in the visitor's LOCAL time (the audience is en-SG, UTC+8);
+// using UTC here would bucket an ad first seen 00:00-08:00 SGT into the previous
+// calendar day and mis-label it "Seen before" the same Singapore day.
+const seenDayKey = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 const seenTitleKey = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ").slice(0, 80);
 
 function _loadSeenAll() {
@@ -11781,18 +11784,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         --neo-raise-sm: 4px 4px 9px var(--neo-dark), -4px -4px 9px var(--neo-light);
         --neo-inset: inset 3px 3px 7px var(--neo-dark), inset -3px -3px 7px var(--neo-light);
       }
-      /* Retrofit the standard white card signature (C.surface + card radius)
-         across the whole result subtree into a soft extruded surface. The
-         compound selector requires BOTH the white background AND a card radius
-         so coloured chips and inputs are never matched. */
-      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 10px"],
-      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 14px"],
-      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 16px"] {
-        box-shadow: var(--neo-raise) !important;
+      /* Retrofit the standard white card signature into a soft extruded surface.
+         The compound selector requires the white background AND the NEUTRAL
+         C.border (rgb(227,233,241)) AND a card radius, so elements framed with a
+         load-bearing accent/teal border (tab bar, inputs, emphasis boxes, matched
+         pills) are NEVER matched and keep their meaningful border. box-shadow is
+         intentionally NOT !important: an element with its own inline shadow
+         (floating drawers, dialogs, toasts) keeps its elevation; only the flat
+         cards - which set no shadow - pick up the soft raise. */
+      .main-content [style*="rgb(255, 255, 255)"][style*="rgb(227, 233, 241)"][style*="border-radius: 10px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="rgb(227, 233, 241)"][style*="border-radius: 14px"],
+      .main-content [style*="rgb(255, 255, 255)"][style*="rgb(227, 233, 241)"][style*="border-radius: 16px"] {
+        box-shadow: var(--neo-raise);
         border-color: rgba(255, 255, 255, 0.6) !important;
       }
-      .main-content [style*="rgb(255, 255, 255)"][style*="border-radius: 6px"] {
-        box-shadow: var(--neo-raise-sm) !important;
+      .main-content [style*="rgb(255, 255, 255)"][style*="rgb(227, 233, 241)"][style*="border-radius: 6px"] {
+        box-shadow: var(--neo-raise-sm);
         border-color: rgba(255, 255, 255, 0.55) !important;
       }
       /* Reusable neo primitives for components that opt in explicitly */
