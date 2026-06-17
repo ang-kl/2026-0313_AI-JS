@@ -10007,7 +10007,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
 
 // v3.1: a single live-job card, with an expandable "responsibilities & skills"
 // section sourced from the scraped posting text.
-function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting, canQueue }) {
+function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue }) {
   const [open, setOpen] = useState(false);
   const detail = (job.responsibilitiesText || job.description || "").trim();
   const hasSkills = Array.isArray(job.skills) && job.skills.length > 0;
@@ -10025,6 +10025,13 @@ function McfJobCard({ job, fmtSalary, daysAgo, onAnalysePosting, onQueuePosting,
           <span style={{ fontSize: 13, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
         )}
       </div>
+      {seen && (
+        seen.isNew ? (
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>✦ New since you last looked</span>
+        ) : (
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>↩ Seen before{fmtSeenDate && seen.firstSeen ? ` · since ${fmtSeenDate(seen.firstSeen)}` : ""}</span>
+        )
+      )}
       {job.employer && (
         <p style={{ margin: "0 0 6px", fontSize: 14, color: C.textSub }}>{job.employer}</p>
       )}
@@ -10146,22 +10153,91 @@ function clusterPostingsBySkills(jobs) {
   return out.length >= 2 ? out : [];
 }
 
+// ── MCF "seen before" memory ──────────────────────────────────────────────
+// Device-local recall of which postings a given title has surfaced before, so
+// the panel can split today's results into genuinely NEW ads vs ones already
+// seen on an earlier day (the "i keep getting the same ads each day" problem).
+// localStorage ONLY - this is the visitor's own browsing history, never an MCF
+// fact, so it carries no "from MCF" provenance. Robust to same-day reloads:
+// "new" is keyed on the first-seen DAY, not on each page load, so refreshing
+// the page does not flip today's new ads into "seen".
+const MCF_SEEN_KEY = "mcfSeen.v1";
+const MCF_SEEN_MAX_PER_TITLE = 400;      // bound storage; prune oldest by lastSeen
+const MCF_SEEN_MAX_TITLES = 60;          // bound number of remembered titles
+const seenDayKey = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toISOString().slice(0, 10); };
+const seenTitleKey = (t) => String(t || "").trim().toLowerCase().replace(/\s+/g, " ").slice(0, 80);
+
+function _loadSeenAll() {
+  try { return JSON.parse(localStorage.getItem(MCF_SEEN_KEY) || "{}") || {}; }
+  catch (_) { return {}; }
+}
+function _saveSeenAll(all) {
+  try { localStorage.setItem(MCF_SEEN_KEY, JSON.stringify(all)); } catch (_) {}
+}
+
+// Classify the current postings against this title's history, then record this
+// sighting. Returns { info: { [uuid]: { firstSeen, lastSeen, isNew } }, newCount,
+// seenCount }. Best-effort: any storage failure degrades to "all new" and never
+// blocks the panel.
+function recordAndClassifySeen(title, jobs) {
+  const info = {};
+  let newCount = 0, seenCount = 0;
+  const key = seenTitleKey(title);
+  if (!key || !Array.isArray(jobs) || !jobs.length) return { info, newCount, seenCount };
+  try {
+    const all = _loadSeenAll();
+    let store = all[key] || {};
+    const now = Date.now();
+    const today = seenDayKey(now);
+    for (const j of jobs) {
+      const uuid = j && j.uuid;
+      if (!uuid) continue;
+      const prev = store[uuid];
+      const firstSeen = (prev && prev.f) ? prev.f : now;
+      const isNew = seenDayKey(firstSeen) === today;   // first surfaced today => NEW
+      store[uuid] = { f: firstSeen, l: now };
+      info[uuid] = { firstSeen, lastSeen: now, isNew };
+      if (isNew) newCount++; else seenCount++;
+    }
+    // prune this title's memory to the most-recently-seen MCF_SEEN_MAX_PER_TITLE
+    const entries = Object.entries(store);
+    if (entries.length > MCF_SEEN_MAX_PER_TITLE) {
+      entries.sort((a, b) => (b[1].l || 0) - (a[1].l || 0));
+      store = Object.fromEntries(entries.slice(0, MCF_SEEN_MAX_PER_TITLE));
+    }
+    all[key] = store;
+    // prune the number of remembered titles (drop the least-recently-touched)
+    const titleKeys = Object.keys(all);
+    if (titleKeys.length > MCF_SEEN_MAX_TITLES) {
+      const lastTouch = (k) => Object.values(all[k]).reduce((m, v) => Math.max(m, v.l || 0), 0);
+      titleKeys.sort((a, b) => lastTouch(b) - lastTouch(a)).slice(MCF_SEEN_MAX_TITLES).forEach(k => { delete all[k]; });
+    }
+    _saveSeenAll(all);
+  } catch (_) { /* memory is best-effort; never block the panel */ }
+  return { info, newCount, seenCount };
+}
+
+// Latest-first by verbatim MCF postedDate; undated postings sink to the bottom.
+const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - (Date.parse((a && a.postedDate) || "") || 0);
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
-  const [state, setState] = useState({ loading: true, jobs: [], tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
+  const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
   const PER_PAGE = 10;
-  useEffect(() => { setPage(0); }, [freshGrad]); // reset paging when the fresh-grad filter toggles
+  useEffect(() => { setPage(0); }, [freshGrad, recencyFilter]); // reset paging when a filter toggles
 
   useEffect(() => {
     let cancelled = false;
     setState(s => ({ ...s, loading: true, error: null }));
     setPage(0);
     setSectorFilter(null);
+    setRecencyFilter(null);
     (async () => {
       try {
         const res = await fetch("/api/mcf", {
@@ -10177,9 +10253,16 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         });
         const data = await res.json();
         if (cancelled) return;
+        // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
+        // this title's device-local history (and record this sighting).
+        const sortedJobs = (Array.isArray(data.jobs) ? data.jobs : []).slice().sort(byLatestPosted);
+        const seen = recordAndClassifySeen(sel?.title || "", sortedJobs);
         setState({
           loading: false,
-          jobs: Array.isArray(data.jobs) ? data.jobs : [],
+          jobs: sortedJobs,
+          seenInfo: seen.info,
+          newCount: seen.newCount,
+          seenCount: seen.seenCount,
           tier: data.tier || 0,
           message: data.message || "",
           approximate: !!data.approximate,
@@ -10190,7 +10273,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         track("v3_mcf_loaded", { tier: data.tier || 0, count: (data.jobs || []).length, fallback: !!data.fallback });
       } catch (err) {
         if (cancelled) return;
-        setState({ loading: false, jobs: [], tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+        setState({ loading: false, jobs: [], seenInfo: {}, newCount: 0, seenCount: 0, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
         track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
       }
     })();
@@ -10251,10 +10334,25 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   // fresh-grad scout: only EXPLICIT entry/junior roles - an unstated experience bar is NOT claimed to be < 4
   const isFresh = j => j.minimumYearsExperience != null && j.minimumYearsExperience < 4;
   const baseJobs = (activeArch ? activeArch.jobs : state.jobs).filter(j => !freshGrad || isFresh(j));
-  const totalPages = Math.max(1, Math.ceil(baseJobs.length / PER_PAGE));
+  // NEW vs SEEN-BEFORE split (device-local memory). Counts reflect the current
+  // archetype + fresh-grad filter so the chips match what filtering will show.
+  const seenInfo = state.seenInfo || {};
+  const isNewJob = j => { const s = seenInfo[j.uuid]; return s ? s.isNew : true; };
+  const newInView = baseJobs.filter(isNewJob).length;
+  const seenInView = baseJobs.length - newInView;
+  const hasSeenHistory = seenInView > 0; // only offer the split once a title has prior sightings
+  // Apply the recency bucket. The SEEN-BEFORE bucket is sorted by when each ad
+  // first entered your searches (most-recent first); NEW stays latest-posted.
+  const viewJobs =
+    recencyFilter === "new"  ? baseJobs.filter(isNewJob) :
+    recencyFilter === "seen" ? baseJobs.filter(j => !isNewJob(j)).slice()
+                                 .sort((a, b) => (seenInfo[b.uuid]?.firstSeen || 0) - (seenInfo[a.uuid]?.firstSeen || 0)) :
+    baseJobs;
+  const totalPages = Math.max(1, Math.ceil(viewJobs.length / PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
-  const pageJobs = baseJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
+  const pageJobs = viewJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
   const canQueue = (queueCount || 0) < 3;
+  const fmtSeenDate = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short" }); };
 
   return (
     <div>
@@ -10314,9 +10412,36 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
               </div>
             </div>
           )}
+          {hasSeenHistory && (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                {newInView} new since you last looked · {seenInView} from a previous search — tap to filter
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {[
+                  { k: null,   label: `All (${baseJobs.length})` },
+                  { k: "new",  label: `✦ New (${newInView})` },
+                  { k: "seen", label: `↩ Seen before (${seenInView})` },
+                ].map(opt => {
+                  const on = recencyFilter === opt.k;
+                  return (
+                    <button key={opt.label} onClick={() => { setRecencyFilter(opt.k); setPage(0); }}
+                      style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
+                        border: `2px solid ${on ? "#0e7490" : C.border}`, background: on ? "#0e7490" : C.surface, color: on ? "#fff" : C.textSub }}>
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ margin: "7px 0 0", fontSize: 10, color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>
+                “New” vs “Seen before” is remembered on this device only — your own search history for this title, not data from MyCareersFuture. Postings are sorted newest-posted first; the “Seen before” list is ordered by when each ad first showed up in your searches.
+              </p>
+            </div>
+          )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <span style={{ fontSize: 14, color: C.textSub }}>
-              {activeArch ? `${baseJobs.length} in “${activeArch.name}”` : `${baseJobs.length}${state.capped && !freshGrad ? "+" : ""} posting${baseJobs.length === 1 ? "" : "s"}`}
+              {activeArch ? `${viewJobs.length} in “${activeArch.name}”` : `${viewJobs.length}${state.capped && !freshGrad && !recencyFilter ? "+" : ""} posting${viewJobs.length === 1 ? "" : "s"}`}
+              {recencyFilter === "new" ? " · new only" : recencyFilter === "seen" ? " · seen before" : ""}
               {freshGrad ? ` · fresh-grad filter (< 4 yrs exp)` : ""}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
@@ -10335,6 +10460,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {pageJobs.map(job => (
               <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                seen={state.seenCount > 0 ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
                 onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
             ))}
           </div>
