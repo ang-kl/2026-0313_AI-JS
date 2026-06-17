@@ -8438,6 +8438,14 @@ function RoleGraphPanel({ result, title }) {
   // - the panel just reflects it. For other analyses the panel runs buildRoleGraph itself.
   const isPosting = !!(result && result.source === "posting");
 
+  // Rebuild the graph when the async responsibilities / job-anatomy extraction lands.
+  // Without these in the dep list the graph builds once on mount - which, now that Understand
+  // is the default pillar, happens BEFORE the duties are ready - hits the thin_input withhold,
+  // and never rebuilds when the duties arrive (the common "not enough role data" stuck state).
+  // buildRoleGraph caches a successful result, so the late rebuild runs the pipeline at most once.
+  const _rgRespCount = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.responsibilities)) ? result.responsibilitiesData.responsibilities.length : 0;
+  const _rgDutyCount = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties.length : 0;
+
   useEffect(() => {
     let cancelled = false;
     setHoveredId(null);
@@ -8448,7 +8456,7 @@ function RoleGraphPanel({ result, title }) {
     buildRoleGraph(result, title).then(g => { if (cancelled) return; logStep("rolegraph", g && g.fallback ? "thin_input" : "ok", _msSince(_tG), g && g.fallback ? g.reason : `${g && g.iscoCandidates ? g.iscoCandidates.length : 0} candidates`); setGraphState({ status: "done", g }); }).catch((e) => { logStep("rolegraph", "error", _msSince(_tG), e && e.message); if (!cancelled) setGraphState({ status: "error" }); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleKey, (result && result.source) || ""]);
+  }, [roleKey, (result && result.source) || "", _rgRespCount, _rgDutyCount]);
 
   const g = isPosting ? (result && result.roleGraphData) : graphState.g;
   const rgLoading = isPosting ? !(result && result.roleGraphData) : (graphState.status === "loading");
