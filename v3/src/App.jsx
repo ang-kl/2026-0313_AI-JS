@@ -5933,13 +5933,16 @@ const _PILLARS = [
 const _PILLAR_MAP = {
   // PL5: "understand-s1" renders first (why-the-org-wants-this-role: ForensicReversal +
   // Role Context department read + SYSTEM_WHY_ROLE narration). "rolegraph" is section 2.
-  "understand":   ["understand-s1", "rolegraph", "responsibilities", "jobanatomy", "rolemix"],
+  // PL8: "understand-also" renders AlsoAdvertisedAs (same job, other names) after rolegraph.
+  "understand":   ["understand-s1", "understand-also", "rolegraph", "responsibilities", "jobanatomy", "rolemix"],
   // PL6: "position-market" renders after context; holds the four market/employer reads
   // (DemandProof, AdLanguageScan, EmployerReality, CompanyBackground) pulled from deepread.
   // compare + mcf_jobs follow as position utility.
   "position":     ["progression", "crossover", "context", "position-market", "compare", "mcf_jobs"],
   "become":       ["deepread"],
-  "ai-readiness": ["skills", "category"],
+  // PL8: "ai-hero" prepended - renders EngineHeadline + ExposureBar + SkillSegments +
+  // AgenticShift (AI-exposure headline and 4-band rubric) before the per-skill sections.
+  "ai-readiness": ["ai-hero", "skills", "category"],
   "arm":          ["taskprep", "foundation"],
 };
 
@@ -10758,10 +10761,49 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       if (!result.responsibilitiesData && !result.contextData) return null;
       return <UnderstandSection1 key="understand-s1" result={result} title={sel?.title || ""} />;
     }
+    if (key === "understand-also") {
+      // PL8: AlsoAdvertisedAs - "Same job, other names" sibling titles.
+      // Moved from always-on hero to Understand (role identity). onAnalyse wiring unchanged.
+      // Self-guards when no sibling data is present (AlsoAdvertisedAs returns null internally).
+      return <AlsoAdvertisedAs key="understand-also" result={result} title={sel?.title || ""} onAnalyse={(t) => handleAnalyseRole(t, "alias")} />;
+    }
+    if (key === "ai-hero") {
+      // PL8: AI Readiness hero - EngineHeadline + ExposureBar + SkillSegments + AgenticShift.
+      // Moved from always-on hero region (EngineHeadline/ExposureBar/SkillSegments) and from
+      // the skills renderSection (AgenticShift). Renders ONLY under AI Readiness pillar.
+      // Prov chips unchanged: EngineHeadline = computed, ExposureBar = AI estimate.
+      // R006: handleAiHeroSkillClick extracted as a named function (not a multi-line arrow
+      // in a JSX prop) so it satisfies the R006 no-multi-line-async-arrow-in-JSX-prop rule.
+      function handleAiHeroSkillClick(skillName) {
+        setJumpToSkill(skillName);
+        setActivePillar("ai-readiness"); // already the active pillar, but keeps the contract
+        setSegmentPanelOpen(false);
+        setTimeout(() => {
+          const el = document.getElementById(`skill-${skillName.replace(/\s+/g,"-").toLowerCase()}`);
+          if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+        }, 450);
+      }
+      return (
+        <div key="ai-hero">
+          <EngineHeadline result={result} title={sel?.title || ""} />
+          <ExposureBar skills={result.skills} />
+          <SkillSegments
+            skills={result.skills}
+            hasNoHuman={result.skills.every(s => s.level !== "HUMAN")}
+            isOpen={segmentPanelOpen}
+            onToggle={() => setSegmentPanelOpen(p => !p)}
+            firstBlinkSkill={firstBlinkSkill}
+            onSkillClick={handleAiHeroSkillClick}
+          />
+          <AgenticShift result={result} title={sel?.title || ""} />
+        </div>
+      );
+    }
     if (key === "skills") {
+      // PL8: AgenticShift moved to ai-hero (above); it is an AI-readiness read, not a
+      // per-skill detail. [PL8] AgenticShift -- moved to ai-hero renderSection branch.
       return (
         <div key="skills">
-          <AgenticShift result={result} title={sel?.title || ""} />
           <SkillGroupedView
             grouped={buildSkillGroups()}
             result={result}
@@ -11449,31 +11491,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
         {step === "results" && sel && result && (() => {
           const tabs = buildTabs(result);
-          // UI2: the hero (index + segments) and the Navigation box are consts so the
-          // ?ui=2 rail layout and the default layout assemble the SAME nodes - no drift.
-          const uiHero = (
-            <>
-              <EngineHeadline result={result} title={sel?.title || ""} />
-              <ExposureBar skills={result.skills} />
-              <SkillSegments
-                skills={result.skills}
-                hasNoHuman={result.skills.every(s => s.level !== "HUMAN")}
-                isOpen={segmentPanelOpen}
-                onToggle={() => setSegmentPanelOpen(p => !p)}
-                firstBlinkSkill={firstBlinkSkill}
-                onSkillClick={(skillName) => {
-                  setJumpToSkill(skillName);
-                  setActivePillar("ai-readiness"); // PL4: skills lives under AI Readiness pillar
-                  setSegmentPanelOpen(false);
-                  setTimeout(() => {
-                    const el = document.getElementById(`skill-${skillName.replace(/\s+/g,"-").toLowerCase()}`);
-                    if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
-                  }, 450);
-                }}
-              />
-              <AlsoAdvertisedAs result={result} title={sel?.title || ""} onAnalyse={(t) => handleAnalyseRole(t, "alias")} />
-            </>
-          );
+          // PL8: uiHero removed - EngineHeadline/ExposureBar/SkillSegments/AgenticShift moved
+          // to ai-hero renderSection (AI Readiness pillar); AlsoAdvertisedAs moved to
+          // understand-also renderSection (Understand pillar). The always-on hero region no
+          // longer renders these components; they render only under their respective pillars.
+          // UI2: the Navigation box is a const so the ?ui=2 rail layout and the default layout
+          // assemble the SAME nodes - no drift.
           const uiNavBox = (
               <div ref={tabBarRef} style={{ marginBottom:14, border:`2px solid ${C.accent}`, borderRadius:10, padding: "10px 12px 8px", background:C.surface }}>
                 <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
@@ -11680,13 +11703,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               })()}
               {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
               {/* UI2 (?ui=2, stage 2 of the layout de-vibe): on wide screens the Navigation
-                  box becomes a sticky LEFT RAIL and the hero + tab content sit right; the
+                  box becomes a sticky LEFT RAIL and the tab content sits right; the
                   badges legend is demoted to a footnote after the content. The default UI
-                  renders the exact same nodes in the original order - zero drift. */}
+                  renders the exact same nodes in the original order - zero drift.
+                  PL8: uiHero removed; AI-exposure and role-identity panels now render inside
+                  their respective pillar views (ai-hero under AI Readiness; understand-also
+                  under Understand). */}
               {!uiV2 && (
                 <>
                   <ProvLegend />
-                  {uiHero}
                   {uiNavBox}
                 </>
               )}
@@ -11699,7 +11724,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   </div>
                 )}
                 <div style={uiV2 ? { minWidth:0 } : undefined}>
-                  {uiV2 && uiHero}
 
               {/* PL4: pillar view - lead question h2 + stacked sections for the active pillar.
                   renderPillarView() calls renderSection(key) for each key in _PILLAR_MAP[activePillar];
