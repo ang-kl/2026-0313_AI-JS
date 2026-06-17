@@ -3688,9 +3688,20 @@ function Spinner({ label, step, total, firstTime, skills }) {
   const ringMask = "radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px))";
   return (
     <div role="status" aria-live="polite" style={{ padding: "44px 0 32px", position:"relative" }}>
-      <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}`}</style>
-      <div style={{ maxWidth: 620, margin: "0 auto" }}>
-        <div className="lux-rise" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
+      <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}
+        /* Analysis screen widens to use horizontal room on landscape/desktop
+           viewports instead of staying phone-narrow; the skills + info cards
+           reflow into responsive columns. Portrait/phone keeps one column. */
+        .ldx-shell{max-width:620px;margin:0 auto}
+        .ldx-card{max-width:620px;margin-left:auto;margin-right:auto}
+        .ldx-skills-grid{display:block}
+        @media (min-width:860px){
+          .ldx-shell{max-width:min(1180px,93vw)}
+          .ldx-skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:10px;align-items:start}
+          .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        }`}</style>
+      <div className="ldx-shell">
+        <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
           <div aria-hidden="true" style={{ width:76, height:76, margin:"0 auto 16px", position:"relative" }}>
             {determinate ? (
@@ -3737,6 +3748,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
           <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the ESCO taxonomy</p>
+          <div className="ldx-skills-grid">
           {list.map((s, i) => (
             <div key={(s && (s.escoUri || s.skill)) || i} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
@@ -3748,10 +3760,11 @@ function Spinner({ label, step, total, firstTime, skills }) {
               )}
             </div>
           ))}
+          </div>
         </div>
       )}
       {firstTime && (
-        <div className="ldx" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
+        <div className="ldx ldx-info" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
             <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
