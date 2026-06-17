@@ -229,8 +229,8 @@ Per PR: surface `Rule V-1 / G1` to the Human Lead. On yes: bump flat patch in al
 
 1. **Frozen door:** none. The five pillars, the relocations and the removals all sit DOWNSTREAM of the search/resolve/extract door. `RoleGraph.jsx` (`?view=graph`) and `LeapView.jsx` (`?view=leap`) routing in `main.jsx` is untouched (PL5 reads the existing graph; it does not change the route). No frozen-surface edit is required. If a future ask needs the header buttons to alter search behaviour, STOP - that crosses the door.
 2. **Supersession:** this arc **supersedes** the Candidate Journey arc's `JourneySpine` (CJ4) and **removes** its Rehearse station (CJ3). Flagged so the supersession is a decision, not drift; `v3-candidate-journey-spec.md` should gain an AU-7 note pointing here once PL3/PL2 land.
-3. **PL6 placement** of Compare / MCF Jobs / market reads - default = Position-utility; confirm or redirect.
-4. **CV-fit removal scope** - the directive says remove the paste-CV fit flow; this also dead-codes `fairnessAudit`/`CandidateBrief`/`EmployerFairScorecard`/True-Fit (they live only inside the CV-fit path). Confirm these go with it, or call out any to re-home.
+3. **PL6 placement** of Compare / MCF Jobs / market reads - **CONFIRMED (Human Lead, 17-06 '26): default proceeds.** Compare queue + MyCareersFuture Jobs + the four market/employer reads (DemandProof, AdLanguageScan, EmployerReality, CompanyBackground) all render under Position as utility / market reads. No sixth pillar; the five-pillar header stays.
+4. **CV-fit removal scope** - **CONFIRMED (Human Lead, 17-06 '26): default proceeds.** The directive's "remove CV analysis" covers the paste-CV fit flow AND the downstream surfaces that live only inside that path: `fairnessAudit`, `CandidateBrief`, `EmployerFairScorecard`, and True-Fit (`scoreTrueFit`). All four are dead-coded with the CV-fit flow in PL1; they can be re-homed under a future pillar if a later directive asks for it.
 
 ---
 
