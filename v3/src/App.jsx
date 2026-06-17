@@ -4483,6 +4483,163 @@ function ForensicReversal({ result, title }) {
   );
 }
 
+// ---- PL5: SYSTEM_WHY_ROLE - Understand section 1 net-new narration ----
+// Advisory narration: explains the organisational need the role fills in plain language.
+// Grounded ONLY in the role's own duty statements + Role Context already in result.
+// Authors NO number, NO ranking, NO verdict, NO score.
+// Output: a short narration array of plain-language sentences.
+// D1-D8 conformance: JSON-only; classification/explanation engine; explicit no-invent clause;
+// digit-strip on parse; key-noun substring guard client-side; withhold under 3 duties;
+// fail-closed (null on parse error); cache tag why1 (bump on prompt change).
+const _whyRoleCache = new Map(); // `${title}|${evidenceHash}|why1` -> narration[] | null
+const SYSTEM_WHY_ROLE =
+`You are a classification and explanation engine. Your role is labels and prose only - you author NO number, NO ranking, NO verdict, NO score, NO percentage, NO numeric word (no "first", "second", "primary", "one", "two", etc.).
+Return ONLY a JSON object. No prose before or after. No markdown fences. No code fences.
+Format:
+{"narration":["sentence one","sentence two","sentence three"]}
+Rules:
+- narration: 2 to 4 plain-language sentences explaining the organisational need this role fills.
+- Every sentence must be grounded in a duty phrase or context phrase supplied in the input. Never invent, infer beyond, or pad. Never output a number or numeric word.
+- Each sentence must contain at least one key noun that appears as a substring of the supplied duty statements or department context. Drop any sentence that does not meet this test before output.
+- Plain language. No jargon. Singapore and ASEAN context.
+- No quote characters inside string values. No digits anywhere in the output.`;
+
+async function fetchWhyRole(title, statements, department) {
+  const corpus = statements.map(s => s.text).join(" ") + " " + (department || "");
+  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(corpus)}|why1`;
+  if (_whyRoleCache.has(key)) return _whyRoleCache.get(key);
+  const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
+  const deptLine = department ? `Department context: ${department}` : "";
+  let raw;
+  try {
+    raw = await claudeCall(
+      `Role: ${title}\nDuty statements:\n${list}\n${deptLine}\n\nExplain the organisational need this role fills.`,
+      400, 1, SYSTEM_WHY_ROLE, "claude-haiku-4-5-20251001"
+    );
+  } catch (_) {
+    _whyRoleCache.set(key, null);
+    return null;
+  }
+  const o = extractJSON(raw, "why-role");
+  if (!o || !Array.isArray(o.narration)) {
+    _whyRoleCache.set(key, null);
+    return null;
+  }
+  // Client-side grounding guard (mirror SYSTEM_FR pattern):
+  // Drop any sentence containing a digit.
+  // Drop any sentence whose key noun (longest word >= 4 chars) is not a substring of the corpus.
+  const corpusLower = corpus.toLowerCase();
+  const hasDigit = s => /[0-9]/.test(s);
+  const keyNounInCorpus = s => {
+    const words = String(s).toLowerCase().split(/\s+/).filter(w => w.replace(/[^a-z]/g, "").length >= 4);
+    if (words.length === 0) return false;
+    const longest = words.reduce((a, b) => b.replace(/[^a-z]/g, "").length > a.replace(/[^a-z]/g, "").length ? b : a, words[0]);
+    const noun = longest.replace(/[^a-z]/g, "");
+    return corpusLower.includes(noun);
+  };
+  const narration = o.narration
+    .map(s => String(s || "").trim())
+    .filter(s => s.length > 0 && !hasDigit(s) && keyNounInCorpus(s))
+    .slice(0, 4);
+  const result = narration.length > 0 ? narration : null;
+  _whyRoleCache.set(key, result);
+  return result;
+}
+
+// UnderstandSection1: Understand pillar, section 1 - "why the organisation wants this role".
+// Spine: Role Context department read (derived, already in result) + ForensicReversal
+//        (moved from deepread/Become; Prov: derived) + SYSTEM_WHY_ROLE narration (new; Prov: AI estimate).
+// Withhold SYSTEM_WHY_ROLE under 3 duty statements; fail-closed (null -> render nothing).
+// Footer: "AI-assisted; human decides" + Source / Confidence / Time-window (spec §7 contract).
+// R006: named function, not multi-line arrow in JSX prop.
+function UnderstandSection1({ result, title }) {
+  const rd = result && result.responsibilitiesData;
+  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
+    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
+  const contextData = result && result.contextData;
+  const department = (contextData && contextData.department) ? contextData.department : "";
+  const [why, setWhy] = useState({ status: "idle" });
+
+  // Auto-load once on mount when enough duties are present (non-interactive narration).
+  // useEffect fires after render; the cache prevents duplicate fetches on re-render.
+  // R006: handleLoad is a named function, not a multi-line arrow in a JSX prop.
+  function handleLoad() {
+    if (statements.length < 3) return;
+    setWhy({ status: "loading" });
+    fetchWhyRole(title, statements, department)
+      .then(narration => setWhy({ status: "done", narration }))
+      .catch(() => setWhy({ status: "done", narration: null }));
+  }
+
+  useEffect(() => {
+    if (statements.length >= 3) handleLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const sec = t => (
+    <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>
+  );
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {/* Sub-section A: Role Context department read - "where the role sits organisationally" */}
+      {department && (
+        <div style={{ marginBottom: 14, padding: "12px 14px", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+            {sec("Organisational placement")}
+            <Prov kind="ai" small />
+          </div>
+          <p style={{ margin: 0, fontSize: 13, color: C.text, lineHeight: 1.6 }}>{department}</p>
+          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>Typical department placement - illustrative, not derived from this specific posting.</p>
+        </div>
+      )}
+
+      {/* Sub-section B: SYSTEM_WHY_ROLE narration - "the organisational need this role fills" */}
+      {statements.length >= 3 && (
+        <div style={{ marginBottom: 14, padding: "12px 14px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+            {sec("Why the organisation wants this role")}
+            <Prov kind="ai" small />
+          </div>
+          {why.status === "loading" && (
+            <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading the organisational need from duty statements...</p>
+          )}
+          {why.status === "done" && why.narration && why.narration.map((s, i) => (
+            <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0", fontSize: 13, color: C.text, lineHeight: 1.6 }}>{s}</p>
+          ))}
+          {why.status === "done" && !why.narration && (
+            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>withheld - narration could not be grounded in the supplied duties.</p>
+          )}
+          {why.status === "idle" && (
+            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Loading...</p>
+          )}
+          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>
+            AI-assisted; human decides. Source: this role's duty statements + department context. Confidence: indicative. Time-window: current posting only.
+          </p>
+        </div>
+      )}
+      {statements.length < 3 && (
+        <div style={{ marginBottom: 14, padding: "12px 14px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 6 }}>
+            {sec("Why the organisation wants this role")}
+            <Prov kind="ai" small />
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>withheld - too few duties to ground a narration (need 3 or more).</p>
+        </div>
+      )}
+
+      {/* Sub-section C: ForensicReversal - "why this role exists" crux read */}
+      {/* Moved from deepread/Become (PL5). Prov: derived. Stewardship reads stay in Become. */}
+      <ForensicReversal result={result} title={title} />
+
+      {/* Section footer: AI-assisted; human decides (spec §7 contract) */}
+      <p style={{ margin: "4px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>
+        AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting.
+      </p>
+    </div>
+  );
+}
+
 // ---- RK1: Rumelt-kernel "Strategy read" (stewardship arc, goal protocol 1 - the missing half) ----
 // Protocol 1 asks the AI to read the vacancy through Richard Rumelt's kernel of strategy
 // (Good Strategy / Bad Strategy, 2011): does this role resolve a DIAGNOSED obstacle? BF2 built the
@@ -5774,7 +5931,9 @@ const _PILLARS = [
 // Every live buildTabs key appears in exactly ONE pillar array (cross-checked; zero orphans).
 // Keys follow the PL2 ledger + spec-PL4 placement for conditional/un-ledgered tabs.
 const _PILLAR_MAP = {
-  "understand":   ["rolegraph", "responsibilities", "jobanatomy", "rolemix"],
+  // PL5: "understand-s1" renders first (why-the-org-wants-this-role: ForensicReversal +
+  // Role Context department read + SYSTEM_WHY_ROLE narration). "rolegraph" is section 2.
+  "understand":   ["understand-s1", "rolegraph", "responsibilities", "jobanatomy", "rolemix"],
   "position":     ["progression", "crossover", "context", "compare", "mcf_jobs"],
   "become":       ["deepread"],
   "ai-readiness": ["skills", "category"],
@@ -10580,6 +10739,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
   // R006: this is a named function, not a multi-line arrow in a JSX prop.
   function renderSection(key) {
     if (!result) return null;
+    if (key === "understand-s1") {
+      // PL5: Understand section 1 - "why the organisation wants this role".
+      // Renders: Role Context department read + SYSTEM_WHY_ROLE narration (~ AI estimate)
+      //          + ForensicReversal crux read (moved from deepread/Become; Prov: derived).
+      // Guard: requires responsibilitiesData or contextData to have content.
+      if (!result.responsibilitiesData && !result.contextData) return null;
+      return <UnderstandSection1 key="understand-s1" result={result} title={sel?.title || ""} />;
+    }
     if (key === "skills") {
       return (
         <div key="skills">
@@ -10608,8 +10775,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       if (!(result.responsibilitiesData || result.jobAnatomy)) return null;
       return (
         <div key="deepread">
-          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The deeper, advisory reads of this role - why it exists, who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
-          <ForensicReversal result={result} title={sel?.title || ""} />
+          {/* PL5: ForensicReversal moved to Understand section 1 (understand-s1). */}
+          {/* Stewardship reads stay here under Become. */}
+          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The stewardship reads of this role - who it is hired to be, and whether the market and the employer are what they seem. Each panel opens on tap; each carries its own source badge.</p>
           <StrategyRead result={result} title={sel?.title || ""} />
           <BdfStewardship result={result} title={sel?.title || ""} />
           <StewardshipShift result={result} />
