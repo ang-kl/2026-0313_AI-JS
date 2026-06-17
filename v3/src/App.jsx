@@ -5375,6 +5375,7 @@ function AdLanguageScan({ result }) {
   const scan = scanAdLanguage(jobs);
   if (!scan) return null; // no postings to scan
   const any = scan.flagged.length > 0;
+  if (!any) return null; // hide-when-clean: advisory read renders only when there is a phrase to review
   const headColor = open ? "#fff" : C.text;
 
   return (
@@ -5467,6 +5468,7 @@ function EmployerReality({ result }) {
   const cr = companyReality(jobs);
   if (!cr) return null; // no company data
   const any = cr.flagged.length > 0;
+  if (!any) return null; // hide-when-clean: advisory read renders only when there is an employer signal to check
 
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
