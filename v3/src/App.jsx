@@ -5746,231 +5746,9 @@ function TaskPrep({ result }) {
   );
 }
 
-// ---- CJ3: Interview Rehearsal panel (Candidate Journey station 5 "Rehearse") ----
-// For the role's real duties, generate a likely competency interview QUESTION + an EMPTY STAR
-// scaffold (Situation/Task/Action/Result PROMPTS telling the candidate what to recall). The model
-// authors the question + the prompts ONLY - never the candidate's answer, numbers, or results
-// (human supplies the evidence; human decides). Each question must cite a real extracted duty
-// (verified). Fully ~ AI estimate; grounded in the duties; withheld under 3 duties. Loaded on tab
-// open, cached by evidence hash, rehearse1 tag, claude-fable-5.
-const _rehearseCache = new Map();
-const SYSTEM_REHEARSE =
-`ACT AS an interview coach preparing someone for ONE advertised role. You are given its numbered duty statements. For the most load-bearing duties, write the competency interview question that duty would prompt, plus a STAR scaffold the candidate fills from THEIR OWN experience. Singapore context, plain language.
-HARD RULE: every STAR field is a PROMPT telling the candidate what to recall - NOT an example answer. Never invent the candidate's experience, numbers, results, employers or outcomes. No digits in any field.
-Return ONLY a JSON object. No text before or after, no markdown fences.
-Format:
-{
- "questions": [
-  {"n":duty number,"q":"the likely competency question this duty prompts, under 24 words","s":"what to recall for the Situation, a prompt under 13 words","t":"...the Task you owned, prompt under 13 words","a":"...the Action you took, prompt under 13 words","r":"...the Result and what you learned, prompt under 13 words"}
- ]
-}
-3 to 5 questions, each citing a duty number that exists in the given lines. Before output, re-check every cited duty number exists. No quote characters inside string values.`;
+// [PL2 removed] InterviewRehearsal / Rehearsal panel, _rehearseCache, SYSTEM_REHEARSE, fetchRehearsal, rehearse1 cache key -- removed (PL2)
 
-async function fetchRehearsal(title, statements) {
-  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|rehearse1`;
-  if (_rehearseCache.has(key)) return _rehearseCache.get(key);
-  const list = statements.slice(0, 12).map(s => `${s.n}:${s.text}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWrite the interview-rehearsal questions + STAR prompts.`, 900, 1, SYSTEM_REHEARSE, "claude-fable-5");
-  const o = extractJSON(raw, "rehearse") || {};
-  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "")]));
-  const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
-  const questions = (Array.isArray(o.questions) ? o.questions : [])
-    .map(q => ({ n: Number(q && q.n), q: clean(q && q.q, 160), s: clean(q && q.s, 90), t: clean(q && q.t, 90), a: clean(q && q.a, 90), r: clean(q && q.r, 90) }))
-    .filter(q => byN.has(q.n) && q.q)
-    .slice(0, 5);
-  const read = { questions };
-  _rehearseCache.set(key, read);
-  return read;
-}
-
-function Rehearsal({ result, title }) {
-  const rd = result && result.responsibilitiesData;
-  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
-    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
-  // prefer the Core duties as the load-bearing ones to rehearse
-  const ordered = (rd && Array.isArray(rd.responsibilities))
-    ? [...rd.responsibilities].filter(r => r && r.text)
-        .sort((a, b) => ({ Core: 0, Common: 1, Occasional: 2 }[a.freq || "Common"] - { Core: 0, Common: 1, Occasional: 2 }[b.freq || "Common"]))
-        .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() }))
-    : statements;
-  const [rh, setRh] = useState({ status: "idle" });
-
-  useEffect(() => {
-    if (statements.length < 3) { setRh({ status: "thin" }); return; }
-    let cancelled = false;
-    setRh({ status: "loading" });
-    const t0 = Date.now();
-    fetchRehearsal(title, ordered)
-      .then(read => { if (cancelled) return; logStep("rehearsal", "ok", Date.now() - t0, `${read.questions.length} q`); setRh({ status: "done", read }); })
-      .catch(e => { if (cancelled) return; logStep("rehearsal", "error", Date.now() - t0, e && e.message); setRh({ status: "error" }); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, statements.length]);
-
-  const STAR = [["s", "Situation"], ["t", "Task"], ["a", "Action"], ["r", "Result"]];
-  return (
-    <div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>🎤 Interview rehearsal - questions this role's duties would raise</p>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>Each question maps to a real duty. The STAR lines are prompts for YOUR story - fill them from your own experience.</p>
-          <Prov kind="ai" small />
-        </div>
-      </div>
-      {rh.status === "thin" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Not enough extracted duties yet to build a grounded rehearsal - analyse a role with live postings.</p>}
-      {rh.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Drafting questions from the role's duties...</p>}
-      {rh.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The rehearsal could not be completed - try again in a moment.</p>}
-      {rh.status === "done" && (rh.read.questions.length ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {rh.read.questions.map((q, i) => {
-            const duty = statements.find(s => Number(s.n) === q.n);
-            return (
-              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", background: C.surface }}>
-                {duty && <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>From the duty: {duty.text}</p>}
-                <p style={{ margin: "0 0 9px", fontSize: 13, fontWeight: 700, color: C.text, lineHeight: 1.5 }}>{q.q}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  {STAR.map(([k, label]) => q[k] ? (
-                    <div key={k} style={{ display: "flex", gap: 8 }}>
-                      <span style={{ flexShrink: 0, width: 64, fontSize: 11, fontWeight: 800, color: "#1e40af" }}>{label}</span>
-                      <span style={{ flex: 1, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{q[k]}</span>
-                    </div>
-                  ) : null)}
-                </div>
-              </div>
-            );
-          })}
-          <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The questions and the STAR prompts are AI-suggested from this role's duties - the answers, examples and results are yours to supply. Never invent experience you do not have.</p>
-        </div>
-      ) : (
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground questions in the role's duties.</p>
-      ))}
-    </div>
-  );
-}
-
-// ---- PRO2: Cover Letter Workbench ("how to craft the cover letter through the ads") ----
-// Same triple-lock as Rehearsal: the model authors paragraph PURPOSES + fill-in
-// PROMPTS only - never the candidate's claims, employers, numbers or outcomes
-// (HARD RULE + digit strip + duty-exists filter). Each evidence paragraph cites a
-// real duty n from the ad; the candidate supplies the story. CV text is never read
-// here (it stays in the Role Graph); the prompts ask for YOUR evidence.
-const _coverCache = new Map();
-const SYSTEM_COVER =
-`ACT AS a careers coach helping someone draft a cover letter for ONE advertised role. You are given its numbered duty statements. Design a four-paragraph scaffold: for each paragraph give its purpose in this letter and the fill-in prompts the candidate answers from THEIR OWN history. Singapore hiring context, plain language, no cliches.
-HARD RULE: every prompt tells the candidate what to supply - NOT example text. Never write a sample sentence, never invent experience, employers, numbers or outcomes. No digits in any field.
-Return ONLY a JSON object. No text before or after, no markdown fences.
-Format:
-{
- "paragraphs": [
-  {"k":"open","title":"Opening","purpose":"what this paragraph must do for THIS role, under 20 words","prompts":["what the candidate should state or recall, under 16 words", "..."]},
-  {"k":"evidence1","title":"First proof","n":duty number,"purpose":"under 20 words","prompts":["...", "..."]},
-  {"k":"evidence2","title":"Second proof","n":duty number,"purpose":"under 20 words","prompts":["...", "..."]},
-  {"k":"close","title":"Close","purpose":"under 20 words","prompts":["...", "..."]}
- ]
-}
-Exactly 4 paragraphs in this order. evidence1 and evidence2 must cite DIFFERENT duty numbers that exist in the given lines - re-check before output. 2 or 3 prompts per paragraph. No quote characters inside string values.`;
-
-async function fetchCoverScaffold(title, statements) {
-  const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|cover1`;
-  if (_coverCache.has(key)) return _coverCache.get(key);
-  const list = statements.slice(0, 12).map(s => `${s.n}:${s.text}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nDesign the four-paragraph cover-letter scaffold.`, 800, 1, SYSTEM_COVER, "claude-fable-5");
-  const o = extractJSON(raw, "cover") || {};
-  const byN = new Map(statements.map(s => [Number(s.n), String(s.text || "")]));
-  const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
-  const paragraphs = (Array.isArray(o.paragraphs) ? o.paragraphs : [])
-    .map(p => ({
-      k: String(p && p.k || ""), title: clean(p && p.title, 40), n: p && p.n != null ? Number(p.n) : null,
-      purpose: clean(p && p.purpose, 140),
-      prompts: (Array.isArray(p && p.prompts) ? p.prompts : []).map(x => clean(x, 110)).filter(Boolean).slice(0, 3),
-    }))
-    .filter(p => p.title && p.purpose && p.prompts.length)
-    .filter(p => (p.k !== "evidence1" && p.k !== "evidence2") || byN.has(p.n))
-    .slice(0, 4);
-  const read = { paragraphs };
-  _coverCache.set(key, read);
-  return read;
-}
-
-function CoverLetter({ result, title }) {
-  const rd = result && result.responsibilitiesData;
-  const statements = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : [])
-    .map((r, i) => ({ n: r.n != null ? r.n : i + 1, text: String(r.text || "").trim() })).filter(r => r.text);
-  const [cl, setCl] = useState({ status: "idle" });
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (statements.length < 3) { setCl({ status: "thin" }); return; }
-    let cancelled = false;
-    setCl({ status: "loading" });
-    const t0 = Date.now();
-    fetchCoverScaffold(title, statements)
-      .then(read => { if (cancelled) return; logStep("cover_letter", "ok", Date.now() - t0, `${read.paragraphs.length} paras`); setCl({ status: "done", read }); })
-      .catch(e => { if (cancelled) return; logStep("cover_letter", "error", Date.now() - t0, e && e.message); setCl({ status: "error" }); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, statements.length]);
-
-  const copyScaffold = () => {
-    if (cl.status !== "done") return;
-    const lines = [`Cover letter scaffold - ${toTitleCase(title)}`, ""];
-    cl.read.paragraphs.forEach(p => {
-      const duty = p.n != null ? statements.find(s => Number(s.n) === p.n) : null;
-      lines.push(`${p.title}${duty ? ` (answers the duty: ${duty.text})` : ""}`);
-      lines.push(`Purpose: ${p.purpose}`);
-      p.prompts.forEach(pr => lines.push(`- ${pr}`));
-      lines.push("");
-    });
-    lines.push("Rule: every line of the letter must be YOUR true experience - the prompts only tell you what to supply.");
-    try { navigator.clipboard.writeText(lines.join("\n")).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); } catch (_) {}
-  };
-
-  return (
-    <div>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>✉️ Cover letter workbench - built from this ad's duties</p>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>A four-paragraph scaffold. The prompts tell you what to supply from your own history - nothing here is written for you, so nothing can be invented about you.</p>
-          <Prov kind="ai" small />
-        </div>
-      </div>
-      {cl.status === "thin" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Not enough extracted duties yet to ground a letter - analyse a role with live postings.</p>}
-      {cl.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Designing the scaffold from the role's duties...</p>}
-      {cl.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The scaffold could not be completed - try again in a moment.</p>}
-      {cl.status === "done" && (cl.read.paragraphs.length ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {cl.read.paragraphs.map((p, i) => {
-            const duty = p.n != null ? statements.find(s => Number(s.n) === p.n) : null;
-            return (
-              <div key={i} style={{ border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", background: C.surface }}>
-                <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: C.text }}><span aria-hidden="true" style={{ color: "#1e40af" }}>{i + 1}.</span> {p.title}</p>
-                {duty && <p style={{ margin: "0 0 4px", fontSize: 11, color: C.muted, lineHeight: 1.45 }}>Answers the duty: {duty.text}</p>}
-                <p style={{ margin: "0 0 8px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{p.purpose}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  {p.prompts.map((pr, j) => (
-                    <div key={j} style={{ display: "flex", gap: 8 }}>
-                      <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#1e40af" }}>&gt;</span>
-                      <span style={{ flex: 1, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{pr}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <button onClick={copyScaffold} style={{ minHeight: 44, padding: "10px 18px", borderRadius: 10, border: `2px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-              {copied ? "Copied" : "Copy the scaffold"}
-            </button>
-            <span style={{ fontSize: 11, color: C.muted }}>Paste it next to your draft and answer each prompt in your own words.</span>
-          </div>
-          <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The scaffold and prompts are AI-suggested from this ad's duties - every sentence of the letter is yours to write from true experience. Tip: paste your CV in the Role Graph tab first; its True-Fit read shows which duties your evidence already covers - lead with those.</p>
-        </div>
-      ) : (
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground the scaffold in the role's duties.</p>
-      ))}
-    </div>
-  );
-}
+// [PL2 removed] CoverLetter component, _coverCache, SYSTEM_COVER, fetchCoverScaffold -- removed (PL2)
 
 // ---- CJ4: Journey storyboard spine (Candidate Journey - the onboarding flow) ----
 // A compact storyboard at the top of the Navigation box that sequences the 5 stations
@@ -5983,7 +5761,7 @@ const _JOURNEY_STATIONS = [
   { n: 2, name: "Position",   target: "rolegraph", hint: "paste your CV to see your fit" },
   { n: 3, name: "Become",     target: "deepread",  hint: "the steward's praxis for this role" },
   { n: 4, name: "Arm",        target: "taskprep",  hint: "the real tasks + how to prepare" },
-  { n: 5, name: "Rehearse",   target: "rehearse",  hint: "interview questions from the duties" },
+  // { n: 5, name: "Rehearse", target: "rehearse", hint: "..." } -- removed (PL2)
 ];
 function JourneySpine({ tabs, activeTab, onGo }) {
   const has = k => k === "rolegraph" || tabs.some(t => t.key === k); // rolegraph (CV) is always present
@@ -6017,7 +5795,7 @@ function JourneySpine({ tabs, activeTab, onGo }) {
           );
         })}
       </div>
-      <p style={{ margin: "5px 0 0", fontSize: 10, color: C.textSub, lineHeight: 1.5 }}>Walk it in order: understand the role, position yourself, become the steward, arm yourself with the tasks, then rehearse. Locked steps open once their data is ready.</p>
+      <p style={{ margin: "5px 0 0", fontSize: 10, color: C.textSub, lineHeight: 1.5 }}>Walk it in order: understand the role, position yourself, become the steward, then arm yourself with the tasks. Locked steps open once their data is ready.</p>
     </div>
   );
 }
@@ -8787,362 +8565,8 @@ function RoleGraphPanel({ result, title }) {
   );
 }
 
-// v3.3: ResumeCheckPanel - reverses the screening pipeline as a 3-gate model
-// (🚪 parse/format -> 🔑 keyword(exact, tiered) -> 🤖 semantic/AI rank) + an
-// ⚑ AI-anomaly check, grounded in v3/doc/Report-ATS.md, and checks a pasted
-// résumé through all of it. Résumé text -> /api/claude only, never stored.
-// The screening profile per role is cached in the DB; only aggregate
-// keyword-gap COUNTS are recorded - no résumé text, no URLs.
-const _GATE_STATE = {
-  neutral: { bg: "#f5f7fa", border: C.border, color: C.muted, mark: "" },
-  pass:    { bg: "#eef2ff", border: "#c7d2fe", color: "#1e40af", mark: "✓" },
-  warn:    { bg: "#fffbeb", border: "#fcd9a0", color: "#92400e", mark: "⚠" },
-  fail:    { bg: "#fff7ed", border: "#fed7aa", color: "#9a3412", mark: "✗" },
-};
-function ResumeCheckPanel({ result, title }) {
-  const [profileState, setProfileState] = useState({ status: "loading" });
-  const [resumeText, setResumeText] = useState("");
-  const [appUrl, setAppUrl] = useState("");
-  const [check, setCheck] = useState({ status: "idle" });
-  const roleKey = (title || "").trim().toLowerCase();
-
-  useEffect(() => {
-    let cancelled = false;
-    setProfileState({ status: "loading" });
-    setCheck({ status: "idle" });
-    let _tP; try { _tP = performance.now(); } catch (_) { _tP = 0; }
-    getScreeningProfile(result, title)
-      .then(p => { if (cancelled) return; logStep("screen_profile", p && p.cached ? "cache_hit" : p && p.empty ? "empty" : "built", _msSince(_tP), title); setProfileState({ status: "done", profile: p }); })
-      .catch((e) => { logStep("screen_profile", "error", _msSince(_tP), e && e.message); if (!cancelled) setProfileState({ status: "error" }); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roleKey]);
-
-  const profile = profileState.profile;
-  const ats = identifyAts(appUrl);
-  const runCheck = () => {
-    if (!profile || resumeText.trim().length < 200) return;
-    setCheck({ status: "loading" });
-    track("resume_check_started", { occupation: title });
-    let _tC; try { _tC = performance.now(); } catch (_) { _tC = 0; }
-    logStep("resume_check", "start", 0, title);
-    checkResume(resumeText, profile, title, result.jobAnatomy, result.source, roleKey)
-      .then(r => {
-        setCheck({ status: "done", ...r });
-        track("resume_checked", { occupation: title, coverage: r.kw ? r.kw.gate2Score : 0, verdict: r.screen ? r.screen.verdict : "?" });
-        logStep("resume_check", "ok", _msSince(_tC), `coverage=${r.kw ? r.kw.gate2Score : 0} ${r.screen ? r.screen.verdict : "?"}`);
-      })
-      .catch((e) => { logStep("resume_check", "error", _msSince(_tC), e && e.message); setCheck({ status: "error" }); });
-  };
-
-  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
-  const sectionHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
-  const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
-  const tierChips = (tier, label) => {
-    if (!tier || !tier.total) return null;
-    return (
-      <div style={{ marginBottom: 8 }}>
-        {sectionHdr(`${label} — ${tier.covered.length}/${tier.total}${tier.partial.length ? ` (${tier.partial.length} partial)` : ""}`)}
-        {tier.covered.map((m, i) => chip(`✓ ${m.kw || m}`, "#1e40af", "#eef2ff", "#c7d2fe", "c" + i))}
-        {tier.partial.map((m, i) => chip(`◐ ${m.kw || m}`, "#92400e", "#fffbeb", "#fcd9a0", "p" + i))}
-        {tier.missing.map((m, i) => chip(`✗ ${m.kw || m}`, "#9a3412", "#fff7ed", "#fed7aa", "m" + i))}
-      </div>
-    );
-  };
-
-  // 3-gate strip states (computed once a check has run)
-  let gateStates = { parse: "neutral", keyword: "neutral", semantic: "neutral", anomaly: "neutral" };
-  if (check.status === "done") {
-    const warnFlags = (check.parsed.flags || []).filter(f => f.level === "warn").length;
-    gateStates.parse = warnFlags >= 2 ? "fail" : warnFlags === 1 ? "warn" : "pass";
-    const g2 = check.kw.gate2Score, tm = check.kw.titleMatch;
-    gateStates.keyword = g2 >= 65 && (!tm || !tm.target || tm.matched) ? "pass" : g2 >= 40 ? "warn" : "fail";
-    gateStates.semantic = !check.screen ? "neutral" : check.screen.verdict === "STRONG" ? "pass" : check.screen.verdict === "POSSIBLE" ? "warn" : "fail";
-    gateStates.anomaly = (check.anomaly.flags || []).length === 0 ? "pass" : "warn";
-  }
-  const gateStrip = (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-      {[
-        ["🚪", "Parse / format", "parse", "Gate 1"],
-        ["🔑", "Keyword match", "keyword", "Gate 2"],
-        ["🤖", "Semantic / AI rank", "semantic", "Gate 3"],
-        ["⚑", "AI-anomaly", "anomaly", "Guardrail"],
-      ].map(([icon, lbl, k, sub], i) => {
-        const st = _GATE_STATE[gateStates[k]];
-        return (
-          <div key={i} style={{ flex: "1 1 130px", minWidth: 120, background: st.bg, border: `1.5px solid ${st.border}`, borderRadius: 10, padding: "8px 10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <span style={{ fontSize: 14 }}>{icon}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: st.color }}>{lbl}</span>
-              {st.mark && <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 800, color: st.color }}>{st.mark}</span>}
-            </div>
-            <p style={{ margin: "2px 0 0", fontSize: 10, color: C.mutedLight }}>{sub}</p>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  return (
-    <div>
-      <div style={{ background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
-        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: C.teal }}>📄 Resume Check — the 3 gates between you and a recruiter</p>
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Modern hiring screens a résumé through three stages — a <strong>parser</strong>, a <strong>keyword/Boolean filter</strong>, then a <strong>semantic AI ranker</strong> — with an AI co-pilot watching for over-optimised "anomalies". This reverses all three for {toTitleCase(title || "this role")} and checks a pasted résumé against each.</p>
-        <p style={{ margin: "7px 0 0", fontSize: 11, color: C.muted }}>Based on <strong><a href="https://github.com/ang-kl/2026-0313_AI-JS/blob/main/v3/doc/Report-ATS.md" target="_blank" rel="noopener noreferrer" style={{ color: C.teal }}>v3/doc/Report-ATS.md</a></strong> — a synthesis of 2023–26 research on how the six dominant ATS actually work. 🔒 Your résumé is sent for analysis and <strong>not stored</strong> — not in our database, not in analytics; only anonymous keyword-gap counts are kept. The application URL, if you enter one, is parsed in your browser only.</p>
-      </div>
-
-      {gateStrip}
-
-      {/* The screening profile for this role */}
-      {card(
-        <>
-          <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>What screening looks for in this role</p>
-          {profileState.status === "loading" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 11, height: 11, border: `2px solid ${C.tealBdr}`, borderTop: `2px solid ${C.teal}`, borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite", flexShrink: 0 }} />
-              <p style={{ margin: 0, fontSize: 12, color: C.muted }}>Working out the screening profile for this role…</p>
-            </div>
-          )}
-          {profileState.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Couldn't build the screening profile right now — you can still paste a résumé below and we'll check it against this role's skills.</p>}
-          {profileState.status === "done" && profile && (profile.empty ? (
-            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not enough role data yet to build a screening profile — try again in a moment, or paste a résumé below.</p>
-          ) : (
-            <>
-              {profile.narrative && profile.narrative.headline && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{profile.narrative.headline}{profile.narrative.aiBar ? <> <strong style={{ color: C.teal }}>The bar to clear:</strong> {profile.narrative.aiBar}</> : null}</p>}
-              {profile.requiredQuals && profile.requiredQuals.length > 0 && (
-                <div style={{ marginBottom: 10 }}>{sectionHdr(`Required qualifications — the hard filters (${profile.requiredQuals.length})`)}
-                  {profile.requiredQuals.map((q, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{q.kw}</strong>{q.why ? ` — ${q.why}` : ""}</span></div>)}
-                </div>
-              )}
-              {profile.exactTitle && profile.exactTitle.length > 0 && (
-                <div style={{ marginBottom: 10 }}>{sectionHdr("Exact job title to mirror — the single biggest lever (≈10× interview likelihood)")}{profile.exactTitle.map((t, i) => chip(t.kw || t, "#0c4a6e", "#e0f2fe", "#bae6fd", i))}</div>
-              )}
-              {profile.hardSkills && profile.hardSkills.length > 0 && (
-                <div style={{ marginBottom: 10 }}>{sectionHdr(`Hard skills the keyword filter checks (${profile.hardSkills.length})`)}{profile.hardSkills.map((m, i) => chip(m.kw + (m.fromAds ? ` ·${m.fromAds}` : ""), "#0c4a6e", "#e0f2fe", "#bae6fd", i))}</div>
-              )}
-              {profile.softSkills && profile.softSkills.length > 0 && (
-                <div style={{ marginBottom: 10 }}>{sectionHdr("Soft skills")}{profile.softSkills.map((m, i) => chip(m.kw, C.textSub, "#f5f7fa", C.border, i))}</div>
-              )}
-              {profile.aiDimensions && profile.aiDimensions.length > 0 && (
-                <div style={{ marginBottom: profile.keywordGaps && profile.keywordGaps.length ? 10 : 0 }}>{sectionHdr("What the semantic AI ranker scores you on")}
-                  {profile.aiDimensions.map((d, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 3 }}><span style={{ color: C.teal, fontWeight: 700 }}>•</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{d.name}</strong>{d.what ? ` — ${d.what}` : ""}</span></div>)}
-                  {(profile.seniority || (profile.tools && profile.tools.length)) && <p style={{ margin: "6px 0 0", fontSize: 11, color: C.mutedLight }}>Typically: {[profile.seniority && `~${profile.seniority}`, (profile.tools || []).slice(0, 5).join(", ")].filter(Boolean).join(" · ")}</p>}
-                </div>
-              )}
-              {profile.keywordGaps && profile.keywordGaps.length > 0 && (
-                <div style={{ marginTop: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 6 }}>
-                  <p style={{ margin: 0, fontSize: 11, color: "#92400e", lineHeight: 1.5 }}><strong>Most often missing</strong> on résumés checked against this role: {profile.keywordGaps.slice(0, 6).map(g => `${g.kw} (${g.miss}/${g.of})`).join(" · ")}</p>
-                </div>
-              )}
-            </>
-          ))}
-        </>
-      )}
-
-      {/* Static format-invariants checklist (always shown) */}
-      {card(
-        <>
-          <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 700, color: C.text }}>Format invariants — Gate 1 fails ~23% of résumés before ranking</p>
-          <p style={{ margin: "0 0 8px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>These hold across all six dominant ATS. The pasted-text check below will mark the ones it can see; the rest you verify in your document.</p>
-          {(check.status === "done" ? check.parsed.checklist : parseCheck("").checklist).map((c, i) => {
-            const showState = check.status === "done";
-            const mark = !showState || c.ok === null ? "○" : c.ok ? "✓" : "✗";
-            const col = !showState || c.ok === null ? C.mutedLight : c.ok ? "#1e40af" : "#9a3412";
-            return (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
-                <span style={{ color: col, fontWeight: 700, fontSize: 13, flexShrink: 0, width: 13 }}>{mark}</span>
-                <span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{c.item}{c.note ? <span style={{ color: C.mutedLight }}> — {c.note}</span> : null}</span>
-              </div>
-            );
-          })}
-        </>
-      )}
-
-      {/* Optional: identify the ATS from the application URL */}
-      {card(
-        <>
-          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Which ATS is this employer using? <span style={{ fontWeight: 400, color: C.muted }}>(optional)</span></p>
-          <input value={appUrl} onChange={e => setAppUrl(e.target.value.slice(0, 300))} placeholder="Paste the job-application page URL (e.g. …myworkdayjobs.com/…)"
-            style={{ width: "100%", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "8px 10px", fontSize: 13, outline: "none", fontFamily: "inherit" }} />
-          {appUrl.trim() && !ats && <p style={{ margin: "8px 0 0", fontSize: 12, color: C.muted, fontStyle: "italic" }}>Not one of the six big ATS (Workday / Greenhouse / Lever / Taleo / iCIMS / SAP SuccessFactors) by URL — many employers use those, or a smaller vendor; the format invariants above still apply.</p>}
-          {ats && (
-            <div style={{ marginTop: 10, padding: "10px 12px", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10 }}>
-              <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 800, color: C.teal }}>{ats.name}</p>
-              <p style={{ margin: "0 0 3px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Parser:</strong> {ats.parserGen}. <strong>Weak on:</strong> {ats.weakness}.</p>
-              <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{ats.behavior}</p>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Paste & check */}
-      {card(
-        <>
-          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text }}>Paste your résumé text</p>
-          <textarea value={resumeText} onChange={e => setResumeText(e.target.value.slice(0, 8000))} placeholder="Paste the plain text of your résumé here…"
-            style={{ width: "100%", minHeight: 140, resize: "vertical", boxSizing: "border-box", background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, color: C.text, padding: "10px 12px", fontSize: 13, lineHeight: 1.5, outline: "none", fontFamily: "inherit" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-            <button onClick={runCheck} disabled={resumeText.trim().length < 200 || check.status === "loading" || !profile}
-              style={{ padding: "8px 16px", fontSize: 13, fontWeight: 700, color: "#fff", background: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? C.mutedLight : C.teal, border: "none", borderRadius: 6, cursor: (resumeText.trim().length < 200 || check.status === "loading" || !profile) ? "not-allowed" : "pointer" }}>
-              {check.status === "loading" ? "Checking…" : "Run it through the 3 gates"}
-            </button>
-            {resumeText && <button onClick={() => { setResumeText(""); setCheck({ status: "idle" }); }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
-            <span style={{ fontSize: 11, color: C.mutedLight }}>{resumeText.trim().length < 200 ? `${resumeText.trim().length}/200 chars min` : `${resumeText.length} chars${resumeText.length >= 8000 ? " (capped at 8000)" : ""}`}</span>
-          </div>
-        </>
-      )}
-
-      {check.status === "loading" && (
-        <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
-          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Running it through the parser, the keyword filter, the AI ranker and the anomaly check…</p>
-        </div>
-      )}
-      {check.status === "error" && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
-
-      {check.status === "done" && (() => {
-        const { parsed, kw, screen: scr, anomaly, advice: adv } = check;
-        const bandColor = check.band === "likely" ? "#1e40af" : check.band === "borderline" ? "#b45309" : "#9a3412";
-        const bandLabel = check.band === "likely" ? "Likely to clear screening" : check.band === "borderline" ? "Borderline — could go either way" : "Likely filtered out";
-        const g2Color = kw.gate2Score >= 65 ? "#1e40af" : kw.gate2Score >= 40 ? "#b45309" : "#9a3412";
-        const pColor = parsed.score >= 75 ? "#1e40af" : parsed.score >= 50 ? "#b45309" : "#9a3412";
-        const tm = kw.titleMatch;
-        return (
-          <div>
-            {/* overall band */}
-            <div style={{ background: bandColor + "12", border: `1.5px solid ${bandColor}55`, borderRadius: 10, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14, fontWeight: 800, color: bandColor }}>{bandLabel}</span>
-              <span style={{ fontSize: 12, color: C.textSub }}>composite {check.overall}/100 = 22% parse + 40% keyword + 38% semantic</span>
-            </div>
-
-            {/* Gate 1 — parse / format */}
-            {card(
-              <>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🚪 Gate 1 — Parse / format</p>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: pColor }}>{parsed.score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
-                  <span style={{ fontSize: 12, color: C.muted }}>~{parsed.words} words · ~{parsed.pages} page{parsed.pages === 1 ? "" : "s"} of text</span>
-                </div>
-                {parsed.flags.length === 0
-                  ? <p style={{ margin: 0, fontSize: 12, color: "#1e40af" }}>No text-level parsing red flags detected in the pasted text. (Still verify the layout invariants above in your actual file.)</p>
-                  : parsed.flags.map((f, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 4 }}>
-                      <span style={{ color: f.level === "warn" ? "#b45309" : C.mutedLight, flexShrink: 0 }}>{f.level === "warn" ? "⚠" : "○"}</span>
-                      <span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{f.msg}</span>
-                    </div>
-                  ))}
-              </>
-            )}
-
-            {/* Gate 2 — keyword match (exact, tiered) */}
-            {card(
-              <>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🔑 Gate 2 — Keyword match (exact, tiered)</p>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: g2Color }}>{kw.gate2Score}<span style={{ fontSize: 12, fontWeight: 600, color: C.muted }}>/100</span></span>
-                </div>
-                {/* exact-title lever */}
-                {tm && tm.target && (
-                  <div style={{ marginBottom: 10, padding: "8px 10px", borderRadius: 6, background: tm.matched ? "#eef2ff" : "#fff7ed", border: `1px solid ${tm.matched ? "#c7d2fe" : "#fed7aa"}` }}>
-                    <p style={{ margin: 0, fontSize: 12, color: tm.matched ? "#1e40af" : "#9a3412", lineHeight: 1.5 }}>
-                      {tm.matched
-                        ? <><strong>Title mirrored.</strong> Your most-recent role title matches the target ("{tm.found || tm.target}") — that's the biggest single lever (≈10× interview likelihood).</>
-                        : <><strong>Title mismatch.</strong> Your most-recent title looks like "{tm.found || "(not detected)"}" but the role is "{tm.target}". Mirroring the exact title — accurately — is the strongest move you can make.</>}
-                    </p>
-                  </div>
-                )}
-                {tierChips(kw.tiers.requiredQuals, "Required qualifications")}
-                {tierChips(kw.tiers.hardSkills, "Hard skills")}
-                {tierChips(kw.tiers.dutyKeywords, "Duty keywords")}
-                {tierChips(kw.tiers.softSkills, "Soft skills")}
-                {/* placement */}
-                {kw.placement && kw.placement.n > 0 && (
-                  <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 6 }}>
-                    <p style={{ margin: 0, fontSize: 12, color: "#92400e", lineHeight: 1.5 }}><strong>Placement:</strong> {kw.placement.n} matched skill{kw.placement.n === 1 ? "" : "s"} appear only in your standalone Skills list, not inside a dated job entry — ATS give more experience weight to skills shown in dated bullets: {kw.placement.onlyInSkillsList.slice(0, 8).map(c => c.kw).join(", ")}.</p>
-                  </div>
-                )}
-                {/* stuffing */}
-                {kw.stuffing && kw.stuffing.length > 0 && (
-                  <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 6 }}>
-                    <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.5 }}><strong>Over-repetition:</strong> {kw.stuffing.map(s => `"${s.kw}" ×${s.n}`).join(", ")} — cap any keyword at 2–3 well-placed mentions; more reads as stuffing to the AI co-pilot.</p>
-                  </div>
-                )}
-                {/* acronym tips */}
-                {kw.acronymTips && kw.acronymTips.length > 0 && (
-                  <div style={{ padding: "8px 10px", background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 6 }}>
-                    <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong>Acronyms:</strong> include both the acronym and the spelled-out form once each so both keyword variants match — {kw.acronymTips.slice(0, 4).map(t => `${t.acronym} / ${t.full} (you have the ${t.have})`).join("; ")}.</p>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Gate 3 — semantic / AI rank */}
-            {scr && card(
-              <>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.text }}>🤖 Gate 3 — Semantic / AI rank</p>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: bandColor, background: bandColor + "1a", border: `1px solid ${bandColor}55`, borderRadius: 10, padding: "2px 10px" }}>{scr.verdict === "STRONG" ? "Strong fit" : scr.verdict === "POSSIBLE" ? "Possible fit" : "Unlikely fit"}</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-                  {Object.entries(scr.scores || {}).map(([dim, val], i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ width: 150, flexShrink: 0, fontSize: 11, color: C.textSub }}>{dim}</span>
-                      <div style={{ flex: 1, height: 8, borderRadius: 6, overflow: "hidden", background: "#f5f7fa" }}><div style={{ width: `${Math.max(0, Math.min(100, val))}%`, background: val >= 65 ? "#1e40af" : val >= 40 ? "#b45309" : "#9a3412" }} /></div>
-                      <span style={{ width: 28, flexShrink: 0, textAlign: "right", fontSize: 11, fontWeight: 700, color: C.textSub }}>{val}</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 10 }}>
-                  {scr.advanceReasons.length > 0 && <div>{sectionHdr("A screener would advance because")}{scr.advanceReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#1e40af" }}>✓</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                  {scr.rejectReasons.length > 0 && <div>{sectionHdr("…or reject because")}{scr.rejectReasons.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                  {scr.redFlags.length > 0 && <div>{sectionHdr("Red flags")}{scr.redFlags.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>⚑</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                  {scr.knockoutRisks.length > 0 && <div>{sectionHdr("Required-qual risks")}{scr.knockoutRisks.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>▸</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{r}</span></div>)}</div>}
-                </div>
-              </>
-            )}
-
-            {/* AI-anomaly */}
-            {anomaly && anomaly.flags.length > 0 && (
-              <div style={{ background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 10, padding: "14px 16px", marginBottom: 14 }}>
-                <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#92400e" }}>⚑ AI-anomaly guardrail</p>
-                {anomaly.flags.map((f, i) => <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7, marginBottom: 4 }}><span style={{ color: "#b45309", flexShrink: 0 }}>•</span><span style={{ fontSize: 12, color: "#78350f", lineHeight: 1.5 }}>{f.msg}</span></div>)}
-              </div>
-            )}
-
-            {/* how to fix */}
-            {adv && (
-              <div style={{ background: C.greenBg, border: `1px solid ${C.greenBdr}`, borderRadius: 10, padding: "14px 16px" }}>
-                <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 800, color: C.green }}>How to fix it</p>
-                {adv.headline && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{adv.headline}</p>}
-                {adv.titleAdvice && <div style={{ marginBottom: 8, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Mirror the title:</strong> {adv.titleAdvice}</p></div>}
-                {adv.placementAdvice && <div style={{ marginBottom: 8, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><strong style={{ color: C.green }}>Move it into a dated bullet:</strong> {adv.placementAdvice}</p></div>}
-                {adv.mustAdd.length > 0 && (
-                  <div style={{ marginBottom: 10 }}>{sectionHdr("Add these keywords (with a template bullet — fill in honestly)")}
-                    {adv.mustAdd.map((m, i) => (
-                      <div key={i} style={{ marginBottom: 7, padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.green }}>{m.keyword}{m.why ? <span style={{ fontWeight: 400, color: C.muted }}> — {m.why}</span> : null}</p>
-                        {m.exampleBullet && <p style={{ margin: "3px 0 0", fontSize: 12, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>“{m.exampleBullet}”</p>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {adv.reframe.length > 0 && (
-                  <div style={{ marginBottom: 10 }}>{sectionHdr("Reframe")}
-                    {adv.reframe.map((r, i) => <div key={i} style={{ marginBottom: 5, fontSize: 12, color: C.textSub, lineHeight: 1.5 }}><span style={{ color: C.mutedLight }}>“{r.from}”</span> → <strong style={{ color: C.green }}>“{r.to}”</strong>{r.why ? <span style={{ color: C.muted }}> — {r.why}</span> : null}</div>)}
-                  </div>
-                )}
-                {adv.donts.length > 0 && <div style={{ marginBottom: 10 }}>{sectionHdr("Don't")}{adv.donts.map((d, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>✗</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.4 }}>{d}</span></div>)}</div>}
-                <div style={{ marginBottom: adv.aiAngle ? 10 : 0, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 6 }}><p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.5 }}>Don't over-optimise. Honest, varied, semantically-coherent content beats clever keyword-stuffing — and over-optimisation trips the AI co-pilot's anomaly detector. Cap any skill at 2–3 well-placed mentions and never add anything that isn't true.</p></div>
-                {adv.aiAngle && <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "8px 10px" }}><p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.green, textTransform: "uppercase", letterSpacing: "0.05em" }}>The AI-augmented angle</p><p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{adv.aiAngle}</p></div>}
-              </div>
-            )}
-            <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative simulation grounded in <a href="https://github.com/ang-kl/2026-0313_AI-JS/blob/main/v3/doc/Report-ATS.md" target="_blank" rel="noopener noreferrer" style={{ color: C.mutedLight }}>v3/doc/Report-ATS.md</a> — not an actual ATS; real systems vary by employer. Never add anything to your résumé that isn't true.</p>
-          </div>
-        );
-      })()}
-    </div>
-  );
-}
+// [PL2 removed] ResumeCheckPanel, _GATE_STATE -- removed (PL2)
+// function ResumeCheckPanel removed (PL2)
 
 // v3.1: ResponsibilitiesPanel - AI analysis of the real duties an employer
 // expects, extracted from live MyCareersFuture postings for this role. Mirrors
@@ -11003,8 +10427,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"skills",      label:"📋 Skill Analysis",         color:C.muted   },
       ...((r.responsibilitiesData || r.jobAnatomy) ? [{ key:"deepread", label:"🔬 Deep Read", color:"#7c3aed" }] : []),
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"taskprep", label:"🎯 Task Prep", color:"#0e7490" }] : []),
-      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length >= 3) ? [{ key:"rehearse", label:"🎤 Interview Prep", color:"#1a56db" }] : []),
-      ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length >= 3) ? [{ key:"coverletter", label:"✉️ Cover Letter", color:"#0e7490" }] : []),
+      // { key:"rehearse", ... } -- removed (PL2)
+      // { key:"coverletter", ... } -- removed (PL2)
       ...((r.responsibilitiesData && r.responsibilitiesData.responsibilities && r.responsibilitiesData.responsibilities.length > 0) ? [{ key:"responsibilities", label:"📝 Responsibilities", color:C.purple }] : []),
       ...((r.jobAnatomy && !r.jobAnatomy.fallback && r.jobAnatomy.duties && r.jobAnatomy.duties.length > 0) ? [{ key:"jobanatomy", label:"🧬 Job Anatomy", color:C.green }] : []),
       ...((r.roleMix && !r.roleMix.fallback && r.roleMix.components && r.roleMix.components.length > 0) ? [{ key:"rolemix", label:"🧩 Role-Mix", color:C.amber }] : []),
@@ -11016,7 +10440,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
       { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
-      { key:"resume",      label:"📄 Resume Check",            color:"#0e7490", paused:true },
+      // { key:"resume", label:"📄 Resume Check", paused:true } -- removed (PL2)
     ];
   };
 
@@ -11874,12 +11298,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {activeTab === "taskprep" && result.responsibilitiesData && (
                 <TaskPrep result={result} />
               )}
-              {activeTab === "rehearse" && result.responsibilitiesData && (
-                <Rehearsal result={result} title={sel?.title || ""} />
-              )}
-              {activeTab === "coverletter" && result.responsibilitiesData && (
-                <CoverLetter result={result} title={sel?.title || ""} />
-              )}
+              {/* activeTab === "rehearse" -- removed (PL2) */}
+              {/* activeTab === "coverletter" -- removed (PL2) */}
               {activeTab === "responsibilities" && result.responsibilitiesData && (
                 <ResponsibilitiesPanel data={result.responsibilitiesData} skills={result.skills} persona={persona} firstAnalysis={!hasAnalysedOnce.current} />
               )}
@@ -11987,9 +11407,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <RoleGraphPanel result={result} title={sel?.title || ""} />
               )}
 
-              {activeTab === "resume" && (
-                <ResumeCheckPanel result={result} title={sel?.title || ""} />
-              )}
+              {/* activeTab === "resume" -- removed (PL2) */}
 
               {/* UI2: the badges legend rides as a footnote under the content */}
               {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
