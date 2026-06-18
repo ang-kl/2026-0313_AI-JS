@@ -860,6 +860,17 @@
 // and lists them into the existing handleAnalysePosting. Deterministic, no LLM, no number minted; frozen
 // door intact. (Sandbox cannot reach MCF - build + unit checks on mocked JSON; live verify on preview.)
 // G1 (v3.0.86 -> v3.0.87).
+// v3.0.88 - 2026-06-18 - HDR #126 - CO2: company "agents to build" (Human Lead arc). On a confirmed
+// employer (CO1), "Find AI moments" detail-fetches the top 5 postings (duties:true, reuses
+// extractResponsibilities, budget <=8) and buildCompanyAgents clusters duties across roles by token
+// overlap, ranks by recurrence x AI-exposure (HUMAN clusters stay "stays human", never promoted), and
+// frames the top clusters as candidate agents. Rendered as a three-tier graph (Functions -> Recurring
+// duties -> Agent candidates) reusing KGGraph, with a CompanyAgentSidePanel ("Connected to" + "From
+// these postings" provenance) and a seed-deterministic force-directed layout toggle (lanes stay the
+// a11y default). SAT discipline (indicators / ACH-per-function + runner-up / Key-Assumptions / QoI);
+// withholds under 4 postings / 6 duties / recurrence 2. Deterministic, no LLM, no number minted;
+// candidate-suitability withheld; frozen door intact. (Sandbox cannot reach MCF - build + unit checks
+// on mocked JSON; live verify on preview.) G1 (v3.0.87 -> v3.0.88).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
