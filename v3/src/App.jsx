@@ -850,6 +850,16 @@
 // edges is labelled "grouped role map" (not "wired structure") with an amber note, rather than
 // claiming wiring it does not have. Intentionally edits buildKnowledgeGraph (KG3 supersedes the KG1
 // freeze of that symbol). G1 (v3.0.85 -> v3.0.86).
+// v3.0.87 - 2026-06-18 - HDR #125 - CO1: company-name search (Human Lead: "switch role/company on the
+// landing page; poll MCF for the company's advertised jobs, double-check the company name and how many
+// posts"). New third searchMode "company" alongside role/jobs (frozen "jobs" path untouched); the card
+// relabels the shared input to "Company name". New api/mcf.js action:"company" - searches MCF, normalises
+// employer names (strips Pte Ltd / Asia Pacific etc.), groups by employer, returns each matched employer
+// + a pass-through posting COUNT, flags ambiguous (>=2 employers) for a chooser, withholds on 0 - <=3
+// search calls, no per-job detail. CompanyPanel confirms "Found: <employer> - N live postings" (from MCF)
+// and lists them into the existing handleAnalysePosting. Deterministic, no LLM, no number minted; frozen
+// door intact. (Sandbox cannot reach MCF - build + unit checks on mocked JSON; live verify on preview.)
+// G1 (v3.0.86 -> v3.0.87).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
