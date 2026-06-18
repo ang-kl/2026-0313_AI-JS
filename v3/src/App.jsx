@@ -11929,7 +11929,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
                   placeholder="e.g. Data Analyst, Operations Manager, HR Executive"
-                  style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, fontFamily:"inherit" }} autoFocus />
+                  style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, fontFamily:"inherit" }} autoFocus />
                 <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
                   <span>{searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize:15, lineHeight:1 }}>&#8594;</span>
