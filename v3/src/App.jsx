@@ -981,10 +981,9 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     };
     if (systemPrompt) body.system = systemPrompt;
 
-    // Per-call fetch timeout: heavy models (Fable/Opus/Sonnet) get a long window;
-    // Fable 5 + Opus reason the most, so they get the full headroom. Haiku scales by size.
+    // Per-call fetch timeout: heavy models (Opus/Sonnet) get a long window;
+    // Opus reasons the most, so it gets the full headroom. Haiku scales by size.
     const fetchTimeout =
-      model.includes("fable")  ? 180000 :
       model.includes("opus")   ? 180000 :
       model.includes("sonnet") ? 150000 :
       maxTokens > 2500         ? 90000  : 55000;
@@ -1006,14 +1005,21 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
         if (e?.debug) msg = `${msg} [${e.debug}]`;
         if (e?.code)  msg = `${msg} (${e.code})`;
       } catch(_) {}
-      throw new Error(msg);
+      const apiErr = new Error(msg);
+      apiErr.status = res.status;
+      throw apiErr;
     }
     const data = await res.json();
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     if (!text) throw new Error("Empty response");
     return text;
   } catch(err) {
-    if (attempt < 3) {
+    // Retry only transient failures. The proxy maps overload/5xx/auth to 503 and
+    // network/timeout errors carry no status; a 4xx (e.g. 404 unknown model, 400
+    // bad request) is deterministic, so retrying it just wastes time and floods
+    // logs/alerts - fail fast instead.
+    const retriable = err.status == null || err.status >= 500 || err.status === 429;
+    if (attempt < 3 && retriable) {
       const delay = attempt === 1 ? 1500 : 3000;
       await new Promise(r => setTimeout(r, delay));
       return claudeCall(prompt, maxTokens, attempt + 1, systemPrompt, model);
@@ -2695,7 +2701,7 @@ Be precise. A skill that appears in a clearly different field (e.g. chemistry sk
   const raw = await claudeCall(
 `Role: ${title}
 Score each skill for relevance to this role.
-Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-fable-5");
+Skills: ${skillList}`, 500, 1, SYSTEM_RELEVANCE, "claude-opus-4-8");
   const arr = extractJSON(raw, "relevance");
   return Array.isArray(arr) ? arr : [];
 }
@@ -2827,7 +2833,7 @@ ${batch.map(s => {
 Return pt exactly as assigned above. Do not substitute a different technique.`;
 
     try {
-      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-fable-5");
+      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
       const arr = extractJSON(raw, "prompts-batch");
       if (Array.isArray(arr)) {
         allResults.push(...arr);
@@ -4938,7 +4944,7 @@ async function fetchPraxis(title, statements) {
   const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|praxis1`;
   if (_praxisCache.has(key)) return _praxisCache.get(key);
   const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWrite the four-phase Steward's Praxis for this role.`, 700, 1, SYSTEM_PRAXIS, "claude-fable-5");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWrite the four-phase Steward's Praxis for this role.`, 700, 1, SYSTEM_PRAXIS, "claude-opus-4-8");
   const o = extractJSON(raw, "praxis") || {};
   const noDigits = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
   const byPhase = new Map((Array.isArray(o.phases) ? o.phases : []).map(p => [Number(p && p.phase), p]));
@@ -5043,7 +5049,7 @@ async function fetchAgenticLine(title, statements) {
   const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(statements.map(s => s.text).join(""))}|agentic1`;
   if (_agenticCache.has(key)) return _agenticCache.get(key);
   const list = statements.slice(0, 14).map(s => `${s.n}:${s.text}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWhere should this person start crafting an agent, and what control must they keep?`, 300, 1, SYSTEM_AGENTIC, "claude-fable-5");
+  const raw = await claudeCall(`Role: ${title}\nDuty statements:\n${list}\n\nWhere should this person start crafting an agent, and what control must they keep?`, 300, 1, SYSTEM_AGENTIC, "claude-opus-4-8");
   const o = extractJSON(raw, "agentic") || {};
   const line = String(o.line || "").replace(/[0-9]/g, "").trim().slice(0, 360);
   _agenticCache.set(key, line);
@@ -6264,7 +6270,7 @@ async function fetchExplain(title, tabList) {
   const key = `${String(title || "").trim().toLowerCase()}|${_evidenceHash(tabList.map(t => t.key).join(","))}|explain1`;
   if (_explainCache.has(key)) return _explainCache.get(key);
   const list = tabList.map(t => `${t.key}: ${t.label}`).join("\n");
-  const raw = await claudeCall(`Role: ${title}\nAvailable sections:\n${list}\n\nWrite the reading guide.`, 600, 1, SYSTEM_EXPLAIN, "claude-fable-5");
+  const raw = await claudeCall(`Role: ${title}\nAvailable sections:\n${list}\n\nWrite the reading guide.`, 600, 1, SYSTEM_EXPLAIN, "claude-opus-4-8");
   const o = extractJSON(raw, "explain") || {};
   const valid = new Set(tabList.map(t => t.key));
   const clean = (s, max) => String(s || "").replace(/[0-9]/g, "").trim().slice(0, max);
