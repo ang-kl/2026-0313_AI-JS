@@ -804,6 +804,18 @@
 // log-only skills_resolved trace (total vs unique skill count + dup names) on the main analyse
 // path, for the double-skill watch - captured under ?dmm=1 / ?debug=panel; no de-dup, behaviour
 // unchanged. Presentation + observability only; no engine number authored; frozen door untouched.
+// v3.0.80 - 2026-06-18 - HDR #118 - KG1: knowledge-graph builder + clustered render (Human Lead:
+// "construct a sophisticated, brain-like knowledge graph of the job role"). New deterministic
+// buildKnowledgeGraph(result, title) -> {nodes, edges, clusters, withheld} - closed verb set, honesty-
+// gated clusters (competition omitted without mirror-role data), no LLM in the structure; rendered in
+// RoleGraph.jsx behind ?view=graph with fallback to the baked layered graph. buildGraphStructure /
+// parseJobAd byte-identical (frozen door intact). G1 (v3.0.79 -> v3.0.80).
+// v3.0.81 - 2026-06-18 - HDR #119 - POPUP STANDARDIZE (Human Lead: "the pop-ups are not standardized
+// in font and message structure and heading styled professionally"). New shared POP token set
+// (title / sub / body + tipTitle / tipBody + 44px closeBtn) applied across every overlay surface:
+// CompareWarningModal (now role=dialog + aria-modal + aria-labelledby + 44px buttons), JobAdDrawer
+// header, Toast, Term glossary + tech tooltips - one type scale and message structure, no colour-only
+// state. Presentation only; engine number + frozen door untouched. G1 (v3.0.80 -> v3.0.81).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -844,6 +856,22 @@ const NEO = {
   raise:   "6px 6px 14px rgba(174,189,212,0.55), -6px -6px 13px rgba(255,255,255,0.9)",
   raiseSm: "4px 4px 9px rgba(174,189,212,0.5), -4px -4px 9px rgba(255,255,255,0.9)",
   inset:   "inset 3px 3px 7px rgba(174,189,212,0.5), inset -3px -3px 7px rgba(255,255,255,0.85)",
+};
+
+// POP - shared typography + structure tokens for EVERY overlay surface (modal /
+// drawer / dialog / toast / micro-tooltip), so headings, body copy and the close
+// affordance read consistently and professionally instead of each popup inventing
+// its own scale. Two tiers: modal (title/sub/body) for the larger surfaces, tip
+// (tipTitle/tipBody) for the small glossary/tech popovers. Dark variants override
+// only colour (for navy/ink surfaces). closeBtn carries the 44px a11y hit area.
+// rem-based so it rides the text-size control like the rest of the app.
+const POP = {
+  title:    { margin: 0, fontSize: "0.9375rem", fontWeight: 800, lineHeight: 1.3, color: C.text },
+  sub:      { margin: 0, fontSize: "0.75rem",   fontWeight: 600, lineHeight: 1.45, color: C.textSub },
+  body:     { margin: 0, fontSize: "0.8125rem", fontWeight: 400, lineHeight: 1.6,  color: C.textSub },
+  tipTitle: { display: "block", margin: "0 0 4px", fontSize: "0.75rem",   fontWeight: 700, lineHeight: 1.3,  color: C.text },
+  tipBody:  { display: "block", margin: 0,         fontSize: "0.6875rem", fontWeight: 400, lineHeight: 1.55, color: C.textSub },
+  closeBtn: { flexShrink: 0, minWidth: 44, minHeight: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", fontSize: "1.25rem", lineHeight: 1, cursor: "pointer", borderRadius: 8 },
 };
 
 // ---- GLOSSARY + Term tooltip -----------------------------------------------
@@ -975,8 +1003,8 @@ function Term({ k, children }) {
           role="tooltip"
           style={bubbleStyle}
         >
-          <span style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, color: C.text, marginBottom: 4 }}>{k}</span>
-          <span style={{ display: "block", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>{def}</span>
+          <span style={POP.tipTitle}>{k}</span>
+          <span style={POP.tipBody}>{def}</span>
         </span>
       )}
     </span>
@@ -6408,11 +6436,11 @@ function JobAdDrawer({ result, open, onClose }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
           <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: "1rem", cursor: "grab" }}>⠿</span>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
-            {job && <p style={{ margin: "1px 0 0", fontSize: "0.6875rem", color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
+            <p style={{ ...POP.title, color: "#fff" }}>Job advertisement <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
+            {job && <p style={{ ...POP.sub, margin: "1px 0 0", color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
           </div>
         </div>
-        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: "1.375rem", cursor: "pointer", borderRadius: 10, lineHeight: 1 }}>×</button>
+        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ ...POP.closeBtn, color: "#fff", borderRadius: 10 }}>×</button>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
         {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
@@ -6934,9 +6962,9 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
                 {tech.level} {tech.label}
               </span>
               {techTooltipVisible && (
-                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1a202c", color:"#f5f7fa", fontSize: "0.625rem", lineHeight:1.55, padding: "8px 12px", borderRadius: 6, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
-                  <strong style={{ display:"block", marginBottom:3, color:"#dde3ec" }}>{tech.label}</strong>
-                  {tech.desc}
+                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1a202c", lineHeight:1.55, padding: "8px 12px", borderRadius: 6, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
+                  <strong style={{ ...POP.tipTitle, color:"#dde3ec" }}>{tech.label}</strong>
+                  <span style={{ ...POP.tipBody, color:"rgba(245,247,250,0.92)" }}>{tech.desc}</span>
                 </div>
               )}
             </div>
@@ -8679,18 +8707,18 @@ function CrossoverPanel({ items, skills, onAnalyse, onQueue, onQueueCount, first
 function CompareWarningModal({ onConfirm, onCancel }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
-      <div style={{ background:"#fff", borderRadius: 10, padding: "20px 22px", maxWidth:340, width:"100%", boxShadow:"0 8px 32px rgba(0,0,0,0.18)" }}>
-        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#1a202c" }}>Start a new analysis?</p>
-        <p style={{ margin:"0 0 16px", fontSize: "0.75rem", color:"#4a5568", lineHeight:1.6 }}>
+      <div role="dialog" aria-modal="true" aria-labelledby="cmpwarn-title" style={{ background:"#fff", borderRadius: 10, padding: "20px 22px", maxWidth:340, width:"100%", boxShadow:"0 8px 32px rgba(0,0,0,0.18)" }}>
+        <p id="cmpwarn-title" style={{ ...POP.title, marginBottom: 6 }}>Start a new analysis?</p>
+        <p style={{ ...POP.body, marginBottom: 16 }}>
           You have an active role comparison below. Starting a new analysis will clear it and begin fresh.
         </p>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={onConfirm}
-            style={{ flex:1, padding: "8px 14px", fontSize: "0.75rem", fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
+            style={{ flex:1, minHeight:44, padding: "8px 14px", fontSize: "0.8125rem", fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
             Yes, start fresh
           </button>
           <button onClick={onCancel}
-            style={{ flex:1, padding: "8px 14px", fontSize: "0.75rem", fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 6, cursor:"pointer" }}>
+            style={{ flex:1, minHeight:44, padding: "8px 14px", fontSize: "0.8125rem", fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 6, cursor:"pointer" }}>
             Keep comparison
           </button>
         </div>
@@ -12251,7 +12279,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               View comparison →
             </button>
           )}
-          <button onClick={() => setToast(null)} style={{ background:"transparent", border:"none", color:"rgba(255,255,255,0.7)", fontSize: "1.125rem", cursor:"pointer", padding:0, lineHeight:1, flexShrink:0 }}>×</button>
+          <button onClick={() => setToast(null)} aria-label="Dismiss" style={{ ...POP.closeBtn, color:"rgba(255,255,255,0.85)" }}>×</button>
         </div>
       )}
       <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
