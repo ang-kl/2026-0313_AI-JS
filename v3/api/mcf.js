@@ -86,12 +86,15 @@ function htmlToText(html) {
   s = s.replace(/\r/g, '');
   s = s.replace(/[ \t ]+/g, ' ');
   s = s.replace(/ *\n */g, '\n');
+  // Rejoin orphaned bullet glyphs: "•\nText" -> "• Text" (some ads put the bullet
+  // marker on its own line, with the item text on the following line).
+  s = s.replace(/\n[ \t]*([•·▪‣])[ \t]*\n[ \t]*/g, '\n$1 ');
   s = s.replace(/\n{3,}/g, '\n\n');
   return s.trim();
 }
 
 const RESP_START_RE = /^[\s•\-*]*(key\s+)?(responsibilit|job\s+description|the\s+role|role\s+description|what\s+you('|’)?ll\s+do|what\s+you\s+will\s+do|duties|key\s+accountabilit|main\s+duties|job\s+scope|job\s+summary|primary\s+responsibilit|your\s+role|day\s+to\s+day|role\s+overview)/i;
-const RESP_STOP_RE  = /^[\s•\-*]*(requirement|qualification|who\s+(you\s+are|we('|’)?re\s+looking)|what\s+we('|’)?re\s+looking|what\s+we\s+offer|we\s+offer|benefit|perks?\b|about\s+(us|the|our|you)|the\s+ideal|ideal\s+candidate|skills?\s*:|competenc|education\s*:|experience\s*:|to\s+be\s+successful|preferred\s+qualif|nice\s+to\s+have|minimum\s+requirement|key\s+requirement|desired\s+skills)/i;
+const RESP_STOP_RE  = /^[\s•\-*]*(requirement|qualification|who\s+(you\s+are|we('|’)?re\s+looking)|what\s+we('|’)?re\s+looking|what\s+we\s+offer|we\s+offer|benefit|perks?\b|about\s+(us|the|our|you)|the\s+ideal|ideal\s+candidate|skills?\s*:|competenc|education\s*:|experience\s*:|to\s+be\s+successful|preferred\s+qualif|nice\s+to\s+have|minimum\s+requirement|key\s+requirement|desired\s+skills|pre[\s-]?requisites?|requisites?|what\s+we\s+(look\s+for|need))/i;
 
 // Heuristically extract the "responsibilities / duties" portion of a job
 // description. Falls back to the full text when no clear section is found.
