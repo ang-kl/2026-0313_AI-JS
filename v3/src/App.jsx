@@ -11596,6 +11596,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
          Applied via localStorage key uiTextScale on mount.
          Scales detail text classes only; .t-heading stays fixed. */
       :root { --ui-scale: 1; }
+      /* Mobile / narrow (< 768px): the per-breakpoint --ui-scale font rules below
+         all start at min-width:768px, so the text-size control was inert on phones
+         (it set --ui-scale but nothing consumed it). The classed elements also carry
+         inline px that the class rules only override via !important at >=768px, so a
+         class-based mobile rule would shift the default sizes. Instead scale the whole
+         result container with zoom: it is a no-op at scale 1, covers ALL detail text
+         (including the inline-px text the class rules cannot reach), and on phones there
+         is no sticky nav rail inside main-content (PillarBar is the nav), so no
+         zoom-vs-sticky interaction. zoom is ignored on very old browsers (graceful). */
+      @media (max-width: 767px) {
+        .main-content { zoom: var(--ui-scale, 1); }
+      }
       @media (min-width: 768px) {
         body { font-size: 16px; }
         .t-body { font-size: calc(16px * var(--ui-scale, 1)) !important; }
