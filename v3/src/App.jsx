@@ -3749,15 +3749,19 @@ function Spinner({ label, step, total, firstTime, skills }) {
         <div className="ldx ldx-info" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
-            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
-              You're analysing a <strong>🇸🇬 MyCareersFuture (MCF)</strong> role: your search is matched to <strong>live MyCareersFuture postings</strong> for that title (responsibilities and demand) plus the ESCO skills taxonomy — <strong>not a generic or made-up role</strong>. The results screen shows every skill in this MyCareersFuture role distributed across four automation levels: <strong>Full Automation</strong> (AI - including AI agents - completes it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong>. Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
+            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.6 }}>
+              This is a <strong>real Singapore role</strong> — not a generic or made-up one. We match your search to <strong>live 🇸🇬 MyCareersFuture postings</strong> (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement — <strong>Full Automation</strong> (AI, including AI agents, does it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong> — with a visual overview up top.
             </p>
           </div>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
-            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.7 }}>
-              <strong>Skill Analysis</strong> contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide. <strong>Career Progression</strong> shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers. <strong>Role Crossover</strong> highlights the transferable skills that open doors to adjacent roles. <strong>Skill Categories</strong> groups skills into thematic clusters for structured learning. <strong>Role Context</strong> maps how the role operates across sectors and organisations in Singapore and the ASEAN region.
-            </p>
+            <ul style={{ margin:"4px 0 0", paddingLeft:18, fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+              <li style={{ marginBottom:3 }}><strong>Skill Analysis</strong> — each skill with a ready-to-use AI prompt and a 3-step “what to do next”.</li>
+              <li style={{ marginBottom:3 }}><strong>Career Progression</strong> — realistic next roles and the skill gaps to close.</li>
+              <li style={{ marginBottom:3 }}><strong>Role Crossover</strong> — transferable skills that open doors to nearby roles.</li>
+              <li style={{ marginBottom:3 }}><strong>Skill Categories</strong> — skills grouped into themes for easier learning.</li>
+              <li><strong>Role Context</strong> — how the role plays out across sectors in Singapore and ASEAN.</li>
+            </ul>
           </div>
         </div>
       )}
@@ -9859,7 +9863,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           {freshGrad && state.capped && baseJobs.length > 0 && (
             <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="mcf-grid">
             {pageJobs.map(job => (
               <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                 seen={hasSeenHistory ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
@@ -11597,52 +11601,53 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width: 2560px) { :root { --base-font: 18px; } html { font-size: 20px; } }
       .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
+      /* MCF postings list: explicit column tiers - 1 / 2 / 3 / 4 by viewport width
+         (phone portrait / phone-landscape & iPad-mini / iPad-landscape & notebook / wide). */
+      .mcf-grid { display:grid; grid-template-columns:1fr; gap:10px; align-items:start; }
+      @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
+      @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
+      @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
       /* Tablet and notebook font scaling */
       /* --ui-scale: user text-size control (A- / A / A+). Default 1.
-         Applied via localStorage key uiTextScale on mount.
-         Scales detail text classes only; .t-heading stays fixed. */
+         Applied to documentElement on mount (localStorage key uiTextScale).
+         Consumed by the .main-content zoom rule below - scales the whole UI. */
       :root { --ui-scale: 1; }
-      /* Mobile / narrow (< 768px): the per-breakpoint --ui-scale font rules below
-         all start at min-width:768px, so the text-size control was inert on phones
-         (it set --ui-scale but nothing consumed it). The classed elements also carry
-         inline px that the class rules only override via !important at >=768px, so a
-         class-based mobile rule would shift the default sizes. Instead scale the whole
-         result container with zoom: it is a no-op at scale 1, covers ALL detail text
-         (including the inline-px text the class rules cannot reach), and on phones there
-         is no sticky nav rail inside main-content (PillarBar is the nav), so no
-         zoom-vs-sticky interaction. zoom is ignored on very old browsers (graceful). */
-      @media (max-width: 767px) {
-        .main-content { zoom: var(--ui-scale, 1); }
-      }
+      /* Text-size control: scale the WHOLE result container with zoom, at every width.
+         zoom is a no-op at scale 1 and covers ALL text - including the inline-px text the
+         per-class rules below cannot reach (postings list, loading/intro screens). The
+         class font-size rules below are therefore fixed px (no --ui-scale multiplier) so
+         classed text is never scaled twice. The sticky header sits OUTSIDE main-content,
+         so the control itself never resizes. zoom is ignored on very old browsers. */
+      .main-content { zoom: var(--ui-scale, 1); }
       @media (min-width: 768px) {
         body { font-size: 16px; }
-        .t-body { font-size: calc(16px * var(--ui-scale, 1)) !important; }
-        .t-label { font-size: calc(14px * var(--ui-scale, 1)) !important; }
-        .t-meta { font-size: calc(13px * var(--ui-scale, 1)) !important; }
+        .t-body { font-size: calc(16px) !important; }
+        .t-label { font-size: calc(14px) !important; }
+        .t-meta { font-size: calc(13px) !important; }
         .t-heading { font-size: 18px !important; }
-        .t-sub { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .t-sub { font-size: calc(14px) !important; }
       }
       @media (min-width: 1024px) {
         body { font-size: 17px; }
-        .t-body { font-size: calc(17px * var(--ui-scale, 1)) !important; }
-        .t-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
-        .t-meta { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .t-body { font-size: calc(17px) !important; }
+        .t-label { font-size: calc(15px) !important; }
+        .t-meta { font-size: calc(14px) !important; }
         .t-heading { font-size: 20px !important; }
-        .t-sub { font-size: calc(15px * var(--ui-scale, 1)) !important; }
-        .result-text-sm { font-size: calc(14px * var(--ui-scale, 1)) !important; }
-        .result-text-xs { font-size: calc(13px * var(--ui-scale, 1)) !important; }
-        .result-label { font-size: calc(13px * var(--ui-scale, 1)) !important; }
+        .t-sub { font-size: calc(15px) !important; }
+        .result-text-sm { font-size: calc(14px) !important; }
+        .result-text-xs { font-size: calc(13px) !important; }
+        .result-label { font-size: calc(13px) !important; }
       }
       @media (min-width: 1280px) {
         body { font-size: 17px; }
-        .t-body { font-size: calc(17px * var(--ui-scale, 1)) !important; }
-        .t-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
-        .t-meta { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .t-body { font-size: calc(17px) !important; }
+        .t-label { font-size: calc(15px) !important; }
+        .t-meta { font-size: calc(14px) !important; }
         .t-heading { font-size: 21px !important; }
-        .t-sub { font-size: calc(15px * var(--ui-scale, 1)) !important; }
-        .result-text-sm { font-size: calc(14px * var(--ui-scale, 1)) !important; }
-        .result-text-xs { font-size: calc(13px * var(--ui-scale, 1)) !important; }
-        .result-label { font-size: calc(13px * var(--ui-scale, 1)) !important; }
+        .t-sub { font-size: calc(15px) !important; }
+        .result-text-sm { font-size: calc(14px) !important; }
+        .result-text-xs { font-size: calc(13px) !important; }
+        .result-label { font-size: calc(13px) !important; }
       }
       /* Retina MacBook 1200-1440 CSS px: tab label lift */
       @media (min-width: 1200px) and (max-width: 1500px) {
@@ -11651,25 +11656,25 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       /* 2K and 4K scaling - font-size on html cascades via rem */
       @media (min-width: 2000px) {
         body { font-size: 19px; }
-        .t-body { font-size: calc(19px * var(--ui-scale, 1)) !important; }
-        .t-label { font-size: calc(16px * var(--ui-scale, 1)) !important; }
-        .t-meta { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .t-body { font-size: calc(19px) !important; }
+        .t-label { font-size: calc(16px) !important; }
+        .t-meta { font-size: calc(15px) !important; }
         .t-heading { font-size: 24px !important; }
-        .t-sub { font-size: calc(17px * var(--ui-scale, 1)) !important; }
-        .result-text-sm { font-size: calc(16px * var(--ui-scale, 1)) !important; }
-        .result-text-xs { font-size: calc(14px * var(--ui-scale, 1)) !important; }
-        .result-label { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .t-sub { font-size: calc(17px) !important; }
+        .result-text-sm { font-size: calc(16px) !important; }
+        .result-text-xs { font-size: calc(14px) !important; }
+        .result-label { font-size: calc(14px) !important; }
       }
       @media (min-width: 2560px) {
         body { font-size: 21px; }
-        .t-body { font-size: calc(21px * var(--ui-scale, 1)) !important; }
-        .t-label { font-size: calc(18px * var(--ui-scale, 1)) !important; }
-        .t-meta { font-size: calc(16px * var(--ui-scale, 1)) !important; }
+        .t-body { font-size: calc(21px) !important; }
+        .t-label { font-size: calc(18px) !important; }
+        .t-meta { font-size: calc(16px) !important; }
         .t-heading { font-size: 28px !important; }
-        .t-sub { font-size: calc(18px * var(--ui-scale, 1)) !important; }
-        .result-text-sm { font-size: calc(17px * var(--ui-scale, 1)) !important; }
-        .result-text-xs { font-size: calc(15px * var(--ui-scale, 1)) !important; }
-        .result-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .t-sub { font-size: calc(18px) !important; }
+        .result-text-sm { font-size: calc(17px) !important; }
+        .result-text-xs { font-size: calc(15px) !important; }
+        .result-label { font-size: calc(15px) !important; }
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
