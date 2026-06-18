@@ -860,6 +860,17 @@
 // and lists them into the existing handleAnalysePosting. Deterministic, no LLM, no number minted; frozen
 // door intact. (Sandbox cannot reach MCF - build + unit checks on mocked JSON; live verify on preview.)
 // G1 (v3.0.86 -> v3.0.87).
+// v3.0.88 - 2026-06-18 - HDR #126 - CO2: company "agents to build" (Human Lead arc). On a confirmed
+// employer (CO1), "Find AI moments" detail-fetches the top 5 postings (duties:true, reuses
+// extractResponsibilities, budget <=8) and buildCompanyAgents clusters duties across roles by token
+// overlap, ranks by recurrence x AI-exposure (HUMAN clusters stay "stays human", never promoted), and
+// frames the top clusters as candidate agents. Rendered as a three-tier graph (Functions -> Recurring
+// duties -> Agent candidates) reusing KGGraph, with a CompanyAgentSidePanel ("Connected to" + "From
+// these postings" provenance) and a seed-deterministic force-directed layout toggle (lanes stay the
+// a11y default). SAT discipline (indicators / ACH-per-function + runner-up / Key-Assumptions / QoI);
+// withholds under 4 postings / 6 duties / recurrence 2. Deterministic, no LLM, no number minted;
+// candidate-suitability withheld; frozen door intact. (Sandbox cannot reach MCF - build + unit checks
+// on mocked JSON; live verify on preview.) G1 (v3.0.87 -> v3.0.88).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -10844,13 +10855,511 @@ function WhatThisMeansCard({ result, graphData }) {
   );
 }
 
+// ---- CO2: company "AI moments" - recurring duty-cluster agent-candidate engine ----
+// buildCompanyAgents(matchGroup) -> deterministic model per CO2.9.
+// NO claudeCall, NO LLM, NO invented number.
+// Reuses: _phraseMatch, _phraseToks, _phraseNorm, _PHRASE_STOP, LEVELS.
+// R005-greppable consts: COMPANY_AGENT_MIN_POSTINGS, COMPANY_AGENT_MIN_DUTIES,
+// COMPANY_AGENT_MIN_RECURRENCE, COMPANY_DUTY_DETAIL_LIMIT (in api/mcf.js).
+
+const COMPANY_AGENT_MIN_POSTINGS   = 4;
+const COMPANY_AGENT_MIN_DUTIES     = 6;
+const COMPANY_AGENT_MIN_RECURRENCE = 2;
+
+// Boilerplate filter for duty lines (CO2.7 step 0). R007: ASCII only.
+const _AGENT_BOILER_RE = /^\s*(equal opportunity|we offer|apply now|please apply|about us|about the company|what we offer|benefits|perks|join us|our culture|work with us|be part of|why join|salary|compensation|who we are)\b/i;
+
+// CO2.7 step 2: deterministic duty-to-layer hint from JOB_LAYERS cue verbs.
+// Maps a duty's tokens to the MOST SPECIFIC layer using documented cue-verb crosswalk.
+// The primary action verb is the LEADING token; secondary tokens add context but
+// do not override a primary-verb signal. Returns one of: Activity | Coordination |
+// Accountability | Relational | Judgment.
+// Crosswalk note: "stakeholder" as a NOUN in "report to stakeholders" is Activity;
+// "negotiate with stakeholders" -> Relational because "negotiate" is the primary verb.
+// We match ONLY on the first meaningful token for Relational/Judgment/Accountability
+// to avoid mis-classifying "prepare reports for stakeholder distribution".
+function _dutyLayerHint(toks) {
+  if (!toks || !toks.length) return "Activity";
+  // Use first two tokens as primary-action context.
+  const primary = toks.slice(0, 2);
+  const all = toks;
+  // Judgment: strategic framing / decide / advise (primary verb only)
+  const judg = ["frame","decide","strateg","advise","recommend","arbitrat","prioritis","prioritize","criteria","formulat"];
+  if (judg.some(k => primary.some(tok => tok.startsWith(k)))) return "Judgment";
+  // Also match "develop policy / govern / evaluate" on any token (less ambiguous).
+  const judgAny = ["govern","policy","formulat","adjudicat"];
+  if (judgAny.some(k => all.some(tok => tok.startsWith(k)))) return "Judgment";
+  // Relational: negotiate, influence, mentor, coach - these are primary verb cues.
+  const rel = ["negotiat","influenc","mentor","coach","counsel","motivat","empathis","mediat","facilitat"];
+  if (rel.some(k => primary.some(tok => tok.startsWith(k)))) return "Relational";
+  // "Build relationship / liaise / engage" as primary verb.
+  const relVerb = ["build","liaise","engage","partner","collab"];
+  if (relVerb.some(k => primary.some(tok => tok.startsWith(k)))) return "Relational";
+  // Accountability: sign off, approve, own decisions, responsible for - primary verb.
+  const acct = ["approv","sign","oversee","supervis","enforce","govern","own","responsible","accountable","authoris","authorize"];
+  if (acct.some(k => primary.some(tok => tok.startsWith(k)))) return "Accountability";
+  // Also: budget/compliance/audit as primary function word.
+  const acctAny = ["compli","regulat","audit","enforce","overseeing"];
+  if (acctAny.some(k => all.some(tok => tok.startsWith(k)))) return "Accountability";
+  // Coordination: coordinate, schedule, plan, track (primary verb).
+  const coord = ["coordinat","schedul","plan","organis","organize","align","integrat","assign","delegate","roster","workflow","prioritis"];
+  if (coord.some(k => primary.some(tok => tok.startsWith(k)))) return "Coordination";
+  // "Track / follow up / report" when primary verb.
+  const coordVerb = ["track","follow","brief","debrief","handoff","sync"];
+  if (coordVerb.some(k => primary.some(tok => tok.startsWith(k)))) return "Coordination";
+  // Activity (default): prepare, analyse, draft, build, reconcile, test, process, extract, generate
+  return "Activity";
+}
+
+// CO2.7 step 2: exposure band from layer (rubric crosswalk, no new number).
+// Activity -> MEDIUM; Coordination -> LOW; Accountability/Relational/Judgment -> HUMAN.
+function _layerToExposureBand(layer) {
+  if (layer === "Activity") return "MEDIUM";
+  if (layer === "Coordination") return "LOW";
+  return "HUMAN";
+}
+
+// CO2.7 step 2: AI-adjacency keyword list (conservative, extendable, ASCII, documented).
+const _AI_ADJ_RE = /\b(data|analytic|automation|report|dashboard|process|document|schedul|reconcil|forecast|model|pipeline|workflow|rpa|etl|automat|extract|generat|integrat|algorithm|monitor|digit|platform|system|tool)\b/i;
+
+function _isAiAdjacent(toks, skills) {
+  const text = toks.join(" ") + " " + (skills || []).join(" ");
+  return _AI_ADJ_RE.test(text);
+}
+
+// CO2.7 step 2: count distinct AI-adjacent skill tokens in the cluster skill union.
+function _aiAdjacencyCount(skillList) {
+  const tokens = skillList.map(s => s.skill || s).join(" ").toLowerCase();
+  const matches = tokens.match(new RegExp(_AI_ADJ_RE.source, "gi")) || [];
+  return new Set(matches.map(m => m.toLowerCase())).size;
+}
+
+// CO2.7 step 5: extract a verb-led phrase from a duty line.
+// Copies the first verb-led phrase (normalised, max 8 words) from the duty text.
+function _verbLedPhrase(text) {
+  const clean = _phraseNorm(text);
+  if (!clean) return text.slice(0, 60);
+  const words = clean.split(" ").filter(Boolean);
+  return words.slice(0, 8).join(" ");
+}
+
+// CO2.10 SAT: QoI tag from sample counts.
+function _qoiTag(detailFetched, dutiesClustered) {
+  if (detailFetched >= 4 && dutiesClustered >= 12) return "high";
+  if (detailFetched >= 2 && dutiesClustered >= 6)  return "moderate";
+  return "thin";
+}
+
+// CO2.10 SAT: ACH hypothesis selection per function (deterministic).
+// HIGH/MEDIUM + AI-adjacent -> automate; mixed -> augment; Accountability/Relational/Judgment -> keep.
+function _achHypothesis(clusterIds, allClusters) {
+  const fnClusters = allClusters.filter(c => clusterIds.includes(c.id));
+  if (!fnClusters.length) return { top: "keep", runnerUp: "augment" };
+  const dominated = fnClusters.filter(c => c.level === "HIGH" || c.level === "MEDIUM");
+  const aiAdj = dominated.filter(c => c.aiAdjacency > 0);
+  if (aiAdj.length >= 1 && aiAdj.length >= dominated.length * 0.5) {
+    return { top: "automate-via-agent", runnerUp: "augment-human", evidence: aiAdj.map(c => c.id) };
+  }
+  const humanDom = fnClusters.filter(c => c.level === "HUMAN");
+  if (humanDom.length > fnClusters.length * 0.6) {
+    return { top: "keep-human", runnerUp: "augment-human", evidence: humanDom.map(c => c.id) };
+  }
+  return { top: "augment-human", runnerUp: dominated.length > 0 ? "automate-via-agent" : "keep-human", evidence: fnClusters.map(c => c.id) };
+}
+
+// Main CO2.7 engine: buildCompanyAgents(matchGroup) -> deterministic model.
+// matchGroup: { displayName, count, jobs } - jobs carry responsibilitiesText, skills, title,
+// categories, uuid, mcfUrl, postedDate, dutyDetail.
+function buildCompanyAgents(matchGroup) {
+  const withheld = [];
+  const company = matchGroup.displayName || "";
+  const jobs = Array.isArray(matchGroup.jobs) ? matchGroup.jobs : [];
+
+  // ---- withhold: insufficient postings ----
+  if (jobs.length < COMPANY_AGENT_MIN_POSTINGS) {
+    withheld.push("Too few of \"" + company + "\"'s postings carry detailed duties to read recurring AI-exposable work reliably - showing the postings only. (" + jobs.length + " posting" + (jobs.length === 1 ? "" : "s") + " found; need at least " + COMPANY_AGENT_MIN_POSTINGS + ")");
+    return { company, functions: [], clusters: [], agents: [], sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: 0, detailFetched: 0, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: 0, clusters: 0, agents: 0 } };
+  }
+
+  // ---- Step 0: duty harvest ----
+  // Sort jobs by postedDate desc, then line index for stable iteration.
+  const sortedJobs = jobs.slice().sort(function(a, b) {
+    const da = a.postedDate ? new Date(a.postedDate).getTime() : 0;
+    const db = b.postedDate ? new Date(b.postedDate).getTime() : 0;
+    return db - da;
+  });
+
+  const dutyInstances = [];
+  sortedJobs.forEach(function(job) {
+    const text = job.responsibilitiesText || "";
+    if (!text) return;
+    const lines = text.split("\n").map(function(l) { return l.trim(); });
+    lines.forEach(function(line) {
+      if (!line) return;
+      const toks = _phraseToks(line);
+      if (toks.length < 2) return; // fewer than 5 tokens is too short (use phrase toks as proxy)
+      if (_AGENT_BOILER_RE.test(line)) return;
+      dutyInstances.push({
+        text: line,
+        toks: toks,
+        roleUuid: job.uuid,
+        roleTitle: job.title || "",
+        fromDetail: !!job.dutyDetail,
+        postedDate: job.postedDate || "",
+      });
+    });
+  });
+
+  // ---- withhold: insufficient duties ----
+  if (dutyInstances.length < COMPANY_AGENT_MIN_DUTIES) {
+    withheld.push("Too few structured duty lines found across \"" + company + "\"'s postings to cluster reliably - showing the postings only. (" + dutyInstances.length + " lines found; need at least " + COMPANY_AGENT_MIN_DUTIES + ")");
+    return { company, functions: [], clusters: [], agents: [], sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: dutyInstances.length, detailFetched: jobs.filter(function(j) { return j.dutyDetail; }).length, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: dutyInstances.length, clusters: 0, agents: 0 } };
+  }
+
+  // ---- Step 1: greedy single-pass clustering ----
+  var clusterList = []; // { id, repDuty, repToks, instances, roleUuids, roleTitles, tokens, skills }
+  var clusterIdSeq = 0;
+
+  dutyInstances.forEach(function(inst) {
+    var found = null;
+    for (var i = 0; i < clusterList.length; i++) {
+      if (_phraseMatch(clusterList[i].repDuty, inst.text)) { found = clusterList[i]; break; }
+    }
+    if (found) {
+      found.instances.push(inst);
+      found.roleUuids.add(inst.roleUuid);
+      found.roleTitles.add(inst.roleTitle);
+      inst.toks.forEach(function(t) { found.tokens.add(t); });
+    } else {
+      clusterIdSeq++;
+      var job = sortedJobs.find(function(j) { return j.uuid === inst.roleUuid; }) || {};
+      var skSet = new Set();
+      (job.skills || []).forEach(function(s) { skSet.add(typeof s === "string" ? s : (s.skill || "")); });
+      clusterList.push({
+        id: "cluster-" + clusterIdSeq,
+        repDuty: inst.text,
+        repToks: inst.toks,
+        instances: [inst],
+        roleUuids: new Set([inst.roleUuid]),
+        roleTitles: new Set([inst.roleTitle]),
+        tokens: new Set(inst.toks),
+        skills: skSet,
+      });
+    }
+  });
+
+  // ---- Step 2: exposure band + AI-adjacency per cluster ----
+  const detailFetchedCount = jobs.filter(function(j) { return j.dutyDetail; }).length;
+
+  const clusters = clusterList.map(function(cl) {
+    const roleUuids = Array.from(cl.roleUuids);
+    const roleTitles = Array.from(cl.roleTitles);
+    const skillArr = Array.from(cl.skills).map(function(s) {
+      const sourceJob = sortedJobs.find(function(j) { return j.uuid === roleUuids[0]; });
+      return { skill: s, fromUuid: sourceJob ? sourceJob.uuid : roleUuids[0] };
+    });
+    const layer = _dutyLayerHint(Array.from(cl.tokens));
+    const level = _layerToExposureBand(layer);
+    const expW = { HUMAN: 0, LOW: 1, MEDIUM: 2, HIGH: 3 }[level] || 0;
+    const recurrence = roleUuids.length; // distinct posting/role count
+    const aiAdj = _aiAdjacencyCount(skillArr.map(function(s) { return s.skill; }).concat(Array.from(cl.tokens)));
+    const score = recurrence * expW;
+    // Provenance: one entry per distinct posting that contributed instances.
+    const provUuids = new Set(cl.instances.map(function(i) { return i.roleUuid; }));
+    const provenance = Array.from(provUuids).map(function(uuid) {
+      const j = sortedJobs.find(function(x) { return x.uuid === uuid; }) || {};
+      return { uuid, title: j.title || "", postedDate: j.postedDate || "", mcfUrl: j.mcfUrl || "", dutyDetail: !!j.dutyDetail };
+    });
+    // Determine functionId: modal categories[0] across spanning roles.
+    const catCounts = {};
+    roleUuids.forEach(function(uuid) {
+      const j = sortedJobs.find(function(x) { return x.uuid === uuid; }) || {};
+      const cat = (j.categories && j.categories[0]) || "General";
+      catCounts[cat] = (catCounts[cat] || 0) + 1;
+    });
+    const modalCat = Object.keys(catCounts).sort(function(a, b) {
+      const diff = catCounts[b] - catCounts[a];
+      return diff !== 0 ? diff : a.localeCompare(b);
+    })[0] || "General";
+    return {
+      id: cl.id,
+      repDuty: cl.repDuty,
+      roleTitles: roleTitles,
+      roleUuids: roleUuids,
+      skills: skillArr,
+      recurrence: recurrence,
+      level: level,
+      exposureWeight: expW,
+      aiAdjacency: aiAdj,
+      score: score,
+      promoted: expW >= 2 && recurrence >= COMPANY_AGENT_MIN_RECURRENCE,
+      functionId: "fn-" + _phraseNorm(modalCat).replace(/\s+/g, "-"),
+      functionName: modalCat,
+      provenance: provenance,
+    };
+  });
+
+  // ---- withhold: no cluster reaches threshold ----
+  const promotable = clusters.filter(function(c) { return c.promoted; });
+  if (promotable.length === 0) {
+    withheld.push("No duty cluster reaches the minimum recurrence + AI-exposure threshold (recurrence >= " + COMPANY_AGENT_MIN_RECURRENCE + " AND exposure >= MEDIUM) - showing the postings only.");
+  }
+
+  // ---- Step 4: sort promoted clusters by rank ----
+  // score desc, aiAdjacency desc, recurrence desc, repDuty localeCompare asc.
+  const sortedClusters = clusters.slice().sort(function(a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.aiAdjacency !== a.aiAdjacency) return b.aiAdjacency - a.aiAdjacency;
+    if (b.recurrence !== a.recurrence) return b.recurrence - a.recurrence;
+    return a.repDuty.localeCompare(b.repDuty);
+  });
+
+  // ---- Step 5: functions tier ----
+  const fnMap = {};
+  sortedClusters.forEach(function(c) {
+    if (!fnMap[c.functionId]) {
+      fnMap[c.functionId] = { id: c.functionId, name: c.functionName, roleUuids: new Set(), clusterIds: [] };
+    }
+    fnMap[c.functionId].clusterIds.push(c.id);
+    c.roleUuids.forEach(function(u) { fnMap[c.functionId].roleUuids.add(u); });
+  });
+  const functions = Object.values(fnMap).map(function(fn) {
+    return { id: fn.id, name: fn.name, roleUuids: Array.from(fn.roleUuids), clusterIds: fn.clusterIds };
+  }).sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+  // ---- Agent candidates (promoted clusters only) ----
+  const agents = sortedClusters
+    .filter(function(c) { return c.promoted; })
+    .map(function(c) {
+      return {
+        id: "agent-" + c.id,
+        label: "an agent that " + _verbLedPhrase(c.repDuty),
+        spansRoles: c.roleTitles.slice(),
+        recurrence: c.recurrence,
+        level: c.level,
+        score: c.score,
+        clusterId: c.id,
+        functionId: c.functionId,
+        narration: null,
+      };
+    });
+
+  // ---- SAT artefacts ----
+  const indicators = clusters.map(function(c) {
+    return { clusterId: c.id, recurrence: c.recurrence, exposure: c.exposureWeight, aiAdjacency: c.aiAdjacency };
+  });
+  const ach = functions.map(function(fn) {
+    const hyp = _achHypothesis(fn.clusterIds, clusters);
+    return { functionId: fn.id, function: fn.name, top: hyp.top, runnerUp: hyp.runnerUp, evidence: hyp.evidence || fn.clusterIds };
+  });
+  const qoiTag = _qoiTag(detailFetchedCount, dutyInstances.length);
+
+  const stats = {
+    postings: jobs.length,
+    duties: dutyInstances.length,
+    clusters: clusters.length,
+    agents: agents.length,
+  };
+
+  const sat = {
+    indicators: indicators,
+    ach: ach,
+    keyAssumptions: _keyAssumptions(),
+    qoi: { postingsAnalysed: jobs.length, dutiesClustered: dutyInstances.length, detailFetched: detailFetchedCount, tag: qoiTag },
+  };
+
+  return { company, functions, clusters: sortedClusters, agents, sat, withheld, stats };
+}
+
+function _keyAssumptions() {
+  return [
+    "Duty text reflects real work, not boilerplate - boilerplate lines are filtered but truncation may still affect quality.",
+    "MCF categories map cleanly to business functions - a posting filed under 'Information Technology' may include non-IT duties.",
+    "The sampled postings represent the employer's current hiring priorities, not the full workforce.",
+    "Recurrence across ads is a proxy for recurrence of work - a duty appearing in 3 ads does not guarantee it happens 3 times per day.",
+    "Token-overlap clustering (>= 2 shared tokens) may merge semantically different duties or split one duty into two - the provenance panel lets you verify.",
+  ];
+}
+
+// CO2.8: companyAgentsToKgPayload(model) -> KGGraph-compatible { version:"kg1", nodes, edges, clusters, stats, withheld }.
+// Maps three tiers (functions / duties / agents) onto the cluster-lane payload shape.
+function companyAgentsToKgPayload(model) {
+  if (!model) return null;
+  const nodes = [];
+  const edges = [];
+
+  // Function nodes (tier 1)
+  model.functions.forEach(function(fn) {
+    nodes.push({ id: fn.id, type: "organisation", label: fn.name, cluster: "functions", source: "mcf", confidence: "from MCF category" });
+  });
+
+  // Cluster/duty nodes (tier 2)
+  model.clusters.forEach(function(c) {
+    const provKey = c.level === "HUMAN" ? "stays human" : undefined;
+    nodes.push({
+      id: c.id,
+      type: "duty",
+      label: c.repDuty.slice(0, 80),
+      cluster: "duties",
+      source: "derived",
+      confidence: c.promoted ? "promoted" : (provKey || ""),
+      level: c.level,
+      // Attach cluster data for side panel lookup.
+      _clusterData: c,
+    });
+    // Edge: function -> duty cluster
+    edges.push({ source: c.functionId, target: c.id, verb: "recurs in", weight: c.recurrence, source_tag: "derived" });
+  });
+
+  // Agent candidate nodes (tier 3)
+  model.agents.forEach(function(ag) {
+    nodes.push({
+      id: ag.id,
+      type: "agent",
+      label: ag.label.slice(0, 80),
+      cluster: "agents",
+      source: "derived",
+      confidence: "score " + ag.score,
+      level: ag.level,
+      _agentData: ag,
+      _clusterData: model.clusters.find(function(c) { return c.id === ag.clusterId; }) || null,
+    });
+    // Edge: duty -> agent
+    edges.push({ source: ag.clusterId, target: ag.id, verb: "could become", weight: ag.score, source_tag: "derived" });
+  });
+
+  const presentClusters = [
+    { id: "functions", label: "Functions", present: model.functions.length > 0 },
+    { id: "duties",    label: "Recurring duties", present: model.clusters.length > 0 },
+    { id: "agents",    label: "Agent candidates", present: model.agents.length > 0 },
+  ];
+
+  return {
+    version: "kg1",
+    nodes: nodes,
+    edges: edges,
+    clusters: presentClusters,
+    stats: { nodes: nodes.length, edges: edges.length, clustersPresent: presentClusters.filter(function(c) { return c.present; }).length },
+    withheld: model.withheld || [],
+    // Carry the full model so the side panel can look up details by node id.
+    _agentsModel: model,
+  };
+}
+
+// CO2.8: CompanyAgentSidePanel - node-detail side panel opened via onNodeTap.
+// Shows "Connected to" (roles + skills) and "From these postings" (provenance).
+// 44px targets, aria, no red/green.
+function CompanyAgentSidePanel({ nodeId, kgPayload, onClose }) {
+  if (!nodeId || !kgPayload) return null;
+  const model = kgPayload._agentsModel;
+  if (!model) return null;
+
+  // Find the node to get its cluster/agent data.
+  const kgNode = kgPayload.nodes.find(function(n) { return n.id === nodeId; });
+  if (!kgNode) return null;
+
+  const clusterData = kgNode._clusterData || null;
+  const agentData = kgNode._agentData || null;
+
+  const title = agentData ? agentData.label : (clusterData ? clusterData.repDuty : kgNode.label);
+  const roleTitles = clusterData ? clusterData.roleTitles : (agentData ? agentData.spansRoles : []);
+  const skills = clusterData ? (clusterData.skills || []) : [];
+  const provenance = clusterData ? (clusterData.provenance || []) : [];
+  const level = clusterData ? clusterData.level : null;
+  const recurrence = clusterData ? clusterData.recurrence : null;
+  const score = clusterData ? clusterData.score : null;
+
+  const lvlStyle = level && LEVELS[level] ? LEVELS[level] : null;
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label={"Detail: " + title}
+      style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "clamp(280px,35vw,400px)", background: "#fff", borderLeft: "1px solid #dde3ec", boxShadow: "-4px 0 24px rgba(0,0,0,0.10)", zIndex: 999, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: 14, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, color: "#0f766e", textTransform: "uppercase", letterSpacing: "0.06em" }}>{kgNode.type === "agent" ? "Agent candidate" : "Duty cluster"}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#1a202c", lineHeight: 1.4, marginTop: 3 }}>{title}</div>
+        </div>
+        <button onClick={onClose} aria-label="Close detail panel" style={{ minHeight: 44, minWidth: 44, border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: "#6b7a8d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>x</button>
+      </div>
+
+      {lvlStyle && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: lvlStyle.color, background: lvlStyle.bg, border: "1px solid " + lvlStyle.border, borderRadius: 20, padding: "2px 10px" }}>AI exposure: {lvlStyle.label}</span>
+          {recurrence != null && <span style={{ fontSize: 11, fontWeight: 700, color: "#0e7490", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 20, padding: "2px 10px" }}>Recurs across {recurrence} posting{recurrence === 1 ? "" : "s"}</span>}
+          {score != null && score > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 20, padding: "2px 10px" }}>Rank score: {score}</span>}
+        </div>
+      )}
+
+      {roleTitles.length > 0 && (
+        <section aria-label="Connected roles">
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#1a202c", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>Connected to</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {roleTitles.map(function(rt, i) {
+              return <span key={i} style={{ fontSize: 11.5, fontWeight: 600, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 8, padding: "3px 9px" }}>{rt}</span>;
+            })}
+          </div>
+        </section>
+      )}
+
+      {skills.length > 0 && (
+        <section aria-label="Related skills">
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#1a202c", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills involved</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {skills.slice(0, 10).map(function(sk, i) {
+              return (
+                <span key={i} style={{ fontSize: 11, fontWeight: 600, color: "#0e7490", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 8, padding: "2px 8px" }}>
+                  {sk.skill || sk}
+                  <span style={{ fontSize: 9, color: "#6b7a8d", marginLeft: 4 }}>from MCF</span>
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {provenance.length > 0 && (
+        <section aria-label="Source postings">
+          <div style={{ fontSize: 11, fontWeight: 800, color: "#1a202c", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>From these postings ({provenance.length})</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {provenance.map(function(p, i) {
+              return (
+                <div key={i} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 10px" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1a202c", lineHeight: 1.4 }}>{p.title || "Posting"}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap", alignItems: "center" }}>
+                    {p.postedDate && <span style={{ fontSize: 10, color: "#6b7a8d" }}>{p.postedDate.slice(0, 10)}</span>}
+                    <span style={{ fontSize: 10, fontWeight: 600, color: p.dutyDetail ? "#0f766e" : "#b45309", background: p.dutyDetail ? "#ecfeff" : "#fffbeb", border: "1px solid " + (p.dutyDetail ? "#a5f3fc" : "#fde68a"), borderRadius: 6, padding: "1px 6px" }}>{p.dutyDetail ? "full detail" : "summary text"}</span>
+                    {p.mcfUrl && <a href={p.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#1a56db" }}>View on MCF</a>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <footer style={{ marginTop: 8, paddingTop: 10, borderTop: "1px solid #e2e8f0", fontSize: 10.5, color: "#6b7a8d", lineHeight: 1.6 }}>
+        AI-assisted; human decides. Clusters and rankings are computed from the sampled postings; the agent framing is a suggestion of automatable work, not a headcount judgement.
+      </footer>
+    </div>
+  );
+}
+
 // CO1: CompanyPanel - fetch + resolve + render the company search result.
+// CO2 extension: after a single employer is confirmed, a control triggers the
+// duties:true fetch, runs buildCompanyAgents, and renders the "AI moments" panel.
 // Deterministic: no LLM, no invented number. Counts and names are verbatim
 // pass-through from MyCareersFuture via /api/mcf action:"company".
-// R006: loadCompany is a named function, not a multi-line async arrow in JSX.
+// R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
 function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
+  // CO2: agents panel state
+  const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
+  const [agentsModel, setAgentsModel] = useState(null);
+  const [agentsKgPayload, setAgentsKgPayload] = useState(null);
+  const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force"
+  const [tapNodeId, setTapNodeId] = useState(null); // side-panel open state
+  const [agentsError, setAgentsError] = useState("");
 
   const fmtSalary = (lo, hi) => {
     if (lo == null && hi == null) return "Salary on application";
@@ -10875,6 +11384,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     let cancelled = false;
     setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
     setChosenKey(null);
+    setAgentsView("off");
+    setAgentsModel(null);
+    setAgentsKgPayload(null);
+    setTapNodeId(null);
 
     function loadCompany() {
       fetch("/api/mcf", {
@@ -10906,6 +11419,39 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     loadCompany();
     return function() { cancelled = true; };
   }, [companyQuery]);
+
+  // CO2: fetch duties + run buildCompanyAgents for the confirmed employer.
+  // R006: named function, not a multi-line async arrow in JSX props.
+  function loadDuties(matchGroup) {
+    setAgentsView("loading");
+    setAgentsError("");
+    fetch("/api/mcf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "company", company: matchGroup.displayName, duties: true, detailLimit: 5, limit: 50 }),
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        // Use the enriched group from the duties fetch; fall back to the original group.
+        const enrichedGroup = (Array.isArray(data.matches) && data.matches.length === 1)
+          ? data.matches[0]
+          : matchGroup;
+        const model = buildCompanyAgents(enrichedGroup);
+        const kgPayload = companyAgentsToKgPayload(model);
+        setAgentsModel(model);
+        setAgentsKgPayload(kgPayload);
+        setAgentsView(model.withheld && model.withheld.length > 0 && model.agents.length === 0 ? "withheld" : "ready");
+      })
+      .catch(function() {
+        setAgentsError("Could not load duty details. Showing postings only.");
+        setAgentsView("off");
+      });
+  }
+
+  // CO2: handler for node tap - opens the side panel.
+  function handleAgentNodeTap(id) {
+    setTapNodeId(function(prev) { return prev === id ? null : id; });
+  }
 
   const canQueue = (queueCount || 0) < 3;
 
@@ -10974,6 +11520,110 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           </>
         )}
       </div>
+
+      {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
+      {activeMatch && agentsView === "off" && (
+        <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI moments at {activeMatch.displayName}</div>
+            <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>See which recurring duties across their roles could become agent candidates - deterministic, no LLM.</div>
+          </div>
+          <button onClick={function() { loadDuties(activeMatch); }} aria-label={"Find AI moments at " + activeMatch.displayName}
+            style={{ minHeight: 44, padding: "8px 18px", background: "#0369a1", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+            Find AI moments
+          </button>
+          {agentsError && <p style={{ width: "100%", margin: "4px 0 0", fontSize: 11.5, color: "#78350f" }}>{agentsError}</p>}
+        </div>
+      )}
+
+      {/* CO2: agents panel loading state */}
+      {activeMatch && agentsView === "loading" && (
+        <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
+          <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #7dd3fc", borderTop: "3px solid #0369a1", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Reading duties and clustering... (up to 5 detail fetches within budget)</p>
+        </div>
+      )}
+
+      {/* CO2: withheld - honest fallback when sample is too thin */}
+      {activeMatch && agentsView === "withheld" && agentsModel && (
+        <div style={{ marginBottom: 16, background: C.amberBg, border: "1px dashed " + C.amberBdr, borderRadius: 10, padding: "14px 16px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#78350f", marginBottom: 6 }}>AI moments - withheld (not faked)</div>
+          {agentsModel.withheld.map(function(w, i) {
+            return <p key={i} style={{ margin: "0 0 4px", fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>{w}</p>;
+          })}
+          <p style={{ margin: "8px 0 0", fontSize: 11.5, color: C.muted }}>
+            <span style={{ fontWeight: 700 }}>Provenance:</span> {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} analysed - {agentsModel.stats.duties} duty lines extracted - {agentsModel.stats.clusters} clusters found.
+          </p>
+        </div>
+      )}
+
+      {/* CO2: agents panel - ready */}
+      {activeMatch && agentsView === "ready" && agentsModel && agentsKgPayload && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0369a1" }}>{"AI moments at " + activeMatch.displayName}</div>
+                <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>
+                  {agentsModel.stats.clusters} duty cluster{agentsModel.stats.clusters === 1 ? "" : "s"} - {agentsModel.stats.agents} agent candidate{agentsModel.stats.agents === 1 ? "" : "s"} - {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} sampled
+                  <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#0c4a6e", background: "#bae6fd", border: "1px solid #7dd3fc", borderRadius: 8, padding: "1px 6px" }}>{"QoI: " + agentsModel.sat.qoi.tag}</span>
+                  <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: "#6b7a8d", background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: 8, padding: "1px 6px" }}>{"detail-fetched: " + agentsModel.sat.qoi.detailFetched}</span>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <button onClick={function() { setAgentLayout(function(l) { return l === "force" ? "lanes" : "force"; }); }}
+                  aria-pressed={agentLayout === "force"}
+                  aria-label={"Toggle layout: currently " + agentLayout}
+                  style={{ minHeight: 36, padding: "5px 12px", background: agentLayout === "force" ? "#0369a1" : "#fff", border: "1px solid #7dd3fc", borderRadius: 8, color: agentLayout === "force" ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  {agentLayout === "force" ? "Lanes view" : "Force map"}
+                </button>
+                <button onClick={function() { setAgentsView("off"); setAgentsModel(null); setAgentsKgPayload(null); setTapNodeId(null); }}
+                  aria-label="Close AI moments panel"
+                  style={{ minHeight: 36, padding: "5px 12px", background: "transparent", border: "1px solid #7dd3fc", borderRadius: 8, color: "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* SAT: Key Assumptions + QoI notice */}
+          <details style={{ marginBottom: 10, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
+            <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#1a202c", minHeight: 36, display: "flex", alignItems: "center" }}>
+              Analytic assumptions + quality of information (SAT)
+            </summary>
+            <div style={{ padding: "8px 14px 12px" }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginBottom: 4 }}>Key Assumptions</div>
+              <ul style={{ margin: 0, paddingLeft: 16 }}>
+                {agentsModel.sat.keyAssumptions.map(function(ka, i) {
+                  return <li key={i} style={{ fontSize: 11.5, color: "#374151", lineHeight: 1.6, marginBottom: 2 }}>{ka}</li>;
+                })}
+              </ul>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginTop: 8, marginBottom: 4 }}>Analysis of Competing Hypotheses per function</div>
+              {agentsModel.sat.ach.map(function(a, i) {
+                return (
+                  <div key={i} style={{ marginBottom: 6, paddingBottom: 6, borderBottom: i < agentsModel.sat.ach.length - 1 ? "1px solid #e2e8f0" : "none" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#1a202c" }}>{a.function}: </span>
+                    <span style={{ fontSize: 12, color: "#0369a1", fontWeight: 700 }}>{a.top}</span>
+                    <span style={{ fontSize: 11.5, color: "#6b7a8d" }}> (runner-up: {a.runnerUp})</span>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+
+          {/* Tier graph: reuses KGGraph from RoleGraph.jsx */}
+          <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} />
+
+          {/* Side panel */}
+          {tapNodeId && (
+            <CompanyAgentSidePanel nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
+          )}
+
+          <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
+            <span style={{ fontWeight: 700 }}>Prov:</span> nodes are <span style={{ fontWeight: 700 }}>from MCF</span> (company categories) or <span style={{ fontWeight: 700 }}>derived</span> (cluster + ranking from sampled postings). Recurrence = distinct postings spanned. Score = recurrence x exposure weight. No LLM authored any cluster, count or rank.
+          </p>
+        </div>
+      )}
 
       {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
         <div className="mcf-grid">

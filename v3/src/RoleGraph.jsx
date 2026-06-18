@@ -39,6 +39,8 @@ const KG_TYPE_STYLE = {
   qualification:    { color: "#0f766e", bg: "#ecfeff", border: "#99f6e4", label: "Qualification" },
   organisation:     { color: "#1e40af", bg: "#eef2ff", border: "#a5b4fc", label: "Organisation" },
   "mirror-occupation": { color: "#b45309", bg: "#fff7ed", border: "#fed7aa", label: "Mirror role" },
+  // CO2: agent candidate node type (additive)
+  agent:            { color: "#0369a1", bg: "#e0f2fe", border: "#7dd3fc", label: "Agent candidate" },
 };
 // KG source -> PROV key mapping
 const KG_SRC_PROV = { mcf: "mcf", esco: "computed", computed: "computed", derived: "inferred" };
@@ -49,6 +51,10 @@ const KG_CLUSTER_COLOR = {
   organisation: { color: "#5b21b6", bg: "#ede9fe", border: "#c4b5fd" },
   competition:  { color: "#b45309", bg: "#fff7ed", border: "#fed7aa" },
   unscoped:     { color: "#64748b", bg: "#f1f5f9", border: "#cbd5e1" },
+  // CO2 tier lanes (additive -- blue/orange/cyan)
+  functions:    { color: "#1e40af", bg: "#eef2ff", border: "#93c5fd" },
+  duties:       { color: "#b45309", bg: "#fff7ed", border: "#fed7aa" },
+  agents:       { color: "#0369a1", bg: "#e0f2fe", border: "#7dd3fc" },
 };
 
 const fmtSalary = (a) => (a && a[0] != null ? `S$${a[0].toLocaleString()}-${a[1].toLocaleString()}/mo` : null);
@@ -204,12 +210,89 @@ function BakedGraph() {
   );
 }
 
+// ── Force layout helpers (CO2, deterministic, no Math.random) ─────────────────
+// Fixed-seed, capped-iteration spring simulation. Positions are computed once
+// from deterministic initial positions; layout is presentation only and excluded
+// from R-SNAPSHOT comparisons.
+function _forceLayout(nodes, edges, width, height) {
+  const n = nodes.length;
+  if (n === 0) return {};
+  // Deterministic initial positions: place nodes in a grid ordered by id string.
+  const sorted = nodes.slice().sort((a, b) => a.id.localeCompare(b.id));
+  const cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+  const cellW = width / cols;
+  const cellH = height / Math.max(1, Math.ceil(n / cols));
+  const pos = {};
+  sorted.forEach((nd, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    pos[nd.id] = { x: cellW * (col + 0.5), y: cellH * (row + 0.5), vx: 0, vy: 0 };
+  });
+  // Build adjacency map for spring forces.
+  const adj = {};
+  nodes.forEach(nd => { adj[nd.id] = []; });
+  edges.forEach(e => {
+    if (pos[e.source] && pos[e.target]) {
+      adj[e.source].push(e.target);
+      adj[e.target].push(e.source);
+    }
+  });
+  const SPRING_LEN = Math.min(cellW, cellH) * 1.4;
+  const SPRING_K = 0.04;
+  const REPEL_K = SPRING_LEN * SPRING_LEN * 0.6;
+  const DAMPING = 0.85;
+  const ITER = 120;
+  const ids = Object.keys(pos);
+  for (let iter = 0; iter < ITER; iter++) {
+    const fx = {}, fy = {};
+    ids.forEach(id => { fx[id] = 0; fy[id] = 0; });
+    // Repulsion between all pairs.
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = pos[ids[i]], b = pos[ids[j]];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const f = REPEL_K / (dist * dist);
+        const nx = (dx / dist) * f, ny = (dy / dist) * f;
+        fx[ids[i]] += nx; fy[ids[i]] += ny;
+        fx[ids[j]] -= nx; fy[ids[j]] -= ny;
+      }
+    }
+    // Spring attraction along edges.
+    edges.forEach(e => {
+      if (!pos[e.source] || !pos[e.target]) return;
+      const a = pos[e.source], b = pos[e.target];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const f = SPRING_K * (dist - SPRING_LEN);
+      const nx = (dx / dist) * f, ny = (dy / dist) * f;
+      fx[e.source] += nx; fy[e.source] += ny;
+      fx[e.target] -= nx; fy[e.target] -= ny;
+    });
+    // Integrate.
+    ids.forEach(id => {
+      const p = pos[id];
+      p.vx = (p.vx + fx[id]) * DAMPING;
+      p.vy = (p.vy + fy[id]) * DAMPING;
+      p.x = Math.max(40, Math.min(width - 40, p.x + p.vx));
+      p.y = Math.max(40, Math.min(height - 40, p.y + p.vy));
+    });
+  }
+  return pos;
+}
+
 // ── KG mode (KG1): cluster-lane knowledge-graph ──────────────────────────────
 // Renders the buildKnowledgeGraph payload in cluster lanes with verb-labelled edges.
 // Each node carries a Prov chip (mcf/computed/inferred). Edges are drawn as curved
 // paths labelled with their verb (from KG_VERBS closed set). Tap a node to highlight
 // its edges and dim the rest. No red/green; 44px targets; aria-labels on all nodes.
-export function KGGraph({ kg }) {
+// CO2 additive props:
+//   onNodeTap(id) - optional; called when a node is tapped (default noop).
+//                   Existing tap-to-trace (traced) is untouched.
+//   layout        - optional; "lanes" (default) or "force" (spring layout toggle).
+//                   The force layout is deterministic (fixed seed + capped iterations).
+export function KGGraph({ kg, onNodeTap, layout }) {
+  const effectiveLayout = layout === "force" ? "force" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [wide, setWide] = useState(true);
 
@@ -241,7 +324,13 @@ export function KGGraph({ kg }) {
   const isConnected = (a, b) => edgeSet.has(a + "|" + b);
   const isHighlighted = (n) => !traced || n.id === traced || isConnected(traced, n.id);
 
-  const handleNodeClick = (id) => setTraced((t) => (t === id ? null : id));
+  // CO2: wire onNodeTap alongside the existing tap-to-trace. The traced highlight
+  // logic is untouched; onNodeTap is an additional notification to the host.
+  const tapCallback = typeof onNodeTap === "function" ? onNodeTap : function() {};
+  function handleNodeClick(id) {
+    setTraced(function(t) { return t === id ? null : id; });
+    tapCallback(id);
+  }
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
@@ -270,7 +359,13 @@ export function KGGraph({ kg }) {
           ))}
         </div>
 
-        {/* Cluster lanes */}
+        {/* CO2: force layout toggle - shown when layout="force" */}
+        {effectiveLayout === "force" && (
+          <KGForceView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} wide={wide} />
+        )}
+
+        {/* Cluster lanes (default + a11y path) */}
+        {effectiveLayout === "lanes" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           {presentClusters.map((cl) => {
             const clNodes = byCluster[cl.id] || [];
@@ -293,6 +388,7 @@ export function KGGraph({ kg }) {
             );
           })}
         </div>
+        )}
 
         {/* Edges panel: verb-labelled connections, filtered by tap-to-trace */}
         <KGEdgesPanel kg={kg} traced={traced} wide={wide} />
@@ -313,6 +409,64 @@ export function KGGraph({ kg }) {
 
         <KGFooter kg={kg} />
       </div>
+    </div>
+  );
+}
+
+// CO2: force-directed layout view. Renders the SAME nodes/edges as the lane view
+// but positioned by the deterministic spring simulation (_forceLayout).
+// Layout is presentation only; data is unchanged.
+function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
+  const W = 900, H = 560;
+  const pos = _forceLayout(kg.nodes, kg.edges, W, H);
+  const nodeById = {};
+  kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
+  return (
+    <div style={{ position: "relative", width: "100%", overflowX: "auto", marginBottom: 14 }}>
+      <div role="img" aria-label="Force-directed layout of the same nodes and edges. Switch to lanes view for keyboard navigation." style={{ width: W, minHeight: H, position: "relative", background: P.bg, border: "1px solid " + P.border, borderRadius: 12 }}>
+        <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+          {kg.edges.map(function(e, i) {
+            const a = pos[e.source], b = pos[e.target];
+            if (!a || !b) return null;
+            const active = !traced || e.source === traced || e.target === traced;
+            const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2 - 18;
+            return (
+              <g key={i} opacity={active ? 0.8 : 0.15}>
+                <path d={"M " + a.x + " " + a.y + " Q " + midX + " " + midY + " " + b.x + " " + b.y} fill="none" stroke="#93c5fd" strokeWidth={active ? 2 : 1} />
+                <text x={midX} y={midY} textAnchor="middle" fontSize={9} fill="#64748b">{e.verb}</text>
+              </g>
+            );
+          })}
+        </svg>
+        {kg.nodes.map(function(n) {
+          const p = pos[n.id];
+          if (!p) return null;
+          const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
+          const hi = isHighlighted(n);
+          const isT = traced === n.id;
+          return (
+            <button key={n.id}
+              onClick={function() { onNodeClick(n.id); }}
+              aria-pressed={isT}
+              aria-label={n.type + ": " + n.label + ". Tap to trace."}
+              style={{
+                position: "absolute",
+                left: Math.round(p.x - 52), top: Math.round(p.y - 20),
+                width: 104, minHeight: 44,
+                border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
+                borderRadius: 8, background: isT ? st.bg : P.surface,
+                fontSize: 10, fontWeight: 600, color: st.color,
+                cursor: "pointer", padding: "4px 6px", textAlign: "center",
+                opacity: hi ? 1 : P.dim, transition: "opacity .15s",
+                boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
+                overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
+              }}>
+              {n.label}
+            </button>
+          );
+        })}
+      </div>
+      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Force layout - same data as lanes view. Positions are deterministic (fixed seed). Tap a node to trace its connections.</p>
     </div>
   );
 }
