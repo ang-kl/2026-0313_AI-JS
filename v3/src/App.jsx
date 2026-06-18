@@ -823,6 +823,13 @@
 // result), with an amber "not enough role data yet" notice when the graph is thin/withheld. KGGraph
 // exported from RoleGraph.jsx (DATA-free). Additive; layered mode byte-unchanged; frozen door intact.
 // G1 (v3.0.81 -> v3.0.82).
+// v3.0.83 - 2026-06-18 - HDR #121 - AL1: AGENTIC LADDER (Human Lead: reframe each duty for the
+// agentic era). Each TaskPrep duty card gains a Skill -> Recipe -> Agent -> Orchestrator rail showing
+// where it sits TODAY and the one move to climb a rung. The rung is a pure deterministic crosswalk
+// from the duty's existing AI-exposure level (HUMAN->Skill, LOW->Recipe, MEDIUM->Agent, HIGH->
+// Orchestrator) - no new LLM, no new prompt (D1-D8 N/A), no new number; the climb step reuses the
+// duty's kickstart/how. Withholds ("unscoped") when level is absent; a11y: neutral palette (higher is
+// not "better"), aria-current, ASCII rail. Additive; frozen door intact. G1 (v3.0.82 -> v3.0.83).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -6485,10 +6492,126 @@ function JobAdDrawer({ result, open, onClose }) {
 const _TASKPREP_FREQ_ORDER = ["Core", "Common", "Occasional"];
 const _TASKPREP_FREQ_NOTE = { Core: "in nearly every posting", Common: "in most postings", Occasional: "in a few postings" };
 
+// AL1 (Agentic Ladder slice) - no new LLM, no new number, no new prompt (D1-D8 N/A).
+// LADDER: the four rungs in climb order. ASCII only (R007). key in
+// ["skill","recipe","agent","orchestrator"]; step is the rung-generic fallback
+// verb used only when no duty kickstart/how prose exists (no Prov chip on it,
+// since it is a fixed UI string, not a claim). R005-greppable module-level const.
+const LADDER = [
+  { key:"skill",         label:"Skill",        blurb:"an atomic capability you personally do",                    step:"Do it yourself"          },
+  { key:"recipe",        label:"Recipe",        blurb:"a repeatable workflow you author and hand off",             step:"Author the recipe"       },
+  { key:"agent",         label:"Agent",         blurb:"an autonomous executor you specify and supervise",          step:"Supervise the agent"     },
+  { key:"orchestrator",  label:"Orchestrator",  blurb:"you coordinate multiple agents toward an outcome",          step:"Govern the outcome"      },
+];
+
+// LEVEL_TO_RUNG: CROSSWALK from the audited LEVELS keys to ladder positions.
+// Modeling choice (same idiom as PWAI_LENS / w34854 crosswalk in LEVELS block above):
+// the higher the AI-exposure of a duty the more of it an agent can already execute,
+// so the human's centre of gravity moves up the ladder. No number minted; the rung
+// is a label traceable to r.level. R005-greppable module-level const.
+const LEVEL_TO_RUNG = {
+  HUMAN:  { today:"skill",        climbTo:"recipe"       },
+  LOW:    { today:"recipe",       climbTo:"agent"        },
+  MEDIUM: { today:"agent",        climbTo:"orchestrator" },
+  HIGH:   { today:"orchestrator", climbTo:"orchestrator" },
+};
+
+// rungForDuty: pure function - reads r.level, returns {today, climbTo} or null
+// when level is absent / not a known LEVELS key (withhold-over-invent, spec §E).
+function rungForDuty(r) {
+  if (!r || !r.level || !LEVEL_TO_RUNG[r.level]) return null;
+  return LEVEL_TO_RUNG[r.level];
+}
+
+// LadderRow: renders the 4-rung agentic ladder rail inside a TaskCard detail
+// panel. Current rung: filled marker + bold label + aria-current. Others:
+// outlined marker. No red/green (spec §F); hue is blue/teal family (decorative,
+// not semantic); meaning carried by shape + label + position. ASCII arrows (R007);
+// decorative glyphs aria-hidden. Climb step sourced from kickstart (1st), then
+// how (2nd), then rung-generic LADDER step (3rd, no Prov chip). Prov chip only
+// when prose comes from LLM-authored kickstart or how fields.
+function LadderRow({ r }) {
+  const rung = rungForDuty(r);
+  if (!rung) {
+    return (
+      <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.muted, fontStyle: "italic" }}>
+        ladder: unscoped
+      </p>
+    );
+  }
+
+  const todayIdx    = LADDER.findIndex(l => l.key === rung.today);
+  const climbIdx    = LADDER.findIndex(l => l.key === rung.climbTo);
+  const todayRung   = LADDER[todayIdx];
+  const climbRung   = LADDER[climbIdx];
+  const isTop       = rung.today === rung.climbTo;
+
+  // Climb step prose: kickstart (1st choice) -> how (2nd) -> generic verb (3rd, no chip)
+  let climbProseNode = null;
+  if (r.kickstart) {
+    climbProseNode = <span>{r.kickstart} <Prov kind="ai" small /></span>;
+  } else if (r.how) {
+    climbProseNode = <span>{r.how} <Prov kind="ai" small /></span>;
+  } else {
+    climbProseNode = <span style={{ color: C.muted }}>{climbRung.step}</span>;
+  }
+
+  return (
+    <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
+      {/* Section label + panel-level computed prov (once, not per row) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <span style={{ fontSize: "0.6875rem", fontWeight: 800, color: C.textSub }}>Agentic ladder</span>
+        <Prov kind="computed" small />
+        <span style={{ fontSize: "0.5625rem", color: C.muted }}>(rung derived from this duty&apos;s AI level)</span>
+      </div>
+      {/* 4-step rail: shape + label + position encode the rung, not colour alone */}
+      <div role="list" aria-label="Agentic ladder rungs" style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+        {LADDER.map((l, i) => {
+          const isCurrent = l.key === rung.today;
+          return (
+            <span key={l.key} role="listitem" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span
+                aria-current={isCurrent ? "step" : undefined}
+                title={l.blurb}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 3,
+                  padding: "2px 8px", borderRadius: 16,
+                  fontSize: "0.625rem", fontWeight: isCurrent ? 800 : 400,
+                  color:      isCurrent ? "#1e40af" : C.muted,
+                  background: isCurrent ? "#eef2ff" : "transparent",
+                  border:     isCurrent ? "2px solid #1e40af" : `1px solid ${C.border}`,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span aria-hidden="true">{isCurrent ? "[" : " "}</span>
+                {l.label}
+                <span aria-hidden="true">{isCurrent ? "]" : " "}</span>
+              </span>
+              {i < LADDER.length - 1 && (
+                <span aria-hidden="true" style={{ fontSize: "0.5625rem", color: C.muted }}>-&gt;</span>
+              )}
+            </span>
+          );
+        })}
+      </div>
+      {/* Today line */}
+      <p style={{ margin: "0 0 2px", fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.5 }}>
+        <strong style={{ color: "#1e40af" }}>Today:</strong>{" "}
+        {todayRung.label} - {todayRung.blurb}
+      </p>
+      {/* Climb line */}
+      <p style={{ margin: 0, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.5 }}>
+        <strong style={{ color: "#0e7490" }}>{isTop ? "Govern:" : "Climb: ->"}</strong>{" "}
+        {climbProseNode}
+      </p>
+    </div>
+  );
+}
+
 // TaskCard: a single collapsible duty row. Summary row (always visible): duty
 // text + AI-level Tag + chevron. Detail (on expand): How AI engages, Prepare
-// this week, Skills it draws on - all verbatim from the engine, Prov chips
-// intact. R006: toggle handler extracted (named fn above return).
+// this week, Skills it draws on, Agentic ladder - all verbatim from the engine,
+// Prov chips intact. R006: toggle handler extracted (named fn above return).
 function TaskCard({ r, skillByN }) {
   const [open, setOpen] = useState(false);
   const sk = (Array.isArray(r.sk) ? r.sk : []).map(n => skillByN.get(n)).filter(Boolean).slice(0, 4);
@@ -6539,6 +6662,8 @@ function TaskCard({ r, skillByN }) {
                 {sk.join(", ")}
               </p>
             )}
+            {/* AL1: Agentic ladder rail - appended after skills, deterministic from r.level */}
+            <LadderRow r={r} />
           </div>
         </div>
       )}
@@ -6603,17 +6728,17 @@ function TaskPrep({ result }) {
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
         <p style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
-          <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week.</p>
+          <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week. Each duty also shows where it sits on the agentic ladder today and the one move to climb a rung.</p>
           <Prov kind="derived" small />
           <Prov kind="ai" small />
         </div>
-        <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
+        <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. The ladder rung is derived from the duty&apos;s AI level (Skill -&gt; Recipe -&gt; Agent -&gt; Orchestrator). Human decides what to practise.</p>
       </div>
       {/* Band sections - first band open, rest collapsed */}
       {groups.map((g, idx) => (
         <BandSection key={g.freq} freq={g.freq} items={g.items} skillByN={skillByN} defaultOpen={idx === 0} />
       ))}
-      <p style={{ margin: "4px 0 0", fontSize: "0.6875rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
+      <p style={{ margin: "4px 0 0", fontSize: "0.6875rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role&apos;s skill analysis - no task invented, no number authored. The agentic ladder is a relabelling of the existing AI level (Skill -&gt; Recipe -&gt; Agent -&gt; Orchestrator); higher is not better, it reflects where the agentic shift already sits.</p>
     </div>
   );
 }
