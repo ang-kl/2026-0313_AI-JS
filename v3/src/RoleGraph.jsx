@@ -10,7 +10,7 @@
 // Honesty contract (locked v3): no red/green; colour never carries meaning alone;
 // provenance chip on every node; 44px targets; "AI-assisted; human decides" footer.
 // No LLM: same payload => same graph. Graceful fallback to baked mode when no KG payload.
-import { useState, useRef, useLayoutEffect, useEffect, useCallback } from "react";
+import { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from "react";
 import DATA from "./graph-data.json";
 
 const P = {
@@ -670,8 +670,9 @@ function _ZoomToolbar({ onZoomIn, onZoomOut, onFit, zoom }) {
 // Layout is presentation-only; data and provenance chips are unchanged.
 function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   const W = 900, H = 560;
-  // _forceLayout is byte-frozen; the viewport only reads its output.
-  const pos = _forceLayout(kg.nodes, kg.edges, W, H);
+  // _forceLayout is byte-frozen; memoize so a pan/zoom re-render only updates the
+  // viewport transform - not re-run the 120-iteration simulation (perf, Codex P2).
+  const pos = useMemo(function() { return _forceLayout(kg.nodes, kg.edges, W, H); }, [kg, W, H]);
   const nodeById = {};
   kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
 
@@ -764,7 +765,7 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   const COL_COUNT = 3;
   const W = Math.max(900, WORKFLOW_COL_GAP * COL_COUNT + 80);
   const H = 560;
-  const pos = _workflowLayout(kg.nodes, kg.edges, W, H);
+  const pos = useMemo(function() { return _workflowLayout(kg.nodes, kg.edges, W, H); }, [kg, W, H]);
   const nodeById = {};
   kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
 
