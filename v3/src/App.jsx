@@ -975,8 +975,8 @@ function Term({ k, children }) {
           role="tooltip"
           style={bubbleStyle}
         >
-          <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: C.text, marginBottom: 4 }}>{k}</span>
-          <span style={{ display: "block", fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>{def}</span>
+          <span style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, color: C.text, marginBottom: 4 }}>{k}</span>
+          <span style={{ display: "block", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>{def}</span>
         </span>
       )}
     </span>
@@ -2926,14 +2926,14 @@ const PROV = {
 function Prov({ kind, small }) {
   const p = PROV[kind]; if (!p) return null;
   return (
-    <span title={p.tip} style={{ display:"inline-flex", alignItems:"center", gap:3, fontSize:small?9:10, fontWeight:700, color:p.color, background:p.bg, border:`1px solid ${p.border}`, borderRadius:999, padding:small?"0 6px":"1px 8px", whiteSpace:"nowrap", verticalAlign:"middle", lineHeight:1.7 }}>
+    <span title={p.tip} style={{ display:"inline-flex", alignItems:"center", gap:3, fontSize: small ? "0.5625rem" : "0.625rem", fontWeight:700, color:p.color, background:p.bg, border:`1px solid ${p.border}`, borderRadius:999, padding:small?"0 6px":"1px 8px", whiteSpace:"nowrap", verticalAlign:"middle", lineHeight:1.7 }}>
       <span aria-hidden="true">{p.icon}</span>{small ? p.short : p.label}
     </span>
   );
 }
 function ProvLegend() {
   return (
-    <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, fontSize:11, color:C.textSub }}>
+    <div role="note" aria-label="How to read the provenance badges" style={{ display:"flex", gap:"6px 10px", flexWrap:"wrap", alignItems:"center", margin:"0 0 12px", padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, fontSize: "0.6875rem", color:C.textSub }}>
       <span style={{ fontWeight:700, color:C.text }}>Badges, where shown:</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="mcf" /> posting facts</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Prov kind="computed" /> deterministic, reproducible</span>
@@ -3645,7 +3645,7 @@ async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGrou
 function Tag({ level, small }) {
   const c = LEVELS[level] || LEVELS.HUMAN;
   return (
-    <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:small?"2px 7px":"3px 9px", borderRadius: 16, fontSize:small?10:11, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
+    <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:small?"2px 7px":"3px 9px", borderRadius: 16, fontSize: small ? "0.625rem" : "0.6875rem", fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
       {c.icon} {c.label}
     </span>
   );
@@ -3694,15 +3694,15 @@ function Spinner({ label, step, total, firstTime, skills }) {
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
               {determinate ? (
                 <>
-                  <span style={{ fontSize:17, fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
-                  <span style={{ fontSize:9, fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                  <span style={{ fontSize: "1.0625rem", fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
+                  <span style={{ fontSize: "0.5625rem", fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
                 </>
               ) : (
                 <span className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
               )}
             </div>
           </div>
-          <p style={{ color:C.text, fontSize:13.5, margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
+          <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
           {/* gradient sweep bar */}
           <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
             {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
@@ -3714,7 +3714,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
               {Array.from({ length: total }).map((_, i) => {
                 const done = i < step - 1, current = i === step - 1;
                 return (
-                  <span key={i} className={current ? "ldx" : undefined} style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:26, height:26, padding:"0 7px", borderRadius:13, fontSize:11, fontWeight:800, fontVariantNumeric:"tabular-nums",
+                  <span key={i} className={current ? "ldx" : undefined} style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:26, height:26, padding:"0 7px", borderRadius:13, fontSize: "0.6875rem", fontWeight:800, fontVariantNumeric:"tabular-nums",
                     background: done ? C.accent : current ? C.accentSoft : "transparent",
                     border: `1.5px solid ${done || current ? C.accent : C.border}`,
                     color: done ? "#fff" : current ? C.accent : C.mutedLight,
@@ -3723,22 +3723,22 @@ function Spinner({ label, step, total, firstTime, skills }) {
                   </span>
                 );
               })}
-              <span style={{ fontSize:11, color:C.muted, fontWeight:600, marginLeft:4 }}>{step} of {total}</span>
+              <span style={{ fontSize: "0.6875rem", color:C.muted, fontWeight:600, marginLeft:4 }}>{step} of {total}</span>
             </div>
           )}
         </div>
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
-          <p style={{ margin:"0 0 8px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
+          <p style={{ margin:"0 0 8px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
           <div className="ldx-skills-grid">
           {list.map((s, i) => (
             <div key={(s && (s.escoUri || s.skill)) || i} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-                <span style={{ flexShrink:0, fontSize:10, fontWeight:800, color:C.accent, minWidth:18, fontVariantNumeric:"tabular-nums" }}>{String(i+1).padStart(2,"0")}</span>
-                <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
+                <span style={{ flexShrink:0, fontSize: "0.625rem", fontWeight:800, color:C.accent, minWidth:18, fontVariantNumeric:"tabular-nums" }}>{String(i+1).padStart(2,"0")}</span>
+                <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
               </div>
               {s && s.escoDescription && (
-                <p style={{ margin:"3px 0 0", paddingLeft:26, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
+                <p style={{ margin:"3px 0 0", paddingLeft:26, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
               )}
             </div>
           ))}
@@ -3748,14 +3748,14 @@ function Spinner({ label, step, total, firstTime, skills }) {
       {firstTime && (
         <div className="ldx ldx-info" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What will be shown</p>
-            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.6 }}>
+            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>What will be shown</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
               This is a <strong>real Singapore role</strong> — not a generic or made-up one. We match your search to <strong>live 🇸🇬 MyCareersFuture postings</strong> (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement — <strong>Full Automation</strong> (AI, including AI agents, does it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong> — with a visual overview up top.
             </p>
           </div>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.accent }}>What each section enables</p>
-            <ul style={{ margin:"4px 0 0", paddingLeft:18, fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>What each section enables</p>
+            <ul style={{ margin:"4px 0 0", paddingLeft:18, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
               <li style={{ marginBottom:3 }}><strong>Skill Analysis</strong> — each skill with a ready-to-use AI prompt and a 3-step “what to do next”.</li>
               <li style={{ marginBottom:3 }}><strong>Career Progression</strong> — realistic next roles and the skill gaps to close.</li>
               <li style={{ marginBottom:3 }}><strong>Role Crossover</strong> — transferable skills that open doors to nearby roles.</li>
@@ -3773,7 +3773,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
 function FeedbackLink() {
   return (
     <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
-      style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:11, color:C.teal, fontWeight:600, textDecoration:"none", background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 16, padding: "6px 12px", marginTop:10 }}>
+      style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize: "0.6875rem", color:C.teal, fontWeight:600, textDecoration:"none", background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 16, padding: "6px 12px", marginTop:10 }}>
       ✉ feedback@takearoundabout.com
     </a>
   );
@@ -3789,11 +3789,11 @@ function DiagSteps() {
   const isBad = s => s === "error" || s === "timeout";
   return (
     <div style={{ marginTop: 4 }}>
-      <button onClick={() => setOpen(o => !o)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 10, color: C.muted, cursor: "pointer", textDecoration: "underline" }}>
+      <button onClick={() => setOpen(o => !o)} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.625rem", color: C.muted, cursor: "pointer", textDecoration: "underline" }}>
         {open ? "Hide" : "Show"} diagnostics - last {steps.length} step{steps.length === 1 ? "" : "s"} before this
       </button>
       {open && (
-        <div style={{ marginTop: 6, fontFamily: "monospace", fontSize: 10, lineHeight: 1.7, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", maxHeight: 200, overflowY: "auto" }}>
+        <div style={{ marginTop: 6, fontFamily: "monospace", fontSize: "0.625rem", lineHeight: 1.7, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", maxHeight: 200, overflowY: "auto" }}>
           {steps.map((s, i) => (
             <div key={i} style={{ color: isBad(s.status) ? "#9a3412" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
               {s.step} · {s.status}{s.ms != null ? ` · ${s.ms}ms` : ""}{s.detail ? ` · ${s.detail.slice(0, 120)}` : ""}
@@ -3820,8 +3820,8 @@ function ErrBox({ msg, query }) {
   if (isBusy) {
     return (
       <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.green }}>The analyser has had a wonderful day</p>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:C.green }}>The analyser has had a wonderful day</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.75 }}>
           So many searches today that it has reached its daily limit - which is a good thing, really. It resets overnight, so please do come back tomorrow. Thank you for your patience and interest - it genuinely means a lot.
         </p>
       </div>
@@ -3831,11 +3831,11 @@ function ErrBox({ msg, query }) {
   if (isNotFound) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#9a3412" }}>
           No match found for "{query}"
         </p>
-        <p style={{ margin:"0 0 8px", fontSize:12, color:"#78350f", lineHeight:1.65 }}>A few things that often help:</p>
-        <ul style={{ margin:"0 0 4px", paddingLeft:18, fontSize:12, color:"#78350f", lineHeight:1.8 }}>
+        <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:"#78350f", lineHeight:1.65 }}>A few things that often help:</p>
+        <ul style={{ margin:"0 0 4px", paddingLeft:18, fontSize: "0.75rem", color:"#78350f", lineHeight:1.8 }}>
           <li>Check the spelling - e.g. <em>Physician</em> not <em>Physicain</em></li>
           <li>Use a shorter title - e.g. <em>Manager</em> instead of <em>Senior HR Business Partner</em></li>
           <li>Try a more common job title - e.g. <em>Nurse</em> instead of <em>Ward Sister</em></li>
@@ -3848,10 +3848,10 @@ function ErrBox({ msg, query }) {
   if (isInvalid || isTooLong) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#9a3412" }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#9a3412" }}>
           {isTooLong ? "That job title is a little long" : "That does not quite look like a job title"}
         </p>
-        <p style={{ margin:0, fontSize:12, color:"#78350f", lineHeight:1.65 }}>
+        <p style={{ margin:0, fontSize: "0.75rem", color:"#78350f", lineHeight:1.65 }}>
           {isTooLong
             ? "Please keep it to 1 to 3 words and under 140 characters - e.g. HR Manager, Nurse, Chief Executive Officer."
             : "Please enter a role such as HR Manager, Nurse, or Software Developer. Avoid symbols or special characters."
@@ -3865,8 +3865,8 @@ function ErrBox({ msg, query }) {
   // auth, or anything unrecognised). ONE calm notice; no raw provider text; no ask to debug.
   return (
     <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-      <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:"#1e40af" }}>The analyser is taking a short pause</p>
-      <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+      <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#1e40af" }}>The analyser is taking a short pause</p>
+      <p style={{ margin:"0 0 4px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.75 }}>
         It is briefly unavailable and should be back shortly - nothing is wrong on your side. Please check back in a little while. Thank you for your patience.
       </p>
       <FeedbackLink />
@@ -3877,7 +3877,7 @@ function ErrBox({ msg, query }) {
 
 function Tab({ label, active, onClick, colour }) {
   return (
-    <button onClick={onClick} className="tab-label" style={{ padding: "8px 14px", fontSize:13, fontWeight:700, cursor:"pointer", border:"none", borderBottom:`3px solid ${active ? colour : "transparent"}`, background:"transparent", color:active ? colour : C.muted, transition:"colour 0.15s", whiteSpace:"nowrap" }}>
+    <button onClick={onClick} className="tab-label" style={{ padding: "8px 14px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", border:"none", borderBottom:`3px solid ${active ? colour : "transparent"}`, background:"transparent", color:active ? colour : C.muted, transition:"colour 0.15s", whiteSpace:"nowrap" }}>
       {label}
     </button>
   );
@@ -3896,10 +3896,10 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
     <div style={{ marginBottom:10 }}>
       <div className="lux-rise" style={{ padding: "12px 4px 10px" }}>
         {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
-        <p className="t-heading" style={{ margin:0, fontSize: 17, color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Start with a job title. Choose the closest role. Then analyse it.</p>
+        <p className="t-heading" style={{ margin:0, fontSize: "1.0625rem", color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Start with a job title. Choose the closest role. Then analyse it.</p>
       </div>
       <div className="lux-rise" style={{ "--lux-d":"0.06s", background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
-        <p style={{ margin:"0 0 10px", fontSize:11, fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
+        <p style={{ margin:"0 0 10px", fontSize: "0.6875rem", fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
           Who is this most useful for?
         </p>
         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
@@ -3919,13 +3919,13 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
                 onMouseEnter={clickable ? e => { e.currentTarget.style.borderColor = a.persona === "fresh" ? PERSONA_CONFIG.fresh.border : PERSONA_CONFIG.crossover.border; e.currentTarget.style.background = a.persona === "fresh" ? PERSONA_CONFIG.fresh.bg : PERSONA_CONFIG.crossover.bg; } : undefined}
                 onMouseLeave={clickable ? e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.bg; } : undefined}
               >
-                <span aria-hidden="true" style={{ flexShrink:0, marginTop:2, fontSize:10, fontWeight:800, color:C.mutedLight, fontFamily:"'IBM Plex Mono',ui-monospace,monospace", fontVariantNumeric:"tabular-nums", letterSpacing:"0.02em", minWidth:16 }}>{String(i+1).padStart(2,"0")}</span>
-                <span style={{ fontSize: 16, flexShrink:0, marginTop:1, lineHeight:1 }}>{a.icon}</span>
+                <span aria-hidden="true" style={{ flexShrink:0, marginTop:2, fontSize: "0.625rem", fontWeight:800, color:C.mutedLight, fontFamily:"'IBM Plex Mono',ui-monospace,monospace", fontVariantNumeric:"tabular-nums", letterSpacing:"0.02em", minWidth:16 }}>{String(i+1).padStart(2,"0")}</span>
+                <span style={{ fontSize: "1rem", flexShrink:0, marginTop:1, lineHeight:1 }}>{a.icon}</span>
                 <div style={{ flex:1 }}>
-                  <span className="lux-clip" data-text={a.label} style={{ fontSize:12.5, fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>{a.label}</span>
-                  <span style={{ fontSize:12, color:C.textSub }}>{" " + a.line}</span>
+                  <span className="lux-clip" data-text={a.label} style={{ fontSize: "0.78125rem", fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>{a.label}</span>
+                  <span style={{ fontSize: "0.75rem", color:C.textSub }}>{" " + a.line}</span>
                 </div>
-                {clickable && <span className="lux-arrow" aria-hidden="true" style={{ fontSize:12, color:accent, flexShrink:0, marginTop:2, fontWeight:700 }}>&#8595;</span>}
+                {clickable && <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.75rem", color:accent, flexShrink:0, marginTop:2, fontWeight:700 }}>&#8595;</span>}
               </div>
             );
           })}
@@ -3973,9 +3973,9 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
       <div style={{ display:"flex", gap:8, marginBottom:12 }}>
         <input type="text" value={localQuery} onChange={e => setLocalQuery(e.target.value)}
           onKeyDown={e => e.key === "Enter" && localQuery.trim() && onSearchAgain(localQuery.trim())}
-          style={{ flex:1, background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "10px 14px", fontSize: 16, outline:"none", fontFamily:"inherit" }} autoFocus />
+          style={{ flex:1, background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "10px 14px", fontSize: "1rem", outline:"none", fontFamily:"inherit" }} autoFocus />
         <button onClick={() => localQuery.trim() && onSearchAgain(localQuery.trim())}
-          style={{ background:C.eu, border:"none", borderRadius: 6, color:"#fff", padding: "10px 18px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+          style={{ background:C.eu, border:"none", borderRadius: 6, color:"#fff", padding: "10px 18px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
           Search
         </button>
       </div>
@@ -3988,11 +3988,11 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           const cap = wordCount <= 1 ? cap1 : wordCount === 2 ? cap2 : null;
           const isCapped = cap && !pickerFullLoading && occs.length >= cap;
           return (
-            <p style={{ margin:0, fontSize:16, fontWeight:800, color:C.text, lineHeight:1.3 }}>
+            <p style={{ margin:0, fontSize: "1rem", fontWeight:800, color:C.text, lineHeight:1.3 }}>
               {pickerFullLoading
-                ? <>First 5 closest matches for <span style={{ color:C.accent }}>"{query}"</span> <span style={{ fontSize:12, fontWeight:500, color:C.muted }}>- loading more...</span></>
+                ? <>First 5 closest matches for <span style={{ color:C.accent }}>"{query}"</span> <span style={{ fontSize: "0.75rem", fontWeight:500, color:C.muted }}>- loading more...</span></>
                 : isCapped
-                  ? <>Showing the {cap} closest roles similar to <span style={{ color:C.accent }}>"{query}"</span> <span style={{ fontSize:12, fontWeight:400, color:C.muted }}>- add your sector or role type to narrow the list</span></>
+                  ? <>Showing the {cap} closest roles similar to <span style={{ color:C.accent }}>"{query}"</span> <span style={{ fontSize: "0.75rem", fontWeight:400, color:C.muted }}>- add your sector or role type to narrow the list</span></>
                   : <>{occs.length} role{occs.length!==1?"s":""} similar to <span style={{ color:C.accent }}>"{query}"</span></>
               }
             </p>
@@ -4000,16 +4000,16 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
         })()}
         {functionKeywordNotice && (
           <div style={{ margin:"8px 0 0", padding: "10px 12px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
-            <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:"#1e40af", lineHeight:1.5 }}>
+            <p style={{ margin:"0 0 4px", fontSize: "0.75rem", fontWeight:700, color:"#1e40af", lineHeight:1.5 }}>
               ℹ "{toTitleCase(functionKeywordNotice.keyword)}" is a function area, not a specific job title.
             </p>
-            <p style={{ margin:"0 0 6px", fontSize:11, color:"#1e40af", lineHeight:1.5 }}>
+            <p style={{ margin:"0 0 6px", fontSize: "0.6875rem", color:"#1e40af", lineHeight:1.5 }}>
               For the most accurate skills, try a specific title - e.g. {functionKeywordNotice.suggestions || "add a level or specialisation such as Specialist, Manager, or Director"}.
             </p>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <button
                 onClick={onDismissFunctionNotice}
-                style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#1a56db", border:"none", borderRadius: 6, padding: "4px 12px", cursor:"pointer" }}>
+                style={{ fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:"#1a56db", border:"none", borderRadius: 6, padding: "4px 12px", cursor:"pointer" }}>
                 Proceed anyway
               </button>
             </div>
@@ -4017,16 +4017,16 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
         )}
         {noExactMatch && (
           <div style={{ margin:"8px 0 0", padding: "8px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:600, color:"#92400e", lineHeight:1.5 }}>
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:600, color:"#92400e", lineHeight:1.5 }}>
               {/^(Deputy|Vice|Assistant|Acting|Co-|Associate|Joint)\s+/i.test(noExactMatch) ? `"${noExactMatch}" is not a standard ESCO title - ESCO maps roles by function, not by seniority prefix. Showing the closest functional equivalents below. The skills and AI analysis will reflect the seniority level you described.` : `We could not find an exact match for "${noExactMatch}". Showing the closest roles found.`}
             </p>
-            <p style={{ margin:"3px 0 0", fontSize:11, color:"#92400e", lineHeight:1.5 }}>
+            <p style={{ margin:"3px 0 0", fontSize: "0.6875rem", color:"#92400e", lineHeight:1.5 }}>
               These are the closest roles we found. Please select the one that best fits what you were looking for.
             </p>
           </div>
         )}
         {!noExactMatch && occs.some(o => o.isAltLabel) && (
-          <p style={{ margin:"6px 0 0", fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>
+          <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>
             "{query}" is an alternative title - the preferred ESCO term is shown below.
           </p>
         )}
@@ -4037,7 +4037,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           if (isCapped) {
             return (
               <div style={{ margin:"8px 0 0", padding: "8px 10px", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius:6 }}>
-                <p style={{ margin:0, fontSize:12, fontWeight:600, color:"#1e40af", lineHeight:1.5 }}>
+                <p style={{ margin:0, fontSize: "0.75rem", fontWeight:600, color:"#1e40af", lineHeight:1.5 }}>
                   {wordCount <= 1
                     ? `"${query.trim()}" matches hundreds of roles in ESCO. We are showing the 30 closest. Add your sector or the type of role - e.g. "${query.trim()} Healthcare" or "Senior ${query.trim()}" - to see a more focused list.`
                     : `"${query.trim()}" matches many roles. We are showing the 50 closest. Add a sector or function - e.g. "${query.trim()} Finance" - to narrow it down further.`
@@ -4048,14 +4048,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           }
           return null;
         })()}
-        <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted, lineHeight:1.5 }}>
+        <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>
           Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
         </p>
       </div>
 
       {/* Persona reminder if set */}
       {persona && (
-        <div style={{ background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}`, borderRadius: 6, padding: "8px 14px", marginBottom:10, fontSize:12, color:safePersona(persona).color }}>
+        <div style={{ background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}`, borderRadius: 6, padding: "8px 14px", marginBottom:10, fontSize: "0.75rem", color:safePersona(persona).color }}>
           {safePersona(persona).icon} Foundation skills will be generated for: <strong>{safePersona(persona).label}</strong>
         </div>
       )}
@@ -4071,7 +4071,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
       {occs.length > 0 && (
         <div ref={browseRef} style={{ scrollMarginTop: 64 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: pickerFullLoading ? 6 : 8, paddingTop: topPicks.length > 0 ? 4 : 0, borderTop: topPicks.length > 0 ? `1px solid ${C.border}` : "none" }}>
-            <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+            <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
               Browse all roles
             </p>
             {sectorGroups.length > 1 && (
@@ -4080,7 +4080,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
                 const s = {};
                 sectorGroups.forEach(g => { s[g.sector] = !allOpen; });
                 setExpandedSectors(s);
-              }} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize:10, color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600, flexShrink:0 }}>
+              }} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize: "0.625rem", color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600, flexShrink:0 }}>
                 {sectorGroups.every(g => expandedSectors[g.sector]) ? "Collapse all" : "Expand all"}
               </button>
             )}
@@ -4088,14 +4088,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           {pickerFullLoading && (
             <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px", marginBottom:10, background:"#eef2ff", border:"1px solid #93c5fd", borderRadius: 6 }}>
               <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #93c5fd", borderTop:"2px solid #0f766e", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-              <p style={{ margin:0, fontSize:13, fontWeight:500, color:"#1e40af", lineHeight:1.5 }}>
+              <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:500, color:"#1e40af", lineHeight:1.5 }}>
                 Loading more roles - please wait.
               </p>
             </div>
           )}
           {pickerFullError && !pickerFullLoading && (
             <div style={{ padding: "10px 14px", marginBottom:10, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
-              <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.5 }}>
+              <p style={{ margin:0, fontSize: "0.75rem", color:"#92400e", lineHeight:1.5 }}>
                 Showing the closest matches found. Search again if you need more results.
               </p>
             </div>
@@ -4105,16 +4105,16 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
               <button
                 onClick={() => { browseRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }); setNudgeDismissed(true); }}
                 style={{ flex:1, background:"transparent", border:"none", cursor:"pointer", textAlign:"left", padding:0 }}>
-                <p style={{ margin:0, fontSize:13, fontWeight:700, color:"#fff", lineHeight:1.4 }}>
+                <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:"#fff", lineHeight:1.4 }}>
                   {additionalCount} more roles loaded below
                 </p>
-                <p style={{ margin:"2px 0 0", fontSize:11, color:"#bfdbfe", lineHeight:1.3 }}>
+                <p style={{ margin:"2px 0 0", fontSize: "0.6875rem", color:"#bfdbfe", lineHeight:1.3 }}>
                   Tap to browse by industry ↓
                 </p>
               </button>
               <button
                 onClick={() => setNudgeDismissed(true)}
-                style={{ background:"rgba(255,255,255,0.15)", border:"none", borderRadius: 10, color:"#fff", fontSize:16, lineHeight:1, padding: "4px 8px", cursor:"pointer", flexShrink:0 }}>
+                style={{ background:"rgba(255,255,255,0.15)", border:"none", borderRadius: 10, color:"#fff", fontSize: "1rem", lineHeight:1, padding: "4px 8px", cursor:"pointer", flexShrink:0 }}>
                 ✕
               </button>
             </div>
@@ -4124,10 +4124,10 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
               <button onClick={() => toggleSector(g.sector)}
                 style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:expandedSectors[g.sector] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:C.text }}>{g.sector}</span>
-                  <span style={{ fontSize:11, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{g.items.length}</span>
+                  <span style={{ fontSize: "0.75rem", fontWeight:700, color:C.text }}>{g.sector}</span>
+                  <span style={{ fontSize: "0.6875rem", color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{g.items.length}</span>
                 </div>
-                <span style={{ fontSize:10, color:C.muted }}>{expandedSectors[g.sector] ? "▲" : "▼"}</span>
+                <span style={{ fontSize: "0.625rem", color:C.muted }}>{expandedSectors[g.sector] ? "▲" : "▼"}</span>
               </button>
               {expandedSectors[g.sector] && (
                 <div style={{ border:`1px solid ${C.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding: "6px 6px 2px" }}>
@@ -4142,14 +4142,14 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
               return (
                 <button
                   onClick={() => setBrowseDisplayCount(c => c + PAGE_SIZE)}
-                  style={{ width:"100%", marginTop:8, padding: "10px 16px", background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 10, fontSize:13, fontWeight:600, color:C.accent, cursor:"pointer", textAlign:"center" }}>
+                  style={{ width:"100%", marginTop:8, padding: "10px 16px", background:C.surface, border:`1.5px solid ${C.accent}`, borderRadius: 10, fontSize: "0.8125rem", fontWeight:600, color:C.accent, cursor:"pointer", textAlign:"center" }}>
                   Explore more roles ↓
                 </button>
               );
             }
             if (browseDisplayCount > 25) {
               return (
-                <p style={{ margin:"10px 0 4px", fontSize:11, color:C.muted, textAlign:"center", fontStyle:"italic" }}>
+                <p style={{ margin:"10px 0 4px", fontSize: "0.6875rem", color:C.muted, textAlign:"center", fontStyle:"italic" }}>
                   These are all the closest matches found for this search. Try a more specific title to explore further.
                 </p>
               );
@@ -4170,10 +4170,10 @@ function OccCard({ o, onSelect }) {
       onMouseLeave={() => setHovered(false)}
       style={{ background: hovered ? C.accentSoft : C.surface, border:`1px solid ${hovered ? C.accent : C.border}`, borderRadius: 6, padding: "12px 14px", marginBottom:5, cursor:"pointer", transition:"all 0.15s" }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:8 }}>
-        <p className="t-body" style={{ margin:"0 0 2px", fontSize:14, fontWeight:600, color: hovered ? C.accent : C.text, flex:1 }}>{toTitleCase(o.title)}</p>
-        {o.isAltLabel && <span style={{ fontSize: 10, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt label</span>}
+        <p className="t-body" style={{ margin:"0 0 2px", fontSize: "0.875rem", fontWeight:600, color: hovered ? C.accent : C.text, flex:1 }}>{toTitleCase(o.title)}</p>
+        {o.isAltLabel && <span style={{ fontSize: "0.625rem", fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt label</span>}
       </div>
-      <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.5 }}>
+      <p style={{ margin:0, fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>
         {o.iscoCode && <span style={{ color:C.mutedLight }}>ISCO-08: {o.iscoCode} · </span>}
         {(o.description||"").slice(0,110)}{(o.description||"").length>110?"...":""}
       </p>
@@ -4186,25 +4186,25 @@ function CommunityNote() {
   return (
     <div style={{ marginTop:8 }}>
       <button onClick={() => setOpen(o => !o)}
-        style={{ background:"transparent", border:"none", fontSize:12, color:C.accent, cursor:"pointer", padding:0, textDecoration:"underline", textDecorationStyle:"dotted", fontWeight:600 }}>
+        style={{ background:"transparent", border:"none", fontSize: "0.75rem", color:C.accent, cursor:"pointer", padding:0, textDecoration:"underline", textDecorationStyle:"dotted", fontWeight:600 }}>
         {open ? "▲ close" : "▼ Note by builder"}
       </button>
       {open && (
         <div style={{ marginTop:10, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.75 }}>
             This tool is completely free to use. The underlying sources I draw from are openly available, and it did not feel right to charge for something built on public knowledge.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.75 }}>
             That said, each query does carry a small cost on my end - so if you ever run into a slow response or a brief hiccup, please do bear with me. I top up the credits as I go, and your patience genuinely means a lot.
           </p>
-          <p style={{ margin:"0 0 14px", fontSize:12, color:C.textSub, lineHeight:1.75 }}>
+          <p style={{ margin:"0 0 14px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.75 }}>
             If you find it useful - or even if you do not - I would love to hear from you. A quiet DM here on LinkedIn with where you are from and a line of feedback. No pressure at all, just a conversation.
           </p>
-          <p style={{ margin:"0 0 14px", fontSize:11, color:C.muted, fontStyle:"italic", lineHeight:1.65 }}>
+          <p style={{ margin:"0 0 14px", fontSize: "0.6875rem", color:C.muted, fontStyle:"italic", lineHeight:1.65 }}>
             P.S. This is a side hobby - built in spare moments out of genuine curiosity about where work is heading. I hope it is useful to someone out there.
           </p>
           <a href="https://www.linkedin.com/in/angadrian" target="_blank" rel="noreferrer"
-            style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize:12, color:"#0a66c2", fontWeight:600, textDecoration:"none", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 16, padding: "6px 14px" }}>
+            style={{ display:"inline-flex", alignItems:"center", gap:6, fontSize: "0.75rem", color:"#0a66c2", fontWeight:600, textDecoration:"none", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 16, padding: "6px 14px" }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
             Adrian K. L. Ang - linkedin.com/in/angadrian
           </a>
@@ -4216,7 +4216,7 @@ function CommunityNote() {
 
 function Tagline() {
   return (
-    <p style={{ margin:"10px 0 0", fontSize:11, color:C.muted, fontStyle:"italic", textAlign:"center", letterSpacing:"0.02em" }}>
+    <p style={{ margin:"10px 0 0", fontSize: "0.6875rem", color:C.muted, fontStyle:"italic", textAlign:"center", letterSpacing:"0.02em" }}>
       Sometimes the scenic route is the right one.
     </p>
   );
@@ -4225,8 +4225,8 @@ function Tagline() {
 function DeviceNote() {
   return (
     <div style={{ display:"flex", alignItems:"flex-start", gap:8, background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 10, padding: "8px 14px", marginTop:8 }}>
-      <span style={{ fontSize:14, flexShrink:0 }}>💡</span>
-      <p style={{ margin:0, fontSize:11, color:"#78350f", lineHeight:1.6 }}>
+      <span style={{ fontSize: "0.875rem", flexShrink:0 }}>💡</span>
+      <p style={{ margin:0, fontSize: "0.6875rem", color:"#78350f", lineHeight:1.6 }}>
         Best explored on a wider screen - results span multiple tabs and detailed breakdowns.
       </p>
     </div>
@@ -4242,8 +4242,8 @@ function PersonaToggle({ persona, onChange }) {
     <div style={{ marginBottom:10 }}>
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "10px 14px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-          <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Adds a foundation skills plan to the analysis</p>
-          <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>optional</span>
+          <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Adds a foundation skills plan to the analysis</p>
+          <span style={{ fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>optional</span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap:8 }}>
           {Object.entries(PERSONA_CONFIG).map(([key, cfg]) => {
@@ -4257,10 +4257,10 @@ function PersonaToggle({ persona, onChange }) {
                 <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${active ? cfg.color : C.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", background: active ? cfg.bg : "transparent", transition:"all 0.15s" }}>
                   {active && <div style={{ width:10, height:10, borderRadius:"50%", background:cfg.color }} />}
                 </div>
-                <span style={{ fontSize:16, flexShrink:0, lineHeight:1 }}>{cfg.icon}</span>
+                <span style={{ fontSize: "1rem", flexShrink:0, lineHeight:1 }}>{cfg.icon}</span>
                 <div style={{ minWidth:0 }}>
-                  <p style={{ margin:0 }}><span className="lux-clip" data-text={cfg.label} style={{ fontSize:12, fontWeight:700, color:active ? cfg.color : C.text, wordBreak:"break-word" }}>{cfg.label}</span></p>
-                  <p style={{ margin:"1px 0 0", fontSize:10, color:C.muted }}>{PERSONA_SHORT[key]}</p>
+                  <p style={{ margin:0 }}><span className="lux-clip" data-text={cfg.label} style={{ fontSize: "0.75rem", fontWeight:700, color:active ? cfg.color : C.text, wordBreak:"break-word" }}>{cfg.label}</span></p>
+                  <p style={{ margin:"1px 0 0", fontSize: "0.625rem", color:C.muted }}>{PERSONA_SHORT[key]}</p>
                 </div>
               </div>
             );
@@ -4268,13 +4268,13 @@ function PersonaToggle({ persona, onChange }) {
         </div>
         {persona && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, padding: "6px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
-            <p style={{ margin:0, fontSize:11, color:safePersona(persona).color }}>
+            <p style={{ margin:0, fontSize: "0.6875rem", color:safePersona(persona).color }}>
               <strong>{safePersona(persona).label}</strong> selected - foundation skills plan will be included in the analysis.
             </p>
             <span className="lux-focus" role="button" tabIndex={0} aria-label="Remove foundation skills plan"
               onClick={e => { e.stopPropagation(); onChange(null); }}
               onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onChange(null); } }}
-              style={{ fontSize:11, color:C.muted, cursor:"pointer", textDecoration:"underline", textUnderlineOffset:2, marginLeft:12, whiteSpace:"nowrap", flexShrink:0 }}>
+              style={{ fontSize: "0.6875rem", color:C.muted, cursor:"pointer", textDecoration:"underline", textUnderlineOffset:2, marginLeft:12, whiteSpace:"nowrap", flexShrink:0 }}>
               remove
             </span>
           </div>
@@ -4345,7 +4345,7 @@ function EngineHeadline({ result, title }) {
   const box = { background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:16 };
   const head = (
     <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-      <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
+      <p style={{ margin:0, fontSize: "1rem", fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
       {/* audit W-2: no "computed" chip before a computed value exists */}
       {eng.status === "done" && eng.j && eng.j.ok ? <Prov kind="computed" /> : eng.status === "loading" ? null : <Prov kind="unverified" />}
     </div>
@@ -4354,7 +4354,7 @@ function EngineHeadline({ result, title }) {
     return (
       <div style={box} aria-busy="true">
         {head}
-        <p style={{ margin:0, fontSize:12, color:C.muted }}>Computing from this role's skill evidence (ESCO / ISCO-08 / AIOE tables)...</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Computing from this role's skill evidence (ESCO / ISCO-08 / AIOE tables)...</p>
       </div>
     );
   }
@@ -4364,10 +4364,10 @@ function EngineHeadline({ result, title }) {
     return (
       <div style={box}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-          <p style={{ margin:0, fontSize: 16, fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
+          <p style={{ margin:0, fontSize: "1rem", fontWeight:800, color:C.text, letterSpacing:"-0.01em" }}><Term k="AI-Exposure Index">AI-Exposure Index</Term></p>
           <Prov kind="unverified" />
         </div>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.65 }}>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.65 }}>
           Index withheld - {why}. No number is shown when the data chain cannot be verified; the skill-by-skill view below still applies.
         </p>
       </div>
@@ -4379,11 +4379,11 @@ function EngineHeadline({ result, title }) {
     <div style={box}>
       {head}
       <p style={{ margin:"0 0 8px" }} aria-label={`AI exposure index ${exp.index} out of 100, ${exp.band} band, ${exp.confidence} confidence`}>
-        <span style={{ fontSize:30, fontWeight:800, color:C.accent }}>{exp.index}</span>
-        <span style={{ fontSize: 16, fontWeight:700, color:C.textSub }}>/100</span>
-        <span style={{ fontSize:12, fontWeight:700, color:C.textSub, marginLeft:10 }}><Term k="exposure band">{exp.band} exposure</Term> - <Term k="confidence">{exp.confidence} confidence</Term></span>
+        <span style={{ fontSize: "1.875rem", fontWeight:800, color:C.accent }}>{exp.index}</span>
+        <span style={{ fontSize: "1rem", fontWeight:700, color:C.textSub }}>/100</span>
+        <span style={{ fontSize: "0.75rem", fontWeight:700, color:C.textSub, marginLeft:10 }}><Term k="exposure band">{exp.band} exposure</Term> - <Term k="confidence">{exp.confidence} confidence</Term></span>
       </p>
-      <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.65 }}>
+      <p style={{ margin:0, fontSize: "0.6875rem", color:C.muted, lineHeight:1.65 }}>
         Deterministic: <Term k="AIOE">AIOE</Term> (Felten et al. 2021) via {occ.via === "fingerprint" ? "this role's ESCO skill evidence" : occ.via === "reconcile" ? "the SSOC tag reconciled with skill evidence" : "the posting's SSOC tag"} (ISCO {Array.isArray(occ.isco) ? occ.isco.join("/") : "-"}{occ.label ? ` - ${occ.label}` : ""}). <Term k="z-range">Z-score range {exp.zRange[0]} to {exp.zRange[1]}</Term> - a range, never a faked point. Same evidence, same number, every run.
       </p>
     </div>
@@ -4397,12 +4397,12 @@ function ExposureBar({ skills }) {
   return (
     <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 18px", marginBottom:16 }}>
       <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", margin:"0 0 6px" }}>
-        <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>Skill-by-skill AI involvement</p>
+        <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text, letterSpacing:"-0.01em" }}>Skill-by-skill AI involvement</p>
         <Prov kind="ai" small />
       </div>
       {/* H1: demoted from the page headline - an LLM judgement per skill, secondary to the
           computed AI-Exposure Index above. The count stays visible, just no longer leads. */}
-      <p style={{ margin:"0 0 10px", fontSize:13, color:C.textSub, lineHeight:1.6 }}>
+      <p style={{ margin:"0 0 10px", fontSize: "0.8125rem", color:C.textSub, lineHeight:1.6 }}>
         <span style={{ fontWeight:700 }}>{cnt.HIGH + cnt.MEDIUM} of {total}</span> skills have some level of AI involvement today - an AI judgement per skill, shown for detail, not the page's headline figure.
       </p>
       {/* Stacked bar with 2px white gaps between segments */}
@@ -4416,8 +4416,8 @@ function ExposureBar({ skills }) {
       <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
         {Object.entries(cnt).map(([l,n]) => (
           <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
-            <span style={{ fontSize:12, lineHeight:1, width:14, textAlign:"center" }}>{LEVELS[l].icon}</span>
-            <span style={{ fontSize:11, color:LEVELS[l].color, fontWeight:600 }}>{n} {LEVELS[l].label}</span>
+            <span style={{ fontSize: "0.75rem", lineHeight:1, width:14, textAlign:"center" }}>{LEVELS[l].icon}</span>
+            <span style={{ fontSize: "0.6875rem", color:LEVELS[l].color, fontWeight:600 }}>{n} {LEVELS[l].label}</span>
           </div>
         ))}
       </div>
@@ -4435,16 +4435,16 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
       <button onClick={onToggle}
         style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: isOpen ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: isOpen ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }}>📊</span>
-          <span style={{ fontSize:13, fontWeight:700, color: isOpen ? "#fff" : C.text }}>Skills by Automation Segment</span>
+          <span style={{ fontSize: "0.875rem" }}>📊</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight:700, color: isOpen ? "#fff" : C.text }}>Skills by Automation Segment</span>
         </div>
-        <span style={{ fontSize:12, color: isOpen ? "#93c5fd" : C.muted, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: "0.75rem", color: isOpen ? "#93c5fd" : C.muted, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {isOpen && (
         <div style={{ padding: "10px 12px 12px" }}>
           <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:10, padding: "8px 10px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
-            <span style={{ fontSize:12, flexShrink:0, marginTop:1 }}>ℹ️</span>
-            <p style={{ margin:0, fontSize:11, color:"#0369a1", lineHeight:1.65 }}>
+            <span style={{ fontSize: "0.75rem", flexShrink:0, marginTop:1 }}>ℹ️</span>
+            <p style={{ margin:0, fontSize: "0.6875rem", color:"#0369a1", lineHeight:1.65 }}>
               Each column groups skills by AI involvement level today. <strong style={{ color:"#075985" }}>Tap any skill name</strong> to open its AI prompt and step-by-step guide in the Skill Analysis tab.
             </p>
           </div>
@@ -4455,17 +4455,17 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
                 <div key={lvl} style={{ background:c.bg, border:`1px solid ${c.border}`, borderRadius: 10, padding: "10px 12px" }}>
                   <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:7 }}>
                     <span>{c.icon}</span>
-                    <span style={{ fontSize:11, fontWeight:700, color:c.color }}>{c.label}</span>
-                    <span style={{ marginLeft:"auto", fontSize:12, fontWeight:800, color:c.color }}>{items.length}</span>
+                    <span style={{ fontSize: "0.6875rem", fontWeight:700, color:c.color }}>{c.label}</span>
+                    <span style={{ marginLeft:"auto", fontSize: "0.75rem", fontWeight:800, color:c.color }}>{items.length}</span>
                   </div>
                   {items.length === 0
-                    ? <p style={{ margin:0, fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>None assessed at this level</p>
+                    ? <p style={{ margin:0, fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>None assessed at this level</p>
                     : items.map((s,i) => (
                       <button key={i} onClick={() => onSkillClick && onSkillClick(s.skill)}
                         style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4, background: (firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? c.bg : "transparent", border:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `1.5px solid ${c.border}` : "none", borderRadius: 6, padding:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "2px 6px 2px 4px" : 0, cursor:"pointer", textAlign:"left", width:"100%", animation:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? "skillBlink 0.85s ease-in-out infinite" : undefined, boxShadow:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? `0 0 8px 2px ${c.bg}` : undefined }}>
                         <span style={{ width:4, height:4, borderRadius:"50%", background:c.color, flexShrink:0, marginTop:5 }} />
-                        <span style={{ fontSize:11, color:c.color, lineHeight:1.5, textDecoration:"underline", textDecorationColor:`${c.color}60`, textUnderlineOffset:2, fontWeight:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? 700 : 400 }}>{s.skill}</span>
-                        {(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) && <span style={{ marginLeft:4, fontSize:10, color:c.color, flexShrink:0, alignSelf:"center" }}>← tap</span>}
+                        <span style={{ fontSize: "0.6875rem", color:c.color, lineHeight:1.5, textDecoration:"underline", textDecorationColor:`${c.color}60`, textUnderlineOffset:2, fontWeight:(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) ? 700 : 400 }}>{s.skill}</span>
+                        {(firstBlinkSkill && firstBlinkSkill.toLowerCase() === s.skill.toLowerCase()) && <span style={{ marginLeft:4, fontSize: "0.625rem", color:c.color, flexShrink:0, alignSelf:"center" }}>← tap</span>}
                       </button>
                     ))
                   }
@@ -4479,16 +4479,16 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
             if (!present.length) return null;
             return (
               <div style={{ marginTop:12, padding: "10px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10 }}>
-                <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.text }}>Pro-worker lens <span style={{ fontWeight:500, color:C.muted }}>- does AI here replace you, or make you more valuable?</span></p>
+                <p style={{ margin:"0 0 7px", fontSize: "0.6875rem", fontWeight:700, color:C.text }}>Pro-worker lens <span style={{ fontWeight:500, color:C.muted }}>- does AI here replace you, or make you more valuable?</span></p>
                 <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {present.map(lvl => { const c = LEVELS[lvl], p = PWAI_LENS[lvl]; return (
                     <div key={lvl} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
-                      <span style={{ fontSize:10, fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius: 6, padding: "2px 8px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
-                      <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#9a3412" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
+                      <span style={{ fontSize: "0.625rem", fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius: 6, padding: "2px 8px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
+                      <p style={{ margin:0, fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#9a3412" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
                     </div>
                   ); })}
                 </div>
-                <p style={{ margin:"7px 0 0", fontSize:10, color:C.textSub, lineHeight:1.55, fontStyle:"italic" }}>Lens after Acemoglu, Autor &amp; Johnson 2026 (NBER w34854, "Building Pro-Worker AI"): only new-task-creating is unambiguously pro-worker. A documented crosswalk from the levels above - a framing, not a measurement.</p>
+                <p style={{ margin:"7px 0 0", fontSize: "0.625rem", color:C.textSub, lineHeight:1.55, fontStyle:"italic" }}>Lens after Acemoglu, Autor &amp; Johnson 2026 (NBER w34854, "Building Pro-Worker AI"): only new-task-creating is unambiguously pro-worker. A documented crosswalk from the levels above - a framing, not a measurement.</p>
               </div>
             );
           })()}
@@ -4496,8 +4496,8 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
       )}
       {hasNoHuman && (
         <div style={{ display:"flex", alignItems:"flex-start", gap:8, marginTop:10, padding: "8px 12px", background:"#f5f7fa", border:"1px solid #dde3ec", borderRadius: 6 }}>
-          <span style={{ fontSize:13, flexShrink:0 }}>♦</span>
-          <p style={{ margin:0, fontSize:11, color:C.textSub, lineHeight:1.65 }}>
+          <span style={{ fontSize: "0.8125rem", flexShrink:0 }}>♦</span>
+          <p style={{ margin:0, fontSize: "0.6875rem", color:C.textSub, lineHeight:1.65 }}>
             <strong style={{ color:C.text }}>No Human-Led skills shown?</strong> For this role, all essential skills were assessed as having some level of AI involvement today. Human-Led only applies where AI genuinely cannot help - think crisis judgment, physical care, or building trust with real people at stake. If that does not feel right, check the Skill Analysis tab for the full reasoning.
           </p>
         </div>
@@ -4594,17 +4594,17 @@ function ForensicReversal({ result, title }) {
   if (statements.length < 3) return null; // nothing defensible to reverse-engineer
   const crux = open ? cruxAnomaly(statements, jobs) : null; // only computed when the panel is open
   const verbCounts = fr.status === "done" ? fr.read.verbs.map(v => ({ verb: v.verb, count: Math.max(1, v.n.length) })).sort((a, b) => (b.count - a.count) || a.verb.localeCompare(b.verb)) : [];
-  const sec = t => <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
+  const sec = t => <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
 
   return (
     <div style={{ marginBottom:16, border:`1px solid ${C.border}`, borderRadius:10 }}>
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#155e75" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }}>🔎</span>
-          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Forensic Reversal - why this role exists</span>
+          <span style={{ fontSize: "0.875rem" }}>🔎</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight:700, color: open ? "#fff" : C.text }}>Forensic Reversal - why this role exists</span>
         </div>
-        <span style={{ fontSize:12, color: open ? "#a5f3fc" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: "0.75rem", color: open ? "#a5f3fc" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && crux && (
         <div style={{ padding: "12px 14px 14px" }}>
@@ -4615,30 +4615,30 @@ function ForensicReversal({ result, title }) {
               <div>
                 {crux.top.map((c, i) => (
                   <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding: "8px 10px", marginBottom:6, background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 6 }}>
-                    <span style={{ fontSize:11, fontWeight:800, color:"#0e7490", flexShrink:0 }}>{i + 1}</span>
-                    <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.55 }}>{c.st.text} <span style={{ fontSize:10, color:"#0e7490", fontWeight:700, whiteSpace:"nowrap" }}>distinctiveness {c.score} vs {crux.adCount} ads</span></p>
+                    <span style={{ fontSize: "0.6875rem", fontWeight:800, color:"#0e7490", flexShrink:0 }}>{i + 1}</span>
+                    <p style={{ margin:0, fontSize: "0.75rem", color:C.text, lineHeight:1.55 }}>{c.st.text} <span style={{ fontSize: "0.625rem", color:"#0e7490", fontWeight:700, whiteSpace:"nowrap" }}>distinctiveness {c.score} vs {crux.adCount} ads</span></p>
                   </div>
                 ))}
-                <p style={{ margin:0, fontSize: 11, color:C.muted, lineHeight:1.6 }}>The duty lines LEAST shared with {crux.adCount} similar ads - the hyper-specific 20% in the boilerplate. Derived from this sample, not a verbatim posting fact.</p>
+                <p style={{ margin:0, fontSize: "0.6875rem", color:C.muted, lineHeight:1.6 }}>The duty lines LEAST shared with {crux.adCount} similar ads - the hyper-specific 20% in the boilerplate. Derived from this sample, not a verbatim posting fact.</p>
               </div>
             ) : (
-              <p style={{ margin:0, fontSize: 12, color:C.textSub }}>Withheld - only {crux.adCount} comparable ads in the sample (need 4+ for a defensible distinctiveness read).</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>Withheld - only {crux.adCount} comparable ads in the sample (need 4+ for a defensible distinctiveness read).</p>
             )}
           </div>
           {/* 2 + 3. verb mandate + reverse-BDF - LLM read, loaded on first open */}
-          {fr.status === "loading" && <p style={{ margin:0, fontSize: 12, color:C.muted }} aria-busy="true">Isolating the operational mandate from {Math.min(14, statements.length)} duty lines...</p>}
-          {fr.status === "error" && <p style={{ margin:0, fontSize: 12, color:C.textSub }}>The mandate read could not be completed - the deterministic crux read above still stands.</p>}
+          {fr.status === "loading" && <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }} aria-busy="true">Isolating the operational mandate from {Math.min(14, statements.length)} duty lines...</p>}
+          {fr.status === "error" && <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>The mandate read could not be completed - the deterministic crux read above still stands.</p>}
           {fr.status === "done" && (
             <div>
               <div style={{ marginBottom:10 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>{sec("The verb mandate behind the noun-title")}<Prov kind="ai" small /></div>
-                {fr.read.mandate ? <p style={{ margin:"0 0 7px", fontSize: 13, color:C.text, fontWeight:600, lineHeight:1.55 }}>{fr.read.mandate}</p> : null}
+                {fr.read.mandate ? <p style={{ margin:"0 0 7px", fontSize: "0.8125rem", color:C.text, fontWeight:600, lineHeight:1.55 }}>{fr.read.mandate}</p> : null}
                 <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                   {verbCounts.map(v => (
-                    <span key={v.verb} style={{ fontSize:11, color:"#1e40af", background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "4px 10px", fontWeight:600 }}>{v.verb}{v.count > 1 ? ` x${v.count}` : ""}</span>
+                    <span key={v.verb} style={{ fontSize: "0.6875rem", color:"#1e40af", background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "4px 10px", fontWeight:600 }}>{v.verb}{v.count > 1 ? ` x${v.count}` : ""}</span>
                   ))}
                 </div>
-                {verbCounts.length === 0 && <p style={{ margin:0, fontSize:11, color:C.muted }}>No verbs survived the verification guard (each must appear verbatim in the duty text) - read withheld.</p>}
+                {verbCounts.length === 0 && <p style={{ margin:0, fontSize: "0.6875rem", color:C.muted }}>No verbs survived the verification guard (each must appear verbatim in the duty text) - read withheld.</p>}
               </div>
               {fr.read.bdf.length > 0 && (
                 <div style={{ marginBottom:10 }}>
@@ -4648,8 +4648,8 @@ function ForensicReversal({ result, title }) {
                     if (!st) return null; // audit C1: never render an LLM-cited duty number as text
                     return (
                       <div key={i} style={{ padding: "6px 10px", marginBottom:5, background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
-                        <p style={{ margin:"0 0 3px", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{st.text}</p>
-                        <p style={{ margin:0, fontSize:11, color:C.text, lineHeight:1.5 }}><strong style={{ color:"#0e7490" }}>consumes:</strong> {b.inputs || "-"} <strong style={{ color:"#1e40af", marginLeft:8 }}>delivers:</strong> {b.outputs || "-"}</p>
+                        <p style={{ margin:"0 0 3px", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>{st.text}</p>
+                        <p style={{ margin:0, fontSize: "0.6875rem", color:C.text, lineHeight:1.5 }}><strong style={{ color:"#0e7490" }}>consumes:</strong> {b.inputs || "-"} <strong style={{ color:"#1e40af", marginLeft:8 }}>delivers:</strong> {b.outputs || "-"}</p>
                       </div>
                     );
                   })}
@@ -4657,7 +4657,7 @@ function ForensicReversal({ result, title }) {
               )}
             </div>
           )}
-          <p style={{ margin:"8px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
+          <p style={{ margin:"8px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Source: this role's duty statements + the sampled MCF ads. Grounding: v3/goal protocol 7 (forensic reversal).</p>
         </div>
       )}
     </div>
@@ -4758,7 +4758,7 @@ function UnderstandSection1({ result, title }) {
   }, []);
 
   const sec = t => (
-    <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>
+    <p style={{ margin: "0 0 6px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>
   );
 
   return (
@@ -4770,8 +4770,8 @@ function UnderstandSection1({ result, title }) {
             {sec("Organisational placement")}
             <Prov kind="ai" small />
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: C.text, lineHeight: 1.6 }}>{department}</p>
-          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>Typical department placement - illustrative, not derived from this specific posting.</p>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: C.text, lineHeight: 1.6 }}>{department}</p>
+          <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic" }}>Typical department placement - illustrative, not derived from this specific posting.</p>
         </div>
       )}
 
@@ -4783,18 +4783,18 @@ function UnderstandSection1({ result, title }) {
             <Prov kind="ai" small />
           </div>
           {why.status === "loading" && (
-            <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading the organisational need from duty statements...</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }} aria-busy="true">Reading the organisational need from duty statements...</p>
           )}
           {why.status === "done" && why.narration && why.narration.map((s, i) => (
-            <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0", fontSize: 13, color: C.text, lineHeight: 1.6 }}>{s}</p>
+            <p key={i} style={{ margin: i === 0 ? 0 : "6px 0 0", fontSize: "0.8125rem", color: C.text, lineHeight: 1.6 }}>{s}</p>
           ))}
           {why.status === "done" && !why.narration && (
-            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>withheld - narration could not be grounded in the supplied duties.</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>withheld - narration could not be grounded in the supplied duties.</p>
           )}
           {why.status === "idle" && (
-            <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>Loading...</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>Loading...</p>
           )}
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic" }}>
             AI-assisted; human decides. Source: this role's duty statements + department context. Confidence: indicative. Time-window: current posting only.
           </p>
         </div>
@@ -4805,7 +4805,7 @@ function UnderstandSection1({ result, title }) {
             {sec("Why the organisation wants this role")}
             <Prov kind="ai" small />
           </div>
-          <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>withheld - too few duties to ground a narration (need 3 or more).</p>
+          <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>withheld - too few duties to ground a narration (need 3 or more).</p>
         </div>
       )}
 
@@ -4814,7 +4814,7 @@ function UnderstandSection1({ result, title }) {
       <ForensicReversal result={result} title={title} />
 
       {/* Section footer: AI-assisted; human decides (spec §7 contract) */}
-      <p style={{ margin: "4px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic" }}>
+      <p style={{ margin: "4px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic" }}>
         AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting.
       </p>
     </div>
@@ -4883,33 +4883,33 @@ function StrategyRead({ result, title }) {
   }
 
   if (statements.length < 3) return null; // too few duties to frame a strategy kernel
-  const sec = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+  const sec = t => <p style={{ margin: "0 0 6px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
 
   return (
     <div style={{ marginBottom: 16, border: `1px solid ${C.border}`, borderRadius: 10 }}>
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🧭</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Strategy read - the obstacle this role is hired to resolve</span>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🧭</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Strategy read - the obstacle this role is hired to resolve</span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          {rk.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading the role through Rumelt's kernel from {Math.min(14, statements.length)} duty lines...</p>}
-          {rk.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The strategy read could not be completed - try again in a moment.</p>}
+          {rk.status === "loading" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }} aria-busy="true">Reading the role through Rumelt's kernel from {Math.min(14, statements.length)} duty lines...</p>}
+          {rk.status === "error" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>The strategy read could not be completed - try again in a moment.</p>}
           {rk.status === "done" && (
             rk.read.diagnosis ? (
               <div>
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Diagnosis - the obstacle behind the vacancy")}<Prov kind="ai" small /></div>
-                  <p style={{ margin: 0, fontSize: 13, color: C.text, fontWeight: 600, lineHeight: 1.55 }}>{rk.read.diagnosis}</p>
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: C.text, fontWeight: 600, lineHeight: 1.55 }}>{rk.read.diagnosis}</p>
                 </div>
                 {rk.read.guidingPolicy && (
                   <div style={{ marginBottom: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>{sec("Guiding policy - the approach the role embodies")}<Prov kind="ai" small /></div>
-                    <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.55 }}>{rk.read.guidingPolicy}</p>
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.55 }}>{rk.read.guidingPolicy}</p>
                   </div>
                 )}
                 {rk.read.coherentActions.length > 0 && (
@@ -4920,8 +4920,8 @@ function StrategyRead({ result, title }) {
                       if (!st) return null; // never render an LLM-cited duty number as text
                       return (
                         <div key={i} style={{ padding: "6px 10px", marginBottom: 5, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6 }}>
-                          <p style={{ margin: "0 0 3px", fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>{st.text}</p>
-                          <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>enacts:</strong> {a.action}</p>
+                          <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.5 }}>{st.text}</p>
+                          <p style={{ margin: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>enacts:</strong> {a.action}</p>
                         </div>
                       );
                     })}
@@ -4929,10 +4929,10 @@ function StrategyRead({ result, title }) {
                 )}
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duty statements do not support a confident strategy diagnosis for this role.</p>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>Withheld - the duty statements do not support a confident strategy diagnosis for this role.</p>
             )
           )}
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. An interpretive read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal protocol 1 + Rumelt, Good Strategy / Bad Strategy (2011).</p>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. An interpretive read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal protocol 1 + Rumelt, Good Strategy / Bad Strategy (2011).</p>
         </div>
       )}
     </div>
@@ -5010,38 +5010,38 @@ function StewardsPraxis({ result, title }) {
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🪜</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Steward's praxis - how you grow into this role as AI takes the routine</span>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🪜</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Steward's praxis - how you grow into this role as AI takes the routine</span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          {px.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Mapping the four-phase shift from {Math.min(14, statements.length)} duty lines...</p>}
-          {px.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The praxis read could not be completed - try again in a moment.</p>}
+          {px.status === "loading" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }} aria-busy="true">Mapping the four-phase shift from {Math.min(14, statements.length)} duty lines...</p>}
+          {px.status === "error" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>The praxis read could not be completed - try again in a moment.</p>}
           {px.status === "done" && (
             px.read.phases.length ? (
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
-                  <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>As the procedural work is commoditised by AI, the role asks you to steward it. Four moves get you there:</p>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>As the procedural work is commoditised by AI, the role asks you to steward it. Four moves get you there:</p>
                   <Prov kind="ai" small />
                 </div>
                 {px.read.phases.map((p, i) => (
                   <div key={p.phase} style={{ display: "flex", gap: 9, marginBottom: 9 }}>
-                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: "#fff", background: "#1e40af", borderRadius: 6, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>{p.phase}</span>
+                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: "0.6875rem", fontWeight: 800, color: "#fff", background: "#1e40af", borderRadius: 6, width: 20, height: 20, display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>{p.phase}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: "0 0 1px", fontSize: 12, fontWeight: 700, color: C.text }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Phase {p.phase}: </span>{_PRAXIS_LABELS[p.phase]}</p>
-                      <p style={{ margin: "0 0 2px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{p.meaning}</p>
-                      {p.move && <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>Move:</strong> {p.move}</p>}
+                      <p style={{ margin: "0 0 1px", fontSize: "0.75rem", fontWeight: 700, color: C.text }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Phase {p.phase}: </span>{_PRAXIS_LABELS[p.phase]}</p>
+                      <p style={{ margin: "0 0 2px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.5 }}>{p.meaning}</p>
+                      {p.move && <p style={{ margin: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}><strong style={{ color: "#1e40af" }}>Move:</strong> {p.move}</p>}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duty statements do not support a confident praxis read for this role.</p>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>Withheld - the duty statements do not support a confident praxis read for this role.</p>
             )
           )}
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A coaching read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal paper section 3 (the Steward's Praxis).</p>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A coaching read, not a measurement - it computes no number. Source: this role's duty statements. Grounding: v3/goal paper section 3 (the Steward's Praxis).</p>
         </div>
       )}
     </div>
@@ -5100,34 +5100,34 @@ function AgenticShift({ result, title }) {
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🤖</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>The agentic shift - what each AI way becomes when you craft agents</span>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🤖</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>The agentic shift - what each AI way becomes when you craft agents</span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 9 }}>
-            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>The four AI ways below still hold - but in the agentic movement each one changes what the SKILL is. Read your column counts through this lens:</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The four AI ways below still hold - but in the agentic movement each one changes what the SKILL is. Read your column counts through this lens:</p>
             <Prov kind="computed" small />
           </div>
           {_AGENTIC_XWALK.map(x => (
             <div key={x.level} style={{ display: "flex", gap: 9, marginBottom: 8 }}>
-              <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", height: "fit-content" }}>{x.label}{counts[x.level] > 0 ? ` - ${counts[x.level]} skill${counts[x.level] !== 1 ? "s" : ""}` : ""}</span>
-              <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{x.becomes}</p>
+              <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap", height: "fit-content" }}>{x.label}{counts[x.level] > 0 ? ` - ${counts[x.level]} skill${counts[x.level] !== 1 ? "s" : ""}` : ""}</span>
+              <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>{x.becomes}</p>
             </div>
           ))}
           {statements.length >= 3 && (
             <div style={{ marginTop: 10, padding: "8px 12px", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10 }}>
-              {ax.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Reading where to start for this role...</p>}
-              {ax.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The advisory line could not be completed - reopen to retry.</p>}
+              {ax.status === "loading" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }} aria-busy="true">Reading where to start for this role...</p>}
+              {ax.status === "error" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>The advisory line could not be completed - reopen to retry.</p>}
               {ax.status === "done" && (ax.line
-                ? <p style={{ margin: 0, fontSize: 12, color: C.text, lineHeight: 1.55 }}><strong style={{ color: "#0369a1" }}>Where to start here:</strong> {ax.line} <Prov kind="ai" small /></p>
-                : <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - the duties do not support a confident starting point.</p>)}
-              {ax.status === "idle" && <p style={{ margin: 0, fontSize: 12, color: C.muted }}>One role-specific starting point loads when this panel opens.</p>}
+                ? <p style={{ margin: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.55 }}><strong style={{ color: "#0369a1" }}>Where to start here:</strong> {ax.line} <Prov kind="ai" small /></p>
+                : <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>Withheld - the duties do not support a confident starting point.</p>)}
+              {ax.status === "idle" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }}>One role-specific starting point loads when this panel opens.</p>}
             </div>
           )}
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The crosswalk is fixed copy - it computes nothing but the counts. Grounding: v3/goal paper section 3 (control surface, untrusted actor); NBER w34854 (new-task-creating). Source: this role's skill levels{statements.length >= 3 ? " + duty statements" : ""}.</p>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. The crosswalk is fixed copy - it computes nothing but the counts. Grounding: v3/goal paper section 3 (control surface, untrusted actor); NBER w34854 (new-task-creating). Source: this role's skill levels{statements.length >= 3 ? " + duty statements" : ""}.</p>
         </div>
       )}
     </div>
@@ -5192,13 +5192,13 @@ function BdfStewardship({ result, title }) {
   }
 
   if (statements.length < 3) return null;
-  const sec = t => <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
+  const sec = t => <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>{t}</p>;
   const bullets = (items, color, bg, border) => (
     <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
       {items.map((t, i) => (
         <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, padding: "6px 10px", background:bg, border:`1px solid ${border}`, borderRadius: 6 }}>
           <span style={{ width:5, height:5, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
-          <p style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.5 }}>{t}</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.text, lineHeight:1.5 }}>{t}</p>
         </div>
       ))}
     </div>
@@ -5209,19 +5209,19 @@ function BdfStewardship({ result, title }) {
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#3730a3" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }}>🧭</span>
-          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Steward's map - boundary, dependency, feedback</span>
+          <span style={{ fontSize: "0.875rem" }}>🧭</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight:700, color: open ? "#fff" : C.text }}>Steward's map - boundary, dependency, feedback</span>
         </div>
-        <span style={{ fontSize:12, color: open ? "#c7d2fe" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: "0.75rem", color: open ? "#c7d2fe" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
-            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>Map the role architecturally, not task-by-task: what to deliberately NOT own, what it depends on, and the loops to expect.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>Map the role architecturally, not task-by-task: what to deliberately NOT own, what it depends on, and the loops to expect.</p>
             <Prov kind="ai" small />
           </div>
-          {bdf.status === "loading" && <p style={{ margin:0, fontSize: 12, color:C.muted }} aria-busy="true">Mapping the role from {Math.min(14, statements.length)} duty lines...</p>}
-          {bdf.status === "error" && <p style={{ margin:0, fontSize: 12, color:C.textSub }}>The steward's map could not be completed - try reopening the panel.</p>}
+          {bdf.status === "loading" && <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }} aria-busy="true">Mapping the role from {Math.min(14, statements.length)} duty lines...</p>}
+          {bdf.status === "error" && <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>The steward's map could not be completed - try reopening the panel.</p>}
           {bdf.status === "done" && (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {bdf.read.boundary.length > 0 && (
@@ -5231,21 +5231,21 @@ function BdfStewardship({ result, title }) {
                 <div>
                   {sec("Dependency - what feeds in, what you hand off")}
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:8 }}>
-                    {bdf.read.upstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#0e7490" }}>← upstream (N-1)</p>{bullets(bdf.read.upstream, "#0e7490", "#ecfeff", "#a5f3fc")}</div>}
-                    {bdf.read.downstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#1e40af" }}>downstream (N+1) →</p>{bullets(bdf.read.downstream, "#1e40af", "#eef2ff", "#c7d2fe")}</div>}
+                    {bdf.read.upstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize: "0.6875rem", fontWeight:700, color:"#0e7490" }}>← upstream (N-1)</p>{bullets(bdf.read.upstream, "#0e7490", "#ecfeff", "#a5f3fc")}</div>}
+                    {bdf.read.downstream.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize: "0.6875rem", fontWeight:700, color:"#1e40af" }}>downstream (N+1) →</p>{bullets(bdf.read.downstream, "#1e40af", "#eef2ff", "#c7d2fe")}</div>}
                   </div>
                 </div>
               )}
               {(bdf.read.balancing.length > 0 || bdf.read.reinforcing.length > 0) && (
                 <div>
                   {sec("Feedback loops to expect")}
-                  {bdf.read.balancing.length > 0 && <div style={{ marginBottom:6 }}><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#b45309" }}>balancing (friction that resists)</p>{bullets(bdf.read.balancing, "#b45309", "#fffbeb", "#fde68a")}</div>}
-                  {bdf.read.reinforcing.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#3730a3" }}>reinforcing (success that creates more demand)</p>{bullets(bdf.read.reinforcing, "#3730a3", "#eef2ff", "#c7d2fe")}</div>}
+                  {bdf.read.balancing.length > 0 && <div style={{ marginBottom:6 }}><p style={{ margin:"0 0 4px", fontSize: "0.6875rem", fontWeight:700, color:"#b45309" }}>balancing (friction that resists)</p>{bullets(bdf.read.balancing, "#b45309", "#fffbeb", "#fde68a")}</div>}
+                  {bdf.read.reinforcing.length > 0 && <div><p style={{ margin:"0 0 4px", fontSize: "0.6875rem", fontWeight:700, color:"#3730a3" }}>reinforcing (success that creates more demand)</p>{bullets(bdf.read.reinforcing, "#3730a3", "#eef2ff", "#c7d2fe")}</div>}
                 </div>
               )}
             </div>
           )}
-          <p style={{ margin:"10px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
+          <p style={{ margin:"10px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. An advisory framing from this role's duty statements - judgement, not measurement. Grounding: v3/goal protocol 5 (Boundary-Dependency-Feedback).</p>
         </div>
       )}
     </div>
@@ -5277,14 +5277,14 @@ function StewardshipShift({ result }) {
 
   const col = (heading, sub, items, color, bg, border, emptyMsg) => (
     <div style={{ background:bg, border:`1px solid ${border}`, borderRadius: 10, padding: "10px 12px" }}>
-      <p style={{ margin:"0 0 2px", fontSize:12, fontWeight:800, color }}>{heading}</p>
-      <p style={{ margin:"0 0 7px", fontSize:10, color:C.muted }}>{sub}</p>
+      <p style={{ margin:"0 0 2px", fontSize: "0.75rem", fontWeight:800, color }}>{heading}</p>
+      <p style={{ margin:"0 0 7px", fontSize: "0.625rem", color:C.muted }}>{sub}</p>
       {items.length ? items.map((t, i) => (
         <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:6, marginBottom:4 }}>
           <span style={{ width:4, height:4, borderRadius:"50%", background:color, flexShrink:0, marginTop:6 }} />
-          <span style={{ fontSize: 12, color:C.text, lineHeight:1.5 }}>{t}</span>
+          <span style={{ fontSize: "0.75rem", color:C.text, lineHeight:1.5 }}>{t}</span>
         </div>
-      )) : <p style={{ margin:0, fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{emptyMsg}</p>}
+      )) : <p style={{ margin:0, fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>{emptyMsg}</p>}
     </div>
   );
 
@@ -5293,23 +5293,23 @@ function StewardshipShift({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }}>🧑‍⚖️</span>
-          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Where you sit - human keeps vs AI takes</span>
+          <span style={{ fontSize: "0.875rem" }}>🧑‍⚖️</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight:700, color: open ? "#fff" : C.text }}>Where you sit - human keeps vs AI takes</span>
         </div>
-        <span style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
-            <p style={{ margin:0, fontSize: 12, color:C.textSub, lineHeight:1.55 }}>As AI commoditises the procedural work, your value concentrates where a human must own the outcome - and where AI cannot hold legal or moral responsibility.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>As AI commoditises the procedural work, your value concentrates where a human must own the outcome - and where AI cannot hold legal or moral responsibility.</p>
             <Prov kind="ai" small />
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:10 }}>
             {col("You keep", "the governance node: judgment, accountability, trust", keep, "#1e40af", "#eef2ff", "#c7d2fe", "No clearly human-only skills surfaced for this role - treat that as a flag, not a comfort.")}
             {col("Hand to AI agents", "commoditised procedural execution", give, "#9a3412", "#fff7ed", "#fed7aa", "Nothing here is fully automatable yet - more of the role stays human-shaped.")}
           </div>
-          <p style={{ margin:"8px 0 0", fontSize: 11, color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
-          <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
+          <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
+          <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
         </div>
       )}
     </div>
@@ -5403,17 +5403,17 @@ function DemandProof({ result }) {
 
   const stat = (label, val, kind) => (
     <div style={{ padding: "8px 10px", background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 10 }}>
-      <span style={{ fontSize:18, fontWeight:800, color:C.text, display:"block", marginBottom:2 }}>{val}</span>
+      <span style={{ fontSize: "1.125rem", fontWeight:800, color:C.text, display:"block", marginBottom:2 }}>{val}</span>
       <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}>
-        <span style={{ fontSize:10, color:C.muted }}>{label}</span>
+        <span style={{ fontSize: "0.625rem", color:C.muted }}>{label}</span>
         <Prov kind={kind} small />
       </span>
     </div>
   );
   const salCell = (label, val) => (
     <div style={{ textAlign:"center", flex:1 }}>
-      <p style={{ margin:"0 0 1px", fontSize: 10, color:C.muted, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
-      <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.text }}>{fmtSGD(val)}</p>
+      <p style={{ margin:"0 0 1px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase", letterSpacing:"0.04em" }}>{label}</p>
+      <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:800, color:C.text }}>{fmtSGD(val)}</p>
     </div>
   );
 
@@ -5422,21 +5422,21 @@ function DemandProof({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width:"100%", minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border:"none", cursor:"pointer", textAlign:"left", borderRadius: open ? "9px 9px 0 0" : 9, transition:"background 0.2s" }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <span style={{ fontSize:14 }} aria-hidden="true">📡</span>
-          <span style={{ fontSize:13, fontWeight:700, color: open ? "#fff" : C.text }}>Demand-Proof - is the market actually hiring this?</span>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">📡</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight:700, color: open ? "#fff" : C.text }}>Demand-Proof - is the market actually hiring this?</span>
         </div>
-        <span aria-hidden="true" style={{ fontSize:12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           {/* verdict - shape + label + text, never colour alone */}
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, fontWeight:800, color:v.color, background:v.bg, border:`1px solid ${v.border}`, borderRadius:999, padding: "2px 12px" }}>
+            <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize: "0.75rem", fontWeight:800, color:v.color, background:v.bg, border:`1px solid ${v.border}`, borderRadius:999, padding: "2px 12px" }}>
               <span aria-hidden="true">{v.glyph}</span>{v.label}
             </span>
             <Prov kind="computed" small />
           </div>
-          <p style={{ margin:"0 0 10px", fontSize: 12, color:C.textSub, lineHeight:1.55 }}>{v.line}</p>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{v.line}</p>
 
           {/* counts */}
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(118px,1fr))", gap:8, marginBottom:10 }}>
@@ -5449,7 +5449,7 @@ function DemandProof({ result }) {
           {dp.salary ? (
             <div style={{ marginBottom:10, padding: "10px 12px", background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 10 }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:6 }}>
-                <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.text }}>Monthly salary spread (rough)</p>
+                <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.text }}>Monthly salary spread (rough)</p>
                 <Prov kind="derived" small />
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", gap:8 }}>
@@ -5457,38 +5457,38 @@ function DemandProof({ result }) {
                 {salCell("Median", dp.salary.p50)}
                 {salCell("75th", dp.salary.p75)}
               </div>
-              <p style={{ margin:"6px 0 0", fontSize:10, color:C.muted }}>From {dp.salary.n} postings that stated a salary band, using each band's midpoint.</p>
+              <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.muted }}>From {dp.salary.n} postings that stated a salary band, using each band's midpoint.</p>
             </div>
           ) : (
-            <p style={{ margin:"0 0 10px", fontSize:11, color:C.muted, fontStyle:"italic" }}>Salary spread withheld - fewer than 4 postings in this sample stated a band.</p>
+            <p style={{ margin:"0 0 10px", fontSize: "0.6875rem", color:C.muted, fontStyle:"italic" }}>Salary spread withheld - fewer than 4 postings in this sample stated a band.</p>
           )}
 
           {/* experience asked for */}
           {dp.expN > 0 ? (
             <div style={{ marginBottom:10 }}>
-              <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:700, color:C.text, display:"flex", alignItems:"center", gap:6 }}>Experience asked for <Prov kind="derived" small /></p>
+              <p style={{ margin:"0 0 6px", fontSize: "0.6875rem", fontWeight:700, color:C.text, display:"flex", alignItems:"center", gap:6 }}>Experience asked for <Prov kind="derived" small /></p>
               {bandRows.map(b => {
                 const c = dp.bands[b.key];
                 return (
                   <div key={b.key} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                    <span style={{ fontSize:11, color:C.textSub, width:118, flexShrink:0 }}>{b.label}</span>
+                    <span style={{ fontSize: "0.6875rem", color:C.textSub, width:118, flexShrink:0 }}>{b.label}</span>
                     <div style={{ flex:1, height:8, background:"#f5f7fa", borderRadius: 6, overflow:"hidden" }}>
                       <div style={{ width:`${(c / maxBand) * 100}%`, height:"100%", background:"#1e40af" }} />
                     </div>
-                    <span style={{ fontSize:11, fontWeight:700, color:C.text, width:18, textAlign:"right" }}>{c}</span>
+                    <span style={{ fontSize: "0.6875rem", fontWeight:700, color:C.text, width:18, textAlign:"right" }}>{c}</span>
                   </div>
                 );
               })}
-              <p style={{ margin:"5px 0 0", fontSize:10, color:C.muted }}>From {dp.expN} postings that stated a minimum-years figure.</p>
+              <p style={{ margin:"5px 0 0", fontSize: "0.625rem", color:C.muted }}>From {dp.expN} postings that stated a minimum-years figure.</p>
             </div>
           ) : null}
 
           {/* Fair Consideration caveat - information only, NOT a per-post ghost label */}
           <div style={{ padding: "8px 12px", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius: 10, marginBottom:6 }}>
-            <p style={{ margin:0, fontSize: 11, color:"#9a3412", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
+            <p style={{ margin:0, fontSize: "0.6875rem", color:"#9a3412", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
           </div>
 
-          <p style={{ margin:"6px 0 0", fontSize:10, color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
+          <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
         </div>
       )}
     </div>
@@ -5564,18 +5564,18 @@ function AdLanguageScan({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🔎</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: headColor }}>Fair-hiring language check (TGFEP)</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🔎</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: headColor }}>Fair-hiring language check (TGFEP)</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${scan.flagged.length} to review` : "none flagged"}
           </span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
               {any
                 ? `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found wording worth a look against Singapore's fair-hiring guidelines.`
                 : `We scanned ${scan.scanned} live posting${scan.scanned !== 1 ? "s" : ""} and found no wording that trips the fair-hiring patterns. That is the common, good case.`}
@@ -5587,8 +5587,8 @@ function AdLanguageScan({ result }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {scan.flagged.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>{f.dim}</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>{f.dim}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                     "{f.phrase}" <span style={{ color: C.muted }}>- looks like {f.note}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
                   </span>
@@ -5598,10 +5598,10 @@ function AdLanguageScan({ result }) {
           )}
 
           <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: 11, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
+            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
           </div>
 
-          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - phrases are matched verbatim from the live postings by a fixed pattern set, and human decides. Source: MyCareersFuture ({scan.scanned} postings scanned). Confidence: high-precision patterns (favours fewer, surer flags). Time-window: the postings currently in this result.</p>
+          <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - phrases are matched verbatim from the live postings by a fixed pattern set, and human decides. Source: MyCareersFuture ({scan.scanned} postings scanned). Confidence: high-precision patterns (favours fewer, surer flags). Time-window: the postings currently in this result.</p>
         </div>
       )}
     </div>
@@ -5656,18 +5656,18 @@ function EmployerReality({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🏢</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Employer reality - who is really hiring?</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🏢</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Employer reality - who is really hiring?</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#9a3412" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${cr.flagged.length} to check` : "direct employers"}
           </span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
               {any
                 ? `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, some look agency-posted or come from staffing firms - the same title is a different reality at an outsourcer than at an end-employer.`
                 : `Across ${cr.scanned} posting${cr.scanned !== 1 ? "s" : ""}, each names a direct employer - no agency or staffing pattern detected.`}
@@ -5679,8 +5679,8 @@ function EmployerReality({ result }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {cr.flagged.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-                  <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>agency?</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>agency?</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                     {f.company || "(unnamed)"} <span style={{ color: C.muted }}>- {f.why}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
                   </span>
@@ -5690,10 +5690,10 @@ function EmployerReality({ result }) {
           )}
 
           <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: 11, color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
+            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#9a3412" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
           </div>
 
-          <p style={{ margin: "6px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - company names are matched verbatim from the live postings (poster vs hirer + a fixed name-stem list), and human decides. Source: MyCareersFuture ({cr.scanned} postings). Confidence: a name signal, not a registry check. Time-window: the postings in this result.</p>
+          <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - company names are matched verbatim from the live postings (poster vs hirer + a fixed name-stem list), and human decides. Source: MyCareersFuture ({cr.scanned} postings). Confidence: a name signal, not a registry check. Time-window: the postings in this result.</p>
         </div>
       )}
     </div>
@@ -5724,20 +5724,20 @@ function _AcraFacts({ label, name, rec, flagAgency }) {
   // one company's register card - facts shown verbatim or withheld, never guessed
   return (
     <div style={{ flex: "1 1 240px", minWidth: 0, padding: "10px 12px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10 }}>
-      <p style={{ margin: "0 0 2px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
-      <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: C.text, overflowWrap: "anywhere" }}>
+      <p style={{ margin: "0 0 2px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+      <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", fontWeight: 700, color: C.text, overflowWrap: "anywhere" }}>
         {name}
-        {flagAgency && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>reads as a staffing firm</span>}
+        {flagAgency && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#9a3412", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>reads as a staffing firm</span>}
       </p>
-      {!rec && <p style={{ margin: 0, fontSize: 11, color: C.muted, fontStyle: "italic" }}>Checking the ACRA register...</p>}
+      {!rec && <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Checking the ACRA register...</p>}
       {rec && rec.matched !== "exact" && (
-        <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>No exact match in the ACRA register for this name - facts withheld rather than guessed.</p>
+        <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>No exact match in the ACRA register for this name - facts withheld rather than guessed.</p>
       )}
       {rec && rec.matched === "exact" && (
-        <div style={{ fontSize: 11.5, color: C.textSub, lineHeight: 1.7 }}>
+        <div style={{ fontSize: "0.71875rem", color: C.textSub, lineHeight: 1.7 }}>
           <div><strong>UEN:</strong> {rec.uen}</div>
           <div><strong>Type:</strong> {rec.entityType || "-"}</div>
-          <div><strong>Status:</strong> {rec.status || "-"}{/de-?registered|struck/i.test(rec.status || "") && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: "#9a3412" }}>check before applying</span>}</div>
+          <div><strong>Status:</strong> {rec.status || "-"}{/de-?registered|struck/i.test(rec.status || "") && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#9a3412" }}>check before applying</span>}</div>
           {rec.since && <div><strong>Registered since:</strong> {rec.since}</div>}
           {(rec.street || rec.postal) && <div><strong>Registered address:</strong> {[rec.street, rec.postal].filter(Boolean).join(", ")}</div>}
           {rec.namesakes > 0 && <div style={{ color: C.muted }}>{rec.namesakes} same-name entit{rec.namesakes === 1 ? "y" : "ies"} also on the register</div>}
@@ -5773,19 +5773,19 @@ function CompanyBackground({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🗂️</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Company background - the ACRA register</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: concern ? "#9a3412" : "#1e40af", background: concern ? "#fff7ed" : "#eef2ff", border: `1px solid ${concern ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🗂️</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Company background - the ACRA register</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: concern ? "#9a3412" : "#1e40af", background: concern ? "#fff7ed" : "#eef2ff", border: `1px solid ${concern ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{concern ? "⚑" : "="}</span>{thirdParty ? "posted by a third party" : agencyPoster ? "staffing-firm name" : "direct posting"}
           </span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           {thirdParty && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#9a3412", lineHeight: 1.55 }}>
                 <strong>This ad was posted by a different company than the named hirer.</strong> {techRole ? "For a tech/professional role that usually means a talent-search or outsourcing firm is in between - the seat, manager and worksite may belong to a client, not the poster. " : ""}Confirm the actual employer, worksite and reporting line before you invest.
               </p>
               <Prov kind="computed" small />
@@ -5793,7 +5793,7 @@ function CompanyBackground({ result }) {
           )}
           {!thirdParty && agencyPoster && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#9a3412", lineHeight: 1.55 }}>
                 <strong>The company name reads as a recruitment / staffing firm.</strong> {techRole ? "A tech title at a staffing firm is often a client-site contract, not an in-house seat. " : ""}Ask which client the role sits with.
               </p>
               <Prov kind="derived" small />
@@ -5803,7 +5803,7 @@ function CompanyBackground({ result }) {
             <_AcraFacts label={thirdParty ? "Named hirer" : "Employer"} name={hiring} rec={recs && recs.hiring} flagAgency={_isAgencyName(hiring)} />
             {thirdParty && posted && <_AcraFacts label="Posted by" name={posted} rec={recs && recs.posted} flagAgency={_isAgencyName(posted)} />}
           </div>
-          <p style={{ margin: 0, fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - register facts are shown verbatim or withheld (exact-name match only; a fuzzy match is never presented as fact), and human decides. Source: Entities Registered with ACRA, via data.gov.sg; poster-vs-hirer from the MyCareersFuture payload. Confidence: registry facts, not an endorsement. Time-window: the register as at this lookup.</p>
+          <p style={{ margin: 0, fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - register facts are shown verbatim or withheld (exact-name match only; a fuzzy match is never presented as fact), and human decides. Source: Entities Registered with ACRA, via data.gov.sg; poster-vs-hirer from the MyCareersFuture payload. Confidence: registry facts, not an endorsement. Time-window: the register as at this lookup.</p>
         </div>
       )}
     </div>
@@ -5839,7 +5839,7 @@ function AlsoAdvertisedAs({ result, title, onAnalyse }) {
   const chip = (label, key) => (
     <button key={key} onClick={() => onAnalyse && onAnalyse(label)}
       title={`Analyse "${label}"`}
-      style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+      style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
       {label} <span aria-hidden="true" style={{ marginLeft: 6, color: C.mutedLight }}>&gt;</span>
     </button>
   );
@@ -5848,25 +5848,25 @@ function AlsoAdvertisedAs({ result, title, onAnalyse }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🏷️</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Same job, other names</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 999, padding: "2px 10px" }}>{total} sibling title{total !== 1 ? "s" : ""}</span>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🏷️</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Same job, other names</span>
+          <span style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 999, padding: "2px 10px" }}>{total} sibling title{total !== 1 ? "s" : ""}</span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
-          <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+          <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
             Employers advertise this same set of responsibilities under different titles. Search these too, or you will miss live ads. Tap one to analyse it.
           </p>
           {fromAds.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>Seen in the live ads behind this result <Prov kind="mcf" small /></p>
+              <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted }}>Seen in the live ads behind this result <Prov kind="mcf" small /></p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {fromAds.map((f, i) => (
                   <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                     {chip(f.title, `ad${i}`)}
-                    {f.employers.size > 0 && <span style={{ fontSize: 10, color: C.muted }}>at {Array.from(f.employers).slice(0, 2).join(", ")}{f.employers.size > 2 ? ` +${f.employers.size - 2}` : ""}</span>}
+                    {f.employers.size > 0 && <span style={{ fontSize: "0.625rem", color: C.muted }}>at {Array.from(f.employers).slice(0, 2).join(", ")}{f.employers.size > 2 ? ` +${f.employers.size - 2}` : ""}</span>}
                   </span>
                 ))}
               </div>
@@ -5874,17 +5874,17 @@ function AlsoAdvertisedAs({ result, title, onAnalyse }) {
           )}
           {escoOnly.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>Alternative titles on the ESCO register <Prov kind="computed" small /></p>
+              <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted }}>Alternative titles on the ESCO register <Prov kind="computed" small /></p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{escoOnly.map((t, i) => chip(t, `esco${i}`))}</div>
             </div>
           )}
           {blend.length > 0 && (
             <div style={{ marginBottom: 4 }}>
-              <p style={{ margin: "0 0 6px", fontSize: 11, fontWeight: 700, color: C.muted }}>The duties also read as (from the Role-Mix blend) <Prov kind="derived" small /></p>
+              <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted }}>The duties also read as (from the Role-Mix blend) <Prov kind="derived" small /></p>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{blend.map((t, i) => chip(t, `mix${i}`))}</div>
             </div>
           )}
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - titles come verbatim from the ESCO register, the live postings behind this result, and the deterministic Role-Mix overlap; human decides which to chase. Source: ESCO v1.2; MyCareersFuture ({jobs.length} postings); Role-Mix. Confidence: named-source facts. Time-window: this result.</p>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - titles come verbatim from the ESCO register, the live postings behind this result, and the deterministic Role-Mix overlap; human decides which to chase. Source: ESCO v1.2; MyCareersFuture ({jobs.length} postings); Role-Mix. Confidence: named-source facts. Time-window: this result.</p>
         </div>
       )}
     </div>
@@ -5998,8 +5998,8 @@ function JobAdFab({ onClick }) {
   // bottom-LEFT so it never collides with the bottom-right "Back to top" FAB (z 998).
   return (
     <button onClick={onClick} aria-label="Open the job advertisement"
-      style={{ position: "fixed", left: 16, bottom: 20, zIndex: 901, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-      <span aria-hidden="true" style={{ fontSize: 16 }}>📄</span> Job ad
+      style={{ position: "fixed", left: 16, bottom: 20, zIndex: 901, minHeight: 44, display: "flex", alignItems: "center", gap: 7, padding: "10px 16px", background: "#1e3a5f", color: "#fff", border: "none", borderRadius: 16, boxShadow: "0 4px 14px rgba(0,0,0,0.28)", cursor: "pointer", fontSize: "0.8125rem", fontWeight: 700 }}>
+      <span aria-hidden="true" style={{ fontSize: "1rem" }}>📄</span> Job ad
     </button>
   );
 }
@@ -6058,13 +6058,13 @@ function JobAdDrawer({ result, open, onClose }) {
       <div onPointerDown={onDragStart}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "#1e3a5f", borderRadius: "11px 11px 0 0", cursor: "grab", touchAction: "none", userSelect: "none", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: 16, cursor: "grab" }}>⠿</span>
+          <span aria-hidden="true" title="Drag to move" style={{ color: "#93c5fd", fontSize: "1rem", cursor: "grab" }}>⠿</span>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: 10, fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
-            {job && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
+            <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: "#fff" }}>Job advertisement <span style={{ fontSize: "0.625rem", fontWeight: 600, color: "#93c5fd" }}>(drag to move)</span></p>
+            {job && <p style={{ margin: "1px 0 0", fontSize: "0.6875rem", color: "#93c5fd", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title || ""}{job.employer ? ` - ${job.employer}` : ""}</p>}
           </div>
         </div>
-        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 10, lineHeight: 1 }}>×</button>
+        <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: "1.375rem", cursor: "pointer", borderRadius: 10, lineHeight: 1 }}>×</button>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
         {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
@@ -6085,7 +6085,7 @@ function JobAdDrawer({ result, open, onClose }) {
         }) : <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
         {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: "0.75rem", fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
       </div>
-      <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Drag the header to move. Human decides.</p>
+      <p style={{ margin: 0, padding: "8px 16px", fontSize: "0.625rem", color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Drag the header to move. Human decides.</p>
     </div>
   );
 }
@@ -6124,11 +6124,11 @@ function TaskCard({ r, skillByN }) {
         onKeyDown={handleKey}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", borderRadius: 10 }}
       >
-        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
+        <span style={{ flex: 1, minWidth: 0, fontSize: "0.8125rem", fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
         <Tag level={r.level || "HUMAN"} small />
         <span
           aria-hidden="true"
-          style={{ fontSize: 11, color: C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginLeft: 4 }}
+          style={{ fontSize: "0.6875rem", color: C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginLeft: 4 }}
         >▼</span>
       </button>
       {/* Detail panel - revealed on expand */}
@@ -6136,21 +6136,21 @@ function TaskCard({ r, skillByN }) {
         <div id={`${cardId}-detail`} role="region" aria-labelledby={cardId} style={{ padding: "0 12px 10px" }}>
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
             {r.how && (
-              <p style={{ margin: "0 0 4px", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>
+              <p style={{ margin: "0 0 4px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.5 }}>
                 <strong style={{ color: "#1e40af" }}>How AI engages:</strong>{" "}
                 {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""}{" "}
                 <Prov kind="ai" small />
               </p>
             )}
             {r.kickstart && (
-              <p style={{ margin: "0 0 4px", fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+              <p style={{ margin: "0 0 4px", fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                 <strong style={{ color: "#0e7490" }}>Prepare this week:</strong>{" "}
                 {r.kickstart}{" "}
                 <Prov kind="ai" small />
               </p>
             )}
             {sk.length > 0 && (
-              <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>
                 <strong style={{ color: C.textSub }}>Skills it draws on:</strong>{" "}
                 {sk.join(", ")}
               </p>
@@ -6184,12 +6184,12 @@ function BandSection({ freq, items, skillByN, defaultOpen }) {
         onKeyDown={handleKey}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: open ? C.accentSoft : C.surface, border: `1px solid ${open ? C.accent : C.border}`, borderRadius: open ? "9px 9px 0 0" : 9, cursor: "pointer", textAlign: "left", transition: "background 0.2s, border-color 0.2s" }}
       >
-        <span style={{ fontSize: 12, fontWeight: 800, color: open ? C.accent : C.text }}>{freq} tasks</span>
-        <span style={{ fontSize: 11, color: C.muted, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 7px" }}>{items.length}</span>
-        <span style={{ fontSize: 11, color: C.muted, flex: 1 }}>- {note}</span>
+        <span style={{ fontSize: "0.75rem", fontWeight: 800, color: open ? C.accent : C.text }}>{freq} tasks</span>
+        <span style={{ fontSize: "0.6875rem", color: C.muted, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 7px" }}>{items.length}</span>
+        <span style={{ fontSize: "0.6875rem", color: C.muted, flex: 1 }}>- {note}</span>
         <span
           aria-hidden="true"
-          style={{ fontSize: 11, color: open ? C.accent : C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+          style={{ fontSize: "0.6875rem", color: open ? C.accent : C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
         >▼</span>
       </button>
       {/* Band body - task cards */}
@@ -6217,19 +6217,19 @@ function TaskPrep({ result }) {
     <div>
       {/* Panel header */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
+        <p style={{ margin: "0 0 4px", fontSize: "1rem", fontWeight: 800, color: C.text }}>🎯 Task Prep - what you would actually do, and how to get ready</p>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
-          <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week.</p>
+          <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The real duties pulled from the live postings, each with how AI touches it and one move to get ready this week.</p>
           <Prov kind="derived" small />
           <Prov kind="ai" small />
         </div>
-        <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
+        <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>Duties are extracted from the sampled MyCareersFuture postings; the AI-engagement and the prep step are AI judgements, not measurements. Human decides what to practise.</p>
       </div>
       {/* Band sections - first band open, rest collapsed */}
       {groups.map((g, idx) => (
         <BandSection key={g.freq} freq={g.freq} items={g.items} skillByN={skillByN} defaultOpen={idx === 0} />
       ))}
-      <p style={{ margin: "4px 0 0", fontSize: 11, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
+      <p style={{ margin: "4px 0 0", fontSize: "0.6875rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. Tasks assembled from the live postings + the role's skill analysis - no task invented, no number authored.</p>
     </div>
   );
 }
@@ -6297,7 +6297,7 @@ const _PILLAR_QUESTION = {
 function PillarBar({ activePillar, onSelect }) {
   return (
     <div style={{ marginBottom: 12 }}>
-      <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Five pillars</p>
+      <p style={{ margin: "0 0 6px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Five pillars</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {_PILLARS.map((p) => {
           const active = activePillar === p.key;
@@ -6314,7 +6314,7 @@ function PillarBar({ activePillar, onSelect }) {
                 background: active ? "#1a56db" : C.surface,
                 color: active ? "#fff" : C.textSub,
                 fontWeight: active ? 700 : 600,
-                fontSize: 13, transition: "all 0.15s", whiteSpace: "nowrap",
+                fontSize: "0.8125rem", transition: "all 0.15s", whiteSpace: "nowrap",
                 outline: "none",
               }}
               onFocus={(e) => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
@@ -6323,7 +6323,7 @@ function PillarBar({ activePillar, onSelect }) {
               <span
                 aria-hidden="true"
                 style={{
-                  flexShrink: 0, fontSize: 10, fontWeight: 800,
+                  flexShrink: 0, fontSize: "0.625rem", fontWeight: 800,
                   width: 18, height: 18, borderRadius: "50%",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   background: active ? "#fff" : "#1e40af",
@@ -6331,7 +6331,7 @@ function PillarBar({ activePillar, onSelect }) {
                 }}
               >{p.n}</span>
               <span>{p.name}</span>
-              {active && <span style={{ fontSize: 10, fontWeight: 700 }}>- active</span>}
+              {active && <span style={{ fontSize: "0.625rem", fontWeight: 700 }}>- active</span>}
             </button>
           );
         })}
@@ -6393,18 +6393,18 @@ function ExplainAnalysis({ title, tabs, onGo }) {
     <div style={{ marginTop: 8, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
       <button onClick={handleToggle} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 4px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: C.accent }}><span aria-hidden="true">💡</span> New here? How to read this analysis</span>
-        <span aria-hidden="true" style={{ fontSize: 12, color: C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: "0.75rem", fontWeight: 700, color: C.accent }}><span aria-hidden="true">💡</span> New here? How to read this analysis</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "2px 4px 6px" }}>
-          {ex.status === "loading" && <p style={{ margin: 0, fontSize: 12, color: C.muted }} aria-busy="true">Writing the reading guide for this role...</p>}
-          {ex.status === "error" && <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>The guide could not be completed - reopen to retry.</p>}
+          {ex.status === "loading" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted }} aria-busy="true">Writing the reading guide for this role...</p>}
+          {ex.status === "error" && <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>The guide could not be completed - reopen to retry.</p>}
           {ex.status === "done" && (ex.read.steps.length ? (
             <div>
               {ex.read.thread && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-                  <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>{ex.read.thread}</p>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>{ex.read.thread}</p>
                   <Prov kind="ai" small />
                 </div>
               )}
@@ -6414,18 +6414,18 @@ function ExplainAnalysis({ title, tabs, onGo }) {
                   return (
                     <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
                       <button onClick={() => onGo && onGo(s.key)}
-                        style={{ flexShrink: 0, minHeight: 32, padding: "4px 10px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                        style={{ flexShrink: 0, minHeight: 32, padding: "4px 10px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: "0.6875rem", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
                         {t ? t.label : s.key}
                       </button>
-                      <p style={{ flex: 1, minWidth: 0, margin: "5px 0 0", fontSize: 12, color: C.textSub, lineHeight: 1.5 }}>{s.why}</p>
+                      <p style={{ flex: 1, minWidth: 0, margin: "5px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.5 }}>{s.why}</p>
                     </div>
                   );
                 })}
               </div>
-              <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A reading guide, not a verdict - it authors no number; the sections it cites are the ones this result actually produced.</p>
+              <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>AI-assisted; human decides. A reading guide, not a verdict - it authors no number; the sections it cites are the ones this result actually produced.</p>
             </div>
           ) : (
-            <p style={{ margin: 0, fontSize: 12, color: C.textSub }}>Withheld - could not ground a guide in this result's sections.</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub }}>Withheld - could not ground a guide in this result's sections.</p>
           ))}
         </div>
       )}
@@ -6475,7 +6475,7 @@ function NxCopyButton({ nxDisplay, promptTech, prep, automationLevel, applyText,
   };
   return (
     <button onClick={handleNxCopy}
-      style={{ fontSize:10, fontWeight:600, color: nxCopied ? "#1e40af" : C.muted, background: nxCopied ? "#dbeafe" : "transparent", border:`1px solid ${nxCopied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
+      style={{ fontSize: "0.625rem", fontWeight:600, color: nxCopied ? "#1e40af" : C.muted, background: nxCopied ? "#dbeafe" : "transparent", border:`1px solid ${nxCopied ? "#c7d2fe" : C.border}`, borderRadius: 6, padding: "2px 8px", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0, transition:"all 0.2s" }}>
       {nxCopied ? "Copied. Ready to Paste" : "Copy Instructions"}
     </button>
   );
@@ -6561,32 +6561,32 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
     <div style={{ marginTop:8, background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6, padding: "10px 12px" }}>
       {prep && (
         <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding: "6px 10px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
-          <span style={{ fontSize:13, flexShrink:0, lineHeight:1 }}>📋</span>
-          <p style={{ margin:0, fontSize:11, color:"#92400e", lineHeight:1.5, fontStyle:"italic" }}>{prep}</p>
+          <span style={{ fontSize: "0.8125rem", flexShrink:0, lineHeight:1 }}>📋</span>
+          <p style={{ margin:0, fontSize: "0.6875rem", color:"#92400e", lineHeight:1.5, fontStyle:"italic" }}>{prep}</p>
         </div>
       )}
       {twoStep && (
         <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:8, padding: "6px 10px", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius: 6 }}>
-          <span style={{ fontSize:13, flexShrink:0, lineHeight:1 }}>💬</span>
-          <p style={{ margin:0, fontSize:10, color:"#7c3aed", lineHeight:1.5 }}><strong>Multi-turn prompt</strong> - continue the conversation after the first response. Each follow-up sharpens the output further.</p>
+          <span style={{ fontSize: "0.8125rem", flexShrink:0, lineHeight:1 }}>💬</span>
+          <p style={{ margin:0, fontSize: "0.625rem", color:"#7c3aed", lineHeight:1.5 }}><strong>Multi-turn prompt</strong> - continue the conversation after the first response. Each follow-up sharpens the output further.</p>
         </div>
       )}
       <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:6 }}>
-          <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
-          {readiness === "ready"                           && <span style={{ fontSize: 10, fontWeight:600, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
-          {(readiness === "quick-prep" || readiness === "prepare") && <span style={{ fontSize: 10, fontWeight:600, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Quick prep first</span>}
-          {readiness === "deep-prep"                       && <span style={{ fontSize: 10, fontWeight:600, color:"#7c3aed", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Prep needed</span>}
+          <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:"#0369a1", textTransform:"uppercase", letterSpacing:"0.06em" }}>Prompt</p>
+          {readiness === "ready"                           && <span style={{ fontSize: "0.625rem", fontWeight:600, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Copy and go</span>}
+          {(readiness === "quick-prep" || readiness === "prepare") && <span style={{ fontSize: "0.625rem", fontWeight:600, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Quick prep first</span>}
+          {readiness === "deep-prep"                       && <span style={{ fontSize: "0.625rem", fontWeight:600, color:"#7c3aed", background:"#f3e8ff", border:"1px solid #d8b4fe", borderRadius: 6, padding: "2px 6px", whiteSpace:"nowrap", letterSpacing:"0.02em" }}>Prep needed</span>}
           {tech && (
             <div style={{ position:"relative", display:"inline-flex" }}>
               <span
                 onMouseEnter={() => setTechTooltipVisible(true)}
                 onMouseLeave={() => setTechTooltipVisible(false)}
                 onTouchStart={e => { e.stopPropagation(); setTechTooltipVisible(v => !v); }}
-                style={{ fontSize: 10, fontWeight:700, color:tech.color, background:tech.bg, border:`1px solid ${tech.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap", cursor:"help" }}>
+                style={{ fontSize: "0.625rem", fontWeight:700, color:tech.color, background:tech.bg, border:`1px solid ${tech.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap", cursor:"help" }}>
                 {tech.level} {tech.label}
               </span>
               {techTooltipVisible && (
-                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1a202c", color:"#f5f7fa", fontSize:10, lineHeight:1.55, padding: "8px 12px", borderRadius: 6, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
+                <div style={{ position:"absolute", bottom:"calc(100% + 6px)", left:0, zIndex:99, background:"#1a202c", color:"#f5f7fa", fontSize: "0.625rem", lineHeight:1.55, padding: "8px 12px", borderRadius: 6, width:220, boxShadow:"0 4px 16px rgba(0,0,0,0.25)", pointerEvents:"none" }}>
                   <strong style={{ display:"block", marginBottom:3, color:"#dde3ec" }}>{tech.label}</strong>
                   {tech.desc}
                 </div>
@@ -6594,14 +6594,14 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
             </div>
           )}
       </div>
-      <pre className="t-meta" style={{ margin:"0 0 8px", fontSize:11, color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius: 6, padding: "6px 10px", whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</pre>
+      <pre className="t-meta" style={{ margin:"0 0 8px", fontSize: "0.6875rem", color:"#0c4a6e", lineHeight:1.65, fontFamily:"monospace", background:"#e0f2fe", borderRadius: 6, padding: "6px 10px", whiteSpace:"pre-wrap", wordBreak:"break-word" }}>{text}</pre>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, marginBottom:6 }}>
-        <p style={{ margin:0, fontSize:10, color:"#0369a1", lineHeight:1.5, opacity:0.8, flex:1 }}>
+        <p style={{ margin:0, fontSize: "0.625rem", color:"#0369a1", lineHeight:1.5, opacity:0.8, flex:1 }}>
           Paste into any AI tool. Edit <strong>[bracketed]</strong> parts to fit your context.
           {tech && <span> This prompt uses a <strong>{tech.label.toLowerCase()}</strong> - hover the badge above to learn why.</span>}
         </p>
         <button onClick={handleCopy}
-          style={{ flexShrink:0, padding: "6px 14px", fontSize:11, fontWeight:700, color: copied ? "#1e40af" : "#0369a1", background: copied ? "#dbeafe" : "#e0f2fe", border:`1.5px solid ${copied ? "#c7d2fe" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
+          style={{ flexShrink:0, padding: "6px 14px", fontSize: "0.6875rem", fontWeight:700, color: copied ? "#1e40af" : "#0369a1", background: copied ? "#dbeafe" : "#e0f2fe", border:`1.5px solid ${copied ? "#c7d2fe" : "#bae6fd"}`, borderRadius:6, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.2s" }}>
           {copied ? "Copied. Ready to Paste" : "Copy Prompt"}
         </button>
       </div>
@@ -6611,10 +6611,10 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
         return (
           <div style={{ marginTop:10, padding: "12px 16px", background:"#fff", border:`1px solid ${C.border}`, borderRadius: 6 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-              <p style={{ margin:0, fontSize:12, fontWeight:700, color:nxStyle.color }}>What to do Next</p>
+              <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:nxStyle.color }}>What to do Next</p>
               <NxCopyButton nxDisplay={nxDisplay} promptTech={promptTech} prep={prep} automationLevel={automationLevel} applyText={applyText} aiTool={aiTool} aiHow={aiHow} nxCopied={nxCopied} onNxCopy={() => { setNxCopied(true); setCopied(false); setTimeout(() => setNxCopied(false), 2500); }} promptText={text} />
             </div>
-            <div style={{ margin:0, fontSize:12, color:C.text, lineHeight:1.75, fontFamily:"inherit" }}>
+            <div style={{ margin:0, fontSize: "0.75rem", color:C.text, lineHeight:1.75, fontFamily:"inherit" }}>
               {nxDisplay.split("\n\n").map((para, i) => {
                 // Match "Step N - Label:" with colon (preferred) or "Step N - Label " before body
                 // Two-pass: first try colon split, then try splitting at first sentence after short label
@@ -6622,7 +6622,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
                 const dashMatch = !colonMatch && para.match(/^(Step \d+\s*-\s*(?:[A-Za-z]+\s*){1,4}?)\s+([A-Z][\s\S]*)$/);
                 if (colonMatch) {
                   return (
-                    <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize:12 }}>
+                    <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize: "0.75rem" }}>
                       <strong style={{ color:nxStyle.color }}>{colonMatch[1]}</strong>
                       {colonMatch[2]}{colonMatch[3]}
                     </p>
@@ -6630,13 +6630,13 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
                 }
                 if (dashMatch) {
                   return (
-                    <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize:12 }}>
+                    <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize: "0.75rem" }}>
                       <strong style={{ color:nxStyle.color }}>{dashMatch[1]}</strong>
                       {" "}{dashMatch[2]}
                     </p>
                   );
                 }
-                return <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize:12 }}>{para}</p>;
+                return <p key={i} style={{ margin: i === 0 ? 0 : "10px 0 0", fontSize: "0.75rem" }}>{para}</p>;
               })}
             </div>
           </div>
@@ -6647,7 +6647,7 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
         return (
           <button
             onClick={e => { e.stopPropagation(); onSearch(role); }}
-            style={{ marginTop:8, padding: "6px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#0369a1", border:"none", borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", gap:5, textAlign:"left", width:"100%" }}>
+            style={{ marginTop:8, padding: "6px 12px", fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:"#0369a1", border:"none", borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", gap:5, textAlign:"left", width:"100%" }}>
             <span>Similar roles to {role} &#8594;</span>
           </button>
         );
@@ -6686,10 +6686,10 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
         {/* Header */}
         <div style={{ padding: "14px 16px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:10 }}>
           <div>
-            <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>Who uses this skill?</p>
-            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub }}>Roles where <strong style={{ color:C.accent }}>{skillName}</strong> is a primary defining capability</p>
+            <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>Who uses this skill?</p>
+            <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub }}>Roles where <strong style={{ color:C.accent }}>{skillName}</strong> is a primary defining capability</p>
           </div>
-          <button onClick={onClose} style={{ background:"transparent", border:"none", fontSize:18, color:C.muted, cursor:"pointer", lineHeight:1, padding:0, flexShrink:0 }}>✕</button>
+          <button onClick={onClose} style={{ background:"transparent", border:"none", fontSize: "1.125rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0, flexShrink:0 }}>✕</button>
         </div>
 
         {/* Body - scrollable for mobile */}
@@ -6697,10 +6697,10 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
           {loading ? (
             <div style={{ display:"flex", alignItems:"center", gap:8, padding: "20px 0" }}>
               <span style={{ width:14, height:14, border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite" }} />
-              <p style={{ margin:0, fontSize:12, color:C.muted }}>Finding roles where this skill defines the job...</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Finding roles where this skill defines the job...</p>
             </div>
           ) : experts.length === 0 ? (
-            <p style={{ margin:"16px 0", fontSize:12, color:C.muted, textAlign:"center" }}>Could not load expert roles. Try again.</p>
+            <p style={{ margin:"16px 0", fontSize: "0.75rem", color:C.muted, textAlign:"center" }}>Could not load expert roles. Try again.</p>
           ) : (
             experts.map((ex, i) => {
               const isQueued = queued[ex.role];
@@ -6710,17 +6710,17 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
                   <div style={{ display:"flex", alignItems:"flex-start", gap:10, marginBottom:8 }}>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap", marginBottom:3 }}>
-                        <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{ex.role}</p>
-                        <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{ex.sector}</span>
+                        <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{ex.role}</p>
+                        <span style={{ fontSize: "0.625rem", fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{ex.sector}</span>
                       </div>
-                      <p style={{ margin:0, fontSize:12, color:C.textSub }}>{ex.why}</p>
+                      <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>{ex.why}</p>
                     </div>
                   </div>
                   <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
                     <button
                       onClick={() => handleQueue(ex.role)}
                       disabled={queueFull || isQueued}
-                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize:12, fontWeight:700,
+                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize: "0.75rem", fontWeight:700,
                         color: isQueued ? "#1e40af" : queueFull ? C.muted : C.accent,
                         background: isQueued ? "#eef2ff" : queueFull ? C.surface : C.accentSoft,
                         border: `1.5px solid ${isQueued ? "#c7d2fe" : queueFull ? C.border : "#c3d3f5"}`,
@@ -6729,7 +6729,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
                     </button>
                     <button
                       onClick={() => handleOpenTab(ex.role)}
-                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize:12, fontWeight:700,
+                      style={{ flex:"1 1 auto", padding: "6px 10px", fontSize: "0.75rem", fontWeight:700,
                         color:C.textSub, background:C.surface,
                         border:`1.5px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
                       Explore similar role ↗
@@ -6740,7 +6740,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
             })
           )}
           {queueCount >= 3 && (
-            <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted, fontStyle:"italic", textAlign:"center" }}>
+            <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted, fontStyle:"italic", textAlign:"center" }}>
               Comparison full - run the comparison first to free a slot.
             </p>
           )}
@@ -6748,7 +6748,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
         {/* Bottom close button - always visible on mobile */}
         <div style={{ padding: "10px 16px", borderTop:`1px solid ${C.border}`, display:"flex", justifyContent:"center" }}>
           <button onClick={onClose}
-            style={{ width:"100%", maxWidth:300, padding: "10px 0", fontSize:13, fontWeight:700, color:C.muted, background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, cursor:"pointer" }}>
+            style={{ width:"100%", maxWidth:300, padding: "10px 0", fontSize: "0.8125rem", fontWeight:700, color:C.muted, background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, cursor:"pointer" }}>
             Close
           </button>
         </div>
@@ -6794,7 +6794,7 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
     <div>
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:12 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-          <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.muted }}>
+          <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.muted }}>
             {(() => {
               const escoCount = (result.skills||[]).filter(s => s.escoUri && !s.isExtended).length;
               const extCount  = (result.skills||[]).filter(s => s.isExtended).length;
@@ -6803,38 +6803,38 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
               return `${result.skills?.length||0} skills`;
             })()}
           </p>
-          <button onClick={toggleAll} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize:12, color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600 }}>
+          <button onClick={toggleAll} style={{ background:"transparent", border:`1px solid ${C.border}`, borderRadius: 6, fontSize: "0.75rem", color:C.accent, cursor:"pointer", padding: "4px 10px", fontWeight:600 }}>
             {allExpanded ? "Collapse all" : "Expand all"}
           </button>
         </div>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>Skills are ordered by automation level - Human-Led first, Full Automation last. Tap any group header to expand or collapse.</p>
-        <p style={{ margin:"5px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>Ratings reflect general occupational exposure across the role. They are not calibrated to seniority, organisation size, or sector. Results are AI-generated and may differ between searches.</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>Skills are ordered by automation level - Human-Led first, Full Automation last. Tap any group header to expand or collapse.</p>
+        <p style={{ margin:"5px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>Ratings reflect general occupational exposure across the role. They are not calibrated to seniority, organisation size, or sector. Results are AI-generated and may differ between searches.</p>
       </div>
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:700, color:C.text }}>How does a skill map to this role?</p>
-        <p style={{ margin:"0 0 8px", fontSize:12, color:C.muted, lineHeight:1.5 }}>Enter any skill to see where it appears in this role and how AI is affecting it. In English for best results.</p>
+        <p style={{ margin:"0 0 4px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>How does a skill map to this role?</p>
+        <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.muted, lineHeight:1.5 }}>Enter any skill to see where it appears in this role and how AI is affecting it. In English for best results.</p>
         <div style={{ display:"flex", gap:8 }}>
           <input type="text" value={skillInputQuery} onChange={e => onSkillQueryChange(e.target.value)} onKeyDown={e => e.key === "Enter" && onSkillSearch && onSkillSearch(skillInputQuery)} placeholder="e.g. facilitation, Excel, managing conflict..."
-            style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:6, color:C.text, padding: "8px 12px", fontSize:14, outline:"none", fontFamily:"inherit" }} />
+            style={{ flex:1, background:C.bg, border:`1px solid ${C.border}`, borderRadius:6, color:C.text, padding: "8px 12px", fontSize: "0.875rem", outline:"none", fontFamily:"inherit" }} />
           <button onClick={() => onSkillSearch && onSkillSearch(skillInputQuery)} disabled={!skillInputQuery.trim() || !onSkillSearch}
-            style={{ padding: "8px 16px", fontSize:11, fontWeight:700, color:"#fff", background:skillInputQuery.trim() ? C.accent : C.border, border:"none", borderRadius:6, cursor:skillInputQuery.trim() ? "pointer" : "not-allowed", whiteSpace:"nowrap", flexShrink:0 }}>
+            style={{ padding: "8px 16px", fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:skillInputQuery.trim() ? C.accent : C.border, border:"none", borderRadius:6, cursor:skillInputQuery.trim() ? "pointer" : "not-allowed", whiteSpace:"nowrap", flexShrink:0 }}>
             Search
           </button>
         </div>
         {skillInputResult && skillInputResult.status === "loading" && (
           <div style={{ display:"flex", alignItems:"center", gap:7, marginTop:8 }}>
             <span style={{ width:10, height:10, border:`1.5px solid ${C.border}`, borderTop:`1.5px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite" }} />
-            <p style={{ margin:0, fontSize:12, color:C.muted }}>Interpreting your skill...</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Interpreting your skill...</p>
           </div>
         )}
         {skillInputResult && skillInputResult.status === "match" && (
           <div style={{ marginTop:8, padding: "8px 12px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius:6 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
               <div>
-                <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:C.accent }}>Found in this role - <strong>{skillInputResult.match}</strong></p>
-                <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
+                <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>Found in this role - <strong>{skillInputResult.match}</strong></p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
               </div>
-              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:C.accent, border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
+              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:C.accent, border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
                 Jump to skill ↓
               </button>
             </div>
@@ -6844,10 +6844,10 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
           <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8 }}>
               <div>
-                <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:"#b45309" }}>Closest match - <strong>{skillInputResult.close}</strong></p>
-                <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
+                <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:700, color:"#b45309" }}>Closest match - <strong>{skillInputResult.close}</strong></p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
               </div>
-              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize:11, fontWeight:700, color:"#fff", background:"#b45309", border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
+              <button onClick={jumpToMatch} style={{ flexShrink:0, padding: "4px 12px", fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:"#b45309", border:"none", borderRadius:6, cursor:"pointer", whiteSpace:"nowrap" }}>
                 Jump to skill ↓
               </button>
             </div>
@@ -6855,14 +6855,14 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
         )}
         {skillInputResult && skillInputResult.status === "unrelated" && (
           <div style={{ marginTop:8, padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
-            <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:600, color:C.muted }}>This skill is not in the profile for this role.</p>
-            <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
+            <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:600, color:C.muted }}>This skill is not in the profile for this role.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{skillInputResult.explanation}</p>
           </div>
         )}
         {skillInputResult && skillInputResult.status === "suggestion" && (
           <div style={{ marginTop:8, padding: "8px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
-            <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:600, color:C.muted }}>Could not quite place that.</p>
-            <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{skillInputResult.suggestion || skillInputResult.explanation}</p>
+            <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:600, color:C.muted }}>Could not quite place that.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{skillInputResult.suggestion || skillInputResult.explanation}</p>
           </div>
         )}
       </div>
@@ -6871,15 +6871,15 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
           <button onClick={() => toggleGroup(g.level)}
             style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:g.bg, border:`1px solid ${g.border}`, borderRadius:expandedGroups[g.level] ? "7px 7px 0 0" : 7, cursor:"pointer", textAlign:"left" }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:13 }}>{g.icon}</span>
-              <span style={{ fontSize:13, fontWeight:700, color:g.color }}>{g.label}</span>
-              <span style={{ fontSize:12, color:g.color, opacity:0.7 }}>{g.skills.length} skill{g.skills.length !== 1 ? "s" : ""}</span>
+              <span style={{ fontSize: "0.8125rem" }}>{g.icon}</span>
+              <span style={{ fontSize: "0.8125rem", fontWeight:700, color:g.color }}>{g.label}</span>
+              <span style={{ fontSize: "0.75rem", color:g.color, opacity:0.7 }}>{g.skills.length} skill{g.skills.length !== 1 ? "s" : ""}</span>
             </div>
-            <span style={{ fontSize:10, color:g.color, opacity:0.7 }}>{expandedGroups[g.level] ? "▲ collapse" : "▼ expand"}</span>
+            <span style={{ fontSize: "0.625rem", color:g.color, opacity:0.7 }}>{expandedGroups[g.level] ? "▲ collapse" : "▼ expand"}</span>
           </button>
           {expandedGroups[g.level] && (
             <div style={{ border:`1px solid ${g.border}`, borderTop:"none", borderRadius:"0 0 7px 7px", padding: "8px 8px 4px", background:C.bg }}>
-              <p style={{ margin:"0 0 8px", fontSize:12, color:g.color, lineHeight:1.5, padding: "0 6px", fontStyle:"italic" }}>{g.sub}</p>
+              <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:g.color, lineHeight:1.5, padding: "0 6px", fontStyle:"italic" }}>{g.sub}</p>
               {g.skills.map((s, i) => {
                 const isHighlighted = !!(skillInputResult && (skillInputResult.match?.toLowerCase()===s.skill.toLowerCase()||skillInputResult.close?.toLowerCase()===s.skill.toLowerCase()));
                 const isJumpTarget = !!(jumpToSkill && jumpToSkill.toLowerCase() === s.skill.toLowerCase());
@@ -6941,16 +6941,16 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
       )}
       <div id={`skill-${item.skill.replace(/\s+/g,"-").toLowerCase()}`} ref={matchRef || null} onClick={() => { if (!open) track("skill_expanded", { level: item.level, skillType: item.skillType }); setOpen(o => !o); }} style={{ border:`2px solid ${blinkActive ? c.border : highlight ? c.border : open ? c.border : C.border}`, borderRadius: 6, marginBottom:5, background: blinkActive ? c.bg : highlight ? c.bg : open ? c.bg : C.surface, cursor:"pointer", transition:"background 0.3s, border 0.3s", boxShadow: blinkActive ? `0 0 0 3px ${c.bg}, 0 0 12px ${c.bg}` : highlight ? `0 0 0 3px ${c.bg}` : "none", borderLeft: jumpHighlight ? `5px solid ${c.border}` : undefined, animation: blinkActive ? "skillBlink 0.9s ease-in-out infinite" : undefined }}>
         <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px" }}>
-          <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:C.muted, fontWeight:700, flexShrink:0 }}>{idx+1}</span>
+          <span style={{ minWidth:18, height:18, borderRadius:"50%", background:C.border, display:"flex", alignItems:"center", justifyContent:"center", fontSize: "0.625rem", color:C.muted, fontWeight:700, flexShrink:0 }}>{idx+1}</span>
           <div style={{ flex:1, minWidth:0 }}>
-            <p className="t-body" style={{ margin:0, fontSize:14, color:C.text, fontWeight:500 }}>{item.skill}</p>
+            <p className="t-body" style={{ margin:0, fontSize: "0.875rem", color:C.text, fontWeight:500 }}>{item.skill}</p>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginTop:1 }}>
-              <p style={{ margin:0, fontSize:12, color:C.muted }}>{item.skillType === "soft-skill" ? "Soft Skill" : "Technical Skill"}</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>{item.skillType === "soft-skill" ? "Soft Skill" : "Technical Skill"}</p>
               {item.isExtended && (
-                <span style={{ fontSize: 10, color:"#5b6878", background:"#f5f7fa", border:"1px solid #dde3ec", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0 }}>Contextualised</span>
+                <span style={{ fontSize: "0.625rem", color:"#5b6878", background:"#f5f7fa", border:"1px solid #dde3ec", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0 }}>Contextualised</span>
               )}
               {item.relevanceScore === 3 && (
-                <span title="AI assessed this skill as potentially from an adjacent occupation - it may not fully apply to this role" style={{ fontSize: 10, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0, cursor:"help" }}>⚠ May not apply</span>
+                <span title="AI assessed this skill as potentially from an adjacent occupation - it may not fully apply to this role" style={{ fontSize: "0.625rem", color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, padding: "2px 6px", fontWeight:600, flexShrink:0, cursor:"help" }}>⚠ May not apply</span>
               )}
               {item.escoUri && (
                 <a
@@ -6958,7 +6958,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  style={{ fontSize:10, color:"#1a56db", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius: 6, padding: "2px 6px", textDecoration:"none", fontFamily:"monospace", flexShrink:0, whiteSpace:"nowrap" }}
+                  style={{ fontSize: "0.625rem", color:"#1a56db", background:"#eff6ff", border:"1px solid #bfdbfe", borderRadius: 6, padding: "2px 6px", textDecoration:"none", fontFamily:"monospace", flexShrink:0, whiteSpace:"nowrap" }}
                 >
                   ESCO {item.escoUri.split("/").pop().slice(0,8)}
                 </a>
@@ -6967,14 +6967,14 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
           </div>
           <Tag level={item.level} small />
           <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-            {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap any skill to explore</span>}
-            <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
+            {autoOpen && open && <span style={{ fontSize: "0.625rem", color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap any skill to explore</span>}
+            <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
           </span>
         </div>
         {/* ESCO description: always visible (the v2 "skills list" reading experience) - the deeper
             detail (broader/narrower concepts, AI prompts) stays behind the tap below. */}
         {item.escoDescription && (
-          <p style={{ margin:0, padding: "0 14px 10px 42px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+          <p style={{ margin:0, padding: "0 14px 10px 42px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
             {item.escoDescription}
           </p>
         )}
@@ -6983,32 +6983,32 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             {(item.broaderConcept || (item.narrowerSkills && item.narrowerSkills.length > 0)) && (
               <div style={{ margin:"4px 0 8px", display:"flex", flexWrap:"wrap", gap:6, alignItems:"center" }}>
                 {item.broaderConcept && (
-                  <span style={{ fontSize:10, color:C.muted }}>
+                  <span style={{ fontSize: "0.625rem", color:C.muted }}>
                     <span style={{ fontWeight:600, color:C.textSub }}>Broader: </span>{item.broaderConcept}
                   </span>
                 )}
                 {item.broaderConcept && item.narrowerSkills && item.narrowerSkills.length > 0 && (
-                  <span style={{ fontSize:10, color:C.border }}>·</span>
+                  <span style={{ fontSize: "0.625rem", color:C.border }}>·</span>
                 )}
                 {item.narrowerSkills && item.narrowerSkills.length > 0 && (
-                  <span style={{ fontSize:10, color:C.muted }}>
+                  <span style={{ fontSize: "0.625rem", color:C.muted }}>
                     <span style={{ fontWeight:600, color:C.textSub }}>Narrower: </span>
                     {item.narrowerSkills.join(", ")}
                   </span>
                 )}
               </div>
             )}
-            <p className="t-label" style={{ margin:"8px 0 7px", fontSize:13, color:c.color, fontWeight:600 }}>
+            <p className="t-label" style={{ margin:"8px 0 7px", fontSize: "0.8125rem", color:c.color, fontWeight:600 }}>
               {c.icon} {item.tool === "NA" ? "Note:" : "Apply:"} {item.kickstart || AI_USAGE[item.tool] || ""}
             </p>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"1 1 110px" }}>
-                <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>AI Tool</p>
-                <p style={{ margin:0, fontSize:12, color:C.accent, fontWeight:600 }}>{item.tool}</p>
+                <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase" }}>AI Tool</p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.accent, fontWeight:600 }}>{item.tool}</p>
               </div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"3 1 200px" }}>
-                <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Approach</p>
-                <p style={{ margin:0, fontSize:12, color:C.textSub }}>{item.how}</p>
+                <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase" }}>Approach</p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>{item.how}</p>
               </div>
             </div>
             {item.level !== "HUMAN" && (
@@ -7016,17 +7016,17 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
                 ? <div style={{ marginTop:8, padding: "10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                      <p style={{ margin:0, fontSize:11, color:"#0369a1", fontStyle:"italic" }}>
+                      <p style={{ margin:0, fontSize: "0.6875rem", color:"#0369a1", fontStyle:"italic" }}>
                         Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - {["A","E","I","O","U"].some(v => (item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted").startsWith(v)) ? "an" : "a"} <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> technical skill. "What to do Next" will include a 3-step guide on how to act on this skill. Please wait a moment - thank you.
                       </p>
                     </div>
                   </div>
                 : item.promptFailed
                   ? <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10 }}>
-                      <p style={{ margin:0, fontSize:11, color:"#92400e" }}>Failed to generate the prompt syntax. Please click refresh.</p>
+                      <p style={{ margin:0, fontSize: "0.6875rem", color:"#92400e" }}>Failed to generate the prompt syntax. Please click refresh.</p>
                       <button
                         onClick={e => { e.stopPropagation(); track("prompt_refresh", { level: item.level }); onRefreshPrompt && onRefreshPrompt(item.n); }}
-                        style={{ flexShrink:0, fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ flexShrink:0, fontSize: "0.6875rem", fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 10px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         ↻ Refresh
                       </button>
                     </div>
@@ -7037,8 +7037,8 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             {/* Who uses this skill */}
             <button
               onClick={e => { e.stopPropagation(); setShowExperts(true); }}
-              style={{ marginTop:10, display:"inline-flex", alignItems:"center", gap:5, padding: "6px 12px", fontSize:11, fontWeight:700, color:C.textSub, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
-              <span style={{ fontSize:13 }}>🔍</span> Who uses this skill?
+              style={{ marginTop:10, display:"inline-flex", alignItems:"center", gap:5, padding: "6px 12px", fontSize: "0.6875rem", fontWeight:700, color:C.textSub, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, cursor:"pointer" }}>
+              <span style={{ fontSize: "0.8125rem" }}>🔍</span> Who uses this skill?
             </button>
           </div>
         )}
@@ -7056,28 +7056,28 @@ function FoundationCard({ item }) {
     <div onClick={() => setOpen(o => !o)}
       style={{ border:`1px solid ${open ? pc.border : C.border}`, borderRadius: 10, marginBottom:7, background:open ? pc.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
       <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px" }}>
-        <span style={{ fontSize:18, flexShrink:0 }}>{catIcon}</span>
+        <span style={{ fontSize: "1.125rem", flexShrink:0 }}>{catIcon}</span>
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ margin:0, fontSize:13, fontWeight:600, color:C.text }}>{item.skill}</p>
-          <p style={{ margin:"2px 0 0", fontSize:12, color:C.muted }}>{item.category}</p>
+          <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:600, color:C.text }}>{item.skill}</p>
+          <p style={{ margin:"2px 0 0", fontSize: "0.75rem", color:C.muted }}>{item.category}</p>
         </div>
-        <span style={{ fontSize:11, fontWeight:700, color:pc.color, background:pc.bg, border:`1px solid ${pc.border}`, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink:0 }}>
+        <span style={{ fontSize: "0.6875rem", fontWeight:700, color:pc.color, background:pc.bg, border:`1px solid ${pc.border}`, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink:0 }}>
           {pc.icon} {item.priority}
         </span>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-          <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
+          <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
         </span>
       </div>
       {open && (
         <div style={{ padding: "4px 14px 12px 42px", borderTop:`1px solid ${pc.border}` }}>
           <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginTop:8 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "8px 12px", flex:"2 1 180px" }}>
-              <p style={{ margin:"0 0 2px", fontSize:10, color:C.muted, textTransform:"uppercase" }}>Why AI Cannot Replace This</p>
-              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{item.why}</p>
+              <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase" }}>Why AI Cannot Replace This</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{item.why}</p>
             </div>
             <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius:6, padding: "8px 12px", flex:"2 1 180px" }}>
-              <p style={{ margin:"0 0 2px", fontSize:10, color:C.green, textTransform:"uppercase", fontWeight:700 }}>Learning Action</p>
-              <p style={{ margin:0, fontSize:12, color:"#1e40af", fontWeight:600, lineHeight:1.5 }}>{item.action}</p>
+              <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.green, textTransform:"uppercase", fontWeight:700 }}>Learning Action</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:"#1e40af", fontWeight:600, lineHeight:1.5 }}>{item.action}</p>
             </div>
           </div>
         </div>
@@ -7094,15 +7094,15 @@ function FoundationPanel({ data, persona }) {
   return (
     <div>
       <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding: "12px 16px", marginBottom:16, display:"flex", gap:12, alignItems:"flex-start" }}>
-        <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
+        <span style={{ fontSize: "1.375rem", flexShrink:0 }}>{cfg.icon}</span>
         <div>
-          <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:cfg.color }}>Foundation Skills for: {cfg.label}</p>
-          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.55 }}>{data.summary}</p>
+          <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:700, color:cfg.color }}>Foundation Skills for: {cfg.label}</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{data.summary}</p>
         </div>
       </div>
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:14 }}>
         {Object.entries(PRIORITY_CFG).map(([p, pc]) => (
-          <div key={p} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
+          <div key={p} style={{ display:"flex", alignItems:"center", gap:5, fontSize: "0.75rem" }}>
             <span>{pc.icon}</span>
             <strong style={{ color:pc.color }}>{p}</strong>
             <span style={{ color:C.muted }}>{p==="Must-Have" ? "- critical from day one" : p==="High" ? "- build within 12 months" : "- develop progressively"}</span>
@@ -7113,8 +7113,8 @@ function FoundationPanel({ data, persona }) {
         <div key={prio} style={{ marginBottom:18 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, paddingBottom:6, borderBottom:`1px solid ${C.border}` }}>
             <span>{PRIORITY_CFG[prio].icon}</span>
-            <span style={{ fontSize:12, fontWeight:700, color:PRIORITY_CFG[prio].colour }}>{prio}</span>
-            <span style={{ fontSize:12, color:C.muted }}>({items.length} skill{items.length!==1?"s":""})</span>
+            <span style={{ fontSize: "0.75rem", fontWeight:700, color:PRIORITY_CFG[prio].colour }}>{prio}</span>
+            <span style={{ fontSize: "0.75rem", color:C.muted }}>({items.length} skill{items.length!==1?"s":""})</span>
           </div>
           {items.map((item, i) => <FoundationCard key={i} item={item} />)}
         </div>
@@ -7144,7 +7144,7 @@ function AutomationBar({ skills, small }) {
       </div>
       <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
         {bars.map(b => counts[b.key] > 0 && (
-          <span key={b.key} style={{ fontSize:12, color:b.color, fontWeight:700 }}>
+          <span key={b.key} style={{ fontSize: "0.75rem", color:b.color, fontWeight:700 }}>
             {counts[b.key]} {b.label}
           </span>
         ))}
@@ -7268,25 +7268,25 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
   return (
     <div style={{ marginTop:0 }}>
       <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 10, padding: "10px 14px", marginBottom:14, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <p style={{ margin:0, fontSize:12, color:"#0369a1" }}>Commonalities, differences and development needs across your selected roles.</p>
-        <span style={{ fontSize:11, fontWeight:600, color:"#0369a1", flexShrink:0, marginLeft:10 }}>{ready.length} of 3 roles</span>
+        <p style={{ margin:0, fontSize: "0.75rem", color:"#0369a1" }}>Commonalities, differences and development needs across your selected roles.</p>
+        <span style={{ fontSize: "0.6875rem", fontWeight:600, color:"#0369a1", flexShrink:0, marginLeft:10 }}>{ready.length} of 3 roles</span>
       </div>
       {/* Section 1 - Overlap */}
       <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "12px 14px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 8px", fontSize:13, fontWeight:800, color:"#1e40af", lineHeight:1.3 }}>
+        <p style={{ margin:"0 0 8px", fontSize: "0.8125rem", fontWeight:800, color:"#1e40af", lineHeight:1.3 }}>
           {allShared.length > 0 ? `Transferable strengths - shared across all ${ready.length} roles` : `Transferable strengths across all ${ready.length} roles`}
         </p>
         {allShared.length > 0
           ? <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: pairShared.length > 0 ? 10 : 0 }}>
-              {allShared.map((s, i) => <span key={i} style={{ fontSize:12, color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{toTitleCase(s)}</span>)}
+              {allShared.map((s, i) => <span key={i} style={{ fontSize: "0.75rem", color:"#1e40af", background:"#dbeafe", border:"1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{toTitleCase(s)}</span>)}
             </div>
-          : <p style={{ margin:"0 0 10px", fontSize:12, color:C.muted, fontStyle:"italic" }}>No skills shared across all roles - each draws on a distinct skill set.</p>
+          : <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>No skills shared across all roles - each draws on a distinct skill set.</p>
         }
         {pairShared.filter(p => p.skills.length > 0).map((pair, i) => (
           <div key={i} style={{ marginTop:8, paddingTop:8, borderTop:"1px dashed #c7d2fe" }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#0e7490" }}>{pair.label} also share</p>
+            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:"#0e7490" }}>{pair.label} also share</p>
             <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-              {pair.skills.map((s, j) => <span key={j} style={{ fontSize:12, color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px" }}>{toTitleCase(s)}</span>)}
+              {pair.skills.map((s, j) => <span key={j} style={{ fontSize: "0.75rem", color:"#0e7490", background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px" }}>{toTitleCase(s)}</span>)}
             </div>
           </div>
         ))}
@@ -7294,12 +7294,12 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
       {/* Section 2 - Automation bars */}
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:14 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-          <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches each role</p>
+          <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches each role</p>
           <div style={{ display:"flex", gap:10, flexWrap:"wrap", justifyContent:"flex-end" }}>
             {levelBar.map(b => (
               <span key={b.key} style={{ display:"flex", alignItems:"center", gap:4 }}>
                 <span style={{ width:10, height:10, borderRadius: 6, background:b.color, flexShrink:0, display:"inline-block" }} />
-                <span style={{ fontSize: 10, color:b.color, fontWeight:700 }}>{b.label}</span>
+                <span style={{ fontSize: "0.625rem", color:b.color, fontWeight:700 }}>{b.label}</span>
               </span>
             ))}
           </div>
@@ -7311,8 +7311,8 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           return (
             <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text, flex:1 }}>{c.title}</p>
-                <span style={{ fontSize:10, flexShrink:0, marginLeft:8,
+                <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text, flex:1 }}>{c.title}</p>
+                <span style={{ fontSize: "0.625rem", flexShrink:0, marginLeft:8,
                   color: c.result.skills.length < 25 ? "#b45309" : C.muted,
                   fontWeight: c.result.skills.length < 25 ? 700 : 400 }}>
                   {c.result.skills.length}{c.result.skills.length < 25 ? " skills ↓" : " skills"}
@@ -7323,7 +7323,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
               </div>
               <div style={{ display:"flex", gap:8, flexWrap:"nowrap", overflowX:"auto" }}>
                 {levelBar.map(b => counts[b.key] > 0 && (
-                  <span key={b.key} style={{ fontSize:10, color:b.color, fontWeight:700, whiteSpace:"nowrap", flexShrink:0 }}>
+                  <span key={b.key} style={{ fontSize: "0.625rem", color:b.color, fontWeight:700, whiteSpace:"nowrap", flexShrink:0 }}>
                     {counts[b.key]} <span style={{ fontWeight:500, opacity:0.85 }}>{b.label}</span>
                   </span>
                 ))}
@@ -7338,8 +7338,8 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         const roles = ready.filter(c => c.result.skills.length < max).map(c => c.title);
         return (
         <div style={{ margin:"-4px 0 14px", padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6 }}>
-          <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skill count varies across roles</p>
-          <p style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.5 }}>
+          <p style={{ margin:"0 0 2px", fontSize: "0.625rem", fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skill count varies across roles</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:"#92400e", lineHeight:1.5 }}>
             {roles.join(" and ")} {roles.length === 1 ? "has" : "have"} fewer skills assessed than the others — ESCO lists fewer essential skills for {roles.length === 1 ? "this occupation type" : "these occupation types"}. The comparison still reflects each role's full profile.
           </p>
         </div>
@@ -7354,7 +7354,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           return (
             <div style={{ background:"#fcfaff", border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ width:11, height:11, border:`2px solid ${C.purpleBdr}`, borderTop:`2px solid ${C.purple}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-              <p style={{ margin:0, fontSize:12, color:C.purple }}>Building the Responsibilities comparison from live job postings…</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.purple }}>Building the Responsibilities comparison from live job postings…</p>
             </div>
           );
         }
@@ -7372,20 +7372,20 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         return (
           <div style={{ marginBottom:14 }}>
             <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
-              <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities — from live job postings</p>
-              <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>What each role is actually expected to do, and how exposed those duties are to AI.</p>
+              <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:800, color:C.purple }}>📝 Responsibilities — from live job postings</p>
+              <p style={{ margin:"2px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>What each role is actually expected to do, and how exposed those duties are to AI.</p>
             </div>
             {/* shared duties */}
             <div style={{ background:"#eef2ff", border:"1px solid #c7d2fe", borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
-              <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#1e40af" }}>Duties shared across all {ready.length} roles</p>
+              <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:"#1e40af" }}>Duties shared across all {ready.length} roles</p>
               {sharedDuties.length > 0
                 ? sharedDuties.map((d, i) => (
                     <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
-                      <span style={{ color:"#1e40af", fontSize:12, lineHeight:1.4 }}>✓</span>
-                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d.text}</span>
+                      <span style={{ color:"#1e40af", fontSize: "0.75rem", lineHeight:1.4 }}>✓</span>
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{d.text}</span>
                     </div>
                   ))
-                : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>No duties closely shared across all roles — each role's day-to-day is fairly distinct.</p>
+                : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>No duties closely shared across all roles — each role's day-to-day is fairly distinct.</p>
               }
             </div>
             {/* per-role bars + top duties */}
@@ -7399,17 +7399,17 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                 return (
                   <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0, paddingBottom: i < ready.length - 1 ? 14 : 0, borderBottom: i < ready.length - 1 ? `1px solid ${C.border}` : "none" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
-                      <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
-                      <span style={{ fontSize:10, color:C.muted, flexShrink:0, marginLeft:8 }}>{rd.length} duties · {counts.HUMAN} Human-Led</span>
+                      <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>{c.title}</p>
+                      <span style={{ fontSize: "0.625rem", color:C.muted, flexShrink:0, marginLeft:8 }}>{rd.length} duties · {counts.HUMAN} Human-Led</span>
                     </div>
                     <div style={{ display:"flex", gap:2, borderRadius: 6, overflow:"hidden", height:10, marginBottom:6 }}>
                       {respLevelBar.map(b => counts[b.key] > 0 && <div key={b.key} style={{ flex:counts[b.key]/total, background:b.color, minWidth:4 }} />)}
                     </div>
-                    <p style={{ margin:"0 0 4px", fontSize: 10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most distinctive / human-led duties</p>
+                    <p style={{ margin:"0 0 4px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most distinctive / human-led duties</p>
                     {top.map((r, j) => (
                       <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
                         <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
-                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.4 }}>{r.text}</span>
+                        <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.4 }}>{r.text}</span>
                       </div>
                     ))}
                   </div>
@@ -7427,8 +7427,8 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         return (
           <div style={{ marginBottom:14 }}>
             <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:10 }}>
-              <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what each posting actually is</p>
-              <p style={{ margin:"2px 0 0", fontSize:12, color:C.textSub, lineHeight:1.5 }}>For roles analysed from a live MyCareersFuture listing: the ESCO occupations the ad blends, and whether the posted title matches the duty mix.</p>
+              <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:800, color:C.amber }}>🧩 Role-Mix — what each posting actually is</p>
+              <p style={{ margin:"2px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>For roles analysed from a live MyCareersFuture listing: the ESCO occupations the ad blends, and whether the posted title matches the duty mix.</p>
             </div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
               {ready.map((c, i) => {
@@ -7438,13 +7438,13 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                 return (
                   <div key={i} style={{ marginBottom: i < ready.length - 1 ? 14 : 0, paddingBottom: i < ready.length - 1 ? 14 : 0, borderBottom: i < ready.length - 1 ? `1px solid ${C.border}` : "none" }}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:8, marginBottom: has ? 6 : 0, flexWrap:"wrap" }}>
-                      <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>{c.title}</p>
+                      <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>{c.title}</p>
                       {has ? (
                         <span style={{ display:"inline-flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
-                          <span style={{ fontSize:10, fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding: "2px 8px" }}>{coh.label}</span>
-                          {rm.mismatch && <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding: "2px 8px" }}>title ≠ duties</span>}
+                          <span style={{ fontSize: "0.625rem", fontWeight:700, color:coh.color, background:coh.bg, border:`1px solid ${coh.border}`, borderRadius:10, padding: "2px 8px" }}>{coh.label}</span>
+                          {rm.mismatch && <span style={{ fontSize: "0.625rem", fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:10, padding: "2px 8px" }}>title ≠ duties</span>}
                         </span>
-                      ) : <span style={{ fontSize:11, color:C.mutedLight, fontStyle:"italic" }}>{rm && rm.fallback ? "not available" : "ESCO analysis — no posting mix"}</span>}
+                      ) : <span style={{ fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>{rm && rm.fallback ? "not available" : "ESCO analysis — no posting mix"}</span>}
                     </div>
                     {has && (
                       <>
@@ -7454,13 +7454,13 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                         </div>
                         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                           {rm.components.map((cmp,j) => (
-                            <span key={j} style={{ fontSize:11, fontWeight:600, color:palette[j%palette.length], display:"inline-flex", alignItems:"center", gap:4 }}>
+                            <span key={j} style={{ fontSize: "0.6875rem", fontWeight:600, color:palette[j%palette.length], display:"inline-flex", alignItems:"center", gap:4 }}>
                               <span style={{ width:8, height:8, borderRadius: 6, background:palette[j%palette.length] }} />{cmp.label} <span style={{ fontWeight:800 }}>{cmp.pct}%</span>
                             </span>
                           ))}
-                          {rm.otherPct > 0 && <span style={{ fontSize:11, color:"#5b6878" }}>Other {rm.otherPct}%</span>}
+                          {rm.otherPct > 0 && <span style={{ fontSize: "0.6875rem", color:"#5b6878" }}>Other {rm.otherPct}%</span>}
                         </div>
-                        {rm.narrative && rm.narrative.headline && <p style={{ margin:"6px 0 0", fontSize:11, color:C.muted, lineHeight:1.5 }}>{rm.narrative.headline}</p>}
+                        {rm.narrative && rm.narrative.headline && <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>{rm.narrative.headline}</p>}
                       </>
                     )}
                   </div>
@@ -7502,7 +7502,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             {/* Narrow: stacked role selector - all roles visible, active highlighted */}
             {isNarrow && (
               <div style={{ marginTop:16, marginBottom:20, padding: "12px 0 4px", borderTop:`2px solid ${C.border}` }}>
-                <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                <p style={{ margin:"0 0 10px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                   Select a role to view details below
                 </p>
                 {ready.map((c, i) => {
@@ -7518,31 +7518,31 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                     }}
                     onClick={() => !isActive && setActiveRoleIdx(i)}>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ margin:0, fontSize:13, fontWeight:700,
+                        <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700,
                           color: isActive ? C.accent : C.text,
                           lineHeight:1.3 }}>
                           {c.title}
                         </p>
                         {!isActive && !isCurrent && (
-                          <p style={{ margin:"2px 0 0", fontSize:12, color:C.accent,
+                          <p style={{ margin:"2px 0 0", fontSize: "0.75rem", color:C.accent,
                             textDecoration:"underline", textDecorationStyle:"dotted" }}>
                             Analyse this role
                           </p>
                         )}
                         {isActive && (
-                          <p style={{ margin:"2px 0 0", fontSize:12, color:C.accent, fontWeight:600 }}>
+                          <p style={{ margin:"2px 0 0", fontSize: "0.75rem", color:C.accent, fontWeight:600 }}>
                             Viewing now
                           </p>
                         )}
                       </div>
                       {!isActive && (
-                        <span style={{ fontSize:11, color:C.mutedLight, flexShrink:0, marginLeft:8 }}>→</span>
+                        <span style={{ fontSize: "0.6875rem", color:C.mutedLight, flexShrink:0, marginLeft:8 }}>→</span>
                       )}
                       {isActive && !isCurrent && (
                         <button
                           onClick={e => { e.stopPropagation(); onAnalyse && onAnalyse(c.title, "compare"); }}
                           style={{ background:C.accent, border:"none", borderRadius:6,
-                            color:"#fff", padding: "4px 10px", fontSize:12, fontWeight:700,
+                            color:"#fff", padding: "4px 10px", fontSize: "0.75rem", fontWeight:700,
                             cursor:"pointer", flexShrink:0, marginLeft:8 }}>
                           Analyse →
                         </button>
@@ -7560,15 +7560,15 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                 <div key={i} style={{ ...cellStyle, display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, paddingBottom:8, borderBottomLeftRadius:0, borderBottomRightRadius:0, borderBottom:"none" }}>
                   <div style={{ flex:1, minWidth:0 }}>
                     {isCurrent ? (
-                      <p className="t-body" style={{ margin:0, fontSize:13, fontWeight:700, color:C.text, lineHeight:1.4 }}>{c.title}</p>
+                      <p className="t-body" style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text, lineHeight:1.4 }}>{c.title}</p>
                     ) : (
                       <button onClick={() => onAnalyse && onAnalyse(c.title, "compare")}
                         style={{ background:"transparent", border:"none", padding:0, margin:0, textAlign:"left", cursor:"pointer", display:"block", width:"100%" }}>
-                        <p className="t-body" style={{ margin:0, fontSize:13, fontWeight:700, color:C.accent, lineHeight:1.4, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:3 }}>{c.title}</p>
+                        <p className="t-body" style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.accent, lineHeight:1.4, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:3 }}>{c.title}</p>
                       </button>
                     )}
                   </div>
-                  {!isNarrow && <button onClick={() => onRemove(c.title)} style={{ background:"transparent", border:"none", fontSize:16, color:C.mutedLight, cursor:"pointer", flexShrink:0, padding:0, lineHeight:1 }}>x</button>}
+                  {!isNarrow && <button onClick={() => onRemove(c.title)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.mutedLight, cursor:"pointer", flexShrink:0, padding:0, lineHeight:1 }}>x</button>}
                 </div>
                 );
               })}
@@ -7579,7 +7579,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, insight }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:"none", borderBottom:"none", borderRadius:0, paddingTop:0, paddingBottom:8 }}>
                   <div style={{ background:insight.bg, border:`1px solid ${insight.border}`, borderRadius:6, padding: "6px 10px" }}>
-                    <p className="result-text-sm" style={{ margin:0, fontSize:12, color:insight.color, fontWeight:600, lineHeight:1.4 }}>{insight.text}</p>
+                    <p className="result-text-sm" style={{ margin:0, fontSize: "0.75rem", color:insight.color, fontWeight:600, lineHeight:1.4 }}>{insight.text}</p>
                   </div>
                 </div>
               ))}
@@ -7599,13 +7599,13 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
                     if (displayPriority.length === 0) return null;
                     return (
                       <div key={i} style={{ ...cellStyle, borderTop:"none", borderBottom:"none", borderRadius:0, paddingTop:8, paddingBottom:8 }}>
-                        <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                        <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                           Priority core skills{isNarrow ? " (AI-involved)" : ""}
                         </p>
                         {displayPriority.map((s, j) => (
                           <div key={j} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:3 }}>
                             <Tag level={s.level} small />
-                            <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, minWidth:0, wordBreak:"break-word" }}>{s.skill}</span>
+                            <span className="result-text-sm" style={{ fontSize: "0.75rem", color:C.textSub, minWidth:0, wordBreak:"break-word" }}>{s.skill}</span>
                           </div>
                         ))}
                       </div>
@@ -7619,15 +7619,15 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             <div style={{ display:"grid", gridTemplateColumns: isNarrow ? "1fr" : cols, gap:10, marginBottom:0 }}>
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:`2px solid ${C.border}`, borderBottom:"none", borderRadius:0, paddingTop:11, paddingBottom:8 }}>
-                  <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Human-Led ({humanLed[i].length})</p>
+                  <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Human-Led ({humanLed[i].length})</p>
                   {humanLed[i].length > 0
                     ? humanLed[i].map((s, j) => (
                         <div key={j} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                           <span style={{ width:5, height:5, borderRadius:"50%", background:"#1e40af", flexShrink:0 }} />
-                          <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
+                          <span className="result-text-sm" style={{ fontSize: "0.75rem", color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
                         </div>
                       ))
-                    : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>None identified</p>
+                    : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>None identified</p>
                   }
                 </div>
               ))}
@@ -7637,17 +7637,17 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             <div style={{ display:"grid", gridTemplateColumns: isNarrow ? "1fr" : cols, gap:10, marginBottom:0 }}>
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, sortedUnique }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:`2px solid ${C.border}`, borderBottom:"none", borderRadius:0, paddingTop:11, paddingBottom:8 }}>
-                  <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                  <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                     Unique to this role <span style={{ fontWeight:400, opacity:0.7 }}>({sortedUnique.length})</span>
                   </p>
                   {sortedUnique.length > 0
                     ? sortedUnique.map((s, j) => (
                         <div key={j} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                           <Tag level={s.level} small />
-                          <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
+                          <span className="result-text-sm" style={{ fontSize: "0.75rem", color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
                         </div>
                       ))
-                    : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>No skills unique to this role</p>
+                    : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>No skills unique to this role</p>
                   }
                 </div>
               ))}
@@ -7657,21 +7657,21 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             <div style={{ display:"grid", gridTemplateColumns: isNarrow ? "1fr" : cols, gap:10, marginBottom:0 }}>
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, missingVsOthers }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:`2px solid ${C.border}`, borderBottom:"none", borderRadius:0, paddingTop:11, paddingBottom:8 }}>
-                  <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Only in other roles</p>
-                  <p style={{ margin:"0 0 6px", fontSize: 10, color:C.mutedLight, lineHeight:1.4, fontStyle:"italic" }}>Skills those roles need that this one does not</p>
+                  <p style={{ margin:"0 0 2px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Only in other roles</p>
+                  <p style={{ margin:"0 0 6px", fontSize: "0.625rem", color:C.mutedLight, lineHeight:1.4, fontStyle:"italic" }}>Skills those roles need that this one does not</p>
                   {missingVsOthers.length > 0
                     ? missingVsOthers.map((o, j) => (
                         <div key={j} style={{ marginBottom:10 }}>
-                          <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.textSub }}>vs {o.title}</p>
+                          <p style={{ margin:"0 0 4px", fontSize: "0.75rem", fontWeight:600, color:C.textSub }}>vs {o.title}</p>
                           {o.skills.map((s, k) => (
                             <div key={k} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:2 }}>
                               <Tag level={s.level} small />
-                              <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
+                              <span className="result-text-sm" style={{ fontSize: "0.75rem", color:C.textSub, wordBreak:"break-word" }}>{s.skill}</span>
                             </div>
                           ))}
                         </div>
                       ))
-                    : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>All skills in this role are shared</p>
+                    : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>All skills in this role are shared</p>
                   }
                 </div>
               ))}
@@ -7681,17 +7681,17 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             <div style={{ display:"grid", gridTemplateColumns: isNarrow ? "1fr" : cols, gap:10, marginBottom:10 }}>
               {(isNarrow ? [roleData[safeIdx]] : roleData).map(({ c, i, gap }) => (
                 <div key={i} style={{ ...cellStyle, borderTop:`2px solid ${C.border}`, borderTopLeftRadius:0, borderTopRightRadius:0, paddingTop:11 }}>
-                  <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                  <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                     Skills to develop <span style={{ fontWeight:400, opacity:0.7 }}>({gap.length})</span>
                   </p>
                   {gap.length > 0
                     ? gap.map((g, j) => (
                         <div key={j} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:5 }}>
                           <span style={{ width:5, height:5, borderRadius:"50%", background:"#b45309", flexShrink:0 }} />
-                          <span className="result-text-sm" style={{ fontSize:12, color:C.textSub, wordBreak:"break-word" }}>{g}</span>
+                          <span className="result-text-sm" style={{ fontSize: "0.75rem", color:C.textSub, wordBreak:"break-word" }}>{g}</span>
                         </div>
                       ))
-                    : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>No development gaps identified</p>
+                    : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>No development gaps identified</p>
                   }
                 </div>
               ))}
@@ -7701,10 +7701,10 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
       })()}
       {/* Section 4 - AI comparison summary - teal, humble tone */}
       <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "14px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:800, color:"#0e7490", letterSpacing:"-0.01em", lineHeight:1.3 }}>Comparing these roles</p>
+        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:800, color:"#0e7490", letterSpacing:"-0.01em", lineHeight:1.3 }}>Comparing these roles</p>
         <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
           {ready.map((c, i) => (
-            <span key={i} style={{ fontSize:12, fontWeight:700, color:"#0e7490", background:"#fff", border:"1.5px solid #0e7490", borderRadius: 10, padding: "4px 10px" }}>
+            <span key={i} style={{ fontSize: "0.75rem", fontWeight:700, color:"#0e7490", background:"#fff", border:"1.5px solid #0e7490", borderRadius: 10, padding: "4px 10px" }}>
               {toTitleCase(c.title)}
             </span>
           ))}
@@ -7712,7 +7712,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         {summaryLoading && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ width:11, height:11, border:"2px solid #a5f3fc", borderTop:"2px solid #0e7490", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-            <p style={{ margin:0, fontSize:12, color:"#0e7490" }}>Putting the comparison together...</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:"#0e7490" }}>Putting the comparison together...</p>
           </div>
         )}
         {aiSummary && (
@@ -7720,35 +7720,35 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
             {/* Observation paragraph */}
             {aiSummary.observation && (
               <>
-                <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>What stands out</p>
-                <p className="t-sub" style={{ margin:"0 0 14px", fontSize:12, color:"#0c4a6e", lineHeight:1.85 }}>{aiSummary.observation}</p>
+                <p style={{ margin:"0 0 4px", fontSize: "0.625rem", fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>What stands out</p>
+                <p className="t-sub" style={{ margin:"0 0 14px", fontSize: "0.75rem", color:"#0c4a6e", lineHeight:1.85 }}>{aiSummary.observation}</p>
               </>
             )}
             {/* Next step */}
             {aiSummary.nextstep && (
               <div style={{ background:"#fff", border:"1px solid #a5f3fc", borderRadius:6, padding: "8px 10px", marginBottom: aiSummary.warning ? 8 : 0 }}>
-                <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>A suggested next step</p>
-                <p className="t-sub" style={{ margin:0, fontSize:12, color:"#0c4a6e", lineHeight:1.6 }}>{aiSummary.nextstep}</p>
+                <p style={{ margin:"0 0 2px", fontSize: "0.625rem", fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>A suggested next step</p>
+                <p className="t-sub" style={{ margin:0, fontSize: "0.75rem", color:"#0c4a6e", lineHeight:1.6 }}>{aiSummary.nextstep}</p>
               </div>
             )}
             {/* Warning - only shown if present */}
             {aiSummary.warning && (
               <div style={{ background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius:6, padding: "8px 10px", marginTop:8 }}>
-                <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.06em" }}>Worth being aware of</p>
-                <p className="t-sub" style={{ margin:0, fontSize:12, color:"#92400e", lineHeight:1.6 }}>{aiSummary.warning}</p>
+                <p style={{ margin:"0 0 2px", fontSize: "0.625rem", fontWeight:700, color:"#b45309", textTransform:"uppercase", letterSpacing:"0.06em" }}>Worth being aware of</p>
+                <p className="t-sub" style={{ margin:0, fontSize: "0.75rem", color:"#92400e", lineHeight:1.6 }}>{aiSummary.warning}</p>
               </div>
             )}
           </>
         )}
         {!summaryLoading && !aiSummary && (
-          <p style={{ margin:0, fontSize:12, color:"#0e7490", fontStyle:"italic" }}>
+          <p style={{ margin:0, fontSize: "0.75rem", color:"#0e7490", fontStyle:"italic" }}>
             {ready[mostHuman] ? `${ready[mostHuman].title} appears to have the most human-led skills across this comparison.` : ""}
           </p>
         )}
         {aiSummary && (
           <div style={{ margin:"12px 0 0", borderTop:"1px solid #a5f3fc", paddingTop:10 }}>
-            <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:700, color:"#0e7490" }}>Ready to act on this?</p>
-            <p style={{ margin:0, fontSize:12, color:"#0c4a6e", lineHeight:1.65 }}>
+            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:"#0e7490" }}>Ready to act on this?</p>
+            <p style={{ margin:0, fontSize: "0.75rem", color:"#0c4a6e", lineHeight:1.65 }}>
               Each role has AI prompts in the <strong>Skills tab</strong> - select a role above, then tap any skill to see what you can do with it today.
             </p>
           </div>
@@ -7756,7 +7756,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
 
       </div>
       {ready.length < 3 && onAddThird && (
-        <button onClick={onAddThird} style={{ width:"100%", padding: "10px 14px", fontSize:12, fontWeight:700, color:C.accent, background:C.accentSoft, border:"2px dashed #c3d3f5", borderRadius: 10, cursor:"pointer", textAlign:"center" }}>
+        <button onClick={onAddThird} style={{ width:"100%", padding: "10px 14px", fontSize: "0.75rem", fontWeight:700, color:C.accent, background:C.accentSoft, border:"2px dashed #c3d3f5", borderRadius: 10, cursor:"pointer", textAlign:"center" }}>
           + Add a third role to compare
         </button>
       )}
@@ -7771,13 +7771,13 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
     <div>
       <div style={{ background:"#ecfeff", border:"1px solid #a5f3fc", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-          <p style={{ margin:0, fontSize:12, fontWeight:700, color:"#0e7490" }}>Role Context</p>
-          <span style={{ fontSize:10, fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:999, padding: "2px 8px" }}>~ AI estimate · illustrative</span>
+          <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:"#0e7490" }}>Role Context</p>
+          <span style={{ fontSize: "0.625rem", fontWeight:700, color:"#b45309", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:999, padding: "2px 8px" }}>~ AI estimate · illustrative</span>
         </div>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+        <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
           Typical sectors where this <em>title</em> tends to appear, generated by AI for orientation — <strong>not derived from this specific posting</strong>. Use it as a prompt for your own research, not as fact about this employer.
         </p>
-        <p style={{ margin:"6px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
+        <p style={{ margin:"6px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>
           Exposure varies by sector, organisation size, and seniority. These sectors are indicative — your context may differ.
         </p>
       </div>
@@ -7788,21 +7788,21 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
           <div key={i} onClick={() => setOpen(isOpen ? null : i)}
             style={{ border:`1px solid ${isOpen ? "#a5f3fc" : C.border}`, borderRadius: 10, marginBottom:8, background:isOpen ? "#ecfeff" : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
             <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
-              <div style={{ width:32, height:32, borderRadius:"50%", background:"#ecfeff", border:"1px solid #a5f3fc", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize: 16 }}>
+              <div style={{ width:32, height:32, borderRadius:"50%", background:"#ecfeff", border:"1px solid #a5f3fc", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize: "1rem" }}>
                 🏢
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{sector.name}</p>
-                <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{sector.note}</p>
+                <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{sector.name}</p>
+                <p style={{ margin:"1px 0 0", fontSize: "0.75rem", color:C.textSub }}>{sector.note}</p>
               </div>
               <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-                {firstAnalysis && i === 0 && isOpen && <span style={{ fontSize: 10, color:"#0e7490", fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
-                <span style={{ fontSize:10, color:C.mutedLight }}>{isOpen ? "▲" : `▼ ${sectorSkills.length} skills`}</span>
+                {firstAnalysis && i === 0 && isOpen && <span style={{ fontSize: "0.625rem", color:"#0e7490", fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+                <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{isOpen ? "▲" : `▼ ${sectorSkills.length} skills`}</span>
               </span>
             </div>
             {isOpen && (
               <div style={{ padding: "4px 16px 12px 60px", borderTop:"1px solid #a5f3fc" }}>
-                <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                <p style={{ margin:"8px 0 6px", fontSize: "0.625rem", fontWeight:700, color:"#0e7490", textTransform:"uppercase", letterSpacing:"0.06em" }}>
                   Skills from your role relevant to this sector
                 </p>
                 {sectorSkills.length > 0
@@ -7811,11 +7811,11 @@ function RoleContextPanel({ data, skills, firstAnalysis }) {
                       return [...sectorSkills].sort((a,b) => (lvlOrd[a.level]??2)-(lvlOrd[b.level]??2)).map((s, j) => (
                         <div key={j} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
                           <div style={{ width:112, flexShrink:0 }}><Tag level={s.level} small /></div>
-                          <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                          <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s.skill}</span>
                         </div>
                       ));
                     })()
-                  : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>See Skill Analysis tab for the full breakdown.</p>
+                  : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>See Skill Analysis tab for the full breakdown.</p>
                 }
               </div>
             )}
@@ -7862,8 +7862,8 @@ function CategoryPanel({ skills }) {
 
   const SectionHeader = ({ label, isOpen, onToggle, accent }) => (
     <button onClick={onToggle} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:isOpen ? "#1e3a5f" : C.surface, border:`1px solid ${isOpen ? "#1e3a5f" : C.border}`, borderRadius: isOpen ? "8px 8px 0 0" : 8, cursor:"pointer", marginBottom:0 }}>
-      <span style={{ fontSize:13, fontWeight:700, color: isOpen ? "#fff" : C.text }}>{label}</span>
-      <span style={{ fontSize:11, color: isOpen ? "#93c5fd" : C.muted }}>{isOpen ? "▲" : "▼"}</span>
+      <span style={{ fontSize: "0.8125rem", fontWeight:700, color: isOpen ? "#fff" : C.text }}>{label}</span>
+      <span style={{ fontSize: "0.6875rem", color: isOpen ? "#93c5fd" : C.muted }}>{isOpen ? "▲" : "▼"}</span>
     </button>
   );
 
@@ -7875,10 +7875,10 @@ function CategoryPanel({ skills }) {
         <div style={{ border:`1px solid ${C.border}`, borderRadius: 10 }}>
           <button onClick={() => {}} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between", padding: "10px 14px", background:"#1e3a5f", border:"none", borderRadius: 10, cursor:"default" }}>
             <div>
-              <span style={{ fontSize:13, fontWeight:700, color:"#fff" }}>Skill Reusability</span>
-              <span style={{ fontSize:10, color:"#93c5fd", marginLeft:8 }}>from ESCO taxonomy</span>
+              <span style={{ fontSize: "0.8125rem", fontWeight:700, color:"#fff" }}>Skill Reusability</span>
+              <span style={{ fontSize: "0.625rem", color:"#93c5fd", marginLeft:8 }}>from ESCO taxonomy</span>
             </div>
-            <span style={{ fontSize:10, color:"#93c5fd" }}>tap a pill to expand</span>
+            <span style={{ fontSize: "0.625rem", color:"#93c5fd" }}>tap a pill to expand</span>
           </button>
           <div style={{ padding: "10px 14px", borderTop:"1px solid #1e3a5f" }}>
             <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
@@ -7889,36 +7889,36 @@ function CategoryPanel({ skills }) {
                 return (
                   <button key={r} onClick={() => setOpenReuse(isOpen ? null : r)}
                     style={{ display:"flex", alignItems:"center", gap:4, background: isOpen ? col.text : col.bg, border:`1px solid ${col.border}`, borderRadius:6, padding: "4px 10px", cursor:"pointer" }}>
-                    <span style={{ fontSize:12, fontWeight:700, color: isOpen ? "#fff" : col.text }}>{count}</span>
-                    <span style={{ fontSize:12, color: isOpen ? "#fff" : col.text }}>{r}</span>
-                    <span style={{ fontSize:10, color: isOpen ? "#fff" : col.text }}>{isOpen ? "▲" : "▼"}</span>
+                    <span style={{ fontSize: "0.75rem", fontWeight:700, color: isOpen ? "#fff" : col.text }}>{count}</span>
+                    <span style={{ fontSize: "0.75rem", color: isOpen ? "#fff" : col.text }}>{r}</span>
+                    <span style={{ fontSize: "0.625rem", color: isOpen ? "#fff" : col.text }}>{isOpen ? "▲" : "▼"}</span>
                   </button>
                 );
               })}
             </div>
-            <p style={{ margin:"0 0 4px", fontSize:10, color:C.muted, fontStyle:"italic" }}>
+            <p style={{ margin:"0 0 4px", fontSize: "0.625rem", color:C.muted, fontStyle:"italic" }}>
               Transversal - all sectors. Cross-sector - broadly portable. Sector-specific - one sector. Occupation-specific - narrowly defined.
             </p>
             {openReuse && reuseGroups[openReuse] && (
               <div style={{ marginTop:8, padding: "10px 12px", background:reuseColour[openReuse].bg, border:`1px solid ${reuseColour[openReuse].border}`, borderRadius: 6 }}>
                 {reuseGroups[openReuse].tech.length > 0 && (
                   <>
-                    <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.05em" }}>Technical ({reuseGroups[openReuse].tech.length})</p>
+                    <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.05em" }}>Technical ({reuseGroups[openReuse].tech.length})</p>
                     {reuseGroups[openReuse].tech.sort((a,b) => a.skill.localeCompare(b.skill)).map((s,i) => (
                       <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
                         <div style={{ width:100, flexShrink:0 }}><Tag level={s.level} small /></div>
-                        <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                        <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s.skill}</span>
                       </div>
                     ))}
                   </>
                 )}
                 {reuseGroups[openReuse].soft.length > 0 && (
                   <>
-                    <p style={{ margin:`${reuseGroups[openReuse].tech.length > 0 ? 10 : 0}px 0 6px`, fontSize:10, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>Soft Skills ({reuseGroups[openReuse].soft.length})</p>
+                    <p style={{ margin:`${reuseGroups[openReuse].tech.length > 0 ? 10 : 0}px 0 6px`, fontSize: "0.625rem", fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>Soft Skills ({reuseGroups[openReuse].soft.length})</p>
                     {reuseGroups[openReuse].soft.sort((a,b) => a.skill.localeCompare(b.skill)).map((s,i) => (
                       <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
                         <div style={{ width:100, flexShrink:0 }}><Tag level={s.level} small /></div>
-                        <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                        <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s.skill}</span>
                       </div>
                     ))}
                   </>
@@ -7934,34 +7934,34 @@ function CategoryPanel({ skills }) {
         <SectionHeader label={`Technical and Soft Skills - ${tech.length} Technical · ${soft.length} Soft`} isOpen={openSkillCat} onToggle={() => setOpenSkillCat(o => !o)} />
         {openSkillCat && (
           <div style={{ padding: "12px 14px", borderTop:`1px solid ${C.border}` }}>
-            <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+            <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
               Technical skills tend to be more exposed to AI automation. Soft skills are generally more resilient.
             </p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(260px,100%), 1fr))", gap:14 }}>
               {/* Technical */}
               <div style={{ border:`1px solid ${C.accent}30`, borderRadius: 10, padding: "10px 12px" }}>
-                <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.06em" }}>Technical Skills ({tech.length})</p>
+                <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.06em" }}>Technical Skills ({tech.length})</p>
                 {tech.length === 0
-                  ? <p style={{ fontSize:12, color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
+                  ? <p style={{ fontSize: "0.75rem", color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
                   : tech.map((s,i) => (
                     <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding: "6px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
                       <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
-                      <span style={{ fontSize:12, color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
-                      {s.reuseLevel && <span style={{ fontSize: 10, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
+                      {s.reuseLevel && <span style={{ fontSize: "0.625rem", color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
                     </div>
                   ))
                 }
               </div>
               {/* Soft */}
               <div style={{ border:`1px solid ${C.purple}30`, borderRadius: 10, padding: "10px 12px" }}>
-                <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.06em" }}>Soft Skills ({soft.length})</p>
+                <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.06em" }}>Soft Skills ({soft.length})</p>
                 {soft.length === 0
-                  ? <p style={{ fontSize:12, color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
+                  ? <p style={{ fontSize: "0.75rem", color:C.mutedLight, fontStyle:"italic" }}>None identified</p>
                   : soft.map((s,i) => (
                     <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5, padding: "6px 8px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, minWidth:0 }}>
                       <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
-                      <span style={{ fontSize:12, color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
-                      {s.reuseLevel && <span style={{ fontSize: 10, color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, flex:1, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.skill}</span>
+                      {s.reuseLevel && <span style={{ fontSize: "0.625rem", color:reuseColour[s.reuseLevel]?.text||"#6366f1", background:reuseColour[s.reuseLevel]?.bg||"#eef2ff", border:`1px solid ${reuseColour[s.reuseLevel]?.border||"#c7d2fe"}`, borderRadius: 6, padding: "2px 6px", flexShrink:0, whiteSpace:"nowrap" }}>{s.reuseLevel}</span>}
                     </div>
                   ))
                 }
@@ -7977,15 +7977,15 @@ function CategoryPanel({ skills }) {
           <SectionHeader label="Alternative Labels (ESCO)" isOpen={openAltLabels} onToggle={() => setOpenAltLabels(o => !o)} />
           {openAltLabels && (
             <div style={{ padding: "12px 14px", borderTop:`1px solid ${C.border}` }}>
-              <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+              <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
                 Alternative names used in the ESCO taxonomy for each skill - useful for CV writing, job descriptions, and search.
               </p>
               {skills.filter(s => s.altLabels && s.altLabels.length > 0).sort((a,b) => a.skill.localeCompare(b.skill)).map((s,i) => (
                 <div key={i} style={{ marginBottom:8, padding: "8px 10px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
-                  <p style={{ margin:"0 0 4px", fontSize:12, fontWeight:600, color:C.text }}>{s.skill}</p>
+                  <p style={{ margin:"0 0 4px", fontSize: "0.75rem", fontWeight:600, color:C.text }}>{s.skill}</p>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:4 }}>
                     {s.altLabels.map((a,j) => (
-                      <span key={j} style={{ fontSize:11, color:C.textSub, background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 6, padding: "2px 8px" }}>{a}</span>
+                      <span key={j} style={{ fontSize: "0.6875rem", color:C.textSub, background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 6, padding: "2px 8px" }}>{a}</span>
                     ))}
                   </div>
                 </div>
@@ -8005,17 +8005,17 @@ function Disclaimer() {
     <div style={{ marginTop:16, paddingTop:10, borderTop:`1px solid ${C.border}` }}>
       <button onClick={() => setOpen(o => !o)}
         style={{ background:"transparent", border:"none", padding:0, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
-        <span style={{ fontSize:12, color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
+        <span style={{ fontSize: "0.75rem", color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
           A note on how to use this
         </span>
-        <span style={{ fontSize: 10, color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
+        <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && (
         <div style={{ marginTop:8, padding: "10px 12px", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6 }}>
-          <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 6px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             Results are AI-generated, indicative, and may vary between searches. They are a starting point for reflection and do not constitute professional career, legal, employment, or HR advice. Ratings reflect general occupational trends, not individual performance or seniority level.
           </p>
-          <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic", lineHeight:1.6 }}>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic", lineHeight:1.6 }}>
             The best use of this tool is as a conversation starter - with yourself, your team, or someone who knows your work well.
           </p>
         </div>
@@ -8031,24 +8031,24 @@ function ResultFooter() {
   return (
     <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
-        <p style={{ margin:0, fontSize:12, color:C.mutedLight }}>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.mutedLight }}>
           ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
         </p>
         <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
           <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
-            style={{ fontSize:12, color:C.teal, textDecoration:"none", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
+            style={{ fontSize: "0.75rem", color:C.teal, textDecoration:"none", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
             Share feedback
           </a>
           <button onClick={() => setOpen(o => o === "method" ? false : "method")}
-            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ background:"transparent", border:"none", fontSize: "0.75rem", color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
             Methodology
           </button>
           <button onClick={() => setOpen(o => o === "legal" ? false : "legal")}
-            style={{ background:"transparent", border:"none", fontSize:12, color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ background:"transparent", border:"none", fontSize: "0.75rem", color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
             Legal
           </button>
           <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ fontSize:12, color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ fontSize: "0.75rem", color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>
             Terms
           </a>
         </div>
@@ -8056,23 +8056,23 @@ function ResultFooter() {
       {open === "legal" && (
         <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Legal notice</p>
-            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize:16, color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Legal notice</p>
+            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
           </div>
-          <p style={{ margin:"0 0 8px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             Results are AI-generated and indicative only. They do not constitute professional career, legal, employment, or HR advice. The builder accepts no liability for decisions made based on these outputs.
           </p>
-          <p style={{ margin:"0 0 8px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Singapore</strong> - governed by Singapore law. No personal data collected. Aligns with IMDA Model AI Governance Framework.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>European Union</strong> - minimal risk classification under EU AI Act. Not a high-risk system. No automated decisions made about individuals.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>ISCO-08</strong> - Occupation codes used in this tool are sourced from the International Standard Classification of Occupations (ISCO-08), © 2012 International Labour Organization (ILO), reproduced via the ESCO v1.2 API under ESCO&apos;s CC BY 4.0 licence. The ILO name and emblem are not used. No endorsement by the ILO is implied.
           </p>
           <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize:12, color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 16, padding: "6px 14px" }}>
+            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize: "0.75rem", color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 16, padding: "6px 14px" }}>
             Read full Terms of Use &#8599;
           </a>
         </div>
@@ -8080,22 +8080,22 @@ function ResultFooter() {
       {open === "method" && (
         <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.text }}>Methodology</p>
-            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize:16, color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Methodology</p>
+            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
           </div>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Data source</strong> - Skills are drawn directly from the ESCO v1.2 REST API - the official European Classification of Skills, Competences, Qualifications and Occupations, published by the European Commission DG Employment, Social Affairs and Inclusion. Licensed CC BY 4.0. Skills marked ESCO v1.2 are canonical taxonomy entries, citable by URI. AI rates each skill and generates prompts - it does not generate skill names.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Occupation codes (ISCO-08)</strong> - Each occupation in this tool is mapped to an ISCO-08 code - the International Standard Classification of Occupations (2008 revision), published by the International Labour Organization (ILO). ISCO-08 classifies all jobs globally into a four-level hierarchy of 10 major groups, 43 sub-major groups, 130 minor groups, and 436 unit groups. The codes displayed in this tool are sourced via the ESCO API, which maps each ESCO occupation to exactly one ISCO-08 unit group. ISCO-08 codes are used for reference and cross-referencing only - they indicate the occupational group from which skills are drawn, not a formal classification of the user&apos;s specific role. © 2012 International Labour Organization.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>How ratings are generated</strong> - Each skill is assessed by Claude (Anthropic) against current AI capability research. This is AI-generated analysis, not a lookup from a fixed classification table. Results reflect general occupational patterns and will vary between searches.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Known limitations</strong> - Ratings reflect broad occupational trends, not your specific organisation, industry sector, or seniority level. The tool may carry anchoring bias - the first rating seen tends to anchor subsequent interpretation. Results are most useful as a structured starting point for reflection, not as a definitive assessment.
           </p>
-          <p style={{ margin:0, fontSize:12, color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
             For authoritative occupation and skills data, refer to <a href="https://esco.ec.europa.eu" target="_blank" rel="noreferrer" style={{ color:C.accent }}>esco.ec.europa.eu</a>
           </p>
         </div>
@@ -8121,24 +8121,24 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
     <div onClick={() => setOpen(o => !o)}
       style={{ border:`1px solid ${open ? d.border : C.border}`, borderRadius: 10, marginBottom:8, background:open ? d.bg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
-        <div style={{ width:34, height:34, borderRadius:"50%", background:d.bg, border:`1px solid ${d.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>
+        <div style={{ width:34, height:34, borderRadius:"50%", background:d.bg, border:`1px solid ${d.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize: "1rem" }}>
           {d.icon}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
-            <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{item.role}</p>
-            <span style={{ fontSize:10, fontWeight:700, color:d.colour, background:d.bg, border:`1px solid ${d.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{d.label}</span>
+            <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{item.role}</p>
+            <span style={{ fontSize: "0.625rem", fontWeight:700, color:d.colour, background:d.bg, border:`1px solid ${d.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{d.label}</span>
           </div>
-          <p style={{ margin:0, fontSize:12, color:C.textSub }}>{item.note}</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>{item.note}</p>
         </div>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-          {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
-          <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
+          {autoOpen && open && <span style={{ fontSize: "0.625rem", color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+          <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
         </span>
       </div>
       {open && (
         <div style={{ padding: "4px 16px 12px 62px", borderTop:`1px solid ${d.border}` }}>
-          <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:d.colour, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+          <p style={{ margin:"8px 0 6px", fontSize: "0.625rem", fontWeight:700, color:d.colour, textTransform:"uppercase", letterSpacing:"0.06em" }}>
             Skills from your current role that will transfer
           </p>
           {relevantSkills.length > 0
@@ -8147,30 +8147,30 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
                 return [...relevantSkills].sort((a,b) => (lvlOrd[a.level]??2)-(lvlOrd[b.level]??2)).map((s, i) => (
                   <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
                     <div style={{ width:112, flexShrink:0 }}><Tag level={s.level} small /></div>
-                    <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                    <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s.skill}</span>
                   </div>
                 ));
               })()
-            : <p style={{ margin:0, fontSize:12, color:C.muted, fontStyle:"italic" }}>See Skill Analysis tab for the full skills breakdown.</p>
+            : <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>See Skill Analysis tab for the full skills breakdown.</p>
           }
-          <p style={{ margin:"8px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
+          <p style={{ margin:"8px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>
             Based on your current role's highest-automation skills. See Skill Analysis tab for the full breakdown.
           </p>
           {item.gap && item.gap.length > 0 && (
             <div style={{ marginTop:10, padding: "8px 10px", background:C.surface, border:`1px solid ${d.border}`, borderRadius:6 }}>
-              <p style={{ margin:"0 0 5px", fontSize:10, fontWeight:700, color:d.color, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+              <p style={{ margin:"0 0 5px", fontSize: "0.625rem", fontWeight:700, color:d.color, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                 Skills to develop for this role
               </p>
               {item.gap.map((g, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                   <span style={{ width:6, height:6, borderRadius:"50%", background:d.color, flexShrink:0 }} />
-                  <span style={{ fontSize:12, color:C.textSub }}>{g}</span>
+                  <span style={{ fontSize: "0.75rem", color:C.textSub }}>{g}</span>
                 </div>
               ))}
               {item.step && (
                 <div style={{ marginTop:8, paddingTop:7, borderTop:`1px dashed ${d.border}`, display:"flex", alignItems:"flex-start", gap:6 }}>
-                  <span style={{ fontSize:13, flexShrink:0 }}>🪜</span>
-                  <p style={{ margin:0, fontSize:12, color:d.color, lineHeight:1.5 }}>
+                  <span style={{ fontSize: "0.8125rem", flexShrink:0 }}>🪜</span>
+                  <p style={{ margin:0, fontSize: "0.75rem", color:d.color, lineHeight:1.5 }}>
                     Consider stepping through <strong>{item.step}</strong> first - it bridges the gap more gradually.
                   </p>
                 </div>
@@ -8180,18 +8180,18 @@ function ProgressionCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoO
           <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
             <button
               onClick={e => { e.stopPropagation(); onAnalyse(item.role); }}
-              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:"#fff", background:d.color, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:"#fff", background:d.color, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Analyse here
             </button>
             <button
               onClick={e => { e.stopPropagation(); window.open(`${window.location.origin}${window.location.pathname}?role=${encodeURIComponent(item.role)}`, "_blank"); }}
-              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Open in new tab ↗
             </button>
             {onQueue && onQueueCount < 3 && (
               <button
                 onClick={e => { e.stopPropagation(); onQueue(item.role); }}
-                style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:d.color, background:"transparent", border:`1.5px solid ${d.border}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
                 ＋ Compare
               </button>
             )}
@@ -8208,11 +8208,11 @@ function ProgressionPanel({ items, skills, onAnalyse, onQueue, onQueueCount, fir
   return (
     <div>
       <div style={{ background:C.accentSoft, border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-        <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>Career Progression within This Sphere</p>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+        <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.accent }}>Career Progression within This Sphere</p>
+        <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
           Natural next steps - upward, lateral, or deeper specialist - within the same functional or professional hierarchy. Expand each role to see which of your current skills transfer directly.
         </p>
-        <p style={{ margin:"6px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
+        <p style={{ margin:"6px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>
           These are indicative starting points. Your actual options depend on your organisation, sector, and experience.
         </p>
       </div>
@@ -8235,26 +8235,26 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
     <div onClick={() => setOpen(o => !o)}
       style={{ border:`1px solid ${open ? C.greenBdr : C.border}`, borderRadius: 10, marginBottom:8, background:open ? C.greenBg : C.surface, cursor:"pointer", transition:"all 0.15s" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, padding: "12px 16px" }}>
-        <div style={{ width:34, height:34, borderRadius:"50%", background:C.greenBg, border:`1px solid ${C.greenBdr}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>
+        <div style={{ width:34, height:34, borderRadius:"50%", background:C.greenBg, border:`1px solid ${C.greenBdr}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize: "1rem" }}>
           🔄
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:2 }}>
-            <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{item.role}</p>
-            <span style={{ fontSize:10, fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{item.sector}</span>
+            <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{item.role}</p>
+            <span style={{ fontSize: "0.625rem", fontWeight:600, color:C.muted, background:C.bg, border:`1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px", flexShrink:0 }}>{item.sector}</span>
           </div>
-          <p style={{ margin:0, fontSize:12, color:C.textSub }}>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>
             Bridge skill: <strong style={{ color:C.green }}>{item.bridge}</strong>
           </p>
         </div>
         <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
-          {autoOpen && open && <span style={{ fontSize: 10, color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
-          <span style={{ fontSize:10, color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
+          {autoOpen && open && <span style={{ fontSize: "0.625rem", color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap to explore</span>}
+          <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼ skills"}</span>
         </span>
       </div>
       {open && (
         <div style={{ padding: "4px 16px 12px 62px", borderTop:`1px solid ${C.greenBdr}` }}>
-          <p style={{ margin:"8px 0 6px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+          <p style={{ margin:"8px 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
             Skills from your current role most useful here
           </p>
           {(() => {
@@ -8262,22 +8262,22 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
               return [...displaySkills].sort((a,b) => (lvlOrd[a.level]??2)-(lvlOrd[b.level]??2)).map((s, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
                   <div style={{ width:112, flexShrink:0 }}><Tag level={s.level} small /></div>
-                  <span style={{ fontSize:12, color:C.textSub }}>{s.skill}</span>
+                  <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s.skill}</span>
                 </div>
               ));
             })()}
-          <p style={{ margin:"8px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
+          <p style={{ margin:"8px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>
             Human-led and AI-assisted skills tend to transfer best across sectors. See Skill Analysis tab for the full breakdown.
           </p>
           {item.newSkills && item.newSkills.length > 0 && (
             <div style={{ marginTop:10, padding: "8px 10px", background:C.surface, border:`1px solid ${C.greenBdr}`, borderRadius:6 }}>
-              <p style={{ margin:"0 0 5px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
+              <p style={{ margin:"0 0 5px", fontSize: "0.625rem", fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.06em" }}>
                 New skills this role may require
               </p>
               {item.newSkills.map((s, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:6, marginBottom:4 }}>
                   <span style={{ width:6, height:6, borderRadius:"50%", background:C.green, flexShrink:0 }} />
-                  <span style={{ fontSize:12, color:C.textSub }}>{s}</span>
+                  <span style={{ fontSize: "0.75rem", color:C.textSub }}>{s}</span>
                 </div>
               ))}
             </div>
@@ -8285,18 +8285,18 @@ function CrossoverCard({ item, skills, onAnalyse, onQueue, onQueueCount, autoOpe
           <div style={{ display:"flex", gap:8, marginTop:10, flexWrap:"wrap" }}>
             <button
               onClick={e => { e.stopPropagation(); onAnalyse(item.role); }}
-              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:"#fff", background:C.green, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:"#fff", background:C.green, border:"none", borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Analyse here
             </button>
             <button
               onClick={e => { e.stopPropagation(); window.open(`${window.location.origin}${window.location.pathname}?role=${encodeURIComponent(item.role)}`, "_blank"); }}
-              style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+              style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
               Open in new tab ↗
             </button>
             {onQueue && onQueueCount < 3 && (
               <button
                 onClick={e => { e.stopPropagation(); onQueue(item.role); }}
-                style={{ padding: "6px 12px", fontSize:12, fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
+                style={{ padding: "6px 12px", fontSize: "0.75rem", fontWeight:700, color:C.green, background:"transparent", border:`1.5px solid ${C.greenBdr}`, borderRadius:6, cursor:"pointer", display:"inline-flex", alignItems:"center", gap:4 }}>
                 ＋ Compare
               </button>
             )}
@@ -8312,11 +8312,11 @@ function CrossoverPanel({ items, skills, onAnalyse, onQueue, onQueueCount, first
   return (
     <div>
       <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-        <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}>Career Crossover to Other Roles</p>
-        <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+        <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.green }}>Career Crossover to Other Roles</p>
+        <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
           Roles in different sectors or functions where your existing skills transfer directly - helping you pivot without starting from scratch. Expand each role to see which skills carry over.
         </p>
-        <p style={{ margin:"6px 0 0", fontSize:12, color:C.muted, fontStyle:"italic" }}>
+        <p style={{ margin:"6px 0 0", fontSize: "0.75rem", color:C.muted, fontStyle:"italic" }}>
           These are indicative starting points. Your actual options depend on your background, sector, and experience.
         </p>
       </div>
@@ -8332,17 +8332,17 @@ function CompareWarningModal({ onConfirm, onCancel }) {
   return (
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
       <div style={{ background:"#fff", borderRadius: 10, padding: "20px 22px", maxWidth:340, width:"100%", boxShadow:"0 8px 32px rgba(0,0,0,0.18)" }}>
-        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#1a202c" }}>Start a new analysis?</p>
-        <p style={{ margin:"0 0 16px", fontSize:12, color:"#4a5568", lineHeight:1.6 }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#1a202c" }}>Start a new analysis?</p>
+        <p style={{ margin:"0 0 16px", fontSize: "0.75rem", color:"#4a5568", lineHeight:1.6 }}>
           You have an active role comparison below. Starting a new analysis will clear it and begin fresh.
         </p>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={onConfirm}
-            style={{ flex:1, padding: "8px 14px", fontSize:12, fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
+            style={{ flex:1, padding: "8px 14px", fontSize: "0.75rem", fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
             Yes, start fresh
           </button>
           <button onClick={onCancel}
-            style={{ flex:1, padding: "8px 14px", fontSize:12, fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 6, cursor:"pointer" }}>
+            style={{ flex:1, padding: "8px 14px", fontSize: "0.75rem", fontWeight:700, color:"#1a56db", background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 6, cursor:"pointer" }}>
             Keep comparison
           </button>
         </div>
@@ -8402,18 +8402,18 @@ function WorkModeMix({ result }) {
       <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: open ? "#1e3a5f" : C.surface, border: "none", cursor: "pointer", textAlign: "left", borderRadius: open ? "9px 9px 0 0" : 9, transition: "background 0.2s" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14 }} aria-hidden="true">🧮</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: open ? "#fff" : C.text }}>Work-mode mix - boss, teammate, or solo?</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: wm.mixed ? "#9a3412" : "#1e40af", background: wm.mixed ? "#fff7ed" : "#eef2ff", border: `1px solid ${wm.mixed ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🧮</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Work-mode mix - boss, teammate, or solo?</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: wm.mixed ? "#9a3412" : "#1e40af", background: wm.mixed ? "#fff7ed" : "#eef2ff", border: `1px solid ${wm.mixed ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{wm.mixed ? "⚑" : "="}</span>{wm.mixed ? "all three mixed" : `${_WORK_MODES[order.find(k => wm.counts[k] === Math.max(...order.map(o2 => wm.counts[o2])))].label.toLowerCase()} leads`}
           </span>
         </div>
-        <span aria-hidden="true" style={{ fontSize: 12, color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#93c5fd" : C.muted, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
       </button>
       {open && (
         <div style={{ padding: "12px 14px 14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
-            <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.55 }}>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
               How the {wm.total} extracted duties split across the three ways of working - classified by fixed people-signals in each duty's own words.
             </p>
             <Prov kind="derived" small />
@@ -8423,18 +8423,18 @@ function WorkModeMix({ result }) {
             aria-label={order.map(k => `${_WORK_MODES[k].label}: ${wm.counts[k]} of ${wm.total} duties`).join("; ")}>
             {order.map(k => wm.counts[k] > 0 && (
               <div key={k} style={{ width: `${wm.pct(k)}%`, minWidth: 34, background: _WORK_MODES[k].color, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "#fff" }} aria-hidden="true">{_WORK_MODES[k].icon} {wm.counts[k]}</span>
+                <span style={{ fontSize: "0.625rem", fontWeight: 800, color: "#fff" }} aria-hidden="true">{_WORK_MODES[k].icon} {wm.counts[k]}</span>
               </div>
             ))}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
             {order.map(k => wm.counts[k] > 0 && (
-              <span key={k} style={{ fontSize: 11, color: _WORK_MODES[k].color, fontWeight: 700 }}>{_WORK_MODES[k].icon} = {_WORK_MODES[k].label} ({wm.counts[k]} dut{wm.counts[k] === 1 ? "y" : "ies"}, {wm.pct(k)}%)</span>
+              <span key={k} style={{ fontSize: "0.6875rem", color: _WORK_MODES[k].color, fontWeight: 700 }}>{_WORK_MODES[k].icon} = {_WORK_MODES[k].label} ({wm.counts[k]} dut{wm.counts[k] === 1 ? "y" : "ies"}, {wm.pct(k)}%)</span>
             ))}
           </div>
           {wm.mixed && (
             <div style={{ padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, marginBottom: 10 }}>
-              <p style={{ margin: 0, fontSize: 12, color: "#9a3412", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#9a3412", lineHeight: 1.55 }}>
                 <strong>This ad asks for a boss, a teammate AND a solo deliverer in one seat.</strong> A genuinely three-way mandate is rare; more often the role design is unsettled{coherence === "grabbag" ? " - and the Role-Mix read above already calls this bundle a grab-bag" : coherence === "mixed" ? " - consistent with the mixed bundle the Role-Mix read found" : ""}. Ask at interview: which mode fills most of the week, and which single mode is the job REALLY scored on?
               </p>
             </div>
@@ -8442,15 +8442,15 @@ function WorkModeMix({ result }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {wm.perDuty.map(d => (
               <div key={d.n} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 10px", background: _WORK_MODES[d.mode].bg, border: `1px solid ${_WORK_MODES[d.mode].bdr}`, borderRadius: 6 }}>
-                <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: _WORK_MODES[d.mode].color, minWidth: 14 }} title={_WORK_MODES[d.mode].label}>{_WORK_MODES[d.mode].icon}</span>
-                <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: C.text, lineHeight: 1.5 }}>
+                <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: _WORK_MODES[d.mode].color, minWidth: 14 }} title={_WORK_MODES[d.mode].label}>{_WORK_MODES[d.mode].icon}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                   {d.text}
-                  {d.signal && <span style={{ color: C.muted, fontSize: 11 }}> - signal: "{d.signal.toLowerCase()}"</span>}
+                  {d.signal && <span style={{ color: C.muted, fontSize: "0.6875rem" }}> - signal: "{d.signal.toLowerCase()}"</span>}
                 </span>
               </div>
             ))}
           </div>
-          <p style={{ margin: "8px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - a fixed signal list over the duties' own words; the matched signal is shown so you can disagree, and human decides. Source: the extracted responsibilities ({wm.total} duties). Confidence: a wording signal, not an org-chart fact. Time-window: this result.</p>
+          <p style={{ margin: "8px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - a fixed signal list over the duties' own words; the matched signal is shown so you can disagree, and human decides. Source: the extracted responsibilities ({wm.total} duties). Confidence: a wording signal, not an org-chart fact. Time-window: this result.</p>
         </div>
       )}
     </div>
@@ -8466,8 +8466,8 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   if (roleMix.fallback) {
     return (
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
-        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Role-Mix unavailable</p>
-        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#78350f" }}>Role-Mix unavailable</p>
+        <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>
           We couldn't decompose this posting against the ESCO occupation library right now (the lookup was unavailable or no occupation overlapped enough). Re-run the analysis in a moment.
         </p>
       </div>
@@ -8489,45 +8489,45 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
     <div>
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:3 }}>
-          <p style={{ margin:0, fontSize:13, fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
+          <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:800, color:C.amber }}>🧩 Role-Mix — what this posting actually is</p>
           <Prov kind="ai" />
         </div>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || "This posting blends duties from several ESCO occupations — the title alone doesn't capture the mix."}</p>
-        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.headline || "This posting blends duties from several ESCO occupations — the title alone doesn't capture the mix."}</p>
+        <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>
           Matched this posting's skills against ESCO occupations' essential-skill lists. Shares are indicative, not a measurement.
           {postingMeta && postingMeta.mcfUrl ? <> · <Prov kind="mcf" small /> <a href={postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>Open posting →</a></> : null}
         </p>
       </div>
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 8px", fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Occupation mix</p>
+        <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Occupation mix</p>
         <div style={{ display:"flex", height:16, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
           {comps.map((c,i) => <div key={i} title={`${c.label} ${c.pct}%`} style={{ flex:c.pct, background:palette[i%palette.length], minWidth:6 }} />)}
           {roleMix.otherPct > 0 && <div title={`Other roles ${roleMix.otherPct}%`} style={{ flex:roleMix.otherPct, background:"#dde3ec", minWidth:6 }} />}
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {comps.map((c,i) => (
-            <span key={i} style={{ fontSize:12, fontWeight:600, color:palette[i%palette.length], display:"inline-flex", alignItems:"center", gap:5 }}>
+            <span key={i} style={{ fontSize: "0.75rem", fontWeight:600, color:palette[i%palette.length], display:"inline-flex", alignItems:"center", gap:5 }}>
               <span style={{ width:9, height:9, borderRadius: 6, background:palette[i%palette.length] }} />
-              {c.label} <span style={{ fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}>· posted title</span> : null}
+              {c.label} <span style={{ fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize: "0.625rem", color:C.muted, fontWeight:500 }}>· posted title</span> : null}
             </span>
           ))}
-          {roleMix.otherPct > 0 && <span style={{ fontSize:12, color:"#5b6878" }}>Other roles {roleMix.otherPct}%</span>}
+          {roleMix.otherPct > 0 && <span style={{ fontSize: "0.75rem", color:"#5b6878" }}>Other roles {roleMix.otherPct}%</span>}
         </div>
       </div>
 
       <div style={{ display:"flex", flexWrap:"wrap", gap:10, marginBottom:14 }}>
         <div style={{ flex:"1 1 240px", background: roleMix.mismatch ? "#fffbeb" : "#eef2ff", border:`1px solid ${roleMix.mismatch ? "#fcd9a0" : "#c7d2fe"}`, borderRadius: 10, padding: "10px 14px" }}>
-          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#1e40af", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
-          <p style={{ margin:0, fontSize:12, color: roleMix.mismatch ? "#92400e" : "#1e40af", lineHeight:1.5 }}>
+          <p style={{ margin:"0 0 3px", fontSize: "0.625rem", fontWeight:700, color: roleMix.mismatch ? "#b45309" : "#1e40af", textTransform:"uppercase", letterSpacing:"0.05em" }}>Posted as vs. actually</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color: roleMix.mismatch ? "#92400e" : "#1e40af", lineHeight:1.5 }}>
             {nar.postedAsNote || (roleMix.mismatch
               ? `Titled like "${roleMix.nominalLabel || title}", but the duty mix centres on ${comps[0]?.label || "another role"}.`
               : `The posted title (${roleMix.nominalLabel || title}) matches the main duty cluster.`)}
           </p>
         </div>
         <div style={{ flex:"1 1 240px", background:coh.bg, border:`1px solid ${coh.border}`, borderRadius: 10, padding: "10px 14px" }}>
-          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:coh.color, textTransform:"uppercase", letterSpacing:"0.05em" }}>Bundle coherence: {coh.label}</p>
-          <p style={{ margin:0, fontSize:12, color:coh.color, lineHeight:1.5 }}>
+          <p style={{ margin:"0 0 3px", fontSize: "0.625rem", fontWeight:700, color:coh.color, textTransform:"uppercase", letterSpacing:"0.05em" }}>Bundle coherence: {coh.label}</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:coh.color, lineHeight:1.5 }}>
             {nar.coherenceNote || (roleMix.coherenceKey === "coherent" ? "A focused blend of closely related roles." : roleMix.coherenceKey === "grabbag" ? "A wide spread across unrelated roles — a stretched req." : "A moderate spread across a few roles.")}
           </p>
         </div>
@@ -8538,8 +8538,8 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
         return (
           <div key={i} style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${palette[i%palette.length]}`, borderRadius: 10, marginBottom:10, background:C.surface, padding: "12px 14px" }}>
             <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, flexWrap:"wrap", marginBottom:6 }}>
-              <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{c.label} <span style={{ color:palette[i%palette.length], fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize:10, color:C.muted, fontWeight:500 }}> · matches the posted title</span> : null}</p>
-              <span style={{ fontSize:11, color:C.muted }}>{c.skills.length} duties · AI-exposed {c.exposure.aiExposedPct}% · human-led {c.exposure.humanPct}%</span>
+              <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{c.label} <span style={{ color:palette[i%palette.length], fontWeight:800 }}>{c.pct}%</span>{c.isNominal ? <span style={{ fontSize: "0.625rem", color:C.muted, fontWeight:500 }}> · matches the posted title</span> : null}</p>
+              <span style={{ fontSize: "0.6875rem", color:C.muted }}>{c.skills.length} duties · AI-exposed {c.exposure.aiExposedPct}% · human-led {c.exposure.humanPct}%</span>
             </div>
             {c.exposure.n > 0 && (
               <div style={{ display:"flex", height:8, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
@@ -8551,17 +8551,17 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
                 {[...c.skills].sort((a,b)=>(lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((s,j) => (
                   <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
                     <div style={{ width:104, flexShrink:0 }}><Tag level={s.level} small /></div>
-                    <span style={{ fontSize:12, color:C.textSub, lineHeight:1.4 }}>{s.skill}</span>
+                    <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.4 }}>{s.skill}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              c.matchedSkills.length > 0 && <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Overlaps on: {c.matchedSkills.slice(0,5).join(", ")}</p>
+              c.matchedSkills.length > 0 && <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", color:C.muted }}>Overlaps on: {c.matchedSkills.slice(0,5).join(", ")}</p>
             )}
             {pri && (
               <div style={{ background:"#fefce8", border:"1px solid #fde68a", borderRadius:6, padding: "8px 10px" }}>
-                <p style={{ margin:"0 0 2px", fontSize:10, fontWeight:700, color:"#a16207", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skilling priority</p>
-                <p style={{ margin:0, fontSize:12, color:"#713f12", lineHeight:1.5 }}>{pri.why}{pri.action ? <> — <strong>{pri.action}</strong></> : null}</p>
+                <p style={{ margin:"0 0 2px", fontSize: "0.625rem", fontWeight:700, color:"#a16207", textTransform:"uppercase", letterSpacing:"0.05em" }}>Skilling priority</p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:"#713f12", lineHeight:1.5 }}>{pri.why}{pri.action ? <> — <strong>{pri.action}</strong></> : null}</p>
               </div>
             )}
           </div>
@@ -8570,23 +8570,23 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
 
       {roleMix.crossCutting && roleMix.crossCutting.length > 0 && (
         <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:"#f5f7fa", padding: "10px 14px" }}>
-          <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Cross-cutting ({roleMix.crossCutting.length})</p>
-          <p style={{ margin:"0 0 6px", fontSize:11, color:C.mutedLight }}>Skills that didn't map cleanly to one occupation component.</p>
+          <p style={{ margin:"0 0 4px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>Cross-cutting ({roleMix.crossCutting.length})</p>
+          <p style={{ margin:"0 0 6px", fontSize: "0.6875rem", color:C.mutedLight }}>Skills that didn't map cleanly to one occupation component.</p>
           <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize:11, color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{s.skill}</span>)}
+            {roleMix.crossCutting.map((s,i) => <span key={i} style={{ fontSize: "0.6875rem", color:C.textSub, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px" }}>{s.skill}</span>)}
           </div>
         </div>
       )}
 
       {nar.skillingPriority && nar.skillingPriority.length > 0 && (
         <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 14px" }}>
-          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare — given this is a {comps.length}-way blend</p>
+          <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:800, color:C.teal }}>How to prepare — given this is a {comps.length}-way blend</p>
           <ol style={{ margin:0, paddingLeft:18 }}>
             {nar.skillingPriority.map((p,i) => (
-              <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{p.component}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>
+              <li key={i} style={{ fontSize: "0.75rem", color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{p.component}</strong> — {p.why}{p.action ? <>. {p.action}.</> : null}</li>
             ))}
           </ol>
-          <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted }}>Each component's AI prompts are on the <strong>Skill Analysis</strong> tab — tap any skill.</p>
+          <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted }}>Each component's AI prompts are on the <strong>Skill Analysis</strong> tab — tap any skill.</p>
         </div>
       )}
     </div>
@@ -8604,8 +8604,8 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
     if (view === "airisk") return null; // airisk block is silent when anatomy is unavailable
     return (
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
-        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
-        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily - try again tomorrow.</p>
+        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
+        <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily - try again tomorrow.</p>
       </div>
     );
   }
@@ -8624,7 +8624,7 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
     ...(oc.scopeRegions || []),
     (oc.tools && oc.tools.length) ? `tools: ${oc.tools.slice(0,5).join(", ")}` : null,
   ].filter(Boolean);
-  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize: 10, fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius: 10, padding: "2px 8px", whiteSpace:"nowrap" }}>{m.label}</span>; };
+  const pillNow = lv => { const m = LEVELS[lv] || LEVELS.MEDIUM; return <span style={{ fontSize: "0.625rem", fontWeight:700, color:m.color, background:m.bg, border:`1px solid ${m.border}`, borderRadius: 10, padding: "2px 8px", whiteSpace:"nowrap" }}>{m.label}</span>; };
 
   // --- airisk view: AI-resilience score + automatability + 2-year trajectory ---
   if (view === "airisk") {
@@ -8632,16 +8632,16 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
       <div>
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-            <p style={{ margin:0, fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="AI-resilience score">AI-resilience score</Term></p>
+            <p style={{ margin:0, fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="AI-resilience score">AI-resilience score</Term></p>
             <Prov kind="computed" small />
           </div>
-          <p style={{ margin:0, fontSize: 30, fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize:14, fontWeight:600, color:C.muted }}>/100</span></p>
+          <p style={{ margin:0, fontSize: "1.875rem", fontWeight:800, color:scoreColor, lineHeight:1 }}>{score}<span style={{ fontSize: "0.875rem", fontWeight:600, color:C.muted }}>/100</span></p>
           <div style={{ display:"flex", height:7, borderRadius: 6, overflow:"hidden", background:"#f5f7fa", marginTop:8 }}>
             <div style={{ width:`${Math.max(0,Math.min(100,score))}%`, background:scoreColor }} />
           </div>
-          <p style={{ margin:"7px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - <Term k="automatability">automatability</Term> now {a.automatabilityIndex}/100</p>
-          <p style={{ margin:"6px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.trajectory2y.line}</p>
-          <p style={{ margin:"8px 0 0", fontSize:10, color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
+          <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - <Term k="automatability">automatability</Term> now {a.automatabilityIndex}/100</p>
+          <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>{a.trajectory2y.line}</p>
+          <p style={{ margin:"8px 0 0", fontSize: "0.625rem", color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
         </div>
       </div>
     );
@@ -8651,30 +8651,30 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
   return (
     <div>
       <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.green }}>Job Anatomy - what this role actually is</p>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
-        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.</p>
+        <p style={{ margin:"0 0 3px", fontSize: "0.8125rem", fontWeight:800, color:C.green }}>Job Anatomy - what this role actually is</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
+        <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.</p>
       </div>
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 7px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="work-layer">Work-layer mix</Term></p>
+        <p style={{ margin:"0 0 7px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}><Term k="work-layer">Work-layer mix</Term></p>
         <div style={{ display:"flex", height:14, borderRadius: 6, overflow:"hidden", marginBottom:8 }}>
           {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => <div key={L} title={`${L} ${a.layerMix[L]}%`} style={{ flex:a.layerMix[L], background:JOB_LAYERS[L].color, minWidth:5 }} />)}
         </div>
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {JOB_LAYER_ORDER.filter(L => a.layerMix[L] > 0).map(L => (
-            <span key={L} style={{ fontSize:11, fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
+            <span key={L} style={{ fontSize: "0.6875rem", fontWeight:600, color:JOB_LAYERS[L].color, display:"inline-flex", alignItems:"center", gap:4 }}>
               <span style={{ width:8, height:8, borderRadius: 6, background:JOB_LAYERS[L].color }} />{JOB_LAYERS[L].label} <span style={{ fontWeight:800 }}>{a.layerMix[L]}%</span>
             </span>
           ))}
         </div>
-        <p style={{ margin:"8px 0 0", fontSize:11, color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line}</p>
+        <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>{a.centreOfGravity.line}</p>
       </div>
 
       {ocBits.length > 0 && (
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-          <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
-          <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" - ")}{(oc.stakeholders && oc.stakeholders.length) ? ` - works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
+          <p style={{ margin:"0 0 3px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>What the ads imply about the role's place in the org</p>
+          <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{ocBits.join(" - ")}{(oc.stakeholders && oc.stakeholders.length) ? ` - works with: ${oc.stakeholders.slice(0,5).join(", ")}` : ""}</p>
         </div>
       )}
 
@@ -8682,36 +8682,36 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
         <div style={{ display:"flex", flexWrap:"wrap", gap:12, marginBottom:14 }}>
           {nar.whatTheJobReallyIs && (
             <div style={{ flex:"1 1 280px", background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px" }}>
-              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What this job really is</p>
-              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatTheJobReallyIs}</p>
+              <p style={{ margin:"0 0 3px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What this job really is</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.whatTheJobReallyIs}</p>
             </div>
           )}
           {nar.whatSupervisorsExpect && (
             <div style={{ flex:"1 1 280px", background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px" }}>
-              <p style={{ margin:"0 0 3px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What supervisors actually expect</p>
-              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{nar.whatSupervisorsExpect}</p>
+              <p style={{ margin:"0 0 3px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.05em" }}>What supervisors actually expect</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.whatSupervisorsExpect}</p>
             </div>
           )}
         </div>
       )}
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, overflow:"hidden", marginBottom:14 }}>
-        <p style={{ margin:0, padding: "10px 14px", fontSize:10, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties - frequency - work layer - AI exposure now to ~2027</p>
+        <p style={{ margin:0, padding: "10px 14px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em", borderBottom:`1px solid ${C.border}` }}>Duties - frequency - work layer - AI exposure now to ~2027</p>
         {sortedDuties.map((d, i) => {
           const L = JOB_LAYERS[d.layer] || JOB_LAYERS.Activity;
           return (
             <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:10, flexWrap:"wrap", padding: "10px 14px", borderBottom: i < sortedDuties.length-1 ? `1px solid ${C.border}` : "none", borderLeft:`3px solid ${L.color}` }}>
               <div style={{ flex:"3 1 200px", minWidth:0 }}>
-                <p style={{ margin:0, fontSize: 13, color:C.text, lineHeight:1.45 }}>{d.text}</p>
+                <p style={{ margin:0, fontSize: "0.8125rem", color:C.text, lineHeight:1.45 }}>{d.text}</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4, alignItems:"center" }}>
-                  <span style={{ fontSize:10, fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding: "2px 8px" }}>{L.label}</span>
-                  <span style={{ fontSize:10, color:C.muted }}>in {d.count}/{d.of} ads</span>
-                  {d.kind !== "task" && <span style={{ fontSize:10, color:C.mutedLight }}>- {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
+                  <span style={{ fontSize: "0.625rem", fontWeight:700, color:L.color, background:L.bg, border:`1px solid ${L.border}`, borderRadius:10, padding: "2px 8px" }}>{L.label}</span>
+                  <span style={{ fontSize: "0.625rem", color:C.muted }}>in {d.count}/{d.of} ads</span>
+                  {d.kind !== "task" && <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>- {d.kind === "decision" ? "owns / signs off" : "outcome / KPI"}</span>}
                 </div>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, marginTop:1 }}>
                 {pillNow(d.exposureNow)}
-                <span style={{ fontSize:12, color: d.trajectory === "stable" ? C.mutedLight : "#b45309", fontWeight:700 }}>{trjSym[d.trajectory] || "→"}</span>
+                <span style={{ fontSize: "0.75rem", color: d.trajectory === "stable" ? C.mutedLight : "#b45309", fontWeight:700 }}>{trjSym[d.trajectory] || "→"}</span>
                 {pillNow(d.exposure2y)}
               </div>
             </div>
@@ -8721,9 +8721,9 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
 
       {nar.prepFocus && nar.prepFocus.length > 0 && (
         <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "12px 14px" }}>
-          <p style={{ margin:"0 0 6px", fontSize:12, fontWeight:800, color:C.teal }}>How to prepare - build the layers AI can't take</p>
+          <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:800, color:C.teal }}>How to prepare - build the layers AI can't take</p>
           <ol style={{ margin:0, paddingLeft:18 }}>
-            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize:12, color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> - {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
+            {nar.prepFocus.map((p,i) => <li key={i} style={{ fontSize: "0.75rem", color:"#0c4a6e", lineHeight:1.6, marginBottom:3 }}><strong>{(JOB_LAYERS[p.layer] && JOB_LAYERS[p.layer].label) || p.layer}</strong> - {p.why}{p.action ? <>. {p.action}.</> : null}</li>)}
           </ol>
         </div>
       )}
@@ -8754,8 +8754,8 @@ function RoleGraphStepCard({ step }) {
   const cur = (step >= 7) ? 7 : (step || 1);
   return (
     <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "16px 18px" }}>
-      <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 800, color: "#0369a1" }}>Building the role graph</p>
-      <p style={{ margin: "0 0 11px", fontSize: 11, color: "#0369a1" }}>{cur >= 7 ? "Assembling the role → occupation → skill → responsibility graph and the skill-analysis card…" : `Step ${cur} of 6`}</p>
+      <p style={{ margin: "0 0 2px", fontSize: "0.8125rem", fontWeight: 800, color: "#0369a1" }}>Building the role graph</p>
+      <p style={{ margin: "0 0 11px", fontSize: "0.6875rem", color: "#0369a1" }}>{cur >= 7 ? "Assembling the role → occupation → skill → responsibility graph and the skill-analysis card…" : `Step ${cur} of 6`}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
         {_RG_STEPS.map((s, i) => {
           const n = i + 1;
@@ -8765,12 +8765,12 @@ function RoleGraphStepCard({ step }) {
             <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
               <span style={{ flexShrink: 0, width: 16, marginTop: 1, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                 {done
-                  ? <span style={{ color: "#0f766e", fontSize: 13, fontWeight: 800 }}>✓</span>
+                  ? <span style={{ color: "#0f766e", fontSize: "0.8125rem", fontWeight: 800 }}>✓</span>
                   : active
                     ? <span style={{ width: 12, height: 12, border: "2px solid #bae6fd", borderTop: "2px solid #1a56db", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite" }} />
-                    : <span style={{ color: C.muted, fontSize: 11, fontWeight: 700 }}>{n}.</span>}
+                    : <span style={{ color: C.muted, fontSize: "0.6875rem", fontWeight: 700 }}>{n}.</span>}
               </span>
-              <span style={{ fontSize: 12, lineHeight: 1.55, color: active ? "#0c4a6e" : done ? C.text : C.muted, fontWeight: active ? 700 : 400 }}>{s.full}</span>
+              <span style={{ fontSize: "0.75rem", lineHeight: 1.55, color: active ? "#0c4a6e" : done ? C.text : C.muted, fontWeight: active ? 700 : 400 }}>{s.full}</span>
             </div>
           );
         })}
@@ -8831,8 +8831,8 @@ function RoleGraphPanel({ result, title }) {
 
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
   const hdr = t => <p className="t-sub" style={{ margin: "0 0 8px", fontWeight: 700, color: C.text }}>{t}</p>;
-  const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
-  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
+  const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
+  const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: "0.6875rem", color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
 
   // --- layered SVG graph layout ---
@@ -8899,7 +8899,7 @@ function RoleGraphPanel({ result, title }) {
           {/* column headers (word-wrapped, full names) */}
           {byCol.map((c, ci) => (
             <foreignObject key={"cap" + ci} x={c.x} y={3} width={c.w} height={HEAD_H}>
-              <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: 11, fontWeight: 800, color: RG_NODE_STYLE[c.type].color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.25, fontFamily: "inherit" }}>{HEADS[ci]}</div>
+              <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontSize: "0.6875rem", fontWeight: 800, color: RG_NODE_STYLE[c.type].color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.25, fontFamily: "inherit" }}>{HEADS[ci]}</div>
             </foreignObject>
           ))}
           {/* curved edges */}
@@ -8929,10 +8929,10 @@ function RoleGraphPanel({ result, title }) {
                 <foreignObject x={p.x} y={p.yTop} width={p.w} height={p.h}>
                   <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 6, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
                     {n.type === "responsibility" && _respNum(n.id) != null && (
-                      <span style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#fff", background: _respHue(_respNum(n.id)), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{_respNum(n.id)}</span>
+                      <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#fff", background: _respHue(_respNum(n.id)), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{_respNum(n.id)}</span>
                     )}
                     <span style={{ flex: 1, minWidth: 0, fontSize: FONT, lineHeight: `${LINE_H}px`, color: st.color, fontWeight: n.type === "mcfRole" ? 700 : 500, overflowWrap: "anywhere", wordBreak: "break-word" }}>{n.label}</span>
-                    {n.type === "iscoOccupation" && n.score != null && <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: st.color }}>{n.score}</span>}
+                    {n.type === "iscoOccupation" && n.score != null && <span style={{ flexShrink: 0, fontSize: "0.6875rem", fontWeight: 800, color: st.color }}>{n.score}</span>}
                   </div>
                 </foreignObject>
               </g>
@@ -8946,10 +8946,10 @@ function RoleGraphPanel({ result, title }) {
   return (
     <div>
       <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
-        <p style={{ margin: "0 0 3px", fontSize: 13, fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
-        <p style={{ margin: 0, fontSize: 12, color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to <strong>ESCO</strong> skills - reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready <strong>role - occupation - skill - responsibility</strong> graph and a skill-analysis card.</p>
+        <p style={{ margin: "0 0 3px", fontSize: "0.8125rem", fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
+        <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to <strong>ESCO</strong> skills - reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready <strong>role - occupation - skill - responsibility</strong> graph and a skill-analysis card.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: 11, color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
+          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: "0.6875rem", color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
         </div>
       </div>
 
@@ -8958,15 +8958,15 @@ function RoleGraphPanel({ result, title }) {
       ) : (
         <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
           <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
         </div>
       ))}
-      {rgErrored && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: 13, color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
+      {rgErrored && <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}><p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f" }}>That didn't go through — please try again in a moment.</p></div>}
 
       {!rgLoading && g && (g.fallback ? (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
-          <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
-          <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
+          <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
         </div>
       ) : (
         <>
@@ -8975,7 +8975,7 @@ function RoleGraphPanel({ result, title }) {
             <>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                 {hdr("The role-skill graph")}
-                <span style={{ fontSize: 11, color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a responsibility to see the skills it needs (and back)"}</span>
+                <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a responsibility to see the skills it needs (and back)"}</span>
               </div>
               {/* C+D: collapsible JD panel (left) - verbatim MCF text + the numbered duties that
                   match the [n] badges on the graph; tap a duty to light up its skills. */}
@@ -8993,24 +8993,24 @@ function RoleGraphPanel({ result, title }) {
                     <button onClick={() => setJdOpen(o => !o)} aria-expanded={jdOpen}
                       style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
                       <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                        <span aria-hidden="true" style={{ fontSize: 14 }}>📄</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Job description from MCF - trace it into the graph</span>
+                        <span aria-hidden="true" style={{ fontSize: "0.875rem" }}>📄</span>
+                        <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: C.text }}>Job description from MCF - trace it into the graph</span>
                       </span>
-                      <span aria-hidden="true" style={{ fontSize: 11, color: C.muted, transform: jdOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+                      <span aria-hidden="true" style={{ fontSize: "0.6875rem", color: C.muted, transform: jdOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
                     </button>
                     {jdOpen && (
                       <div style={{ padding: "0 14px 12px" }}>
                         {respNodes.length > 0 && (
                           <>
-                            <p style={{ margin: "2px 0 6px", fontSize: 11, color: C.textSub, lineHeight: 1.5 }}>The numbered duties below match the <strong>[n]</strong> badges on the left of the graph. Tap one to light up its skills.</p>
+                            <p style={{ margin: "2px 0 6px", fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.5 }}>The numbered duties below match the <strong>[n]</strong> badges on the left of the graph. Tap one to light up its skills.</p>
                             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 10, maxHeight: 300, overflowY: "auto" }}>
                               {respNodes.map(rn => {
                                 const on = hoveredId === rn.id;
                                 return (
                                   <button key={rn.id} onClick={() => setHoveredId(h => h === rn.id ? null : rn.id)}
                                     style={{ display: "flex", alignItems: "flex-start", gap: 8, width: "100%", textAlign: "left", minHeight: 44, padding: "6px 8px", background: on ? "#eef2ff" : "transparent", border: `1px solid ${on ? "#c7d2fe" : "transparent"}`, borderRadius: 6, cursor: "pointer" }}>
-                                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: 10, fontWeight: 800, color: "#fff", background: _respHue(rn.num), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{rn.num}</span>
-                                    <span style={{ flex: 1, fontSize: 12, color: C.text, lineHeight: 1.45 }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Duty {rn.num}: </span>{rn.label}</span>
+                                    <span aria-hidden="true" style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#fff", background: _respHue(rn.num), borderRadius: 6, padding: "2px 6px", minWidth: 15, textAlign: "center", lineHeight: 1.6 }}>{rn.num}</span>
+                                    <span style={{ flex: 1, fontSize: "0.75rem", color: C.text, lineHeight: 1.45 }}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Duty {rn.num}: </span>{rn.label}</span>
                                   </button>
                                 );
                               })}
@@ -9019,13 +9019,13 @@ function RoleGraphPanel({ result, title }) {
                         )}
                         {rawJD ? (
                           <>
-                            <p style={{ margin: "0 0 4px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Verbatim posting text{jobs.length > 1 ? ` (1 of ${jobs.length} sampled ads)` : ""}</p>
-                            <div style={{ maxHeight: 220, overflowY: "auto", padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 11, color: C.textSub, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{rawJD}</div>
+                            <p style={{ margin: "0 0 4px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Verbatim posting text{jobs.length > 1 ? ` (1 of ${jobs.length} sampled ads)` : ""}</p>
+                            <div style={{ maxHeight: 220, overflowY: "auto", padding: "8px 10px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{rawJD}</div>
                           </>
                         ) : (
-                          <p style={{ margin: 0, fontSize: 11, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result - the numbered duties above are the extracted view.</p>
+                          <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result - the numbered duties above are the extracted view.</p>
                         )}
-                        <p style={{ margin: "7px 0 0", fontSize: 10, color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Posting text verbatim from MyCareersFuture; the [n] duties are the extracted responsibilities (AI-extracted). The number links the two; colour is an assist. Human decides.</p>
+                        <p style={{ margin: "7px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>Posting text verbatim from MyCareersFuture; the [n] duties are the extracted responsibilities (AI-extracted). The number links the two; colour is an assist. Human decides.</p>
                       </div>
                     )}
                   </div>
@@ -9033,10 +9033,10 @@ function RoleGraphPanel({ result, title }) {
               })()}
               {renderGraph(g.graph)}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
-                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 6, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
-                <span style={{ fontSize: 11, color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
+                {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.6875rem", color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 6, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
+                <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
               </div>
-              {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
+              {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
             </>
           )}
 
@@ -9044,12 +9044,12 @@ function RoleGraphPanel({ result, title }) {
           {g.narrative && card(
             <>
               {hdr("Skill-analysis card — what this role actually means")}
-              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: 13, color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
+              {g.narrative.whatTheRoleReallyIs && <p style={{ margin: "0 0 10px", fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.6 }}>{g.narrative.whatTheRoleReallyIs}</p>}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(220px,100%), 1fr))", gap: 12 }}>
-                {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
-                {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
-                {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
-                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>▪</span><span style={{ fontSize: 12, color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
+                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#9a3412" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
               </div>
             </>
           )}
@@ -9059,22 +9059,22 @@ function RoleGraphPanel({ result, title }) {
             <>
               {hdr(<><Term k="ISCO-08">ISCO-08</Term> occupations this role reverse-maps to - trading-style ranking</>)}
               <div style={{ margin: "0 0 6px" }}><Prov kind="computed" /></div>
-              <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Score = 45% <Term k="skill-proximity">skill-proximity</Term> (ESCO essential-skill overlap) + 35% <Term k="responsibility-overlap">responsibility-overlap</Term> + 20% evidence/<Term k="confidence">confidence</Term>{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
+              <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>Score = 45% <Term k="skill-proximity">skill-proximity</Term> (ESCO essential-skill overlap) + 35% <Term k="responsibility-overlap">responsibility-overlap</Term> + 20% evidence/<Term k="confidence">confidence</Term>{g.iscoCandidates.some(c => c.isNominal) ? ", +5 if it matches the posted title" : ""}.</p>
               {g.iscoCandidates.map((c, i) => (
                 <div key={i} style={{ padding: "8px 10px", borderRadius: 10, background: i === 0 ? "#f5f3ff" : C.bg, border: `1px solid ${i === 0 ? "#ddd6fe" : C.border}`, marginBottom: 7 }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
-                    {c.code ? <span style={{ fontSize: 11, color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: 11, color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
-                    {c.isNominal && <span style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 8px" }}>matches the posted title</span>}
-                    <span style={{ marginLeft: "auto", fontSize: 16, fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }}>{c.score}<span style={{ fontSize: 10, fontWeight: 600, color: C.muted }}>/100</span></span>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
+                    {c.code ? <span style={{ fontSize: "0.6875rem", color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: "0.6875rem", color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
+                    {c.isNominal && <span style={{ fontSize: "0.625rem", fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 8px" }}>matches the posted title</span>}
+                    <span style={{ marginLeft: "auto", fontSize: "1rem", fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }}>{c.score}<span style={{ fontSize: "0.625rem", fontWeight: 600, color: C.muted }}>/100</span></span>
                   </div>
                   <div style={{ display: "flex", height: 6, borderRadius: 6, overflow: "hidden", background: "#f5f7fa", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#9a3412" }} /></div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
                     {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
-                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: C.muted }}><Term k={lbl}>{lbl}</Term><span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#f5f7fa", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
+                      <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.6875rem", color: C.muted }}><Term k={lbl}>{lbl}</Term><span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#f5f7fa", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
                     ))}
                   </div>
-                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: 11, color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
+                  {c.matchedSkills.length > 0 && <div>{c.matchedSkills.slice(0, 8).map((m, j) => <span key={j} style={{ fontSize: "0.6875rem", color: "#0e7490", background: "#cffafe", border: "1px solid #a5f3fc", borderRadius: 10, padding: "2px 8px", display: "inline-block", margin: "0 4px 4px 0" }}>{m}</span>)}</div>}
                 </div>
               ))}
             </>
@@ -9093,7 +9093,7 @@ function RoleGraphPanel({ result, title }) {
           {/* per-statement analysis */}
           {g.statements.length > 0 && card(
             <>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("Per-responsibility analysis")}<button onClick={() => setShowStmts(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showStmts ? "hide" : `show all ${g.statements.length}`}</button></div>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("Per-responsibility analysis")}<button onClick={() => setShowStmts(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.75rem", color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showStmts ? "hide" : `show all ${g.statements.length}`}</button></div>
               {(showStmts ? g.statements : g.statements.slice(0, 5)).map((st, i) => {
                 const inf = (g.analysed && g.analysed.statements && g.analysed.statements[g.statements.indexOf(st) + 1]) || null;
                 const mapped = g.mapping.edges.filter(e => e.respId === st.id).map(e => ((result.skills || [])[e.skillIdx] || {}).skill).filter(Boolean);
@@ -9114,16 +9114,16 @@ function RoleGraphPanel({ result, title }) {
           {card(
             <>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("API-ready graph (nodes / edges)")}<div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
-                <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: 12, color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
+                <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.75rem", color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
+                <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.75rem", color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
               </div></div>
-              <p style={{ margin: "0 0 8px", fontSize: 12, color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
-              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#1a202c", color: "#dde3ec", borderRadius: 6, padding: "10px 12px", fontSize: 11, lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
+              <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
+              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#1a202c", color: "#dde3ec", borderRadius: 6, padding: "10px 12px", fontSize: "0.6875rem", lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
             </>
           )}
 
           {/* CV ingress removed (PL1) */}
-          <p style={{ margin: "12px 0 0", fontSize: 11, color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
+          <p style={{ margin: "12px 0 0", fontSize: "0.6875rem", color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
         </>
       ))}
     </div>
@@ -9138,11 +9138,11 @@ function RoleGraphPanel({ result, title }) {
 // the Skill Analysis family of views (analysis, categories, seniority bands,
 // crossover roles, sector context, persona foundations).
 function RespCatBadge({ cat }) {
-  return <span style={{ fontSize:10, fontWeight:600, color:C.purple, background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{cat}</span>;
+  return <span style={{ fontSize: "0.625rem", fontWeight:600, color:C.purple, background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{cat}</span>;
 }
 function RespFreqBadge({ freq }) {
   const f = RESP_FREQ[freq] || RESP_FREQ.Common;
-  return <span style={{ fontSize:10, fontWeight:600, color:f.color, background:f.bg, border:`1px solid ${f.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{f.label}</span>;
+  return <span style={{ fontSize: "0.625rem", fontWeight:600, color:f.color, background:f.bg, border:`1px solid ${f.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>{f.label}</span>;
 }
 
 // One responsibility row. Rendered flush inside a per-level group container -
@@ -9159,26 +9159,26 @@ function ResponsibilityCard({ r, skillByN, autoOpen, last }) {
         <div style={{ display:"flex", alignItems:"flex-start", gap:10 }}>
           <div style={{ width:104, flexShrink:0, marginTop:1 }}><Tag level={r.level} small /></div>
           <div style={{ flex:1, minWidth:0 }}>
-            <p style={{ margin:0, fontSize:13, color:C.text, lineHeight:1.5, fontWeight:500 }}>{r.text}</p>
+            <p style={{ margin:0, fontSize: "0.8125rem", color:C.text, lineHeight:1.5, fontWeight:500 }}>{r.text}</p>
             <div style={{ display:"flex", flexWrap:"wrap", gap:5, marginTop:5, alignItems:"center" }}>
               <RespCatBadge cat={r.cat} />
               <RespFreqBadge freq={r.freq} />
               {mapped.map((s,i) => (
-                <span key={i} style={{ fontSize:10, color:C.textSub, background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>↳ {s.skill}</span>
+                <span key={i} style={{ fontSize: "0.625rem", color:C.textSub, background:"#f5f7fa", border:`1px solid ${C.border}`, borderRadius:10, padding: "2px 8px", whiteSpace:"nowrap" }}>↳ {s.skill}</span>
               ))}
-              {hasMore && <span style={{ fontSize:10, color:C.mutedLight, marginLeft:"auto" }}>{open ? "▲ less" : "▼ how AI applies"}</span>}
+              {hasMore && <span style={{ fontSize: "0.625rem", color:C.mutedLight, marginLeft:"auto" }}>{open ? "▲ less" : "▼ how AI applies"}</span>}
             </div>
           </div>
         </div>
         {hasMore && open && (
           <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${C.border}`, paddingLeft:114 }}>
             {r.how && (
-              <p style={{ margin:"0 0 6px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+              <p style={{ margin:"0 0 6px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
                 <strong style={{ color:lv.color }}>How AI engages:</strong> {r.how}{r.tool && r.tool !== "NA" ? ` (${AI_USAGE[r.tool] || r.tool})` : ""}
               </p>
             )}
             {r.kickstart && (
-              <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
                 <strong style={{ color:lv.color }}>Try this week:</strong> {r.kickstart}
               </p>
             )}
@@ -9196,8 +9196,8 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
     const thin = data.reason === "no_jobs" || data.reason === "thin_corpus" || data.reason === "empty_analysis";
     return (
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
-        <p style={{ margin:"0 0 6px", fontSize:14, fontWeight:700, color:"#78350f" }}>Responsibilities Analysis unavailable</p>
-        <p style={{ margin:0, fontSize:13, color:"#78350f", lineHeight:1.6 }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#78350f" }}>Responsibilities Analysis unavailable</p>
+        <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>
           {thin
             ? "There aren't enough live MyCareersFuture postings for this role right now to build a reliable responsibilities picture. Postings refresh daily — try again tomorrow."
             : "The live job feed or the analysis step was unavailable. Please run the analysis again in a moment."}
@@ -9226,9 +9226,9 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
     <div>
       {/* Header */}
       <div style={{ background:C.purpleBg, border:`1px solid ${C.purpleBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
-        <p style={{ margin:"0 0 3px", fontSize:13, fontWeight:800, color:C.purple }}>📝 Responsibilities Analysis</p>
-        <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.6 }}>{data.summary || "The duties this role is expected to perform, drawn from live job postings."}</p>
-        <p style={{ margin:"7px 0 0", fontSize:11, color:C.muted }}>
+        <p style={{ margin:"0 0 3px", fontSize: "0.8125rem", fontWeight:800, color:C.purple }}>📝 Responsibilities Analysis</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{data.summary || "The duties this role is expected to perform, drawn from live job postings."}</p>
+        <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>
           Extracted from <strong>{data.jobCount} live MyCareersFuture posting{data.jobCount === 1 ? "" : "s"}</strong>{data.approximate ? " (approximate match)" : ""}. AI exposure ratings are indicative — your context may differ.
         </p>
       </div>
@@ -9238,7 +9238,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         {tabDefs.map(t => (
           <button key={t.key}
             onClick={() => { setSubTab(t.key); track("tab_viewed", { tab: "responsibilities:"+t.key }); }}
-            style={{ padding: "6px 12px", borderRadius: 16, fontSize: 12, fontWeight:600, cursor:"pointer",
+            style={{ padding: "6px 12px", borderRadius: 16, fontSize: "0.75rem", fontWeight:600, cursor:"pointer",
               border:`2px solid ${active===t.key ? C.purple : C.border}`,
               background: active===t.key ? C.purple : C.surface,
               color: active===t.key ? "#fff" : C.textSub, whiteSpace:"nowrap" }}>
@@ -9260,7 +9260,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
           <div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:16 }}>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap", marginBottom:8 }}>
-                <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
+                <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>How AI touches these {resps.length} responsibilities</p>
                 <Prov kind="ai" small />
               </div>
               <AutomationBar skills={resps} />
@@ -9271,9 +9271,9 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
               return (
                 <div key={m.key} style={{ marginBottom:16 }}>
                   <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:6, paddingBottom:5, borderBottom:`2px solid ${m.border}` }}>
-                    <span style={{ fontSize:12, fontWeight:800, color:m.color }}>{m.label}</span>
-                    <span style={{ fontSize:11, color:C.muted }}>({items.length})</span>
-                    <span style={{ fontSize:11, color:C.mutedLight }}>· {m.sub}</span>
+                    <span style={{ fontSize: "0.75rem", fontWeight:800, color:m.color }}>{m.label}</span>
+                    <span style={{ fontSize: "0.6875rem", color:C.muted }}>({items.length})</span>
+                    <span style={{ fontSize: "0.6875rem", color:C.mutedLight }}>· {m.sub}</span>
                   </div>
                   <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, overflow:"hidden", background:C.surface }}>
                     {items.map((r, i) => (
@@ -9303,15 +9303,15 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         return (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
             <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
-              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By function</p>
+              <p style={{ margin:"0 0 10px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>By function</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(260px,100%), 1fr))", gap:12 }}>
                 {RESP_CATEGORIES.filter(c => byCat[c] && byCat[c].length).map(c => (
                   <div key={c} style={{ border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 12px", background:"#fcfaff" }}>
-                    <p style={{ margin:"0 0 7px", fontSize:11, fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>{c} ({byCat[c].length})</p>
+                    <p style={{ margin:"0 0 7px", fontSize: "0.6875rem", fontWeight:700, color:C.purple, textTransform:"uppercase", letterSpacing:"0.05em" }}>{c} ({byCat[c].length})</p>
                     {[...byCat[c]].sort((a,b) => (lvlOrd[a.level]??1)-(lvlOrd[b.level]??1)).map((r,i) => (
                       <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
                         <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
-                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                        <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
                       </div>
                     ))}
                   </div>
@@ -9319,14 +9319,14 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
               </div>
             </div>
             <div style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px" }}>
-              <p style={{ margin:"0 0 10px", fontSize:12, fontWeight:700, color:C.text }}>By AI exposure</p>
+              <p style={{ margin:"0 0 10px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>By AI exposure</p>
               {levelMeta.filter(m => byLevel[m.key] && byLevel[m.key].length).map(m => (
                 <div key={m.key} style={{ marginBottom:12 }}>
-                  <p style={{ margin:"0 0 6px", fontSize:11, fontWeight:700, color:m.color }}>{m.label} ({byLevel[m.key].length})</p>
+                  <p style={{ margin:"0 0 6px", fontSize: "0.6875rem", fontWeight:700, color:m.color }}>{m.label} ({byLevel[m.key].length})</p>
                   {byLevel[m.key].map((r,i) => (
                     <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
                       <span style={{ width:5, height:5, borderRadius:"50%", background:m.color, flexShrink:0, marginTop:6 }} />
-                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
                     </div>
                   ))}
                 </div>
@@ -9340,23 +9340,23 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {active === "bands" && data.respProgression && (
         <div>
           <div style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>How responsibilities shift with seniority</p>
-            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Hands-on duties give way to oversight, strategy, and stakeholder work as the role grows.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.accent }}>How responsibilities shift with seniority</p>
+            <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>Hands-on duties give way to oversight, strategy, and stakeholder work as the role grows.</p>
           </div>
           {data.respProgression.bands.map((b, i) => (
             <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, padding: "12px 14px", borderBottom:`1px solid ${C.border}` }}>
-                <span style={{ width:26, height:26, borderRadius:"50%", background:"#e8f0fe", border:"1px solid #c3d3f5", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, color:C.accent, flexShrink:0 }}>{i+1}</span>
+                <span style={{ width:26, height:26, borderRadius:"50%", background:"#e8f0fe", border:"1px solid #c3d3f5", display:"flex", alignItems:"center", justifyContent:"center", fontSize: "0.6875rem", fontWeight:800, color:C.accent, flexShrink:0 }}>{i+1}</span>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{b.name}</p>
-                  {b.note && <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{b.note}</p>}
+                  <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{b.name}</p>
+                  {b.note && <p style={{ margin:"1px 0 0", fontSize: "0.75rem", color:C.textSub }}>{b.note}</p>}
                 </div>
               </div>
               <div style={{ padding: "10px 14px" }}>
                 {b.duties.map((d, j) => (
                   <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:5 }}>
                     <span style={{ width:5, height:5, borderRadius:"50%", background:C.accent, flexShrink:0, marginTop:6 }} />
-                    <span style={{ fontSize:12, color:C.textSub, lineHeight:1.5 }}>{d}</span>
+                    <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}>{d}</span>
                   </div>
                 ))}
               </div>
@@ -9369,33 +9369,33 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {active === "crossover" && (
         <div>
           <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.green }}><Term k="crossover">Crossover</Term> roles - whose day-to-day overlaps with yours</p>
-            <p style={{ margin:"3px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer - a credible pivot, not a restart.</p>
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.green }}><Term k="crossover">Crossover</Term> roles - whose day-to-day overlaps with yours</p>
+            <p style={{ margin:"3px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>Other sectors where your existing responsibilities transfer - a credible pivot, not a restart.</p>
           </div>
           {data.respCrossover.map((x, i) => (
             <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface, padding: "12px 14px" }}>
               <div style={{ display:"flex", alignItems:"baseline", gap:8, flexWrap:"wrap", marginBottom:8 }}>
-                <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{x.role}</p>
-                {x.sector && <span style={{ fontSize:11, color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "2px 8px" }}>{x.sector}</span>}
+                <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{x.role}</p>
+                {x.sector && <span style={{ fontSize: "0.6875rem", color:C.green, background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "2px 8px" }}>{x.sector}</span>}
               </div>
               {x.shared.length > 0 && (
                 <div style={{ marginBottom:8 }}>
-                  <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.05em" }}>Transfers directly</p>
+                  <p style={{ margin:"0 0 4px", fontSize: "0.625rem", fontWeight:700, color:C.green, textTransform:"uppercase", letterSpacing:"0.05em" }}>Transfers directly</p>
                   {x.shared.map((d,j) => (
                     <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
-                      <span style={{ color:C.green, fontSize:12, lineHeight:1.4 }}>✓</span>
-                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d}</span>
+                      <span style={{ color:C.green, fontSize: "0.75rem", lineHeight:1.4 }}>✓</span>
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{d}</span>
                     </div>
                   ))}
                 </div>
               )}
               {x.newDuties.length > 0 && (
                 <div>
-                  <p style={{ margin:"0 0 4px", fontSize:10, fontWeight:700, color:C.amber, textTransform:"uppercase", letterSpacing:"0.05em" }}>You'd take on</p>
+                  <p style={{ margin:"0 0 4px", fontSize: "0.625rem", fontWeight:700, color:C.amber, textTransform:"uppercase", letterSpacing:"0.05em" }}>You'd take on</p>
                   {x.newDuties.map((d,j) => (
                     <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:7, marginBottom:3 }}>
-                      <span style={{ color:C.amber, fontSize:12, lineHeight:1.4 }}>+</span>
-                      <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{d}</span>
+                      <span style={{ color:C.amber, fontSize: "0.75rem", lineHeight:1.4 }}>+</span>
+                      <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{d}</span>
                     </div>
                   ))}
                 </div>
@@ -9409,27 +9409,27 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {active === "context" && data.respContext && (
         <div>
           <div style={{ background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14 }}>
-            <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.teal }}>How the role's duties differ by sector</p>
-            {data.respContext.department && <p style={{ margin:"4px 0 0", fontSize:12, color:C.textSub }}><strong style={{ color:C.teal }}>Department:</strong> {data.respContext.department.charAt(0).toUpperCase() + data.respContext.department.slice(1)}.</p>}
+            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.teal }}>How the role's duties differ by sector</p>
+            {data.respContext.department && <p style={{ margin:"4px 0 0", fontSize: "0.75rem", color:C.textSub }}><strong style={{ color:C.teal }}>Department:</strong> {data.respContext.department.charAt(0).toUpperCase() + data.respContext.department.slice(1)}.</p>}
           </div>
           {data.respContext.sectors.map((sec, i) => {
             const duties = (sec.duties || []).map(n => respByN[n]).filter(Boolean);
             return (
               <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, marginBottom:10, background:C.surface }}>
                 <div style={{ display:"flex", alignItems:"center", gap:10, padding: "12px 14px", borderBottom: duties.length ? `1px solid ${C.border}` : "none" }}>
-                  <span style={{ width:28, height:28, borderRadius:"50%", background:C.tealBg, border:`1px solid ${C.tealBdr}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, flexShrink:0 }}>🏢</span>
+                  <span style={{ width:28, height:28, borderRadius:"50%", background:C.tealBg, border:`1px solid ${C.tealBdr}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize: "0.875rem", flexShrink:0 }}>🏢</span>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ margin:0, fontSize:13, fontWeight:700, color:C.text }}>{sec.name}</p>
-                    {sec.note && <p style={{ margin:"1px 0 0", fontSize:12, color:C.textSub }}>{sec.note}</p>}
+                    <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:C.text }}>{sec.name}</p>
+                    {sec.note && <p style={{ margin:"1px 0 0", fontSize: "0.75rem", color:C.textSub }}>{sec.note}</p>}
                   </div>
                 </div>
                 {duties.length > 0 && (
                   <div style={{ padding: "10px 14px" }}>
-                    <p style={{ margin:"0 0 6px", fontSize:10, fontWeight:700, color:C.teal, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most central duties here</p>
+                    <p style={{ margin:"0 0 6px", fontSize: "0.625rem", fontWeight:700, color:C.teal, textTransform:"uppercase", letterSpacing:"0.05em" }}>Most central duties here</p>
                     {duties.map((r,j) => (
                       <div key={j} style={{ display:"flex", alignItems:"flex-start", gap:8, marginBottom:4 }}>
                         <div style={{ width:104, flexShrink:0 }}><Tag level={r.level} small /></div>
-                        <span style={{ fontSize:12, color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
+                        <span style={{ fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{r.text}</span>
                       </div>
                     ))}
                   </div>
@@ -9448,20 +9448,20 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         return (
           <div>
             <div style={{ background:cfg.bg, border:`1px solid ${cfg.border}`, borderRadius:10, padding: "12px 16px", marginBottom:14, display:"flex", gap:12, alignItems:"flex-start" }}>
-              <span style={{ fontSize:22, flexShrink:0 }}>{cfg.icon}</span>
+              <span style={{ fontSize: "1.375rem", flexShrink:0 }}>{cfg.icon}</span>
               <div>
-                <p style={{ margin:"0 0 3px", fontSize:12, fontWeight:700, color:cfg.color }}>Responsibilities to master first — for: {cfg.label}</p>
-                <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.55 }}>{data.foundationResp.summary}</p>
+                <p style={{ margin:"0 0 3px", fontSize: "0.75rem", fontWeight:700, color:cfg.color }}>Responsibilities to master first — for: {cfg.label}</p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{data.foundationResp.summary}</p>
               </div>
             </div>
             {Object.entries(grouped).map(([prio, items]) => items.length > 0 && (
               <div key={prio} style={{ marginBottom:16 }}>
-                <p style={{ margin:"0 0 8px", fontSize:12, fontWeight:700, color: prio==="Must-Have"?"#9a3412":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
+                <p style={{ margin:"0 0 8px", fontSize: "0.75rem", fontWeight:700, color: prio==="Must-Have"?"#9a3412":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
                 {items.map((f, i) => (
                   <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:8, background:C.surface }}>
-                    <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
-                    {f.why && <p style={{ margin:"0 0 4px", fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>Why:</strong> {f.why}</p>}
-                    {f.action && <p style={{ margin:0, fontSize:12, color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>This week:</strong> {f.action}</p>}
+                    <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
+                    {f.why && <p style={{ margin:"0 0 4px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>Why:</strong> {f.why}</p>}
+                    {f.action && <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.5 }}><strong style={{ color:cfg.color }}>This week:</strong> {f.action}</p>}
                   </div>
                 ))}
               </div>
@@ -9471,7 +9471,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       })()}
 
       {data.jobTitles && data.jobTitles.length > 0 && (
-        <p style={{ margin:"16px 0 0", fontSize:11, color:C.muted, lineHeight:1.6 }}>
+        <p style={{ margin:"16px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.6 }}>
           Based on live postings: {data.jobTitles.slice(0, 8).join(" · ")}. Source: MyCareersFuture Singapore.
         </p>
       )}
@@ -9492,64 +9492,64 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
     <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
         <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer"
-           style={{ fontSize: 16, fontWeight: 700, color: C.text, lineHeight: 1.35, textDecoration: "none" }}
+           style={{ fontSize: "1rem", fontWeight: 700, color: C.text, lineHeight: 1.35, textDecoration: "none" }}
            onMouseOver={e => e.currentTarget.style.color = "#0e7490"}
            onMouseOut={e => e.currentTarget.style.color = C.text}>{job.title}</a>
         {job.postedDate && (
-          <span style={{ fontSize: 13, color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
+          <span style={{ fontSize: "0.8125rem", color: C.muted, whiteSpace: "nowrap", flexShrink: 0 }}>{daysAgo(job.postedDate)}</span>
         )}
       </div>
       {seen && (
         seen.isNew ? (
-          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>✦ New since you last looked</span>
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: "0.6875rem", fontWeight: 700, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "1px 8px" }}>✦ New since you last looked</span>
         ) : (
-          <span style={{ display: "inline-block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>↩ Seen before{fmtSeenDate && seen.firstSeen ? ` · since ${fmtSeenDate(seen.firstSeen)}` : ""}</span>
+          <span style={{ display: "inline-block", marginBottom: 6, fontSize: "0.6875rem", fontWeight: 700, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>↩ Seen before{fmtSeenDate && seen.firstSeen ? ` · since ${fmtSeenDate(seen.firstSeen)}` : ""}</span>
         )
       )}
       {job.employer && (
-        <p style={{ margin: "0 0 6px", fontSize: 14, color: C.textSub }}>{job.employer}</p>
+        <p style={{ margin: "0 0 6px", fontSize: "0.875rem", color: C.textSub }}>{job.employer}</p>
       )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
+        <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
           {fmtSalary(job.salaryMin, job.salaryMax)}
         </span>
         {job.employmentType && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.employmentType}</span>
+          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.employmentType}</span>
         )}
         {Array.isArray(job.positionLevels) && job.positionLevels.length > 0 && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.positionLevels.join(", ")}</span>
+          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.positionLevels.join(", ")}</span>
         )}
         {job.minimumYearsExperience != null && job.minimumYearsExperience > 0 && (
-          <span style={{ fontSize: 13, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
+          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
         )}
       </div>
       {hasDetail && (
         <>
-          <button onClick={() => setOpen(o => !o)} style={{ marginTop: 10, background: "transparent", border: "none", padding: 0, fontSize: 13, fontWeight: 700, color: "#0e7490", cursor: "pointer" }}>
+          <button onClick={() => setOpen(o => !o)} style={{ marginTop: 10, background: "transparent", border: "none", padding: 0, fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", cursor: "pointer" }}>
             {open ? "▲ Hide details" : "▼ Show responsibilities & skills"}
           </button>
           {open && (
             <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
               {detailShown && (
-                <p style={{ margin: "0 0 8px", fontSize: 14, color: C.textSub, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{detailShown}</p>
+                <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: C.textSub, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{detailShown}</p>
               )}
               {hasSkills && (
                 <div style={{ marginBottom: hasCats ? 8 : 0 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills listed</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills listed</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: 12, color: C.textSub, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{s}</span>)}
+                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: "0.75rem", color: C.textSub, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{s}</span>)}
                   </div>
                 </div>
               )}
               {hasCats && (
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Categories</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Categories</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: 12, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>{cc}</span>)}
+                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: "0.75rem", color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>{cc}</span>)}
                   </div>
                 </div>
               )}
-              <p style={{ margin: "8px 0 0", fontSize: 13 }}>
+              <p style={{ margin: "8px 0 0", fontSize: "0.8125rem" }}>
                 <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>Open posting on MyCareersFuture →</a>
               </p>
             </div>
@@ -9560,13 +9560,13 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
         <div style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
           {onAnalysePosting && (
             <button onClick={() => onAnalysePosting(job)}
-              style={{ padding: "6px 12px", fontSize: 13, fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
+              style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
               📊 Analyse this posting
             </button>
           )}
           {onQueuePosting && canQueue && (
             <button onClick={() => onQueuePosting(job)}
-              style={{ padding: "6px 12px", fontSize: 13, fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
+              style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
               ＋ Compare
             </button>
           )}
@@ -9833,13 +9833,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   return (
     <div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
-        <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
+        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.375rem", fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
+        <p style={{ margin: 0, fontSize: "0.875rem", color: C.textSub, lineHeight: 1.5 }}>
           Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing{onAnalyseCorpus ? " — or analyse all of them as one role" : ""}. Postings refresh daily.
         </p>
         {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
           <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
-            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 10, color: "#fff", padding: "10px 16px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 10, color: "#fff", padding: "10px 16px", fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}>
             📊 Analyse all {state.jobs.length}{state.capped ? "+" : ""} postings as one role →
           </button>
         )}
@@ -9848,16 +9848,16 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       {state.loading && (
         <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
           <div style={{ width: 30, height: 30, margin: "0 auto 12px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: 13, color: "#0369a1" }}>Searching MyCareersFuture...</p>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture...</p>
         </div>
       )}
 
       {!state.loading && state.fallback && state.jobs.length === 0 && (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "20px 18px" }}>
-          <p style={{ margin: 0, fontSize: 13, color: "#78350f", lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
             {state.message || "No live postings matched this role today. Postings refresh daily on MyCareersFuture - check back tomorrow."}
           </p>
-          <p style={{ margin: "10px 0 0", fontSize: 12 }}>
+          <p style={{ margin: "10px 0 0", fontSize: "0.75rem" }}>
             <a href={`https://www.mycareersfuture.gov.sg/search?search=${encodeURIComponent(sel?.title || "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>
               Search MyCareersFuture directly →
             </a>
@@ -9869,18 +9869,18 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         <>
           {archGroups.length >= 2 && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
-              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <p style={{ margin: "0 0 7px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 These {state.jobs.length}{state.capped ? "+" : ""} postings fall into {archGroups.length} {archLabel} — tap to filter
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 <button onClick={() => { setSectorFilter(null); setPage(0); }}
-                  style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
+                  style={{ fontSize: "0.75rem", fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
                     border: `2px solid ${!sectorFilter ? "#0e7490" : C.border}`, background: !sectorFilter ? "#0e7490" : C.surface, color: !sectorFilter ? "#fff" : C.textSub }}>
                   All ({freshGrad ? state.jobs.filter(isFresh).length : state.jobs.length})
                 </button>
                 {archGroups.map(g => (
                   <button key={g.name} onClick={() => { setSectorFilter(g.name === sectorFilter ? null : g.name); setPage(0); }}
-                    style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
+                    style={{ fontSize: "0.75rem", fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
                       border: `2px solid ${sectorFilter === g.name ? "#0e7490" : C.border}`, background: sectorFilter === g.name ? "#0e7490" : C.surface, color: sectorFilter === g.name ? "#fff" : C.textSub }}>
                     {g.name} ({freshGrad ? g.jobs.filter(isFresh).length : g.jobs.length})
                   </button>
@@ -9890,7 +9890,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           )}
           {hasSeenHistory && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
-              <p style={{ margin: "0 0 7px", fontSize: 11, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              <p style={{ margin: "0 0 7px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                 {newInView} new since you last looked · {seenInView} from a previous search — tap to filter
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -9902,36 +9902,36 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
                   const on = recencyFilter === opt.k;
                   return (
                     <button key={opt.label} onClick={() => { setRecencyFilter(opt.k); setPage(0); }}
-                      style={{ fontSize: 12, fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
+                      style={{ fontSize: "0.75rem", fontWeight: 600, borderRadius: 16, padding: "4px 12px", cursor: "pointer",
                         border: `2px solid ${on ? "#0e7490" : C.border}`, background: on ? "#0e7490" : C.surface, color: on ? "#fff" : C.textSub }}>
                       {opt.label}
                     </button>
                   );
                 })}
               </div>
-              <p style={{ margin: "7px 0 0", fontSize: 10, color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>
+              <p style={{ margin: "7px 0 0", fontSize: "0.625rem", color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>
                 “New” vs “Seen before” is remembered on this device only — your own search history for this title, not data from MyCareersFuture. Postings are sorted newest-posted first; the “Seen before” list is ordered by when each ad first showed up in your searches.
               </p>
             </div>
           )}
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <span style={{ fontSize: 14, color: C.textSub }}>
+            <span style={{ fontSize: "0.875rem", color: C.textSub }}>
               {activeArch ? `${viewJobs.length} in “${activeArch.name}”` : `${viewJobs.length}${state.capped && !freshGrad && !recencyFilter ? "+" : ""} posting${viewJobs.length === 1 ? "" : "s"}`}
               {recencyFilter === "new" ? " · new only" : recencyFilter === "seen" ? " · seen before" : ""}
               {freshGrad ? ` · fresh-grad filter (< 4 yrs exp)` : ""}
               {totalPages > 1 ? ` · showing ${safePage * PER_PAGE + 1}–${safePage * PER_PAGE + pageJobs.length}` : ""}
             </span>
             {tierLabel && (
-              <span style={{ fontSize: 13, fontWeight: 700, color: state.approximate ? "#92400e" : "#0e7490", background: state.approximate ? C.amberBg : C.tealBg, border: `1px solid ${state.approximate ? C.amberBdr : C.tealBdr}`, borderRadius: 10, padding: "2px 10px" }}>
+              <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: state.approximate ? "#92400e" : "#0e7490", background: state.approximate ? C.amberBg : C.tealBg, border: `1px solid ${state.approximate ? C.amberBdr : C.tealBdr}`, borderRadius: 10, padding: "2px 10px" }}>
                 {tierLabel}
               </span>
             )}
           </div>
           {freshGrad && baseJobs.length === 0 && state.jobs.length > 0 && (
-            <p style={{ margin: "0 0 10px", fontSize: 13, color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
+            <p style={{ margin: "0 0 10px", fontSize: "0.8125rem", color: C.muted, fontStyle: "italic" }}>No roles under 4 years&rsquo; experience among these {state.jobs.length} live postings — untick &ldquo;Fresh grads&rdquo; to see all.</p>
           )}
           {freshGrad && state.capped && baseJobs.length > 0 && (
-            <p style={{ margin: "0 0 10px", fontSize: 12, color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
+            <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
           )}
           <div className="mcf-grid">
             {pageJobs.map(job => (
@@ -9943,16 +9943,16 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           {totalPages > 1 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={safePage === 0}
-                style={{ padding: "6px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage === 0 ? C.mutedLight : "#0e7490", cursor: safePage === 0 ? "not-allowed" : "pointer" }}>‹ Prev</button>
+                style={{ padding: "6px 10px", fontSize: "0.8125rem", fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage === 0 ? C.mutedLight : "#0e7490", cursor: safePage === 0 ? "not-allowed" : "pointer" }}>‹ Prev</button>
               {Array.from({ length: totalPages }, (_, i) => i).map(i => (
                 <button key={i} onClick={() => setPage(i)}
-                  style={{ minWidth: 30, padding: "6px 8px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${i === safePage ? "#0e7490" : C.border}`, background: i === safePage ? "#0e7490" : C.surface, color: i === safePage ? "#fff" : C.textSub, cursor: "pointer" }}>{i + 1}</button>
+                  style={{ minWidth: 30, padding: "6px 8px", fontSize: "0.8125rem", fontWeight: 700, borderRadius: 6, border: `1px solid ${i === safePage ? "#0e7490" : C.border}`, background: i === safePage ? "#0e7490" : C.surface, color: i === safePage ? "#fff" : C.textSub, cursor: "pointer" }}>{i + 1}</button>
               ))}
               <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={safePage >= totalPages - 1}
-                style={{ padding: "6px 10px", fontSize: 13, fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage >= totalPages - 1 ? C.mutedLight : "#0e7490", cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer" }}>Next ›</button>
+                style={{ padding: "6px 10px", fontSize: "0.8125rem", fontWeight: 700, borderRadius: 6, border: `1px solid ${C.border}`, background: C.surface, color: safePage >= totalPages - 1 ? C.mutedLight : "#0e7490", cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer" }}>Next ›</button>
             </div>
           )}
-          <p style={{ margin: "14px 0 0", fontSize: 12, color: C.muted, textAlign: "right" }}>
+          <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted, textAlign: "right" }}>
             {state.capped ? "Showing the first 50 matches. " : ""}Source: MyCareersFuture Singapore.{" "}
             <a href={`https://www.mycareersfuture.gov.sg/search?search=${encodeURIComponent(sel?.title || "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>
               See all on MyCareersFuture →
@@ -9987,16 +9987,16 @@ export function PipelineLogsView() {
   const fmt = ts => { try { return new Date(ts).toLocaleString(); } catch (_) { return String(ts || ""); } };
   const td = { padding: "4px 8px", borderBottom: "1px solid #dde3ec", verticalAlign: "top", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" };
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px", fontSize: 12, color: C.text }}>
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px", fontSize: "0.75rem", color: C.text }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 10 }}>
-        <h1 style={{ fontSize: 16, margin: 0 }}>Pipeline step log</h1>
-        <button onClick={load} style={{ fontSize: 12, padding: "4px 10px", cursor: "pointer" }}>refresh</button>
+        <h1 style={{ fontSize: "1rem", margin: 0 }}>Pipeline step log</h1>
+        <button onClick={load} style={{ fontSize: "0.75rem", padding: "4px 10px", cursor: "pointer" }}>refresh</button>
         <span style={{ color: C.muted }}>{state.status === "loading" ? "loading…" : `${state.logs.length} rows (newest first)`}</span>
       </div>
       {state.status === "error" && <p style={{ color: "#9a3412" }}>Could not load - the store may be unavailable.</p>}
       {state.status === "done" && !state.logs.length && <p style={{ color: C.muted }}>No log rows yet.</p>}
       {!!state.logs.length && (
-        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
+        <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6875rem" }}>
           <thead><tr style={{ textAlign: "left", color: C.muted }}>
             <th style={{ padding: "4px 8px" }}>ts</th><th style={{ padding: "4px 8px" }}>session</th><th style={{ padding: "4px 8px" }}>role</th><th style={{ padding: "4px 8px" }}>source</th><th style={{ padding: "4px 8px" }}>step</th><th style={{ padding: "4px 8px" }}>status</th><th style={{ padding: "4px 8px" }}>ms</th><th style={{ padding: "4px 8px" }}>detail</th>
           </tr></thead>
@@ -10068,13 +10068,13 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
         onBlur={focusOff}
         style={{
           ...btnBase,
-          fontSize: 12,
+          fontSize: "0.75rem",
           opacity: atMin ? 0.4 : 1,
           cursor: atMin ? "default" : "pointer",
           borderColor: atMin ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
         }}
       >
-        <span style={{ fontSize: 11 }}>A</span>-
+        <span style={{ fontSize: "0.6875rem" }}>A</span>-
       </button>
       <button
         type="button"
@@ -10085,7 +10085,7 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
         onBlur={focusOff}
         style={{
           ...btnBase,
-          fontSize: 14,
+          fontSize: "0.875rem",
           background: isReset ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
           borderColor: isReset ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.35)",
         }}
@@ -10101,13 +10101,13 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
         onBlur={focusOff}
         style={{
           ...btnBase,
-          fontSize: 12,
+          fontSize: "0.75rem",
           opacity: atMax ? 0.4 : 1,
           cursor: atMax ? "default" : "pointer",
           borderColor: atMax ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
         }}
       >
-        <span style={{ fontSize: 16 }}>A</span>+
+        <span style={{ fontSize: "1rem" }}>A</span>+
       </button>
     </div>
   );
@@ -10180,17 +10180,17 @@ function WhatThisMeansCard({ result, graphData }) {
     marginBottom: 16,
     boxShadow: NEO.raiseSm,
   };
-  const sentenceStyle = { margin: "0 0 7px", fontSize: 13, color: C.text, lineHeight: 1.65 };
-  const footerStyle = { margin: "10px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.55, fontStyle: "italic", borderTop: `1px solid ${C.border}`, paddingTop: 8 };
+  const sentenceStyle = { margin: "0 0 7px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.65 };
+  const footerStyle = { margin: "10px 0 0", fontSize: "0.6875rem", color: C.muted, lineHeight: 1.55, fontStyle: "italic", borderTop: `1px solid ${C.border}`, paddingTop: 8 };
 
   return (
     <div style={boxStyle} aria-label="What this means for you - plain-language summary">
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: C.text, letterSpacing: "-0.01em" }}>
+        <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: C.text, letterSpacing: "-0.01em" }}>
           What this means for you
         </p>
-        <span style={{ fontSize: 10, color: C.muted, fontStyle: "italic" }}>assembled from the reads on this page</span>
+        <span style={{ fontSize: "0.625rem", color: C.muted, fontStyle: "italic" }}>assembled from the reads on this page</span>
       </div>
 
       {/* Clause 1: AI exposure stance */}
@@ -10200,7 +10200,7 @@ function WhatThisMeansCard({ result, graphData }) {
           {" "}
           <Prov kind={stanceProv} small />
           {totalDuties > 0 && (
-            <span style={{ fontSize: 11, color: C.muted }}>
+            <span style={{ fontSize: "0.6875rem", color: C.muted }}>
               {" "}({dutyCounts[dominantBand]} of {totalDuties} duties classified as {dominantBand === "HUMAN" ? "human-led" : dominantBand === "LOW" ? "AI-assisted" : dominantBand === "MEDIUM" ? "AI-augmented" : "full-automation"})
             </span>
           )}
@@ -10300,7 +10300,7 @@ export default function App() {
   }, []);
   // Feature: user text-size control persisted in localStorage (key uiTextScale).
   // Levels: 0.92 (A-) | 1 (A, default) | 1.12 (A+) | 1.25 (A++, max).
-  // Applies --ui-scale on documentElement; .t-heading is NOT scaled (headings stay fixed).
+  // Applies --ui-scale on <html>, multiplying the root font-size; all rem text scales with it.
   const UI_SCALE_STEPS = [0.92, 1, 1.12, 1.25];
   const [uiTextScale, setUiTextScale] = useState(1);
   useEffect(() => {
@@ -11438,7 +11438,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       if (!result.jobAnatomy.duties || result.jobAnatomy.duties.length === 0) return null;
       return (
         <div key="ai-anatomy">
-          <p style={{ margin:"0 0 10px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Exposure (above) is how far AI reaches this occupation; resilience is how much these specific duties resist it - complementary views, not the same number.</p>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>Exposure (above) is how far AI reaches this occupation; resilience is how much these specific duties resist it - complementary views, not the same number.</p>
           <JobAnatomyView anatomy={result.jobAnatomy} title={sel?.title || ""} view="airisk" />
         </div>
       );
@@ -11475,7 +11475,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       if (!result.responsibilitiesData) return null;
       return (
         <div key="position-market">
-          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>Market and employer reads - is the demand real, is the ad fair, and is the employer what it seems? Each panel opens on tap; each carries its own source badge.</p>
+          <p style={{ margin:"0 0 12px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>Market and employer reads - is the demand real, is the ad fair, and is the employer what it seems? Each panel opens on tap; each carries its own source badge.</p>
           <DemandProof result={result} />
           <AdLanguageScan result={result} />
           <EmployerReality result={result} />
@@ -11490,7 +11490,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           {/* PL5: ForensicReversal moved to Understand section 1 (understand-s1). */}
           {/* PL6: DemandProof/AdLanguageScan/EmployerReality/CompanyBackground moved to Position (position-market). */}
           {/* Stewardship reads stay here under Become. */}
-          <p style={{ margin:"0 0 12px", fontSize:12, color:C.textSub, lineHeight:1.6 }}>The stewardship reads of this role - who it is hired to be, and what the craft demands. Each panel opens on tap; each carries its own source badge.</p>
+          <p style={{ margin:"0 0 12px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>The stewardship reads of this role - who it is hired to be, and what the craft demands. Each panel opens on tap; each carries its own source badge.</p>
           <StrategyRead result={result} title={sel?.title || ""} />
           <BdfStewardship result={result} title={sel?.title || ""} />
           <StewardshipShift result={result} />
@@ -11548,34 +11548,34 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       return (
         <div key="compare">
           <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
-            <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>Compare</h2>
+            <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: "1.125rem", fontWeight:800, color:C.text }}>Compare</h2>
           </div>
           {comparisons.length < 2 ? (
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
-              <p style={{ margin:"0 0 8px", fontSize: 16, color:C.textSub }}>You need at least 2 roles to compare.</p>
-              <p style={{ margin:0, fontSize:12, color:C.muted }}>Use the <strong>+ Add this role</strong> button or tap <strong>+ Compare</strong> on any career path card.</p>
+              <p style={{ margin:"0 0 8px", fontSize: "1rem", color:C.textSub }}>You need at least 2 roles to compare.</p>
+              <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Use the <strong>+ Add this role</strong> button or tap <strong>+ Compare</strong> on any career path card.</p>
             </div>
           ) : isRunningComparison ? (
             <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
               <div style={{ width:36, height:36, margin:"0 auto 14px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
-              <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#0369a1" }}>Building comparison</p>
-              <p style={{ margin:"0 0 4px", fontSize:12, color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
+              <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:700, color:"#0369a1" }}>Building comparison</p>
+              <p style={{ margin:"0 0 4px", fontSize: "0.75rem", color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"0 0 16px" }}>
-                <span style={{ fontSize:11, color:C.muted }}>Step {compareStep} of {comparisons.filter(c=>!c.result).length * 3 + 2}</span>
-                <span style={{ fontSize:11, fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding: "2px 10px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
+                <span style={{ fontSize: "0.6875rem", color:C.muted }}>Step {compareStep} of {comparisons.filter(c=>!c.result).length * 3 + 2}</span>
+                <span style={{ fontSize: "0.6875rem", fontWeight:700, color:"#0369a1", background:"#e8f0fe", borderRadius:6, padding: "2px 10px", fontVariantNumeric:"tabular-nums", flexShrink:0 }}>
                   {Math.floor(compareElapsed/60)}:{String(compareElapsed%60).padStart(2,"0")}
                 </span>
               </div>
               <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
                 {comparisons.map((c, i) => (
-                  <span key={i} style={{ fontSize:11, color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+                  <span key={i} style={{ fontSize: "0.6875rem", color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
                     {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>&#x2713;</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
                     <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
                   </span>
                 ))}
               </div>
               {comparisons.some(c => c.result) && (
-                <p style={{ margin:0, fontSize:11, color:"#1e40af", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
+                <p style={{ margin:0, fontSize: "0.6875rem", color:"#1e40af", fontWeight:600 }}>{comparisons.filter(c => c.result).length} of {comparisons.length} ready</p>
               )}
             </div>
           ) : readyComps.length >= 2 ? (
@@ -11593,7 +11593,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             />
           ) : (
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "24px 20px", textAlign:"center" }}>
-              <p style={{ margin:0, fontSize:13, color:C.muted }}>Roles are still being analysed. Please wait.</p>
+              <p style={{ margin:0, fontSize: "0.8125rem", color:C.muted }}>Roles are still being analysed. Please wait.</p>
             </div>
           )}
         </div>
@@ -11630,7 +11630,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return (
       <div>
         {question && (
-          <h2 style={{ margin:"0 0 16px", fontSize:17, fontWeight:700, color:C.text, lineHeight:1.4 }}>
+          <h2 style={{ margin:"0 0 16px", fontSize: "1.0625rem", fontWeight:700, color:C.text, lineHeight:1.4 }}>
             {question}
           </h2>
         )}
@@ -11667,8 +11667,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width: 900px)  { :root { --content-pad: 24px; } }
       @media (min-width: 1200px) { :root { --content-pad: 28px; } }
       @media (min-width: 1600px) { :root { --content-pad: 32px; } }
-      @media (min-width: 2000px) { :root { --base-font: 17px; } html { font-size: 18px; } }
-      @media (min-width: 2560px) { :root { --base-font: 18px; } html { font-size: 20px; } }
+      @media (min-width: 2000px) { :root { --base-font: 17px; --root-fs: 112.5%; } }
+      @media (min-width: 2560px) { :root { --base-font: 18px; --root-fs: 125%; } }
       .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
       /* MCF postings list: explicit column tiers - 1 / 2 / 3 / 4 by viewport width
@@ -11677,15 +11677,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
-      /* ── Text scale: REM-based so the browser's own text-size / accessibility
-         setting scales it (rem tracks the root font-size = the browser default,
-         which the user can change). The A-/A/A+ control still scales everything via
-         the .main-content zoom below, and browser zoom works on top - all three
-         compose. Mobile-first base + width bumps; !important beats legacy inline px.
-         Sized to the "Large" readable floor. */
-      :root { --ui-scale: 1; }
-      html { font-size: 100%; }
-      .main-content { zoom: var(--ui-scale, 1); }
+      /* ── Text scale: REM-based, anchored to the root font-size. Three axes compose
+         on the SAME mechanism: (1) the browser's own text-size / accessibility setting
+         changes the root font-size; (2) the A-/A/A+ control multiplies it via --ui-scale;
+         (3) browser zoom sits on top. All app text is rem (the inline-px fontSize values
+         were swept to rem), so every axis scales every piece of text uniformly. Mobile-first
+         base + width bumps; !important beats any residual inline value. "Large" floor. */
+      :root { --ui-scale: 1; --root-fs: 100%; }
+      html { font-size: calc(var(--root-fs) * var(--ui-scale, 1)); }
       .t-body   { font-size: 1.0625rem !important; }
       .t-label  { font-size: 1rem !important; }
       .t-meta   { font-size: 1rem !important; }
@@ -11856,16 +11855,16 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       {/* position+zIndex: sticky-pinned, opaque C.eu header that stays above page content and the
           sticky left nav rail (top:64). zIndex:50 clears both the rail and the LUX1 backdrop layer */}
       <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap", position:"sticky", top:0, zIndex:50 }}>
-        <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
+        <span style={{ color:C.euStar, fontSize: "1.125rem", flexShrink:0 }}>★</span>
         <div style={{ flex:"1 0 200px", minWidth:0 }}>
-          <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
+          <h1 style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
-          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
+          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize: "0.75rem", fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
           V2 - ESCO EU skillsets
         </a>
         {step !== "idle" && (
-          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
+          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize: "0.75rem", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
             New Search
           </button>
         )}
@@ -11885,26 +11884,26 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             padding: "8px 14px 8px 10px",
             background: "rgba(26,86,219,0.92)", backdropFilter: "blur(6px)",
             border: "none", borderRadius: 16,
-            color: "#fff", fontSize: 12, fontWeight: 700,
+            color: "#fff", fontSize: "0.75rem", fontWeight: 700,
             cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
             animation: "fadeInUp 0.25s ease",
             userSelect: "none",
           }}>
-          <span style={{ fontSize: 14, lineHeight: 1 }}>↑</span>
+          <span style={{ fontSize: "0.875rem", lineHeight: 1 }}>↑</span>
           <span>Top</span>
         </button>
       )}
 
       {toast && (
-        <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding: "12px 20px", fontSize:13, fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
+        <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding: "12px 20px", fontSize: "0.8125rem", fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
           <span>{toast.msg}</span>
           {toast.action === "compare" && (
             <button onClick={() => { setActivePillar("position"); setToast(null); track("pillar_viewed", { pillar:"position" }); }}
-              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding: "4px 12px", fontSize:12, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding: "4px 12px", fontSize: "0.75rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
               View comparison →
             </button>
           )}
-          <button onClick={() => setToast(null)} style={{ background:"transparent", border:"none", color:"rgba(255,255,255,0.7)", fontSize:18, cursor:"pointer", padding:0, lineHeight:1, flexShrink:0 }}>×</button>
+          <button onClick={() => setToast(null)} style={{ background:"transparent", border:"none", color:"rgba(255,255,255,0.7)", fontSize: "1.125rem", cursor:"pointer", padding:0, lineHeight:1, flexShrink:0 }}>×</button>
         </div>
       )}
       <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
@@ -11918,10 +11917,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture postings.
               </span>
               <div style={{ marginBottom:12 }}>
-                <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize:24, fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
+                <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize: "1.5rem", fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
                   Understand a Singapore job before you apply
                 </h2>
-                <p style={{ margin:0, fontSize:14, color:C.textSub, lineHeight:1.55 }}>
+                <p style={{ margin:0, fontSize: "0.875rem", color:C.textSub, lineHeight:1.55 }}>
                   Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture postings.
                 </p>
               </div>
@@ -11939,13 +11938,13 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     <button type="button" aria-pressed={searchMode===m.k}
                       onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
                       style={{ textAlign:"left", padding: "8px 12px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
-                      <span style={{ display:"block", fontSize:13, fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
-                      {m.source && <span style={{ display:"block", marginTop:2, fontSize:11, fontWeight:700, color:C.textSub }}>{m.source}</span>}
-                      <span style={{ display:"block", marginTop:2, fontSize:11, color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
+                      <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
+                      {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
+                      <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
                     </button>
                     {m.k === "jobs" && (
                       <label title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
-                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding: "0 12px 8px", cursor:"pointer", fontSize:11, fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
+                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding: "0 12px 8px", cursor:"pointer", fontSize: "0.6875rem", fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
                         <input type="checkbox" checked={freshGrad} aria-label="Fresh grads - roles under 4 years experience"
                           onChange={e => { if (searchMode !== "jobs") { setSearchMode("jobs"); setOccs([]); setErr(""); } setFreshGrad(e.target.checked); }}
                           style={{ width:15, height:15, accentColor:C.accent, cursor:"pointer", margin:0 }} />
@@ -11956,7 +11955,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 ))}
               </div>
 
-              <label htmlFor="job-title-search" style={{ display:"block", margin:"0 0 6px", fontSize:12, fontWeight:700, color:C.text }}>
+              <label htmlFor="job-title-search" style={{ display:"block", margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>
                 Job title or role
               </label>
               <div style={{ display:"flex", gap:8 }}>
@@ -11965,21 +11964,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
                   placeholder="e.g. Data Analyst, Operations Manager, HR Executive"
-                  style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize:16, fontFamily:"inherit" }} autoFocus />
-                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize:13, fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
+                  style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize: "1rem", fontFamily:"inherit" }} autoFocus />
+                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
                   <span>{searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
-                  <span className="lux-arrow" aria-hidden="true" style={{ fontSize:15, lineHeight:1 }}>&#8594;</span>
+                  <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
               {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
               {searchMode === "role" && query.trim().length >= 3 && (step === "idle" || step === "error") && (
                 <div style={{ marginTop:8 }}>
                   {pickerLoading && (
-                    <p style={{ fontSize:11, color:C.muted, margin:"4px 0" }}>Finding roles matching "{query.trim()}"...</p>
+                    <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"4px 0" }}>Finding roles matching "{query.trim()}"...</p>
                   )}
                   {!pickerLoading && occs.length > 0 && (
                     <div>
-                      <p style={{ fontSize:11, color:C.muted, margin:"0 0 5px" }}>
+                      <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"0 0 5px" }}>
                         {occs.length} result{occs.length!==1?"s":""} — select one to analyse, or press Analyse to continue
                       </p>
                       {occs.slice(0,5).map((o,i) => (
@@ -11988,17 +11987,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                           onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
                           onMouseLeave={e=>{ e.currentTarget.style.background=C.surface; e.currentTarget.style.borderColor=C.border; }}>
                           <div style={{ flex:1 }}>
-                            <p style={{ margin:"0 0 2px", fontSize:13, fontWeight:600, color:C.text }}>{toTitleCase(o.title)}</p>
-                            <p style={{ margin:0, fontSize:11, color:C.muted, lineHeight:1.4 }}>
+                            <p style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color:C.text }}>{toTitleCase(o.title)}</p>
+                            <p style={{ margin:0, fontSize: "0.6875rem", color:C.muted, lineHeight:1.4 }}>
                               {o.iscoCode && <span style={{ color:C.mutedLight }}>ISCO-08: {o.iscoCode} · </span>}
                               {(o.description||"").slice(0,90)}{(o.description||"").length>90?"...":""}
                             </p>
                           </div>
-                          {o.isAltLabel && <span style={{ fontSize: 10, fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt</span>}
+                          {o.isAltLabel && <span style={{ fontSize: "0.625rem", fontWeight:700, color:C.accent, background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 10, padding: "2px 6px", whiteSpace:"nowrap", flexShrink:0 }}>alt</span>}
                         </div>
                       ))}
                       {occs.length > 5 && (
-                        <p style={{ fontSize:11, color:C.muted, margin:"4px 0 0", textAlign:"center" }}>
+                        <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"4px 0 0", textAlign:"center" }}>
                           +{occs.length - 5} more — press Analyse to see all results
                         </p>
                       )}
@@ -12006,7 +12005,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   )}
                 </div>
               )}
-              <p style={{ margin:"8px 0 0", fontSize:11, color:C.muted, lineHeight:1.5 }}>
+              <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>
                 Use 1 to 3 words for best results - e.g.{" "}
                 <span style={{ color:C.textSub }}>HR Manager</span>,{" "}
                 <span style={{ color:C.textSub }}>Physician</span>,{" "}
@@ -12016,12 +12015,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               {showExpect ? (
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, padding: "8px 10px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 6 }}>
                   <span style={{ width:12, height:12, border:"2px solid #c3d3f5", borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                  <p style={{ margin:0, fontSize:12, color:C.accent, lineHeight:1.5, fontWeight:600 }}>
+                  <p style={{ margin:0, fontSize: "0.75rem", color:C.accent, lineHeight:1.5, fontWeight:600 }}>
                     Looking up your role - analysis on the way
                   </p>
                 </div>
               ) : (
-                <p style={{ margin:"6px 0 0", fontSize:12, color:C.textSub, lineHeight:1.6 }}>
+                <p style={{ margin:"6px 0 0", fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
                   Results are indicative - a starting point, not a final assessment.
                 </p>
               )}
@@ -12044,7 +12043,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         {step === "mcf_browse" && (
           <div>
             <button onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
-              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize:13, fontWeight:700, color:C.accent, cursor:"pointer" }}>
+              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize: "0.8125rem", fontWeight:700, color:C.accent, cursor:"pointer" }}>
               ← New search
             </button>
             <McfJobsPanel
@@ -12059,7 +12058,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               standalone
             />
             {comparisons.length > 0 && (
-              <p style={{ marginTop:12, fontSize:12, color:C.accent, textAlign:"center" }}>
+              <p style={{ marginTop:12, fontSize: "0.75rem", color:C.accent, textAlign:"center" }}>
                 {comparisons.length} posting{comparisons.length===1?"":"s"} queued for comparison — tap <strong>📊 Analyse this posting</strong> on any card to open the analysis, then run the comparison from there.
               </p>
             )}
@@ -12097,24 +12096,24 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           activeTab === "compare" && (
             <div style={{ marginTop:8 }}>
               <div style={{ marginBottom:14 }}>
-                <p style={{ margin:"0 0 8px", fontSize:11, color:C.muted }}>Tap or click a tab below to explore the results:</p>
+                <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", color:C.muted }}>Tap or click a tab below to explore the results:</p>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   <button onClick={() => setActiveTab("compare")}
                     style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px",
-                      borderRadius: 16, fontSize:12, fontWeight:600, cursor:"pointer",
+                      borderRadius: 16, fontSize: "0.75rem", fontWeight:600, cursor:"pointer",
                       border:"2px solid #1a56db", background:"#1a56db", color:"#fff", whiteSpace:"nowrap" }}>
                     {"⚖️ Compare (" + comparisons.filter(c => c.result && c.result.skills).length + ")"}
                   </button>
                   <button onClick={() => setActiveTab("skills")}
                     style={{ display:"inline-flex", alignItems:"center", gap:5, padding: "8px 14px",
-                      borderRadius: 16, fontSize:12, fontWeight:600, cursor:"pointer",
+                      borderRadius: 16, fontSize: "0.75rem", fontWeight:600, cursor:"pointer",
                       border:`2px solid ${C.border}`, background:C.surface, color:C.textSub, whiteSpace:"nowrap" }}>
                     ← Back to last role
                   </button>
                 </div>
               </div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
-                <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: 18, fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
+                <h2 className="t-heading" style={{ margin:"0 0 4px", fontSize: "1.125rem", fontWeight:800, color:C.text }}>⚖️ Role Comparison</h2>
                 
               </div>
               <ComparisonPanel
@@ -12173,7 +12172,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           const uiNavBox = (
               <div ref={tabBarRef} style={{ marginBottom:14, border:"1px solid rgba(255,255,255,0.55)", borderRadius:10, padding: "10px 12px 8px", background:"rgba(255,255,255,0.8)", backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", boxShadow:"0 10px 30px rgba(15,40,105,0.14), 0 2px 6px rgba(15,40,105,0.08)" }}>
                 {/* Text-size control moved to the global app header (mounted once there) */}
-                <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
+                <p style={{ margin:"0 0 10px", fontSize: "0.625rem", fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
                 {/* PL-NAV: pillar-grouped tree - driven from _PILLARS + _PILLAR_MAP.
@@ -12200,7 +12199,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                             boxShadow: isActive ? NEO.inset : NEO.raiseSm,
                             color: isActive ? C.accent : C.textSub,
                             fontWeight: isActive ? 700 : 600,
-                            fontSize: 13, textAlign: "left",
+                            fontSize: "0.8125rem", textAlign: "left",
                             outline: "none", transition: "all 0.15s",
                           }}
                           onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
@@ -12211,14 +12210,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                             style={{
                               flexShrink: 0, width: 20, height: 20, borderRadius: "50%",
                               display: "inline-flex", alignItems: "center", justifyContent: "center",
-                              fontSize: 10, fontWeight: 800,
+                              fontSize: "0.625rem", fontWeight: 800,
                               background: isActive ? C.accent : "#e3e9f1",
                               color: isActive ? "#fff" : C.muted,
                             }}
                           >{p.n}</span>
                           <span style={{ flex: 1 }}>{p.name}</span>
-                          {isActive && <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>- active</span>}
-                          <span aria-hidden="true" style={{ fontSize: 11, color: C.mutedLight, transform: isActive ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>&#9660;</span>
+                          {isActive && <span style={{ fontSize: "0.625rem", fontWeight: 700, color: C.accent }}>- active</span>}
+                          <span aria-hidden="true" style={{ fontSize: "0.6875rem", color: C.mutedLight, transform: isActive ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>&#9660;</span>
                         </button>
                         {/* Child section rows - visible only when this pillar is active */}
                         {isActive && sectionKeys.length > 0 && (
@@ -12241,7 +12240,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                                     background: isActiveChild ? C.accentSoft : "transparent",
                                     color: isActiveChild ? C.accent : C.textSub,
                                     fontWeight: isActiveChild ? 700 : 500,
-                                    fontSize: 12, textAlign: "left",
+                                    fontSize: "0.75rem", textAlign: "left",
                                     outline: "none", transition: "all 0.12s",
                                   }}
                                   onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
@@ -12249,7 +12248,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                                 >
                                   {isActiveChild && <span aria-hidden="true" style={{ flexShrink: 0, width: 6, height: 6, borderRadius: "50%", background: C.accent, display: "inline-block" }} />}
                                   <span>{lbl}</span>
-                                  {isActiveChild && <span style={{ fontSize: 10, fontWeight: 700, color: C.accent }}>- here</span>}
+                                  {isActiveChild && <span style={{ fontSize: "0.625rem", fontWeight: 700, color: C.accent }}>- here</span>}
                                 </button>
                               );
                             })}
@@ -12269,23 +12268,23 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           // across the two layout branches (wide two-column grid vs single-column stack).
           const uiTitleCard = (
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 18px", marginBottom:16 }}>
-                <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize: 18, fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
-                {result.description && <p style={{ margin:0, fontSize:13, color:C.textSub, lineHeight:1.6 }}>{result.description}</p>}
-                {result.iscoGroup && <p style={{ margin:"6px 0 0", fontSize:10, color:C.mutedLight }}>ESCO v1.2.1 · {result.iscoGroup}{sel.iscoCode ? <span> · <a href="https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08" target="_blank" rel="noopener noreferrer" style={{ color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>ISCO-08: {sel.iscoCode}</a></span> : ""}</p>}
+                <h2 className="t-heading" style={{ margin:"0 0 5px", fontSize: "1.125rem", fontWeight:800, color:C.text }}>{toTitleCase(sel.title)}</h2>
+                {result.description && <p style={{ margin:0, fontSize: "0.8125rem", color:C.textSub, lineHeight:1.6 }}>{result.description}</p>}
+                {result.iscoGroup && <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.mutedLight }}>ESCO v1.2.1 · {result.iscoGroup}{sel.iscoCode ? <span> · <a href="https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08" target="_blank" rel="noopener noreferrer" style={{ color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>ISCO-08: {sel.iscoCode}</a></span> : ""}</p>}
                 {result.escoCanonicalTitle && (
-                  <p style={{ margin:"3px 0 0", fontSize:10, color:"#d97706", fontStyle:"italic" }}>
+                  <p style={{ margin:"3px 0 0", fontSize: "0.625rem", color:"#d97706", fontStyle:"italic" }}>
                     Closest ESCO match: {result.escoCanonicalTitle} - ESCO does not have a canonical entry for this title.
                   </p>
                 )}
                 {result.source === "posting" && (
-                  <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
+                  <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
                     <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
                     {result.postingMeta && result.postingMeta.employer ? <span style={{ color:C.textSub }}>· {result.postingMeta.employer}</span> : null}
                     {result.postingMeta && result.postingMeta.mcfUrl ? <a href={result.postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>· Open posting →</a> : null}
                   </p>
                 )}
                 {result.source === "corpus" && (
-                  <p style={{ margin:"6px 0 0", fontSize:11, color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
+                  <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
                     <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
                     <span style={{ color:C.textSub }}>· aggregated from what real SG employers ask for, not one cherry-picked ad</span>
                   </p>
@@ -12294,22 +12293,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 {escoCoherenceStatus === "checking" && (
                   <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6, display:"flex", alignItems:"center", gap:8 }}>
                     <div style={{ width:10, height:10, borderRadius:"50%", border:"2px solid #fcd9a0", borderTop:"2px solid #d97706", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
-                    <p style={{ margin:0, fontSize:11, color:"#92400e" }}>The ESCO skills shown may not fully match this role as defined by ISCO-08 - AI is checking...</p>
+                    <p style={{ margin:0, fontSize: "0.6875rem", color:"#92400e" }}>The ESCO skills shown may not fully match this role as defined by ISCO-08 - AI is checking...</p>
                   </div>
                 )}
                 {escoCoherenceStatus === "suspect" && (
                   <div style={{ marginTop:8, padding: "8px 12px", background:"#fffbeb", border:"1px solid #fcd9a0", borderRadius: 6 }}>
-                    <p style={{ margin:"0 0 4px", fontSize:11, fontWeight:700, color:"#92400e" }}>⚠ The ESCO skills shown may not fully match this role as defined by ISCO-08.</p>
-                    <p style={{ margin:"0 0 8px", fontSize:11, color:"#92400e", lineHeight:1.5 }}>Some skills may be from an adjacent occupation and may not be directly relevant to this role. You can refresh the skills using AI, or search again with a more specific title.</p>
+                    <p style={{ margin:"0 0 4px", fontSize: "0.6875rem", fontWeight:700, color:"#92400e" }}>⚠ The ESCO skills shown may not fully match this role as defined by ISCO-08.</p>
+                    <p style={{ margin:"0 0 8px", fontSize: "0.6875rem", color:"#92400e", lineHeight:1.5 }}>Some skills may be from an adjacent occupation and may not be directly relevant to this role. You can refresh the skills using AI, or search again with a more specific title.</p>
                     <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                       <button
                         onClick={() => { setEscoCoherenceStatus(null); doAnalyse(sel, { forceHybrid: true }); }}
-                        style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#d97706", border:"1px solid #b45309", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:"#d97706", border:"1px solid #b45309", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         ↻ Refresh skills with AI
                       </button>
                       <button
                         onClick={() => { setStep("idle"); setResult(null); setEscoCoherenceStatus(null); window.scrollTo({ top:0, behavior:"smooth" }); }}
-                        style={{ fontSize:11, fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
+                        style={{ fontSize: "0.6875rem", fontWeight:700, color:"#92400e", background:"#fef3c7", border:"1px solid #fcd9a0", borderRadius: 6, padding: "4px 12px", cursor:"pointer", whiteSpace:"nowrap" }}>
                         Search again
                       </button>
                     </div>
@@ -12330,12 +12329,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       {comparisons.length > 0 && (
                         <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:8 }}>
                           {comparisons.map((c, i) => (
-                            <span key={i} style={{ fontSize:10, color: c.result ? C.green : C.accent, background: c.result ? C.greenBg : C.accentSoft, border:`1px solid ${c.result ? C.greenBdr : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
+                            <span key={i} style={{ fontSize: "0.625rem", color: c.result ? C.green : C.accent, background: c.result ? C.greenBg : C.accentSoft, border:`1px solid ${c.result ? C.greenBdr : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
                               {c.result ? "✓" : "⏳"} {c.title}
-                              <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize:11, color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>
+                              <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize: "0.6875rem", color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>
                             </span>
                           ))}
-                          {atLimit && <span style={{ fontSize:10, color:C.muted, fontStyle:"italic", alignSelf:"center" }}>3 roles maximum</span>}
+                          {atLimit && <span style={{ fontSize: "0.625rem", color:C.muted, fontStyle:"italic", alignSelf:"center" }}>3 roles maximum</span>}
                         </div>
                       )}
                       {/* Action buttons row */}
@@ -12346,7 +12345,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               const updated = [...comparisons, { title: currentTitle, result }];
                               softReset(updated);
                             }}
-                            style={{ fontSize:11, fontWeight:700, color: inSession ? "#fff" : C.accent, background: inSession ? C.accent : C.accentSoft, border:`1px solid ${inSession ? C.accent : "#c3d3f5"}`, borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
+                            style={{ fontSize: "0.6875rem", fontWeight:700, color: inSession ? "#fff" : C.accent, background: inSession ? C.accent : C.accentSoft, border:`1px solid ${inSession ? C.accent : "#c3d3f5"}`, borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
                             {inSession ? "＋ Add this role to comparison" : "＋ Start comparison with this role"}
                           </button>
                         )}
@@ -12356,7 +12355,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               handlePillarSelect("position");
                               setTimeout(() => tabBarRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }), 80);
                             }}
-                            style={{ fontSize:11, fontWeight:700, color:"#fff", background:"#0e7490", border:"none", borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
+                            style={{ fontSize: "0.6875rem", fontWeight:700, color:"#fff", background:"#0e7490", border:"none", borderRadius: 16, padding: "6px 14px", cursor:"pointer" }}>
                             Compare →
                           </button>
                         )}
@@ -12366,7 +12365,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 })()}
                 {persona && result.foundationData && (
                   <div style={{ marginTop:8, padding: "6px 10px", borderRadius:6, background:safePersona(persona).bg, border:`1px solid ${safePersona(persona).border}` }}>
-                    <span style={{ fontSize:11, color:safePersona(persona).color }}>
+                    <span style={{ fontSize: "0.6875rem", color:safePersona(persona).color }}>
                       {safePersona(persona).icon} <strong>{safePersona(persona).label}</strong> - foundation skills included
                     </span>
                   </div>
@@ -12399,34 +12398,34 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 return (
                 <div ref={queueBannerRef} style={{ background:"#e8f0fe", border:"1px solid #c3d3f5", borderRadius: 10, padding: "10px 14px", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap" }}>
                   <div>
-                    <p style={{ margin:0, fontSize:12, fontWeight:700, color:C.accent }}>
+                    <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.accent }}>
                       ⚖️ {totalCount} role{totalCount !== 1 ? "s" : ""} queued to compare
                     </p>
-                    <p style={{ margin:"2px 0 4px", fontSize:11, color:C.textSub }}>
+                    <p style={{ margin:"2px 0 4px", fontSize: "0.6875rem", color:C.textSub }}>
                       Comparing: {comparisons.map(c => c.title).join(" vs ")}
                     </p>
                     {isRunningComparison && compareStatus && (
-                      <p style={{ margin:"0 0 6px", fontSize:10, color:C.accent, fontStyle:"italic" }}>
+                      <p style={{ margin:"0 0 6px", fontSize: "0.625rem", color:C.accent, fontStyle:"italic" }}>
                         Step {compareStep} - {compareStatus}
                       </p>
                     )}
                     {!isRunningComparison && (
-                      <p style={{ margin:"0 0 6px", fontSize:10, color:C.muted, fontStyle:"italic" }}>
+                      <p style={{ margin:"0 0 6px", fontSize: "0.625rem", color:C.muted, fontStyle:"italic" }}>
                         Tap Run comparison to analyse all roles side by side.
                       </p>
                     )}
                     <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
                       {comparisons.map((c, i) => (
-                        <span key={i} style={{ fontSize:10, color: c.result ? "#1e40af" : C.accent, background: c.result ? "#eef2ff" : "#fff", border:`1px solid ${c.result ? "#c7d2fe" : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
+                        <span key={i} style={{ fontSize: "0.625rem", color: c.result ? "#1e40af" : C.accent, background: c.result ? "#eef2ff" : "#fff", border:`1px solid ${c.result ? "#c7d2fe" : "#c3d3f5"}`, borderRadius: 10, padding: "2px 8px", display:"inline-flex", alignItems:"center", gap:4 }}>
                           {c.result ? "✓" : "⏳"} {c.title}
-                          {!c.result && <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize:11, color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>}
+                          {!c.result && <button onClick={() => removeFromComparison(c.title)} style={{ background:"transparent", border:"none", fontSize: "0.6875rem", color:C.mutedLight, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>}
                         </span>
                       ))}
                     </div>
                   </div>
                   <button onClick={runQueuedComparisons}
                     disabled={isRunningComparison}
-                    style={{ padding: "8px 16px", fontSize:12, fontWeight:700, color:"#fff", background: isRunningComparison ? C.muted : C.accent, border:"none", borderRadius:6, cursor: isRunningComparison ? "not-allowed" : "pointer", flexShrink:0, display:"inline-flex", alignItems:"center", gap:6, opacity: isRunningComparison ? 0.8 : 1 }}>
+                    style={{ padding: "8px 16px", fontSize: "0.75rem", fontWeight:700, color:"#fff", background: isRunningComparison ? C.muted : C.accent, border:"none", borderRadius:6, cursor: isRunningComparison ? "not-allowed" : "pointer", flexShrink:0, display:"inline-flex", alignItems:"center", gap:6, opacity: isRunningComparison ? 0.8 : 1 }}>
                     {isRunningComparison
                       ? <><span style={{ width:11, height:11, border:"2px solid rgba(255,255,255,0.4)", borderTop:"2px solid #fff", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} /> Analysing ({compareStep}/{comparisons.length * 3 + 1})...</>
                       : "▶ Run comparison"
