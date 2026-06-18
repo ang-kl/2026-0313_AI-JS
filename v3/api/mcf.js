@@ -32,6 +32,8 @@ const COMPANY_SUFFIX_RE = /\s+(pte ltd|pte limited|private limited|ltd|limited|l
 // Page budget for company mode. 3 pages * PAGE_SIZE(30) = 90 candidates max.
 // Total outbound stays within MAX_OUTBOUND_CALLS(8): 3 search, 0 detail.
 const COMPANY_MAX_PAGES = 3;
+// CO2.4: max detail fetches for duty enrichment. 3 search + 5 detail = 8 = MAX_OUTBOUND_CALLS.
+const COMPANY_DUTY_DETAIL_LIMIT = 5;
 
 const WARM_ERRORS = {
   busy:     { code:'BUSY',     message:'MyCareersFuture is taking a short break. Please try again in a moment.' },
@@ -433,14 +435,61 @@ export default async function handler(req, res) {
   // ---- action: "company" — resolve employer name + list its live postings --------
   // Deterministic: no LLM, no invented count. Polls MCF search pages only (no
   // per-job detail fetch). resolveCompany normalises the name and groups by key.
+  // CO2.4: optional duties:true flag - when a single employer is confirmed,
+  // detail-fetches the top COMPANY_DUTY_DETAIL_LIMIT postings to get full
+  // responsibilitiesText. Budget: pagesPolled + detail <= MAX_OUTBOUND_CALLS.
+  // Ambiguous result -> dutiesWithheld:"ambiguous"; never duty-fetches across groups.
   if (action === 'company') {
     const company = (req.body?.company || '').toString().trim();
     if (!company) {
       return res.status(400).json({ error: 'Required: action="company", company=string' });
     }
     const limitCap = Math.max(1, Math.min(50, Number(req.body?.limit) || 50));
+    const wantDuties = req.body?.duties === true;
+    const detailLimitReq = Math.max(1, Math.min(COMPANY_DUTY_DETAIL_LIMIT, Number(req.body?.detailLimit) || COMPANY_DUTY_DETAIL_LIMIT));
     try {
       const result = await resolveCompany(company, limitCap);
+
+      // CO2.4: duty enrichment - only when a single employer group is confirmed.
+      if (wantDuties) {
+        if (result.ambiguous || result.matches.length !== 1) {
+          // Multiple or zero matches: withhold duties until user picks.
+          result.dutiesWithheld = 'ambiguous';
+        } else if (result.matches.length === 1) {
+          const group = result.matches[0];
+          // Budget: already spent pagesPolled search calls. Remaining = MAX_OUTBOUND_CALLS - pagesPolled.
+          const budgetRemaining = Math.max(0, MAX_OUTBOUND_CALLS - (result.pagesPolled || 0));
+          const fetchCount = Math.min(detailLimitReq, group.jobs.length, budgetRemaining);
+          // Sort jobs by postedDate desc (most recent first) to pick top N.
+          const sorted = group.jobs.slice().sort((a, b) => {
+            const da = a.postedDate ? new Date(a.postedDate).getTime() : 0;
+            const db = b.postedDate ? new Date(b.postedDate).getTime() : 0;
+            return db - da;
+          });
+          // Detail-fetch top fetchCount jobs in parallel, graceful on failure.
+          const toFetch = sorted.slice(0, fetchCount);
+          const fetchedUuids = new Set(toFetch.map(j => j.uuid));
+          const details = fetchCount > 0
+            ? await Promise.allSettled(toFetch.map(j => fetchJobDetail(j.uuid)))
+            : [];
+          const detailMap = {};
+          toFetch.forEach((j, i) => {
+            const d = details[i];
+            if (d && d.status === 'fulfilled' && d.value) detailMap[j.uuid] = d.value;
+          });
+          // Rebuild the group's jobs with enriched responsibilitiesText + dutyDetail flag.
+          const enrichedJobs = group.jobs.map(j => {
+            if (!fetchedUuids.has(j.uuid)) return { ...j, dutyDetail: false };
+            const merged = mergeDetail(j, detailMap[j.uuid] || null);
+            return { ...merged, dutyDetail: !!detailMap[j.uuid] };
+          });
+          // Patch the match in-place (result is a plain object).
+          result.matches = [{ ...group, jobs: enrichedJobs }];
+          result.dutiesEnriched = true;
+          result.detailFetched = toFetch.filter(j => !!detailMap[j.uuid]).length;
+        }
+      }
+
       return res.status(200).json(result);
     } catch (err) {
       const isTimeout = err && err.name === 'AbortError';
