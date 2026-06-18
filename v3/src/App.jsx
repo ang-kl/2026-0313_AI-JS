@@ -3650,15 +3650,20 @@ function Spinner({ label, step, total, firstTime, skills }) {
            viewports instead of staying phone-narrow; the skills + info cards
            reflow into responsive columns. Portrait/phone keeps one column. */
         .ldx-shell{max-width:620px;margin:0 auto}
+        /* The progress-ring card stays centred + narrow for readability; the skill
+           grid + info cards (which live directly in the shell) widen with the shell. */
         .ldx-card{max-width:620px;margin-left:auto;margin-right:auto}
         .ldx-skills-grid{display:block}
         @media (min-width:640px){.ldx-skills-grid{display:grid;grid-template-columns:repeat(2,1fr);column-gap:10px;align-items:start}}
-        @media (min-width:860px){
-          .ldx-shell{max-width:min(1180px,93vw)}
+        /* iPad mini / tablet portrait (~680-900px): expand the shell so the skill
+           cards occupy the side margin instead of staying in a 620px column. */
+        @media (min-width:680px){
+          .ldx-shell{max-width:min(1180px,94vw)}
           .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         }
-        @media (min-width:1024px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
-        @media (min-width:1180px){.ldx-shell{max-width:min(1320px,94vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
+        @media (min-width:900px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
+        /* Notebook + up: fill more of the viewport, keeping a small reading margin. */
+        @media (min-width:1180px){.ldx-shell{max-width:min(1440px,95vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
       <div className="ldx-shell">
         <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
