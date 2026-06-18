@@ -2,6 +2,8 @@
 // POST /api/mcf - body:
 //   { action: "jobs", title, escoOccupation: { preferredLabel, altLabels, broaderConcept? },
 //     skills: [{ skill, isEssential }], limit?: 10, detail?: false, detailLimit?: 5 }
+//   { action: "company", company: "<name>", limit?: 50 }
+//   { action: "job", uuid: "<uuid>" }
 // Public unauthenticated MCF API (api.mycareersfuture.gov.sg/v2/jobs).
 // Cascade: title+altLabels -> ESCO essential skills -> weighted keyword fallback.
 // When detail:true, also fetches per-job detail pages for the top N jobs to get
@@ -21,6 +23,15 @@ const PAGE_SIZE = 30;
 const DESC_CAP = 4000;
 const RESP_CAP = 2500;
 const DEFAULT_DETAIL_LIMIT = 5;
+
+// ---- action: "company" consts ------------------------------------------------
+// Repeated-strip suffix list (R007: ASCII only). Applied after lowercasing and
+// punctuation-collapsing (CO1.5 step 3), so "Pte. Ltd." has already become
+// "pte ltd" before this RE runs. Anchored at end; applied repeatedly until stable.
+const COMPANY_SUFFIX_RE = /\s+(pte ltd|pte limited|private limited|ltd|limited|llp|lp|llc|inc|incorporated|co|company|corp|corporation|sg|singapore|s pte ltd|asia pacific|asia)$/i;
+// Page budget for company mode. 3 pages * PAGE_SIZE(30) = 90 candidates max.
+// Total outbound stays within MAX_OUTBOUND_CALLS(8): 3 search, 0 detail.
+const COMPANY_MAX_PAGES = 3;
 
 const WARM_ERRORS = {
   busy:     { code:'BUSY',     message:'MyCareersFuture is taking a short break. Please try again in a moment.' },
@@ -268,12 +279,180 @@ async function mcfSearch(query, { limit = PAGE_SIZE } = {}) {
   }
 }
 
+// ---- action: "company" helpers -----------------------------------------------
+
+// Paged MCF search - offset version used exclusively by resolveCompany.
+// Does NOT modify mcfSearch (frozen). Returns normalised jobs or [] on failure.
+async function mcfSearchPage(query, offset) {
+  if (!query || !query.trim()) return [];
+  const url = `${MCF_BASE}?search=${encodeURIComponent(query)}&limit=${PAGE_SIZE}&offset=${offset}`;
+  try {
+    const res = await fetchWithTimeout(url, MCF_TIMEOUT_MS);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const results = data?.results || [];
+    return results.map(normaliseJob).filter(Boolean);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Deterministic company-name normaliser (CO1.5). Applied identically to the
+// user query and to each MCF postedCompanyName / hiringCompanyName.
+// Steps: decode HTML entities -> lowercase -> non-alphanumeric runs to single
+// space -> trim -> repeatedly strip trailing legal suffix -> collapse + trim.
+function normaliseCompanyName(raw) {
+  let s = decodeEntities(String(raw || ''));
+  s = s.toLowerCase();
+  s = s.replace(/[^a-z0-9]+/g, ' ');
+  s = s.trim();
+  // Strip trailing legal suffix tokens repeatedly until none remain.
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(COMPANY_SUFFIX_RE, '').trim();
+  } while (s !== prev);
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+// Whole-token-prefix match: does employer key e match query key q?
+// EXACT: e === q
+// PREFIX: e starts with (q + " ") OR q starts with (e + " ")
+// NO substring match (guards "dbs" swallowing "dbsx").
+function companyKeyMatches(q, e) {
+  if (!q || !e) return false;
+  if (e === q) return true;
+  if (e.startsWith(q + ' ')) return true;
+  if (q.startsWith(e + ' ')) return true;
+  return false;
+}
+
+// Resolve employer from an MCF search: poll up to COMPANY_MAX_PAGES pages,
+// filter jobs by matching company name, group by normalised employer key.
+// Returns { matches, query, queryKey, ambiguous, totalPostings, pagesPolled, source }
+// or throws on hard error (caught by caller).
+// Never calls fetchJobDetail - search pages only.
+async function resolveCompany(companyQuery, limitCap) {
+  const query = String(companyQuery || '').trim();
+  const queryKey = normaliseCompanyName(query);
+
+  if (!queryKey) {
+    return {
+      matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
+      pagesPolled: 0, fallback: true, ...WARM_ERRORS.empty,
+      source: 'MyCareersFuture Singapore',
+    };
+  }
+
+  // Poll up to COMPANY_MAX_PAGES search pages. Use the original query as the
+  // MCF full-text search term so MCF pre-filters candidate postings.
+  let allJobs = [];
+  let pagesPolled = 0;
+  for (let page = 0; page < COMPANY_MAX_PAGES; page++) {
+    const offset = page * PAGE_SIZE;
+    const hits = await mcfSearchPage(query, offset);
+    pagesPolled++;
+    allJobs = allJobs.concat(hits);
+    if (hits.length < PAGE_SIZE) break; // last page reached
+  }
+
+  // Deduplicate by uuid.
+  const seen = new Set();
+  const unique = [];
+  for (const j of allJobs) {
+    if (seen.has(j.uuid)) continue;
+    seen.add(j.uuid);
+    unique.push(j);
+  }
+
+  // Filter: keep only jobs whose posted OR hiring company key matches the query key.
+  const filtered = unique.filter(j => {
+    const pk = normaliseCompanyName(j.postedCompanyName);
+    const hk = normaliseCompanyName(j.hiringCompanyName);
+    return companyKeyMatches(queryKey, pk) || companyKeyMatches(queryKey, hk);
+  });
+
+  if (!filtered.length) {
+    return {
+      matches: [], query, queryKey, ambiguous: false, totalPostings: 0,
+      pagesPolled, fallback: true,
+      code: 'EMPTY',
+      message: 'No live MyCareersFuture postings found for that company.',
+      source: 'MyCareersFuture Singapore',
+    };
+  }
+
+  // Group by normalised employer key. The key is derived from postedCompanyName
+  // (preferred) or hiringCompanyName. displayName is the verbatim MCF name from
+  // the first (latest-posted) job in the group - never re-cased by us.
+  const groups = {};
+  for (const j of filtered) {
+    const pk = normaliseCompanyName(j.postedCompanyName);
+    const hk = normaliseCompanyName(j.hiringCompanyName);
+    // Use whichever key actually matched the query.
+    const matchKey = companyKeyMatches(queryKey, pk) ? pk : hk;
+    const verbatim = companyKeyMatches(queryKey, pk)
+      ? (j.postedCompanyName || j.hiringCompanyName)
+      : (j.hiringCompanyName || j.postedCompanyName);
+    if (!groups[matchKey]) {
+      groups[matchKey] = { key: matchKey, displayName: verbatim, jobs: [] };
+    }
+    groups[matchKey].jobs.push(j);
+  }
+
+  // Sort groups: count desc, then displayName asc.
+  let matches = Object.values(groups).sort((a, b) => {
+    const dc = b.jobs.length - a.jobs.length;
+    return dc !== 0 ? dc : a.displayName.localeCompare(b.displayName);
+  });
+
+  // Apply limit cap to the jobs within each match (not to the groups themselves).
+  if (limitCap > 0) {
+    matches = matches.map(m => ({ ...m, jobs: m.jobs.slice(0, limitCap) }));
+  }
+
+  // Add count as a stable field (pass-through arithmetic, never minted).
+  matches = matches.map(m => ({ ...m, count: m.jobs.length }));
+
+  const totalPostings = matches.reduce((acc, m) => acc + m.count, 0);
+  const ambiguous = matches.length >= 2;
+
+  return {
+    matches, query, queryKey, ambiguous, totalPostings, pagesPolled,
+    source: 'MyCareersFuture Singapore',
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { action, title, escoOccupation, skills, limit, detail, detailLimit } = req.body || {};
+
+  // ---- action: "company" — resolve employer name + list its live postings --------
+  // Deterministic: no LLM, no invented count. Polls MCF search pages only (no
+  // per-job detail fetch). resolveCompany normalises the name and groups by key.
+  if (action === 'company') {
+    const company = (req.body?.company || '').toString().trim();
+    if (!company) {
+      return res.status(400).json({ error: 'Required: action="company", company=string' });
+    }
+    const limitCap = Math.max(1, Math.min(50, Number(req.body?.limit) || 50));
+    try {
+      const result = await resolveCompany(company, limitCap);
+      return res.status(200).json(result);
+    } catch (err) {
+      const isTimeout = err && err.name === 'AbortError';
+      return res.status(200).json({
+        matches: [], query: company, queryKey: normaliseCompanyName(company),
+        ambiguous: false, totalPostings: 0, pagesPolled: 0,
+        fallback: true,
+        ...(isTimeout ? WARM_ERRORS.timeout : WARM_ERRORS.server),
+        source: 'MyCareersFuture Singapore',
+      });
+    }
+  }
 
   // ---- action: "job" — fetch ONE posting by uuid (+ a rough live-demand proxy) ----
   // Powers the ?view=leap stakeholder graph. Best-effort, always 200 with a warm
