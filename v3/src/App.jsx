@@ -792,6 +792,18 @@
 // <Term> glossary tooltips; +1 detail font + 1/2/3/4-column analysis screen; liquid-glass floating
 // nav rail beside the title card. Presentation/IA only - no engine number authored, moved, or
 // recomputed across the arc; engine + frozen door untouched throughout. G1 (v3.0.77 -> v3.0.78).
+// v3.0.79 - 2026-06-18 - HDR #117 - HEADER TEXT-SIZE + JOB-AD HTML + SKILLS TRACE (Human Lead
+// directives). (1) Text-size control moved into the global app header, which is now sticky
+// (position:sticky top:0 zIndex:50) so it stays reachable while scrolling; the left nav rail drops
+// to top:64 and section anchors gain scrollMarginTop:64 so jumps still land clear of the pinned
+// header. The control collapses from four absolute buttons (A-/A/A+/A++) to a three-button stepper -
+// decrease one notch / reset / increase one notch - restyled for the dark header; end states are
+// encoded by opacity+border, not colour alone (a11y). Same UI_SCALE_STEPS machinery + persistence.
+// (2) JobAdDrawer now runs the posting text through _stripHtml before _fmtJobAd, so raw-HTML
+// postings (e.g. <p><strong>...) render as structured text instead of visible tags. (3) MON:
+// log-only skills_resolved trace (total vs unique skill count + dup names) on the main analyse
+// path, for the double-skill watch - captured under ?dmm=1 / ?debug=panel; no de-dup, behaviour
+// unchanged. Presentation + observability only; no engine number authored; frozen door untouched.
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -3656,15 +3668,20 @@ function Spinner({ label, step, total, firstTime, skills }) {
            viewports instead of staying phone-narrow; the skills + info cards
            reflow into responsive columns. Portrait/phone keeps one column. */
         .ldx-shell{max-width:620px;margin:0 auto}
+        /* The progress-ring card stays centred + narrow for readability; the skill
+           grid + info cards (which live directly in the shell) widen with the shell. */
         .ldx-card{max-width:620px;margin-left:auto;margin-right:auto}
         .ldx-skills-grid{display:block}
         @media (min-width:640px){.ldx-skills-grid{display:grid;grid-template-columns:repeat(2,1fr);column-gap:10px;align-items:start}}
-        @media (min-width:860px){
-          .ldx-shell{max-width:min(1180px,93vw)}
+        /* iPad mini / tablet portrait (~680-900px): expand the shell so the skill
+           cards occupy the side margin instead of staying in a 620px column. */
+        @media (min-width:680px){
+          .ldx-shell{max-width:min(1180px,94vw)}
           .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         }
-        @media (min-width:1024px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
-        @media (min-width:1180px){.ldx-shell{max-width:min(1320px,94vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
+        @media (min-width:900px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
+        /* Notebook + up: fill more of the viewport, keeping a small reading margin. */
+        @media (min-width:1180px){.ldx-shell{max-width:min(1440px,95vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
       <div className="ldx-shell">
         <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
@@ -4048,7 +4065,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
 
       {/* Section B - All results by sector */}
       {occs.length > 0 && (
-        <div ref={browseRef}>
+        <div ref={browseRef} style={{ scrollMarginTop: 64 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: pickerFullLoading ? 6 : 8, paddingTop: topPicks.length > 0 ? 4 : 0, borderTop: topPicks.length > 0 ? `1px solid ${C.border}` : "none" }}>
             <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
               Browse all roles
@@ -5950,7 +5967,7 @@ function JobAdDrawer({ result, open, onClose }) {
   const rd = result && result.responsibilitiesData;
   const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
   const job = jobs.find(j => j && (j.description || j.responsibilitiesText)) || jobs[0] || null;
-  const adText = job ? String(job.description || job.responsibilitiesText || "").trim() : "";
+  const adText = job ? _stripHtml(String(job.description || job.responsibilitiesText || "")) : "";
   const blocks = _fmtJobAd(adText);
   const termRe = _jdTermRe(result);
   // Drag via document-level listeners (most reliable across browsers/trackpads). preventDefault stops
@@ -9930,54 +9947,94 @@ export function PipelineLogsView() {
 // Coverage: rides .t-body / .t-label / .t-meta / .t-sub / .result-text-sm /
 // .result-text-xs / .result-label (~60-70% of detail text); raw inline-px text
 // will not scale - acceptable, documented here.
-const UI_SCALE_LABELS = [
-  { v: 0.92, label: "A-", ariaLabel: "Decrease text size" },
-  { v: 1,    label: "A",  ariaLabel: "Reset text size" },
-  { v: 1.12, label: "A+", ariaLabel: "Increase text size" },
-  { v: 1.25, label: "A++",ariaLabel: "Increase text size further" },
-];
-function TextSizeControl({ uiTextScale, applyTextScale }) {
+// Discrete text-size steps shared with the App component's UI_SCALE_STEPS state
+// machinery. Kept module-level so TextSizeControl can step up/down through the
+// SAME notches without re-declaring the array. (Default passed via `steps` prop.)
+const UI_SCALE_LABELS = [0.92, 1, 1.12, 1.25];
+// Header-mounted, dark-surface text-size control. Three buttons: decrease one
+// notch / reset to 1 / increase one notch. Styled to match the header's V2 link
+// and New Search button (translucent white on C.eu). End states are encoded by
+// opacity + border (not colour alone) to satisfy the a11y contract.
+function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
+  const arr = (Array.isArray(steps) && steps.length) ? steps : UI_SCALE_LABELS;
+  // Snap current scale to the nearest known step index (tolerant of float drift).
+  let idx = 0, best = Infinity;
+  arr.forEach((s, i) => { const d = Math.abs(uiTextScale - s); if (d < best) { best = d; idx = i; } });
+  const atMin = idx <= 0;
+  const atMax = idx >= arr.length - 1;
+  const isReset = Math.abs(uiTextScale - 1) < 0.01;
+  const decrease = () => { if (!atMin) applyTextScale(arr[idx - 1]); };
+  const increase = () => { if (!atMax) applyTextScale(arr[idx + 1]); };
+  const btnBase = {
+    minWidth: 44, minHeight: 44,
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    fontWeight: 700, lineHeight: 1,
+    color: "#fff",
+    background: "rgba(255,255,255,0.15)",
+    border: "1px solid rgba(255,255,255,0.35)",
+    borderRadius: 7,
+    cursor: "pointer",
+    outline: "none",
+    transition: "all 0.15s",
+  };
+  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.95)"; };
+  const focusOff = e => { e.currentTarget.style.boxShadow = "none"; };
   return (
     <div
       role="group"
-      aria-label="Text size"
-      style={{
-        display: "flex", alignItems: "center", gap: 4,
-        padding: "6px 10px 8px",
-        borderBottom: `1px solid ${C.border}`,
-        marginBottom: 8,
-      }}
+      aria-label={`Text size, currently ${Math.round(uiTextScale * 100)} percent`}
+      style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}
     >
-      <span style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.07em", marginRight: 4 }}>Text size</span>
-      {UI_SCALE_LABELS.map(sl => {
-        const isActive = Math.abs(uiTextScale - sl.v) < 0.01;
-        return (
-          <button
-            key={sl.v}
-            aria-label={sl.ariaLabel}
-            aria-pressed={isActive}
-            onClick={() => applyTextScale(sl.v)}
-            style={{
-              minWidth: 44, minHeight: 44,
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              fontSize: sl.label.length > 2 ? 10 : 13,
-              fontWeight: 700,
-              color: isActive ? C.accent : C.textSub,
-              background: isActive ? C.accentSoft : C.surface,
-              border: `2px solid ${isActive ? C.accent : C.border}`,
-              borderRadius: 8,
-              cursor: "pointer",
-              boxShadow: isActive ? NEO.inset : NEO.raiseSm,
-              outline: "none",
-              transition: "all 0.15s",
-            }}
-            onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
-            onBlur={e => { e.currentTarget.style.boxShadow = isActive ? NEO.inset : NEO.raiseSm; }}
-          >
-            {sl.label}
-          </button>
-        );
-      })}
+      <button
+        type="button"
+        aria-label="Decrease text size"
+        aria-disabled={atMin}
+        onClick={decrease}
+        onFocus={focusOn}
+        onBlur={focusOff}
+        style={{
+          ...btnBase,
+          fontSize: 12,
+          opacity: atMin ? 0.4 : 1,
+          cursor: atMin ? "default" : "pointer",
+          borderColor: atMin ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
+        }}
+      >
+        <span style={{ fontSize: 11 }}>A</span>-
+      </button>
+      <button
+        type="button"
+        aria-label="Reset text size"
+        aria-pressed={isReset}
+        onClick={() => applyTextScale(1)}
+        onFocus={focusOn}
+        onBlur={focusOff}
+        style={{
+          ...btnBase,
+          fontSize: 14,
+          background: isReset ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+          borderColor: isReset ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.35)",
+        }}
+      >
+        A
+      </button>
+      <button
+        type="button"
+        aria-label="Increase text size"
+        aria-disabled={atMax}
+        onClick={increase}
+        onFocus={focusOn}
+        onBlur={focusOff}
+        style={{
+          ...btnBase,
+          fontSize: 12,
+          opacity: atMax ? 0.4 : 1,
+          cursor: atMax ? "default" : "pointer",
+          borderColor: atMax ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
+        }}
+      >
+        <span style={{ fontSize: 16 }}>A</span>+
+      </button>
     </div>
   );
 }
@@ -10610,6 +10667,23 @@ export default function App() {
         const r = ratings.find(x => x.n === s.n) || {};
         return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
       });
+      // MON: skills_resolved trace - surfaces the resolved skill list size and any
+      // duplicate skills (keyed by escoUri, else skill name, lowercased) for later
+      // review of the double-skill watch. The key mixes URI-space and name-space, so
+      // the dup count is a heuristic watch signal, not an exact duplicate count.
+      // Log-only: no de-dup, behaviour unchanged.
+      // Captured when debug logging is on (?dmm=1 / ?debug=panel / ?debug=logs).
+      (() => {
+        const seen = new Set(); let dup = 0; const dupNames = [];
+        merged.forEach(s => {
+          const k = String((s.escoUri || s.skill) || "").trim().toLowerCase();
+          if (!k) return;
+          if (seen.has(k)) { dup++; if (dupNames.length < 8) dupNames.push(s.skill); }
+          else seen.add(k);
+        });
+        logStep("skills_resolved", dup ? "warn" : "ok", null,
+          `${merged.length} skills, ${merged.length - dup} unique${dup ? `, ${dup} dup: ${dupNames.join(", ")}` : ""}`);
+      })();
       // Stage 3 enriched spinner - automation breakdown + role glimpses
       const lvlCounts = { HIGH:0, MEDIUM:0, LOW:0, HUMAN:0 };
       merged.forEach(s => { if (lvlCounts[s.level] !== undefined) lvlCounts[s.level]++; });
@@ -11489,7 +11563,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         {keys.map(k => {
           const sec = renderSection(k);
           if (!sec) return null;
-          return <div key={k} id={"sec-" + k}>{sec}</div>;
+          return <div key={k} id={"sec-" + k} style={{ scrollMarginTop: 64 }}>{sec}</div>;
         })}
       </div>
     );
@@ -11528,6 +11602,18 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
          Applied via localStorage key uiTextScale on mount.
          Scales detail text classes only; .t-heading stays fixed. */
       :root { --ui-scale: 1; }
+      /* Mobile / narrow (< 768px): the per-breakpoint --ui-scale font rules below
+         all start at min-width:768px, so the text-size control was inert on phones
+         (it set --ui-scale but nothing consumed it). The classed elements also carry
+         inline px that the class rules only override via !important at >=768px, so a
+         class-based mobile rule would shift the default sizes. Instead scale the whole
+         result container with zoom: it is a no-op at scale 1, covers ALL detail text
+         (including the inline-px text the class rules cannot reach), and on phones there
+         is no sticky nav rail inside main-content (PillarBar is the nav), so no
+         zoom-vs-sticky interaction. zoom is ignored on very old browsers (graceful). */
+      @media (max-width: 767px) {
+        .main-content { zoom: var(--ui-scale, 1); }
+      }
       @media (min-width: 768px) {
         body { font-size: 16px; }
         .t-body { font-size: calc(16px * var(--ui-scale, 1)) !important; }
@@ -11726,21 +11812,24 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         />
       )}
       {/* flexWrap: at phone widths the buttons wrap UNDER the title instead of overlapping it */}
-      {/* position+zIndex: keeps the solid header above the fixed LUX1 backdrop layer */}
-      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap", position:"relative", zIndex:1 }}>
+      {/* position+zIndex: sticky-pinned, opaque C.eu header that stays above page content and the
+          sticky left nav rail (top:64). zIndex:50 clears both the rail and the LUX1 backdrop layer */}
+      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap", position:"sticky", top:0, zIndex:50 }}>
         <span style={{ color:C.euStar, fontSize:18, flexShrink:0 }}>★</span>
         <div style={{ flex:"1 0 200px", minWidth:0 }}>
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
-          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0 }}>
+          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
           V2 - ESCO EU skillsets
         </a>
         {step !== "idle" && (
-          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
+          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
             New Search
           </button>
         )}
+        {/* Global text-size control: mounted once here so it shows in both wide and phone layouts */}
+        <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} steps={UI_SCALE_STEPS} />
       </div>
 
       {/* Toast notification */}
@@ -12042,8 +12131,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
           const uiNavBox = (
               <div ref={tabBarRef} style={{ marginBottom:14, border:"1px solid rgba(255,255,255,0.55)", borderRadius:10, padding: "10px 12px 8px", background:"rgba(255,255,255,0.8)", backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", boxShadow:"0 10px 30px rgba(15,40,105,0.14), 0 2px 6px rgba(15,40,105,0.08)" }}>
-                {/* Text-size control at top of nav rail (wide layout) */}
-                <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} />
+                {/* Text-size control moved to the global app header (mounted once there) */}
                 <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
@@ -12315,8 +12403,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   PillarBar renders only on narrow (phone); never on wide. */}
               {(uiV2 && uiWide) ? (
                 <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
-                  {/* Left rail: sticky liquid-glass nav - position:sticky works because ancestors use overflow-x:clip not hidden */}
-                  <div style={{ position:"sticky", top:12 }}>{uiNavBox}</div>
+                  {/* Left rail: sticky liquid-glass nav - top:64 sits it below the sticky header (zIndex:50) */}
+                  <div style={{ position:"sticky", top:64 }}>{uiNavBox}</div>
                   {/* Right column: title card + summary + comparison banner + pillar content + legend (no PillarBar on wide) */}
                   <div style={{ minWidth:0 }}>
                     {uiTitleCard}
@@ -12341,12 +12429,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   {uiSummaryCard}
                   {/* PL3: PillarBar - phone-only nav (uiV2 narrow). Hidden on wide (nav rail used instead). */}
                   {uiV2 && <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />}
-                  {/* Text-size control on phone: compact bar near PillarBar */}
-                  {uiV2 && (
-                    <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: 4 }}>
-                      <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} />
-                    </div>
-                  )}
+                  {/* Text-size control moved to the global app header (mounted once there) */}
                   {uiComparisonBanner}
                   {!uiV2 && (
                     <>
