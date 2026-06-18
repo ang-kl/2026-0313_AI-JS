@@ -11394,7 +11394,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
   const [agentsModel, setAgentsModel] = useState(null);
   const [agentsKgPayload, setAgentsKgPayload] = useState(null);
-  const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force"
+  const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force" | "workflow"
   const [tapNodeId, setTapNodeId] = useState(null); // side-panel open state
   const [agentsError, setAgentsError] = useState("");
 
@@ -11608,12 +11608,23 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                <button onClick={function() { setAgentLayout(function(l) { return l === "force" ? "lanes" : "force"; }); }}
-                  aria-pressed={agentLayout === "force"}
-                  aria-label={"Toggle layout: currently " + agentLayout}
-                  style={{ minHeight: 36, padding: "5px 12px", background: agentLayout === "force" ? "#0369a1" : "#fff", border: "1px solid #7dd3fc", borderRadius: 8, color: agentLayout === "force" ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                  {agentLayout === "force" ? "Lanes view" : "Force map"}
-                </button>
+                {/* CO2.2: 3-way segmented control - Lanes | Neural | Workflow.
+                    Each segment is 44px min, aria-pressed, drives agentLayout state. */}
+                <div role="group" aria-label="Graph layout" style={{ display: "flex", border: "1px solid #7dd3fc", borderRadius: 8, overflow: "hidden" }}>
+                  {[["lanes", "Lanes"], ["force", "Neural"], ["workflow", "Workflow"]].map(function(pair) {
+                    const val = pair[0], lbl = pair[1];
+                    const active = agentLayout === val;
+                    return (
+                      <button key={val}
+                        onClick={function() { setAgentLayout(val); }}
+                        aria-pressed={active}
+                        aria-label={lbl + " layout" + (active ? ", currently selected" : "")}
+                        style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "workflow" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        {lbl}
+                      </button>
+                    );
+                  })}
+                </div>
                 <button onClick={function() { setAgentsView("off"); setAgentsModel(null); setAgentsKgPayload(null); setTapNodeId(null); }}
                   aria-label="Close AI moments panel"
                   style={{ minHeight: 36, padding: "5px 12px", background: "transparent", border: "1px solid #7dd3fc", borderRadius: 8, color: "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
