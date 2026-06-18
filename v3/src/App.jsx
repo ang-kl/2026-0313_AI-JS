@@ -5933,6 +5933,47 @@ function _fmtJobAd(text) {
   flush();
   return blocks;
 }
+// ── Slice 2: structured sections. parseJobAd folds the flat _fmtJobAd blocks into
+// classified sections (one per h2 heading; blocks before the first heading become a
+// headless "intro"). Deterministic - nothing reworded; verbatim text and order are
+// preserved. _jdKind tags each section so the drawer can default the less-critical
+// sections (Benefits / About / other) to collapsed in the small floating window.
+const _JD_KIND_RE = [
+  ["resp",    /^(key\s+)?(responsibilit|duties|the\s+role|role\s+(overview|description)|what\s+you|job\s+(scope|summary|description)|day\s+to\s+day|accountabilit|your\s+role)/i],
+  ["req",     /^(requirement|qualification|pre-?requisite|requisite|who\s+(you|we)|skills?\b|competenc|experience|education|the\s+ideal|ideal\s+candidate|minimum|preferred|nice\s+to\s+have|what\s+we\s+(look|need))/i],
+  ["benefit", /^(benefit|perks?|what\s+we\s+offer|we\s+offer|why\s+(join|work|us)|compensation|remuneration|salary)/i],
+  ["about",   /^(about|who\s+we\s+are|company|our\s+(company|team|mission)|overview)/i],
+];
+function _jdKind(heading) {
+  const h = String(heading || "").replace(/\s*:$/, "");
+  for (const [k, re] of _JD_KIND_RE) if (re.test(h)) return k;
+  return "other";
+}
+function parseJobAd(text) {
+  const blocks = _fmtJobAd(text);
+  const sections = []; let cur = null, n = 0;
+  const push = () => { if (cur && cur.blocks.length) sections.push(cur); };
+  for (const b of blocks) {
+    if (b.t === "h2") {
+      push();
+      const kind = _jdKind(b.text);
+      cur = { id: `jdsec-${n++}`, heading: b.text, kind, blocks: [], defaultCollapsed: kind === "benefit" || kind === "about" || kind === "other" };
+    } else {
+      if (!cur) cur = { id: `jdsec-${n++}`, heading: "", kind: "intro", blocks: [], defaultCollapsed: false };
+      cur.blocks.push(b);
+    }
+  }
+  push();
+  return sections;
+}
+// Render one within-section block (h3 sub-heading / bullet / paragraph). h2 are
+// consumed as section headings by parseJobAd, so they won't normally land here.
+function _renderJdBlock(b, i, termRe) {
+  if (b.t === "h3") return <p key={i} style={{ margin: "12px 0 5px", fontSize: "0.8125rem", fontWeight: 800, color: "#1e40af" }}>{b.text}</p>;
+  if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: "0.8125rem", color: C.text, lineHeight: 1.6 }}>{_jdEmphasize(b.text, termRe)}</span></div>;
+  if (b.t === "h2") return <p key={i} style={{ margin: "16px 0 7px", fontSize: "0.875rem", fontWeight: 800, color: "#1e3a5f" }}>{b.text}</p>;
+  return <p key={i} style={{ margin: "0 0 9px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.7 }}>{_jdEmphasize(b.text, termRe)}</p>;
+}
 // "underline key words": the role's own multi-word skill phrases, underlined where they appear in the
 // ad - a non-arbitrary link between the posting and the analysis (no AI; just the analysed skills).
 function _jdTermRe(result) {
@@ -5969,7 +6010,21 @@ function JobAdFab({ onClick }) {
 function JobAdDrawer({ result, open, onClose }) {
   const closeRef = useRef(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
-  useEffect(() => { if (open) setPos({ x: 0, y: 0 }); }, [open]); // reset position each open
+  // Derive structured sections (deterministic, no hooks) so the open-effect can seed
+  // which sections start collapsed.
+  const rd = result && result.responsibilitiesData;
+  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+  const job = jobs.find(j => j && (j.description || j.responsibilitiesText)) || jobs[0] || null;
+  const adText = job ? _stripHtml(String(job.description || job.responsibilitiesText || "")) : "";
+  const sections = parseJobAd(adText);
+  const [collapsed, setCollapsed] = useState(() => new Set());
+  // On each open: reset position AND seed which sections start collapsed.
+  useEffect(() => {
+    if (!open) return;
+    setPos({ x: 0, y: 0 });
+    setCollapsed(new Set(sections.filter(s => s.defaultCollapsed).map(s => s.id)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
   useEffect(() => {
     if (!open) return;
     const onKey = e => { if (e.key === "Escape") onClose(); };
@@ -5978,12 +6033,8 @@ function JobAdDrawer({ result, open, onClose }) {
     return () => { document.removeEventListener("keydown", onKey); clearTimeout(t); };
   }, [open, onClose]);
   if (!open) return null;
-  const rd = result && result.responsibilitiesData;
-  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
-  const job = jobs.find(j => j && (j.description || j.responsibilitiesText)) || jobs[0] || null;
-  const adText = job ? _stripHtml(String(job.description || job.responsibilitiesText || "")) : "";
-  const blocks = _fmtJobAd(adText);
   const termRe = _jdTermRe(result);
+  const toggleSection = id => setCollapsed(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   // Drag via document-level listeners (most reliable across browsers/trackpads). preventDefault stops
   // the browser starting a text-selection instead of a drag; pointer events cover mouse + touch.
   const onDragStart = e => {
@@ -6016,14 +6067,23 @@ function JobAdDrawer({ result, open, onClose }) {
         <button ref={closeRef} onClick={onClose} onPointerDown={e => e.stopPropagation()} aria-label="Close job advertisement" style={{ flexShrink: 0, minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#fff", fontSize: 22, cursor: "pointer", borderRadius: 10, lineHeight: 1 }}>×</button>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px" }}>
-        {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: 11, color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
-        {blocks.length ? blocks.map((b, i) => {
-          if (b.t === "h2") return <p key={i} style={{ margin: i ? "16px 0 7px" : "0 0 7px", fontSize: 14, fontWeight: 800, color: "#1e3a5f", borderBottom: `1px solid ${C.border}`, paddingBottom: 3 }}>{b.text}</p>;
-          if (b.t === "h3") return <p key={i} style={{ margin: "12px 0 5px", fontSize: 13, fontWeight: 800, color: "#1e40af" }}>{b.text}</p>;
-          if (b.t === "li") return <div key={i} style={{ display: "flex", gap: 7, margin: "0 0 5px" }}><span aria-hidden="true" style={{ color: "#1e40af", flexShrink: 0 }}>•</span><span style={{ fontSize: 13, color: C.text, lineHeight: 1.6 }}>{_jdEmphasize(b.text, termRe)}</span></div>;
-          return <p key={i} style={{ margin: "0 0 9px", fontSize: 13, color: C.text, lineHeight: 1.7 }}>{_jdEmphasize(b.text, termRe)}</p>;
-        }) : <p style={{ margin: 0, fontSize: 12, color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
-        {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: 12, fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
+        {jobs.length > 1 && <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>One of {jobs.length} sampled postings.</p>}
+        {sections.length ? sections.map(sec => {
+          const body = sec.blocks.map((b, i) => _renderJdBlock(b, i, termRe));
+          if (!sec.heading) return <div key={sec.id}>{body}</div>;
+          const isCol = collapsed.has(sec.id);
+          return (
+            <section key={sec.id} id={sec.id} aria-label={sec.heading} style={{ margin: "0 0 2px" }}>
+              <button type="button" onClick={() => toggleSection(sec.id)} aria-expanded={!isCol} aria-controls={`${sec.id}-body`}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, width: "100%", minHeight: 44, padding: "4px 0", margin: "10px 0 0", background: "transparent", border: "none", borderBottom: `1px solid ${C.border}`, cursor: "pointer", textAlign: "left" }}>
+                <span style={{ fontSize: "0.875rem", fontWeight: 800, color: "#1e3a5f" }}>{sec.heading}</span>
+                <span aria-hidden="true" style={{ fontSize: "0.75rem", color: "#1e40af", flexShrink: 0, transform: isCol ? "none" : "rotate(90deg)", transition: "transform 0.15s" }}>&#9656;</span>
+              </button>
+              {!isCol && <div id={`${sec.id}-body`} style={{ paddingTop: 7 }}>{body}</div>}
+            </section>
+          );
+        }) : <p style={{ margin: 0, fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>No verbatim posting text in this result.</p>}
+        {job && job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 14, fontSize: "0.75rem", fontWeight: 600, color: "#1e40af" }}>Open on MyCareersFuture -&gt;</a>}
       </div>
       <p style={{ margin: 0, padding: "8px 16px", fontSize: 10, color: C.textSub, borderTop: `1px solid ${C.border}`, fontStyle: "italic", flexShrink: 0 }}>Verbatim from MyCareersFuture; the analysis is derived from it. Drag the header to move. Human decides.</p>
     </div>
