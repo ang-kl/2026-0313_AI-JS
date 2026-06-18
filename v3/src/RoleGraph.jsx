@@ -10,7 +10,7 @@
 // Honesty contract (locked v3): no red/green; colour never carries meaning alone;
 // provenance chip on every node; 44px targets; "AI-assisted; human decides" footer.
 // No LLM: same payload => same graph. Graceful fallback to baked mode when no KG payload.
-import { useState, useRef, useLayoutEffect, useEffect, useCallback } from "react";
+import { useState, useRef, useLayoutEffect, useEffect, useCallback, useMemo } from "react";
 import DATA from "./graph-data.json";
 
 const P = {
@@ -210,6 +210,125 @@ function BakedGraph() {
   );
 }
 
+// ── CO2.2 zoom / LOD / workflow consts (R005-greppable) ─────────────────────
+// Pan/zoom interaction model: one viewport transform on a single parent wrapping
+// both the SVG edge layer and the node-button layer so they stay registered.
+// (Single-parent-transform pattern: never apply the same transform to two sibling
+// layers independently -- rounding + reflow desync them. Proposed as R012 to the
+// Human Lead; not adopted as a numbered rule until confirmed.)
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3.0;
+const ZOOM_STEP = 0.2;
+const ZOOM_WHEEL_K = 0.12;
+
+// LOD_BANDS: { lo, hi } inclusive ranges -> band 0/1/2.
+const LOD_BANDS = [
+  { band: 0, loInclusive: ZOOM_MIN, hiExclusive: 0.9 },  // L0 overview: hubs only
+  { band: 1, loInclusive: 0.9,      hiExclusive: 1.6 },  // L1 structure: +duties
+  { band: 2, loInclusive: 1.6,      hiExclusive: ZOOM_MAX + 0.001 }, // L2 detail: all
+];
+// _lodBand(z): pure z -> 0|1|2 band selector.
+function _lodBand(z) {
+  if (z < 0.9) return 0;
+  if (z < 1.6) return 1;
+  return 2;
+}
+
+// LOD_NODE_CEILING: if kg.nodes.length > ceiling, open at L0; else open at L1.
+const LOD_NODE_CEILING = 60;
+
+// KG_TIER_OF_CLUSTER: CO2 cluster -> LOD tier (0=hub, 1=mid, 2=leaf).
+// CO2 agents map to tier 0 (hub) on the LOD axis (headline candidates).
+// _workflowLayout uses _workflowColumn instead for left-to-right column order.
+const KG_TIER_OF_CLUSTER = {
+  functions: 0, agents: 0, duties: 1,
+  individual: 0, department: 0, organisation: 0, competition: 1, unscoped: 1,
+};
+// _nodeTier(n): maps a node to 0|1|2 for LOD eligibility.
+function _nodeTier(n) {
+  if (n.cluster != null && KG_TIER_OF_CLUSTER[n.cluster] != null) {
+    return KG_TIER_OF_CLUSTER[n.cluster];
+  }
+  // role-KG type fallback
+  if (n.type === "role" || n.type === "occupation" || n.type === "organisation") return 0;
+  if (n.type === "duty") return 1;
+  return 2; // skill, qualification, mirror-occupation -> leaf
+}
+
+// Workflow layout column assignment (separate from LOD tier):
+// functions(0) | duties(1) | agents(2).
+const WORKFLOW_COL_OF_CLUSTER = {
+  functions: 0, duties: 1, agents: 2,
+  individual: 0, department: 0, organisation: 0, competition: 1, unscoped: 1,
+};
+function _workflowColumn(n) {
+  if (n.cluster != null && WORKFLOW_COL_OF_CLUSTER[n.cluster] != null) {
+    return WORKFLOW_COL_OF_CLUSTER[n.cluster];
+  }
+  return _nodeTier(n); // role-KG fallback: tier == column
+}
+
+// Workflow layout spacing consts (R005-greppable).
+const WORKFLOW_COL_GAP = 300; // px between column centres
+const WORKFLOW_ROW_GAP = 80;  // px between row centres
+
+// _workflowLayout(nodes, edges, width, height): deterministic tier->column DAG.
+// Pure function; no Math.random; no Date/performance read.
+// Presentation-only; coords excluded from R-SNAPSHOT comparisons.
+function _workflowLayout(nodes, edges, width, height) {
+  if (!nodes || nodes.length === 0) return {};
+
+  // Assign column per node.
+  const colOf = {};
+  nodes.forEach(function(n) { colOf[n.id] = _workflowColumn(n); });
+  const colCount = Math.max(1, Math.max.apply(null, Object.values(colOf)) + 1);
+
+  // Column X centre: evenly spaced, capped to width.
+  const effectiveGap = Math.min(WORKFLOW_COL_GAP, width / colCount);
+  function colX(c) { return effectiveGap * (c + 0.5); }
+
+  // Build adjacency (out-degree) and incoming-edge weight maps for ranking.
+  const outDegree = {};
+  const inWeightMax = {};
+  nodes.forEach(function(n) { outDegree[n.id] = 0; inWeightMax[n.id] = 0; });
+  edges.forEach(function(e) {
+    if (outDegree[e.source] != null) outDegree[e.source]++;
+    if (inWeightMax[e.target] != null) {
+      const w = typeof e.weight === "number" ? e.weight : 0;
+      if (w > inWeightMax[e.target]) inWeightMax[e.target] = w;
+    }
+  });
+
+  // Within each column: primary rank = inWeightMax (recurrence/score) then outDegree,
+  // both descending; tie-break = id.localeCompare (ascending, total order, no Math.random).
+  function rankKey(n) {
+    // Higher rank values -> earlier in column (sorted desc).
+    const w = inWeightMax[n.id] || 0;
+    const d = outDegree[n.id] || 0;
+    return { w, d, id: n.id };
+  }
+
+  const byCol = {};
+  for (let c = 0; c < colCount; c++) byCol[c] = [];
+  nodes.forEach(function(n) { byCol[colOf[n.id]].push(n); });
+
+  const pos = {};
+  for (let c = 0; c < colCount; c++) {
+    const col = byCol[c].slice().sort(function(a, b) {
+      const ra = rankKey(a), rb = rankKey(b);
+      if (rb.w !== ra.w) return rb.w - ra.w;        // inWeight desc
+      if (rb.d !== ra.d) return rb.d - ra.d;        // outDegree desc
+      return ra.id.localeCompare(rb.id);             // id asc tie-break
+    });
+    const cx = colX(c);
+    const effectiveRowGap = Math.min(WORKFLOW_ROW_GAP, height / Math.max(1, col.length));
+    col.forEach(function(n, r) {
+      pos[n.id] = { x: cx, y: effectiveRowGap * (r + 0.5) };
+    });
+  }
+  return pos;
+}
+
 // ── Force layout helpers (CO2, deterministic, no Math.random) ─────────────────
 // Fixed-seed, capped-iteration spring simulation. Positions are computed once
 // from deterministic initial positions; layout is presentation only and excluded
@@ -289,10 +408,11 @@ function _forceLayout(nodes, edges, width, height) {
 // CO2 additive props:
 //   onNodeTap(id) - optional; called when a node is tapped (default noop).
 //                   Existing tap-to-trace (traced) is untouched.
-//   layout        - optional; "lanes" (default) or "force" (spring layout toggle).
-//                   The force layout is deterministic (fixed seed + capped iterations).
+//   layout        - optional; "lanes" (default), "force" (neural/spring), or "workflow"
+//                   (deterministic left-to-right DAG). Back-compatible: omitting layout
+//                   defaults to "lanes". The lanes view is the a11y/keyboard path.
 export function KGGraph({ kg, onNodeTap, layout }) {
-  const effectiveLayout = layout === "force" ? "force" : "lanes";
+  const effectiveLayout = layout === "force" ? "force" : layout === "workflow" ? "workflow" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [wide, setWide] = useState(true);
 
@@ -359,9 +479,14 @@ export function KGGraph({ kg, onNodeTap, layout }) {
           ))}
         </div>
 
-        {/* CO2: force layout toggle - shown when layout="force" */}
+        {/* CO2.2: force (neural) view with pan/zoom + LOD */}
         {effectiveLayout === "force" && (
           <KGForceView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} wide={wide} />
+        )}
+
+        {/* CO2.2: workflow (streamline) view */}
+        {effectiveLayout === "workflow" && (
+          <KGWorkflowView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} wide={wide} />
         )}
 
         {/* Cluster lanes (default + a11y path) */}
@@ -413,60 +538,339 @@ export function KGGraph({ kg, onNodeTap, layout }) {
   );
 }
 
-// CO2: force-directed layout view. Renders the SAME nodes/edges as the lane view
-// but positioned by the deterministic spring simulation (_forceLayout).
-// Layout is presentation only; data is unchanged.
+// CO2.2: shared pan/zoom + LOD viewport hook.
+// Returns { zoom, panX, panY, band, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut }
+// initialBand computed from node count (LOD_NODE_CEILING).
+function _useViewport(nodeCount) {
+  const initialZoom = nodeCount > LOD_NODE_CEILING ? 0.7 : 1.0; // L0 or L1 opening
+  const [vp, setVp] = useState({ zoom: initialZoom, panX: 0, panY: 0 });
+  const band = _lodBand(vp.zoom);
+  const containerRef = useRef(null);
+  const dragRef = useRef(null); // { startX, startY, startPanX, startPanY, moved }
+  const pinchRef = useRef(null); // { dist, zoom }
+
+  // Reduced-motion: zero transition duration when preferred.
+  const prefersReduced = typeof window !== "undefined" && window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const transDur = prefersReduced ? "0s" : "0.18s";
+
+  function clampZoom(z) { return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); }
+
+  // R006: named handler functions (no multi-line async arrow in JSX props).
+  function handleWheel(e) {
+    if (!containerRef.current) return;
+    e.preventDefault();
+    const rect = containerRef.current.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    setVp(function(prev) {
+      const factor = 1 + Math.sign(-e.deltaY) * ZOOM_WHEEL_K;
+      const nextZoom = clampZoom(prev.zoom * factor);
+      const scale = nextZoom / prev.zoom;
+      // Keep the cursor point fixed: adjust pan so (cx,cy) in viewport coords stays.
+      return {
+        zoom: nextZoom,
+        panX: cx - scale * (cx - prev.panX),
+        panY: cy - scale * (cy - prev.panY),
+      };
+    });
+  }
+
+  function handlePointerDown(e) {
+    if (e.touches || e.button !== 0) return; // pointer events only for mouse
+    // Pinch: two active pointers -> handled by onPointerMove
+    dragRef.current = { startX: e.clientX, startY: e.clientY, startPanX: vp.panX, startPanY: vp.panY, moved: false };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e) {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (!dragRef.current.moved && Math.sqrt(dx * dx + dy * dy) <= 4) return;
+    dragRef.current.moved = true;
+    setVp(function(prev) {
+      return { zoom: prev.zoom, panX: dragRef.current.startPanX + dx, panY: dragRef.current.startPanY + dy };
+    });
+  }
+
+  function handlePointerUp(e) {
+    dragRef.current = null;
+  }
+
+  // Touch pinch (two-pointer).
+  function handleTouchStart(e) {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = { dist: Math.sqrt(dx * dx + dy * dy), zoom: vp.zoom };
+    }
+  }
+
+  function handleTouchMove(e) {
+    if (e.touches.length === 2 && pinchRef.current) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const ratio = dist / pinchRef.current.dist;
+      setVp(function(prev) { return { ...prev, zoom: clampZoom(pinchRef.current.zoom * ratio) }; });
+    }
+  }
+
+  function handleTouchEnd() { pinchRef.current = null; }
+
+  function handleKeyDown(e) {
+    if (e.key === "+" || e.key === "=") { e.preventDefault(); setVp(function(p) { return { ...p, zoom: clampZoom(p.zoom + ZOOM_STEP) }; }); }
+    if (e.key === "-") { e.preventDefault(); setVp(function(p) { return { ...p, zoom: clampZoom(p.zoom - ZOOM_STEP) }; }); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); setVp(function(p) { return { ...p, panX: p.panX + 40 }; }); }
+    if (e.key === "ArrowRight") { e.preventDefault(); setVp(function(p) { return { ...p, panX: p.panX - 40 }; }); }
+    if (e.key === "ArrowUp")    { e.preventDefault(); setVp(function(p) { return { ...p, panY: p.panY + 40 }; }); }
+    if (e.key === "ArrowDown")  { e.preventDefault(); setVp(function(p) { return { ...p, panY: p.panY - 40 }; }); }
+  }
+
+  function resetFit() { setVp({ zoom: initialZoom, panX: 0, panY: 0 }); }
+  function zoomIn()  { setVp(function(p) { return { ...p, zoom: clampZoom(p.zoom + ZOOM_STEP) }; }); }
+  function zoomOut() { setVp(function(p) { return { ...p, zoom: clampZoom(p.zoom - ZOOM_STEP) }; }); }
+
+  const viewportHandlers = {
+    onWheel: handleWheel,
+    onPointerDown: handlePointerDown,
+    onPointerMove: handlePointerMove,
+    onPointerUp: handlePointerUp,
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
+    onTouchEnd: handleTouchEnd,
+    onKeyDown: handleKeyDown,
+    tabIndex: 0,
+  };
+
+  return { zoom: vp.zoom, panX: vp.panX, panY: vp.panY, band, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut };
+}
+
+// Zoom toolbar (shared by force and workflow views).
+function _ZoomToolbar({ onZoomIn, onZoomOut, onFit, zoom }) {
+  const btnStyle = {
+    minWidth: 44, minHeight: 44, border: "1px solid " + P.border, borderRadius: 8,
+    background: P.surface, color: P.text, fontSize: 16, fontWeight: 700,
+    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+  };
+  return (
+    <div style={{ position: "absolute", bottom: 10, right: 10, display: "flex", flexDirection: "column", gap: 4, zIndex: 10 }}>
+      <button onClick={onZoomIn}  aria-label="Zoom in"  style={btnStyle}>+</button>
+      <button onClick={onZoomOut} aria-label="Zoom out" style={btnStyle}>-</button>
+      <button onClick={onFit}     aria-label="Reset and fit graph to view" style={{ ...btnStyle, fontSize: 11, fontWeight: 700, padding: "0 6px" }}>fit</button>
+      <span style={{ fontSize: 10, color: P.muted, textAlign: "center" }}>{Math.round(zoom * 100)}%</span>
+    </div>
+  );
+}
+
+// CO2.2: force-directed layout view with pan/zoom viewport and LOD.
+// Renders the SAME nodes/edges as the lane view, positioned by _forceLayout.
+// Layout is presentation-only; data and provenance chips are unchanged.
 function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   const W = 900, H = 560;
-  const pos = _forceLayout(kg.nodes, kg.edges, W, H);
+  // _forceLayout is byte-frozen; memoize so a pan/zoom re-render only updates the
+  // viewport transform - not re-run the 120-iteration simulation (perf, Codex P2).
+  const pos = useMemo(function() { return _forceLayout(kg.nodes, kg.edges, W, H); }, [kg, W, H]);
   const nodeById = {};
   kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
+
+  const { zoom, panX, panY, band, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
+    _useViewport(kg.nodes.length);
+
+  // Edge LOD: show edge only when both endpoints' tier <= band.
+  function edgeEligible(e) {
+    const sa = nodeById[e.source], ta = nodeById[e.target];
+    if (!sa || !ta) return false;
+    return _nodeTier(sa) <= band && _nodeTier(ta) <= band;
+  }
+
   return (
     <div style={{ position: "relative", width: "100%", overflowX: "auto", marginBottom: 14 }}>
-      <div role="img" aria-label="Force-directed layout of the same nodes and edges. Switch to lanes view for keyboard navigation." style={{ width: W, minHeight: H, position: "relative", background: P.bg, border: "1px solid " + P.border, borderRadius: 12 }}>
-        <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
-          {kg.edges.map(function(e, i) {
-            const a = pos[e.source], b = pos[e.target];
-            if (!a || !b) return null;
-            const active = !traced || e.source === traced || e.target === traced;
-            const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2 - 18;
+      {/* Container: intercepts wheel + drag; tabIndex for keyboard zoom/pan. */}
+      <div ref={containerRef} {...viewportHandlers}
+        aria-label="Force-directed graph. Use +/- to zoom, arrow keys to pan, or drag and scroll. Switch to Lanes for keyboard navigation."
+        style={{ width: W, height: H, position: "relative", background: P.bg, border: "1px solid " + P.border, borderRadius: 12, overflow: "hidden", cursor: "grab", outline: "none" }}>
+
+        {/* Single transformed parent: SVG edge layer + node-button layer share one transform
+            so edges and nodes stay registered under pan/zoom. */}
+        <div style={{
+          position: "absolute", left: 0, top: 0, width: W, height: H,
+          transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
+          transformOrigin: "0 0",
+        }}>
+          <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+            {kg.edges.map(function(e, i) {
+              const a = pos[e.source], b = pos[e.target];
+              if (!a || !b) return null;
+              const eli = edgeEligible(e);
+              const active = !traced || e.source === traced || e.target === traced;
+              const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2 - 18;
+              return (
+                <g key={i} style={{ opacity: eli ? (active ? 0.8 : 0.15) : 0, transition: "opacity " + transDur + " ease" }}>
+                  <path d={"M " + a.x + " " + a.y + " Q " + midX + " " + midY + " " + b.x + " " + b.y} fill="none" stroke="#93c5fd" strokeWidth={active ? 2 : 1} />
+                  <text x={midX} y={midY} textAnchor="middle" fontSize={9} fill="#64748b">{e.verb}</text>
+                </g>
+              );
+            })}
+          </svg>
+          {kg.nodes.map(function(n) {
+            const p = pos[n.id];
+            if (!p) return null;
+            const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
+            const hi = isHighlighted(n);
+            const isT = traced === n.id;
+            const eligible = _nodeTier(n) <= band;
+            // Ineligible nodes: opacity 0, removed from tab order (hidden keyboard trap guard).
             return (
-              <g key={i} opacity={active ? 0.8 : 0.15}>
-                <path d={"M " + a.x + " " + a.y + " Q " + midX + " " + midY + " " + b.x + " " + b.y} fill="none" stroke="#93c5fd" strokeWidth={active ? 2 : 1} />
-                <text x={midX} y={midY} textAnchor="middle" fontSize={9} fill="#64748b">{e.verb}</text>
-              </g>
+              <button key={n.id}
+                onClick={function() { if (eligible) onNodeClick(n.id); }}
+                tabIndex={eligible ? 0 : -1}
+                aria-pressed={isT}
+                aria-hidden={!eligible}
+                aria-label={n.type + ": " + n.label + ". Tap to trace."}
+                style={{
+                  position: "absolute",
+                  left: Math.round(p.x - 52), top: Math.round(p.y - 20),
+                  width: 104, minHeight: 44,
+                  border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
+                  borderRadius: 8, background: isT ? st.bg : P.surface,
+                  fontSize: 10, fontWeight: 600, color: st.color,
+                  cursor: eligible ? "pointer" : "default", padding: "4px 6px", textAlign: "center",
+                  opacity: eligible ? (hi ? 1 : P.dim) : 0,
+                  transition: "opacity " + transDur + " ease, transform " + transDur + " ease",
+                  transform: eligible ? "scale(1)" : "scale(0.85)",
+                  boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
+                  overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
+                  pointerEvents: eligible ? "auto" : "none",
+                }}>
+                {n.label}
+              </button>
             );
           })}
-        </svg>
-        {kg.nodes.map(function(n) {
-          const p = pos[n.id];
-          if (!p) return null;
-          const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
-          const hi = isHighlighted(n);
-          const isT = traced === n.id;
+        </div>
+
+        <_ZoomToolbar onZoomIn={zoomIn} onZoomOut={zoomOut} onFit={resetFit} zoom={zoom} />
+      </div>
+      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Neural (force) layout - same data as lanes view. Positions are deterministic (fixed seed). Tap a node to trace connections. Wheel/pinch to zoom; drag to pan; +/- keys when graph is focused.</p>
+    </div>
+  );
+}
+
+// CO2.2: workflow (streamline) view - deterministic left->right column DAG.
+// Three columns: functions | duties | agent candidates.
+// Orthogonal left->right edge paths with verb labels. Same LOD + pan/zoom as force view.
+function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
+  const COL_COUNT = 3;
+  const W = Math.max(900, WORKFLOW_COL_GAP * COL_COUNT + 80);
+  const H = 560;
+  const pos = useMemo(function() { return _workflowLayout(kg.nodes, kg.edges, W, H); }, [kg, W, H]);
+  const nodeById = {};
+  kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
+
+  const { zoom, panX, panY, band, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
+    _useViewport(kg.nodes.length);
+
+  // Orthogonal left->right edge path: M x1 y1 H midX V y2 H x2.
+  function edgePath(a, b) {
+    const midX = (a.x + b.x) / 2;
+    return "M " + a.x + " " + a.y + " H " + midX + " V " + b.y + " H " + b.x;
+  }
+
+  function edgeEligible(e) {
+    const sa = nodeById[e.source], ta = nodeById[e.target];
+    if (!sa || !ta) return false;
+    return _nodeTier(sa) <= band && _nodeTier(ta) <= band;
+  }
+
+  // Column header labels.
+  const colLabels = ["Functions", "Recurring Duties", "Agent Candidates"];
+
+  return (
+    <div style={{ position: "relative", width: "100%", overflowX: "auto", marginBottom: 14 }}>
+      <div ref={containerRef} {...viewportHandlers}
+        aria-label="Workflow layout: three columns left to right - Functions, Recurring Duties, Agent Candidates. Switch to Lanes for keyboard navigation."
+        style={{ width: "100%", height: H, position: "relative", background: P.bg, border: "1px solid " + P.border, borderRadius: 12, overflow: "hidden", cursor: "grab", outline: "none" }}>
+
+        {/* Column header labels (outside the transform so they stay fixed). */}
+        {colLabels.map(function(lbl, c) {
+          const cx = WORKFLOW_COL_GAP * (c + 0.5) + panX;
           return (
-            <button key={n.id}
-              onClick={function() { onNodeClick(n.id); }}
-              aria-pressed={isT}
-              aria-label={n.type + ": " + n.label + ". Tap to trace."}
-              style={{
-                position: "absolute",
-                left: Math.round(p.x - 52), top: Math.round(p.y - 20),
-                width: 104, minHeight: 44,
-                border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
-                borderRadius: 8, background: isT ? st.bg : P.surface,
-                fontSize: 10, fontWeight: 600, color: st.color,
-                cursor: "pointer", padding: "4px 6px", textAlign: "center",
-                opacity: hi ? 1 : P.dim, transition: "opacity .15s",
-                boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
-                overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
-              }}>
-              {n.label}
-            </button>
+            <div key={c} aria-hidden="true" style={{
+              position: "absolute", top: 8,
+              left: cx - 70, width: 140, textAlign: "center",
+              fontSize: 10, fontWeight: 800, color: P.muted, textTransform: "uppercase", letterSpacing: "0.06em",
+              pointerEvents: "none",
+            }}>{lbl}</div>
           );
         })}
+
+        {/* Single transformed parent: SVG edge layer + node-button layer. */}
+        <div style={{
+          position: "absolute", left: 0, top: 0, width: W, height: H,
+          transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
+          transformOrigin: "0 0",
+        }}>
+          <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+            {/* Column divider lines */}
+            {[1, 2].map(function(c) {
+              const x = WORKFLOW_COL_GAP * c;
+              return <line key={c} x1={x} y1={0} x2={x} y2={H} stroke={P.border} strokeWidth={1} strokeDasharray="4 4" />;
+            })}
+            {kg.edges.map(function(e, i) {
+              const a = pos[e.source], b = pos[e.target];
+              if (!a || !b) return null;
+              const eli = edgeEligible(e);
+              const active = !traced || e.source === traced || e.target === traced;
+              const midX = (a.x + b.x) / 2;
+              const labelY = (a.y + b.y) / 2;
+              return (
+                <g key={i} style={{ opacity: eli ? (active ? 0.8 : 0.15) : 0, transition: "opacity " + transDur + " ease" }}>
+                  <path d={edgePath(a, b)} fill="none" stroke="#93c5fd" strokeWidth={active ? 2 : 1} />
+                  <text x={midX} y={labelY - 4} textAnchor="middle" fontSize={9} fill="#64748b">{e.verb}</text>
+                </g>
+              );
+            })}
+          </svg>
+          {kg.nodes.map(function(n) {
+            const p = pos[n.id];
+            if (!p) return null;
+            const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
+            const hi = isHighlighted(n);
+            const isT = traced === n.id;
+            const eligible = _nodeTier(n) <= band;
+            return (
+              <button key={n.id}
+                onClick={function() { if (eligible) onNodeClick(n.id); }}
+                tabIndex={eligible ? 0 : -1}
+                aria-pressed={isT}
+                aria-hidden={!eligible}
+                aria-label={n.type + ": " + n.label + ". Tap to trace."}
+                style={{
+                  position: "absolute",
+                  left: Math.round(p.x - 52), top: Math.round(p.y - 20),
+                  width: 104, minHeight: 44,
+                  border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
+                  borderRadius: 8, background: isT ? st.bg : P.surface,
+                  fontSize: 10, fontWeight: 600, color: st.color,
+                  cursor: eligible ? "pointer" : "default", padding: "4px 6px", textAlign: "center",
+                  opacity: eligible ? (hi ? 1 : P.dim) : 0,
+                  transition: "opacity " + transDur + " ease, transform " + transDur + " ease",
+                  transform: eligible ? "scale(1)" : "scale(0.85)",
+                  boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
+                  overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
+                  pointerEvents: eligible ? "auto" : "none",
+                }}>
+                {n.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <_ZoomToolbar onZoomIn={zoomIn} onZoomOut={zoomOut} onFit={resetFit} zoom={zoom} />
       </div>
-      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Force layout - same data as lanes view. Positions are deterministic (fixed seed). Tap a node to trace its connections.</p>
+      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Workflow layout: functions | recurring duties | agent candidates, left to right. Edges flow left to right. Positions are deterministic. Tap a node to trace connections.</p>
     </div>
   );
 }
