@@ -823,6 +823,13 @@
 // result), with an amber "not enough role data yet" notice when the graph is thin/withheld. KGGraph
 // exported from RoleGraph.jsx (DATA-free). Additive; layered mode byte-unchanged; frozen door intact.
 // G1 (v3.0.81 -> v3.0.82).
+// v3.0.83 - 2026-06-18 - HDR #121 - AL1: AGENTIC LADDER (Human Lead: reframe each duty for the
+// agentic era). Each TaskPrep duty card gains a Skill -> Recipe -> Agent -> Orchestrator rail showing
+// where it sits TODAY and the one move to climb a rung. The rung is a pure deterministic crosswalk
+// from the duty's existing AI-exposure level (HUMAN->Skill, LOW->Recipe, MEDIUM->Agent, HIGH->
+// Orchestrator) - no new LLM, no new prompt (D1-D8 N/A), no new number; the climb step reuses the
+// duty's kickstart/how. Withholds ("unscoped") when level is absent; a11y: neutral palette (higher is
+// not "better"), aria-current, ASCII rail. Additive; frozen door intact. G1 (v3.0.82 -> v3.0.83).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
