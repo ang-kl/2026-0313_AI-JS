@@ -871,6 +871,14 @@
 // withholds under 4 postings / 6 duties / recurrence 2. Deterministic, no LLM, no number minted;
 // candidate-suitability withheld; frozen door intact. (Sandbox cannot reach MCF - build + unit checks
 // on mocked JSON; live verify on preview.) G1 (v3.0.87 -> v3.0.88).
+// v3.0.89 - 2026-06-18 - HDR #127 - LANDING REFRESH (Human Lead). (1) Removed the redundant "Fresh
+// grads - < 4 yrs experience" checkbox from the Browse SG jobs card (the Fresh Graduate persona in the
+// foundation-plan toggle already covers it). (2) The PersonaToggle (foundation skills plan) now greys
+// off + disables when searchMode is "company" (a personal plan does not apply to an employer-wide
+// search), and selecting the employer card clears any chosen persona. (3) Hero gains a grounding +
+// agentic subtitle: "Grounded in live MyCareersFuture postings ... see the role as a wired knowledge
+// graph, and what AI can take on" - surfacing the live-MCF differentiator. Presentation only; engine +
+// frozen door untouched. G1 (v3.0.88 -> v3.0.89).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -4331,6 +4339,7 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
       <div className="lux-rise" style={{ padding: "12px 4px 10px" }}>
         {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
         <p className="t-heading" style={{ margin:0, fontSize: "1.0625rem", color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Start with a job title. Choose the closest role. Then analyse it.</p>
+        <p style={{ margin:"6px 0 0", fontSize: "0.8125rem", color:C.textSub, lineHeight:1.5, textWrap:"balance" }}>Grounded in live 🇸🇬 MyCareersFuture postings - real Singapore demand, not idealised profiles. See the role as a wired knowledge graph, and what AI can take on.</p>
       </div>
       <div className="lux-rise" style={{ "--lux-d":"0.06s", background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
         <p style={{ margin:"0 0 10px", fontSize: "0.6875rem", fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
@@ -4671,13 +4680,13 @@ function DeviceNote() {
 const PERSONA_SHORT = { fresh: "Foundation skills plan for entering a new field", crossover: "See which skills travel across to a new field" };
 const safePersona = (p) => PERSONA_CONFIG[p] || { label:"", icon:"", color:C.muted, bg:C.bg, border:C.border };
 
-function PersonaToggle({ persona, onChange }) {
+function PersonaToggle({ persona, onChange, disabled }) {
   return (
     <div style={{ marginBottom:10 }}>
-      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "10px 14px" }}>
+      <div aria-disabled={disabled || undefined} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "10px 14px", opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
           <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Adds a foundation skills plan to the analysis</p>
-          <span style={{ fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>optional</span>
+          <span style={{ fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>{disabled ? "n/a for employer search" : "optional"}</span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap:8 }}>
           {Object.entries(PERSONA_CONFIG).map(([key, cfg]) => {
@@ -13346,21 +13355,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
                       background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
-                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); document.getElementById("job-title-search")?.focus(); }}
+                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
                       style={{ textAlign:"left", padding: "8px 12px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
                       <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
                     </button>
-                    {m.k === "jobs" && (
-                      <label title="Hide roles requiring 4+ years - scout entry/junior postings for fresh graduates"
-                        style={{ display:"inline-flex", alignItems:"center", gap:6, padding: "0 12px 8px", cursor:"pointer", fontSize: "0.6875rem", fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
-                        <input type="checkbox" checked={freshGrad} aria-label="Fresh grads - roles under 4 years experience"
-                          onChange={e => { if (searchMode !== "jobs") { setSearchMode("jobs"); setOccs([]); setErr(""); } setFreshGrad(e.target.checked); }}
-                          style={{ width:15, height:15, accentColor:C.accent, cursor:"pointer", margin:0 }} />
-                        {"Fresh grads · < 4 yrs experience"}
-                      </label>
-                    )}
                   </div>
                 ))}
               </div>
@@ -13443,7 +13443,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             {/* Intro card - below search box */}
             <IntroCard onPersonaSelect={setPersona} toggleRef={toggleRef} />
             {/* Persona toggle - after intro card. LUX3: staggered entrance down the stack. */}
-            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} /></div>
+            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} disabled={searchMode === "company"} /></div>
             <div className="lux-rise" style={{ "--lux-d":"0.18s" }}>
               <CommunityNote />
               <Tagline />
