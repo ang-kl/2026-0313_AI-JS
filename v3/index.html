@@ -18,6 +18,12 @@
     @media screen and (min-width: 1153px) {
       html { zoom: 1.1; }
     }
+    /* Skip-link: hidden off-screen, but revealed on keyboard focus so sighted
+       keyboard users can see and use it (now more controls precede main content). */
+    .skip-nav:focus {
+      position: fixed !important; left: 8px !important; top: 8px !important;
+      width: auto !important; height: auto !important; overflow: visible !important;
+    }
   </style>
   </head>
   <body>

@@ -4059,7 +4059,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
 
       {/* Section B - All results by sector */}
       {occs.length > 0 && (
-        <div ref={browseRef}>
+        <div ref={browseRef} style={{ scrollMarginTop: 64 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom: pickerFullLoading ? 6 : 8, paddingTop: topPicks.length > 0 ? 4 : 0, borderTop: topPicks.length > 0 ? `1px solid ${C.border}` : "none" }}>
             <p style={{ margin:0, fontSize:11, fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>
               Browse all roles
@@ -9971,12 +9971,12 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
     outline: "none",
     transition: "all 0.15s",
   };
-  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.6)"; };
+  const focusOn = e => { e.currentTarget.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.95)"; };
   const focusOff = e => { e.currentTarget.style.boxShadow = "none"; };
   return (
     <div
       role="group"
-      aria-label="Text size"
+      aria-label={`Text size, currently ${Math.round(uiTextScale * 100)} percent`}
       style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}
     >
       <button
@@ -11802,11 +11802,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           <h1 style={{ margin:0, fontSize:13, fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
         </div>
         <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
-          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0 }}>
+          style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize:12, fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
           V2 - ESCO EU skillsets
         </a>
         {step !== "idle" && (
-          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0 }}>
+          <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize:12, whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
             New Search
           </button>
         )}
