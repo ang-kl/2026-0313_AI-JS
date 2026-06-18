@@ -9835,7 +9835,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
         <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
         <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
-          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing — or analyse all of them as one role. Postings refresh daily.
+          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing{onAnalyseCorpus ? " — or analyse all of them as one role" : ""}. Postings refresh daily.
         </p>
         {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
           <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
@@ -11608,7 +11608,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           escoOccupation={result.escoOccupation}
           onAnalysePosting={handleAnalysePosting}
           onQueuePosting={handleQueuePosting}
-          onAnalyseCorpus={handleAnalyseCorpus}
+          onAnalyseCorpus={result?.source === "posting" ? undefined : handleAnalyseCorpus}
           queueCount={comparisons.length + (comparisons.find(c => c.title === toTitleCase(sel?.title||"")) ? 0 : 1)}
         />
       );
