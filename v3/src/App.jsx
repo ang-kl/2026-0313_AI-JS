@@ -889,6 +889,17 @@
 // to top 15 by recurrence (COMPANY_AGENT_MAX_DUTIES; agent-backing clusters always kept so no edge
 // dangles). Deterministic, no LLM, frozen door intact; the side-panel provenance is unchanged.
 // G1 (v3.0.89 -> v3.0.90).
+// v3.0.91 - 2026-06-18 - HDR #129 - CO2.2 graph zoom + workflow (Human Lead: "Obsidian force graph -
+// hubs at high level, expand on zoom; switch neural <-> structured workflow"). KGGraph layout prop
+// widens to "lanes" | "force" | "workflow". (1) Semantic zoom / LOD: _lodBand(z) -> L0 hubs only
+// (functions + agents) / L1 + recurring duties / L2 + leaf; ineligible nodes fade + drop out of tab
+// order; LOD_NODE_CEILING=60 auto-collapses a dense graph to L0 on open. (2) Pan/zoom: one viewport
+// transform over a single parent wrapping the edge + node layers (no re-sim) - wheel/pinch to cursor,
+// drag (>4px), +/-/arrows, 44px fit/reset; ZOOM_MIN/MAX/STEP consts. (3) _workflowLayout: deterministic
+// left->right columns (functions | duties | agents), order by edge weight then id. 3-way Lanes | Neural
+// | Workflow segmented toggle; lanes stays the default + a11y/keyboard path; reduced-motion zeroes
+// transitions. Presentation only; _forceLayout byte-frozen; no LLM, no number; frozen door intact.
+// G1 (v3.0.90 -> v3.0.91).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
