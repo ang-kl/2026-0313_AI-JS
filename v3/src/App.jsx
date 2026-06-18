@@ -9999,11 +9999,11 @@ export default function App() {
   // A/B flip). ?ui=1 is the escape hatch back to the original stacked layout. Captured once
   // at mount (deep-link effects replaceState the URL later, so re-reads would lose it).
   const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") !== "1"; } catch (_) { return true; } });
-  const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 1100px)").matches; } catch (_) { return false; } });
+  const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 900px)").matches; } catch (_) { return false; } });
   useEffect(() => {
     if (!uiV2) return;
     try {
-      const mq = window.matchMedia("(min-width: 1100px)");
+      const mq = window.matchMedia("(min-width: 900px)");
       const fn = e => setUiWide(e.matches);
       mq.addEventListener("change", fn);
       return () => mq.removeEventListener("change", fn);
@@ -11274,9 +11274,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     <>
     <style>{`
       *, *::before, *::after { box-sizing: border-box; }
-      html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; font-size: 16px; }
-      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; }
-      #root { width: 100%; max-width: 100vw; overflow-x: hidden; }
+      html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: clip; font-size: 16px; }
+      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; }
+      #root { width: 100%; max-width: 100vw; overflow-x: clip; }
       img, video { max-width: 100%; }
       :root {
         --app-height: 100svh;
@@ -11474,7 +11474,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
     `}</style>
     <div data-author="Adrian K. L. Ang" data-origin="takearoundabout.com" data-build="v5-2026"
-      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", width:"100%", maxWidth:"100vw", overflowX:"hidden", position:"relative" }}>
+      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", width:"100%", maxWidth:"100vw", overflowX:"clip", position:"relative" }}>
       {/* © Adrian K. L. Ang | takearoundabout.com | Original source - unauthorised redistribution is not permitted */}
 
       {/* LUX1: ambient Three.js field behind the landing + analysis screens (decorative only;
@@ -12014,11 +12014,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
               </div>
           );
-          const uiPillarBarAndBanner = (
+          // uiComparisonBanner: queued-comparison banner only (no PillarBar).
+          // PillarBar is phone-only nav; it is rendered directly in the narrow path below.
+          // Wide path (uiWide): nav rail left col; no PillarBar.
+          // Narrow path (uiV2 phone): PillarBar then banner; no stacked uiNavBox tree.
+          const uiComparisonBanner = (
             <>
-              {/* PL3: PillarBar - five-pillar header nav (top of result view, below role title card) */}
-              <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
-
               {/* Queued comparison banner */}
               {comparisons.filter(c => !c.result).length > 0 && (() => {
                 // Total includes current role (which already has a result) + pending roles
@@ -12068,15 +12069,16 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           return (
             <div>
               {/* UI2 wide: two-column grid - sticky liquid-glass nav rail left, all result content right.
-                  uiNavBox renders exactly once per layout path (left col or stacked above). */}
+                  uiNavBox renders exactly once per layout path (left col on wide, zero on narrow uiV2).
+                  PillarBar renders only on narrow (phone); never on wide. */}
               {(uiV2 && uiWide) ? (
                 <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
-                  {/* Left rail: sticky liquid-glass nav */}
+                  {/* Left rail: sticky liquid-glass nav - position:sticky works because ancestors use overflow-x:clip not hidden */}
                   <div style={{ position:"sticky", top:12 }}>{uiNavBox}</div>
-                  {/* Right column: title card + pillarbar + banner + pillar content + legend */}
+                  {/* Right column: title card + comparison banner + pillar content + legend (no PillarBar on wide) */}
                   <div style={{ minWidth:0 }}>
                     {uiTitleCard}
-                    {uiPillarBarAndBanner}
+                    {uiComparisonBanner}
                     {/* PL4: pillar view */}
                     {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
                     {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
@@ -12086,19 +12088,20 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   </div>
                 </div>
               ) : (
-                /* non-wide (mobile/tablet) or !uiV2: single-column stacked layout.
-                   Order matches original: title card, pillarbar+banner, then legacy
-                   ProvLegend+nav block (!uiV2) or stacked nav (uiV2 narrow), then pillar content. */
+                /* non-wide (phone) or !uiV2: single-column stacked layout.
+                   uiV2 phone: PillarBar is the nav (no tree); no stacked uiNavBox.
+                   !uiV2 legacy: ProvLegend + uiNavBox tree as before. */
                 <>
                   {uiTitleCard}
-                  {uiPillarBarAndBanner}
+                  {/* PL3: PillarBar - phone-only nav (uiV2 narrow). Hidden on wide (nav rail used instead). */}
+                  {uiV2 && <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />}
+                  {uiComparisonBanner}
                   {!uiV2 && (
                     <>
                       <ProvLegend />
                       {uiNavBox}
                     </>
                   )}
-                  {uiV2 && <div style={{ marginBottom:14 }}>{uiNavBox}</div>}
                   {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
                   {/* PL4: pillar view */}
                   {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
