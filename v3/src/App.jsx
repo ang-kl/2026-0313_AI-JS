@@ -837,6 +837,12 @@
 // fill + accent border, which read as a double border). (3) Selecting either card moves focus to the
 // job-title input so the user can type the role immediately. Presentation only; frozen door untouched.
 // G1 (v3.0.83 -> v3.0.84).
+// v3.0.85 - 2026-06-18 - HDR #123 - SIBLING-TITLES LAYOUT (Human Lead: "centralised job title in the
+// pill is awful, messy, takes a lot of space"). The "Same job, other names" block: the top "live ads"
+// group switches from centered wrapped pills with the employer dangling OUTSIDE to a clean full-width
+// list - left-aligned title + employer as a small muted sub-line INSIDE the row, chevron pinned right.
+// chip() helper left-aligned (textAlign:left, justify flex-start) and tidied (radius 16->10, 1px
+// border) so wrapped labels never centre. Presentation only; frozen door untouched. G1 (v3.0.84 -> v3.0.85).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -6237,7 +6243,7 @@ function AlsoAdvertisedAs({ result, title, onAnalyse }) {
   const chip = (label, key) => (
     <button key={key} onClick={() => onAnalyse && onAnalyse(label)}
       title={`Analyse "${label}"`}
-      style={{ minHeight: 44, display: "inline-flex", alignItems: "center", padding: "8px 14px", borderRadius: 16, border: `1.5px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
+      style={{ minHeight: 44, display: "inline-flex", alignItems: "center", justifyContent: "flex-start", textAlign: "left", padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.accent, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
       {label} <span aria-hidden="true" style={{ marginLeft: 6, color: C.mutedLight }}>&gt;</span>
     </button>
   );
@@ -6260,12 +6266,16 @@ function AlsoAdvertisedAs({ result, title, onAnalyse }) {
           {fromAds.length > 0 && (
             <div style={{ marginBottom: 10 }}>
               <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", fontWeight: 700, color: C.muted }}>Seen in the live ads behind this result <Prov kind="mcf" small /></p>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {fromAds.map((f, i) => (
-                  <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    {chip(f.title, `ad${i}`)}
-                    {f.employers.size > 0 && <span style={{ fontSize: "0.625rem", color: C.muted }}>at {Array.from(f.employers).slice(0, 2).join(", ")}{f.employers.size > 2 ? ` +${f.employers.size - 2}` : ""}</span>}
-                  </span>
+                  <button key={`ad${i}`} onClick={() => onAnalyse && onAnalyse(f.title)} title={`Analyse "${f.title}"`}
+                    style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, textAlign: "left", padding: "8px 14px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, cursor: "pointer" }}>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: "block", fontSize: "0.8125rem", fontWeight: 700, color: C.accent, lineHeight: 1.3 }}>{f.title}</span>
+                      {f.employers.size > 0 && <span style={{ display: "block", marginTop: 1, fontSize: "0.625rem", fontWeight: 600, color: C.muted, lineHeight: 1.3 }}>at {Array.from(f.employers).slice(0, 2).join(", ")}{f.employers.size > 2 ? ` +${f.employers.size - 2}` : ""}</span>}
+                    </span>
+                    <span aria-hidden="true" style={{ flexShrink: 0, color: C.mutedLight, fontSize: "0.75rem" }}>&gt;</span>
+                  </button>
                 ))}
               </div>
             </div>
