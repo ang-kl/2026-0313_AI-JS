@@ -5903,12 +5903,19 @@ function jobAdAvailable(result) {
 // text's own lines). A line is a HEADING if short, no trailing sentence punctuation, and either it
 // matches a known JD-section word or it is a <=6-word capitalised line; a bullet if it leads with a
 // bullet glyph; otherwise paragraph.
-const _JD_HEAD_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|capabilities|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer)\b/i;
+const _JD_HEAD_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|pre-?requisites?|requisites?|capabilities|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer)\b/i;
 // top-level JD sections render as h2; any other detected heading (Capabilities, Leadership & Soft
 // Skills, ...) renders as the smaller h3 - giving the two-level hierarchy.
-const _JD_MAJOR_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|your role|the opportunity|duties|overview|the opportunity)\b/i;
+const _JD_MAJOR_RE = /^(about|the role|role overview|what you|who you|responsibilities|key responsibilities|requirements|qualifications|pre-?requisites?|requisites?|your role|the opportunity|duties|overview|the opportunity)\b/i;
 function _fmtJobAd(text) {
-  const lines = String(text || "").replace(/\r/g, "").split("\n").map(l => l.trim());
+  const raw = String(text || "").replace(/\r/g, "").split("\n").map(l => l.trim());
+  // Rejoin orphaned bullet glyphs: a line that is ONLY a bullet marker attaches to
+  // the following line (some ads put "•" on its own line, the item text on the next).
+  const lines = [];
+  for (let i = 0; i < raw.length; i++) {
+    if (/^[•·▪‣]$/.test(raw[i]) && raw[i + 1]) { lines.push(`${raw[i]} ${raw[++i]}`); continue; }
+    lines.push(raw[i]);
+  }
   const blocks = []; let para = [];
   const flush = () => { if (para.length) { blocks.push({ t: "p", text: para.join(" ") }); para = []; } };
   for (const ln of lines) {
@@ -5916,8 +5923,11 @@ function _fmtJobAd(text) {
     if (/^[•·▪‣o\-\*]\s+/.test(ln) || /^[•·▪]/.test(ln)) {
       flush(); blocks.push({ t: "li", text: ln.replace(/^[•·▪‣o\-\*]\s*/, "").trim() }); continue;
     }
-    const isHead = ln.length <= 64 && !/[.!?,;:]$/.test(ln) && (_JD_HEAD_RE.test(ln) || (ln.split(/\s+/).length <= 6 && /^[A-Z]/.test(ln)));
-    if (isHead) { flush(); blocks.push({ t: _JD_MAJOR_RE.test(ln) ? "h2" : "h3", text: ln }); continue; }
+    // Strip a trailing ":" before heading detection so section labels like
+    // "Responsibilities:" / "Pre-requisite:" are recognised as headings, not paragraphs.
+    const lnh = ln.replace(/\s*:$/, "");
+    const isHead = lnh.length <= 64 && !/[.!?,;]$/.test(lnh) && (_JD_HEAD_RE.test(lnh) || (lnh.split(/\s+/).length <= 6 && /^[A-Z]/.test(lnh)));
+    if (isHead) { flush(); blocks.push({ t: _JD_MAJOR_RE.test(lnh) ? "h2" : "h3", text: ln }); continue; }
     para.push(ln);
   }
   flush();
