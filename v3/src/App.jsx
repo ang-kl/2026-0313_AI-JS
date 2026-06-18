@@ -993,10 +993,9 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     };
     if (systemPrompt) body.system = systemPrompt;
 
-    // Per-call fetch timeout: heavy models (Fable/Opus/Sonnet) get a long window;
-    // Fable 5 + Opus reason the most, so they get the full headroom. Haiku scales by size.
+    // Per-call fetch timeout: heavy models (Opus/Sonnet) get a long window;
+    // Opus reasons the most, so it gets the full headroom. Haiku scales by size.
     const fetchTimeout =
-      model.includes("fable")  ? 180000 :
       model.includes("opus")   ? 180000 :
       model.includes("sonnet") ? 150000 :
       maxTokens > 2500         ? 90000  : 55000;
@@ -1018,14 +1017,21 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
         if (e?.debug) msg = `${msg} [${e.debug}]`;
         if (e?.code)  msg = `${msg} (${e.code})`;
       } catch(_) {}
-      throw new Error(msg);
+      const apiErr = new Error(msg);
+      apiErr.status = res.status;
+      throw apiErr;
     }
     const data = await res.json();
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     if (!text) throw new Error("Empty response");
     return text;
   } catch(err) {
-    if (attempt < 3) {
+    // Retry only transient failures. The proxy maps overload/5xx/auth to 503 and
+    // network/timeout errors carry no status; a 4xx (e.g. 404 unknown model, 400
+    // bad request) is deterministic, so retrying it just wastes time and floods
+    // logs/alerts - fail fast instead.
+    const retriable = err.status == null || err.status >= 500 || err.status === 429;
+    if (attempt < 3 && retriable) {
       const delay = attempt === 1 ? 1500 : 3000;
       await new Promise(r => setTimeout(r, delay));
       return claudeCall(prompt, maxTokens, attempt + 1, systemPrompt, model);
