@@ -8830,7 +8830,7 @@ function RoleGraphPanel({ result, title }) {
   }, [g]);
 
   const card = (children, extra) => <div style={{ background: C.surface, border: `1px solid rgba(255,255,255,0.6)`, borderRadius: 14, padding: "14px 16px", marginBottom: 14, boxShadow: NEO.raise, ...(extra || {}) }}>{children}</div>;
-  const hdr = t => <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: C.text }}>{t}</p>;
+  const hdr = t => <p className="t-sub" style={{ margin: "0 0 8px", fontWeight: 700, color: C.text }}>{t}</p>;
   const subHdr = t => <p style={{ margin: "0 0 6px", fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{t}</p>;
   const chip = (txt, color, bg, border, key) => <span key={key} style={{ fontSize: 11, color, background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "2px 10px", display: "inline-block", margin: "0 5px 5px 0" }}>{txt}</span>;
   const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
@@ -9099,11 +9099,11 @@ function RoleGraphPanel({ result, title }) {
                 const mapped = g.mapping.edges.filter(e => e.respId === st.id).map(e => ((result.skills || [])[e.skillIdx] || {}).skill).filter(Boolean);
                 return (
                   <div key={st.id} style={{ padding: "8px 10px", borderRadius: 6, background: C.bg, border: `1px solid ${C.border}`, marginBottom: 6 }}>
-                    <p style={{ margin: "0 0 4px", fontSize: 13, color: C.text, lineHeight: 1.5 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 6, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
-                    {inf && inf.activities.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Activities:</strong> {inf.activities.join(" · ")}</p>}
-                    {inf && inf.skills.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Implied skills:</strong> {inf.skills.join(" · ")}</p>}
-                    {inf && inf.signals.length > 0 && <p style={{ margin: "0 0 2px", fontSize: 11, color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Signals:</strong> {inf.signals.join(" · ")}</p>}
-                    {mapped.length > 0 && <p style={{ margin: "3px 0 0", fontSize: 11, color: "#0e7490", lineHeight: 1.5 }}>↳ ESCO: {Array.from(new Set(mapped)).slice(0, 6).join(", ")}</p>}
+                    <p className="t-body" style={{ margin: "0 0 4px", color: C.text, lineHeight: 1.5, fontWeight: 600 }}><span style={{ display: "inline-block", width: 3, height: 12, borderRadius: 6, background: lvlColor(st.level), marginRight: 6, verticalAlign: "middle" }} />{st.text}</p>
+                    {inf && inf.activities.length > 0 && <p className="t-meta" style={{ margin: "0 0 2px", color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Activities:</strong> {inf.activities.join(" · ")}</p>}
+                    {inf && inf.skills.length > 0 && <p className="t-meta" style={{ margin: "0 0 2px", color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Implied skills:</strong> {inf.skills.join(" · ")}</p>}
+                    {inf && inf.signals.length > 0 && <p className="t-meta" style={{ margin: "0 0 2px", color: C.muted, lineHeight: 1.5 }}><strong style={{ color: C.textSub }}>Signals:</strong> {inf.signals.join(" · ")}</p>}
+                    {mapped.length > 0 && <p className="t-meta" style={{ margin: "3px 0 0", color: "#0e7490", lineHeight: 1.5 }}>↳ ESCO: {Array.from(new Set(mapped)).slice(0, 6).join(", ")}</p>}
                   </div>
                 );
               })}
@@ -11677,74 +11677,40 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
-      /* Tablet and notebook font scaling */
-      /* --ui-scale: user text-size control (A- / A / A+). Default 1.
-         Applied to documentElement on mount (localStorage key uiTextScale).
-         Consumed by the .main-content zoom rule below - scales the whole UI. */
+      /* ── Text scale: REM-based so the browser's own text-size / accessibility
+         setting scales it (rem tracks the root font-size = the browser default,
+         which the user can change). The A-/A/A+ control still scales everything via
+         the .main-content zoom below, and browser zoom works on top - all three
+         compose. Mobile-first base + width bumps; !important beats legacy inline px.
+         Sized to the "Large" readable floor. */
       :root { --ui-scale: 1; }
-      /* Text-size control: scale the WHOLE result container with zoom, at every width.
-         zoom is a no-op at scale 1 and covers ALL text - including the inline-px text the
-         per-class rules below cannot reach (postings list, loading/intro screens). The
-         class font-size rules below are therefore fixed px (no --ui-scale multiplier) so
-         classed text is never scaled twice. The sticky header sits OUTSIDE main-content,
-         so the control itself never resizes. zoom is ignored on very old browsers. */
+      html { font-size: 100%; }
       .main-content { zoom: var(--ui-scale, 1); }
-      @media (min-width: 768px) {
-        body { font-size: 16px; }
-        .t-body { font-size: calc(16px) !important; }
-        .t-label { font-size: calc(14px) !important; }
-        .t-meta { font-size: calc(13px) !important; }
-        .t-heading { font-size: 18px !important; }
-        .t-sub { font-size: calc(14px) !important; }
-      }
+      .t-body   { font-size: 1.0625rem !important; }
+      .t-label  { font-size: 1rem !important; }
+      .t-meta   { font-size: 1rem !important; }
+      .t-sub    { font-size: 1rem !important; }
+      .t-heading{ font-size: 1.25rem !important; }
+      .result-text-sm { font-size: 1rem !important; }
+      .result-text-xs { font-size: 0.9375rem !important; }
+      .result-label   { font-size: 0.9375rem !important; }
       @media (min-width: 1024px) {
-        body { font-size: 17px; }
-        .t-body { font-size: calc(17px) !important; }
-        .t-label { font-size: calc(15px) !important; }
-        .t-meta { font-size: calc(14px) !important; }
-        .t-heading { font-size: 20px !important; }
-        .t-sub { font-size: calc(15px) !important; }
-        .result-text-sm { font-size: calc(14px) !important; }
-        .result-text-xs { font-size: calc(13px) !important; }
-        .result-label { font-size: calc(13px) !important; }
+        .t-body   { font-size: 1.125rem !important; }
+        .t-label  { font-size: 1.0625rem !important; }
+        .t-meta   { font-size: 1.0625rem !important; }
+        .t-sub    { font-size: 1.0625rem !important; }
+        .t-heading{ font-size: 1.375rem !important; }
+        .result-text-sm { font-size: 1.0625rem !important; }
+        .result-text-xs { font-size: 1rem !important; }
+        .result-label   { font-size: 1rem !important; }
       }
-      @media (min-width: 1280px) {
-        body { font-size: 17px; }
-        .t-body { font-size: calc(17px) !important; }
-        .t-label { font-size: calc(15px) !important; }
-        .t-meta { font-size: calc(14px) !important; }
-        .t-heading { font-size: 21px !important; }
-        .t-sub { font-size: calc(15px) !important; }
-        .result-text-sm { font-size: calc(14px) !important; }
-        .result-text-xs { font-size: calc(13px) !important; }
-        .result-label { font-size: calc(13px) !important; }
+      @media (min-width: 1600px) {
+        .t-body   { font-size: 1.1875rem !important; }
+        .t-heading{ font-size: 1.5rem !important; }
       }
       /* Retina MacBook 1200-1440 CSS px: tab label lift */
       @media (min-width: 1200px) and (max-width: 1500px) {
-        .main-content .tab-label { font-size: 13px !important; }
-      }
-      /* 2K and 4K scaling - font-size on html cascades via rem */
-      @media (min-width: 2000px) {
-        body { font-size: 19px; }
-        .t-body { font-size: calc(19px) !important; }
-        .t-label { font-size: calc(16px) !important; }
-        .t-meta { font-size: calc(15px) !important; }
-        .t-heading { font-size: 24px !important; }
-        .t-sub { font-size: calc(17px) !important; }
-        .result-text-sm { font-size: calc(16px) !important; }
-        .result-text-xs { font-size: calc(14px) !important; }
-        .result-label { font-size: calc(14px) !important; }
-      }
-      @media (min-width: 2560px) {
-        body { font-size: 21px; }
-        .t-body { font-size: calc(21px) !important; }
-        .t-label { font-size: calc(18px) !important; }
-        .t-meta { font-size: calc(16px) !important; }
-        .t-heading { font-size: 28px !important; }
-        .t-sub { font-size: calc(18px) !important; }
-        .result-text-sm { font-size: calc(17px) !important; }
-        .result-text-xs { font-size: calc(15px) !important; }
-        .result-label { font-size: calc(15px) !important; }
+        .main-content .tab-label { font-size: 0.9375rem !important; }
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
