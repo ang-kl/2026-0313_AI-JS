@@ -9916,6 +9916,204 @@ export function PipelineLogsView() {
   );
 }
 
+// ---- Feature: Text-size control (A- / A / A+ / A++) -------------------------
+// A shared control component; rendered once per layout path (nav rail on wide,
+// near PillarBar on phone). Receives uiTextScale + applyTextScale from App state.
+// Buttons: A- (0.92), A (1, reset), A+ (1.12), A++ (1.25). Each >= 44px tap target.
+// aria-pressed on the active level. .t-heading is NOT scaled (headings stay fixed).
+// Coverage: rides .t-body / .t-label / .t-meta / .t-sub / .result-text-sm /
+// .result-text-xs / .result-label (~60-70% of detail text); raw inline-px text
+// will not scale - acceptable, documented here.
+const UI_SCALE_LABELS = [
+  { v: 0.92, label: "A-", ariaLabel: "Decrease text size" },
+  { v: 1,    label: "A",  ariaLabel: "Reset text size" },
+  { v: 1.12, label: "A+", ariaLabel: "Increase text size" },
+  { v: 1.25, label: "A++",ariaLabel: "Increase text size further" },
+];
+function TextSizeControl({ uiTextScale, applyTextScale }) {
+  return (
+    <div
+      role="group"
+      aria-label="Text size"
+      style={{
+        display: "flex", alignItems: "center", gap: 4,
+        padding: "6px 10px 8px",
+        borderBottom: `1px solid ${C.border}`,
+        marginBottom: 8,
+      }}
+    >
+      <span style={{ fontSize: 10, fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.07em", marginRight: 4 }}>Text size</span>
+      {UI_SCALE_LABELS.map(sl => {
+        const isActive = Math.abs(uiTextScale - sl.v) < 0.01;
+        return (
+          <button
+            key={sl.v}
+            aria-label={sl.ariaLabel}
+            aria-pressed={isActive}
+            onClick={() => applyTextScale(sl.v)}
+            style={{
+              minWidth: 44, minHeight: 44,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              fontSize: sl.label.length > 2 ? 10 : 13,
+              fontWeight: 700,
+              color: isActive ? C.accent : C.textSub,
+              background: isActive ? C.accentSoft : C.surface,
+              border: `2px solid ${isActive ? C.accent : C.border}`,
+              borderRadius: 8,
+              cursor: "pointer",
+              boxShadow: isActive ? NEO.inset : NEO.raiseSm,
+              outline: "none",
+              transition: "all 0.15s",
+            }}
+            onFocus={e => { e.currentTarget.style.boxShadow = "0 0 0 3px #93c5fd"; }}
+            onBlur={e => { e.currentTarget.style.boxShadow = isActive ? NEO.inset : NEO.raiseSm; }}
+          >
+            {sl.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---- Feature: "What this means for you" plain-language summary card ----------
+// Deterministic template assembled ONLY from values already computed and shown
+// elsewhere in `result` and `graphData` (the Role Graph's iscoCandidates /
+// analysed / duties). No new LLM prompt; no new number authored. Withholds any
+// clause whose source data is absent (withhold-over-invent contract).
+// Result fields read (all already shown elsewhere on the page):
+//   result.skills            - s.level === "HUMAN" -> human-edge count + examples
+//   result.jobAnatomy.duties - d.exposureNow for dominant band count
+//   result.jobAnatomy.trajectory2y.line - already-authored 2y line (carried verbatim)
+//   graphData.iscoCandidates - top 1-2 adjacent roles (Prov: computed)
+//   graphData.analysed.qualifications[0] - top entry qualification (Prov: AI estimate)
+function WhatThisMeansCard({ result, graphData }) {
+  // --- 1. AI exposure stance from duties (dominant band count, deterministic) ---
+  const duties = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties))
+    ? result.jobAnatomy.duties : [];
+  const dutyCounts = { HIGH: 0, MEDIUM: 0, LOW: 0, HUMAN: 0 };
+  duties.forEach(function(d) { if (dutyCounts[d.exposureNow] !== undefined) dutyCounts[d.exposureNow]++; });
+  const totalDuties = duties.length;
+
+  // Determine dominant band (plurality vote across classified duties).
+  // Ties broken by severity order: HIGH > MEDIUM > LOW > HUMAN.
+  const bandOrder = ["HIGH", "MEDIUM", "LOW", "HUMAN"];
+  let dominantBand = null;
+  if (totalDuties > 0) {
+    dominantBand = bandOrder.reduce(function(best, b) {
+      return (dutyCounts[b] > dutyCounts[best]) ? b : best;
+    }, "HIGH");
+  }
+
+  // Plain-language stance phrasing (R007: hyphens, no em/en dashes)
+  const stancePhrases = {
+    HIGH:   "AI can automate most of the routine work here - your value is in oversight and judgment on the outcomes.",
+    MEDIUM: "AI mostly augments this role today - it handles heavy lifting while you direct and sign off each step.",
+    LOW:    "AI mainly assists here; your judgment leads on every decision.",
+    HUMAN:  "AI assists only at the edges - this role is firmly human-led.",
+  };
+  const stanceClause = dominantBand ? stancePhrases[dominantBand] : null;
+  // Prov for the stance: derived from already-classified duties (same prov as jobAnatomy)
+  const stanceProv = dominantBand ? "ai" : null; // duties are classified by LLM -> "AI estimate"
+
+  // --- 2. Human edge: count + 1-2 examples from HUMAN-led skills ---
+  const skills = (result && Array.isArray(result.skills)) ? result.skills : [];
+  const humanSkills = skills.filter(function(s) { return s.level === "HUMAN"; });
+  const humanCount = humanSkills.length;
+  const humanExamples = humanSkills.slice(0, 2).map(function(s) { return s.skill; });
+
+  // --- 3. Entry gate: top qualification from graphData.analysed ---
+  const analysed = (graphData && graphData.analysed) ? graphData.analysed : null;
+  const topQual = (analysed && Array.isArray(analysed.qualifications) && analysed.qualifications.length > 0)
+    ? analysed.qualifications[0] : null;
+
+  // --- 4. Adjacent roles: top 1-2 iscoCandidates (Prov: computed) ---
+  const candList = (graphData && Array.isArray(graphData.iscoCandidates)) ? graphData.iscoCandidates : [];
+  const topCands = candList.slice(0, 2);
+
+  // If we have nothing useful to say, withhold the card entirely.
+  const hasContent = stanceClause || humanCount > 0 || topQual || topCands.length > 0;
+  if (!hasContent) return null;
+
+  const boxStyle = {
+    background: C.surface,
+    border: `1px solid ${C.border}`,
+    borderRadius: 10,
+    padding: "14px 18px",
+    marginBottom: 16,
+    boxShadow: NEO.raiseSm,
+  };
+  const sentenceStyle = { margin: "0 0 7px", fontSize: 13, color: C.text, lineHeight: 1.65 };
+  const footerStyle = { margin: "10px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.55, fontStyle: "italic", borderTop: `1px solid ${C.border}`, paddingTop: 8 };
+
+  return (
+    <div style={boxStyle} aria-label="What this means for you - plain-language summary">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+        <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: C.text, letterSpacing: "-0.01em" }}>
+          What this means for you
+        </p>
+        <span style={{ fontSize: 10, color: C.muted, fontStyle: "italic" }}>assembled from the reads on this page</span>
+      </div>
+
+      {/* Clause 1: AI exposure stance */}
+      {stanceClause && (
+        <p style={sentenceStyle}>
+          {stanceClause}
+          {" "}
+          <Prov kind={stanceProv} small />
+          {totalDuties > 0 && (
+            <span style={{ fontSize: 11, color: C.muted }}>
+              {" "}({dutyCounts[dominantBand]} of {totalDuties} duties classified as {dominantBand === "HUMAN" ? "human-led" : dominantBand === "LOW" ? "AI-assisted" : dominantBand === "MEDIUM" ? "AI-augmented" : "full-automation"})
+            </span>
+          )}
+        </p>
+      )}
+
+      {/* Clause 2: Human edge */}
+      {humanCount > 0 && (
+        <p style={sentenceStyle}>
+          Your edge is the <strong>{humanCount} human-led skill{humanCount !== 1 ? "s" : ""}</strong> AI cannot hold
+          {humanExamples.length > 0 && <span>: {humanExamples.map(function(ex, i) { return <span key={i}>{i > 0 ? ", " : ""}<em>{ex}</em></span>; })}</span>}
+          {humanCount > 2 && " and others"}.
+          {" "}<Prov kind="ai" small />
+        </p>
+      )}
+
+      {/* Clause 3: Entry gate (top qualification) */}
+      {topQual && (
+        <p style={sentenceStyle}>
+          Entry gate: <strong>{topQual}</strong> is the top inferred qualification for this role.
+          {" "}<Prov kind="ai" small />
+        </p>
+      )}
+
+      {/* Clause 4: Adjacent roles (pivot options) */}
+      {topCands.length > 0 && (
+        <p style={sentenceStyle}>
+          Where it can go: the closest adjacent roles by skill-overlap are{" "}
+          {topCands.map(function(c, i) {
+            return (
+              <span key={i}>
+                {i > 0 ? " and " : ""}
+                <strong>{c.label}</strong>
+                {c.score != null && <span style={{ color: C.muted }}>{" "}({c.score}/100)</span>}
+              </span>
+            );
+          })}.
+          {" "}<Prov kind="computed" small />
+        </p>
+      )}
+
+      {/* Footer honesty line - section 7 honesty/a11y contract */}
+      <p style={footerStyle} role="note">
+        AI-assisted; human decides. Assembled from the reads on this page - no new number.
+        Per-clause provenance shown inline above.
+      </p>
+    </div>
+  );
+}
+
 export default function App() {
   const [query,     setQuery]     = useState("");
   const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
@@ -9963,6 +10161,27 @@ export default function App() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+  // Feature: user text-size control persisted in localStorage (key uiTextScale).
+  // Levels: 0.92 (A-) | 1 (A, default) | 1.12 (A+) | 1.25 (A++, max).
+  // Applies --ui-scale on documentElement; .t-heading is NOT scaled (headings stay fixed).
+  const UI_SCALE_STEPS = [0.92, 1, 1.12, 1.25];
+  const [uiTextScale, setUiTextScale] = useState(1);
+  useEffect(() => {
+    try {
+      const saved = parseFloat(localStorage.getItem("uiTextScale"));
+      if (UI_SCALE_STEPS.includes(saved)) {
+        setUiTextScale(saved);
+        document.documentElement.style.setProperty("--ui-scale", String(saved));
+      }
+    } catch (_) {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  function applyTextScale(v) {
+    const clamped = UI_SCALE_STEPS.includes(v) ? v : 1;
+    setUiTextScale(clamped);
+    document.documentElement.style.setProperty("--ui-scale", String(clamped));
+    try { localStorage.setItem("uiTextScale", String(clamped)); } catch (_) {}
+  }
   const showToast = (msg, action) => {
     setToast({ msg, action });
     setTimeout(() => setToast(null), 5000);
@@ -11299,35 +11518,39 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
       /* Tablet and notebook font scaling */
+      /* --ui-scale: user text-size control (A- / A / A+). Default 1.
+         Applied via localStorage key uiTextScale on mount.
+         Scales detail text classes only; .t-heading stays fixed. */
+      :root { --ui-scale: 1; }
       @media (min-width: 768px) {
         body { font-size: 16px; }
-        .t-body { font-size: 16px !important; }
-        .t-label { font-size: 14px !important; }
-        .t-meta { font-size: 13px !important; }
+        .t-body { font-size: calc(16px * var(--ui-scale, 1)) !important; }
+        .t-label { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .t-meta { font-size: calc(13px * var(--ui-scale, 1)) !important; }
         .t-heading { font-size: 18px !important; }
-        .t-sub { font-size: 14px !important; }
+        .t-sub { font-size: calc(14px * var(--ui-scale, 1)) !important; }
       }
       @media (min-width: 1024px) {
         body { font-size: 17px; }
-        .t-body { font-size: 17px !important; }
-        .t-label { font-size: 15px !important; }
-        .t-meta { font-size: 14px !important; }
+        .t-body { font-size: calc(17px * var(--ui-scale, 1)) !important; }
+        .t-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .t-meta { font-size: calc(14px * var(--ui-scale, 1)) !important; }
         .t-heading { font-size: 20px !important; }
-        .t-sub { font-size: 15px !important; }
-        .result-text-sm { font-size: 14px !important; }
-        .result-text-xs { font-size: 13px !important; }
-        .result-label { font-size: 13px !important; }
+        .t-sub { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .result-text-sm { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .result-text-xs { font-size: calc(13px * var(--ui-scale, 1)) !important; }
+        .result-label { font-size: calc(13px * var(--ui-scale, 1)) !important; }
       }
       @media (min-width: 1280px) {
         body { font-size: 17px; }
-        .t-body { font-size: 17px !important; }
-        .t-label { font-size: 15px !important; }
-        .t-meta { font-size: 14px !important; }
+        .t-body { font-size: calc(17px * var(--ui-scale, 1)) !important; }
+        .t-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .t-meta { font-size: calc(14px * var(--ui-scale, 1)) !important; }
         .t-heading { font-size: 21px !important; }
-        .t-sub { font-size: 15px !important; }
-        .result-text-sm { font-size: 14px !important; }
-        .result-text-xs { font-size: 13px !important; }
-        .result-label { font-size: 13px !important; }
+        .t-sub { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .result-text-sm { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .result-text-xs { font-size: calc(13px * var(--ui-scale, 1)) !important; }
+        .result-label { font-size: calc(13px * var(--ui-scale, 1)) !important; }
       }
       /* Retina MacBook 1200-1440 CSS px: tab label lift */
       @media (min-width: 1200px) and (max-width: 1500px) {
@@ -11336,25 +11559,25 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       /* 2K and 4K scaling - font-size on html cascades via rem */
       @media (min-width: 2000px) {
         body { font-size: 19px; }
-        .t-body { font-size: 19px !important; }
-        .t-label { font-size: 16px !important; }
-        .t-meta { font-size: 15px !important; }
+        .t-body { font-size: calc(19px * var(--ui-scale, 1)) !important; }
+        .t-label { font-size: calc(16px * var(--ui-scale, 1)) !important; }
+        .t-meta { font-size: calc(15px * var(--ui-scale, 1)) !important; }
         .t-heading { font-size: 24px !important; }
-        .t-sub { font-size: 17px !important; }
-        .result-text-sm { font-size: 16px !important; }
-        .result-text-xs { font-size: 14px !important; }
-        .result-label { font-size: 14px !important; }
+        .t-sub { font-size: calc(17px * var(--ui-scale, 1)) !important; }
+        .result-text-sm { font-size: calc(16px * var(--ui-scale, 1)) !important; }
+        .result-text-xs { font-size: calc(14px * var(--ui-scale, 1)) !important; }
+        .result-label { font-size: calc(14px * var(--ui-scale, 1)) !important; }
       }
       @media (min-width: 2560px) {
         body { font-size: 21px; }
-        .t-body { font-size: 21px !important; }
-        .t-label { font-size: 18px !important; }
-        .t-meta { font-size: 16px !important; }
+        .t-body { font-size: calc(21px * var(--ui-scale, 1)) !important; }
+        .t-label { font-size: calc(18px * var(--ui-scale, 1)) !important; }
+        .t-meta { font-size: calc(16px * var(--ui-scale, 1)) !important; }
         .t-heading { font-size: 28px !important; }
-        .t-sub { font-size: 18px !important; }
-        .result-text-sm { font-size: 17px !important; }
-        .result-text-xs { font-size: 15px !important; }
-        .result-label { font-size: 15px !important; }
+        .t-sub { font-size: calc(18px * var(--ui-scale, 1)) !important; }
+        .result-text-sm { font-size: calc(17px * var(--ui-scale, 1)) !important; }
+        .result-text-xs { font-size: calc(15px * var(--ui-scale, 1)) !important; }
+        .result-label { font-size: calc(15px * var(--ui-scale, 1)) !important; }
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
@@ -11813,6 +12036,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
           const uiNavBox = (
               <div ref={tabBarRef} style={{ marginBottom:14, border:"1px solid rgba(255,255,255,0.55)", borderRadius:10, padding: "10px 12px 8px", background:"rgba(255,255,255,0.8)", backdropFilter:"blur(14px)", WebkitBackdropFilter:"blur(14px)", boxShadow:"0 10px 30px rgba(15,40,105,0.14), 0 2px 6px rgba(15,40,105,0.08)" }}>
+                {/* Text-size control at top of nav rail (wide layout) */}
+                <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} />
                 <p style={{ margin:"0 0 10px", fontSize:10, fontWeight:700, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>
                   Navigation
                 </p>
@@ -12014,6 +12239,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
               </div>
           );
+          // uiSummaryCard: "What this means for you" - deterministic plain-language TL;DR.
+          // Reads result.skills, result.jobAnatomy.duties, result.roleGraphData.
+          // result.roleGraphData is populated for postings; null for ESCO-only analysis
+          // (graph clauses are withheld gracefully in that case).
+          // No new LLM prompt; no new number; withhold-over-invent.
+          const uiSummaryCard = (
+            <WhatThisMeansCard
+              result={result}
+              graphData={result.roleGraphData || null}
+            />
+          );
           // uiComparisonBanner: queued-comparison banner only (no PillarBar).
           // PillarBar is phone-only nav; it is rendered directly in the narrow path below.
           // Wide path (uiWide): nav rail left col; no PillarBar.
@@ -12075,9 +12311,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
                   {/* Left rail: sticky liquid-glass nav - position:sticky works because ancestors use overflow-x:clip not hidden */}
                   <div style={{ position:"sticky", top:12 }}>{uiNavBox}</div>
-                  {/* Right column: title card + comparison banner + pillar content + legend (no PillarBar on wide) */}
+                  {/* Right column: title card + summary + comparison banner + pillar content + legend (no PillarBar on wide) */}
                   <div style={{ minWidth:0 }}>
                     {uiTitleCard}
+                    {/* Feature 2: plain-language TL;DR summary card */}
+                    {uiSummaryCard}
                     {uiComparisonBanner}
                     {/* PL4: pillar view */}
                     {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
@@ -12093,8 +12331,16 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                    !uiV2 legacy: ProvLegend + uiNavBox tree as before. */
                 <>
                   {uiTitleCard}
+                  {/* Feature 2: plain-language TL;DR summary card (phone path) */}
+                  {uiSummaryCard}
                   {/* PL3: PillarBar - phone-only nav (uiV2 narrow). Hidden on wide (nav rail used instead). */}
                   {uiV2 && <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />}
+                  {/* Text-size control on phone: compact bar near PillarBar */}
+                  {uiV2 && (
+                    <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: 4 }}>
+                      <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} />
+                    </div>
+                  )}
                   {uiComparisonBanner}
                   {!uiV2 && (
                     <>
