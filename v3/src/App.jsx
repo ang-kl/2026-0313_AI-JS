@@ -817,6 +817,7 @@
 // header, Toast, Term glossary + tech tooltips - one type scale and message structure, no colour-only
 // state. Presentation only; engine number + frozen door untouched. G1 (v3.0.80 -> v3.0.81).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
+import { KGGraph } from "./RoleGraph.jsx";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
@@ -9160,6 +9161,7 @@ function RoleGraphPanel({ result, title }) {
   const [showJson, setShowJson] = useState(false);
   const [showStmts, setShowStmts] = useState(false);
   const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
+  const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge"
   const graphScrollRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
 
@@ -9319,16 +9321,65 @@ function RoleGraphPanel({ result, title }) {
     );
   };
 
+  // KG1: named handler to satisfy R006 (no multi-line async arrow in JSX prop)
+  function handleSetLayered() { setGraphMode("layered"); }
+  function handleSetKnowledge() { setGraphMode("knowledge"); }
+
+  // KG1: segmented toggle button styles - active state via border + font-weight (not colour alone)
+  function graphToggleBtn(active) {
+    return {
+      minWidth: 44, minHeight: 44, padding: "0 14px",
+      fontSize: "0.75rem", fontWeight: active ? 800 : 600,
+      color: active ? "#3730a3" : C.muted,
+      background: active ? "#eef2ff" : C.surface,
+      border: active ? "2px solid #c7d2fe" : "1px solid " + C.border,
+      borderRadius: 8, cursor: "pointer", lineHeight: 1,
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+    };
+  }
+
   return (
     <div>
       <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
-        <p style={{ margin: "0 0 3px", fontSize: "0.8125rem", fontWeight: 800, color: "#3730a3" }}>🕸 Role Graph — what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
+        <p style={{ margin: "0 0 3px", fontSize: "0.8125rem", fontWeight: 800, color: "#3730a3" }}>Role Graph - what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
         <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to <strong>ESCO</strong> skills - reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready <strong>role - occupation - skill - responsibility</strong> graph and a skill-analysis card.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
           {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: "0.6875rem", color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
         </div>
       </div>
 
+      {/* KG1: view toggle - Layered (default) / Knowledge graph */}
+      <div role="group" aria-label="Graph view" style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        <button type="button" aria-pressed={graphMode === "layered"} onClick={handleSetLayered} style={graphToggleBtn(graphMode === "layered")}>
+          Layered
+        </button>
+        <button type="button" aria-pressed={graphMode === "knowledge"} onClick={handleSetKnowledge} style={graphToggleBtn(graphMode === "knowledge")}>
+          Knowledge graph
+        </button>
+      </div>
+
+      {/* KG1: knowledge graph mode - synchronous, no loading state needed */}
+      {graphMode === "knowledge" && (() => {
+        const kg = getKnowledgeGraph(result, title);
+        const thin = !kg || !kg.nodes || kg.nodes.length <= 1;
+        if (thin) {
+          return (
+            <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "16px 18px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>Not enough role data for the knowledge view yet</p>
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The knowledge graph needs the role's skills and responsibilities to build its nodes and edges. Analyse a role with live MyCareersFuture postings - or a specific posting - and the graph will fill in.</p>
+            </div>
+          );
+        }
+        return (
+          <div>
+            <KGGraph kg={kg} />
+            {/* floating JD panel and footer are preserved below in layered mode; KG has its own footer */}
+          </div>
+        );
+      })()}
+
+      {/* Layered mode (byte-unchanged from before) */}
+      {graphMode === "layered" && <>
       {rgLoading && (isPosting ? (
         <RoleGraphStepCard step={(result && result.roleGraphProgress) || 1} />
       ) : (
@@ -9502,6 +9553,7 @@ function RoleGraphPanel({ result, title }) {
           <p style={{ margin: "12px 0 0", fontSize: "0.6875rem", color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
         </>
       ))}
+      </>}
     </div>
   );
 }

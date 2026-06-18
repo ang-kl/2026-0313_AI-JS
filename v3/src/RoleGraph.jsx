@@ -209,7 +209,7 @@ function BakedGraph() {
 // Each node carries a Prov chip (mcf/computed/inferred). Edges are drawn as curved
 // paths labelled with their verb (from KG_VERBS closed set). Tap a node to highlight
 // its edges and dim the rest. No red/green; 44px targets; aria-labels on all nodes.
-function KGGraph({ kg }) {
+export function KGGraph({ kg }) {
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [wide, setWide] = useState(true);
 
