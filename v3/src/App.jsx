@@ -850,6 +850,16 @@
 // edges is labelled "grouped role map" (not "wired structure") with an amber note, rather than
 // claiming wiring it does not have. Intentionally edits buildKnowledgeGraph (KG3 supersedes the KG1
 // freeze of that symbol). G1 (v3.0.85 -> v3.0.86).
+// v3.0.87 - 2026-06-18 - HDR #125 - CO1: company-name search (Human Lead: "switch role/company on the
+// landing page; poll MCF for the company's advertised jobs, double-check the company name and how many
+// posts"). New third searchMode "company" alongside role/jobs (frozen "jobs" path untouched); the card
+// relabels the shared input to "Company name". New api/mcf.js action:"company" - searches MCF, normalises
+// employer names (strips Pte Ltd / Asia Pacific etc.), groups by employer, returns each matched employer
+// + a pass-through posting COUNT, flags ambiguous (>=2 employers) for a chooser, withholds on 0 - <=3
+// search calls, no per-job detail. CompanyPanel confirms "Found: <employer> - N live postings" (from MCF)
+// and lists them into the existing handleAnalysePosting. Deterministic, no LLM, no number minted; frozen
+// door intact. (Sandbox cannot reach MCF - build + unit checks on mocked JSON; live verify on preview.)
+// G1 (v3.0.86 -> v3.0.87).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -10834,9 +10844,159 @@ function WhatThisMeansCard({ result, graphData }) {
   );
 }
 
+// CO1: CompanyPanel - fetch + resolve + render the company search result.
+// Deterministic: no LLM, no invented number. Counts and names are verbatim
+// pass-through from MyCareersFuture via /api/mcf action:"company".
+// R006: loadCompany is a named function, not a multi-line async arrow in JSX.
+function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount }) {
+  const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
+  const [chosenKey, setChosenKey] = useState(null);
+
+  const fmtSalary = (lo, hi) => {
+    if (lo == null && hi == null) return "Salary on application";
+    const s = (n) => "S$" + Number(n).toLocaleString();
+    if (lo != null && hi != null) return s(lo) + " - " + s(hi) + " / month";
+    return s(lo != null ? lo : hi) + " / month";
+  };
+  const daysAgo = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return days + " days ago";
+    if (days < 30) return Math.floor(days / 7) + (days < 14 ? " week" : " weeks") + " ago";
+    return Math.floor(days / 30) + (days < 60 ? " month" : " months") + " ago";
+  };
+
+  useEffect(() => {
+    if (!companyQuery) return;
+    let cancelled = false;
+    setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
+    setChosenKey(null);
+
+    function loadCompany() {
+      fetch("/api/mcf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "company", company: companyQuery, limit: 50 }),
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (cancelled) return;
+          setState({
+            loading: false,
+            matches: Array.isArray(data.matches) ? data.matches : [],
+            query: data.query || companyQuery,
+            queryKey: data.queryKey || "",
+            ambiguous: !!data.ambiguous,
+            totalPostings: data.totalPostings || 0,
+            pagesPolled: data.pagesPolled || 0,
+            fallback: !!data.fallback,
+            message: data.message || "",
+            error: null,
+          });
+        })
+        .catch(function(err) {
+          if (cancelled) return;
+          setState({ loading: false, matches: [], query: companyQuery, queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: true, message: "Could not reach MyCareersFuture. Please try again in a moment.", error: String(err && err.message) });
+        });
+    }
+    loadCompany();
+    return function() { cancelled = true; };
+  }, [companyQuery]);
+
+  const canQueue = (queueCount || 0) < 3;
+
+  // Active group: if user chose one in disambig, show that; else if single match, show it.
+  const activeMatch = state.ambiguous && chosenKey
+    ? state.matches.find(function(m) { return m.key === chosenKey; })
+    : (!state.ambiguous && state.matches.length === 1 ? state.matches[0] : null);
+
+  if (state.loading) {
+    return (
+      <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
+        <div style={{ width: 30, height: 30, margin: "0 auto 12px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture for "{companyQuery}"...</p>
+      </div>
+    );
+  }
+
+  if (state.fallback || state.matches.length === 0) {
+    return (
+      <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
+        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
+          {state.message || "No live MyCareersFuture postings found for that company."}
+        </p>
+        <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: C.muted }}>
+          Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
+        {activeMatch ? (
+          <>
+            <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
+              {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on MyCareersFuture"}
+            </h2>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
+              <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "1px 8px", color: "#166534", marginRight: 8 }}>from MCF</span>
+              Company name and posting count are verbatim from MyCareersFuture.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
+              {"Several employers match \"" + (state.query || companyQuery) + "\":"}
+            </h2>
+            <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: C.textSub }}>
+              <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "1px 8px", color: "#166534", marginRight: 8 }}>from MCF</span>
+              Select one employer to view their postings. Counts are verbatim from MyCareersFuture.
+            </p>
+            <div role="list" aria-label="Matched employers - select one to view postings">
+              {state.matches.map(function(m) {
+                return (
+                  <button key={m.key} role="listitem"
+                    aria-label={m.displayName + " - " + m.count + " posting" + (m.count === 1 ? "" : "s")}
+                    onClick={function() { setChosenKey(m.key); }}
+                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", minHeight:44, textAlign:"left", marginBottom:8, padding: "10px 14px", background: C.surface, border: "1px solid " + C.border, borderRadius: 8, cursor:"pointer", font:"inherit", gap:12 }}>
+                    <span style={{ fontSize: "0.9375rem", fontWeight: 700, color: C.text }}>{m.displayName}</span>
+                    <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink: 0 }}>{m.count} posting{m.count === 1 ? "" : "s"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+        <div className="mcf-grid">
+          {activeMatch.jobs.map(function(job) {
+            return (
+              <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                seen={undefined} fmtSeenDate={undefined}
+                onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+            );
+          })}
+        </div>
+      )}
+
+      <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
+        Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+      </p>
+    </div>
+  );
+}
+
 export default function App() {
   const [query,     setQuery]     = useState("");
-  const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture)
+  const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture) | "company" (CO1: search by employer)
   const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
@@ -10875,6 +11035,9 @@ export default function App() {
   const [comparisons, setComparisons] = useState([]); // [{title, result}] max 3
   const [compareCue, setCompareCue] = useState(false);
   const [toast, setToast]           = useState(null);   // { msg, action? }
+  // CO1: company-search result. Set by CompanyPanel after the /api/mcf action:"company" fetch.
+  // Shape: { matches, query, queryKey, ambiguous, totalPostings, pagesPolled, source } | null.
+  const [companyResult, setCompanyResult] = useState(null);
   const [showBackTop, setShowBackTop] = useState(false);
   useEffect(() => {
     const onScroll = () => setShowBackTop(window.scrollY > 400);
@@ -11111,6 +11274,18 @@ export default function App() {
     setErr(""); setSel(null); setResult(null); setOccs([]);
     track("jobs_browse_started", { q: query.trim().slice(0, 60) });
     setStep("mcf_browse");
+  }, [query]);
+
+  // CO1: company-name search mode. Mirrors startJobsBrowse; transitions to
+  // mcf_company step where CompanyPanel does the fetch + resolution + render.
+  const startCompanySearch = useCallback(() => {
+    if (!query.trim()) return;
+    const validationErr = validateJobTitleInput(query);
+    if (validationErr) { setErr(validationErr); setStep("error"); return; }
+    setErr(""); setSel(null); setResult(null); setOccs([]);
+    setCompanyResult(null);
+    track("company_search_started", { q: query.trim().slice(0, 60) });
+    setStep("mcf_company");
   }, [query]);
 
   const doSearch = useCallback(async () => {
@@ -12509,24 +12684,26 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               </div>
 
               {/* v3.2: mode toggle - analyse a role (ESCO) vs browse live SG job postings */}
-              <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+              {/* CO1: third card - company-name search (employer lookup + posting count) */}
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
                 {[
-                  { k:"role", label:"🔎 Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
-                  { k:"jobs", label:"🇸🇬 Browse SG jobs", source:"Source: MyCareersFuture postings", desc:"Explore current Singapore openings and compare what employers are asking for." },
+                  { k:"role", label:"Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
+                  { k:"jobs", label:"Browse SG jobs", source:"Source: MyCareersFuture postings", desc:"Explore current Singapore openings and compare what employers are asking for." },
+                  { k:"company", label:"Search by employer", source:"Source: MyCareersFuture postings", desc:"Type an employer name to see their live postings and confirm the posting count." },
                 ].map(m => (
                   <div key={m.k}
-                    style={{ flex:1, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
+                    style={{ flex:"1 1 30%", minWidth:0, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
                       border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
                       background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
                       onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); document.getElementById("job-title-search")?.focus(); }}
-                      style={{ textAlign:"left", padding: "8px 12px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
+                      style={{ textAlign:"left", padding: "8px 12px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
                       <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
                     </button>
                     {m.k === "jobs" && (
-                      <label title="Hide roles requiring 4+ years — scout entry/junior postings for fresh graduates"
+                      <label title="Hide roles requiring 4+ years - scout entry/junior postings for fresh graduates"
                         style={{ display:"inline-flex", alignItems:"center", gap:6, padding: "0 12px 8px", cursor:"pointer", fontSize: "0.6875rem", fontWeight:600, color: freshGrad ? C.accent : C.muted }}>
                         <input type="checkbox" checked={freshGrad} aria-label="Fresh grads - roles under 4 years experience"
                           onChange={e => { if (searchMode !== "jobs") { setSearchMode("jobs"); setOccs([]); setErr(""); } setFreshGrad(e.target.checked); }}
@@ -12539,17 +12716,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               </div>
 
               <label htmlFor="job-title-search" style={{ display:"block", margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>
-                Job title or role
+                {searchMode === "company" ? "Company name" : "Job title or role"}
               </label>
               <div style={{ display:"flex", gap:8 }}>
                 <input type="search" id="job-title-search" name="job-title" autoComplete="off" className="lux-focus"
-                  aria-label="Job title or role" aria-describedby="search-hint"
+                  aria-label={searchMode === "company" ? "Company name" : "Job title or role"} aria-describedby="search-hint"
                   role="searchbox"
-                  value={query} onChange={e=>{ setQuery(e.target.value); }} onKeyDown={e=>{ if(e.key==="Enter"){ searchMode==="jobs" ? startJobsBrowse() : doSearch(); } }}
-                  placeholder="e.g. Data Analyst, Operations Manager, HR Executive"
+                  value={query} onChange={e=>{ setQuery(e.target.value); }}
+                  onKeyDown={e=>{ if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } } }}
+                  placeholder={searchMode === "company" ? "e.g. DBS Bank, Singapore Airlines, NHG" : "e.g. Data Analyst, Operations Manager, HR Executive"}
                   style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize: "1rem", fontFamily:"inherit" }} autoFocus />
-                <button className="lux-cta lux-focus" onClick={() => { searchMode==="jobs" ? startJobsBrowse() : doSearch(); }} aria-label={searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"} style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
-                  <span>{searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
+                <button className="lux-cta lux-focus"
+                  onClick={() => { if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } }}
+                  aria-label={searchMode==="company" ? "Find company postings" : searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"}
+                  style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
+                  <span>{searchMode==="company" ? "Find company" : searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
@@ -12643,6 +12824,29 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             {comparisons.length > 0 && (
               <p style={{ marginTop:12, fontSize: "0.75rem", color:C.accent, textAlign:"center" }}>
                 {comparisons.length} posting{comparisons.length===1?"":"s"} queued for comparison — tap <strong>📊 Analyse this posting</strong> on any card to open the analysis, then run the comparison from there.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* CO1: company-search step - poll MCF by employer name, confirm the resolved
+            company, and list its live postings. No LLM; counts are pass-through. */}
+        {step === "mcf_company" && (
+          <div>
+            <button aria-label="Back to new search"
+              onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
+              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize: "0.8125rem", fontWeight:700, color:C.accent, cursor:"pointer", minHeight:44, display:"inline-flex", alignItems:"center" }}>
+              ← New search
+            </button>
+            <CompanyPanel
+              companyQuery={query.trim()}
+              onAnalysePosting={handleAnalysePosting}
+              onQueuePosting={handleQueuePosting}
+              queueCount={comparisons.length}
+            />
+            {comparisons.length > 0 && (
+              <p style={{ marginTop:12, fontSize: "0.75rem", color:C.accent, textAlign:"center" }}>
+                {comparisons.length} posting{comparisons.length===1?"":"s"} queued for comparison - tap <strong>Analyse this posting</strong> on any card to open the analysis, then run the comparison from there.
               </p>
             )}
           </div>
