@@ -843,6 +843,13 @@
 // list - left-aligned title + employer as a small muted sub-line INSIDE the row, chevron pinned right.
 // chip() helper left-aligned (textAlign:left, justify flex-start) and tidied (radius 16->10, 1px
 // border) so wrapped labels never centre. Presentation only; frozen door untouched. G1 (v3.0.84 -> v3.0.85).
+// v3.0.86 - 2026-06-18 - HDR #124 - KG3: knowledge-graph edges fix + honesty guard (Human Lead: "0
+// edges - seems just semantic"). (1) skill->occupation "informs" edges no longer gate on the duty
+// mapping (empty for skills-only roles) - every resolved skill informs the occupation directly, so
+// the graph is actually wired instead of a bare node list. (2) RoleGraph: a payload that still has 0
+// edges is labelled "grouped role map" (not "wired structure") with an amber note, rather than
+// claiming wiring it does not have. Intentionally edits buildKnowledgeGraph (KG3 supersedes the KG1
+// freeze of that symbol). G1 (v3.0.85 -> v3.0.86).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -2833,13 +2840,15 @@ function buildKnowledgeGraph(result, title) {
     });
   });
 
-  // 3c. skill -> occupation: informs (for skills linked to ESCO occ)
+  // 3c. skill -> occupation: informs. Every resolved ESCO skill is evidence for the
+  // occupation match (the skills come from the role's ESCO resolution), so each skill
+  // node informs the occupation DIRECTLY - not gated on the duty mapping (which is empty
+  // when a role resolves skills but no duties). This keeps the graph wired for skills-only
+  // roles; the dedup + verb-closure passes below still apply. (KG3 fix)
   if (adjustedOccNodes.length) {
     const occId = adjustedOccNodes[0].id;
-    // Use skills that are in the mapStatementsToEsco used set
-    const usedSkillIds = new Set(mapping.usedSkillIdxs.map((i) => skillIdxToNodeId[i]).filter(Boolean));
-    usedSkillIds.forEach((skId) => {
-      edges.push({ source: skId, target: occId, verb: "informs", weight: 0.7, source_tag: "derived" });
+    skillNodes.forEach((sn) => {
+      edges.push({ source: sn.id, target: occId, verb: "informs", weight: 0.7, source_tag: "derived" });
     });
   }
 

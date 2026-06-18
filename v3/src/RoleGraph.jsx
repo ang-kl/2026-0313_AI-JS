@@ -242,19 +242,25 @@ export function KGGraph({ kg }) {
   const isHighlighted = (n) => !traced || n.id === traced || isConnected(traced, n.id);
 
   const handleNodeClick = (id) => setTraced((t) => (t === id ? null : id));
+  const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
     <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: "clamp(12px,3vw,28px)" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto" }}>
 
         <header style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#0f766e" }}>Knowledge graph - wired structure of the role</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#0f766e" }}>{hasEdges ? "Knowledge graph - wired structure of the role" : "Knowledge graph - grouped role map"}</div>
           <h1 style={{ fontSize: "clamp(17px,3vw,24px)", margin: "3px 0 2px", lineHeight: 1.15 }}>
             {kg.nodes.find((n) => n.type === "role")?.label || "Role"}
           </h1>
           <div style={{ fontSize: 12, color: P.muted }}>
             {kg.stats.nodes} nodes - {kg.stats.edges} edges - {kg.stats.clustersPresent} cluster lanes present - KG version {kg.version}
           </div>
+          {!hasEdges && (
+            <div style={{ marginTop: 6, fontSize: 12, color: "#92400e", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "6px 10px", lineHeight: 1.45 }}>
+              No relationships could be wired from this role's data yet - showing the grouped nodes only. Wiring appears once the role resolves duties (responsibilities) alongside its skills.
+            </div>
+          )}
         </header>
 
         {/* Prov legend */}
