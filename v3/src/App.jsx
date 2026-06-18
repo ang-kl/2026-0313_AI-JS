@@ -816,6 +816,13 @@
 // CompareWarningModal (now role=dialog + aria-modal + aria-labelledby + 44px buttons), JobAdDrawer
 // header, Toast, Term glossary + tech tooltips - one type scale and message structure, no colour-only
 // state. Presentation only; engine number + frozen door untouched. G1 (v3.0.80 -> v3.0.81).
+// v3.0.82 - 2026-06-18 - HDR #120 - KG2: wire the KG1 knowledge graph into the live result page
+// (it built but rendered nowhere - getKnowledgeGraph was never called and window.__kgPayload never
+// set). RoleGraphPanel gains a Layered <-> Knowledge-graph view toggle (aria-pressed, 44px, active
+// state by border+weight not colour); Knowledge mode renders KGGraph from getKnowledgeGraph(live
+// result), with an amber "not enough role data yet" notice when the graph is thin/withheld. KGGraph
+// exported from RoleGraph.jsx (DATA-free). Additive; layered mode byte-unchanged; frozen door intact.
+// G1 (v3.0.81 -> v3.0.82).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
