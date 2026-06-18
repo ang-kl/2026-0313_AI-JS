@@ -830,6 +830,13 @@
 // Orchestrator) - no new LLM, no new prompt (D1-D8 N/A), no new number; the climb step reuses the
 // duty's kickstart/how. Withholds ("unscoped") when level is absent; a11y: neutral palette (higher is
 // not "better"), aria-current, ASCII rail. Additive; frozen door intact. G1 (v3.0.82 -> v3.0.83).
+// v3.0.84 - 2026-06-18 - HDR #122 - LANDING POLISH (Human Lead, from screenshot). (1) Text-size
+// A-/A/A+ buttons: drop the square boxed borders - borderless now, active "A" by subtle bg fill +
+// aria-pressed, disabled by opacity (no colour-only state). (2) The two entry cards (Analyse role /
+// Browse SG jobs): selected state is now WHITE bg + a single light-blue 2px border (was light-blue
+// fill + accent border, which read as a double border). (3) Selecting either card moves focus to the
+// job-title input so the user can type the role immediately. Presentation only; frozen door untouched.
+// G1 (v3.0.83 -> v3.0.84).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -10604,9 +10611,9 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
     display: "inline-flex", alignItems: "center", justifyContent: "center",
     fontWeight: 700, lineHeight: 1,
     color: "#fff",
-    background: "rgba(255,255,255,0.15)",
-    border: "1px solid rgba(255,255,255,0.35)",
-    borderRadius: 7,
+    background: "transparent",
+    border: "none",
+    borderRadius: 8,
     cursor: "pointer",
     outline: "none",
     transition: "all 0.15s",
@@ -10631,7 +10638,6 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
           fontSize: "0.75rem",
           opacity: atMin ? 0.4 : 1,
           cursor: atMin ? "default" : "pointer",
-          borderColor: atMin ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
         }}
       >
         <span style={{ fontSize: "0.6875rem" }}>A</span>-
@@ -10646,8 +10652,7 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
         style={{
           ...btnBase,
           fontSize: "0.875rem",
-          background: isReset ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
-          borderColor: isReset ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.35)",
+          background: isReset ? "rgba(255,255,255,0.28)" : "transparent",
         }}
       >
         A
@@ -10664,7 +10669,6 @@ function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
           fontSize: "0.75rem",
           opacity: atMax ? 0.4 : 1,
           cursor: atMax ? "default" : "pointer",
-          borderColor: atMax ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.35)",
         }}
       >
         <span style={{ fontSize: "1rem" }}>A</span>+
@@ -12493,10 +12497,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 ].map(m => (
                   <div key={m.k}
                     style={{ flex:1, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
-                      border:`2px solid ${searchMode===m.k ? C.accent : C.border}`,
-                      background: searchMode===m.k ? C.accentSoft : C.surface }}>
+                      border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
+                      background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
-                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); }}
+                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); document.getElementById("job-title-search")?.focus(); }}
                       style={{ textAlign:"left", padding: "8px 12px", background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
