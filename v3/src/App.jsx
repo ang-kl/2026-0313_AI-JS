@@ -879,6 +879,16 @@
 // agentic subtitle: "Grounded in live MyCareersFuture postings ... see the role as a wired knowledge
 // graph, and what AI can take on" - surfacing the live-MCF differentiator. Presentation only; engine +
 // frozen door untouched. G1 (v3.0.88 -> v3.0.89).
+// v3.0.90 - 2026-06-18 - HDR #128 - CO2.1 cleanup (Human Lead live Rockwell read: 122 clusters / 47
+// "agent candidates" was noise). The duty harvest now fences out NON-duties before clustering -
+// qualifications (degree/diploma/N years), benefit items (leave/insurance/wellbeing/mindfulness/
+// membership), requirement phrasings (proficiency/knowledge in...) and short section headers - via
+// _AGENT_NONDUTY_RE + _AGENT_HEADER_RE. Reason: every posting repeats the same benefits/quals, so
+// unfenced they clustered with high recurrence and got falsely PROMOTED as agent candidates. Plus the
+// shortlist is rank-truncated: agents to top 8 (COMPANY_AGENT_MAX_AGENTS), the recurring-duties tier
+// to top 15 by recurrence (COMPANY_AGENT_MAX_DUTIES; agent-backing clusters always kept so no edge
+// dangles). Deterministic, no LLM, frozen door intact; the side-panel provenance is unchanged.
+// G1 (v3.0.89 -> v3.0.90).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -10874,9 +10884,18 @@ function WhatThisMeansCard({ result, graphData }) {
 const COMPANY_AGENT_MIN_POSTINGS   = 4;
 const COMPANY_AGENT_MIN_DUTIES     = 6;
 const COMPANY_AGENT_MIN_RECURRENCE = 2;
+const COMPANY_AGENT_MAX_AGENTS     = 8;  // CO2.1: cap the candidate shortlist (rank-truncate)
+const COMPANY_AGENT_MAX_DUTIES     = 15; // CO2.1: cap the recurring-duties tier (top by recurrence)
 
 // Boilerplate filter for duty lines (CO2.7 step 0). R007: ASCII only.
 const _AGENT_BOILER_RE = /^\s*(equal opportunity|we offer|apply now|please apply|about us|about the company|what we offer|benefits|perks|join us|our culture|work with us|be part of|why join|salary|compensation|who we are)\b/i;
+// CO2.1: lines that are NOT duties - qualifications, benefit items, requirement
+// phrasings, section headers. Every posting repeats the same benefits/quals, so
+// without fencing these they cluster with high recurrence and get falsely
+// promoted as "agent candidates" (the "mindfulness programmes" candidate bug).
+const _AGENT_NONDUTY_RE = /^\s*(?:[-•*o]\s*)?(?:bachelor|master|diploma|degree|phd|doctorate|nitec|gce\b|[ao]-?level|\d+\+?\s*years?\b|(?:minimum|at least)\s+\d+\s+years?|(?:proficien\w+|knowledge|familiar\w*|competen\w+|fluen\w+)\s+(?:in|of|with)\b|(?:learning outcomes?|technical skills?|key requirements?|requirements?|qualifications?|pre-?requisites?|requisites?|eligibility|what we offer|benefits?|perks?|remuneration)\b|(?:annual|medical|dental|insurance|paid (?:time off|leave)|wellbeing|well-being|mindfulness|employee assistance|gym membership|membership to|flexible working|hybrid working|course library|professional development fund|bonus|allowance)\b)/i;
+// A short line ending in ":" (<= 6 words) is a section header, not a duty.
+const _AGENT_HEADER_RE = /^[^.!?]{0,60}:\s*$/;
 
 // CO2.7 step 2: deterministic duty-to-layer hint from JOB_LAYERS cue verbs.
 // Maps a duty's tokens to the MOST SPECIFIC layer using documented cue-verb crosswalk.
@@ -11008,6 +11027,8 @@ function buildCompanyAgents(matchGroup) {
       const toks = _phraseToks(line);
       if (toks.length < 2) return; // fewer than 5 tokens is too short (use phrase toks as proxy)
       if (_AGENT_BOILER_RE.test(line)) return;
+      if (_AGENT_NONDUTY_RE.test(line)) return;                                    // CO2.1: fence quals/benefits/requirements
+      if (_AGENT_HEADER_RE.test(line) && line.split(/\s+/).length <= 6) return;    // CO2.1: fence section headers
       dutyInstances.push({
         text: line,
         toks: toks,
@@ -11139,6 +11160,7 @@ function buildCompanyAgents(matchGroup) {
   // ---- Agent candidates (promoted clusters only) ----
   const agents = sortedClusters
     .filter(function(c) { return c.promoted; })
+    .slice(0, COMPANY_AGENT_MAX_AGENTS)
     .map(function(c) {
       return {
         id: "agent-" + c.id,
@@ -11202,8 +11224,14 @@ function companyAgentsToKgPayload(model) {
     nodes.push({ id: fn.id, type: "organisation", label: fn.name, cluster: "functions", source: "mcf", confidence: "from MCF category" });
   });
 
-  // Cluster/duty nodes (tier 2)
-  model.clusters.forEach(function(c) {
+  // Cluster/duty nodes (tier 2). CO2.1: cap to the top clusters by recurrence so the
+  // tier stays scannable; always keep clusters that back an agent candidate so the
+  // duty -> agent edges never dangle.
+  const _agentClusterIds = new Set(model.agents.map(function(a) { return a.clusterId; }));
+  const _dutyClusters = model.clusters.slice()
+    .sort(function(a, b) { return (b.recurrence - a.recurrence) || a.repDuty.localeCompare(b.repDuty); })
+    .filter(function(c, i) { return i < COMPANY_AGENT_MAX_DUTIES || _agentClusterIds.has(c.id); });
+  _dutyClusters.forEach(function(c) {
     const provKey = c.level === "HUMAN" ? "stays human" : undefined;
     nodes.push({
       id: c.id,
