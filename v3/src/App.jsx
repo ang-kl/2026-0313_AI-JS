@@ -12311,9 +12311,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
                   {/* Left rail: sticky liquid-glass nav - position:sticky works because ancestors use overflow-x:clip not hidden */}
                   <div style={{ position:"sticky", top:12 }}>{uiNavBox}</div>
-                  {/* Right column: title card + comparison banner + pillar content + legend (no PillarBar on wide) */}
+                  {/* Right column: title card + summary + comparison banner + pillar content + legend (no PillarBar on wide) */}
                   <div style={{ minWidth:0 }}>
                     {uiTitleCard}
+                    {/* Feature 2: plain-language TL;DR summary card */}
+                    {uiSummaryCard}
                     {uiComparisonBanner}
                     {/* PL4: pillar view */}
                     {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
@@ -12329,8 +12331,16 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                    !uiV2 legacy: ProvLegend + uiNavBox tree as before. */
                 <>
                   {uiTitleCard}
+                  {/* Feature 2: plain-language TL;DR summary card (phone path) */}
+                  {uiSummaryCard}
                   {/* PL3: PillarBar - phone-only nav (uiV2 narrow). Hidden on wide (nav rail used instead). */}
                   {uiV2 && <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />}
+                  {/* Text-size control on phone: compact bar near PillarBar */}
+                  {uiV2 && (
+                    <div style={{ display:"flex", justifyContent:"flex-end", marginBottom: 4 }}>
+                      <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} />
+                    </div>
+                  )}
                   {uiComparisonBanner}
                   {!uiV2 && (
                     <>
