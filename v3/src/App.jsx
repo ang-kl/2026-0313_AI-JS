@@ -2314,6 +2314,16 @@ async function checkResume(resumeText, profile, title, jobAnatomy, source, role)
 
 const ROLE_GRAPH_VERSION = "rg3";
 const _roleGraphCache = new Map();
+
+// ── Knowledge-Graph slice (KG1) ─────────────────────────────────────────────
+// R005 grep targets: KG_GRAPH_VERSION, KG_VERBS, buildKnowledgeGraph
+const KG_GRAPH_VERSION = "kg1";
+// Closed verb set - every edge verb MUST be a member of this array (§5).
+// No verb may be added without extending this constant and updating the rule table.
+const KG_VERBS = ["depends-on", "invokes", "produces", "informs", "mutates", "accountable-to", "competes-with"];
+const _kgGraphCache = new Map();
+// ────────────────────────────────────────────────────────────────────────────
+
 const RG_NODE_STYLE = {
   mcfRole:        { label:"MyCareersFuture role", color:"#1e40af", bg:"#dbeafe", border:"#93c5fd" },
   iscoOccupation: { label:"ISCO-08 occupation",   color:"#5b21b6", bg:"#ede9fe", border:"#c4b5fd" },
@@ -2536,6 +2546,344 @@ async function buildRoleGraph(result, title, onStep) {
   step(7);
   return out;
 }
+
+// ── KG1: buildKnowledgeGraph ────────────────────────────────────────────────
+// Pure deterministic builder. No LLM, no fetch. Same result -> byte-identical
+// {nodes, edges, clusters} (generatedAt varies and is excluded from snapshots).
+// Reuses: gatherStatements, mapStatementsToEsco, _phraseNorm, _phraseToks,
+//         _rgSlug, result.skills, result.escoOccupation, result.responsibilitiesData
+//
+// §5 verb rule table (source-type, target-type -> verb):
+//   duty -> skill          : depends-on  (duty draws on that skill)
+//   role -> duty           : invokes     (role activates the duty)
+//   duty -> organisation   : mutates     (duty carries an org-change marker)
+//   skill -> occupation    : informs     (skill is evidence for ISCO match)
+//   duty -> qualification  : produces    (duty text contains an output marker)
+//   individual -> department: accountable-to (scope hierarchy, if dept node present)
+//   occupation -> mirror-occupation: competes-with (only when mirrorRoles present)
+//
+// §6 cluster honesty:
+//   individual  - always present (duty/skill/qualification nodes)
+//   department  - present if a function/team marker or occupation node grounds it
+//   organisation - present only if the posting names the org
+//   competition  - present only if result already carries computed mirrorRoles
+//
+// §7 node schema: { id, type, cluster, label, source, confidence, level?, ref? }
+// §7 edge schema: { source, target, verb, weight, source_tag }
+// ────────────────────────────────────────────────────────────────────────────
+
+// Output-marker stems: a duty containing one of these produces a deliverable node.
+const _KG_OUTPUT_STEMS = ["report", "plan", "strategy", "framework", "roadmap", "policy", "brief", "proposal", "dashboard", "model", "assessment", "review"];
+// Org-change marker stems: a duty containing one of these mutates an org node.
+const _KG_ORG_CHANGE_STEMS = ["transform", "improve", "redesign", "implement", "lead", "change", "reform", "drive", "build", "establish", "develop", "create", "deploy", "rollout", "execute"];
+// Department/function marker stems: a duty or occupation containing one of these grounds a dept node.
+const _KG_DEPT_STEMS = ["team", "function", "division", "department", "group", "unit", "centre", "center", "office", "bureau", "branch", "section", "platform", "practice", "programme", "program"];
+
+function _kgContainsAny(text, stems) {
+  const t = _phraseNorm(text);
+  return stems.some(s => t.includes(s));
+}
+
+function buildKnowledgeGraph(result, title) {
+  const generatedAt = new Date().toISOString();
+
+  // ── 1. Entity extraction ──────────────────────────────────────────────────
+
+  // 1a. Role node (verbatim title; source always "mcf" because the role comes from MCF)
+  const roleId = "role:" + _rgSlug(String(title || ""));
+  const roleNode = {
+    id: roleId,
+    type: "role",
+    cluster: "department",
+    label: String(title || ""),
+    source: "mcf",
+    confidence: "high",
+  };
+
+  // 1b. Duty nodes from gatherStatements (verbatim text from MCF/analysis)
+  const { responsibilities: duties } = gatherStatements(result || {});
+  const dutyNodes = duties.map((d) => ({
+    id: "duty:" + d.id,
+    type: "duty",
+    cluster: "individual",
+    label: d.text,
+    source: "mcf",
+    confidence: "high",
+    level: d.level || "HUMAN",
+    ref: {},
+  }));
+
+  // 1c. Skill nodes from result.skills (verbatim ESCO skill names)
+  const skills = (result && result.skills) || [];
+  const skillNodes = skills.map((s, idx) => ({
+    id: "skill:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + (s.n != null ? s.n : idx)),
+    type: "skill",
+    cluster: "individual",
+    label: String(s.skill || ""),
+    source: "esco",
+    confidence: s.level === "HIGH" ? "high" : s.level === "MEDIUM" ? "medium" : "low",
+    level: s.level || "HUMAN",
+    ref: { escoUri: s.escoUri || "" },
+  })).filter((n) => n.label);
+
+  // 1d. Occupation node(s) from result.escoOccupation (verbatim ESCO label)
+  const escoOcc = result && result.escoOccupation;
+  const occNodes = [];
+  if (escoOcc && (escoOcc.preferredLabel || escoOcc.label)) {
+    occNodes.push({
+      id: "occupation:" + _rgSlug(escoOcc.preferredLabel || escoOcc.label || ""),
+      type: "occupation",
+      cluster: "department",
+      label: String(escoOcc.preferredLabel || escoOcc.label || ""),
+      source: "esco",
+      confidence: "medium",
+      ref: { iscoCode: escoOcc.isco || escoOcc.iscoCode || "" },
+    });
+  }
+
+  // 1e. Qualification nodes from parseJobAd req-kind sections (verbatim phrases only)
+  const qualNodes = [];
+  const rd = result && result.responsibilitiesData;
+  const adJobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+  const adJob = adJobs.find((j) => j && (j.description || j.responsibilitiesText)) || adJobs[0] || null;
+  if (adJob) {
+    const adText = String(adJob.description || adJob.responsibilitiesText || "");
+    const stripped = adText.replace(/<[^>]+>/g, " ").replace(/\r/g, "").trim();
+    try {
+      const sections = parseJobAd(stripped);
+      const reqSections = sections.filter((s) => s.kind === "req");
+      const seenQ = new Set();
+      reqSections.forEach((sec) => {
+        sec.blocks.forEach((b) => {
+          if (b.t !== "li" && b.t !== "p") return;
+          const phrase = String(b.text || "").trim().slice(0, 120);
+          if (!phrase || phrase.length < 8) return;
+          const key = _phraseNorm(phrase).slice(0, 60);
+          if (seenQ.has(key)) return;
+          seenQ.add(key);
+          qualNodes.push({
+            id: "qual:" + _rgSlug(phrase),
+            type: "qualification",
+            cluster: "individual",
+            label: phrase,
+            source: "mcf",
+            confidence: "high",
+            ref: {},
+          });
+        });
+      });
+    } catch (_) { /* parseJobAd failure - omit qual nodes */ }
+  }
+  // Cap qualifications to 8 to keep the graph legible
+  const cappedQualNodes = qualNodes.slice(0, 8);
+
+  // 1f. Organisation node - ONLY if the posting names the org (verbatim from metadata)
+  const orgNodes = [];
+  let orgNodeId = null;
+  const employer = (adJob && (adJob.hiringCompanyName || adJob.postedCompanyName || adJob.employer)) || null;
+  if (employer) {
+    orgNodeId = "org:" + _rgSlug(employer);
+    orgNodes.push({
+      id: orgNodeId,
+      type: "organisation",
+      cluster: "organisation",
+      label: employer,
+      source: "mcf",
+      confidence: "high",
+      ref: {},
+    });
+  }
+
+  // 1g. Mirror-occupation nodes - ONLY if result already carries computed mirrorRoles
+  // (engine mirrorRoles: [{ isco, title, sharePct, index, band, zRange }])
+  const mirrorNodes = [];
+  const mirrorRoles = result && result.mirrorRoles;
+  if (Array.isArray(mirrorRoles) && mirrorRoles.length) {
+    mirrorRoles.slice(0, 4).forEach((m) => {
+      if (!m || !m.title) return;
+      mirrorNodes.push({
+        id: "mirror:" + _rgSlug(String(m.title || "") + (m.isco || "")),
+        type: "mirror-occupation",
+        cluster: "competition",
+        label: String(m.title || ""),
+        source: "computed",
+        confidence: m.sharePct >= 30 ? "high" : m.sharePct >= 15 ? "medium" : "low",
+        ref: { iscoCode: String(m.isco || "") },
+      });
+    });
+  }
+
+  // ── 2. Semantic clustering (honesty-gated) ────────────────────────────────
+
+  // Department cluster grounding: check if any duty or occupation mentions a team/function
+  const hasDeptMarker =
+    duties.some((d) => _kgContainsAny(d.text, _KG_DEPT_STEMS)) ||
+    occNodes.some((n) => _kgContainsAny(n.label, _KG_DEPT_STEMS));
+
+  // Organisation cluster: grounded only if org node was created
+  const hasOrgCluster = orgNodes.length > 0;
+
+  // Competition cluster: grounded only if mirrorRoles present
+  const hasCompetitionCluster = mirrorNodes.length > 0;
+
+  // Mutates-target: check if any duty carries an org-change marker AND we have an org node
+  const orgChangeDuties = orgNodeId
+    ? duties.filter((d) => _kgContainsAny(d.text, _KG_ORG_CHANGE_STEMS))
+    : [];
+
+  // Re-cluster duty nodes: those with org-change markers that point to an org node
+  // keep cluster "individual" (the individual performs the action) but also get a
+  // "mutates" edge to the org node. No cluster change needed (an individual act
+  // can have org-level impact).
+
+  // Department cluster: assign role node and occupation nodes to "department"
+  // (already set above). If no dept marker at all, downgrade occ nodes to "unscoped".
+  const adjustedOccNodes = occNodes.map((n) => ({
+    ...n,
+    cluster: hasDeptMarker ? "department" : "unscoped",
+  }));
+
+  // ── 3. Relational mapping (verb rule table §5) ────────────────────────────
+
+  const edges = [];
+
+  // Build duty-to-skill edges using mapStatementsToEsco (reuse existing logic)
+  // mapStatementsToEsco returns { edges: [{respId, skillIdx, strength}], usedSkillIdxs }
+  // respId matches d.id from gatherStatements (e.g. "r3"), skillIdx is the index in skills[]
+  const mapping = mapStatementsToEsco(duties, null, skills);
+  // Map skills[] index to KG node id (parallel to skillNodes array)
+  const skillIdxToNodeId = {};
+  skills.forEach((_s, i) => { skillIdxToNodeId[i] = skillNodes[i] ? skillNodes[i].id : null; });
+
+  // 3a. role -> duty: invokes
+  dutyNodes.forEach((dn) => {
+    const weight = dn.level === "HIGH" ? 1.0 : dn.level === "MEDIUM" ? 0.8 : 0.65;
+    edges.push({ source: roleId, target: dn.id, verb: "invokes", weight, source_tag: "computed" });
+  });
+
+  // 3b. duty -> skill: depends-on (from mapStatementsToEsco edges)
+  mapping.edges.forEach((e) => {
+    const dutyId = "duty:" + e.respId;
+    const skillId = skillIdxToNodeId[e.skillIdx];
+    if (!skillId) return;
+    // Verify the duty node exists
+    if (!dutyNodes.find((d) => d.id === dutyId)) return;
+    edges.push({
+      source: dutyId,
+      target: skillId,
+      verb: "depends-on",
+      weight: Math.round(Math.max(0.05, Math.min(1, e.strength)) * 100) / 100,
+      source_tag: "computed",
+    });
+  });
+
+  // 3c. skill -> occupation: informs (for skills linked to ESCO occ)
+  if (adjustedOccNodes.length) {
+    const occId = adjustedOccNodes[0].id;
+    // Use skills that are in the mapStatementsToEsco used set
+    const usedSkillIds = new Set(mapping.usedSkillIdxs.map((i) => skillIdxToNodeId[i]).filter(Boolean));
+    usedSkillIds.forEach((skId) => {
+      edges.push({ source: skId, target: occId, verb: "informs", weight: 0.7, source_tag: "derived" });
+    });
+  }
+
+  // 3d. duty -> organisation: mutates (for duties with org-change markers)
+  if (orgNodeId) {
+    orgChangeDuties.forEach((d) => {
+      edges.push({ source: "duty:" + d.id, target: orgNodeId, verb: "mutates", weight: 0.8, source_tag: "derived" });
+    });
+  }
+
+  // 3e. duty -> qualification: produces (for duties whose text contains an output marker)
+  // We match duty text to qual nodes by output-stem presence in the duty text.
+  // Only emit when the duty text and qual phrase share a token overlap.
+  const qualToks = cappedQualNodes.map((q) => _phraseToks(q.label));
+  dutyNodes.forEach((dn) => {
+    if (!_kgContainsAny(dn.label, _KG_OUTPUT_STEMS)) return;
+    const dToks = new Set(_phraseToks(dn.label));
+    cappedQualNodes.forEach((qn, qi) => {
+      const shared = qualToks[qi].filter((t) => dToks.has(t)).length;
+      if (shared >= 1) {
+        edges.push({ source: dn.id, target: qn.id, verb: "produces", weight: 0.6, source_tag: "derived" });
+      }
+    });
+  });
+
+  // 3f. role/department -> organisation: accountable-to (scope hierarchy)
+  if (orgNodeId && hasDeptMarker) {
+    edges.push({ source: roleId, target: orgNodeId, verb: "accountable-to", weight: 0.9, source_tag: "derived" });
+  }
+
+  // 3g. occupation -> mirror-occupation: competes-with (ONLY if mirrorRoles present)
+  if (adjustedOccNodes.length && mirrorNodes.length) {
+    const occId = adjustedOccNodes[0].id;
+    mirrorNodes.forEach((mn) => {
+      edges.push({ source: occId, target: mn.id, verb: "competes-with", weight: 0.5, source_tag: "computed" });
+    });
+  }
+
+  // ── 4. Verify verb closure: every edge verb must be in KG_VERBS ───────────
+  // (defensive - the rule table above is closed; this is a runtime guard)
+  const verbSet = new Set(KG_VERBS);
+  const filteredEdges = edges.filter((e) => verbSet.has(e.verb));
+
+  // ── 5. De-duplicate edges (same source+target+verb) ──────────────────────
+  const edgeSeen = new Set();
+  const dedupEdges = filteredEdges.filter((e) => {
+    const k = e.source + "|" + e.target + "|" + e.verb;
+    if (edgeSeen.has(k)) return false;
+    edgeSeen.add(k);
+    return true;
+  });
+
+  // ── 6. Assemble nodes (deterministic sort: type then id) ─────────────────
+  const allNodes = [
+    roleNode,
+    ...dutyNodes.sort((a, b) => a.id.localeCompare(b.id)),
+    ...skillNodes.sort((a, b) => a.id.localeCompare(b.id)),
+    ...adjustedOccNodes,
+    ...cappedQualNodes.sort((a, b) => a.id.localeCompare(b.id)),
+    ...orgNodes,
+    ...mirrorNodes,
+  ];
+
+  // ── 7. Cluster manifest (honesty-gated §6) ────────────────────────────────
+  const withheld = [];
+  const clusters = [
+    { id: "individual",   label: "Individual",   present: true },
+    { id: "department",   label: "Department",   present: !!(hasDeptMarker || roleNode) },
+    { id: "organisation", label: "Organisation", present: hasOrgCluster },
+    { id: "competition",  label: "Competition",  present: hasCompetitionCluster },
+  ];
+  if (!hasOrgCluster) withheld.push("organisation: hiring organisation not named in posting metadata");
+  if (!hasCompetitionCluster) withheld.push("competition: no computed mirror-role data in result");
+  if (!hasDeptMarker) withheld.push("department: no function/team marker found - role node kept in department cluster by position");
+
+  const presentCount = clusters.filter((c) => c.present).length;
+
+  return {
+    nodes: allNodes,
+    edges: dedupEdges,
+    clusters,
+    version: KG_GRAPH_VERSION,
+    generatedAt,
+    stats: { nodes: allNodes.length, edges: dedupEdges.length, clustersPresent: presentCount },
+    withheld,
+  };
+}
+
+// Thin cached accessor - mirrors the _roleGraphCache idiom.
+// Cache key: KG_GRAPH_VERSION + role key + result.source
+// The cache holds the full payload; generatedAt is regenerated on cache miss only.
+function getKnowledgeGraph(result, title) {
+  const roleKey = String(title || "").trim().toLowerCase();
+  const cacheKey = KG_GRAPH_VERSION + "|" + roleKey + "|" + ((result && result.source) || "esco");
+  if (_kgGraphCache.has(cacheKey)) return _kgGraphCache.get(cacheKey);
+  const payload = buildKnowledgeGraph(result, title);
+  _kgGraphCache.set(cacheKey, payload);
+  return payload;
+}
+// ── End KG1 ─────────────────────────────────────────────────────────────────
 
 // --- CV ingress removed (PL1) ---
 
