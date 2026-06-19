@@ -778,18 +778,6 @@
 // Seen-before bucket is ordered by when each ad first entered your searches. Clearly labelled as
 // your own on-device history, NOT an MCF fact, so it carries no "from MCF" provenance. No LLM, no
 // number. G1 (v3.0.76 -> v3.0.77).
-// v3.0.78 - 2026-06-19 - HDR #116 - UPKEEP: vault snapshot + pillars-spec as-built reconciliation
-// (Human Lead: "vault, journal, update feature"). Housekeeping only - NO app-code change. (1) VAULT:
-// the current v3 source (the shipped Pillars arc PL1-PL9 + nav, PRs #115-#124, plus post-arc #125-#129)
-// snapshotted verbatim into vault/v3.0.77/ (58 files; excludes node_modules/dist and iCloud "<name> 2"
-// conflict-copies); the empty iCloud junk dir vault/v3.0.71 2/ was deleted; ~/.claude/.last_vault ->
-// 2026-06-19. (2) FEATURE: v3/script/v3-pillars-spec.md gains an AU-7 "PL14 - Build reconciliation
-// (AS-BUILT)" appendix mapping each PL to its merged PR and flipping STATUS READY_FOR_BUILD -> SHIPPED;
-// the authored plan PL0-PL13 is kept verbatim (source-wins, CLAUDE-FULL §0 + AU-7). (3) JOURNAL: this
-// entry. Session record: Anthropic credits restored (analyser live); Cover Letter confirmed already
-// removed by PL2 (#116), so NOT re-removed; the iCloud-corrupted .git was repaired (4 stray " 2" refs);
-// the ALERT_WEBHOOK_URL setup and the repo-move-out-of-iCloud were both dropped by the Human Lead.
-// Frozen door untouched (R-FREEZE); 3-site bump v3.0.77 -> v3.0.78. G1 (v3.0.77 -> v3.0.78).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
