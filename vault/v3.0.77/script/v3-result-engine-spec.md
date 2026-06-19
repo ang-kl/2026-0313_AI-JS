@@ -49,28 +49,6 @@ These are the "landing + searching the role" you asked to protect. **Radicality:
 > one-arg call path is unchanged); `resolveOccupation` stays byte-frozen. Prior wording preserved
 > above per AU-7.
 
-> **AU-7 amendment (CSG, v3.0.78, Human Lead approved, 19-06-26):** the
-> "Browse SG jobs card incl. '< 4 yrs' scout | the v3.0.9 Browse card + `/api/mcf` browse path"
-> row is EXTENDED, not unfrozen. Prior wording preserved verbatim in the table row above per AU-7.
-> Source-wins reason: the Human Lead directive ("include careers.gov.sg ... when I search you fire
-> to two job platforms") necessarily adds a second fetch at the two call boundaries (Browse fire +
-> role-analyse fire). The design keeps `/api/mcf.js` and all frozen symbols byte-identical and adds
-> the fan-out at the call boundary only:
->   - A new `api/careers.js` proxy (separate new file, never touching `api/mcf.js`) fetches the
->     MIT-licensed `opengovsg/careersgovsg-jobs-data` dump server-side (6h module-scope cache +
->     AbortController timeout), normalises each record into the exact MCF posting shape via
->     `normaliseCsgJob()`, and returns the same envelope the MCF handler returns.
->   - `fetchCsgJobs()` + `mergeJobSources()` in `App.jsx` are NEW helper functions. The existing
->     MCF call in `McfJobsPanel` and `getJobsForRole()` is preserved byte-identical; a
->     `Promise.allSettled` fan-out adds the CSG call beside it, and `mergeJobSources` tags, de-dupes
->     (MCF wins on collision, survivor flagged `seenInBoth:true`), and appends CSG-only records.
->   - One source failing must never blank the other (`Promise.allSettled`).
->   - `getSkills`, `getSkillsFromPosting`, `searchOccupations`, `/api/esco`, `api/claude.js`,
->     `engine-data/*` are all byte-frozen (verified by R-FREEZE). The MCF request body is
->     byte-identical in both fire points.
-> The CSP is unchanged: the browser only calls `/api/careers` (same origin); the proxy -> GitHub
-> raw fetch is server-side egress, not subject to browser CSP. No `vercel.json` edit required.
-
 > Note on v2: the repo-root app (`src/App.jsx`, the "AI skilling" v2 lineage at `v2_2026-04-08/v2_0_7/`) is **out of scope**. A v3-only change leaves v2's build output identical (per `doc/v3-leap-view.md` deploy note). Do not edit v2 to achieve a v3 result.
 
 ---

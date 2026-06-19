@@ -94,7 +94,7 @@ Per `v3-result-engine-spec.md` §1 the **"Browse SG jobs card + `/api/mcf` brows
 
 ## CSG6. Radicality / version
 
-- **Band:** `new_data_source_integration` -> **MINOR** per CLAUDE-FULL §6.2; realised on the flat patch line as the next `v3.0.<N>` (reconcile after the v3.0.78 upkeep PR #153 lands -> likely **v3.0.79**). Requires **V-1** Human-Lead confirmation.
+- **Band:** `new_data_source_integration` -> **MINOR** per CLAUDE-FULL §6.2; realised on the flat patch line as the next `v3.0.<N>` (reconcile after the v3.0.78 upkeep PR #153 lands -> likely **v3.0.78**). Requires **V-1** Human-Lead confirmation.
 - **Frozen-door AU-7 (REQUIRED):** the directive deliberately extends the frozen "Browse SG jobs / `/api/mcf`" door to fan out to a second source. Record as an AU-7 amendment in `v3-result-engine-spec.md` §1 (quote the prior "frozen" line verbatim; append: the browse + role-analyse *fetch* may fan out to an additional same-contract source via an additive merge, the original MCF path byte-untouched - same shape as the ESCO-DIS AU-7). **Blocks the PR until the Human Lead confirms.**
 
 ---
@@ -113,12 +113,12 @@ Per `v3-result-engine-spec.md` §1 the **"Browse SG jobs card + `/api/mcf` brows
 ## CSG8. Conflicts / confirmations needed before build
 
 1. **Frozen-door AU-7 (BLOCKING):** confirm the Browse/`/api/mcf` door may fan out to careers.gov.sg via the additive merge in §4 (MCF path byte-untouched). Without this, CSG4's two fire-point edits are a frozen-door Rule-stop.
-2. **V-1 version bump (BLOCKING):** confirm the MINOR bump to the next `v3.0.<N>` (after #153 -> v3.0.79).
+2. **V-1 version bump (BLOCKING):** confirm the MINOR bump to the next `v3.0.<N>` (after #153 -> v3.0.78).
 3. **Dump size / caching (default proceeds):** the full dump is fetched + cached server-side (6h TTL). If it proves too large for a serverless cold start, fall back to the CSV or a pre-filtered slice - flagged, default = fetch JSON + cache.
 4. **De-dupe preference (default proceeds):** on a title+employer collision MCF wins (richer fields), survivor flagged "seen in both". Alternative (keep both, no de-dupe) on request.
 
 ---
 
-**STATUS: READY_FOR_BUILD pending §8.1 (AU-7) + §8.2 (V-1).** On confirmation: build `api/careers.js` + the two additive fire-point hooks + the source-label UI, then R-FREEZE -> build -> a11y review -> G1 bump (v3.0.79) -> one PR. Next agent: `result-engine-builder`.
+**STATUS: READY_FOR_BUILD pending §8.1 (AU-7) + §8.2 (V-1).** On confirmation: build `api/careers.js` + the two additive fire-point hooks + the source-label UI, then R-FREEZE -> build -> a11y review -> G1 bump (v3.0.78) -> one PR. Next agent: `result-engine-builder`.
 
 *End of spec.*

@@ -237,33 +237,3 @@ Per PR: surface `Rule V-1 / G1` to the Human Lead. On yes: bump flat patch in al
 **STATUS: READY_FOR_BUILD. Next agent: `result-engine-builder`** (start at PL1; D1-D8 on PL5 via `conformance-auditor`; a11y via `a11y-honesty-reviewer`).
 
 *End of spec. Confirm the PL6 placement and the CV-fit removal scope to proceed; PL1 needs no further input.*
-
----
-
-## PL14 - Build reconciliation (AS-BUILT) - AU-7 amendment, 19-06 '26
-
-> **Source-wins reconciliation (CLAUDE-FULL §0 + AU-7).** Sections PL0-PL13 above are the *authored plan* and are kept VERBATIM. This appendix records what live `main` actually shipped (from the merged PR history + current code) and corrects the spec's status. It does not rewrite the plan.
-
-**STATUS: SHIPPED.** The Pillars arc is merged to `main` and live on v3.takearoundabout.com. Per-PL -> merged GitHub PR (from `git log main`; these are GitHub PR numbers, a separate sequence from the App.jsx HDR journal counter):
-
-| PL | Shipped as | PR |
-|---|---|---|
-| PL1 - excise CV-fit from RoleGraphPanel | `feat(v3,PL1)` | #115 |
-| PL2 - remove Rehearse / Cover Letter / Resume Check | `feat(v3,PL2)` | #116 |
-| PL3 - PillarBar header nav primitive (replaces JourneySpine) | `feat(v3,PL3)` | #117 |
-| PL4 - pillar VIEW shell + lead-question header + `_PILLAR_MAP` | `feat(v3,PL4)` | #118 |
-| PL5 - Understand: why-the-role + Role-Graph tree (`SYSTEM_WHY_ROLE`) | `feat(v3,PL5)` | #119 |
-| PL6 - Position gains the market/employer reads | `feat(v3,PL6)` | #120 |
-| PL7 - Become: the stewardship reads | folded into PL-NAV | [UNVERIFIED: no standalone PL7 commit; the Become regrouping landed with the pillar-grouped nav, #123] |
-| PL8 - AI Readiness pillar (de-duplicate the AI-exposure hero) | `feat(v3,PL8)` | #122 |
-| PL9 - Arm: Task Prep | `feat(v3,ARM)` (restructured into collapsible bands + cards) | #124 |
-| nav - pillar-grouped navigation tree (replaces the flat nav box) | `feat(v3,PL-NAV)` | #123 |
-| fix - Role Graph stuck on "not enough role data" after duties load | bugfix | #121 |
-
-**Post-arc extensions (beyond PL0-PL13, also on `main`):** #125 reconcile AI scores ("resilience" -> AI Readiness, exposure-vs-resilience note); #126 TGFEP + Employer-reality hide-when-clean; #127 jargon glossary tooltips (`Term` + `_GLOSSARY`); #128 +1 detail font + 1/2/3/4-column analysis screen; #129 liquid-glass floating nav rail.
-
-**Removals confirmed in code (PL2):** `CoverLetter`/`_coverCache`/`SYSTEM_COVER`/`fetchCoverScaffold`, `Rehearsal`/`_rehearseCache`/`SYSTEM_REHEARSE`/`fetchRehearsal`, and the Resume Check panel are dead-coded - their `[PL2 removed]` marker comments remain in `App.jsx`, and `buildTabs` carries the three keys only as commented-out `// { key:"rehearse"/"coverletter"/"resume", ... } -- removed (PL2)` lines, emitting none of them. (A naive `grep key:"..."` still matches those comment lines - they are inert.)
-
-**Serial / version reconciliation:** `doc/.serial-state.yml` remains absent (PL0 / Rule S-4); the de-facto counter is the App.jsx HDR header, whose latest entry at this reconciliation is **HDR #116** (the v3.0.78 upkeep PR that carries this appendix). The PL0 session-local serial (`№ 1 - 17-06`) is superseded by that live counter. `package.json` had stayed at `v3.0.77` across the arc PRs #111-#129; the v3.0.78 upkeep PR reconciles the flat-patch counter and snapshots the pre-bump state to `vault/v3.0.77/`.
-
-*End of AS-BUILT reconciliation.*

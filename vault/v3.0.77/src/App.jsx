@@ -778,36 +778,6 @@
 // Seen-before bucket is ordered by when each ad first entered your searches. Clearly labelled as
 // your own on-device history, NOT an MCF fact, so it carries no "from MCF" provenance. No LLM, no
 // number. G1 (v3.0.76 -> v3.0.77).
-// v3.0.78 - 2026-06-19 - HDR #116 - UPKEEP: vault snapshot + pillars-spec as-built reconciliation
-// (Human Lead: "vault, journal, update feature"). Housekeeping only - NO app-code change. (1) VAULT:
-// the current v3 source (the shipped Pillars arc PL1-PL9 + nav, PRs #115-#124, plus post-arc #125-#129)
-// snapshotted verbatim into vault/v3.0.77/ (58 files; excludes node_modules/dist and iCloud "<name> 2"
-// conflict-copies); the empty iCloud junk dir vault/v3.0.71 2/ was deleted; ~/.claude/.last_vault ->
-// 2026-06-19. (2) FEATURE: v3/script/v3-pillars-spec.md gains an AU-7 "PL14 - Build reconciliation
-// (AS-BUILT)" appendix mapping each PL to its merged PR and flipping STATUS READY_FOR_BUILD -> SHIPPED;
-// the authored plan PL0-PL13 is kept verbatim (source-wins, CLAUDE-FULL §0 + AU-7). (3) JOURNAL: this
-// entry. Session record: Anthropic credits restored (analyser live); Cover Letter confirmed already
-// removed by PL2 (#116), so NOT re-removed; the iCloud-corrupted .git was repaired (4 stray " 2" refs);
-// the ALERT_WEBHOOK_URL setup and the repo-move-out-of-iCloud were both dropped by the Human Lead.
-// Frozen door untouched (R-FREEZE); shares the v3.0.78 bump with HDR #117 below. G1 (v3.0.77 -> v3.0.78).
-// v3.0.78 - 2026-06-19 - HDR #117 - CSG: careers.gov.sg second job source (CSG arc).
-// New /api/careers proxy fetches the MIT-licensed opengovsg/careersgovsg-jobs-data dump
-// (server-side, 6h cache), normalises each record into the exact MCF posting shape (+
-// source:"careers.gov.sg"), and returns the same envelope. Client helpers fetchCsgJobs()
-// and mergeJobSources() tag MCF jobs source:"MyCareersFuture", de-dupe by title|employer
-// preferring MCF (richer fields), mark survivors seenInBoth:true, and append CSG-only
-// records after. Two additive fire points: (1) McfJobsPanel Browse effect fans out to
-// /api/careers via Promise.allSettled alongside the unchanged /api/mcf call; (2)
-// getJobsForRole() similarly fans out so the responsibilities corpus gains public-service
-// postings. MCF request bodies byte-identical; frozen symbols untouched. McfJobCard gains
-// a source label (icon + text, never colour alone) and a "seen in both" text note.
-// a11y review 7/7 (after one fix): the salary chip is suppressed for CSG postings with no
-// salary - "Salary on application" would wrongly imply the employer withheld it, but
-// careers.gov.sg has no salary field at all; MCF unchanged (null -> "on application" stays
-// honest there). AU-7 amendment recorded in v3/script/v3-result-engine-spec.md SS1.
-// COMBINED PR (Human Lead): this CSG feature (#117) ships together with the v3.0.78 upkeep
-// (#116 vault + pillars AS-BUILT) under a single bump - the two were folded into one PR.
-// G1 (v3.0.77 -> v3.0.78). R-FREEZE clean. Build green.
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -3347,10 +3317,8 @@ const RESP_FREQ = {
 };
 
 // Fetch live SG postings (with detail pages) for a role.
-// CSG (v3.0.78): ALSO pulls fetchCsgJobs() in parallel; one source failing
-// never blanks the other (Promise.allSettled). MCF request body byte-identical.
 async function getJobsForRole(title, escoOccupation, skills) {
-  const mcfFetch = fetch("/api/mcf", {
+  const res = await fetch("/api/mcf", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -3363,76 +3331,15 @@ async function getJobsForRole(title, escoOccupation, skills) {
       detailLimit: 5,
     }),
   });
-  const [mcfSettled, csgSettled] = await Promise.allSettled([
-    mcfFetch.then((r) => { if (!r.ok) throw new Error(`mcf ${r.status}`); return r.json(); }),
-    fetchCsgJobs(title, 12),
-  ]);
-  const data     = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [] };
-  const csgJobs  = csgSettled.status  === "fulfilled" ? csgSettled.value  : [];
-  const mcfJobs  = Array.isArray(data.jobs) ? data.jobs : [];
-  const jobs     = mergeJobSources(mcfJobs, csgJobs);
+  if (!res.ok) throw new Error(`mcf ${res.status}`);
+  const data = await res.json();
   return {
-    jobs,
+    jobs: Array.isArray(data.jobs) ? data.jobs : [],
     tier: data.tier || 0,
     approximate: !!data.approximate,
-    fallback: !!data.fallback && csgJobs.length === 0,
+    fallback: !!data.fallback,
     detail: !!data.detail,
   };
-}
-
-// ---- CSG: careers.gov.sg second source helpers (CSG arc, v3.0.78) -----------
-
-// Thin client wrapper over /api/careers - mirrors the MCF fetch shape.
-async function fetchCsgJobs(title, limit) {
-  const res = await fetch("/api/careers", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "jobs", title: title || "", limit: limit || 10 }),
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return Array.isArray(data.jobs) ? data.jobs : [];
-}
-
-// Tag MCF jobs source:"MyCareersFuture" and CSG jobs source:"careers.gov.sg".
-// De-dupe by lower-cased trimmed `${title}|${employer}` preferring MCF (richer
-// fields: salary + skill tags), marking the survivor seenInBoth:true.
-// CSG-only records are appended after the MCF list. Returns the same array
-// shape the panel renders.
-function mergeJobSources(mcfJobs, csgJobs) {
-  const mcfTagged = (mcfJobs || []).map((j) => ({ ...j, source: j.source || "MyCareersFuture" }));
-  const csgTagged = (csgJobs  || []).map((j) => ({ ...j, source: j.source || "careers.gov.sg" }));
-
-  const sigOf = (j) =>
-    ((j.title || "").toLowerCase().trim() + "|" + (j.employer || "").toLowerCase().trim());
-
-  // Build a map of MCF sigs for fast O(1) lookup
-  const mcfSigs = new Map();
-  for (const j of mcfTagged) {
-    const sig = sigOf(j);
-    if (!mcfSigs.has(sig)) mcfSigs.set(sig, j);
-  }
-
-  // Mark MCF survivors seen-in-both when a CSG record matches
-  const seenInBoth = new Set();
-  const csgOnly = [];
-  for (const j of csgTagged) {
-    const sig = sigOf(j);
-    if (mcfSigs.has(sig)) {
-      seenInBoth.add(sig);
-    } else {
-      csgOnly.push(j);
-    }
-  }
-
-  // Apply seenInBoth flag to the MCF records that matched
-  const merged = mcfTagged.map((j) => {
-    const sig = sigOf(j);
-    return seenInBoth.has(sig) ? { ...j, seenInBoth: true } : j;
-  });
-
-  // Append CSG-only records after
-  return merged.concat(csgOnly);
 }
 
 // Concatenate the responsibilities text of the returned postings into one
@@ -9491,30 +9398,10 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
       {job.employer && (
         <p style={{ margin: "0 0 6px", fontSize: 14, color: C.textSub }}>{job.employer}</p>
       )}
-      {/* CSG (v3.0.78): source label - icon + text, never colour alone (a11y). */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center", marginBottom: 6 }}>
-        {job.source === "careers.gov.sg" ? (
-          <span aria-label="Source: careers.gov.sg" style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 700, color: "#374151", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 10, padding: "1px 8px" }}>
-            <span aria-hidden="true">&#127963;</span> careers.gov.sg
-          </span>
-        ) : (
-          <span aria-label="Source: MyCareersFuture" style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 700, color: "#374151", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 10, padding: "1px 8px" }}>
-            <span aria-hidden="true">&#127480;&#127468;</span> MyCareersFuture
-          </span>
-        )}
-        {job.seenInBoth && (
-          <span aria-label="Seen in both MyCareersFuture and careers.gov.sg" style={{ fontSize: 11, fontWeight: 600, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>also on careers.gov.sg</span>
-        )}
-      </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-        {/* CSG honesty (v3.0.78): careers.gov.sg has no salary field, so suppress the chip
-            for CSG postings with no salary - "Salary on application" would wrongly imply the
-            employer withheld it. MCF keeps its honest null -> "Salary on application". */}
-        {(job.source !== "careers.gov.sg" || job.salaryMin != null || job.salaryMax != null) && (
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
-            {fmtSalary(job.salaryMin, job.salaryMax)}
-          </span>
-        )}
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
+          {fmtSalary(job.salaryMin, job.salaryMax)}
+        </span>
         {job.employmentType && (
           <span style={{ fontSize: 13, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.employmentType}</span>
         )}
@@ -9552,9 +9439,7 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
                 </div>
               )}
               <p style={{ margin: "8px 0 0", fontSize: 13 }}>
-                <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>
-                  {job.source === "careers.gov.sg" ? "Open posting on careers.gov.sg" : "Open posting on MyCareersFuture"} →
-                </a>
+                <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>Open posting on MyCareersFuture →</a>
               </p>
             </div>
           )}
@@ -9720,51 +9605,43 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
     setPage(0);
     setSectorFilter(null);
     setRecencyFilter(null);
-    // CSG (v3.0.78): extract async body as a named function (R006 compliance).
-    async function doFetch() {
-      // MCF fetch - request body byte-identical to prior version.
-      const mcfFetch = fetch("/api/mcf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "jobs",
-          title: sel?.title || "",
-          escoOccupation: escoOccupation || null,
-          skills: (skills || []).map(s => ({ skill: s.skill, isEssential: !s.isExtended, broaderConcept: s.broaderConcept })),
-          limit: 50,
-        }),
-      }).then((r) => r.json());
-      // CSG fan-out: one source failing must never blank the other.
-      const [mcfSettled, csgSettled] = await Promise.allSettled([
-        mcfFetch,
-        fetchCsgJobs(sel?.title || "", 50),
-      ]);
-      if (cancelled) return;
-      const data    = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0 };
-      const csgJobs = csgSettled.status  === "fulfilled" ? csgSettled.value  : [];
-      const merged  = mergeJobSources(Array.isArray(data.jobs) ? data.jobs : [], csgJobs);
-      // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
-      // this title's device-local history (and record this sighting).
-      const sortedJobs = merged.slice().sort(byLatestPosted);
-      const seenInfo = recordAndClassifySeen(sel?.title || "", sortedJobs);
-      setState({
-        loading: false,
-        jobs: sortedJobs,
-        seenInfo,
-        tier: data.tier || 0,
-        message: data.message || "",
-        approximate: !!data.approximate,
-        fallback: !!data.fallback && csgJobs.length === 0,
-        capped: !!data.capped,
-        error: null,
-      });
-      track("v3_mcf_loaded", { tier: data.tier || 0, count: sortedJobs.length, fallback: !!data.fallback });
-    }
-    doFetch().catch((err) => {
-      if (cancelled) return;
-      setState({ loading: false, jobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
-      track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
-    });
+    (async () => {
+      try {
+        const res = await fetch("/api/mcf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "jobs",
+            title: sel?.title || "",
+            escoOccupation: escoOccupation || null,
+            skills: (skills || []).map(s => ({ skill: s.skill, isEssential: !s.isExtended, broaderConcept: s.broaderConcept })),
+            limit: 50,
+          }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
+        // this title's device-local history (and record this sighting).
+        const sortedJobs = (Array.isArray(data.jobs) ? data.jobs : []).slice().sort(byLatestPosted);
+        const seenInfo = recordAndClassifySeen(sel?.title || "", sortedJobs);
+        setState({
+          loading: false,
+          jobs: sortedJobs,
+          seenInfo,
+          tier: data.tier || 0,
+          message: data.message || "",
+          approximate: !!data.approximate,
+          fallback: !!data.fallback,
+          capped: !!data.capped,
+          error: null,
+        });
+        track("v3_mcf_loaded", { tier: data.tier || 0, count: (data.jobs || []).length, fallback: !!data.fallback });
+      } catch (err) {
+        if (cancelled) return;
+        setState({ loading: false, jobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+        track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
+      }
+    })();
     return () => { cancelled = true; };
   }, [sel?.title, escoOccupation?.uri]);
 
@@ -9845,9 +9722,9 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   return (
     <div>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: C.text }}>🇸🇬 SG Job Postings</h2>
+        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 800, color: C.text }}>🇸🇬 MyCareersFuture Job Postings</h2>
         <p style={{ margin: 0, fontSize: 14, color: C.textSub, lineHeight: 1.5 }}>
-          Current openings from <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture</a> and <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing - or analyse all of them as one role. Postings refresh daily.
+          Current openings on <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture Singapore</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing — or analyse all of them as one role. Postings refresh daily.
         </p>
         {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
           <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
