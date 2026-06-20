@@ -962,6 +962,14 @@
 // fetch) + a vercel.json rewrite /demo -> /demo.html placed before the SPA catch-all. Validates
 // the JobAds WikiGraph interaction before the real arc (spec v3-wikigraph-spec.md, PRs to follow).
 // api/mcf.js + frozen symbols untouched; no JSX/code change here. G1 (v3.0.95 -> v3.0.96).
+// v3.0.97 - 2026-06-20 - HDR #135 - WikiGraph MVP /demo: add the full entry flow for all 4
+// persona types (Human Lead: "landing + search + picker + criteria ... see all 4 types").
+// Still static prototype only - public/demo.html rewritten with a persona switcher + per-persona
+// search screen: typed input, live progressive picker (filters sample matches; withholds with no
+// match), and persona-specific criteria (Standards: standard + fresh-grad relevance; MCF: sector +
+// recency + fresh-grad toggle; Fresh-grad: max-experience + locked filter; Employer: MCF/careers.gov
+// .sg sources). Screen-stack nav (home -> search -> note) with Back/Home; same theme throughout.
+// No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.96 -> v3.0.97).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
