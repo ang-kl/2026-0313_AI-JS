@@ -978,6 +978,12 @@
 // explicit "Open note" (single-tap grows, double-tap or the button reads). Keyboard-operable
 // nodes; aria-labels say expand/collapse + hidden count. No app/engine change; api/mcf.js +
 // frozen symbols untouched. G1 (v3.0.97 -> v3.0.98).
+// v3.0.99 - 2026-06-21 - HDR #137 - WikiGraph /demo layout fix (Human Lead review: "so much
+// margin ... hub and node ... overlap each other"). Static prototype only - public/demo.html:
+// content widened 880 -> 1200px (less dead side margin); graph canvas enlarged 600x280 -> 960x460
+// with a taller responsive height, stronger node repulsion + longer links + higher move clamp so
+// nodes no longer pile up, and a white text halo (paint-order) so labels read over edges/siblings.
+// No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.98 -> v3.0.99).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
