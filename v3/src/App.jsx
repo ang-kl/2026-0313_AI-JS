@@ -919,14 +919,23 @@
 // "more", graceful empty for gov-only) - via .csg-cols grid that stacks below 1000px; the role-analyse
 // corpus still merges both. api/mcf.js byte-frozen; frozen symbols untouched; AU-7 in
 // v3-result-engine-spec.md §1. G1 (v3.0.92 -> v3.0.93).
-// v3.0.94 - 2026-06-20 - HDR #132 - CSG copy: name BOTH sources on the landing/search page
-// (Human Lead: "the first page still says MyCareersFuture postings - shouldn't it include both").
-// Now that a Browse search fans out to BOTH MyCareersFuture and careers.gov.sg, the landing copy is
-// made honest: the "Browse SG jobs" mode source label -> "Sources: MyCareersFuture + careers.gov.sg"
-// (desc adds "public service and private sector"), and the two landing help lines now read "from
-// MyCareersFuture and careers.gov.sg". The "Search by employer" mode stays MyCareersFuture-only
-// (careers.gov.sg has no company-search API). Copy-only - no logic, no number; frozen symbols and
-// api/mcf.js untouched. G1 (v3.0.93 -> v3.0.94).
+// v3.0.94 - 2026-06-20 - HDR #132 - CSG copy sweep: name BOTH sources everywhere the role-analysis
+// corpus now blends them; keep MCF-specific reads accurate by filtering careers.gov.sg out of them.
+// (a) BROWSE landing (prior commit on this PR): "Browse SG jobs" mode source label ->
+//     "Sources: MyCareersFuture + careers.gov.sg"; two landing help lines updated.
+// (b) SHARED surfaces relabelled (Part 1): "What will be shown" intro, IntroCard hero line, Job Anatomy
+//     fallback + adCount footer (both views), knowledge-graph empty states (2x), Responsibilities
+//     fallback + header footer, corpus loading sub-message, escoSource const, corpus result chip.
+//     Wording: "live SG job postings (MyCareersFuture + careers.gov.sg)" or shorter equivalents
+//     where space-constrained. ASCII + hyphens throughout (R007).
+// (c) SOURCE-AWARE single-posting chip (Part 3): postingMeta gains postingSource field (verbatim
+//     from the posting's own source tag); chip reads "From a live {source} posting" - honest for
+//     both MCF and careers.gov.sg single-posting analyses.
+// (d) MCF-ONLY FILTERS (Part 2): DemandProof, AdLanguageScan, EmployerReality each filter
+//     careers.gov.sg out of their jobs array before counting/scanning. Rationale: careers.gov.sg
+//     lacks salary bands, poster-vs-hirer split, and MCF posting-flow fields - including them would
+//     dilute or corrupt those reads. Their "Source: MyCareersFuture (N)" counts now reflect MCF only.
+// No engine/number change; api/mcf.js + frozen symbols untouched. G1 (v3.0.93 -> v3.0.94).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -4303,7 +4312,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
             <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>What will be shown</p>
             <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
-              This is a <strong>real Singapore role</strong> — not a generic or made-up one. We match your search to <strong>live 🇸🇬 MyCareersFuture postings</strong> (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement — <strong>Full Automation</strong> (AI, including AI agents, does it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong> — with a visual overview up top.
+              This is a <strong>real Singapore role</strong> - not a generic or made-up one. We match your search to <strong>live 🇸🇬 job postings (MyCareersFuture + careers.gov.sg)</strong> (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement - <strong>Full Automation</strong> (AI, including AI agents, does it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong> - with a visual overview up top.
             </p>
           </div>
           <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
@@ -4450,7 +4459,7 @@ function IntroCard({ onPersonaSelect, toggleRef }) {
       <div className="lux-rise" style={{ padding: "12px 4px 10px" }}>
         {/* LUX1: gradient ink on the hero line; color stays as fallback for non-supporting engines */}
         <p className="t-heading" style={{ margin:0, fontSize: "1.0625rem", color:C.text, fontWeight:800, lineHeight:1.28, letterSpacing:"-0.02em", textWrap:"balance", background:`linear-gradient(95deg, ${C.text} 0%, ${C.accent} 55%, ${C.teal} 100%)`, WebkitBackgroundClip:"text", backgroundClip:"text", WebkitTextFillColor:"transparent" }}>Start with a job title. Choose the closest role. Then analyse it.</p>
-        <p style={{ margin:"6px 0 0", fontSize: "0.8125rem", color:C.textSub, lineHeight:1.5, textWrap:"balance" }}>Grounded in live 🇸🇬 MyCareersFuture postings - real Singapore demand, not idealised profiles. See the role as a wired knowledge graph, and what AI can take on.</p>
+        <p style={{ margin:"6px 0 0", fontSize: "0.8125rem", color:C.textSub, lineHeight:1.5, textWrap:"balance" }}>Grounded in live 🇸🇬 SG job postings (MyCareersFuture + careers.gov.sg) - real Singapore demand, not idealised profiles. See the role as a wired knowledge graph, and what AI can take on.</p>
       </div>
       <div className="lux-rise" style={{ "--lux-d":"0.06s", background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:14, padding: "14px 18px", marginBottom:0, boxShadow:"0 6px 24px rgba(15,40,105,0.07)" }}>
         <p style={{ margin:"0 0 10px", fontSize: "0.6875rem", fontWeight:700, color:C.muted, letterSpacing:"0.1em", textTransform:"uppercase" }}>
@@ -5941,7 +5950,10 @@ const _DEMAND_VERDICT = {
 
 function DemandProof({ result }) {
   const [open, setOpen] = useState(false);
-  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  // CSG (v3.0.94): DemandProof reads MCF-specific fields (salary bands, postedDate, minimumYearsExperience,
+  // poster-vs-hirer flow). careers.gov.sg jobs lack salary + posting-flow fields; exclude them so the
+  // "Source: MyCareersFuture (N postings)" count and verdict stay accurate.
+  const jobs = ((result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : []).filter(j => j && j.source !== "careers.gov.sg");
   const dp = demandProof(jobs, Date.now());
   if (!dp) return null; // withheld - sample too thin to read
 
@@ -6106,7 +6118,10 @@ function scanAdLanguage(jobs) {
 
 function AdLanguageScan({ result }) {
   const [open, setOpen] = useState(false);
-  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  // CSG (v3.0.94): AdLanguageScan reads verbatim MCF posting text (title + description from MCF payload).
+  // careers.gov.sg description fields may be absent or formatted differently; exclude them so the
+  // "Source: MyCareersFuture (N scanned)" count is accurate and pattern quality is maintained.
+  const jobs = ((result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : []).filter(j => j && j.source !== "careers.gov.sg");
   const scan = scanAdLanguage(jobs);
   if (!scan) return null; // no postings to scan
   const any = scan.flagged.length > 0;
@@ -6199,7 +6214,10 @@ function companyReality(jobs) {
 
 function EmployerReality({ result }) {
   const [open, setOpen] = useState(false);
-  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  // CSG (v3.0.94): EmployerReality reads postedCompanyName/hiringCompanyName from the MCF payload.
+  // careers.gov.sg jobs carry employer only (no poster-vs-hirer split); exclude them so the
+  // "Source: MyCareersFuture (N postings)" count and poster-vs-hirer signal stay accurate.
+  const jobs = ((result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : []).filter(j => j && j.source !== "careers.gov.sg");
   const cr = companyReality(jobs);
   if (!cr) return null; // no company data
   const any = cr.flagged.length > 0;
@@ -9281,7 +9299,7 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
     return (
       <div style={{ background:C.amberBg, border:`1px solid ${C.amberBdr}`, borderRadius:10, padding: "20px 18px" }}>
         <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#78350f" }}>Job Anatomy unavailable</p>
-        <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>Not enough live MyCareersFuture ads (or their text) to build the anatomy for this role right now. Postings refresh daily - try again tomorrow.</p>
+        <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>Not enough live SG job postings (or their text) to build the anatomy for this role right now. Postings refresh daily - try again tomorrow.</p>
       </div>
     );
   }
@@ -9317,7 +9335,7 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
           </div>
           <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>approx. {a.resilience2y}/100 by ~2027 - <Term k="automatability">automatability</Term> now {a.automatabilityIndex}/100</p>
           <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}>{a.trajectory2y.line}</p>
-          <p style={{ margin:"8px 0 0", fontSize: "0.625rem", color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
+          <p style={{ margin:"8px 0 0", fontSize: "0.625rem", color:C.muted, lineHeight:1.5 }}>Scored from {a.adCount} live SG job ad{a.adCount===1?"":"s"} - duty frequencies are real counts; scores are computed from work-layer + exposure classifications, not generated prose.</p>
         </div>
       </div>
     );
@@ -9328,8 +9346,8 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
     <div>
       <div style={{ background:C.greenBg, border:`1px solid ${C.greenBdr}`, borderRadius:10, padding: "12px 16px", marginBottom:14 }}>
         <p style={{ margin:"0 0 3px", fontSize: "0.8125rem", fontWeight:800, color:C.green }}>Job Anatomy - what this role actually is</p>
-        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across the live MyCareersFuture ads for ${toTitleCase(title || "this role")}.`}</p>
-        <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>Across {a.adCount} live ad{a.adCount===1?"":"s"} - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.</p>
+        <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{nar.headline || `Built from the duties, outcomes and decision rights stated across live SG job ads (MyCareersFuture + careers.gov.sg) for ${toTitleCase(title || "this role")}.`}</p>
+        <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>Across {a.adCount} live SG job ad{a.adCount===1?"":"s"} - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.</p>
       </div>
 
       <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "14px 16px", marginBottom:14 }}>
@@ -9665,7 +9683,7 @@ function RoleGraphPanel({ result, title }) {
           return (
             <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "16px 18px" }}>
               <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>Not enough role data for the knowledge view yet</p>
-              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The knowledge graph needs the role's skills and responsibilities to build its nodes and edges. Analyse a role with live MyCareersFuture postings - or a specific posting - and the graph will fill in.</p>
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The knowledge graph needs the role's skills and responsibilities to build its nodes and edges. Analyse a role with live SG job postings (MyCareersFuture + careers.gov.sg) - or a specific posting - and the graph will fill in.</p>
             </div>
           );
         }
@@ -9692,7 +9710,7 @@ function RoleGraphPanel({ result, title }) {
       {!rgLoading && g && (g.fallback ? (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
           <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live MyCareersFuture postings — or a specific posting — and the graph will fill in.</p>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live SG job postings (MyCareersFuture + careers.gov.sg) - or a specific posting - and the graph will fill in.</p>
         </div>
       ) : (
         <>
@@ -9926,7 +9944,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         <p style={{ margin:"0 0 6px", fontSize: "0.875rem", fontWeight:700, color:"#78350f" }}>Responsibilities Analysis unavailable</p>
         <p style={{ margin:0, fontSize: "0.8125rem", color:"#78350f", lineHeight:1.6 }}>
           {thin
-            ? "There aren't enough live MyCareersFuture postings for this role right now to build a reliable responsibilities picture. Postings refresh daily — try again tomorrow."
+            ? "There aren't enough live SG job postings (MyCareersFuture + careers.gov.sg) for this role right now to build a reliable responsibilities picture. Postings refresh daily - try again tomorrow."
             : "The live job feed or the analysis step was unavailable. Please run the analysis again in a moment."}
         </p>
       </div>
@@ -9956,7 +9974,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
         <p style={{ margin:"0 0 3px", fontSize: "0.8125rem", fontWeight:800, color:C.purple }}>📝 Responsibilities Analysis</p>
         <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>{data.summary || "The duties this role is expected to perform, drawn from live job postings."}</p>
         <p style={{ margin:"7px 0 0", fontSize: "0.6875rem", color:C.muted }}>
-          Extracted from <strong>{data.jobCount} live MyCareersFuture posting{data.jobCount === 1 ? "" : "s"}</strong>{data.approximate ? " (approximate match)" : ""}. AI exposure ratings are indicative — your context may differ.
+          Extracted from <strong>{data.jobCount} live SG posting{data.jobCount === 1 ? "" : "s"} (MyCareersFuture + careers.gov.sg)</strong>{data.approximate ? " (approximate match)" : ""}. AI exposure ratings are indicative - your context may differ.
         </p>
       </div>
 
@@ -12294,7 +12312,7 @@ export default function App() {
     }
 
     setSel(occ); setStep("loading"); setSub(
-      corpus ? `Analysing ${corpus.jobs.length} live MyCareersFuture postings for ${toTitleCase(occ.title)} as one role...`
+      corpus ? `Analysing ${corpus.jobs.length} live SG postings for ${toTitleCase(occ.title)} as one role...`
       : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
       : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null); setLoadingSkills([]);
     setShowExpect(false);
@@ -12338,7 +12356,7 @@ export default function App() {
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
       if (analysisCancelRef.current !== cancelId) return;
-      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live MyCareersFuture postings` : `AI-generated`;
+      const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live SG postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
       setLoadingSkills(Array.isArray(skills) ? skills : []); // surface the resolved list openly during the wait
 
@@ -12410,7 +12428,9 @@ export default function App() {
         source: corpus ? "corpus" : posting ? "posting" : "esco",
         postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl,
           // PRO1: who POSTED vs who is HIRING - the strongest outsourced-posting signal
-          postedCompanyName: posting.postedCompanyName || "", hiringCompanyName: posting.hiringCompanyName || "" } : null,
+          postedCompanyName: posting.postedCompanyName || "", hiringCompanyName: posting.hiringCompanyName || "",
+          // CSG (v3.0.94): preserve the posting's source so the chip names the right platform
+          postingSource: posting.source || "MyCareersFuture" } : null,
         corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null };
       const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : corpus ? `${toTitleCase(occ.title)} — across SG ads` : toTitleCase(occ.title);
       setResult(newResult);
@@ -13923,14 +13943,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 )}
                 {result.source === "posting" && (
                   <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
-                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 From a live MyCareersFuture posting</span>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 From a live {(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"} posting</span>
                     {result.postingMeta && result.postingMeta.employer ? <span style={{ color:C.textSub }}>· {result.postingMeta.employer}</span> : null}
                     {result.postingMeta && result.postingMeta.mcfUrl ? <a href={result.postingMeta.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color:"#1a56db", textDecoration:"none" }}>· Open posting →</a> : null}
                   </p>
                 )}
                 {result.source === "corpus" && (
                   <p style={{ margin:"6px 0 0", fontSize: "0.6875rem", color:"#0e7490", display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
-                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live MyCareersFuture postings</span>
+                    <span style={{ fontWeight:700, background:C.tealBg, border:`1px solid ${C.tealBdr}`, borderRadius:10, padding: "2px 8px" }}>🇸🇬 Across {result.corpusMeta ? result.corpusMeta.jobCount : "all"} live SG postings (MyCareersFuture + careers.gov.sg)</span>
                     <span style={{ color:C.textSub }}>· aggregated from what real SG employers ask for, not one cherry-picked ad</span>
                   </p>
                 )}
