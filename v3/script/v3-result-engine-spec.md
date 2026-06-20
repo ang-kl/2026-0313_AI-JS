@@ -49,7 +49,7 @@ These are the "landing + searching the role" you asked to protect. **Radicality:
 > one-arg call path is unchanged); `resolveOccupation` stays byte-frozen. Prior wording preserved
 > above per AU-7.
 
-> **AU-7 amendment (CSG, v3.0.92, Human Lead approved):** the "Browse SG jobs card incl. `< 4 yrs`
+> **AU-7 amendment (CSG, v3.0.93, Human Lead approved):** the "Browse SG jobs card incl. `< 4 yrs`
 > scout | the v3.0.9 Browse card + `/api/mcf` browse path" frozen row is EXTENDED, not unfrozen.
 > Prior frozen row quoted verbatim: "Browse SG jobs card incl. `< 4 yrs` scout | the v3.0.9
 > Browse card + `/api/mcf` browse path | unrelated to the result read". Extension: the Browse card

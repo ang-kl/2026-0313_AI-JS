@@ -769,8 +769,13 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   const nodeById = {};
   kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
 
-  const { zoom, panX, panY, band, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
+  const { zoom, panX, panY, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
     _useViewport(kg.nodes.length);
+  // CO2.2 fix: the structured Workflow ALWAYS shows all 3 columns (Functions |
+  // Recurring Duties | Agent Candidates). The semantic-zoom LOD collapse-to-hubs
+  // is a Neural-view declutter only; hiding the middle column would break the
+  // function -> duty -> agent flow that is the whole point of this view.
+  const WF_BAND = 2;
 
   // Orthogonal left->right edge path: M x1 y1 H midX V y2 H x2.
   function edgePath(a, b) {
@@ -781,7 +786,7 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   function edgeEligible(e) {
     const sa = nodeById[e.source], ta = nodeById[e.target];
     if (!sa || !ta) return false;
-    return _nodeTier(sa) <= band && _nodeTier(ta) <= band;
+    return _nodeTier(sa) <= WF_BAND && _nodeTier(ta) <= WF_BAND;
   }
 
   // Column header labels.
@@ -839,7 +844,7 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
             const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
             const hi = isHighlighted(n);
             const isT = traced === n.id;
-            const eligible = _nodeTier(n) <= band;
+            const eligible = _nodeTier(n) <= WF_BAND;
             return (
               <button key={n.id}
                 onClick={function() { if (eligible) onNodeClick(n.id); }}

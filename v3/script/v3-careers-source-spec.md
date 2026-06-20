@@ -3,7 +3,7 @@
 # SG Career View v3 - Second job source: careers.gov.sg (`CSG` arc)
 
 > **Target repo path:** `v3/script/v3-careers-source-spec.md` (build docs live in `v3/script/`).
-> **Status:** CONFIRMED/built (re-cut onto v3.0.91 main). Ships as **v3.0.92** (2026-06-20).
+> **Status:** CONFIRMED/built (re-cut onto v3.0.91 main). Ships as **v3.0.93** (2026-06-20).
 > **Contract alignment:** the locked v3 contract governs every line (deterministic = control; LLM = advisory narration only; non-inventive; faithful fidelity; `[UNVERIFIED]`/withhold over a guess). The frozen door (`v3-result-engine-spec.md` §1) and house rules (`doc/CLAUDE-FULL.md` R001-R011, gates G1-G4, HDR blocks) bind this spec. R-FREEZE runs before the PR.
 > **Reader priority:** (1) Claude Code, (2) Human Lead.
 > **Directive (Human Lead, 19-06 '26):** "include careers.gov.sg ... when I search you fire to two job platforms." Scope CONFIRMED = **Browse SG jobs AND the role-analyse posting pull** (both fire to both platforms). Approach CONFIRMED = **server-side proxy + this spec first, then build.**
@@ -94,7 +94,7 @@ Per `v3-result-engine-spec.md` §1 the **"Browse SG jobs card + `/api/mcf` brows
 
 ## CSG6. Radicality / version
 
-- **Band:** `new_data_source_integration` -> realised on the flat patch line as **v3.0.92** (2026-06-20). V-1 Human-Lead confirmation received.
+- **Band:** `new_data_source_integration` -> realised on the flat patch line as **v3.0.93** (2026-06-20). V-1 Human-Lead confirmation received.
 - **Frozen-door AU-7 (confirmed):** the directive deliberately extends the frozen "Browse SG jobs / `/api/mcf`" door to fan out to a second source. Recorded as an AU-7 amendment in `v3-result-engine-spec.md` §1 (the original "Browse SG jobs card" frozen row quoted verbatim; amendment appended as per AU-7 convention). Human Lead confirmed.
 
 ---
@@ -113,7 +113,7 @@ Per `v3-result-engine-spec.md` §1 the **"Browse SG jobs card + `/api/mcf` brows
 ## CSG8. Confirmations
 
 1. **Frozen-door AU-7 (CONFIRMED):** the Browse/`/api/mcf` door fans out to careers.gov.sg via the additive merge (MCF path byte-untouched). AU-7 recorded in `v3-result-engine-spec.md` §1.
-2. **V-1 version bump (CONFIRMED):** v3.0.92 (2026-06-20).
+2. **V-1 version bump (CONFIRMED):** v3.0.93 (2026-06-20).
 3. **Dump size / caching:** the full dump is fetched + cached server-side (6h TTL). Size guard at 50 MB.
 4. **De-dupe preference (confirmed default):** on a title+employer collision MCF wins (richer fields), survivor flagged "seen in both".
 

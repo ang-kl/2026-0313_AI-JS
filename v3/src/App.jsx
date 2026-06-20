@@ -900,26 +900,25 @@
 // | Workflow segmented toggle; lanes stays the default + a11y/keyboard path; reduced-motion zeroes
 // transitions. Presentation only; _forceLayout byte-frozen; no LLM, no number; frozen door intact.
 // G1 (v3.0.90 -> v3.0.91).
-// v3.0.92 - 2026-06-20 - HDR #130 - CSG: careers.gov.sg second job source (re-cut onto v3.0.91 main).
-// New server proxy api/careers.js fetches the opengovsg/careersgovsg-jobs-data MIT-licensed dump,
-// caches 6h, normalises records into the exact same 18-field shape normaliseJob() in api/mcf.js
-// returns (PLUS source:"careers.gov.sg"), and returns the same envelope. Client helpers fetchCsgJobs()
-// and mergeJobSources() tag MCF jobs source:"MyCareersFuture", de-dupe by title|employer signature
-// preferring MCF (richer fields), mark survivors seenInBoth:true, and append CSG-only records after.
-// Two additive fire points: (1) getJobsForRole() fans out via Promise.allSettled - MCF body identical;
-// (2) McfJobsPanel useEffect extracts its async body to a named function doFetch() (R006) and fans
-// out the same way. McfJobCard gains a source label (icon + text via HTML entities, never colour
-// alone, R007) and a "seen in both" text note. Salary chip suppressed for CSG postings with no
-// salary - careers.gov.sg has no salary field at all; MCF null -> "on application" stays unchanged.
-// api/mcf.js byte-frozen; frozen symbols untouched. AU-7 in v3-result-engine-spec.md §1.
-// BROWSE LAYOUT (Human Lead): McfJobsPanel renders the two sources as TWO RESPONSIVE
-// COLUMNS - MyCareersFuture left (keeps its category/new-seen/pagination machinery on
-// state.jobs), careers.gov.sg right (state.csgJobs, top 10 + "more" note, graceful empty
-// for gov-only roles) - via a .csg-cols grid that stacks to one column below 1000px. doFetch
-// now stores the two lists SEPARATELY (mergeJobSources no longer used on the browse path;
-// getJobsForRole still MERGES the analysis corpus). Each column header is icon+text with a
-// real count (no invented number). "Analyse all" feeds both sources into the one-role corpus.
-// G1 (v3.0.91 -> v3.0.92).
+// v3.0.92 - 2026-06-18 - HDR #130 - CO2.2 fix (Human Lead: "I haven't seen the 2 columns"). The
+// Workflow view gated its columns by the zoom-LOD band, so at the overview only the hub tiers
+// (Functions + Agent Candidates) painted and the middle Recurring-Duties column stayed hidden until
+// zoom-in - reading as 2 columns. The structured Workflow now ALWAYS shows all 3 columns (WF_BAND=2);
+// semantic-zoom collapse-to-hubs stays a Neural-view-only declutter. Presentation only; frozen door
+// intact. G1 (v3.0.91 -> v3.0.92).
+// v3.0.93 - 2026-06-20 - HDR #131 - CSG: careers.gov.sg second job source + two-column browse
+// (re-cut onto current main; v3.0.92 was taken by #156). NEW server proxy api/careers.js fetches the
+// opengovsg/careersgovsg-jobs-data MIT-licensed dump (6h cache), normalises each record into the exact
+// 18-field shape normaliseJob() in api/mcf.js returns (PLUS source:"careers.gov.sg"); honest empties.
+// Client helpers fetchCsgJobs() + mergeJobSources(); two additive fire points - getJobsForRole() and
+// the McfJobsPanel doFetch() both fan out to /api/careers via Promise.allSettled (MCF body byte-
+// identical; one source failing never blanks the other). McfJobCard gains a source label (icon+text,
+// never colour, R007) and salary suppression for CSG (careers.gov.sg has no salary field). BROWSE
+// LAYOUT (Human Lead): McfJobsPanel renders the two sources as TWO RESPONSIVE COLUMNS - MyCareersFuture
+// left (keeps its filters/pagination on state.jobs), careers.gov.sg right (state.csgJobs, top 10 +
+// "more", graceful empty for gov-only) - via .csg-cols grid that stacks below 1000px; the role-analyse
+// corpus still merges both. api/mcf.js byte-frozen; frozen symbols untouched; AU-7 in
+// v3-result-engine-spec.md §1. G1 (v3.0.92 -> v3.0.93).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
