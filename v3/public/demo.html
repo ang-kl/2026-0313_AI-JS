@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JobAds WikiGraph - MVP demo</title>
+<style>
+  :root{
+    --bg:#f8fafc; --surface:#ffffff; --border:#e2e8f0;
+    --text:#0f172a; --sub:#475569; --muted:#94a3b8;
+    --blue:#1e40af; --blueBg:#dbeafe; --blueBd:#93c5fd;
+    --teal:#0f766e; --tealBg:#f0fdfa; --tealBd:#99f6e4;
+    --orange:#b45309; --orangeBg:#fef3c7; --orangeBd:#fcd34d;
+    --slate:#5b21b6; --slateBg:#ede9fe; --slateBd:#c4b5fd;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:0 16px 64px}
+
+  /* top bar */
+  header.bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+  .bar-in{max-width:880px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+  .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em}
+  .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);
+    border-radius:999px;padding:2px 8px}
+  .spacer{flex:1}
+  button{font:inherit;cursor:pointer}
+  .btn{min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text);font-weight:700;font-size:.8125rem}
+  .btn:hover{border-color:var(--blueBd)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+  /* home */
+  .hero{padding:28px 0 8px}
+  .hero h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em}
+  .hero p{margin:0;color:var(--sub);font-size:.9375rem}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+  @media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
+  .pcard{display:flex;flex-direction:column;text-align:left;align-items:flex-start;gap:8px;
+    min-height:140px;padding:18px;border-radius:14px;border:1px solid var(--border);
+    background:var(--surface);transition:border-color .15s,transform .15s}
+  .pcard:hover{border-color:var(--blueBd);transform:translateY(-2px)}
+  .pcard .ico{font-size:1.5rem;line-height:1}
+  .pcard .t{font-weight:800;font-size:1rem}
+  .pcard .d{color:var(--sub);font-size:.8125rem}
+  .pcard .intent{color:var(--muted);font-size:.75rem;font-style:italic;margin-top:auto}
+
+  /* note view */
+  .nextmove{display:flex;gap:10px;align-items:flex-start;margin:18px 0 16px;padding:12px 14px;
+    border-radius:12px;background:var(--orangeBg);border:1px solid var(--orangeBd)}
+  .nextmove .nm-ico{font-size:1.1rem}
+  .nextmove .nm-t{font-size:.875rem;color:#7c4a06}
+  .nextmove .nm-t b{color:var(--orange)}
+
+  .crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:14px;font-size:.75rem;color:var(--muted)}
+  .crumbs button{background:none;border:none;color:var(--blue);font-weight:700;padding:2px 4px;border-radius:6px}
+  .crumbs button:hover{background:var(--blueBg)}
+
+  .note{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:6px}
+  .note-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px}
+  .type-chip{font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+    border-radius:999px;padding:3px 9px}
+  .note h2{margin:8px 0 4px;font-size:1.25rem;letter-spacing:-.01em}
+  .note .body{font-size:.9375rem;color:var(--text)}
+  .note .body p{margin:10px 0}
+  .field{display:flex;gap:8px;font-size:.8125rem;margin:6px 0}
+  .field .k{color:var(--muted);min-width:130px;font-weight:600}
+  .field .v{color:var(--text)}
+
+  /* wikilink */
+  .wl{display:inline;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);
+    font-weight:700;border-radius:7px;padding:1px 7px;margin:0 1px;font-size:.9em;line-height:1.9}
+  .wl:hover,.wl:focus{background:#ccfbf1;outline:2px solid var(--tealBd);outline-offset:1px}
+  .wl::before{content:"\1F517\00a0";font-size:.75em;opacity:.6}
+
+  .section-t{margin:22px 0 8px;font-size:.8125rem;font-weight:800;text-transform:uppercase;
+    letter-spacing:.04em;color:var(--sub)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .linkchip{min-height:34px;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);
+    font-weight:700;border-radius:8px;padding:5px 11px;font-size:.8125rem}
+  .linkchip:hover{background:#ccfbf1}
+
+  /* patterns */
+  .patrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
+  .patrow:last-child{border-bottom:none}
+  .patrow .pl{flex:1;font-size:.875rem}
+  .bar-track{width:90px;height:8px;background:var(--border);border-radius:999px;overflow:hidden}
+  .bar-fill{height:100%;background:var(--teal)}
+  .patrow .pc{font-size:.75rem;color:var(--muted);min-width:64px;text-align:right}
+
+  /* prov chips */
+  .prov{display:inline-flex;align-items:center;gap:4px;font-size:.6875rem;font-weight:700;
+    border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .prov.mcf{background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal)}
+  .prov.computed{background:var(--blueBg);border:1px solid var(--blueBd);color:var(--blue)}
+  .prov.derived{background:var(--orangeBg);border:1px solid var(--orangeBd);color:var(--orange)}
+  .prov.ai{background:var(--slateBg);border:1px solid var(--slateBd);color:var(--slate)}
+  .prov.unverified{background:#f1f5f9;border:1px solid #cbd5e1;color:#64748b}
+
+  .type-job{background:var(--slateBg);color:var(--slate)}
+  .type-employer{background:var(--blueBg);color:var(--blue)}
+  .type-skill{background:var(--tealBg);color:var(--teal)}
+  .type-pathway{background:var(--orangeBg);color:var(--orange)}
+
+  /* mini graph */
+  .graph-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;margin-top:8px}
+  svg{display:block;width:100%;height:280px}
+  .gnode{cursor:pointer}
+  .gnode text{font-size:11px;font-weight:700;pointer-events:none}
+
+  footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;
+    border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
+  footer.note-foot b{color:var(--text)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <span class="brand">JobAds WikiGraph</span>
+    <span class="demo-badge">MVP demo</span>
+    <span class="spacer"></span>
+    <button class="btn" id="homeBtn">Home</button>
+    <button class="btn" id="backBtn" disabled>&larr; Back</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HOME -->
+  <section id="home">
+    <div class="hero">
+      <h1>Every job ad becomes a linked career note.</h1>
+      <p>Pick where you are starting from. This is a clickable concept demo with sample data - no live jobs are fetched.</p>
+    </div>
+    <div class="grid" id="personaGrid"></div>
+  </section>
+
+  <!-- NOTE -->
+  <section id="noteView" class="hidden">
+    <div class="crumbs" id="crumbs"></div>
+    <div class="nextmove" id="nextmove"></div>
+    <div class="note" id="note"></div>
+    <div id="patternsWrap"></div>
+    <div class="section-t">Graph view - tap a node to open its note</div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 600 280" role="img" aria-label="Local graph of linked notes"></svg></div>
+    <footer class="note-foot">
+      <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
+      In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; patterns are derived counts; ESCO links appear only when resolved.
+    </footer>
+  </section>
+</div>
+
+<script>
+/* ---------- sample graph (honest demo data) ---------- */
+const PROV = {
+  mcf:{c:"mcf",i:"●",t:"from MCF"},
+  computed:{c:"computed",i:"✓",t:"computed"},
+  derived:{c:"derived",i:"◐",t:"derived"},
+  ai:{c:"ai",i:"~",t:"AI estimate"},
+  unverified:{c:"unverified",i:"?",t:"unverified"}
+};
+
+const NODES = {
+  "employer:dbs":{
+    type:"employer", typeLabel:"Employer", title:"DBS Bank", prov:"mcf",
+    fields:[
+      ["Open postings (sample)","2 live ads"],
+      ["Hires fresh grads?","Yes - 1 of 2 ads under 2 yrs"],
+      ["Experience pattern","0-2 yrs and 3-5 yrs"]
+    ],
+    body:"DBS Bank is hiring across data roles. Two current ads: [[job:da|Job Ad - Data Analyst]] and [[job:ba|Job Ad - Business Analyst]]. "+
+         "Both repeatedly ask for [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]]. "+
+         "One ad is open to fresh grads - see [[pathway:fresh|Fresh-grad pathway]].",
+    links:["job:da","job:ba","skill:sql","skill:stakeholder","pathway:fresh"],
+    nextMove:"compare this employer's repeated requirements before applying - <b>SQL</b> and <b>Stakeholder Management</b> appear in both ads.",
+    patterns:{title:"Repeated across DBS ads (2 sampled)", rows:[
+      {label:"SQL", count:2, prov:"derived"},
+      {label:"Stakeholder Management", count:2, prov:"derived"},
+      {label:"Python", count:1, prov:"derived"},
+      {label:"Degree (qualification)", count:2, prov:"mcf"}
+    ]}
+  },
+  "job:da":{
+    type:"job", typeLabel:"Job Ad", title:"Data Analyst - DBS - 2026-06", prov:"mcf",
+    fields:[
+      ["Employer","[[employer:dbs|DBS Bank]]"],
+      ["Experience","[[exp:02|0-2 Years]]"],
+      ["Qualification","[[qual:degree|Degree]]"],
+      ["AI exposure","[[ai:reporting|Monthly Reporting - AI-assisted]]"]
+    ],
+    body:"This role requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]], "+
+         "[[skill:python|Python]] and [[skill:dataviz|Data Visualisation]]. "+
+         "It maps to [[esco:dataanalysis|ESCO Skill - Data Analysis]] under "+
+         "[[isco:bizadmin|ISCO - Business and Administration Professionals]]. "+
+         "Routine [[ai:reporting|monthly reporting]] is AI-assistable, but stakeholder judgement stays human-led.",
+    links:["employer:dbs","skill:sql","skill:stakeholder","skill:python","skill:dataviz","esco:dataanalysis","isco:bizadmin","exp:02","qual:degree","ai:reporting"],
+    nextMove:"strengthen evidence for <b>Stakeholder Management</b> - it appears in every DBS data ad and is the least automatable skill here."
+  },
+  "job:ba":{
+    type:"job", typeLabel:"Job Ad", title:"Business Analyst - DBS - 2026-06", prov:"mcf",
+    fields:[
+      ["Employer","[[employer:dbs|DBS Bank]]"],
+      ["Experience","[[exp:35|3-5 Years]]"],
+      ["Qualification","[[qual:degree|Degree]]"]
+    ],
+    body:"This role requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and "+
+         "[[skill:requirements|Requirements Gathering]]. It shares [[skill:sql|SQL]] and "+
+         "[[skill:stakeholder|Stakeholder Management]] with [[job:da|the Data Analyst ad]] - a repeatable pattern.",
+    links:["employer:dbs","skill:sql","skill:stakeholder","skill:requirements","exp:35","qual:degree","job:da"],
+    nextMove:"this ad needs <b>3-5 years</b> - if you are a fresh grad, start with [[pathway:fresh|the fresh-grad pathway]] instead."
+  },
+  "skill:sql":{
+    type:"skill", typeLabel:"Skill", title:"SQL", prov:"derived",
+    fields:[["Seen in","2 of 2 sampled DBS ads"],["ESCO match","[[esco:dataanalysis|Data Analysis]] (related)"]],
+    body:"SQL appears in both [[job:da|Data Analyst]] and [[job:ba|Business Analyst]] ads at DBS. "+
+         "It is a foundation for [[esco:dataanalysis|ESCO Skill - Data Analysis]].",
+    links:["job:da","job:ba","esco:dataanalysis"],
+    nextMove:"SQL is a high-frequency, evidenceable skill - a short project that queries real data is strong proof."
+  },
+  "skill:stakeholder":{
+    type:"skill", typeLabel:"Skill", title:"Stakeholder Management", prov:"derived",
+    fields:[["Seen in","2 of 2 sampled DBS ads"],["AI exposure","Low - human-led judgement"]],
+    body:"Stakeholder Management repeats across [[job:da|Data Analyst]] and [[job:ba|Business Analyst]] roles. "+
+         "It is human-led, so it resists automation more than [[ai:reporting|routine reporting]].",
+    links:["job:da","job:ba","ai:reporting"],
+    nextMove:"because it appears repeatedly across this role cluster, build one concrete example of coordinating a cross-team outcome."
+  },
+  "skill:python":{type:"skill",typeLabel:"Skill",title:"Python",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled DBS ads"]],
+    body:"Python appears in [[job:da|the Data Analyst ad]]. Lower frequency than [[skill:sql|SQL]], so lower confidence as a must-have.",
+    links:["job:da","skill:sql"],
+    nextMove:"Python is a nice-to-have here (1 of 2 ads) - prioritise [[skill:sql|SQL]] first."},
+  "skill:dataviz":{type:"skill",typeLabel:"Skill",title:"Data Visualisation",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled DBS ads"]],
+    body:"Data Visualisation supports [[esco:dataanalysis|Data Analysis]] and appears in [[job:da|the Data Analyst ad]].",
+    links:["job:da","esco:dataanalysis"],
+    nextMove:"pair this with [[skill:sql|SQL]] - a single dashboard demonstrates both."},
+  "skill:requirements":{type:"skill",typeLabel:"Skill",title:"Requirements Gathering",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled DBS ads"]],
+    body:"Requirements Gathering appears in [[job:ba|the Business Analyst ad]]. Closely tied to [[skill:stakeholder|Stakeholder Management]].",
+    links:["job:ba","skill:stakeholder"],
+    nextMove:"strong for the BA track - evidence it with a short requirements document from any project."},
+  "esco:dataanalysis":{type:"skill",typeLabel:"ESCO Skill",title:"Data Analysis (ESCO)",prov:"computed",
+    fields:[["Standard","ESCO v1.2 - resolved"],["Group","[[isco:bizadmin|Business and Administration Professionals]]"]],
+    body:"This is the standardised ESCO concept. It is linked only because it resolved - if a skill had no ESCO match, we would withhold the link rather than invent one.",
+    links:["isco:bizadmin","skill:sql","skill:dataviz"],
+    nextMove:"use the ESCO concept to find adjacent roles that share this skill cluster."},
+  "isco:bizadmin":{type:"skill",typeLabel:"ISCO Group",title:"Business and Administration Professionals",prov:"computed",
+    fields:[["Standard","ISCO-08 - major group 24"]],
+    body:"The occupation group for [[job:da|Data Analyst]] and similar roles. Maps to AI-exposure data via the engine.",
+    links:["job:da","esco:dataanalysis"],
+    nextMove:"explore other occupations in this ISCO group to widen your options."},
+  "exp:02":{type:"pathway",typeLabel:"Experience",title:"0-2 Years",prov:"mcf",
+    fields:[["Source","Verbatim MCF field"]],
+    body:"[[job:da|The Data Analyst ad]] accepts 0-2 years - friendly to a [[pathway:fresh|fresh grad]].",
+    links:["job:da","pathway:fresh"],
+    nextMove:"this is an entry-friendly band - target it while building proof."},
+  "exp:35":{type:"pathway",typeLabel:"Experience",title:"3-5 Years",prov:"mcf",
+    fields:[["Source","Verbatim MCF field"]],
+    body:"[[job:ba|The Business Analyst ad]] needs 3-5 years - not a fresh-grad entry point.",
+    links:["job:ba"],
+    nextMove:"if you lack this, pivot to a 0-2 yr role first - see [[pathway:fresh|Fresh-grad pathway]]."},
+  "qual:degree":{type:"pathway",typeLabel:"Qualification",title:"Degree",prov:"mcf",
+    fields:[["Seen in","2 of 2 sampled DBS ads"]],
+    body:"Both DBS ads ask for a degree. Verbatim from the postings, so high confidence.",
+    links:["job:da","job:ba"],
+    nextMove:"a degree is expected here - lead your application with relevant coursework or projects."},
+  "ai:reporting":{type:"pathway",typeLabel:"AI impact",title:"Monthly Reporting (AI-assisted)",prov:"ai",
+    fields:[["Read","Inferred from duty text - advisory"]],
+    body:"Routine monthly reporting in [[job:da|the Data Analyst role]] is AI-assistable. This is an inferred read (advisory), not a verbatim fact - so it is tagged as an AI estimate, and [[skill:stakeholder|Stakeholder Management]] stays human-led.",
+    links:["job:da","skill:stakeholder"],
+    nextMove:"let AI take the routine reporting - invest your proof in the human-led parts."},
+  "pathway:fresh":{type:"pathway",typeLabel:"Fresh-grad pathway",title:"Fresh-grad pathway - Data Analyst",prov:"derived",
+    fields:[
+      ["Suitability","Possible - not guaranteed"],
+      ["Best entry ad","[[job:da|Data Analyst - 0-2 yrs]]"],
+      ["Missing proof","Hands-on [[skill:sql|SQL]] evidence"]
+    ],
+    body:"As a fresh grad you match the skill cluster but likely lack 2-3 years of evidence. Suitability is labelled <b>possible</b>, never \"eligible\", unless an ad supports it. "+
+         "Start with [[job:da|the 0-2 yr Data Analyst ad]], build [[skill:sql|SQL]] proof, and strengthen [[skill:stakeholder|Stakeholder Management]].",
+    links:["job:da","skill:sql","skill:stakeholder","exp:02"],
+    nextMove:"explore entry-level Data Analyst roles, because your profile matches the skill cluster but lacks 2-3 years of evidence."}
+};
+
+const PERSONAS = [
+  {ico:"📐", t:"Standards / Skills", d:"Find standard skills and occupations (ESCO / ISCO).", intent:"“Show me the standard concept and who hires for it.”", start:"esco:dataanalysis"},
+  {ico:"🇸🇬", t:"Find MCF Jobs", d:"Current Singapore openings, turned into linked notes.", intent:"“Find current jobs and what they really ask for.”", start:"job:da"},
+  {ico:"🎓", t:"Fresh Grad Pathways", d:"Realistic entry pathways and proof to build.", intent:"“I am a fresh grad - where do I start?”", start:"pathway:fresh"},
+  {ico:"🏢", t:"Employer Search", d:"What an employer repeatedly hires for.", intent:"“What does this employer expect?”", start:"employer:dbs"}
+];
+
+/* ---------- nav state ---------- */
+let focus=null, history=[];
+const $=id=>document.getElementById(id);
+
+function renderHome(){
+  $("home").classList.remove("hidden");
+  $("noteView").classList.add("hidden");
+  focus=null; history=[]; $("backBtn").disabled=true;
+  const g=$("personaGrid"); g.innerHTML="";
+  PERSONAS.forEach(p=>{
+    const b=document.createElement("button");
+    b.className="pcard";
+    b.innerHTML=`<span class="ico" aria-hidden="true">${p.ico}</span>
+      <span class="t">${p.t}</span><span class="d">${p.d}</span>
+      <span class="intent">${p.intent}</span>`;
+    b.onclick=()=>open(p.start, true);
+    g.appendChild(b);
+  });
+}
+
+function provChip(key){
+  const p=PROV[key]||PROV.unverified;
+  return `<span class="prov ${p.c}" title="${p.t}">${p.i} ${p.t}</span>`;
+}
+
+/* parse [[id|text]] or [[id]] into clickable buttons */
+function renderRich(str){
+  const frag=document.createElement("span");
+  const re=/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+  let last=0,m;
+  while((m=re.exec(str))){
+    if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
+    const id=m[1].trim(), text=(m[2]||(NODES[id]?NODES[id].title:id)).trim();
+    const btn=document.createElement("button");
+    btn.className="wl"; btn.type="button"; btn.textContent=text;
+    btn.setAttribute("aria-label","Open note: "+text);
+    if(NODES[id]){ btn.onclick=()=>open(id); }
+    else { btn.disabled=true; btn.title="No note (withheld)"; }
+    frag.appendChild(btn);
+    last=re.lastIndex;
+  }
+  if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last)));
+  return frag;
+}
+
+function open(id, fromHome){
+  const n=NODES[id]; if(!n) return;
+  if(!fromHome && focus) history.push(focus);
+  focus=id;
+  $("home").classList.add("hidden");
+  $("noteView").classList.remove("hidden");
+  $("backBtn").disabled=history.length===0;
+  window.scrollTo({top:0,behavior:"smooth"});
+
+  /* crumbs */
+  const cr=$("crumbs"); cr.innerHTML="";
+  const h=document.createElement("button"); h.textContent="Home"; h.onclick=renderHome; cr.appendChild(h);
+  cr.appendChild(document.createTextNode(" / "+n.typeLabel+" / "));
+  const cur=document.createElement("span"); cur.textContent=n.title; cur.style.color="var(--text)"; cur.style.fontWeight="700";
+  cr.appendChild(cur);
+
+  /* next move */
+  const nm=$("nextmove");
+  nm.innerHTML=`<span class="nm-ico" aria-hidden="true">🧭</span>
+    <span class="nm-t">Your next best move is to </span>`;
+  nm.querySelector(".nm-t").appendChild(renderRich(n.nextMove));
+
+  /* note */
+  const note=$("note");
+  note.innerHTML="";
+  const head=document.createElement("div"); head.className="note-head";
+  head.innerHTML=`<span class="type-chip type-${n.type}">${n.typeLabel}</span>${provChip(n.prov)}`;
+  note.appendChild(head);
+  const h2=document.createElement("h2"); h2.textContent=n.title; note.appendChild(h2);
+  if(n.fields){ n.fields.forEach(([k,v])=>{
+    const f=document.createElement("div"); f.className="field";
+    const kk=document.createElement("span"); kk.className="k"; kk.textContent=k;
+    const vv=document.createElement("span"); vv.className="v"; vv.appendChild(renderRich(v));
+    f.appendChild(kk); f.appendChild(vv); note.appendChild(f);
+  });}
+  const body=document.createElement("div"); body.className="body";
+  const p=document.createElement("p"); p.appendChild(renderRich(n.body)); body.appendChild(p);
+  note.appendChild(body);
+
+  /* linked notes chips */
+  if(n.links&&n.links.length){
+    const st=document.createElement("div"); st.className="section-t"; st.textContent="Linked notes";
+    note.appendChild(st);
+    const chips=document.createElement("div"); chips.className="chips";
+    n.links.forEach(lid=>{ const ln=NODES[lid]; if(!ln) return;
+      const c=document.createElement("button"); c.className="linkchip"; c.type="button";
+      c.textContent=ln.title; c.onclick=()=>open(lid); chips.appendChild(c);
+    });
+    note.appendChild(chips);
+  }
+
+  /* patterns */
+  const pw=$("patternsWrap"); pw.innerHTML="";
+  if(n.patterns){
+    const st=document.createElement("div"); st.className="section-t"; st.textContent="Common patterns";
+    pw.appendChild(st);
+    const card=document.createElement("div"); card.className="note"; card.style.marginTop="0";
+    const title=document.createElement("div"); title.style.cssText="font-size:.8125rem;color:var(--sub);margin-bottom:8px;font-weight:600";
+    title.textContent=n.patterns.title; card.appendChild(title);
+    const maxC=Math.max(...n.patterns.rows.map(r=>r.count));
+    n.patterns.rows.forEach(r=>{
+      const row=document.createElement("div"); row.className="patrow";
+      const pl=document.createElement("span"); pl.className="pl"; pl.textContent=r.label;
+      const track=document.createElement("span"); track.className="bar-track";
+      const fill=document.createElement("span"); fill.className="bar-fill"; fill.style.width=(r.count/maxC*100)+"%";
+      track.appendChild(fill);
+      const pc=document.createElement("span"); pc.className="pc"; pc.innerHTML=r.count+"× "+provChip(r.prov);
+      row.appendChild(pl); row.appendChild(track); row.appendChild(pc);
+      card.appendChild(row);
+    });
+    pw.appendChild(card);
+  }
+
+  drawGraph(id);
+}
+
+function back(){ if(history.length){ focus=history.pop(); open(focus, true); $("backBtn").disabled=history.length===0; } }
+
+/* mini local graph: focus in centre, neighbours in a ring */
+function drawGraph(id){
+  const n=NODES[id]; const svg=$("graph"); svg.innerHTML="";
+  const W=600,H=280,cx=W/2,cy=H/2;
+  const neigh=(n.links||[]).filter(l=>NODES[l]).slice(0,8);
+  const TYPE={employer:["#1e40af","#dbeafe"],job:["#5b21b6","#ede9fe"],skill:["#0f766e","#f0fdfa"],pathway:["#b45309","#fef3c7"]};
+  function node(x,y,nid,r){
+    const nn=NODES[nid]; const col=TYPE[nn.type]||["#475569","#f1f5f9"];
+    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.setAttribute("class","gnode"); g.setAttribute("tabindex","0");
+    g.setAttribute("role","button"); g.setAttribute("aria-label","Open "+nn.title);
+    const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",r);
+    c.setAttribute("fill",col[1]);c.setAttribute("stroke",col[0]);c.setAttribute("stroke-width","2");
+    g.appendChild(c);
+    const label=nn.title.length>20?nn.title.slice(0,19)+"…":nn.title;
+    const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",x);t.setAttribute("y",y+r+13);t.setAttribute("text-anchor","middle");
+    t.setAttribute("fill",col[0]);t.textContent=label;
+    g.appendChild(t);
+    const act=()=>open(nid);
+    g.addEventListener("click",act);
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}});
+    svg.appendChild(g);
+  }
+  neigh.forEach((lid,i)=>{
+    const a=(i/neigh.length)*Math.PI*2 - Math.PI/2;
+    const x=cx+Math.cos(a)*200, y=cy+Math.sin(a)*100;
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",cx);line.setAttribute("y1",cy);line.setAttribute("x2",x);line.setAttribute("y2",y);
+    line.setAttribute("stroke","#cbd5e1");line.setAttribute("stroke-width","1.5");
+    svg.appendChild(line);
+  });
+  neigh.forEach((lid,i)=>{
+    const a=(i/neigh.length)*Math.PI*2 - Math.PI/2;
+    node(cx+Math.cos(a)*200, cy+Math.sin(a)*100, lid, 16);
+  });
+  node(cx,cy,id,26);
+}
+
+$("homeBtn").onclick=renderHome;
+$("backBtn").onclick=back;
+renderHome();
+</script>
+</body>
+</html>
