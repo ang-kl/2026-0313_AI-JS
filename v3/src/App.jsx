@@ -970,6 +970,14 @@
 // recency + fresh-grad toggle; Fresh-grad: max-experience + locked filter; Employer: MCF/careers.gov
 // .sg sources). Screen-stack nav (home -> search -> note) with Back/Home; same theme throughout.
 // No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.96 -> v3.0.97).
+// v3.0.98 - 2026-06-20 - HDR #136 - WikiGraph /demo: expanding graph (Human Lead review:
+// "if i tap it should continue to link and shows the trees and branches", not one hub+spoke).
+// Still static prototype only - public/demo.html graph rewritten from a 1-hop recentre-on-tap
+// view into a growing force-directed network: tapping a node EXPANDS its branches in place (+ / -
+// badges), the tree accumulates, with drag-to-pan, zoom +/-, Reset (collapse to root), and an
+// explicit "Open note" (single-tap grows, double-tap or the button reads). Keyboard-operable
+// nodes; aria-labels say expand/collapse + hidden count. No app/engine change; api/mcf.js +
+// frozen symbols untouched. G1 (v3.0.97 -> v3.0.98).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 

@@ -139,6 +139,13 @@
   svg{display:block;width:100%;height:280px}
   .gnode{cursor:pointer}
   .gnode text{font-size:11px;font-weight:700;pointer-events:none}
+  .gexp{font-size:13px;font-weight:800;pointer-events:none}
+  svg#graph{touch-action:none}
+  .gtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}
+  .gtools .ghint{font-size:.75rem;color:var(--muted)}
+  .gtools .spacer{flex:1}
+  .gtools button{min-height:38px;min-width:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;font-weight:700;font-size:.8125rem;color:var(--text)}
+  .gtools button:hover{border-color:var(--blueBd)}
   footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
   footer.note-foot b{color:var(--text)}
   .hidden{display:none}
@@ -174,8 +181,16 @@
     <div class="nextmove" id="nextmove"></div>
     <div class="note" id="note"></div>
     <div id="patternsWrap"></div>
-    <div class="section-t">Graph view - tap a node to open its note</div>
-    <div class="graph-card"><svg id="graph" viewBox="0 0 600 280" role="img" aria-label="Local graph of linked notes"></svg></div>
+    <div class="section-t">Graph view - tap a node to grow its branches</div>
+    <div class="gtools">
+      <span class="ghint">Tap a node to expand &middot; double-tap (or Open note) to read &middot; drag to pan</span>
+      <span class="spacer"></span>
+      <button id="gOpen" type="button">Open note &#8599;</button>
+      <button id="gReset" type="button" aria-label="Collapse back to the root">Reset</button>
+      <button id="gZin" type="button" aria-label="Zoom in">+</button>
+      <button id="gZout" type="button" aria-label="Zoom out">&minus;</button>
+    </div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 600 280" role="img" aria-label="Expanding graph of linked notes - tap a node to grow its branches"></svg></div>
     <footer class="note-foot">
       <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
       In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; patterns are derived counts; ESCO links appear only when resolved.
@@ -277,7 +292,7 @@ const P_BY_KEY=Object.fromEntries(PERSONAS.map(p=>[p.key,p]));
 /* ---- screen stack ---- */
 let stack=[], cur=null;
 const $=id=>document.getElementById(id);
-function show(which){ ["home","searchView","noteView"].forEach(s=>$(s).classList.toggle("hidden",s!==which)); }
+function show(which){ ["home","searchView","noteView"].forEach(s=>$(s).classList.toggle("hidden",s!==which)); if(which!=="noteView") stopGraph(); }
 function go(state,push=true){ if(push&&cur) stack.push(cur); cur=state; render(); }
 function render(){
   if(cur.kind==="home"){ stack=[]; renderHome(); }
@@ -404,32 +419,81 @@ function renderNote(id){
       row.appendChild(pl); row.appendChild(track); row.appendChild(pc); card.appendChild(row); });
     pw.appendChild(card);
   }
-  drawGraph(id);
+  seedGraph(id);
 }
 
-function drawGraph(id){
-  const n=NODES[id]; const svg=$("graph"); svg.innerHTML="";
-  const W=600,H=280,cx=W/2,cy=H/2;
-  const neigh=(n.links||[]).filter(l=>NODES[l]).slice(0,8);
-  const TYPE={employer:["#1e40af","#dbeafe"],job:["#5b21b6","#ede9fe"],skill:["#0f766e","#f0fdfa"],pathway:["#b45309","#fef3c7"]};
-  function node(x,y,nid,r){
-    const nn=NODES[nid]; const col=TYPE[nn.type]||["#475569","#f1f5f9"];
-    const g=document.createElementNS("http://www.w3.org/2000/svg","g");
-    g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button"); g.setAttribute("aria-label","Open "+nn.title);
-    const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
-    c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",r);c.setAttribute("fill",col[1]);c.setAttribute("stroke",col[0]);c.setAttribute("stroke-width","2"); g.appendChild(c);
-    const label=nn.title.length>20?nn.title.slice(0,19)+"…":nn.title;
-    const t=document.createElementNS("http://www.w3.org/2000/svg","text");
-    t.setAttribute("x",x);t.setAttribute("y",y+r+13);t.setAttribute("text-anchor","middle");t.setAttribute("fill",col[0]);t.textContent=label; g.appendChild(t);
-    const act=()=>go({kind:"note",id:nid}); g.addEventListener("click",act);
-    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}});
-    svg.appendChild(g);
-  }
-  neigh.forEach((lid,i)=>{ const a=(i/neigh.length)*Math.PI*2-Math.PI/2; const x=cx+Math.cos(a)*200,y=cy+Math.sin(a)*100;
-    const line=document.createElementNS("http://www.w3.org/2000/svg","line"); line.setAttribute("x1",cx);line.setAttribute("y1",cy);line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("stroke","#cbd5e1");line.setAttribute("stroke-width","1.5"); svg.appendChild(line); });
-  neigh.forEach((lid,i)=>{ const a=(i/neigh.length)*Math.PI*2-Math.PI/2; node(cx+Math.cos(a)*200,cy+Math.sin(a)*100,lid,16); });
-  node(cx,cy,id,26);
+/* ===== expanding force graph - tap a node to grow its branches ===== */
+const GTYPE={employer:["#1e40af","#dbeafe"],job:["#5b21b6","#ede9fe"],skill:["#0f766e","#f0fdfa"],pathway:["#b45309","#fef3c7"]};
+const ADJ={};
+Object.keys(NODES).forEach(id=>{ ADJ[id]=ADJ[id]||new Set(); (NODES[id].links||[]).forEach(l=>{ if(NODES[l]){ ADJ[id].add(l); (ADJ[l]=ADJ[l]||new Set()).add(id); } }); });
+const G={root:null,expanded:new Set(),sel:null,pos:{},vx:{},vy:{},view:{x:0,y:0,k:1},alpha:0,running:false,raf:null,els:null,sig:""};
+const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function graphVisible(){
+  const vis=new Set(); if(!G.root) return {nodes:[],edges:[]};
+  vis.add(G.root); G.expanded.forEach(id=>{ vis.add(id); (ADJ[id]||new Set()).forEach(n=>vis.add(n)); });
+  const nodes=[...vis], edges=[], seen=new Set();
+  nodes.forEach(a=>{ (ADJ[a]||new Set()).forEach(b=>{ if(vis.has(b)){ const k=a<b?a+"|"+b:b+"|"+a; if(!seen.has(k)){seen.add(k);edges.push([a,b]);} } }); });
+  return {nodes,edges};
 }
+function hiddenCount(id){
+  const vis=new Set([G.root]); G.expanded.forEach(x=>{ vis.add(x); (ADJ[x]||new Set()).forEach(n=>vis.add(n)); });
+  let h=0; (ADJ[id]||new Set()).forEach(n=>{ if(!vis.has(n)) h++; }); return h;
+}
+function ensureDOM(nodes,edges){
+  const sig=nodes.slice().sort().join(",")+"#"+edges.map(e=>e.join("-")).sort().join(",")+"#"+G.sel+"#"+[...G.expanded].sort().join(",");
+  if(sig===G.sig) return; G.sig=sig;
+  const NS="http://www.w3.org/2000/svg", svg=$("graph"); svg.innerHTML="";
+  const view=document.createElementNS(NS,"g"); svg.appendChild(view);
+  G.els={view,line:{},node:{}};
+  edges.forEach(([a,b])=>{ const l=document.createElementNS(NS,"line"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.5"); view.appendChild(l); G.els.line[a+"|"+b]={l,a,b}; });
+  nodes.forEach(id=>{ const nn=NODES[id], col=GTYPE[nn.type]||["#475569","#f1f5f9"], isRoot=id===G.root, r=isRoot?24:16, exp=G.expanded.has(id), hc=hiddenCount(id);
+    const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button");
+    g.setAttribute("aria-label",(exp?"Collapse ":(hc?"Expand ":""))+nn.title+(hc?(" - "+hc+" more"):""));
+    const c=document.createElementNS(NS,"circle"); c.setAttribute("r",r); c.setAttribute("fill",col[1]); c.setAttribute("stroke",col[0]); c.setAttribute("stroke-width", id===G.sel?"3.5":"2"); g.appendChild(c);
+    const badge=document.createElementNS(NS,"text"); badge.setAttribute("class","gexp"); badge.setAttribute("text-anchor","middle"); badge.setAttribute("dy","4.5"); badge.setAttribute("fill",col[0]); badge.textContent=exp?"−":(hc?"+":""); g.appendChild(badge);
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("y",r+13); t.setAttribute("fill",col[0]); t.textContent=nn.title.length>20?nn.title.slice(0,19)+"…":nn.title; g.appendChild(t);
+    g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
+    g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();onNodeTap(id);} });
+    view.appendChild(g); G.els.node[id]={g};
+  });
+  applyView();
+}
+function applyView(){ if(G.els&&G.els.view) G.els.view.setAttribute("transform",`translate(${G.view.x},${G.view.y}) scale(${G.view.k})`); }
+function onNodeTap(id){ G.sel=id; if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); reheat(); updateOpenBtn(); }
+function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>22?n.title.slice(0,21)+"…":n.title)):"Open note")+" &#8599;"; }
+function step(){
+  if(!G.running) return;
+  const {nodes,edges}=graphVisible();
+  if(G.sel&&!nodes.includes(G.sel)) G.sel=G.root;
+  ensureDOM(nodes,edges);
+  nodes.forEach(id=>{ if(!G.pos[id]){ const r=G.pos[G.root]||{x:300,y:140}; G.pos[id]={x:r.x+(Math.random()-.5)*70,y:r.y+(Math.random()-.5)*70}; } if(G.vx[id]==null){G.vx[id]=0;G.vy[id]=0;} });
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){ const a=G.pos[nodes[i]],b=G.pos[nodes[j]]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2); const rep=3000/d2,fx=dx/d*rep,fy=dy/d*rep; G.vx[nodes[i]]+=fx;G.vy[nodes[i]]+=fy;G.vx[nodes[j]]-=fx;G.vy[nodes[j]]-=fy; }
+  edges.forEach(([a,b])=>{ const pa=G.pos[a],pb=G.pos[b]; let dx=pb.x-pa.x,dy=pb.y-pa.y,d=Math.sqrt(dx*dx+dy*dy)||0.01; const f=(d-95)*0.03,fx=dx/d*f,fy=dy/d*f; G.vx[a]+=fx;G.vy[a]+=fy;G.vx[b]-=fx;G.vy[b]-=fy; });
+  nodes.forEach(id=>{ if(id===G.root){ G.pos[id].x+=(300-G.pos[id].x)*0.12; G.pos[id].y+=(140-G.pos[id].y)*0.12; G.vx[id]=0;G.vy[id]=0; } else { G.vx[id]*=0.82; G.vy[id]*=0.82; G.pos[id].x+=clampN(G.vx[id]*G.alpha,-14,14); G.pos[id].y+=clampN(G.vy[id]*G.alpha,-14,14); } });
+  nodes.forEach(id=>{ const el=G.els.node[id]; if(el){ const p=G.pos[id]; el.g.setAttribute("transform",`translate(${p.x},${p.y})`); } });
+  edges.forEach(([a,b])=>{ const el=G.els.line[a+"|"+b]; if(el){ const pa=G.pos[a],pb=G.pos[b]; el.l.setAttribute("x1",pa.x);el.l.setAttribute("y1",pa.y);el.l.setAttribute("x2",pb.x);el.l.setAttribute("y2",pb.y); } });
+  G.alpha*=0.97; if(G.alpha<0.03){ G.running=false; G.raf=null; return; }
+  G.raf=requestAnimationFrame(step);
+}
+function reheat(){ G.alpha=Math.max(G.alpha,0.8); if(!G.running){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); } }
+function startGraph(){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); }
+function stopGraph(){ G.running=false; if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
+function seedGraph(id){ G.root=id; G.expanded=new Set([id]); G.sel=id; G.pos={}; G.vx={}; G.vy={}; G.view={x:0,y:0,k:1}; G.alpha=1; G.sig=""; G.pos[id]={x:300,y:140}; updateOpenBtn(); startGraph(); }
+function gZoom(f){ const cx=300,cy=140,k2=clampN(G.view.k*f,0.4,2.6),wx=(cx-G.view.x)/G.view.k,wy=(cy-G.view.y)/G.view.k; G.view.k=k2; G.view.x=cx-wx*k2; G.view.y=cy-wy*k2; applyView(); }
+(function gInit(){
+  const svg=$("graph"); let pan=null;
+  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=600/(svg.clientWidth||600); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
+  svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
+  svg.addEventListener("pointerup",()=>{pan=null;});
+  svg.addEventListener("pointercancel",()=>{pan=null;});
+  svg.addEventListener("wheel",e=>{ e.preventDefault(); gZoom(e.deltaY<0?1.12:0.9); },{passive:false});
+  $("gOpen").onclick=()=>{ if(G.sel) go({kind:"note",id:G.sel}); };
+  $("gReset").onclick=()=>{ if(G.root) seedGraph(G.root); };
+  $("gZin").onclick=()=>gZoom(1.2);
+  $("gZout").onclick=()=>gZoom(1/1.2);
+})();
 
 $("homeBtn").onclick=()=>go({kind:"home"});
 $("backBtn").onclick=back;
