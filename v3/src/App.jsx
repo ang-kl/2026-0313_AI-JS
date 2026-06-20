@@ -919,6 +919,14 @@
 // "more", graceful empty for gov-only) - via .csg-cols grid that stacks below 1000px; the role-analyse
 // corpus still merges both. api/mcf.js byte-frozen; frozen symbols untouched; AU-7 in
 // v3-result-engine-spec.md §1. G1 (v3.0.92 -> v3.0.93).
+// v3.0.94 - 2026-06-20 - HDR #132 - CSG copy: name BOTH sources on the landing/search page
+// (Human Lead: "the first page still says MyCareersFuture postings - shouldn't it include both").
+// Now that a Browse search fans out to BOTH MyCareersFuture and careers.gov.sg, the landing copy is
+// made honest: the "Browse SG jobs" mode source label -> "Sources: MyCareersFuture + careers.gov.sg"
+// (desc adds "public service and private sector"), and the two landing help lines now read "from
+// MyCareersFuture and careers.gov.sg". The "Search by employer" mode stays MyCareersFuture-only
+// (careers.gov.sg has no company-search API). Copy-only - no logic, no number; frozen symbols and
+// api/mcf.js untouched. G1 (v3.0.93 -> v3.0.94).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -13531,14 +13539,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 border/shadow live in .lux-search so :focus-within can light the ring. */}
             <div className="lux-search lux-rise" style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", borderRadius:14, padding:16, marginBottom:12 }}>
               <span id="search-hint" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>
-                Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture postings.
+                Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture and careers.gov.sg.
               </span>
               <div style={{ marginBottom:12 }}>
                 <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize: "1.5rem", fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
                   Understand a Singapore job before you apply
                 </h2>
                 <p style={{ margin:0, fontSize: "0.875rem", color:C.textSub, lineHeight:1.55 }}>
-                  Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture postings.
+                  Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture and careers.gov.sg.
                 </p>
               </div>
 
@@ -13547,7 +13555,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
                 {[
                   { k:"role", label:"Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
-                  { k:"jobs", label:"Browse SG jobs", source:"Source: MyCareersFuture postings", desc:"Explore current Singapore openings and compare what employers are asking for." },
+                  { k:"jobs", label:"Browse SG jobs", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Explore current Singapore openings - public service and private sector - and compare what employers are asking for." },
                   { k:"company", label:"Search by employer", source:"Source: MyCareersFuture postings", desc:"Type an employer name to see their live postings and confirm the posting count." },
                 ].map(m => (
                   <div key={m.k}
