@@ -900,6 +900,12 @@
 // | Workflow segmented toggle; lanes stays the default + a11y/keyboard path; reduced-motion zeroes
 // transitions. Presentation only; _forceLayout byte-frozen; no LLM, no number; frozen door intact.
 // G1 (v3.0.90 -> v3.0.91).
+// v3.0.92 - 2026-06-18 - HDR #130 - CO2.2 fix (Human Lead: "I haven't seen the 2 columns"). The
+// Workflow view gated its columns by the zoom-LOD band, so at the overview only the hub tiers
+// (Functions + Agent Candidates) painted and the middle Recurring-Duties column stayed hidden until
+// zoom-in - reading as 2 columns. The structured Workflow now ALWAYS shows all 3 columns (WF_BAND=2);
+// semantic-zoom collapse-to-hubs stays a Neural-view-only declutter. Presentation only; frozen door
+// intact. G1 (v3.0.91 -> v3.0.92).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
