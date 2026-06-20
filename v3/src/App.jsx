@@ -955,6 +955,13 @@
 // must be present, so it returns the real MoH count (~25). Verified vs the live dump: LTA 0->150,
 // MoH 399->25, MOH/MOE/MND resolve, HTX 73 unchanged, private firms (DBS) honestly 0. api/mcf.js +
 // frozen symbols byte-identical; careers.js is not a frozen file. G1 (v3.0.94 -> v3.0.95).
+// v3.0.96 - 2026-06-20 - HDR #134 - WikiGraph MVP demo at /demo (Human Lead: "deploy into
+// vercel as /demo"). Self-contained static prototype only - NO app/engine change. Adds
+// public/demo.html (4-persona home, clickable [[wikilink]] note-to-note navigation, provenance
+// chips, "your next best move", common-patterns bars, tap-able mini graph; sample data, no live
+// fetch) + a vercel.json rewrite /demo -> /demo.html placed before the SPA catch-all. Validates
+// the JobAds WikiGraph interaction before the real arc (spec v3-wikigraph-spec.md, PRs to follow).
+// api/mcf.js + frozen symbols untouched; no JSX/code change here. G1 (v3.0.95 -> v3.0.96).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
