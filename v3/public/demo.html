@@ -17,11 +17,11 @@
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     line-height:1.55;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:880px;margin:0 auto;padding:0 16px 64px}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px 64px}
 
   header.bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);
     backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
-  .bar-in{max-width:880px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+  .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px}
   .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em}
   .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
     color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);
@@ -136,7 +136,7 @@
   .type-skill{background:var(--tealBg);color:var(--teal)}
   .type-pathway{background:var(--orangeBg);color:var(--orange)}
   .graph-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;margin-top:8px}
-  svg{display:block;width:100%;height:280px}
+  svg{display:block;width:100%;height:clamp(360px,56vh,520px)}
   .gnode{cursor:pointer}
   .gnode text{font-size:11px;font-weight:700;pointer-events:none}
   .gexp{font-size:13px;font-weight:800;pointer-events:none}
@@ -190,7 +190,7 @@
       <button id="gZin" type="button" aria-label="Zoom in">+</button>
       <button id="gZout" type="button" aria-label="Zoom out">&minus;</button>
     </div>
-    <div class="graph-card"><svg id="graph" viewBox="0 0 600 280" role="img" aria-label="Expanding graph of linked notes - tap a node to grow its branches"></svg></div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 960 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Expanding graph of linked notes - tap a node to grow its branches"></svg></div>
     <footer class="note-foot">
       <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
       In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; patterns are derived counts; ESCO links appear only when resolved.
@@ -452,7 +452,7 @@ function ensureDOM(nodes,edges){
     g.setAttribute("aria-label",(exp?"Collapse ":(hc?"Expand ":""))+nn.title+(hc?(" - "+hc+" more"):""));
     const c=document.createElementNS(NS,"circle"); c.setAttribute("r",r); c.setAttribute("fill",col[1]); c.setAttribute("stroke",col[0]); c.setAttribute("stroke-width", id===G.sel?"3.5":"2"); g.appendChild(c);
     const badge=document.createElementNS(NS,"text"); badge.setAttribute("class","gexp"); badge.setAttribute("text-anchor","middle"); badge.setAttribute("dy","4.5"); badge.setAttribute("fill",col[0]); badge.textContent=exp?"−":(hc?"+":""); g.appendChild(badge);
-    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("y",r+13); t.setAttribute("fill",col[0]); t.textContent=nn.title.length>20?nn.title.slice(0,19)+"…":nn.title; g.appendChild(t);
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("y",r+15); t.setAttribute("fill",col[0]); t.setAttribute("stroke","#fff"); t.setAttribute("stroke-width","3.5"); t.setAttribute("paint-order","stroke"); t.textContent=nn.title.length>22?nn.title.slice(0,21)+"…":nn.title; g.appendChild(t);
     g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
     g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();onNodeTap(id);} });
@@ -468,10 +468,10 @@ function step(){
   const {nodes,edges}=graphVisible();
   if(G.sel&&!nodes.includes(G.sel)) G.sel=G.root;
   ensureDOM(nodes,edges);
-  nodes.forEach(id=>{ if(!G.pos[id]){ const r=G.pos[G.root]||{x:300,y:140}; G.pos[id]={x:r.x+(Math.random()-.5)*70,y:r.y+(Math.random()-.5)*70}; } if(G.vx[id]==null){G.vx[id]=0;G.vy[id]=0;} });
-  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){ const a=G.pos[nodes[i]],b=G.pos[nodes[j]]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2); const rep=3000/d2,fx=dx/d*rep,fy=dy/d*rep; G.vx[nodes[i]]+=fx;G.vy[nodes[i]]+=fy;G.vx[nodes[j]]-=fx;G.vy[nodes[j]]-=fy; }
-  edges.forEach(([a,b])=>{ const pa=G.pos[a],pb=G.pos[b]; let dx=pb.x-pa.x,dy=pb.y-pa.y,d=Math.sqrt(dx*dx+dy*dy)||0.01; const f=(d-95)*0.03,fx=dx/d*f,fy=dy/d*f; G.vx[a]+=fx;G.vy[a]+=fy;G.vx[b]-=fx;G.vy[b]-=fy; });
-  nodes.forEach(id=>{ if(id===G.root){ G.pos[id].x+=(300-G.pos[id].x)*0.12; G.pos[id].y+=(140-G.pos[id].y)*0.12; G.vx[id]=0;G.vy[id]=0; } else { G.vx[id]*=0.82; G.vy[id]*=0.82; G.pos[id].x+=clampN(G.vx[id]*G.alpha,-14,14); G.pos[id].y+=clampN(G.vy[id]*G.alpha,-14,14); } });
+  nodes.forEach(id=>{ if(!G.pos[id]){ const r=G.pos[G.root]||{x:480,y:230}; G.pos[id]={x:r.x+(Math.random()-.5)*120,y:r.y+(Math.random()-.5)*120}; } if(G.vx[id]==null){G.vx[id]=0;G.vy[id]=0;} });
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){ const a=G.pos[nodes[i]],b=G.pos[nodes[j]]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2); const rep=11000/d2,fx=dx/d*rep,fy=dy/d*rep; G.vx[nodes[i]]+=fx;G.vy[nodes[i]]+=fy;G.vx[nodes[j]]-=fx;G.vy[nodes[j]]-=fy; }
+  edges.forEach(([a,b])=>{ const pa=G.pos[a],pb=G.pos[b]; let dx=pb.x-pa.x,dy=pb.y-pa.y,d=Math.sqrt(dx*dx+dy*dy)||0.01; const f=(d-155)*0.03,fx=dx/d*f,fy=dy/d*f; G.vx[a]+=fx;G.vy[a]+=fy;G.vx[b]-=fx;G.vy[b]-=fy; });
+  nodes.forEach(id=>{ if(id===G.root){ G.pos[id].x+=(480-G.pos[id].x)*0.12; G.pos[id].y+=(230-G.pos[id].y)*0.12; G.vx[id]=0;G.vy[id]=0; } else { G.vx[id]*=0.82; G.vy[id]*=0.82; G.pos[id].x+=clampN(G.vx[id]*G.alpha,-22,22); G.pos[id].y+=clampN(G.vy[id]*G.alpha,-22,22); } });
   nodes.forEach(id=>{ const el=G.els.node[id]; if(el){ const p=G.pos[id]; el.g.setAttribute("transform",`translate(${p.x},${p.y})`); } });
   edges.forEach(([a,b])=>{ const el=G.els.line[a+"|"+b]; if(el){ const pa=G.pos[a],pb=G.pos[b]; el.l.setAttribute("x1",pa.x);el.l.setAttribute("y1",pa.y);el.l.setAttribute("x2",pb.x);el.l.setAttribute("y2",pb.y); } });
   G.alpha*=0.97; if(G.alpha<0.03){ G.running=false; G.raf=null; return; }
@@ -480,11 +480,11 @@ function step(){
 function reheat(){ G.alpha=Math.max(G.alpha,0.8); if(!G.running){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); } }
 function startGraph(){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); }
 function stopGraph(){ G.running=false; if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
-function seedGraph(id){ G.root=id; G.expanded=new Set([id]); G.sel=id; G.pos={}; G.vx={}; G.vy={}; G.view={x:0,y:0,k:1}; G.alpha=1; G.sig=""; G.pos[id]={x:300,y:140}; updateOpenBtn(); startGraph(); }
-function gZoom(f){ const cx=300,cy=140,k2=clampN(G.view.k*f,0.4,2.6),wx=(cx-G.view.x)/G.view.k,wy=(cy-G.view.y)/G.view.k; G.view.k=k2; G.view.x=cx-wx*k2; G.view.y=cy-wy*k2; applyView(); }
+function seedGraph(id){ G.root=id; G.expanded=new Set([id]); G.sel=id; G.pos={}; G.vx={}; G.vy={}; G.view={x:0,y:0,k:1}; G.alpha=1; G.sig=""; G.pos[id]={x:480,y:230}; updateOpenBtn(); startGraph(); }
+function gZoom(f){ const cx=480,cy=230,k2=clampN(G.view.k*f,0.4,2.6),wx=(cx-G.view.x)/G.view.k,wy=(cy-G.view.y)/G.view.k; G.view.k=k2; G.view.x=cx-wx*k2; G.view.y=cy-wy*k2; applyView(); }
 (function gInit(){
   const svg=$("graph"); let pan=null;
-  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=600/(svg.clientWidth||600); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
+  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=960/(svg.clientWidth||960); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
   svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
   svg.addEventListener("pointerup",()=>{pan=null;});
   svg.addEventListener("pointercancel",()=>{pan=null;});
