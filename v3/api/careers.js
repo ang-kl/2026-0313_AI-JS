@@ -183,13 +183,80 @@ function scoreRecord(r, tokens) {
   return score;
 }
 
+// ---- Agency matching (for action:"company") ----------------------------------
+// Extract parenthetical acronym from agency string, e.g. "Home Team Science (HTX)" -> "HTX"
+function extractAcronym(agency) {
+  const m = agency.match(/\(([A-Z0-9]{2,10})\)/);
+  return m ? m[1].toLowerCase() : null;
+}
+
+function agencyMatchScore(agency, queryTokens, queryRaw) {
+  if (!agency) return 0;
+  const agencyLower = agency.toLowerCase();
+  // Case-insensitive substring fallback (highest priority - exact match)
+  if (agencyLower.includes(queryRaw.toLowerCase())) return 10;
+  // Acronym match
+  const acronym = extractAcronym(agency);
+  if (acronym && acronym === queryRaw.toLowerCase().trim()) return 9;
+  // Token overlap
+  const agencyTokens = tokenise(agency);
+  let hits = 0;
+  for (const t of queryTokens) {
+    if (agencyTokens.includes(t)) hits++;
+  }
+  if (hits === 0) return 0;
+  return hits;
+}
+
 // ---- Handler -----------------------------------------------------------------
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { action, title, uuid, limit } = req.body || {};
+  const { action, title, uuid, company, limit } = req.body || {};
+
+  // ---- action: "company" - filter by agency name ----------------------------
+  if (action === "company") {
+    if (!company || typeof company !== "string") {
+      return res.status(400).json({ error: 'Required: action="company", company=string' });
+    }
+    const cap = Math.max(1, Math.min(50, Number(limit) || 50));
+    const queryRaw = company.trim();
+    const queryTokens = Array.from(new Set(tokenise(queryRaw))).slice(0, 8);
+    try {
+      const dump = await getDump();
+      const scored = dump
+        .map(function(r) {
+          return { r, score: agencyMatchScore(r.agency || "", queryTokens, queryRaw) };
+        })
+        .filter(function(x) { return x.score > 0; })
+        .sort(function(a, b) { return b.score - a.score || (b.r.startDate || 0) - (a.r.startDate || 0); });
+      const total = scored.length;
+      const hits = scored.slice(0, cap).map(function(x) { return normaliseCsgJob(x.r); }).filter(Boolean);
+      if (hits.length === 0) {
+        return res.status(200).json({
+          jobs: [], total: 0, source: "careers.gov.sg", fallback: true,
+          message: "No careers.gov.sg roles for that employer - careers.gov.sg lists government bodies, so try a ministry or statutory board (e.g. Ministry of Health, LTA, HTX).",
+        });
+      }
+      return res.status(200).json({
+        jobs: hits,
+        total,
+        capped: total > cap,
+        source: "careers.gov.sg",
+      });
+    } catch (err) {
+      const isTimeout = err.name === "AbortError";
+      console.error("[careers/company] " + (isTimeout ? "Timeout" : "Error") + ":", err.message);
+      return res.status(200).json({
+        jobs: [], total: 0, fallback: true, source: "careers.gov.sg",
+        message: isTimeout
+          ? "careers.gov.sg data is taking a moment. Please try again."
+          : "Could not reach careers.gov.sg data. Please try again.",
+      });
+    }
+  }
 
   // ---- action: "job" - look up one posting by synthetic uuid ----------------
   if (action === "job") {

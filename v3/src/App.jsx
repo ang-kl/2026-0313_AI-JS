@@ -935,6 +935,14 @@
 //     careers.gov.sg out of their jobs array before counting/scanning. Rationale: careers.gov.sg
 //     lacks salary bands, poster-vs-hirer split, and MCF posting-flow fields - including them would
 //     dilute or corrupt those reads. Their "Source: MyCareersFuture (N)" counts now reflect MCF only.
+// (e) GOV-AGENCY TWO-COLUMN (Human Lead confirmed): "Search by employer" (company mode) now fans
+//     out to BOTH /api/mcf action:"company" (MCF employer grouping) AND /api/careers action:"company"
+//     (new agency filter in api/careers.js: tokenise + acronym + substring match on agency field).
+//     Promise.allSettled - one source failing never blanks the other. CompanyPanel renders TWO
+//     RESPONSIVE COLUMNS via .csg-cols: left = MyCareersFuture (existing resolveCompany + CO2 agents
+//     flow, byte-identical); right = careers.gov.sg (top 10 + "+N more" note; graceful empty for
+//     private companies). Mode card source label -> "Sources: MyCareersFuture + careers.gov.sg";
+//     placeholder hints agencies. api/mcf.js + frozen symbols untouched.
 // No engine/number change; api/mcf.js + frozen symbols untouched. G1 (v3.0.93 -> v3.0.94).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
@@ -11573,6 +11581,8 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose }) {
 function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
+  // CSG two-column: parallel careers.gov.sg agency fetch
+  const [csgState, setCsgState] = useState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
   // CO2: agents panel state
   const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
   const [agentsModel, setAgentsModel] = useState(null);
@@ -11603,21 +11613,34 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     if (!companyQuery) return;
     let cancelled = false;
     setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
+    setCsgState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
     setChosenKey(null);
     setAgentsView("off");
     setAgentsModel(null);
     setAgentsKgPayload(null);
     setTapNodeId(null);
 
-    function loadCompany() {
-      fetch("/api/mcf", {
+    // CSG two-column: fetch MCF + careers.gov.sg in parallel; one failing must not blank the other.
+    function loadCompanyBoth() {
+      var mcfPromise = fetch("/api/mcf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "company", company: companyQuery, limit: 50 }),
-      })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (cancelled) return;
+      }).then(function(res) { return res.json(); });
+
+      var csgPromise = fetch("/api/careers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "company", company: companyQuery, limit: 50 }),
+      }).then(function(res) { return res.json(); });
+
+      Promise.allSettled([mcfPromise, csgPromise]).then(function(results) {
+        if (cancelled) return;
+        var mcfResult = results[0];
+        var csgResult = results[1];
+
+        if (mcfResult.status === "fulfilled") {
+          var data = mcfResult.value;
           setState({
             loading: false,
             matches: Array.isArray(data.matches) ? data.matches : [],
@@ -11630,13 +11653,25 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             message: data.message || "",
             error: null,
           });
-        })
-        .catch(function(err) {
-          if (cancelled) return;
-          setState({ loading: false, matches: [], query: companyQuery, queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: true, message: "Could not reach MyCareersFuture. Please try again in a moment.", error: String(err && err.message) });
-        });
+        } else {
+          setState({ loading: false, matches: [], query: companyQuery, queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: true, message: "Could not reach MyCareersFuture. Please try again in a moment.", error: String(mcfResult.reason && mcfResult.reason.message) });
+        }
+
+        if (csgResult.status === "fulfilled") {
+          var cData = csgResult.value;
+          setCsgState({
+            loading: false,
+            jobs: Array.isArray(cData.jobs) ? cData.jobs : [],
+            total: cData.total || 0,
+            fallback: !!cData.fallback,
+            message: cData.message || "",
+          });
+        } else {
+          setCsgState({ loading: false, jobs: [], total: 0, fallback: true, message: "Could not reach careers.gov.sg data. Please try again." });
+        }
+      });
     }
-    loadCompany();
+    loadCompanyBoth();
     return function() { cancelled = true; };
   }, [companyQuery]);
 
@@ -11689,188 +11724,246 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     );
   }
 
-  if (state.fallback || state.matches.length === 0) {
-    return (
-      <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
-        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
-          {state.message || "No live MyCareersFuture postings found for that company."}
-        </p>
-        <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: C.muted }}>
-          Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-        {activeMatch ? (
-          <>
-            <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
-              {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on MyCareersFuture"}
-            </h2>
-            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
-              <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "1px 8px", color: "#166534", marginRight: 8 }}>from MCF</span>
-              Company name and posting count are verbatim from MyCareersFuture.
+    <div className="csg-cols">
+      {/* LEFT COLUMN: MyCareersFuture company results */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>&#127480;&#127468; MyCareersFuture</span>
+          {!state.fallback && state.matches.length > 0 && activeMatch && (
+            <span style={{ fontSize: 11.5, color: C.muted }}>({activeMatch.count} posting{activeMatch.count === 1 ? "" : "s"})</span>
+          )}
+        </div>
+
+        {(state.fallback || state.matches.length === 0) ? (
+          <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
+              {state.message || "No live MyCareersFuture postings found for that company."}
             </p>
-          </>
+            <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: C.muted }}>
+              Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+            </p>
+          </div>
         ) : (
           <>
-            <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
-              {"Several employers match \"" + (state.query || companyQuery) + "\":"}
-            </h2>
-            <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: C.textSub }}>
-              <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#dcfce7", border: "1px solid #bbf7d0", borderRadius: 10, padding: "1px 8px", color: "#166534", marginRight: 8 }}>from MCF</span>
-              Select one employer to view their postings. Counts are verbatim from MyCareersFuture.
-            </p>
-            <div role="list" aria-label="Matched employers - select one to view postings">
-              {state.matches.map(function(m) {
-                return (
-                  <button key={m.key} role="listitem"
-                    aria-label={m.displayName + " - " + m.count + " posting" + (m.count === 1 ? "" : "s")}
-                    onClick={function() { setChosenKey(m.key); }}
-                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", minHeight:44, textAlign:"left", marginBottom:8, padding: "10px 14px", background: C.surface, border: "1px solid " + C.border, borderRadius: 8, cursor:"pointer", font:"inherit", gap:12 }}>
-                    <span style={{ fontSize: "0.9375rem", fontWeight: 700, color: C.text }}>{m.displayName}</span>
-                    <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink: 0 }}>{m.count} posting{m.count === 1 ? "" : "s"}</span>
-                  </button>
-                );
-              })}
+            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
+              {activeMatch ? (
+                <>
+                  <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
+                    {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on MyCareersFuture"}
+                  </h2>
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
+                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    Company name and posting count are verbatim from MyCareersFuture.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
+                    {"Several employers match \"" + (state.query || companyQuery) + "\":"}
+                  </h2>
+                  <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: C.textSub }}>
+                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    Select one employer to view their postings. Counts are verbatim from MyCareersFuture.
+                  </p>
+                  <div role="list" aria-label="Matched employers - select one to view postings">
+                    {state.matches.map(function(m) {
+                      return (
+                        <button key={m.key} role="listitem"
+                          aria-label={m.displayName + " - " + m.count + " posting" + (m.count === 1 ? "" : "s")}
+                          onClick={function() { setChosenKey(m.key); }}
+                          style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", minHeight:44, textAlign:"left", marginBottom:8, padding: "10px 14px", background: C.surface, border: "1px solid " + C.border, borderRadius: 8, cursor:"pointer", font:"inherit", gap:12 }}>
+                          <span style={{ fontSize: "0.9375rem", fontWeight: 700, color: C.text }}>{m.displayName}</span>
+                          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 10, padding: "2px 10px", whiteSpace:"nowrap", flexShrink: 0 }}>{m.count} posting{m.count === 1 ? "" : "s"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
+            {activeMatch && agentsView === "off" && (
+              <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI moments at {activeMatch.displayName}</div>
+                  <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>See which recurring duties across their roles could become agent candidates - deterministic, no LLM.</div>
+                </div>
+                <button onClick={function() { loadDuties(activeMatch); }} aria-label={"Find AI moments at " + activeMatch.displayName}
+                  style={{ minHeight: 44, padding: "8px 18px", background: "#0369a1", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+                  Find AI moments
+                </button>
+                {agentsError && <p style={{ width: "100%", margin: "4px 0 0", fontSize: 11.5, color: "#78350f" }}>{agentsError}</p>}
+              </div>
+            )}
+
+            {/* CO2: agents panel loading state */}
+            {activeMatch && agentsView === "loading" && (
+              <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
+                <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #7dd3fc", borderTop: "3px solid #0369a1", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+                <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Reading duties and clustering... (up to 5 detail fetches within budget)</p>
+              </div>
+            )}
+
+            {/* CO2: withheld - honest fallback when sample is too thin */}
+            {activeMatch && agentsView === "withheld" && agentsModel && (
+              <div style={{ marginBottom: 16, background: C.amberBg, border: "1px dashed " + C.amberBdr, borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#78350f", marginBottom: 6 }}>AI moments - withheld (not faked)</div>
+                {agentsModel.withheld.map(function(w, i) {
+                  return <p key={i} style={{ margin: "0 0 4px", fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>{w}</p>;
+                })}
+                <p style={{ margin: "8px 0 0", fontSize: 11.5, color: C.muted }}>
+                  <span style={{ fontWeight: 700 }}>Provenance:</span> {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} analysed - {agentsModel.stats.duties} duty lines extracted - {agentsModel.stats.clusters} clusters found.
+                </p>
+              </div>
+            )}
+
+            {/* CO2: agents panel - ready */}
+            {activeMatch && agentsView === "ready" && agentsModel && agentsKgPayload && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#0369a1" }}>{"AI moments at " + activeMatch.displayName}</div>
+                      <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>
+                        {agentsModel.stats.clusters} duty cluster{agentsModel.stats.clusters === 1 ? "" : "s"} - {agentsModel.stats.agents} agent candidate{agentsModel.stats.agents === 1 ? "" : "s"} - {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} sampled
+                        <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#0c4a6e", background: "#bae6fd", border: "1px solid #7dd3fc", borderRadius: 8, padding: "1px 6px" }}>{"QoI: " + agentsModel.sat.qoi.tag}</span>
+                        <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: "#6b7a8d", background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: 8, padding: "1px 6px" }}>{"detail-fetched: " + agentsModel.sat.qoi.detailFetched}</span>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      {/* CO2.2: 3-way segmented control - Lanes | Neural | Workflow.
+                          Each segment is 44px min, aria-pressed, drives agentLayout state. */}
+                      <div role="group" aria-label="Graph layout" style={{ display: "flex", border: "1px solid #7dd3fc", borderRadius: 8, overflow: "hidden" }}>
+                        {[["lanes", "Lanes"], ["force", "Neural"], ["workflow", "Workflow"]].map(function(pair) {
+                          const val = pair[0], lbl = pair[1];
+                          const active = agentLayout === val;
+                          return (
+                            <button key={val}
+                              onClick={function() { setAgentLayout(val); }}
+                              aria-pressed={active}
+                              aria-label={lbl + " layout" + (active ? ", currently selected" : "")}
+                              style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "workflow" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                              {lbl}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button onClick={function() { setAgentsView("off"); setAgentsModel(null); setAgentsKgPayload(null); setTapNodeId(null); }}
+                        aria-label="Close AI moments panel"
+                        style={{ minHeight: 36, padding: "5px 12px", background: "transparent", border: "1px solid #7dd3fc", borderRadius: 8, color: "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SAT: Key Assumptions + QoI notice */}
+                <details style={{ marginBottom: 10, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
+                  <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#1a202c", minHeight: 36, display: "flex", alignItems: "center" }}>
+                    Analytic assumptions + quality of information (SAT)
+                  </summary>
+                  <div style={{ padding: "8px 14px 12px" }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginBottom: 4 }}>Key Assumptions</div>
+                    <ul style={{ margin: 0, paddingLeft: 16 }}>
+                      {agentsModel.sat.keyAssumptions.map(function(ka, i) {
+                        return <li key={i} style={{ fontSize: 11.5, color: "#374151", lineHeight: 1.6, marginBottom: 2 }}>{ka}</li>;
+                      })}
+                    </ul>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginTop: 8, marginBottom: 4 }}>Analysis of Competing Hypotheses per function</div>
+                    {agentsModel.sat.ach.map(function(a, i) {
+                      return (
+                        <div key={i} style={{ marginBottom: 6, paddingBottom: 6, borderBottom: i < agentsModel.sat.ach.length - 1 ? "1px solid #e2e8f0" : "none" }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "#1a202c" }}>{a.function}: </span>
+                          <span style={{ fontSize: 12, color: "#0369a1", fontWeight: 700 }}>{a.top}</span>
+                          <span style={{ fontSize: 11.5, color: "#6b7a8d" }}> (runner-up: {a.runnerUp})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+
+                {/* Tier graph: reuses KGGraph from RoleGraph.jsx */}
+                <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} />
+
+                {/* Side panel */}
+                {tapNodeId && (
+                  <CompanyAgentSidePanel nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
+                )}
+
+                <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
+                  <span style={{ fontWeight: 700 }}>Prov:</span> nodes are <span style={{ fontWeight: 700 }}>from MCF</span> (company categories) or <span style={{ fontWeight: 700 }}>derived</span> (cluster + ranking from sampled postings). Recurrence = distinct postings spanned. Score = recurrence x exposure weight. No LLM authored any cluster, count or rank.
+                </p>
+              </div>
+            )}
+
+            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+              <div className="mcf-grid">
+                {activeMatch.jobs.map(function(job) {
+                  return (
+                    <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                      seen={undefined} fmtSeenDate={undefined}
+                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                  );
+                })}
+              </div>
+            )}
+
+            <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
+              Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+            </p>
           </>
         )}
       </div>
 
-      {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
-      {activeMatch && agentsView === "off" && (
-        <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI moments at {activeMatch.displayName}</div>
-            <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>See which recurring duties across their roles could become agent candidates - deterministic, no LLM.</div>
+      {/* RIGHT COLUMN: careers.gov.sg agency postings */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>&#127963; careers.gov.sg</span>
+          {!csgState.loading && !csgState.fallback && csgState.jobs.length > 0 && (
+            <span style={{ fontSize: 11.5, color: C.muted }}>({csgState.total} posting{csgState.total === 1 ? "" : "s"})</span>
+          )}
+        </div>
+
+        {csgState.loading ? (
+          <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
+            <div style={{ width: 22, height: 22, margin: "0 auto 8px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Checking careers.gov.sg...</p>
           </div>
-          <button onClick={function() { loadDuties(activeMatch); }} aria-label={"Find AI moments at " + activeMatch.displayName}
-            style={{ minHeight: 44, padding: "8px 18px", background: "#0369a1", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-            Find AI moments
-          </button>
-          {agentsError && <p style={{ width: "100%", margin: "4px 0 0", fontSize: 11.5, color: "#78350f" }}>{agentsError}</p>}
-        </div>
-      )}
-
-      {/* CO2: agents panel loading state */}
-      {activeMatch && agentsView === "loading" && (
-        <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
-          <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #7dd3fc", borderTop: "3px solid #0369a1", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Reading duties and clustering... (up to 5 detail fetches within budget)</p>
-        </div>
-      )}
-
-      {/* CO2: withheld - honest fallback when sample is too thin */}
-      {activeMatch && agentsView === "withheld" && agentsModel && (
-        <div style={{ marginBottom: 16, background: C.amberBg, border: "1px dashed " + C.amberBdr, borderRadius: 10, padding: "14px 16px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#78350f", marginBottom: 6 }}>AI moments - withheld (not faked)</div>
-          {agentsModel.withheld.map(function(w, i) {
-            return <p key={i} style={{ margin: "0 0 4px", fontSize: 12.5, color: "#78350f", lineHeight: 1.6 }}>{w}</p>;
-          })}
-          <p style={{ margin: "8px 0 0", fontSize: 11.5, color: C.muted }}>
-            <span style={{ fontWeight: 700 }}>Provenance:</span> {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} analysed - {agentsModel.stats.duties} duty lines extracted - {agentsModel.stats.clusters} clusters found.
-          </p>
-        </div>
-      )}
-
-      {/* CO2: agents panel - ready */}
-      {activeMatch && agentsView === "ready" && agentsModel && agentsKgPayload && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0369a1" }}>{"AI moments at " + activeMatch.displayName}</div>
-                <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>
-                  {agentsModel.stats.clusters} duty cluster{agentsModel.stats.clusters === 1 ? "" : "s"} - {agentsModel.stats.agents} agent candidate{agentsModel.stats.agents === 1 ? "" : "s"} - {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} sampled
-                  <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#0c4a6e", background: "#bae6fd", border: "1px solid #7dd3fc", borderRadius: 8, padding: "1px 6px" }}>{"QoI: " + agentsModel.sat.qoi.tag}</span>
-                  <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: "#6b7a8d", background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: 8, padding: "1px 6px" }}>{"detail-fetched: " + agentsModel.sat.qoi.detailFetched}</span>
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                {/* CO2.2: 3-way segmented control - Lanes | Neural | Workflow.
-                    Each segment is 44px min, aria-pressed, drives agentLayout state. */}
-                <div role="group" aria-label="Graph layout" style={{ display: "flex", border: "1px solid #7dd3fc", borderRadius: 8, overflow: "hidden" }}>
-                  {[["lanes", "Lanes"], ["force", "Neural"], ["workflow", "Workflow"]].map(function(pair) {
-                    const val = pair[0], lbl = pair[1];
-                    const active = agentLayout === val;
-                    return (
-                      <button key={val}
-                        onClick={function() { setAgentLayout(val); }}
-                        aria-pressed={active}
-                        aria-label={lbl + " layout" + (active ? ", currently selected" : "")}
-                        style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "workflow" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                        {lbl}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button onClick={function() { setAgentsView("off"); setAgentsModel(null); setAgentsKgPayload(null); setTapNodeId(null); }}
-                  aria-label="Close AI moments panel"
-                  style={{ minHeight: 36, padding: "5px 12px", background: "transparent", border: "1px solid #7dd3fc", borderRadius: 8, color: "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                  Close
-                </button>
-              </div>
-            </div>
+        ) : csgState.fallback || csgState.jobs.length === 0 ? (
+          <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px" }}>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.6 }}>
+              {csgState.message || "No careers.gov.sg roles for that employer - careers.gov.sg lists government bodies, so try a ministry or statutory board (e.g. Ministry of Health, LTA, HTX)."}
+            </p>
+            <p style={{ margin: "6px 0 0", fontSize: "0.6875rem", color: C.muted }}>
+              <span style={{ fontWeight: 700 }}>&#10003; computed</span> - agency filter applied to live careers.gov.sg dump.
+            </p>
           </div>
-
-          {/* SAT: Key Assumptions + QoI notice */}
-          <details style={{ marginBottom: 10, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8 }}>
-            <summary style={{ padding: "8px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#1a202c", minHeight: 36, display: "flex", alignItems: "center" }}>
-              Analytic assumptions + quality of information (SAT)
-            </summary>
-            <div style={{ padding: "8px 14px 12px" }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginBottom: 4 }}>Key Assumptions</div>
-              <ul style={{ margin: 0, paddingLeft: 16 }}>
-                {agentsModel.sat.keyAssumptions.map(function(ka, i) {
-                  return <li key={i} style={{ fontSize: 11.5, color: "#374151", lineHeight: 1.6, marginBottom: 2 }}>{ka}</li>;
-                })}
-              </ul>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0e7490", marginTop: 8, marginBottom: 4 }}>Analysis of Competing Hypotheses per function</div>
-              {agentsModel.sat.ach.map(function(a, i) {
+        ) : (
+          <>
+            <div className="mcf-grid">
+              {csgState.jobs.slice(0, 10).map(function(job) {
                 return (
-                  <div key={i} style={{ marginBottom: 6, paddingBottom: 6, borderBottom: i < agentsModel.sat.ach.length - 1 ? "1px solid #e2e8f0" : "none" }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#1a202c" }}>{a.function}: </span>
-                    <span style={{ fontSize: 12, color: "#0369a1", fontWeight: 700 }}>{a.top}</span>
-                    <span style={{ fontSize: 11.5, color: "#6b7a8d" }}> (runner-up: {a.runnerUp})</span>
-                  </div>
+                  <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                    seen={undefined} fmtSeenDate={undefined}
+                    onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
                 );
               })}
             </div>
-          </details>
-
-          {/* Tier graph: reuses KGGraph from RoleGraph.jsx */}
-          <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} />
-
-          {/* Side panel */}
-          {tapNodeId && (
-            <CompanyAgentSidePanel nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
-          )}
-
-          <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
-            <span style={{ fontWeight: 700 }}>Prov:</span> nodes are <span style={{ fontWeight: 700 }}>from MCF</span> (company categories) or <span style={{ fontWeight: 700 }}>derived</span> (cluster + ranking from sampled postings). Recurrence = distinct postings spanned. Score = recurrence x exposure weight. No LLM authored any cluster, count or rank.
-          </p>
-        </div>
-      )}
-
-      {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
-        <div className="mcf-grid">
-          {activeMatch.jobs.map(function(job) {
-            return (
-              <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                seen={undefined} fmtSeenDate={undefined}
-                onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
-            );
-          })}
-        </div>
-      )}
-
-      <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
-        Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
-      </p>
+            {csgState.total > 10 && (
+              <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: C.textSub }}>
+                {"+" + (csgState.total - 10) + " more on careers.gov.sg - visit "}
+                <a href="https://careers.gov.sg" target="_blank" rel="noopener noreferrer" style={{ color: C.accent }}>careers.gov.sg</a>
+                {" to browse all."}
+              </p>
+            )}
+            <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted }}>
+              <span style={{ fontWeight: 700 }}>&#10003; computed</span> - agency name matched from careers.gov.sg dump (MIT-licensed, opengovsg). Counts are real posting totals, not estimated.
+            </p>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -13576,7 +13669,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 {[
                   { k:"role", label:"Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
                   { k:"jobs", label:"Browse SG jobs", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Explore current Singapore openings - public service and private sector - and compare what employers are asking for." },
-                  { k:"company", label:"Search by employer", source:"Source: MyCareersFuture postings", desc:"Type an employer name to see their live postings and confirm the posting count." },
+                  { k:"company", label:"Search by employer", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg." },
                 ].map(m => (
                   <div key={m.k}
                     style={{ flex:"1 1 30%", minWidth:0, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
@@ -13602,7 +13695,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }}
                   onKeyDown={e=>{ if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } } }}
-                  placeholder={searchMode === "company" ? "e.g. DBS Bank, Singapore Airlines, NHG" : "e.g. Data Analyst, Operations Manager, HR Executive"}
+                  placeholder={searchMode === "company" ? "e.g. DBS Bank, Ministry of Health, LTA" : "e.g. Data Analyst, Operations Manager, HR Executive"}
                   style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize: "1rem", fontFamily:"inherit" }} autoFocus />
                 <button className="lux-cta lux-focus"
                   onClick={() => { if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } }}
