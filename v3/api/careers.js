@@ -184,28 +184,48 @@ function scoreRecord(r, tokens) {
 }
 
 // ---- Agency matching (for action:"company") ----------------------------------
-// Extract parenthetical acronym from agency string, e.g. "Home Team Science (HTX)" -> "HTX"
+// Short words an agency name drops when people say its acronym aloud.
+const AGENCY_STOP = new Set(["of", "and", "the", "for", "to", "a", "an", "in", "on", "&"]);
+
+// Extract parenthetical acronym from agency string, e.g. "Home Team Science (HTX)" -> "htx"
 function extractAcronym(agency) {
   const m = agency.match(/\(([A-Z0-9]{2,10})\)/);
   return m ? m[1].toLowerCase() : null;
 }
 
+// Build the initialisms a person might type for an agency the data spells out in
+// full. Ministry acronyms are irregular - some keep the "of" (MOH, MOE, MOM), some
+// drop it (MND) - so we return BOTH the all-words and the significant-words forms.
+// e.g. "Ministry of Health" -> ["moh","mh"]; "Land Transport Authority" -> ["lta"].
+function initialisms(agency) {
+  const words = agency.toLowerCase().replace(/\(.*?\)/g, " ").split(/[^a-z0-9]+/).filter(Boolean);
+  if (words.length < 2) return [];
+  const all = words.map((w) => w[0]).join("");
+  const sig = words.filter((w) => !AGENCY_STOP.has(w)).map((w) => w[0]).join("");
+  return sig && sig !== all ? [all, sig] : [all];
+}
+
 function agencyMatchScore(agency, queryTokens, queryRaw) {
   if (!agency) return 0;
+  const q = queryRaw.toLowerCase().trim();
   const agencyLower = agency.toLowerCase();
-  // Case-insensitive substring fallback (highest priority - exact match)
-  if (agencyLower.includes(queryRaw.toLowerCase())) return 10;
-  // Acronym match
+  // 1. Substring - strongest signal ("ministry of health" inside "Ministry of Health").
+  if (agencyLower.includes(q)) return 10;
+  // 2. Parenthetical acronym verbatim in the data, e.g. "(HTX)" === "htx".
   const acronym = extractAcronym(agency);
-  if (acronym && acronym === queryRaw.toLowerCase().trim()) return 9;
-  // Token overlap
+  if (acronym && acronym === q) return 9;
+  // 3. Initialism of the agency's own words - catches user-typed acronyms (LTA, MOH,
+  //    MOE, MND) for agencies the dataset spells out in full.
+  const qc = q.replace(/[^a-z0-9]/g, "");
+  if (qc.length >= 2 && initialisms(agency).includes(qc)) return 9;
+  // 4. ALL query content-tokens must be present (AND, not OR). Prevents one shared
+  //    token ("ministry") from pulling in every ministry and inflating the count.
   const agencyTokens = tokenise(agency);
-  let hits = 0;
+  if (queryTokens.length === 0) return 0;
   for (const t of queryTokens) {
-    if (agencyTokens.includes(t)) hits++;
+    if (!agencyTokens.includes(t)) return 0;
   }
-  if (hits === 0) return 0;
-  return hits;
+  return queryTokens.length;
 }
 
 // ---- Handler -----------------------------------------------------------------

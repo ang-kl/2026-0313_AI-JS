@@ -944,6 +944,17 @@
 //     private companies). Mode card source label -> "Sources: MyCareersFuture + careers.gov.sg";
 //     placeholder hints agencies. api/mcf.js + frozen symbols untouched.
 // No engine/number change; api/mcf.js + frozen symbols untouched. G1 (v3.0.93 -> v3.0.94).
+// v3.0.95 - 2026-06-20 - HDR #133 - CSG agency-match fix (Human Lead test surfaced two misses).
+// api/careers.js action:"company" only - no App.jsx/engine change. (a) INITIALISM match: a user-
+// typed acronym (LTA, MOH, MOE, MND) now resolves to an agency the dataset spells out in full.
+// careers.gov.sg writes "Land Transport Authority" with NO "(LTA)", so the old paren-acronym path
+// missed it (LTA returned 0). New initialisms() builds BOTH the all-words and significant-words
+// forms (ministry acronyms are irregular - MOH/MOE keep the "of", MND drops it) and matches either.
+// (b) AND token logic: agency token-overlap was OR, so one shared token ("ministry") pulled in every
+// ministry - "Ministry of Health" returned 399 across all ministries. Now ALL query content-tokens
+// must be present, so it returns the real MoH count (~25). Verified vs the live dump: LTA 0->150,
+// MoH 399->25, MOH/MOE/MND resolve, HTX 73 unchanged, private firms (DBS) honestly 0. api/mcf.js +
+// frozen symbols byte-identical; careers.js is not a frozen file. G1 (v3.0.94 -> v3.0.95).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
