@@ -49,6 +49,19 @@ These are the "landing + searching the role" you asked to protect. **Radicality:
 > one-arg call path is unchanged); `resolveOccupation` stays byte-frozen. Prior wording preserved
 > above per AU-7.
 
+> **AU-7 amendment (CSG, v3.0.93, Human Lead approved):** the "Browse SG jobs card incl. `< 4 yrs`
+> scout | the v3.0.9 Browse card + `/api/mcf` browse path" frozen row is EXTENDED, not unfrozen.
+> Prior frozen row quoted verbatim: "Browse SG jobs card incl. `< 4 yrs` scout | the v3.0.9
+> Browse card + `/api/mcf` browse path | unrelated to the result read". Extension: the Browse card
+> fetch AND the role-analyse `getJobsForRole()` fetch may EACH fan out to an additional same-contract
+> source (careers.gov.sg via `/api/careers`) through an **additive merge** (`mergeJobSources`). The
+> original `/api/mcf` request body is byte-identical in both call sites; the frozen MCF functions
+> (`normaliseJob`, `mcfSearch`, `extractResponsibilities`, `handler`) are untouched. The CSG proxy
+> is a **new separate file** (`api/careers.js`); the merge helpers are **additive** new functions in
+> `App.jsx`. One source failing must never blank the other (`Promise.allSettled`). The "Browse card"
+> frozen guarantee now reads: the `/api/mcf` call is byte-frozen; the panel may also fan out to
+> careers.gov.sg via this AU-7 additive path. Same shape as the ESCO-DIS AU-7 above.
+
 > Note on v2: the repo-root app (`src/App.jsx`, the "AI skilling" v2 lineage at `v2_2026-04-08/v2_0_7/`) is **out of scope**. A v3-only change leaves v2's build output identical (per `doc/v3-leap-view.md` deploy note). Do not edit v2 to achieve a v3 result.
 
 ---
