@@ -912,6 +912,13 @@
 // alone, R007) and a "seen in both" text note. Salary chip suppressed for CSG postings with no
 // salary - careers.gov.sg has no salary field at all; MCF null -> "on application" stays unchanged.
 // api/mcf.js byte-frozen; frozen symbols untouched. AU-7 in v3-result-engine-spec.md §1.
+// BROWSE LAYOUT (Human Lead): McfJobsPanel renders the two sources as TWO RESPONSIVE
+// COLUMNS - MyCareersFuture left (keeps its category/new-seen/pagination machinery on
+// state.jobs), careers.gov.sg right (state.csgJobs, top 10 + "more" note, graceful empty
+// for gov-only roles) - via a .csg-cols grid that stacks to one column below 1000px. doFetch
+// now stores the two lists SEPARATELY (mergeJobSources no longer used on the browse path;
+// getJobsForRole still MERGES the analysis corpus). Each column header is icon+text with a
+// real count (no invented number). "Analyse all" feeds both sources into the one-role corpus.
 // G1 (v3.0.91 -> v3.0.92).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
@@ -10438,7 +10445,7 @@ const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - 
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
 // paging over a single larger fetch.
 function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePosting, queueCount, onAnalyseCorpus, freshGrad }) {
-  const [state, setState] = useState({ loading: true, jobs: [], seenInfo: {}, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "", approximate: false, fallback: false, capped: false, error: null });
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
@@ -10473,27 +10480,33 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       if (cancelled) return;
       const data    = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0 };
       const csgJobs = csgSettled.status === "fulfilled" ? csgSettled.value : [];
-      const merged  = mergeJobSources(Array.isArray(data.jobs) ? data.jobs : [], csgJobs);
-      // Latest-first by postedDate, then split into NEW vs SEEN-BEFORE against
-      // this title's device-local history (and record this sighting).
-      const sortedJobs = merged.slice().sort(byLatestPosted);
+      // Two-column browse: keep the two sources SEPARATE (MCF left, careers.gov.sg
+      // right). Tag source so McfJobCard labels it. The role-analyse corpus still
+      // MERGES both (getJobsForRole) - two columns is a browse-list concern only.
+      const mcfList = (Array.isArray(data.jobs) ? data.jobs : []).map(j => ({ ...j, source: j.source || "MyCareersFuture" }));
+      const csgList = (Array.isArray(csgJobs) ? csgJobs : []).map(j => ({ ...j, source: j.source || "careers.gov.sg" }));
+      // Latest-first by postedDate; classify the MCF list into NEW vs SEEN-BEFORE
+      // against this title's device-local history (and record this sighting).
+      const sortedJobs = mcfList.slice().sort(byLatestPosted);
+      const sortedCsg  = csgList.slice().sort(byLatestPosted);
       const seenInfo = recordAndClassifySeen(sel?.title || "", sortedJobs);
       setState({
         loading: false,
         jobs: sortedJobs,
+        csgJobs: sortedCsg,
         seenInfo,
         tier: data.tier || 0,
         message: data.message || "",
         approximate: !!data.approximate,
-        fallback: !!data.fallback && csgJobs.length === 0,
+        fallback: !!data.fallback && sortedCsg.length === 0,
         capped: !!data.capped,
         error: null,
       });
-      track("v3_mcf_loaded", { tier: data.tier || 0, count: sortedJobs.length, fallback: !!data.fallback });
+      track("v3_mcf_loaded", { tier: data.tier || 0, count: sortedJobs.length, csg: sortedCsg.length, fallback: !!data.fallback });
     }
     doFetch().catch((err) => {
       if (cancelled) return;
-      setState({ loading: false, jobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
+      setState({ loading: false, jobs: [], csgJobs: [], seenInfo: {}, tier: 0, message: "Could not reach the live jobs feed. Please try again in a moment.", approximate: false, fallback: true, capped: false, error: err.message });
       track("v3_mcf_error", { reason: (err.message || "").slice(0, 60) });
     });
     return () => { cancelled = true; };
@@ -10580,10 +10593,10 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         <p style={{ margin: 0, fontSize: "0.875rem", color: C.textSub, lineHeight: 1.5 }}>
           Current openings from <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture</a> and <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing{onAnalyseCorpus ? " - or analyse all of them as one role" : ""}. Postings refresh daily.
         </p>
-        {onAnalyseCorpus && !state.loading && state.jobs.length >= 5 && (
-          <button onClick={() => onAnalyseCorpus(state.jobs, sel?.title)}
+        {onAnalyseCorpus && !state.loading && (state.jobs.length + state.csgJobs.length) >= 5 && (
+          <button onClick={() => onAnalyseCorpus([...state.jobs, ...state.csgJobs], sel?.title)}
             style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 10, color: "#fff", padding: "10px 16px", fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}>
-            📊 Analyse all {state.jobs.length}{state.capped ? "+" : ""} postings as one role →
+            📊 Analyse all {state.jobs.length + state.csgJobs.length}{state.capped ? "+" : ""} postings as one role →
           </button>
         )}
       </div>
@@ -10595,7 +10608,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         </div>
       )}
 
-      {!state.loading && state.fallback && state.jobs.length === 0 && (
+      {!state.loading && state.jobs.length === 0 && state.csgJobs.length === 0 && (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "20px 18px" }}>
           <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
             {state.message || "No live postings matched this role today. Postings refresh daily on MyCareersFuture - check back tomorrow."}
@@ -10608,7 +10621,13 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         </div>
       )}
 
-      {!state.loading && state.jobs.length > 0 && (
+      {!state.loading && (state.jobs.length > 0 || state.csgJobs.length > 0) && (
+        <div className="csg-cols">
+          <div>
+            <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127480;&#127468;</span> MyCareersFuture ({state.jobs.length})</h3>
+            {state.jobs.length === 0 ? (
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic" }}>No MyCareersFuture postings matched this role today.</p>
+            ) : (
         <>
           {archGroups.length >= 2 && (
             <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
@@ -10702,6 +10721,28 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
             </a>
           </p>
         </>
+            )}
+          </div>
+          <div>
+            <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127963;</span> careers.gov.sg ({state.csgJobs.length})</h3>
+            {state.csgJobs.length === 0 ? (
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>No public-service postings for this title on careers.gov.sg - it lists Singapore government roles only.</p>
+            ) : (
+              <>
+                <div className="mcf-grid">
+                  {state.csgJobs.slice(0, 10).map(job => (
+                    <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                      seen={undefined} fmtSeenDate={fmtSeenDate}
+                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                  ))}
+                </div>
+                {state.csgJobs.length > 10 && (
+                  <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>+{state.csgJobs.length - 10} more public-service postings on <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a>.</p>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -13250,6 +13291,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
+      /* CSG two-column browse: MyCareersFuture left, careers.gov.sg right; stacks below 1000px */
+      .csg-cols { display:grid; grid-template-columns:1fr; gap:20px; align-items:start; }
+      @media (min-width:1000px) { .csg-cols { grid-template-columns:3fr 2fr; } }
+      .csg-cols .mcf-grid { grid-template-columns:1fr; }
       /* ── Text scale: REM-based, anchored to the root font-size. Three axes compose
          on the SAME mechanism: (1) the browser's own text-size / accessibility setting
          changes the root font-size; (2) the A-/A/A+ control multiplies it via --ui-scale;
