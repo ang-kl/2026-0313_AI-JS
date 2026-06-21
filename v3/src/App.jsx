@@ -1108,6 +1108,13 @@
 // diagnosis -> surgery decision -> operation -> recovery; AI absorbs triage, judgement stays human-
 // led; hiring links back to the consultant role). Shows both journeys hold across banking + health-
 // care. No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.113 -> v3.0.114).
+// v3.0.115 - 2026-06-21 - HDR #153 - WikiGraph /demo: Candidate Brief takeaway (workflow-review gap
+// #1). Static demo only. The candidate journey now opens with a one-page CANDIDATE BRIEF that
+// consolidates the whole journey into a keepable summary: AI-readiness (exposure + resilience), your
+// edge (the human-led skills), build-next (7/14/30 plan), positioning line, next move - with a
+// "Print / save as PDF" button (window.print + @media print shows only the brief). Turns the read
+// into something the candidate keeps. No app/engine change; api/mcf.js + frozen symbols untouched.
+// G1 (v3.0.114 -> v3.0.115).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
