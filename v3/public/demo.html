@@ -5,25 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JobAds WikiGraph - MVP demo</title>
 <style>
-  /* tokens matched to the current v3 app (the C palette in App.jsx) */
+  /* tokens + neumorphic NEO shadows matched to the current v3 app (C palette + NEO in App.jsx) */
   :root{
-    --bg:#e6ebf2; --surface:#ffffff; --border:#e3e9f1;
+    --bg:#e6ebf2; --surface:#e9eef4; --border:#d6deea;
     --text:#1a202c; --sub:#4a5568; --muted:#5b6878;
-    --blue:#1e40af; --blueBg:#e8f0fe; --blueBd:#c7d2fe; --accent:#1a56db; --eu:#003399;
+    --blue:#1e40af; --blueBg:#e8f0fe; --blueBd:#c7d2fe; --accent:#1a56db; --eu:#003399; --navy:#0a2a5e;
     --teal:#0e7490; --tealBg:#ecfeff; --tealBd:#a5f3fc;
     --orange:#b45309; --orangeBg:#fffbeb; --orangeBd:#fcd9a0;
     --slate:#7c3aed; --slateBg:#f3e8ff; --slateBd:#ddd6fe;
+    --neo:6px 6px 14px rgba(174,189,212,.5), -6px -6px 13px rgba(255,255,255,.85);
+    --neoSm:4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85);
+    --neoIn:inset 3px 3px 7px rgba(174,189,212,.5), inset -3px -3px 7px rgba(255,255,255,.85);
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background-image:radial-gradient(rgba(120,150,200,.18) 1px, transparent 1.5px);
+    background-size:26px 26px;
+    font-family:'IBM Plex Sans','Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     line-height:1.55;-webkit-font-smoothing:antialiased}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px 64px}
 
-  header.bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);
-    backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+  header.bar{position:sticky;top:0;z-index:5;background:linear-gradient(100deg,var(--navy),var(--eu));border-bottom:1px solid rgba(255,255,255,.12)}
   .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px}
-  .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em}
+  .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em;color:#fff}
+  .bar .btn{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
+  .bar .btn:hover:not(:disabled){background:rgba(255,255,255,.24)}
   .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
     color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);border-radius:999px;padding:2px 8px}
   .spacer{flex:1}
@@ -45,8 +51,8 @@
   .pcard .intent{color:var(--muted);font-size:.75rem;font-style:italic;margin-top:auto}
 
   .ptabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px}
-  .ptab{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem}
-  .ptab.active{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue)}
+  .ptab{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem;box-shadow:var(--neoSm)}
+  .ptab.active{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue);box-shadow:var(--neoIn)}
   .ptab:hover{border-color:var(--blueBd)}
 
   .searchcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:4px}
@@ -54,7 +60,7 @@
   .searchcard .intent{color:var(--muted);font-style:italic;font-size:.8125rem;margin:0 0 14px}
   label.fld{display:block;margin:0 0 6px;font-size:.75rem;font-weight:700;color:var(--text)}
   .searchrow{display:flex;gap:8px}
-  .searchrow input{flex:1;background:var(--surface);border:2px solid var(--accent);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit}
+  .searchrow input{flex:1;background:#fbfcfe;border:1.5px solid var(--accent);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit;box-shadow:var(--neoIn)}
   .searchrow input:focus{outline:2px solid var(--blueBd);outline-offset:1px}
   .go{background:var(--eu);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;font-weight:700;font-size:.8125rem;white-space:nowrap}
   .go:hover{filter:brightness(1.12)}
@@ -114,15 +120,17 @@
   .gtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}
   .gtools .ghint{font-size:.75rem;color:var(--muted)}
   .gtools .spacer{flex:1}
-  .gtools button{min-height:38px;min-width:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;font-weight:700;font-size:.8125rem;color:var(--text)}
+  .gtools button{min-height:38px;min-width:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-weight:700;font-size:.8125rem;color:var(--text);box-shadow:var(--neoSm)}
   .gtools button:hover{border-color:var(--blueBd)}
+  .gtools button:active{box-shadow:var(--neoIn)}
   .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 2px 0;font-size:.6875rem;color:var(--sub)}
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
   footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
   footer.note-foot b{color:var(--text)}
-  /* v3 surfaces carry a soft raise shadow */
-  .note,.searchcard,.graph-card,.picker,.pcard{box-shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06)}
+  /* v3 surfaces are neumorphic: same tone as the page, raised by dual light/dark shadows */
+  .note,.searchcard,.graph-card,.pcard{box-shadow:var(--neo)}
+  .picker{box-shadow:var(--neoSm)}
   .hidden{display:none}
 </style>
 </head>
