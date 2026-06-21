@@ -994,6 +994,14 @@
 // branches appear only on tap (expand/collapse), labels INSIDE rounded bubbles, colour = layer,
 // bubble carries the title; pan/zoom + legend. No app/engine change; api/mcf.js + frozen symbols
 // untouched. G1 (v3.0.99 -> v3.0.100).
+// v3.0.101 - 2026-06-21 - HDR #139 - WikiGraph /demo: two graph modes + focus-recentre (Human
+// Lead review: "depth should loop ... inner bubble should shrink ... legend of what each ring
+// means ... switch from graph to top-down org chart"). Static prototype only. public/demo.html:
+// (1) RADIAL is now a focus-browser - tap a bubble to RE-CENTRE on it (depth loops infinitely via
+// cross-links), the path you came from shrinks into a small trail at the top (tap to climb back),
+// solving outer-ring crowding. (2) NEW top-down ORG CHART mode via a toggle - classic boxes/rows,
+// expand-collapse. (3) Richer legend (colour = layer, size = repeats more often) + a dynamic hint
+// per mode. No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.100 -> v3.0.101).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
