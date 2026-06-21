@@ -1002,6 +1002,13 @@
 // solving outer-ring crowding. (2) NEW top-down ORG CHART mode via a toggle - classic boxes/rows,
 // expand-collapse. (3) Richer legend (colour = layer, size = repeats more often) + a dynamic hint
 // per mode. No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.100 -> v3.0.101).
+// v3.0.102 - 2026-06-21 - HDR #140 - CSG: relabel the result tab "MyCareersFuture Jobs" -> "SG Jobs"
+// (Human Lead: "why still titled ... MCF only where engine is now wired for both"). The buildTabs
+// mcf_jobs tab (line ~13077) still read MCF-only, but the panel it opens (McfJobsPanel, "SG Job
+// Postings") has rendered BOTH MyCareersFuture and careers.gov.sg columns since #155/#157 - the
+// copy sweep relabelled the cards + panel but missed this tab label. Source-neutral now; the panel
+// names both sources inside. Presentation only; api/mcf.js + frozen symbols untouched. G1
+// (v3.0.101 -> v3.0.102).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -13074,7 +13081,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"category",    label:"🗂 Skill Categories",      color:C.teal    },
       { key:"context",     label:"🏢 Role Context",           color:"#0e7490" },
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
-      { key:"mcf_jobs",    label:"🇸🇬 MyCareersFuture Jobs",    color:"#0e7490" },
+      { key:"mcf_jobs",    label:"🇸🇬 SG Jobs",    color:"#0e7490" },
       { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
       // { key:"resume", label:"📄 Resume Check", paused:true } -- removed (PL2)
     ];
