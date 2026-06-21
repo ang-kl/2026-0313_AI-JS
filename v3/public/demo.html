@@ -24,12 +24,10 @@
   .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px}
   .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em}
   .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
-    color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);
-    border-radius:999px;padding:2px 8px}
+    color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);border-radius:999px;padding:2px 8px}
   .spacer{flex:1}
   button{font:inherit;cursor:pointer}
-  .btn{min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);
-    background:var(--surface);color:var(--text);font-weight:700;font-size:.8125rem}
+  .btn{min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:.8125rem}
   .btn:hover{border-color:var(--blueBd)}
   .btn:disabled{opacity:.4;cursor:default}
 
@@ -38,52 +36,37 @@
   .hero p{margin:0;color:var(--sub);font-size:.9375rem}
   .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
   @media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
-  .pcard{display:flex;flex-direction:column;text-align:left;align-items:flex-start;gap:8px;
-    min-height:140px;padding:18px;border-radius:14px;border:1px solid var(--border);
-    background:var(--surface);transition:border-color .15s,transform .15s}
+  .pcard{display:flex;flex-direction:column;text-align:left;align-items:flex-start;gap:8px;min-height:140px;padding:18px;border-radius:14px;border:1px solid var(--border);background:var(--surface);transition:border-color .15s,transform .15s}
   .pcard:hover{border-color:var(--blueBd);transform:translateY(-2px)}
   .pcard .ico{font-size:1.5rem;line-height:1}
   .pcard .t{font-weight:800;font-size:1rem}
   .pcard .d{color:var(--sub);font-size:.8125rem}
   .pcard .intent{color:var(--muted);font-size:.75rem;font-style:italic;margin-top:auto}
 
-  /* persona switcher tabs */
   .ptabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px}
-  .ptab{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;
-    border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem}
+  .ptab{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem}
   .ptab.active{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue)}
   .ptab:hover{border-color:var(--blueBd)}
 
-  /* search screen */
   .searchcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:4px}
   .searchcard h2{margin:0 0 2px;font-size:1.2rem}
   .searchcard .intent{color:var(--muted);font-style:italic;font-size:.8125rem;margin:0 0 14px}
   label.fld{display:block;margin:0 0 6px;font-size:.75rem;font-weight:700;color:var(--text)}
   .searchrow{display:flex;gap:8px}
-  .searchrow input{flex:1;background:var(--surface);border:2px solid var(--accent);border-radius:8px;
-    color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit}
+  .searchrow input{flex:1;background:var(--surface);border:2px solid var(--accent);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit}
   .searchrow input:focus{outline:2px solid var(--blueBd);outline-offset:1px}
-  .go{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;
-    font-weight:700;font-size:.8125rem;white-space:nowrap}
-
-  .criteria{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px;
-    padding:12px;border-radius:10px;background:#f1f5f9;border:1px solid var(--border)}
+  .go{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;font-weight:700;font-size:.8125rem;white-space:nowrap}
+  .criteria{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px;padding:12px;border-radius:10px;background:#f1f5f9;border:1px solid var(--border)}
   .criteria .clab{font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-  .criteria select{min-height:38px;border:1px solid var(--border);border-radius:8px;background:#fff;
-    padding:6px 10px;font:inherit;font-size:.8125rem;color:var(--text)}
-  .tog{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:6px 11px;border-radius:8px;
-    border:1px solid var(--border);background:#fff;font-size:.8125rem;font-weight:700;color:var(--sub)}
+  .criteria select{min-height:38px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:6px 10px;font:inherit;font-size:.8125rem;color:var(--text)}
+  .tog{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:.8125rem;font-weight:700;color:var(--sub)}
   .tog input{width:16px;height:16px;accent-color:var(--blue)}
   .tog.on{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue)}
-  .srcchip{display:inline-flex;align-items:center;gap:5px;min-height:38px;padding:6px 11px;border-radius:999px;
-    border:1px solid var(--tealBd);background:var(--tealBg);color:var(--teal);font-size:.75rem;font-weight:700}
+  .srcchip{display:inline-flex;align-items:center;gap:5px;min-height:38px;padding:6px 11px;border-radius:999px;border:1px solid var(--tealBd);background:var(--tealBg);color:var(--teal);font-size:.75rem;font-weight:700}
   .crit-note{font-size:.6875rem;color:var(--muted);margin-top:8px}
-
   .picker{margin-top:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  .pick-head{padding:7px 12px;font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
-    color:var(--muted);background:#f8fafc;border-bottom:1px solid var(--border)}
-  .pick-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:none;
-    border-bottom:1px solid var(--border);padding:11px 12px;min-height:48px}
+  .pick-head{padding:7px 12px;font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:#f8fafc;border-bottom:1px solid var(--border)}
+  .pick-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid var(--border);padding:11px 12px;min-height:48px}
   .pick-item:last-child{border-bottom:none}
   .pick-item:hover,.pick-item:focus{background:var(--blueBg);outline:none}
   .pick-item .pi-t{font-weight:700;font-size:.875rem}
@@ -92,9 +75,7 @@
   .pick-item.dim{opacity:.55}
   .pick-empty{padding:12px;color:var(--muted);font-size:.8125rem}
 
-  /* note view */
-  .nextmove{display:flex;gap:10px;align-items:flex-start;margin:18px 0 16px;padding:12px 14px;
-    border-radius:12px;background:var(--orangeBg);border:1px solid var(--orangeBd)}
+  .nextmove{display:flex;gap:10px;align-items:flex-start;margin:18px 0 16px;padding:12px 14px;border-radius:12px;background:var(--orangeBg);border:1px solid var(--orangeBd)}
   .nextmove .nm-ico{font-size:1.1rem}
   .nextmove .nm-t{font-size:.875rem;color:#7c4a06}
   .nextmove .nm-t b{color:var(--orange)}
@@ -108,44 +89,34 @@
   .note .body{font-size:.9375rem;color:var(--text)}
   .note .body p{margin:10px 0}
   .field{display:flex;gap:8px;font-size:.8125rem;margin:6px 0}
-  .field .k{color:var(--muted);min-width:130px;font-weight:600}
+  .field .k{color:var(--muted);min-width:120px;font-weight:600}
   .field .v{color:var(--text)}
-  .wl{display:inline;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);
-    font-weight:700;border-radius:7px;padding:1px 7px;margin:0 1px;font-size:.9em;line-height:1.9}
+  .wl{display:inline;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);font-weight:700;border-radius:7px;padding:1px 7px;margin:0 1px;font-size:.9em;line-height:1.9}
   .wl:hover,.wl:focus{background:#ccfbf1;outline:2px solid var(--tealBd);outline-offset:1px}
   .wl::before{content:"\1F517\00a0";font-size:.75em;opacity:.6}
   .section-t{margin:22px 0 8px;font-size:.8125rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)}
   .chips{display:flex;flex-wrap:wrap;gap:7px}
-  .linkchip{min-height:34px;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);
-    font-weight:700;border-radius:8px;padding:5px 11px;font-size:.8125rem}
+  .linkchip{min-height:34px;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);font-weight:700;border-radius:8px;padding:5px 11px;font-size:.8125rem}
   .linkchip:hover{background:#ccfbf1}
-  .patrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
-  .patrow:last-child{border-bottom:none}
-  .patrow .pl{flex:1;font-size:.875rem}
-  .bar-track{width:90px;height:8px;background:var(--border);border-radius:999px;overflow:hidden}
-  .bar-fill{height:100%;background:var(--teal)}
-  .patrow .pc{font-size:.75rem;color:var(--muted);min-width:64px;text-align:right}
   .prov{display:inline-flex;align-items:center;gap:4px;font-size:.6875rem;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
   .prov.mcf{background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal)}
   .prov.computed{background:var(--blueBg);border:1px solid var(--blueBd);color:var(--blue)}
   .prov.derived{background:var(--orangeBg);border:1px solid var(--orangeBd);color:var(--orange)}
   .prov.ai{background:var(--slateBg);border:1px solid var(--slateBd);color:var(--slate)}
   .prov.unverified{background:#f1f5f9;border:1px solid #cbd5e1;color:#64748b}
-  .type-job{background:var(--slateBg);color:var(--slate)}
-  .type-employer{background:var(--blueBg);color:var(--blue)}
-  .type-skill{background:var(--tealBg);color:var(--teal)}
-  .type-pathway{background:var(--orangeBg);color:var(--orange)}
+
   .graph-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;margin-top:8px}
-  svg{display:block;width:100%;height:clamp(360px,56vh,520px)}
+  svg#graph{display:block;width:100%;height:clamp(420px,64vh,640px);touch-action:none}
   .gnode{cursor:pointer}
-  .gnode text{font-size:11px;font-weight:700;pointer-events:none}
-  .gexp{font-size:13px;font-weight:800;pointer-events:none}
-  svg#graph{touch-action:none}
+  .gnode text{pointer-events:none}
   .gtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}
   .gtools .ghint{font-size:.75rem;color:var(--muted)}
   .gtools .spacer{flex:1}
   .gtools button{min-height:38px;min-width:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;font-weight:700;font-size:.8125rem;color:var(--text)}
   .gtools button:hover{border-color:var(--blueBd)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 2px 0;font-size:.6875rem;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
   footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
   footer.note-foot b{color:var(--text)}
   .hidden{display:none}
@@ -165,8 +136,8 @@
 <div class="wrap">
   <section id="home">
     <div class="hero">
-      <h1>Every job ad becomes a linked career note.</h1>
-      <p>Pick where you are starting from, then type and choose - this demo shows the landing, search, picker and criteria for all four persona types. Sample data only; no live jobs are fetched.</p>
+      <h1>A job ad is the visible surface of a system.</h1>
+      <p>Pick a starting point, then read down the ecosystem: Organisation &rarr; Department &rarr; Role &rarr; Job Ad &rarr; stakeholders, risks, AI impact. Sample data only; no live jobs are fetched.</p>
     </div>
     <div class="grid" id="personaGrid"></div>
   </section>
@@ -180,319 +151,325 @@
     <div class="crumbs" id="crumbs"></div>
     <div class="nextmove" id="nextmove"></div>
     <div class="note" id="note"></div>
-    <div id="patternsWrap"></div>
-    <div class="section-t">Graph view - tap a node to grow its branches</div>
+    <div class="section-t">Ecosystem graph - one centre, tap a node to branch out</div>
     <div class="gtools">
-      <span class="ghint">Tap a node to expand &middot; double-tap (or Open note) to read &middot; drag to pan</span>
+      <span class="ghint">Collapsed by default &middot; tap a node to reveal its branches &middot; double-tap (or Open note) to read &middot; drag to pan</span>
       <span class="spacer"></span>
       <button id="gOpen" type="button">Open note &#8599;</button>
-      <button id="gReset" type="button" aria-label="Collapse back to the root">Reset</button>
+      <button id="gReset" type="button" aria-label="Collapse back to the centre">Reset</button>
       <button id="gZin" type="button" aria-label="Zoom in">+</button>
       <button id="gZout" type="button" aria-label="Zoom out">&minus;</button>
     </div>
-    <div class="graph-card"><svg id="graph" viewBox="0 0 960 460" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Expanding graph of linked notes - tap a node to grow its branches"></svg></div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Radial ecosystem graph - one centre, tap a node to reveal its branches"></svg></div>
+    <div class="legend" id="legend"></div>
     <footer class="note-foot">
       <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
-      In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; patterns are derived counts; ESCO links appear only when resolved.
+      Node size = how often it repeats; colour = ecosystem layer. In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; stakeholders, risks and AI reads are inferred and tagged; links appear only when evidence exists.
     </footer>
   </section>
 </div>
 
 <script>
-const PROV={mcf:{c:"mcf",i:"●",t:"from MCF"},computed:{c:"computed",i:"✓",t:"computed"},
-  derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
+const PROV={mcf:{c:"mcf",i:"●",t:"from MCF"},computed:{c:"computed",i:"✓",t:"computed"},derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
+/* ecosystem layers - colour by layer, never red/green; text label always carries the meaning too */
+const LAYER={
+  organisation:{c:"#1e40af",b:"#dbeafe",bd:"#93c5fd",t:"Organisation"},
+  department:{c:"#0369a1",b:"#e0f2fe",bd:"#7dd3fc",t:"Department"},
+  pressure:{c:"#475569",b:"#f1f5f9",bd:"#cbd5e1",t:"Pressure / friction"},
+  role:{c:"#5b21b6",b:"#ede9fe",bd:"#c4b5fd",t:"Role"},
+  job_ad:{c:"#0f766e",b:"#f0fdfa",bd:"#5eead4",t:"Job ad"},
+  skill:{c:"#0e7490",b:"#cffafe",bd:"#67e8f9",t:"Skill / ESCO"},
+  stakeholder:{c:"#c2410c",b:"#ffedd5",bd:"#fdba74",t:"Stakeholder"},
+  risk:{c:"#7c2d12",b:"#fef2e2",bd:"#fdba74",t:"Risk"},
+  ai_impact:{c:"#7c3aed",b:"#f5f3ff",bd:"#ddd6fe",t:"AI impact"},
+  positioning:{c:"#0d9488",b:"#f0fdfa",bd:"#5eead4",t:"Positioning"}
+};
 
+/* ===== ecosystem sample data (DBS) - follows the two Obsidian papers ===== */
 const NODES = {
-  "employer:dbs":{type:"employer",typeLabel:"Employer",title:"DBS Bank",prov:"mcf",
-    fields:[["Open postings (sample)","2 live ads"],["Hires fresh grads?","Yes - 1 of 2 ads under 2 yrs"],["Experience pattern","0-2 yrs and 3-5 yrs"]],
-    body:"DBS Bank is hiring across data roles. Two current ads: [[job:da|Job Ad - Data Analyst]] and [[job:ba|Job Ad - Business Analyst]]. Both repeatedly ask for [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]]. One ad is open to fresh grads - see [[pathway:fresh|Fresh-grad pathway]].",
-    links:["job:da","job:ba","skill:sql","skill:stakeholder","pathway:fresh"],
-    nextMove:"compare this employer's repeated requirements before applying - <b>SQL</b> and <b>Stakeholder Management</b> appear in both ads.",
-    patterns:{title:"Repeated across DBS ads (2 sampled)",rows:[{label:"SQL",count:2,prov:"derived"},{label:"Stakeholder Management",count:2,prov:"derived"},{label:"Python",count:1,prov:"derived"},{label:"Degree (qualification)",count:2,prov:"mcf"}]}},
-  "job:da":{type:"job",typeLabel:"Job Ad",title:"Data Analyst - DBS - 2026-06",prov:"mcf",
-    fields:[["Employer","[[employer:dbs|DBS Bank]]"],["Experience","[[exp:02|0-2 Years]]"],["Qualification","[[qual:degree|Degree]]"],["AI exposure","[[ai:reporting|Monthly Reporting - AI-assisted]]"]],
-    body:"This role requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]], [[skill:python|Python]] and [[skill:dataviz|Data Visualisation]]. It maps to [[esco:dataanalysis|ESCO Skill - Data Analysis]] under [[isco:bizadmin|ISCO - Business and Administration Professionals]]. Routine [[ai:reporting|monthly reporting]] is AI-assistable, but stakeholder judgement stays human-led.",
-    links:["employer:dbs","skill:sql","skill:stakeholder","skill:python","skill:dataviz","esco:dataanalysis","isco:bizadmin","exp:02","qual:degree","ai:reporting"],
-    nextMove:"strengthen evidence for <b>Stakeholder Management</b> - it appears in every DBS data ad and is the least automatable skill here."},
-  "job:ba":{type:"job",typeLabel:"Job Ad",title:"Business Analyst - DBS - 2026-06",prov:"mcf",
-    fields:[["Employer","[[employer:dbs|DBS Bank]]"],["Experience","[[exp:35|3-5 Years]]"],["Qualification","[[qual:degree|Degree]]"]],
-    body:"This role requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and [[skill:requirements|Requirements Gathering]]. It shares [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]] with [[job:da|the Data Analyst ad]] - a repeatable pattern.",
-    links:["employer:dbs","skill:sql","skill:stakeholder","skill:requirements","exp:35","qual:degree","job:da"],
-    nextMove:"this ad needs <b>3-5 years</b> - if you are a fresh grad, start with [[pathway:fresh|the fresh-grad pathway]] instead."},
-  "skill:sql":{type:"skill",typeLabel:"Skill",title:"SQL",prov:"derived",
-    fields:[["Seen in","2 of 2 sampled DBS ads"],["ESCO match","[[esco:dataanalysis|Data Analysis]] (related)"]],
-    body:"SQL appears in both [[job:da|Data Analyst]] and [[job:ba|Business Analyst]] ads at DBS. It is a foundation for [[esco:dataanalysis|ESCO Skill - Data Analysis]].",
-    links:["job:da","job:ba","esco:dataanalysis"],nextMove:"SQL is a high-frequency, evidenceable skill - a short project that queries real data is strong proof."},
-  "skill:stakeholder":{type:"skill",typeLabel:"Skill",title:"Stakeholder Management",prov:"derived",
-    fields:[["Seen in","2 of 2 sampled DBS ads"],["AI exposure","Low - human-led judgement"]],
-    body:"Stakeholder Management repeats across [[job:da|Data Analyst]] and [[job:ba|Business Analyst]] roles. It is human-led, so it resists automation more than [[ai:reporting|routine reporting]].",
-    links:["job:da","job:ba","ai:reporting"],nextMove:"because it appears repeatedly across this role cluster, build one concrete example of coordinating a cross-team outcome."},
-  "skill:python":{type:"skill",typeLabel:"Skill",title:"Python",prov:"derived",fields:[["Seen in","1 of 2 sampled DBS ads"]],
-    body:"Python appears in [[job:da|the Data Analyst ad]]. Lower frequency than [[skill:sql|SQL]], so lower confidence as a must-have.",
-    links:["job:da","skill:sql"],nextMove:"Python is a nice-to-have here (1 of 2 ads) - prioritise [[skill:sql|SQL]] first."},
-  "skill:dataviz":{type:"skill",typeLabel:"Skill",title:"Data Visualisation",prov:"derived",fields:[["Seen in","1 of 2 sampled DBS ads"]],
-    body:"Data Visualisation supports [[esco:dataanalysis|Data Analysis]] and appears in [[job:da|the Data Analyst ad]].",
-    links:["job:da","esco:dataanalysis"],nextMove:"pair this with [[skill:sql|SQL]] - a single dashboard demonstrates both."},
-  "skill:requirements":{type:"skill",typeLabel:"Skill",title:"Requirements Gathering",prov:"derived",fields:[["Seen in","1 of 2 sampled DBS ads"]],
-    body:"Requirements Gathering appears in [[job:ba|the Business Analyst ad]]. Closely tied to [[skill:stakeholder|Stakeholder Management]].",
-    links:["job:ba","skill:stakeholder"],nextMove:"strong for the BA track - evidence it with a short requirements document from any project."},
-  "esco:dataanalysis":{type:"skill",typeLabel:"ESCO Skill",title:"Data Analysis (ESCO)",prov:"computed",
-    fields:[["Standard","ESCO v1.2 - resolved"],["Group","[[isco:bizadmin|Business and Administration Professionals]]"]],
-    body:"This is the standardised ESCO concept. It is linked only because it resolved - if a skill had no ESCO match, we would withhold the link rather than invent one.",
-    links:["isco:bizadmin","skill:sql","skill:dataviz"],nextMove:"use the ESCO concept to find adjacent roles that share this skill cluster."},
-  "isco:bizadmin":{type:"skill",typeLabel:"ISCO Group",title:"Business and Administration Professionals",prov:"computed",fields:[["Standard","ISCO-08 - major group 24"]],
-    body:"The occupation group for [[job:da|Data Analyst]] and similar roles. Maps to AI-exposure data via the engine.",
-    links:["job:da","esco:dataanalysis"],nextMove:"explore other occupations in this ISCO group to widen your options."},
-  "exp:02":{type:"pathway",typeLabel:"Experience",title:"0-2 Years",prov:"mcf",fields:[["Source","Verbatim MCF field"]],
-    body:"[[job:da|The Data Analyst ad]] accepts 0-2 years - friendly to a [[pathway:fresh|fresh grad]].",
-    links:["job:da","pathway:fresh"],nextMove:"this is an entry-friendly band - target it while building proof."},
-  "exp:35":{type:"pathway",typeLabel:"Experience",title:"3-5 Years",prov:"mcf",fields:[["Source","Verbatim MCF field"]],
-    body:"[[job:ba|The Business Analyst ad]] needs 3-5 years - not a fresh-grad entry point.",
-    links:["job:ba"],nextMove:"if you lack this, pivot to a 0-2 yr role first - see [[pathway:fresh|Fresh-grad pathway]]."},
-  "qual:degree":{type:"pathway",typeLabel:"Qualification",title:"Degree",prov:"mcf",fields:[["Seen in","2 of 2 sampled DBS ads"]],
-    body:"Both DBS ads ask for a degree. Verbatim from the postings, so high confidence.",
-    links:["job:da","job:ba"],nextMove:"a degree is expected here - lead your application with relevant coursework or projects."},
-  "ai:reporting":{type:"pathway",typeLabel:"AI impact",title:"Monthly Reporting (AI-assisted)",prov:"ai",fields:[["Read","Inferred from duty text - advisory"]],
-    body:"Routine monthly reporting in [[job:da|the Data Analyst role]] is AI-assistable. This is an inferred read (advisory), not a verbatim fact - so it is tagged as an AI estimate, and [[skill:stakeholder|Stakeholder Management]] stays human-led.",
-    links:["job:da","skill:stakeholder"],nextMove:"let AI take the routine reporting - invest your proof in the human-led parts."},
-  "pathway:fresh":{type:"pathway",typeLabel:"Fresh-grad pathway",title:"Fresh-grad pathway - Data Analyst",prov:"derived",
-    fields:[["Suitability","Possible - not guaranteed"],["Best entry ad","[[job:da|Data Analyst - 0-2 yrs]]"],["Missing proof","Hands-on [[skill:sql|SQL]] evidence"]],
-    body:"As a fresh grad you match the skill cluster but likely lack 2-3 years of evidence. Suitability is labelled <b>possible</b>, never \"eligible\", unless an ad supports it. Start with [[job:da|the 0-2 yr Data Analyst ad]], build [[skill:sql|SQL]] proof, and strengthen [[skill:stakeholder|Stakeholder Management]].",
-    links:["job:da","skill:sql","skill:stakeholder","exp:02"],nextMove:"explore entry-level Data Analyst roles, because your profile matches the skill cluster but lacks 2-3 years of evidence."}
+  "org:dbs":{layer:"organisation",typeLabel:"Organisation",title:"DBS Bank",prov:"mcf",count:3,
+    fields:[["Type","Public-listed bank"],["Sector","Banking & Finance"],["Why it hires now","[[pressure:ai|AI disruption pressure]]"]],
+    body:"DBS is a public-listed bank. Read the causal spine: [[pressure:ai|AI disruption]] raises pressure on the [[dept:analytics|Data & Analytics]] department, which creates [[pressure:reporting|workflow friction]] in monthly reporting, which becomes role pressure - and a [[role:da|Data Analyst]] job ad appears.",
+    kids:["dept:analytics","dept:risk","pressure:ai"],
+    nextMove:"compare what the bank repeatedly hires for before applying - <b>SQL</b> and <b>Stakeholder Management</b> recur across roles.",
+    patterns:{title:"Repeated across DBS ads (3 roles sampled)",rows:[{label:"SQL",count:2,prov:"derived"},{label:"Stakeholder Management",count:3,prov:"derived"},{label:"Degree",count:3,prov:"mcf"}]}},
+  "pressure:ai":{layer:"pressure",typeLabel:"Pressure",title:"AI disruption pressure",prov:"ai",
+    fields:[["Read","Inferred - advisory"]],
+    body:"Org-level AI pressure pushes [[dept:analytics|Data & Analytics]] to do more with less. This is an inferred read, tagged as an AI estimate, not a verbatim fact.",
+    kids:["dept:analytics","pressure:reporting"],
+    nextMove:"position yourself as someone who uses AI to absorb routine load while keeping human judgement."},
+  "dept:analytics":{layer:"department",typeLabel:"Department",title:"Group Data & Analytics",prov:"derived",
+    fields:[["Parent","[[org:dbs|DBS Bank]]"],["Function","Turn data into decisions"]],
+    body:"This department serves business units with reporting and models. Its main friction is [[pressure:reporting|manual monthly reporting]], which drives demand for a [[role:da|Data Analyst]] and a [[role:ba|Business Analyst]].",
+    kids:["role:da","role:ba","pressure:reporting"],
+    nextMove:"show you can reduce reporting turnaround - that is this department's pain."},
+  "dept:risk":{layer:"department",typeLabel:"Department",title:"Risk & Compliance",prov:"derived",
+    fields:[["Parent","[[org:dbs|DBS Bank]]"],["Function","Keep the bank within the rules"]],
+    body:"Risk & Compliance answers to [[stake:mas|MAS]] and owns a [[role:rm|Risk Manager]] role.",
+    kids:["role:rm"],
+    nextMove:"evidence a time you caught a compliance gap before it became an issue."},
+  "pressure:reporting":{layer:"pressure",typeLabel:"Workflow friction",title:"Manual monthly reporting",prov:"derived",
+    fields:[["Cause","Fragmented data, manual steps"]],
+    body:"Slow, manual monthly reporting is the friction that turns into role pressure - and is why [[role:da|the Data Analyst ad]] exists. Much of it is [[ai:reporting|AI-assistable]].",
+    kids:["role:da","ai:reporting"],
+    nextMove:"a small project that automates one recurring report is direct proof against this friction."},
+  "role:da":{layer:"role",typeLabel:"Role",title:"Data Analyst",prov:"mcf",count:2,
+    fields:[["Department","[[dept:analytics|Group Data & Analytics]]"],["Organisation","[[org:dbs|DBS Bank]]"],["Job ad","[[jobad:da|Data Analyst - 2026-06]]"],["System role","Analyst + Integrator"]],
+    body:"Hired to turn data into monthly decisions. Branches: the [[jobad:da|job ad]], its [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]] skills, the [[stake:finance|Finance]] stakeholder, a [[risk:dataquality|data-quality risk]], the [[ai:reporting|AI impact]], and how to [[pos:da|position yourself]].",
+    kids:["jobad:da","skill:sql","skill:stakeholder","stake:finance","risk:dataquality","ai:reporting","pos:da"],
+    nextMove:"strengthen evidence for <b>Stakeholder Management</b> - it recurs in every DBS data role and is the least automatable part."},
+  "role:ba":{layer:"role",typeLabel:"Role",title:"Business Analyst",prov:"mcf",
+    fields:[["Department","[[dept:analytics|Group Data & Analytics]]"],["Job ad","[[jobad:ba|Business Analyst - 2026-06]]"],["System role","Coordinator + Analyst"]],
+    body:"Bridges business and delivery. Shares [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]] with [[role:da|the Data Analyst]] - a repeatable pattern across the department.",
+    kids:["jobad:ba","skill:sql","skill:requirements","stake:bu"],
+    nextMove:"this role needs 3-5 years; if you are a fresh grad, start from [[role:da|the Data Analyst entry path]]."},
+  "role:rm":{layer:"role",typeLabel:"Role",title:"Risk Manager",prov:"mcf",
+    fields:[["Department","[[dept:risk|Risk & Compliance]]"],["System role","Guardian"]],
+    body:"Owns regulatory risk; reports into [[stake:mas|MAS]] expectations and needs [[skill:compliance|Compliance]] depth.",
+    kids:["skill:compliance","stake:mas"],
+    nextMove:"lead with a concrete control you designed or improved."},
+  "jobad:da":{layer:"job_ad",typeLabel:"Job ad",title:"Data Analyst - DBS - 2026-06",prov:"mcf",
+    fields:[["Experience","[[exp:02|0-2 Years]]"],["Qualification","[[qual:degree|Degree]]"]],
+    body:"Requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and [[skill:python|Python]]. Maps to [[esco:dataanalysis|ESCO - Data Analysis]]. Routine [[ai:reporting|monthly reporting]] is AI-assistable; stakeholder judgement stays human-led.",
+    kids:["skill:sql","skill:stakeholder","skill:python","qual:degree","exp:02","esco:dataanalysis"],
+    nextMove:"mirror the ad's own words back in your resume, with one proof per required skill."},
+  "jobad:ba":{layer:"job_ad",typeLabel:"Job ad",title:"Business Analyst - DBS - 2026-06",prov:"mcf",
+    fields:[["Experience","[[exp:35|3-5 Years]]"],["Qualification","[[qual:degree|Degree]]"]],
+    body:"Requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and [[skill:requirements|Requirements Gathering]].",
+    kids:["skill:sql","skill:stakeholder","skill:requirements","qual:degree","exp:35"],
+    nextMove:"bring a short requirements document you wrote as proof."},
+  "skill:sql":{layer:"skill",typeLabel:"Skill",title:"SQL",prov:"derived",count:2,
+    fields:[["Seen in","2 of 2 sampled data roles"],["ESCO","[[esco:dataanalysis|Data Analysis]] (related)"]],
+    body:"Recurs in [[role:da|Data Analyst]] and [[role:ba|Business Analyst]]. A foundation for [[esco:dataanalysis|ESCO Data Analysis]].",
+    kids:["role:da","role:ba","esco:dataanalysis"],
+    nextMove:"a short project that queries real data is strong, evidenceable proof."},
+  "skill:stakeholder":{layer:"skill",typeLabel:"Skill",title:"Stakeholder Management",prov:"derived",count:3,
+    fields:[["Seen in","3 of 3 sampled roles"],["AI exposure","Low - human-led"]],
+    body:"Recurs across [[role:da|Data Analyst]], [[role:ba|Business Analyst]] and the [[role:rm|Risk Manager]]. Human-led, so it resists automation more than [[ai:reporting|routine reporting]].",
+    kids:["role:da","role:ba","ai:reporting"],
+    nextMove:"build one concrete example of coordinating a cross-team outcome."},
+  "skill:python":{layer:"skill",typeLabel:"Skill",title:"Python",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled data roles"]],
+    body:"Appears in [[jobad:da|the Data Analyst ad]]. Lower frequency than [[skill:sql|SQL]], so a lower-confidence must-have.",
+    kids:["jobad:da","skill:sql"],nextMove:"nice-to-have here; prioritise [[skill:sql|SQL]] first."},
+  "skill:requirements":{layer:"skill",typeLabel:"Skill",title:"Requirements Gathering",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled data roles"]],
+    body:"Appears in [[jobad:ba|the Business Analyst ad]]; tied to [[skill:stakeholder|Stakeholder Management]].",
+    kids:["jobad:ba","skill:stakeholder"],nextMove:"evidence it with a short requirements doc."},
+  "skill:compliance":{layer:"skill",typeLabel:"Skill",title:"Regulatory Compliance",prov:"derived",
+    fields:[["Seen in","[[role:rm|Risk Manager]]"]],
+    body:"Core to [[role:rm|the Risk Manager]]; answerable to [[stake:mas|MAS]].",
+    kids:["role:rm","stake:mas"],nextMove:"cite a specific regulation you have worked under."},
+  "esco:dataanalysis":{layer:"skill",typeLabel:"ESCO skill",title:"Data Analysis (ESCO)",prov:"computed",
+    fields:[["Standard","ESCO v1.2 - resolved"],["Group","[[isco:bizadmin|ISCO 24]]"]],
+    body:"The standardised concept. Linked only because it resolved - if a skill had no ESCO match we would withhold the link, not invent one.",
+    kids:["isco:bizadmin","skill:sql"],nextMove:"use the standard concept to find adjacent roles sharing this cluster."},
+  "isco:bizadmin":{layer:"skill",typeLabel:"ISCO group",title:"Business & Admin Professionals (ISCO 24)",prov:"computed",
+    fields:[["Standard","ISCO-08 major group 24"]],
+    body:"The occupation group for [[role:da|Data Analyst]] and similar roles; maps to AI-exposure data via the engine.",
+    kids:["role:da","esco:dataanalysis"],nextMove:"widen your search to other occupations in this group."},
+  "stake:finance":{layer:"stakeholder",typeLabel:"Internal stakeholder",title:"Finance (internal)",prov:"derived",
+    fields:[["Relationship","collaborates_with"],["Power","medium"],["Interest","medium"]],
+    body:"Finance depends on [[role:da|the Data Analyst]] for timely numbers; their need is budget discipline.",
+    kids:["role:da"],nextMove:"show you can give Finance clean numbers on time."},
+  "stake:bu":{layer:"stakeholder",typeLabel:"Internal stakeholder",title:"Business Units (internal)",prov:"derived",
+    fields:[["Relationship","serves"],["Power","high"]],
+    body:"Business units are served by [[role:ba|the Business Analyst]]; their need is reliable delivery.",
+    kids:["role:ba"],nextMove:"frame your work as outcomes for the business, not tasks."},
+  "stake:mas":{layer:"stakeholder",typeLabel:"External stakeholder",title:"MAS (regulator)",prov:"derived",
+    fields:[["Relationship","regulates"],["Power","high"]],
+    body:"The regulator. Sets the rules that [[role:rm|the Risk Manager]] must satisfy.",
+    kids:["role:rm","skill:compliance"],nextMove:"speak the regulator's language: controls, evidence, audit trail."},
+  "risk:dataquality":{layer:"risk",typeLabel:"Risk",title:"Data quality risk",prov:"derived",
+    fields:[["Cause","Manual entry"],["Control","Validation"]],
+    body:"Poor data quality leads to wrong decisions. [[role:da|The Data Analyst]] mitigates it through validation; partly [[ai:reporting|AI-assistable]].",
+    kids:["role:da","ai:reporting"],nextMove:"mention a validation step you introduced that caught errors."},
+  "ai:reporting":{layer:"ai_impact",typeLabel:"AI impact",title:"AI-assisted: Monthly Reporting",prov:"ai",
+    fields:[["Read","Inferred - advisory"],["Human-led part","[[skill:stakeholder|Stakeholder judgement]]"]],
+    body:"Routine monthly reporting is AI-assistable - an inferred, advisory read tagged as an AI estimate. [[skill:stakeholder|Stakeholder Management]] stays human-led.",
+    kids:["pressure:reporting","skill:stakeholder","role:da"],
+    nextMove:"let AI take the routine reporting; invest your proof in the human-led parts."},
+  "pos:da":{layer:"positioning",typeLabel:"Candidate positioning",title:"Positioning: Data Analyst",prov:"derived",
+    fields:[["Thesis","Connector of data, stakeholders and decisions"]],
+    body:"Position yourself as someone who understands the [[stake:finance|stakeholder]] ecosystem, uses AI to speed [[ai:reporting|routine reporting]], and keeps [[skill:stakeholder|human judgement]] where trust matters.",
+    kids:["role:da","skill:stakeholder","ai:reporting"],
+    nextMove:"open your cover letter with the system, not the duties: who you connect and what value you create."},
+  "qual:degree":{layer:"skill",typeLabel:"Qualification",title:"Degree",prov:"mcf",count:3,
+    fields:[["Seen in","3 of 3 sampled roles"]],
+    body:"All sampled DBS roles ask for a degree - verbatim from the postings, high confidence.",
+    kids:["role:da","role:ba"],nextMove:"lead with relevant coursework or projects."},
+  "exp:02":{layer:"role",typeLabel:"Experience",title:"0-2 Years",prov:"mcf",
+    fields:[["Source","Verbatim MCF field"]],
+    body:"[[jobad:da|The Data Analyst ad]] accepts 0-2 years - friendly to a fresh grad.",
+    kids:["jobad:da"],nextMove:"target this entry-friendly band while building proof."},
+  "exp:35":{layer:"role",typeLabel:"Experience",title:"3-5 Years",prov:"mcf",
+    fields:[["Source","Verbatim MCF field"]],
+    body:"[[jobad:ba|The Business Analyst ad]] needs 3-5 years - not a fresh-grad entry point.",
+    kids:["jobad:ba"],nextMove:"if you lack this, pivot to a 0-2 yr role first."}
 };
 
 const PERSONAS=[
   {key:"standards",ico:"📐",t:"Standards / Skills",d:"Find standard skills and occupations (ESCO / ISCO).",
-    intent:"“Show me the standard concept and who hires for it.”",
-    label:"Skill or occupation",ph:"e.g. Data Analysis, Stakeholder Management",
+    intent:"“Show me the standard concept and who hires for it.”",label:"Skill or occupation",ph:"e.g. Data Analysis, Stakeholder Management",
     criteria:[{type:"select",lab:"Standard",opts:["ESCO v1.2","ISCO-08"]},{type:"toggle",lab:"Include fresh-grad relevance",on:true}],
-    suggestions:[{t:"Data Analysis",s:"ESCO v1.2 skill · ISCO 2511",go:"esco:dataanalysis"},{t:"Stakeholder Management",s:"ESCO skill · human-led",go:"skill:stakeholder"},{t:"Business and Administration Professionals",s:"ISCO-08 major group 24",go:"isco:bizadmin"},{t:"Quantum Welding",s:"no ESCO match - link withheld",go:null}],
-    start:"esco:dataanalysis"},
-  {key:"mcf",ico:"🇸🇬",t:"Find MCF Jobs",d:"Current Singapore openings, turned into linked notes.",
-    intent:"“Find current jobs and what they really ask for.”",
-    label:"Job title or role",ph:"e.g. Data Analyst, Operations Manager",
-    criteria:[{type:"select",lab:"Sector",opts:["All sectors","Banking & Finance","Public Service","Tech"]},{type:"select",lab:"Posted",opts:["Any time","Last 7 days","Last 30 days"]},{type:"toggle",lab:"Fresh grads · < 4 yrs",on:false}],
-    suggestions:[{t:"Data Analyst",s:"DBS · 0-2 yrs · sample ad",go:"job:da"},{t:"Business Analyst",s:"DBS · 3-5 yrs · sample ad",go:"job:ba"},{t:"Data Scientist",s:"no sample ad in this demo",go:null}],
-    start:"job:da"},
+    suggestions:[{t:"Data Analysis",s:"ESCO v1.2 · ISCO 24",go:"esco:dataanalysis"},{t:"Stakeholder Management",s:"ESCO skill · human-led",go:"skill:stakeholder"},{t:"Quantum Welding",s:"no ESCO match - link withheld",go:null}],start:"esco:dataanalysis"},
+  {key:"mcf",ico:"🇸🇬",t:"Find MCF Jobs",d:"Current openings, turned into a linked ecosystem.",
+    intent:"“Find current jobs and the system behind them.”",label:"Job title or role",ph:"e.g. Data Analyst, Business Analyst",
+    criteria:[{type:"select",lab:"Sector",opts:["All sectors","Banking & Finance","Public Service"]},{type:"select",lab:"Posted",opts:["Any time","Last 7 days","Last 30 days"]},{type:"toggle",lab:"Fresh grads · < 4 yrs",on:false}],
+    suggestions:[{t:"Data Analyst",s:"DBS · 0-2 yrs",go:"role:da"},{t:"Business Analyst",s:"DBS · 3-5 yrs",go:"role:ba"},{t:"Data Scientist",s:"no sample here",go:null}],start:"role:da"},
   {key:"fresh",ico:"🎓",t:"Fresh Grad Pathways",d:"Realistic entry pathways and the proof to build.",
-    intent:"“I am a fresh grad - where do I start?”",
-    label:"Your degree / interest / starting skill",ph:"e.g. Business graduate, no full-time experience",
+    intent:"“I am a fresh grad - where do I start?”",label:"Your degree / interest / starting skill",ph:"e.g. Business graduate, no full-time experience",
     criteria:[{type:"select",lab:"Max experience",opts:["0-2 yrs (entry)","< 4 yrs"]},{type:"toggle",lab:"Fresh-grad filter",on:true,locked:true}],
-    suggestions:[{t:"Data Analyst (entry pathway)",s:"0-2 yrs · suitability: possible",go:"pathway:fresh"},{t:"Programme Executive",s:"0-2 yrs · entry-friendly",go:"job:da"},{t:"Senior Manager",s:"5+ yrs - filtered out for fresh grads",go:null}],
-    start:"pathway:fresh"},
-  {key:"employer",ico:"🏢",t:"Employer Search",d:"What an employer repeatedly hires for.",
-    intent:"“What does this employer expect?”",
-    label:"Company or agency name",ph:"e.g. DBS Bank, Ministry of Health, LTA",
+    suggestions:[{t:"Data Analyst (entry)",s:"0-2 yrs · positioning",go:"pos:da"},{t:"Business Analyst",s:"3-5 yrs · filtered out",go:null}],start:"pos:da"},
+  {key:"employer",ico:"🏢",t:"Employer Search",d:"What an employer repeatedly hires for, top-down.",
+    intent:"“What does this employer expect?”",label:"Company or agency name",ph:"e.g. DBS Bank, Ministry of Health",
     criteria:[{type:"src",lab:"Sources",opts:["MyCareersFuture","careers.gov.sg"]}],
-    suggestions:[{t:"DBS Bank",s:"2 live ads · sample employer",go:"employer:dbs"},{t:"DBS Vickers Securities",s:"ambiguous match - pick one",go:"employer:dbs"},{t:"Ministry of Health",s:"careers.gov.sg · no sample here",go:null}],
-    start:"employer:dbs"}
+    suggestions:[{t:"DBS Bank",s:"3 roles · sample employer",go:"org:dbs"},{t:"DBS Vickers Securities",s:"ambiguous - pick one",go:"org:dbs"},{t:"Ministry of Health",s:"careers.gov.sg · no sample here",go:null}],start:"org:dbs"}
 ];
 const P_BY_KEY=Object.fromEntries(PERSONAS.map(p=>[p.key,p]));
 
-/* ---- screen stack ---- */
+/* ===== screen stack ===== */
 let stack=[], cur=null;
 const $=id=>document.getElementById(id);
 function show(which){ ["home","searchView","noteView"].forEach(s=>$(s).classList.toggle("hidden",s!==which)); if(which!=="noteView") stopGraph(); }
 function go(state,push=true){ if(push&&cur) stack.push(cur); cur=state; render(); }
-function render(){
-  if(cur.kind==="home"){ stack=[]; renderHome(); }
-  else if(cur.kind==="search"){ renderSearch(cur.persona); }
-  else if(cur.kind==="note"){ renderNote(cur.id); }
-  $("backBtn").disabled=stack.length===0;
-  window.scrollTo({top:0,behavior:"smooth"});
-}
+function render(){ if(cur.kind==="home"){ stack=[]; renderHome(); } else if(cur.kind==="search"){ renderSearch(cur.persona); } else if(cur.kind==="note"){ renderNote(cur.id); } $("backBtn").disabled=stack.length===0; window.scrollTo({top:0,behavior:"smooth"}); }
 function back(){ if(stack.length){ cur=stack.pop(); render(); } }
 
 function renderHome(){
-  show("home");
-  const g=$("personaGrid"); g.innerHTML="";
-  PERSONAS.forEach(p=>{
-    const b=document.createElement("button"); b.className="pcard";
+  show("home"); const g=$("personaGrid"); g.innerHTML="";
+  PERSONAS.forEach(p=>{ const b=document.createElement("button"); b.className="pcard";
     b.innerHTML=`<span class="ico" aria-hidden="true">${p.ico}</span><span class="t">${p.t}</span><span class="d">${p.d}</span><span class="intent">${p.intent}</span>`;
-    b.onclick=()=>go({kind:"search",persona:p.key});
-    g.appendChild(b);
-  });
+    b.onclick=()=>go({kind:"search",persona:p.key}); g.appendChild(b); });
 }
-
 function critHTML(p){
   const parts=p.criteria.map(c=>{
     if(c.type==="select") return `<span class="clab">${c.lab}</span><select aria-label="${c.lab}">${c.opts.map(o=>`<option>${o}</option>`).join("")}</select>`;
     if(c.type==="toggle") return `<label class="tog ${c.on?'on':''}"><input type="checkbox" ${c.on?'checked':''} ${c.locked?'disabled':''} onchange="this.closest('.tog').classList.toggle('on',this.checked)"><span>${c.lab}</span></label>`;
     if(c.type==="src") return `<span class="clab">${c.lab}</span>`+c.opts.map(o=>`<span class="srcchip">● ${o}</span>`).join("");
-    return "";
-  });
+    return ""; });
   return `<div class="criteria">${parts.join("")}</div><div class="crit-note">Criteria are illustrative in this demo - in the real app they filter the live results.</div>`;
 }
-
 function renderSearch(key){
-  show("searchView");
-  const p=P_BY_KEY[key];
-  /* tabs */
+  show("searchView"); const p=P_BY_KEY[key];
   const tabs=$("ptabs"); tabs.innerHTML="";
-  PERSONAS.forEach(pp=>{
-    const b=document.createElement("button"); b.className="ptab"+(pp.key===key?" active":"");
-    b.setAttribute("aria-pressed",pp.key===key); b.innerHTML=`<span aria-hidden="true">${pp.ico}</span> ${pp.t}`;
-    b.onclick=()=>go({kind:"search",persona:pp.key});
-    tabs.appendChild(b);
-  });
-  /* card */
+  PERSONAS.forEach(pp=>{ const b=document.createElement("button"); b.className="ptab"+(pp.key===key?" active":""); b.setAttribute("aria-pressed",pp.key===key);
+    b.innerHTML=`<span aria-hidden="true">${pp.ico}</span> ${pp.t}`; b.onclick=()=>go({kind:"search",persona:pp.key}); tabs.appendChild(b); });
   const c=$("searchCard");
   c.innerHTML=`<h2>${p.ico} ${p.t}</h2><p class="intent">${p.intent}</p>
     <label class="fld" for="q">${p.label}</label>
     <div class="searchrow"><input id="q" type="search" autocomplete="off" placeholder="${p.ph}" aria-label="${p.label}"><button class="go" id="goBtn">Analyse &rarr;</button></div>
-    ${critHTML(p)}
-    <div class="picker" id="picker"></div>`;
+    ${critHTML(p)}<div class="picker" id="picker"></div>`;
   const input=$("q");
-  const renderPicker=()=>{
-    const term=input.value.trim().toLowerCase();
-    const list=p.suggestions.filter(s=>!term||s.t.toLowerCase().includes(term)||s.s.toLowerCase().includes(term));
-    const pk=$("picker");
+  const renderPicker=()=>{ const term=input.value.trim().toLowerCase(); const list=p.suggestions.filter(s=>!term||s.t.toLowerCase().includes(term)||s.s.toLowerCase().includes(term)); const pk=$("picker");
     pk.innerHTML=`<div class="pick-head">${term?'Matches for "'+input.value.trim()+'"':'Closest matches - start typing to filter'}</div>`;
     if(!list.length){ pk.innerHTML+=`<div class="pick-empty">No match in this sample. In the real app we withhold rather than invent.</div>`; return; }
-    list.forEach(s=>{
-      const b=document.createElement("button"); b.className="pick-item"+(s.go?"":" dim"); b.type="button";
+    list.forEach(s=>{ const b=document.createElement("button"); b.className="pick-item"+(s.go?"":" dim"); b.type="button";
       b.innerHTML=`<span><span class="pi-t">${s.t}</span><br><span class="pi-s">${s.s}</span></span><span class="pi-go" aria-hidden="true">${s.go?"&rarr;":"withheld"}</span>`;
-      if(s.go){ b.onclick=()=>go({kind:"note",id:s.go}); b.setAttribute("aria-label","Open "+s.t); }
-      else { b.disabled=true; }
-      pk.appendChild(b);
-    });
-  };
+      if(s.go){ b.onclick=()=>go({kind:"note",id:s.go}); b.setAttribute("aria-label","Open "+s.t); } else b.disabled=true; pk.appendChild(b); }); };
   input.addEventListener("input",renderPicker);
   $("goBtn").onclick=()=>go({kind:"note",id:p.start});
   input.addEventListener("keydown",e=>{ if(e.key==="Enter") go({kind:"note",id:p.start}); });
-  renderPicker();
-  setTimeout(()=>input.focus(),30);
+  renderPicker(); setTimeout(()=>input.focus(),30);
 }
 
 function provChip(key){ const p=PROV[key]||PROV.unverified; return `<span class="prov ${p.c}" title="${p.t}">${p.i} ${p.t}</span>`; }
 function renderRich(str){
   const frag=document.createElement("span"); const re=/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g; let last=0,m;
-  while((m=re.exec(str))){
-    if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
+  while((m=re.exec(str))){ if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
     const id=m[1].trim(), text=(m[2]||(NODES[id]?NODES[id].title:id)).trim();
-    const btn=document.createElement("button"); btn.className="wl"; btn.type="button"; btn.textContent=text;
-    btn.setAttribute("aria-label","Open note: "+text);
+    const btn=document.createElement("button"); btn.className="wl"; btn.type="button"; btn.textContent=text; btn.setAttribute("aria-label","Open note: "+text);
     if(NODES[id]) btn.onclick=()=>go({kind:"note",id}); else { btn.disabled=true; btn.title="No note (withheld)"; }
-    frag.appendChild(btn); last=re.lastIndex;
-  }
-  if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last)));
-  return frag;
+    frag.appendChild(btn); last=re.lastIndex; }
+  if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last))); return frag;
 }
-
 function renderNote(id){
   const n=NODES[id]; if(!n) return; show("noteView");
-  const cr=$("crumbs"); cr.innerHTML="";
-  const h=document.createElement("button"); h.textContent="Home"; h.onclick=()=>go({kind:"home"}); cr.appendChild(h);
-  cr.appendChild(document.createTextNode(" / "+n.typeLabel+" / "));
-  const curEl=document.createElement("span"); curEl.textContent=n.title; curEl.style.color="var(--text)"; curEl.style.fontWeight="700"; cr.appendChild(curEl);
-
-  const nm=$("nextmove"); nm.innerHTML=`<span class="nm-ico" aria-hidden="true">🧭</span><span class="nm-t">Your next best move is to </span>`;
-  nm.querySelector(".nm-t").appendChild(renderRich(n.nextMove));
-
+  const cr=$("crumbs"); cr.innerHTML=""; const h=document.createElement("button"); h.textContent="Home"; h.onclick=()=>go({kind:"home"}); cr.appendChild(h);
+  cr.appendChild(document.createTextNode(" / "+n.typeLabel+" / ")); const ce=document.createElement("span"); ce.textContent=n.title; ce.style.color="var(--text)"; ce.style.fontWeight="700"; cr.appendChild(ce);
+  const nm=$("nextmove"); nm.innerHTML=`<span class="nm-ico" aria-hidden="true">🧭</span><span class="nm-t">Your next best move is to </span>`; nm.querySelector(".nm-t").appendChild(renderRich(n.nextMove));
   const note=$("note"); note.innerHTML="";
-  const head=document.createElement("div"); head.className="note-head";
-  head.innerHTML=`<span class="type-chip type-${n.type}">${n.typeLabel}</span>${provChip(n.prov)}`; note.appendChild(head);
+  const head=document.createElement("div"); head.className="note-head"; const lay=LAYER[n.layer]||LAYER.skill;
+  head.innerHTML=`<span class="type-chip" style="background:${lay.b};color:${lay.c}">${n.typeLabel}</span>${provChip(n.prov)}`; note.appendChild(head);
   const h2=document.createElement("h2"); h2.textContent=n.title; note.appendChild(h2);
-  (n.fields||[]).forEach(([k,v])=>{ const f=document.createElement("div"); f.className="field";
-    const kk=document.createElement("span"); kk.className="k"; kk.textContent=k;
-    const vv=document.createElement("span"); vv.className="v"; vv.appendChild(renderRich(v));
-    f.appendChild(kk); f.appendChild(vv); note.appendChild(f); });
-  const body=document.createElement("div"); body.className="body";
-  const pp=document.createElement("p"); pp.appendChild(renderRich(n.body)); body.appendChild(pp); note.appendChild(body);
-  if(n.links&&n.links.length){
-    const st=document.createElement("div"); st.className="section-t"; st.textContent="Linked notes"; note.appendChild(st);
-    const chips=document.createElement("div"); chips.className="chips";
-    n.links.forEach(lid=>{ const ln=NODES[lid]; if(!ln) return;
-      const cc=document.createElement("button"); cc.className="linkchip"; cc.type="button"; cc.textContent=ln.title; cc.onclick=()=>go({kind:"note",id:lid}); chips.appendChild(cc); });
-    note.appendChild(chips);
-  }
-  const pw=$("patternsWrap"); pw.innerHTML="";
-  if(n.patterns){
-    const st=document.createElement("div"); st.className="section-t"; st.textContent="Common patterns"; pw.appendChild(st);
-    const card=document.createElement("div"); card.className="note"; card.style.marginTop="0";
-    const title=document.createElement("div"); title.style.cssText="font-size:.8125rem;color:var(--sub);margin-bottom:8px;font-weight:600"; title.textContent=n.patterns.title; card.appendChild(title);
-    const maxC=Math.max(...n.patterns.rows.map(r=>r.count));
-    n.patterns.rows.forEach(r=>{ const row=document.createElement("div"); row.className="patrow";
-      const pl=document.createElement("span"); pl.className="pl"; pl.textContent=r.label;
-      const track=document.createElement("span"); track.className="bar-track"; const fill=document.createElement("span"); fill.className="bar-fill"; fill.style.width=(r.count/maxC*100)+"%"; track.appendChild(fill);
-      const pc=document.createElement("span"); pc.className="pc"; pc.innerHTML=r.count+"× "+provChip(r.prov);
-      row.appendChild(pl); row.appendChild(track); row.appendChild(pc); card.appendChild(row); });
-    pw.appendChild(card);
-  }
-  seedGraph(id);
+  (n.fields||[]).forEach(([k,v])=>{ const f=document.createElement("div"); f.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.appendChild(renderRich(v)); f.appendChild(kk); f.appendChild(vv); note.appendChild(f); });
+  const body=document.createElement("div"); body.className="body"; const pp=document.createElement("p"); pp.appendChild(renderRich(n.body)); body.appendChild(pp); note.appendChild(body);
+  if(n.kids&&n.kids.length){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Branches"; note.appendChild(st);
+    const chips=document.createElement("div"); chips.className="chips"; n.kids.forEach(lid=>{ const ln=NODES[lid]; if(!ln) return; const cc=document.createElement("button"); cc.className="linkchip"; cc.type="button"; cc.textContent=ln.title; cc.onclick=()=>go({kind:"note",id:lid}); chips.appendChild(cc); }); note.appendChild(chips); }
+  if(n.patterns){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Common patterns"; note.appendChild(st);
+    const card=document.createElement("div"); card.style.cssText="border:1px solid var(--border);border-radius:12px;padding:12px"; const tt=document.createElement("div"); tt.style.cssText="font-size:.8125rem;color:var(--sub);margin-bottom:8px;font-weight:600"; tt.textContent=n.patterns.title; card.appendChild(tt);
+    const maxC=Math.max(...n.patterns.rows.map(r=>r.count)); n.patterns.rows.forEach(r=>{ const row=document.createElement("div"); row.style.cssText="display:flex;align-items:center;gap:10px;padding:6px 0";
+      const pl=document.createElement("span"); pl.style.cssText="flex:1;font-size:.875rem"; pl.textContent=r.label; const tr=document.createElement("span"); tr.style.cssText="width:90px;height:8px;background:var(--border);border-radius:999px;overflow:hidden"; const fl=document.createElement("span"); fl.style.cssText="display:block;height:100%;background:var(--teal);width:"+(r.count/maxC*100)+"%"; tr.appendChild(fl);
+      const pc=document.createElement("span"); pc.style.cssText="font-size:.75rem;color:var(--muted);min-width:64px;text-align:right"; pc.innerHTML=r.count+"× "+provChip(r.prov); row.appendChild(pl); row.appendChild(tr); row.appendChild(pc); card.appendChild(row); }); note.appendChild(card); }
+  renderLegend(); seedGraph(id);
 }
 
-/* ===== expanding force graph - tap a node to grow its branches ===== */
-const GTYPE={employer:["#1e40af","#dbeafe"],job:["#5b21b6","#ede9fe"],skill:["#0f766e","#f0fdfa"],pathway:["#b45309","#fef3c7"]};
-const ADJ={};
-Object.keys(NODES).forEach(id=>{ ADJ[id]=ADJ[id]||new Set(); (NODES[id].links||[]).forEach(l=>{ if(NODES[l]){ ADJ[id].add(l); (ADJ[l]=ADJ[l]||new Set()).add(id); } }); });
-const G={root:null,expanded:new Set(),sel:null,pos:{},vx:{},vy:{},view:{x:0,y:0,k:1},alpha:0,running:false,raf:null,els:null,sig:""};
+/* ===== radial ecosystem graph: one centre, collapsed, branch out on click ===== */
+const CX=500, CY=280, RING=170;
+const G={root:null,expanded:new Set(),sel:null,pos:{},target:{},from:{},order:[],parent:{},tree:{},view:{x:0,y:0,k:1},els:null,raf:null,t0:0};
 const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
 
-function graphVisible(){
-  const vis=new Set(); if(!G.root) return {nodes:[],edges:[]};
-  vis.add(G.root); G.expanded.forEach(id=>{ vis.add(id); (ADJ[id]||new Set()).forEach(n=>vis.add(n)); });
-  const nodes=[...vis], edges=[], seen=new Set();
-  nodes.forEach(a=>{ (ADJ[a]||new Set()).forEach(b=>{ if(vis.has(b)){ const k=a<b?a+"|"+b:b+"|"+a; if(!seen.has(k)){seen.add(k);edges.push([a,b]);} } }); });
-  return {nodes,edges};
+function buildTree(){
+  const tree={}, parent={null:null}, order=[], visited=new Set([G.root]); parent[G.root]=null;
+  (function dfs(id){ order.push(id); const ks=G.expanded.has(id)?(NODES[id].kids||[]).filter(k=>NODES[k]&&!visited.has(k)):[]; tree[id]=ks; ks.forEach(k=>{ visited.add(k); parent[k]=id; }); ks.forEach(dfs); })(G.root);
+  return {tree,parent,order};
 }
-function hiddenCount(id){
-  const vis=new Set([G.root]); G.expanded.forEach(x=>{ vis.add(x); (ADJ[x]||new Set()).forEach(n=>vis.add(n)); });
-  let h=0; (ADJ[id]||new Set()).forEach(n=>{ if(!vis.has(n)) h++; }); return h;
+function layout(){
+  const {tree,parent,order}=buildTree(); G.tree=tree; G.parent=parent; G.order=order;
+  const depth={}, ang={}; let leaf=0;
+  (function assign(id,d){ depth[id]=d; const ks=tree[id]; if(!ks.length){ ang[id]=leaf+0.5; leaf++; } else { ks.forEach(k=>assign(k,d+1)); ang[id]=ks.reduce((s,k)=>s+ang[k],0)/ks.length; } })(G.root,0);
+  const total=Math.max(1,leaf); G.target={};
+  order.forEach(id=>{ if(id===G.root){ G.target[id]={x:CX,y:CY}; return; } const a=(ang[id]/total)*Math.PI*2 - Math.PI/2; const rad=depth[id]*RING; G.target[id]={x:CX+Math.cos(a)*rad, y:CY+Math.sin(a)*rad}; });
 }
-function ensureDOM(nodes,edges){
-  const sig=nodes.slice().sort().join(",")+"#"+edges.map(e=>e.join("-")).sort().join(",")+"#"+G.sel+"#"+[...G.expanded].sort().join(",");
-  if(sig===G.sig) return; G.sig=sig;
+function pillW(id){ const n=NODES[id]; const label=(n.title.length>26?n.title.slice(0,25)+"…":n.title)+(n.count?(" ("+n.count+")"):""); const big=id===G.root; return {label, w:Math.max(58, label.length*(big?8.2:7.0)+24), h:big?42:30, fs:big?14:12}; }
+function hiddenKids(id){ const ks=(NODES[id].kids||[]).filter(k=>NODES[k]); if(!ks.length) return 0; if(!G.expanded.has(id)) return ks.length; const shown=new Set(G.order); return ks.filter(k=>!shown.has(k)||G.parent[k]!==id).length; }
+function ensureDOM(){
   const NS="http://www.w3.org/2000/svg", svg=$("graph"); svg.innerHTML="";
-  const view=document.createElementNS(NS,"g"); svg.appendChild(view);
-  G.els={view,line:{},node:{}};
-  edges.forEach(([a,b])=>{ const l=document.createElementNS(NS,"line"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.5"); view.appendChild(l); G.els.line[a+"|"+b]={l,a,b}; });
-  nodes.forEach(id=>{ const nn=NODES[id], col=GTYPE[nn.type]||["#475569","#f1f5f9"], isRoot=id===G.root, r=isRoot?24:16, exp=G.expanded.has(id), hc=hiddenCount(id);
+  const view=document.createElementNS(NS,"g"); svg.appendChild(view); G.els={view,line:{},node:{}};
+  G.order.forEach(id=>{ const par=G.parent[id]; if(par==null) return; const l=document.createElementNS(NS,"path"); l.setAttribute("fill","none"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.6"); view.appendChild(l); G.els.line[id]={l,par}; });
+  G.order.forEach(id=>{ const n=NODES[id], lay=LAYER[n.layer]||LAYER.skill, pw=pillW(id), exp=G.expanded.has(id), hk=hiddenKids(id);
     const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button");
-    g.setAttribute("aria-label",(exp?"Collapse ":(hc?"Expand ":""))+nn.title+(hc?(" - "+hc+" more"):""));
-    const c=document.createElementNS(NS,"circle"); c.setAttribute("r",r); c.setAttribute("fill",col[1]); c.setAttribute("stroke",col[0]); c.setAttribute("stroke-width", id===G.sel?"3.5":"2"); g.appendChild(c);
-    const badge=document.createElementNS(NS,"text"); badge.setAttribute("class","gexp"); badge.setAttribute("text-anchor","middle"); badge.setAttribute("dy","4.5"); badge.setAttribute("fill",col[0]); badge.textContent=exp?"−":(hc?"+":""); g.appendChild(badge);
-    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("y",r+15); t.setAttribute("fill",col[0]); t.setAttribute("stroke","#fff"); t.setAttribute("stroke-width","3.5"); t.setAttribute("paint-order","stroke"); t.textContent=nn.title.length>22?nn.title.slice(0,21)+"…":nn.title; g.appendChild(t);
+    g.setAttribute("aria-label",(exp?"Collapse ":(hk?"Expand ":""))+n.title+(hk?(" - "+hk+" branches"):"")+", "+(LAYER[n.layer]||{t:""}).t);
+    const rect=document.createElementNS(NS,"rect"); rect.setAttribute("x",-pw.w/2); rect.setAttribute("y",-pw.h/2); rect.setAttribute("width",pw.w); rect.setAttribute("height",pw.h); rect.setAttribute("rx",pw.h/2); rect.setAttribute("fill",lay.b); rect.setAttribute("stroke",id===G.sel?lay.c:lay.bd); rect.setAttribute("stroke-width",id===G.sel?3:1.6); g.appendChild(rect);
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("dy","0.34em"); t.setAttribute("fill",lay.c); t.setAttribute("font-size",pw.fs); t.setAttribute("font-weight","700"); t.textContent=pw.label; g.appendChild(t);
+    if(hk||exp){ const bx=pw.w/2, bc=document.createElementNS(NS,"circle"); bc.setAttribute("cx",bx); bc.setAttribute("cy",0); bc.setAttribute("r",9); bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",lay.c); bc.setAttribute("stroke-width","1.6"); g.appendChild(bc);
+      const bt=document.createElementNS(NS,"text"); bt.setAttribute("x",bx); bt.setAttribute("text-anchor","middle"); bt.setAttribute("dy","0.32em"); bt.setAttribute("fill",lay.c); bt.setAttribute("font-size","13"); bt.setAttribute("font-weight","800"); bt.textContent=exp?"−":"+"; g.appendChild(bt); }
     g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
     g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();onNodeTap(id);} });
-    view.appendChild(g); G.els.node[id]={g};
-  });
+    view.appendChild(g); G.els.node[id]=g; });
   applyView();
 }
 function applyView(){ if(G.els&&G.els.view) G.els.view.setAttribute("transform",`translate(${G.view.x},${G.view.y}) scale(${G.view.k})`); }
-function onNodeTap(id){ G.sel=id; if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); reheat(); updateOpenBtn(); }
-function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>22?n.title.slice(0,21)+"…":n.title)):"Open note")+" &#8599;"; }
-function step(){
-  if(!G.running) return;
-  const {nodes,edges}=graphVisible();
-  if(G.sel&&!nodes.includes(G.sel)) G.sel=G.root;
-  ensureDOM(nodes,edges);
-  nodes.forEach(id=>{ if(!G.pos[id]){ const r=G.pos[G.root]||{x:480,y:230}; G.pos[id]={x:r.x+(Math.random()-.5)*120,y:r.y+(Math.random()-.5)*120}; } if(G.vx[id]==null){G.vx[id]=0;G.vy[id]=0;} });
-  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){ const a=G.pos[nodes[i]],b=G.pos[nodes[j]]; let dx=a.x-b.x,dy=a.y-b.y,d2=dx*dx+dy*dy||0.01,d=Math.sqrt(d2); const rep=11000/d2,fx=dx/d*rep,fy=dy/d*rep; G.vx[nodes[i]]+=fx;G.vy[nodes[i]]+=fy;G.vx[nodes[j]]-=fx;G.vy[nodes[j]]-=fy; }
-  edges.forEach(([a,b])=>{ const pa=G.pos[a],pb=G.pos[b]; let dx=pb.x-pa.x,dy=pb.y-pa.y,d=Math.sqrt(dx*dx+dy*dy)||0.01; const f=(d-155)*0.03,fx=dx/d*f,fy=dy/d*f; G.vx[a]+=fx;G.vy[a]+=fy;G.vx[b]-=fx;G.vy[b]-=fy; });
-  nodes.forEach(id=>{ if(id===G.root){ G.pos[id].x+=(480-G.pos[id].x)*0.12; G.pos[id].y+=(230-G.pos[id].y)*0.12; G.vx[id]=0;G.vy[id]=0; } else { G.vx[id]*=0.82; G.vy[id]*=0.82; G.pos[id].x+=clampN(G.vx[id]*G.alpha,-22,22); G.pos[id].y+=clampN(G.vy[id]*G.alpha,-22,22); } });
-  nodes.forEach(id=>{ const el=G.els.node[id]; if(el){ const p=G.pos[id]; el.g.setAttribute("transform",`translate(${p.x},${p.y})`); } });
-  edges.forEach(([a,b])=>{ const el=G.els.line[a+"|"+b]; if(el){ const pa=G.pos[a],pb=G.pos[b]; el.l.setAttribute("x1",pa.x);el.l.setAttribute("y1",pa.y);el.l.setAttribute("x2",pb.x);el.l.setAttribute("y2",pb.y); } });
-  G.alpha*=0.97; if(G.alpha<0.03){ G.running=false; G.raf=null; return; }
-  G.raf=requestAnimationFrame(step);
+function paint(){
+  G.order.forEach(id=>{ const g=G.els.node[id]; const p=G.pos[id]; if(g&&p) g.setAttribute("transform",`translate(${p.x},${p.y})`); });
+  G.order.forEach(id=>{ const e=G.els.line[id]; if(!e) return; const a=G.pos[e.par], b=G.pos[id]; if(!a||!b) return; const mx=(a.x+b.x)/2; e.l.setAttribute("d",`M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`); });
 }
-function reheat(){ G.alpha=Math.max(G.alpha,0.8); if(!G.running){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); } }
-function startGraph(){ G.running=true; if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(step); }
-function stopGraph(){ G.running=false; if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
-function seedGraph(id){ G.root=id; G.expanded=new Set([id]); G.sel=id; G.pos={}; G.vx={}; G.vy={}; G.view={x:0,y:0,k:1}; G.alpha=1; G.sig=""; G.pos[id]={x:480,y:230}; updateOpenBtn(); startGraph(); }
-function gZoom(f){ const cx=480,cy=230,k2=clampN(G.view.k*f,0.4,2.6),wx=(cx-G.view.x)/G.view.k,wy=(cy-G.view.y)/G.view.k; G.view.k=k2; G.view.x=cx-wx*k2; G.view.y=cy-wy*k2; applyView(); }
+function relayout(){
+  layout(); G.from={};
+  G.order.forEach(id=>{ G.from[id]= G.pos[id] || (G.parent[id]!=null&&G.pos[G.parent[id]]) || G.pos[G.root] || {x:CX,y:CY}; });
+  ensureDOM(); G.t0=Date.now(); if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(animate);
+}
+function animate(){
+  const p=Math.min(1,(Date.now()-G.t0)/360), e=1-Math.pow(1-p,3);
+  G.order.forEach(id=>{ const f=G.from[id]||G.target[id], t=G.target[id]; G.pos[id]={x:f.x+(t.x-f.x)*e, y:f.y+(t.y-f.y)*e}; });
+  paint(); if(p<1) G.raf=requestAnimationFrame(animate); else G.raf=null;
+}
+function onNodeTap(id){ G.sel=id; if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); updateOpenBtn(); relayout(); }
+function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>22?n.title.slice(0,21)+"…":n.title)):"Open note")+" &#8599;"; }
+function stopGraph(){ if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
+function seedGraph(id){ G.root=id; G.expanded=new Set(); G.sel=id; G.pos={}; G.from={}; G.view={x:0,y:0,k:1}; G.pos[id]={x:CX,y:CY}; updateOpenBtn(); relayout(); }
+function gZoom(f){ const k2=clampN(G.view.k*f,0.4,2.6),wx=(CX-G.view.x)/G.view.k,wy=(CY-G.view.y)/G.view.k; G.view.k=k2; G.view.x=CX-wx*k2; G.view.y=CY-wy*k2; applyView(); }
+function renderLegend(){ const used=new Set(); G && Object.keys(NODES).forEach(()=>{}); const el=$("legend"); if(!el) return; const layers=["organisation","department","role","job_ad","skill","stakeholder","risk","ai_impact"]; el.innerHTML=layers.map(k=>`<span><i style="background:${LAYER[k].b};border:1px solid ${LAYER[k].bd}"></i>${LAYER[k].t}</span>`).join(""); }
 (function gInit(){
   const svg=$("graph"); let pan=null;
-  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=960/(svg.clientWidth||960); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
+  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=1000/(svg.clientWidth||1000); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
   svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
-  svg.addEventListener("pointerup",()=>{pan=null;});
-  svg.addEventListener("pointercancel",()=>{pan=null;});
+  svg.addEventListener("pointerup",()=>{pan=null;}); svg.addEventListener("pointercancel",()=>{pan=null;});
   svg.addEventListener("wheel",e=>{ e.preventDefault(); gZoom(e.deltaY<0?1.12:0.9); },{passive:false});
   $("gOpen").onclick=()=>{ if(G.sel) go({kind:"note",id:G.sel}); };
   $("gReset").onclick=()=>{ if(G.root) seedGraph(G.root); };
-  $("gZin").onclick=()=>gZoom(1.2);
-  $("gZout").onclick=()=>gZoom(1/1.2);
+  $("gZin").onclick=()=>gZoom(1.2); $("gZout").onclick=()=>gZoom(1/1.2);
 })();
 
 $("homeBtn").onclick=()=>go({kind:"home"});
