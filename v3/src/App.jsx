@@ -1082,6 +1082,15 @@
 // are emphasised - the edge is where value is richest + least automatable (Lewis & McKone edge-of-
 // core; the ecotone/edge-effect ecology metaphor). Added external nodes (customers, vendor,
 // patients). No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.110 -> v3.0.111).
+// v3.0.112 - 2026-06-21 - HDR #150 - WikiGraph /demo: full guided candidate journey (Human Lead:
+// "use the demo to show how are you going to guide a full candidate"). Static demo only. The
+// Candidate lens on a role (Data Analyst) now renders a 7-step guided journey, each step an existing
+// v3 result panel chained: (1) Job Anatomy (work-layer mix + AI-resilience), (2) Skill Analysis
+// (skills bucketed by AI level Human-Led->AI-Assisted->AI-Augmented->Full Automation), (3) Demand
+// Proof, (4) Foundation gaps + 7/14/30-day plan, (5) the edge/ecotone to aim for (human-led =
+// least automatable = AI-readiness), (6) Progression + Crossover, (7) Positioning + next move. AI
+// levels coloured on the v3 blue<->orange ramp (no red/green). No app/engine change; api/mcf.js +
+// frozen symbols untouched. G1 (v3.0.111 -> v3.0.112).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 

@@ -150,6 +150,21 @@
   .edge-call{margin-top:14px;border-radius:12px;padding:12px 14px;background:#fffbeb;border:1px solid #fcd9a0;font-size:.8125rem;color:#7c4a06}
   .edge-call b{color:#b45309}
   .gtools button.on{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
+  .jstep{border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px;box-shadow:var(--neoSm)}
+  .jstep h4{margin:0 0 9px;font-size:.8125rem;color:var(--text);display:flex;align-items:center;gap:8px}
+  .jnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--eu);color:#fff;font-size:.6875rem;font-weight:800;flex-shrink:0}
+  .ai-chip{display:inline-block;font-size:.6875rem;font-weight:700;border-radius:7px;padding:2px 8px;margin:3px 4px 0 0;border:1px solid}
+  .ai-auto{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+  .ai-aug{background:#fffbeb;border-color:#fcd9a0;color:#b45309}
+  .ai-assist{background:#e8f0fe;border-color:#c7d2fe;color:#1a56db}
+  .ai-human{background:#ecfeff;border-color:#a5f3fc;color:#0e7490}
+  .lbar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.75rem}
+  .lbar-t{min-width:138px;color:var(--sub)}
+  .lbar-track{flex:1;height:9px;background:#d6deea;border-radius:999px;overflow:hidden}
+  .lbar-fill{height:100%}
+  .plan{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .plan-c{flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:8px;font-size:.75rem}
+  .plan-c b{display:block;color:var(--eu);font-size:.6875rem;margin-bottom:3px}
   /* v3 surfaces are neumorphic: same tone as the page, raised by dual light/dark shadows */
   .note,.searchcard,.graph-card,.pcard{box-shadow:var(--neo)}
   .picker{box-shadow:var(--neoSm)}
@@ -436,7 +451,18 @@ if(NODES["skill:stakeholder"]) NODES["skill:stakeholder"].realm="edge";
 if(NODES["stake:mas"]) NODES["stake:mas"].realm="external";
 if(NODES["role:da"]) NODES["role:da"].kids.push("ext:customers","ext:vendor");
 if(NODES["role:neurosurg"]) NODES["role:neurosurg"].kids.push("ext:patients");
-if(NODES["role:da"]) NODES["role:da"].candidate={exposure:"Moderate",exposurePct:54,resilient:"Stakeholder Management (human-led)",automatable:"Monthly reporting",fit:"Strong on SQL; build one stakeholder-coordination proof",edge:"Sits between Finance (internal) and Customers/Vendor (external)"};
+if(NODES["role:da"]) NODES["role:da"].candidate={
+  exposure:"Moderate", exposurePct:54, resilience:62,
+  anatomy:[{l:"Routine data processing",pct:35,ai:"auto"},{l:"Analysis & judgement",pct:30,ai:"aug"},{l:"Coordination",pct:20,ai:"assist"},{l:"Stakeholder / relational",pct:15,ai:"human"}],
+  skills:[{s:"Monthly reporting",ai:"auto"},{s:"Data Visualisation",ai:"aug"},{s:"SQL",ai:"assist"},{s:"Stakeholder Management",ai:"human"},{s:"Requirements Gathering",ai:"human"}],
+  demand:[["Postings","~25 sampled"],["Recency","active - within 30 days"],["Salary","~$4.5k-6.5k (rough)"],["Experience","0-2 yrs friendly"],["Verdict","Active demand"]],
+  gaps:[{need:"SQL",have:true},{need:"Stakeholder Management",have:false,proof:"coordinate one cross-team outcome"},{need:"Data Visualisation",have:false,proof:"build one dashboard"}],
+  plan:[["7 days","Ship a SQL query project on real data"],["14 days","Turn it into one dashboard (SQL + viz)"],["30 days","Write a stakeholder-coordination story"]],
+  edge:"Aim at Stakeholder Management + Requirements - the human-led edge AI cannot own. That share is your AI-readiness.",
+  progression:["Data Analyst","Senior Analyst","Analytics Lead"],
+  crossover:["Business Analyst","Data Scientist (add Python)"],
+  positioning:"I connect data, stakeholders and decisions - I use AI to speed routine reporting and keep judgement where trust matters."
+};
 if(NODES["role:neurosurg"]) NODES["role:neurosurg"].candidate={exposure:"Low",exposurePct:22,resilient:"Surgical judgement, patient trust",automatable:"Routine scan triage",fit:"Lead with outcomes and judgement AI cannot own",edge:"Between the hospital and its patients"};
 if(NODES["dept:analytics"]) NODES["dept:analytics"].valueStream={leadTime:"~10 days each month-end",friction:"Manual data pull is the bottleneck (value-eroding) - and is why the Data Analyst role exists. AI can absorb it.",steps:[{n:"Pull data",k:"erode"},{n:"Validate",k:"create"},{n:"Build report",k:"create"},{n:"Stakeholder review",k:"capture"},{n:"Decision",k:"capture"}]};
 if(NODES["role:da"]) NODES["role:da"].valueStream={leadTime:"~3 days per report",friction:"The hand-off from raw data to clean numbers leaks time - the edge-of-core to fix.",steps:[{n:"Raw data",k:"erode"},{n:"SQL clean",k:"create"},{n:"Dashboard",k:"create"},{n:"Brief Finance",k:"capture"}]};
@@ -546,7 +572,8 @@ function renderLens(id){ const el=$("lensbar"); if(!el) return; el.innerHTML="";
     b.onclick=()=>{ LENS=k; renderNote(id,true); }; el.appendChild(b); }); }
 function renderLensInto(n,id,note){
   if(realmOf(id)==="edge"){ const e=document.createElement("div"); e.className="edge-call"; e.innerHTML="<b>Edge zone (ecotone).</b> This sits where the organisation meets the outside world - the boundary where value and interaction are richest, and where work is least automatable. Candidate: stand here. Organisation: the edge of the core is where growth hides."; note.appendChild(e); }
-  if(LENS==="candidate" && n.candidate){ const c=n.candidate; const d=document.createElement("div"); d.className="lblock"; d.innerHTML="<h4>Candidate view - from the v3 result engine</h4>";
+  if(LENS==="candidate" && n.candidate && n.candidate.anatomy){ renderCandidateJourney(n.candidate, note); }
+  else if(LENS==="candidate" && n.candidate){ const c=n.candidate; const d=document.createElement("div"); d.className="lblock"; d.innerHTML="<h4>Candidate view - from the v3 result engine</h4>";
     const ex=document.createElement("div"); ex.className="expo"; ex.innerHTML='<span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+(c.exposurePct||40)+'%"></span></span>'; d.appendChild(ex);
     [["Most automatable",c.automatable],["Human-led core",c.resilient],["Your fit",c.fit],["Edge position",c.edge]].forEach(([k,v])=>{ if(!v) return; const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); });
     const m=document.createElement("div"); m.className="vmeta"; m.textContent="Illustrative - the real app fills this from Skill Analysis, Job Anatomy, AI-exposure and Positioning."; d.appendChild(m); note.appendChild(d); }
@@ -557,6 +584,33 @@ function renderLensInto(n,id,note){
     const lt=document.createElement("div"); lt.className="vmeta"; lt.innerHTML="Lead time: <b>"+vs.leadTime+"</b>"; d.appendChild(lt);
     const fr=document.createElement("div"); fr.className="vmeta"; fr.textContent="Friction: "+vs.friction; d.appendChild(fr); note.appendChild(d); }
   else if(LENS==="org"){ const m=document.createElement("div"); m.className="vmeta"; m.style.marginTop="12px"; m.textContent="No value stream mapped here - try a Department or Role (e.g. Group Data & Analytics, Data Analyst)."; note.appendChild(m); }
+}
+const AI_LABEL={auto:"Full Automation",aug:"AI-Augmented",assist:"AI-Assisted",human:"Human-Led"};
+const AI_CLS={auto:"ai-auto",aug:"ai-aug",assist:"ai-assist",human:"ai-human"};
+const AI_COLOR={auto:"#b45309",aug:"#d97706",assist:"#1a56db",human:"#0e7490"};
+function renderCandidateJourney(c, note){
+  const head=document.createElement("div"); head.className="lblock";
+  head.innerHTML="<h4>Candidate guidance - a guided read, chained from your v3 result panels</h4>"+
+    '<div class="expo"><span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+c.exposurePct+'%"></span></span></div>'+
+    '<div class="vmeta">Illustrative - in the real app each step pulls live engine output.</div>';
+  note.appendChild(head);
+  let step=0;
+  const jstep=(title,build)=>{ step++; const d=document.createElement("div"); d.className="jstep"; const h=document.createElement("h4"); h.innerHTML='<span class="jnum">'+step+"</span>"+title; d.appendChild(h); build(d); note.appendChild(d); };
+  jstep("What this role really is (Job Anatomy)", d=>{
+    c.anatomy.forEach(a=>{ const r=document.createElement("div"); r.className="lbar"; r.innerHTML='<span class="lbar-t">'+a.l+'</span><span class="lbar-track"><span class="lbar-fill" style="width:'+a.pct+"%;background:"+AI_COLOR[a.ai]+'"></span></span><span style="min-width:104px;font-size:.6875rem;color:'+AI_COLOR[a.ai]+';font-weight:700">'+AI_LABEL[a.ai]+"</span>"; d.appendChild(r); });
+    const m=document.createElement("div"); m.className="vmeta"; m.innerHTML="AI-resilience score: <b>"+c.resilience+"/100</b> - higher = more human-led."; d.appendChild(m); });
+  jstep("What it asks for, by AI level (Skill Analysis)", d=>{
+    ["human","assist","aug","auto"].forEach(k=>{ const sk=c.skills.filter(s=>s.ai===k); if(!sk.length) return; const row=document.createElement("div"); row.style.margin="4px 0"; row.innerHTML='<span style="font-size:.6875rem;font-weight:800;color:'+AI_COLOR[k]+'">'+AI_LABEL[k]+"</span> "+sk.map(s=>'<span class="ai-chip '+AI_CLS[k]+'">'+s.s+"</span>").join(""); d.appendChild(row); });
+    const m=document.createElement("div"); m.className="vmeta"; m.textContent="Build proof on the Human-Led skills first - they are your edge and the least automatable."; d.appendChild(m); });
+  jstep("Is the demand real (Demand Proof)", d=>{ c.demand.forEach(([k,v])=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); }); });
+  jstep("Your gaps and a 7 / 14 / 30-day plan (Foundation)", d=>{
+    c.gaps.forEach(g=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=g.need; const vv=document.createElement("span"); vv.className="v"; vv.textContent=g.have?"you likely have this":"build proof: "+g.proof; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); });
+    const plan=document.createElement("div"); plan.className="plan"; c.plan.forEach(([w,t])=>{ const c2=document.createElement("div"); c2.className="plan-c"; c2.innerHTML="<b>"+w+"</b>"+t; plan.appendChild(c2); }); d.appendChild(plan); });
+  jstep("The edge to aim for (ecotone)", d=>{ const e=document.createElement("div"); e.className="edge-call"; e.style.marginTop="0"; e.innerHTML="<b>Stand at the edge.</b> "+c.edge; d.appendChild(e); });
+  jstep("Where you can go (Progression + Crossover)", d=>{
+    const p=document.createElement("div"); p.innerHTML='<span class="vmeta">Progression:</span> '+c.progression.map(x=>'<span class="ai-chip ai-assist">'+x+"</span>").join(' <span style="color:var(--muted)">&rarr;</span> '); d.appendChild(p);
+    const x=document.createElement("div"); x.style.marginTop="6px"; x.innerHTML='<span class="vmeta">Crossover:</span> '+c.crossover.map(y=>'<span class="ai-chip ai-human">'+y+"</span>").join(" "); d.appendChild(x); });
+  jstep("Your positioning + next move (Candidate Positioning)", d=>{ const p=document.createElement("div"); p.style.cssText="font-style:italic;color:var(--text);font-size:.875rem"; p.textContent="“"+c.positioning+"”"; d.appendChild(p); });
 }
 
 /* ===== ecosystem graph: radial focus-browser + top-down org chart ===== */
