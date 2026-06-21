@@ -1070,6 +1070,18 @@
 // chart" button + its wiring; the radial focus-browser is now the single graph mode (gTitle/hint
 // simplified to radial-only). The org-chart layout code is left dormant/unused. No app/engine
 // change; api/mcf.js + frozen symbols untouched. G1 (v3.0.109 -> v3.0.110).
+// v3.0.111 - 2026-06-21 - HDR #149 - WikiGraph /demo: candidate/org lenses + ecotone overlay +
+// value stream (Human Lead brief: incorporate existing v3 results for candidate AND organisation;
+// value stream from Flow Engineering; present internal<->external interlink via the ecotone /
+// edge-effect PDF). Static demo only. public/demo.html: (1) a Candidate / Organisation LENS toggle
+// on every note - Candidate reuses the v3 result framing (AI-exposure bar, automatable vs human-led
+// core, fit, edge position); Organisation shows a VALUE-STREAM strip (steps tagged value-creating /
+// capturing / eroding, lead time, friction) per Steve Pereira's Flow Engineering + Teixeira's value
+// chain. (2) An ECOTONE overlay toggle on the graph: nodes tinted by realm (internal / edge /
+// external), boundary-spanning "edge species" glow amber, and links crossing internal<->external
+// are emphasised - the edge is where value is richest + least automatable (Lewis & McKone edge-of-
+// core; the ecotone/edge-effect ecology metaphor). Added external nodes (customers, vendor,
+// patients). No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.110 -> v3.0.111).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
