@@ -1019,6 +1019,14 @@
 // judgement stays human-led). New "agency" layer + legend entry; gov structure tagged derived,
 // roles via careers.gov.sg. No app/engine change; api/mcf.js + frozen symbols untouched. G1
 // (v3.0.102 -> v3.0.103).
+// v3.0.104 - 2026-06-21 - HDR #142 - WikiGraph /demo: broaden government coverage (Human Lead:
+// "add more ministries"). Static prototype only. public/demo.html: new top-level "Singapore
+// Government" node -> 16 ministries (from SGDI); MOE and MHA now fully mapped from sgdi.gov.sg
+// (MOE: SkillsFuture/ITE/SEAB + polytechnics + autonomous universities incl. NUS/NTU; MHA Home
+// Team: SPF/SCDF/ICA/ISD/CNB/HTX/Home Team Academy + an HTX careers.gov.sg role). The other 13
+// ministries are honest "listed in SGDI, not mapped" leaves; a NUS->NUHS cross-link demonstrates
+// the loop between Education and Health. 75 nodes, 0 broken links. No app/engine change; api/mcf.js
+// + frozen symbols untouched. G1 (v3.0.103 -> v3.0.104).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
