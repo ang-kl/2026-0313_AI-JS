@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JobAds WikiGraph - MVP demo</title>
+<title>AI Readiness across Skills and Competences · JobAds from Singapore</title>
 <style>
   /* tokens + neumorphic NEO shadows matched to the current v3 app (C palette + NEO in App.jsx) */
   :root{
@@ -26,8 +26,8 @@
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px 64px}
 
   header.bar{position:sticky;top:0;z-index:5;background:linear-gradient(100deg,var(--navy),var(--eu));border-bottom:1px solid rgba(255,255,255,.12)}
-  .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:10px}
-  .brand{font-weight:800;font-size:1rem;letter-spacing:-.01em;color:#fff}
+  .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+  .brand{font-weight:800;font-size:.9375rem;letter-spacing:-.01em;color:#fff;line-height:1.25;min-width:0}
   .bar .btn{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
   .bar .btn:hover:not(:disabled){background:rgba(255,255,255,.24)}
   .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
@@ -137,7 +137,7 @@
 <body>
 <header class="bar">
   <div class="bar-in">
-    <span class="brand">JobAds WikiGraph</span>
+    <span class="brand"><span aria-hidden="true" style="color:#ffcc00">&#9733;</span> AI Readiness across Skills and Competences <span style="opacity:.55;font-weight:400">&middot;</span> JobAds from Singapore</span>
     <span class="demo-badge">MVP demo</span>
     <span class="spacer"></span>
     <button class="btn" id="homeBtn">Home</button>
@@ -521,14 +521,18 @@ function layoutOrg(){
   (function dfs(id){ order.push(id); const ks=G.expanded.has(id)?(NODES[id].kids||[]).filter(k=>NODES[k]&&!visited.has(k)):[]; tree[id]=ks; ks.forEach(k=>{visited.add(k);parent[k]=id;}); ks.forEach(dfs); })(root);
   const depth={}, xs={}; let leaf=0;
   (function assign(id,d){ depth[id]=d; const ks=tree[id]; if(!ks.length){ xs[id]=leaf; leaf++; } else { ks.forEach(k=>assign(k,d+1)); xs[id]=(xs[ks[0]]+xs[ks[ks.length-1]])/2; } })(root,0);
-  const total=Math.max(1,leaf), COLW=180, ROWH=98, target={}, scaleT={};
+  const total=Math.max(1,leaf), COLW=200, ROWH=124, target={}, scaleT={};
   order.forEach(id=>{ target[id]={x:CX+(xs[id]-(total-1)/2)*COLW, y:70+depth[id]*ROWH}; scaleT[id]=0.95+countBump(id); });
   G.order=order; G.parent=parent; G.target=target; G.scaleT=scaleT;
   G.edges=order.filter(id=>parent[id]!=null).map(id=>[parent[id],id]);
 }
 function layout(){ if(G.mode==="org") layoutOrg(); else layoutRadial(); }
 
-function pillOf(id){ const n=NODES[id]; const label=(n.title.length>24?n.title.slice(0,23)+"…":n.title)+(n.count?(" ("+n.count+")"):""); return {label, w:Math.max(60,label.length*7.2+26), h:32}; }
+function wrapLabel(s,maxChars){ const words=String(s).split(/\s+/).filter(Boolean), lines=[]; let cur="";
+  for(let w of words){ while(w.length>maxChars){ if(cur){lines.push(cur);cur="";} lines.push(w.slice(0,maxChars)); w=w.slice(maxChars); }
+    if(!cur) cur=w; else if((cur+" "+w).length<=maxChars) cur+=" "+w; else { lines.push(cur); cur=w; } }
+  if(cur) lines.push(cur); return lines.length?lines:[""]; }
+function pillOf(id){ const n=NODES[id]; const txt=n.title+(n.count?(" ("+n.count+")"):""); const maxChars=18; const lines=wrapLabel(txt,maxChars); const longest=Math.max(1,...lines.map(l=>l.length)); const lh=15; return {lines, w:Math.max(66,longest*7.0+26), h:Math.max(32,lines.length*lh+14), lh}; }
 function orgExpandable(id){ return ((NODES[id].kids||[]).filter(k=>NODES[k]).length>0) || (NODES[id].live && !NODES[id]._loaded); }
 async function loadLive(id){
   const n=NODES[id]; if(!n||!n.live||n._loaded||n._loading) return; n._loading=true;
@@ -552,8 +556,10 @@ function ensureDOM(){
   G.edges.forEach(([a,b])=>{ const l=document.createElementNS(NS,"path"); l.setAttribute("fill","none"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.6"); view.appendChild(l); G.els.line[a+">"+b]={l,a,b}; });
   G.order.forEach(id=>{ const n=NODES[id], lay=LAYER[n.layer]||LAYER.skill, pw=pillOf(id);
     const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button"); g.setAttribute("aria-label",n.title+", "+(lay.t||""));
-    const rect=document.createElementNS(NS,"rect"); rect.setAttribute("x",-pw.w/2); rect.setAttribute("y",-pw.h/2); rect.setAttribute("width",pw.w); rect.setAttribute("height",pw.h); rect.setAttribute("rx",pw.h/2); rect.setAttribute("fill",lay.b); rect.setAttribute("stroke",id===G.sel?lay.c:lay.bd); rect.setAttribute("stroke-width",id===G.sel?3:1.6); g.appendChild(rect);
-    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("dy","0.34em"); t.setAttribute("fill",lay.c); t.setAttribute("font-size","13"); t.setAttribute("font-weight","700"); t.textContent=pw.label; g.appendChild(t);
+    const rect=document.createElementNS(NS,"rect"); rect.setAttribute("x",-pw.w/2); rect.setAttribute("y",-pw.h/2); rect.setAttribute("width",pw.w); rect.setAttribute("height",pw.h); rect.setAttribute("rx",Math.min(16,pw.h/2)); rect.setAttribute("fill",lay.b); rect.setAttribute("stroke",id===G.sel?lay.c:lay.bd); rect.setAttribute("stroke-width",id===G.sel?3:1.6); g.appendChild(rect);
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("fill",lay.c); t.setAttribute("font-size","12.5"); t.setAttribute("font-weight","700");
+    const sy=-((pw.lines.length-1)*pw.lh)/2; pw.lines.forEach((ln,li)=>{ const ts=document.createElementNS(NS,"tspan"); ts.setAttribute("x",0); ts.setAttribute("y",sy+li*pw.lh); ts.setAttribute("dy","0.32em"); ts.textContent=ln; t.appendChild(ts); });
+    g.appendChild(t);
     if(G.mode==="org" && orgExpandable(id)){ const bx=pw.w/2; const bc=document.createElementNS(NS,"circle"); bc.setAttribute("cx",bx); bc.setAttribute("cy",0); bc.setAttribute("r",9); bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",lay.c); bc.setAttribute("stroke-width","1.6"); g.appendChild(bc); const bt=document.createElementNS(NS,"text"); bt.setAttribute("x",bx); bt.setAttribute("text-anchor","middle"); bt.setAttribute("dy","0.32em"); bt.setAttribute("fill",lay.c); bt.setAttribute("font-size","13"); bt.setAttribute("font-weight","800"); bt.textContent=G.expanded.has(id)?"−":"+"; g.appendChild(bt); }
     g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
     g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});

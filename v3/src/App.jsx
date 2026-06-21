@@ -1050,6 +1050,14 @@
 // match: NEO raise/inset shadow vars, same-tone panels, radial-dot page backdrop, navy->eu gradient
 // header with light-on-navy controls, inset inputs, v3 font stack. No app/engine change; api/mcf.js
 // + frozen symbols untouched. G1 (v3.0.106 -> v3.0.107).
+// v3.0.108 - 2026-06-21 - HDR #146 - WikiGraph /demo: header title + word-wrapped graph bubbles
+// (Human Lead: title should be "AI Readiness across Skills and Competences (middot) JobAds from
+// Singapore"; "word wrap bubble !! don't truncate"). Static demo only. public/demo.html: header
+// brand + page <title> set to the v3 title with a middle dot (star + navy band kept); and the SVG
+// graph bubbles now WORD-WRAP the full node title across multiple tspan lines (wrapLabel, ~18 ch/
+// line) with the rounded-rect sized to fit - no more ellipsis truncation; org-chart row/col spacing
+// widened for the taller bubbles. No app/engine change; api/mcf.js + frozen symbols untouched. G1
+// (v3.0.107 -> v3.0.108).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
