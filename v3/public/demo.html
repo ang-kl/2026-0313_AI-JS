@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JobAds WikiGraph - MVP demo</title>
 <style>
+  /* tokens matched to the current v3 app (the C palette in App.jsx) */
   :root{
-    --bg:#f8fafc; --surface:#ffffff; --border:#e2e8f0;
-    --text:#0f172a; --sub:#475569; --muted:#94a3b8;
-    --blue:#1e40af; --blueBg:#dbeafe; --blueBd:#93c5fd; --accent:#2563eb;
-    --teal:#0f766e; --tealBg:#f0fdfa; --tealBd:#99f6e4;
-    --orange:#b45309; --orangeBg:#fef3c7; --orangeBd:#fcd34d;
-    --slate:#5b21b6; --slateBg:#ede9fe; --slateBd:#c4b5fd;
+    --bg:#e6ebf2; --surface:#ffffff; --border:#e3e9f1;
+    --text:#1a202c; --sub:#4a5568; --muted:#5b6878;
+    --blue:#1e40af; --blueBg:#e8f0fe; --blueBd:#c7d2fe; --accent:#1a56db; --eu:#003399;
+    --teal:#0e7490; --tealBg:#ecfeff; --tealBd:#a5f3fc;
+    --orange:#b45309; --orangeBg:#fffbeb; --orangeBd:#fcd9a0;
+    --slate:#7c3aed; --slateBg:#f3e8ff; --slateBd:#ddd6fe;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
@@ -32,7 +33,7 @@
   .btn:disabled{opacity:.4;cursor:default}
 
   .hero{padding:28px 0 8px}
-  .hero h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em}
+  .hero h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em;background:linear-gradient(95deg,var(--text) 0%,var(--accent) 55%,var(--teal) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .hero p{margin:0;color:var(--sub);font-size:.9375rem}
   .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
   @media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
@@ -55,7 +56,8 @@
   .searchrow{display:flex;gap:8px}
   .searchrow input{flex:1;background:var(--surface);border:2px solid var(--accent);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit}
   .searchrow input:focus{outline:2px solid var(--blueBd);outline-offset:1px}
-  .go{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;font-weight:700;font-size:.8125rem;white-space:nowrap}
+  .go{background:var(--eu);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;font-weight:700;font-size:.8125rem;white-space:nowrap}
+  .go:hover{filter:brightness(1.12)}
   .criteria{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px;padding:12px;border-radius:10px;background:#f1f5f9;border:1px solid var(--border)}
   .criteria .clab{font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
   .criteria select{min-height:38px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:6px 10px;font:inherit;font-size:.8125rem;color:var(--text)}
@@ -119,6 +121,8 @@
   .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
   footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
   footer.note-foot b{color:var(--text)}
+  /* v3 surfaces carry a soft raise shadow */
+  .note,.searchcard,.graph-card,.picker,.pcard{box-shadow:0 1px 2px rgba(16,24,40,.04),0 1px 3px rgba(16,24,40,.06)}
   .hidden{display:none}
 </style>
 </head>
@@ -173,18 +177,19 @@
 <script>
 const PROV={mcf:{c:"mcf",i:"●",t:"from MCF"},computed:{c:"computed",i:"✓",t:"computed"},derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
 /* ecosystem layers - colour by layer, never red/green; text label always carries the meaning too */
+/* layer colours pulled into the v3 token families (blue / teal / purple / amber; no red/green) */
 const LAYER={
-  organisation:{c:"#1e40af",b:"#dbeafe",bd:"#93c5fd",t:"Organisation"},
-  department:{c:"#0369a1",b:"#e0f2fe",bd:"#7dd3fc",t:"Department"},
-  agency:{c:"#4338ca",b:"#e0e7ff",bd:"#a5b4fc",t:"Statutory board / agency"},
-  pressure:{c:"#475569",b:"#f1f5f9",bd:"#cbd5e1",t:"Pressure / friction"},
-  role:{c:"#5b21b6",b:"#ede9fe",bd:"#c4b5fd",t:"Role"},
-  job_ad:{c:"#0f766e",b:"#f0fdfa",bd:"#5eead4",t:"Job ad"},
+  organisation:{c:"#1a56db",b:"#e8f0fe",bd:"#c7d2fe",t:"Organisation"},
+  department:{c:"#0369a1",b:"#e0f2fe",bd:"#bae6fd",t:"Department"},
+  agency:{c:"#4338ca",b:"#e0e7ff",bd:"#c7d2fe",t:"Statutory board / agency"},
+  pressure:{c:"#5b6878",b:"#eef2f7",bd:"#d6deea",t:"Pressure / friction"},
+  role:{c:"#7c3aed",b:"#f3e8ff",bd:"#ddd6fe",t:"Role"},
+  job_ad:{c:"#0e7490",b:"#ecfeff",bd:"#a5f3fc",t:"Job ad"},
   skill:{c:"#0e7490",b:"#cffafe",bd:"#67e8f9",t:"Skill / ESCO"},
-  stakeholder:{c:"#c2410c",b:"#ffedd5",bd:"#fdba74",t:"Stakeholder"},
-  risk:{c:"#7c2d12",b:"#fef2e2",bd:"#fdba74",t:"Risk"},
-  ai_impact:{c:"#7c3aed",b:"#f5f3ff",bd:"#ddd6fe",t:"AI impact"},
-  positioning:{c:"#0d9488",b:"#f0fdfa",bd:"#5eead4",t:"Positioning"}
+  stakeholder:{c:"#b45309",b:"#fffbeb",bd:"#fcd9a0",t:"Stakeholder"},
+  risk:{c:"#9a3412",b:"#fff7ed",bd:"#fdba74",t:"Risk"},
+  ai_impact:{c:"#6d28d9",b:"#f5f3ff",bd:"#ddd6fe",t:"AI impact"},
+  positioning:{c:"#0d9488",b:"#ecfeff",bd:"#99f6e4",t:"Positioning"}
 };
 
 /* ===== ecosystem sample data (DBS) - follows the two Obsidian papers ===== */
