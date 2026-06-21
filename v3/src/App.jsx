@@ -1042,6 +1042,14 @@
 // shadow, and the v3 gradient hero heading (text->accent->teal). Graph layer colours pulled into the
 // same blue/teal/purple/amber families (still no red/green). No app/engine change; api/mcf.js +
 // frozen symbols untouched. G1 (v3.0.105 -> v3.0.106).
+// v3.0.107 - 2026-06-21 - HDR #145 - WikiGraph /demo: true v3 NEUMORPHIC styling (Human Lead:
+// "/demo didn't use the colour and style of v3"). Inspected the live site (Playwright): v3 is a
+// soft-UI / neumorphic surface - panels are the SAME #e6ebf2 tone as the page, raised by the NEO
+// dual light/dark shadows (not white cards + borders), over a faint network-dot backdrop, with a
+// navy header band and the IBM Plex Sans stack. Static demo only - public/demo.html rebuilt to
+// match: NEO raise/inset shadow vars, same-tone panels, radial-dot page backdrop, navy->eu gradient
+// header with light-on-navy controls, inset inputs, v3 font stack. No app/engine change; api/mcf.js
+// + frozen symbols untouched. G1 (v3.0.106 -> v3.0.107).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
