@@ -1065,6 +1065,11 @@
 // also inaccurate on gov nodes); "Verbatim MCF field" -> "Verbatim from the posting"; "not MCF" ->
 // "not MyCareersFuture". No user-facing "MCF" left. No app/engine change; api/mcf.js + frozen
 // symbols untouched. G1 (v3.0.108 -> v3.0.109).
+// v3.0.110 - 2026-06-21 - HDR #148 - WikiGraph /demo: drop the org-chart toggle (Human Lead:
+// "forget about the org chart"). Static demo only. public/demo.html: removed the "Switch to org
+// chart" button + its wiring; the radial focus-browser is now the single graph mode (gTitle/hint
+// simplified to radial-only). The org-chart layout code is left dormant/unused. No app/engine
+// change; api/mcf.js + frozen symbols untouched. G1 (v3.0.109 -> v3.0.110).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
