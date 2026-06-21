@@ -1058,6 +1058,13 @@
 // line) with the rounded-rect sized to fit - no more ellipsis truncation; org-chart row/col spacing
 // widened for the taller bubbles. No app/engine change; api/mcf.js + frozen symbols untouched. G1
 // (v3.0.107 -> v3.0.108).
+// v3.0.109 - 2026-06-21 - HDR #147 - WikiGraph /demo: drop the "MCF" abbreviation (Human Lead:
+// "still have MCF!!"). Static demo only. public/demo.html: persona card "Find MCF Jobs" -> "Find
+// SG Jobs"; the verbatim-source prov chip label "from MCF" -> "verbatim from posting" (the demo's
+// prov:"mcf" kind tags BOTH MyCareersFuture and careers.gov.sg postings, so the abbreviation was
+// also inaccurate on gov nodes); "Verbatim MCF field" -> "Verbatim from the posting"; "not MCF" ->
+// "not MyCareersFuture". No user-facing "MCF" left. No app/engine change; api/mcf.js + frozen
+// symbols untouched. G1 (v3.0.108 -> v3.0.109).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 

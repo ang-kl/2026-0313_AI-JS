@@ -183,7 +183,7 @@
 </div>
 
 <script>
-const PROV={mcf:{c:"mcf",i:"●",t:"from MCF"},computed:{c:"computed",i:"✓",t:"computed"},derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
+const PROV={mcf:{c:"mcf",i:"●",t:"verbatim from posting"},computed:{c:"computed",i:"✓",t:"computed"},derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
 /* ecosystem layers - colour by layer, never red/green; text label always carries the meaning too */
 /* layer colours pulled into the v3 token families (blue / teal / purple / amber; no red/green) */
 const LAYER={
@@ -314,18 +314,18 @@ const NODES = {
     body:"All sampled DBS roles ask for a degree - verbatim from the postings, high confidence.",
     kids:["role:da","role:ba"],nextMove:"lead with relevant coursework or projects."},
   "exp:02":{layer:"role",typeLabel:"Experience",title:"0-2 Years",prov:"mcf",
-    fields:[["Source","Verbatim MCF field"]],
+    fields:[["Source","Verbatim from the posting"]],
     body:"[[jobad:da|The Data Analyst ad]] accepts 0-2 years - friendly to a fresh grad.",
     kids:["jobad:da"],nextMove:"target this entry-friendly band while building proof."},
   "exp:35":{layer:"role",typeLabel:"Experience",title:"3-5 Years",prov:"mcf",
-    fields:[["Source","Verbatim MCF field"]],
+    fields:[["Source","Verbatim from the posting"]],
     body:"[[jobad:ba|The Business Analyst ad]] needs 3-5 years - not a fresh-grad entry point.",
     kids:["jobad:ba"],nextMove:"if you lack this, pivot to a 0-2 yr role first."},
 
   /* ----- real government org chart, mapped from the Singapore Government Directory (sgdi.gov.sg) ----- */
   "org:moh":{layer:"organisation",typeLabel:"Organisation (ministry)",title:"Ministry of Health",prov:"derived",
     fields:[["Type","Government ministry"],["Structure source","Singapore Government Directory (sgdi.gov.sg)"],["Roles via","careers.gov.sg"]],
-    body:"The Ministry of Health, mapped from the Singapore Government Directory. Three policy pillars, statutory boards such as [[sb:hsa|HSA]] and [[sb:hpb|HPB]], and three healthcare clusters. Government roles are advertised on careers.gov.sg, not MCF.",
+    body:"The Ministry of Health, mapped from the Singapore Government Directory. Three policy pillars, statutory boards such as [[sb:hsa|HSA]] and [[sb:hpb|HPB]], and three healthcare clusters. Government roles are advertised on careers.gov.sg, not MyCareersFuture.",
     kids:["moh:policy","moh:services","moh:dev","sb:cda","sb:hpb","sb:hsa","sb:aic","cl:nhg","cl:nuhs","cl:shs"],
     nextMove:"pick a cluster or board - that is where the hiring body actually sits."},
   "moh:policy":{layer:"department",typeLabel:"Division",title:"Policy Pillar",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"One of MOH's three pillars - sets national health policy.",kids:[],nextMove:"policy roles favour analysis + stakeholder skills."},
@@ -342,7 +342,7 @@ const NODES = {
   "dept:neurosurg":{layer:"department",typeLabel:"Clinical department",title:"Neurosurgery (NUH)",prov:"derived",fields:[["Hospital","[[hosp:nuh|National University Hospital]]"]],body:"The Neurosurgery department. Hires consultants and registrars; routine [[ai:imaging|brain-imaging triage]] is AI-assistable, but surgical judgement is human-led.",kids:["role:neurosurg","ai:imaging"],nextMove:"see the consultant role and where AI fits clinical imaging."},
   "dept:neuro":{layer:"department",typeLabel:"Clinical department",title:"Neurology (NUH)",prov:"derived",fields:[["Hospital","[[hosp:nuh|National University Hospital]]"]],body:"Neurology - shares the [[ai:imaging|imaging-AI]] context with [[dept:neurosurg|Neurosurgery]].",kids:["ai:imaging"],nextMove:"adjacent to neurosurgery; overlapping imaging workflows."},
   "role:neurosurg":{layer:"role",typeLabel:"Role",title:"Consultant, Neurosurgery",prov:"mcf",fields:[["Department","[[dept:neurosurg|Neurosurgery (NUH)]]"],["Source","careers.gov.sg"]],body:"A consultant role advertised on careers.gov.sg. Branches: the [[jobad:neurosurg|job ad]] and the [[ai:imaging|AI-imaging]] impact. Surgical judgement and patient trust stay human-led.",kids:["jobad:neurosurg","ai:imaging"],nextMove:"position around judgement and outcomes AI cannot own."},
-  "jobad:neurosurg":{layer:"job_ad",typeLabel:"Job ad",title:"Consultant Neurosurgery - careers.gov.sg",prov:"mcf",fields:[["Source","careers.gov.sg (illustrative)"]],body:"Illustrative careers.gov.sg posting for a neurosurgery consultant under [[hosp:nuh|NUH]]. Gov clinical roles list on careers.gov.sg, not MyCareersFuture.",kids:["role:neurosurg"],nextMove:"search careers.gov.sg, not MCF, for public clinical roles."},
+  "jobad:neurosurg":{layer:"job_ad",typeLabel:"Job ad",title:"Consultant Neurosurgery - careers.gov.sg",prov:"mcf",fields:[["Source","careers.gov.sg (illustrative)"]],body:"Illustrative careers.gov.sg posting for a neurosurgery consultant under [[hosp:nuh|NUH]]. Gov clinical roles list on careers.gov.sg, not MyCareersFuture.",kids:["role:neurosurg"],nextMove:"search careers.gov.sg, not MyCareersFuture, for public clinical roles."},
   "ai:imaging":{layer:"ai_impact",typeLabel:"AI impact",title:"AI-assisted: brain-imaging triage",prov:"ai",fields:[["Read","Inferred - advisory"]],body:"Research on graph neural networks for brain imaging (e.g. Brain Sci. 2023) shows AI can help triage and flag scans - an assistive, advisory read. Diagnosis, the surgical decision, and patient trust remain human-led.",kids:["dept:neurosurg"],nextMove:"let AI pre-read routine scans; keep the diagnosis and the operating decision human."},
 
   /* ----- more of government: top level + two more ministries (mapped from SGDI) ----- */
@@ -408,7 +408,7 @@ const PERSONAS=[
     intent:"“Show me the standard concept and who hires for it.”",label:"Skill or occupation",ph:"e.g. Data Analysis, Stakeholder Management",
     criteria:[{type:"select",lab:"Standard",opts:["ESCO v1.2","ISCO-08"]},{type:"toggle",lab:"Include fresh-grad relevance",on:true}],
     suggestions:[{t:"Data Analysis",s:"ESCO v1.2 · ISCO 24",go:"esco:dataanalysis"},{t:"Stakeholder Management",s:"ESCO skill · human-led",go:"skill:stakeholder"},{t:"Quantum Welding",s:"no ESCO match - link withheld",go:null}],start:"esco:dataanalysis"},
-  {key:"mcf",ico:"🇸🇬",t:"Find MCF Jobs",d:"Current openings, turned into a linked ecosystem.",
+  {key:"mcf",ico:"🇸🇬",t:"Find SG Jobs",d:"Current openings, turned into a linked ecosystem.",
     intent:"“Find current jobs and the system behind them.”",label:"Job title or role",ph:"e.g. Data Analyst, Business Analyst",
     criteria:[{type:"select",lab:"Sector",opts:["All sectors","Banking & Finance","Public Service"]},{type:"select",lab:"Posted",opts:["Any time","Last 7 days","Last 30 days"]},{type:"toggle",lab:"Fresh grads · < 4 yrs",on:false}],
     suggestions:[{t:"Data Analyst",s:"DBS · 0-2 yrs",go:"role:da"},{t:"Business Analyst",s:"DBS · 3-5 yrs",go:"role:ba"},{t:"Data Scientist",s:"no sample here",go:null}],start:"role:da"},
