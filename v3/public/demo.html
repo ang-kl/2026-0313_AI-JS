@@ -463,7 +463,39 @@ if(NODES["role:da"]) NODES["role:da"].candidate={
   crossover:["Business Analyst","Data Scientist (add Python)"],
   positioning:"I connect data, stakeholders and decisions - I use AI to speed routine reporting and keep judgement where trust matters."
 };
-if(NODES["role:neurosurg"]) NODES["role:neurosurg"].candidate={exposure:"Low",exposurePct:22,resilient:"Surgical judgement, patient trust",automatable:"Routine scan triage",fit:"Lead with outcomes and judgement AI cannot own",edge:"Between the hospital and its patients"};
+if(NODES["role:neurosurg"]) NODES["role:neurosurg"].candidate={
+  exposure:"Low", exposurePct:22, resilience:84,
+  anatomy:[{l:"Routine scan review",pct:20,ai:"aug"},{l:"Diagnosis & planning",pct:30,ai:"assist"},{l:"Surgical execution",pct:30,ai:"human"},{l:"Patient trust & consent",pct:20,ai:"human"}],
+  skills:[{s:"Scan triage",ai:"aug"},{s:"Imaging interpretation",ai:"assist"},{s:"Surgical judgement",ai:"human"},{s:"Patient communication",ai:"human"},{s:"Multidisciplinary coordination",ai:"human"}],
+  demand:[["Source","careers.gov.sg (public service)"],["Setting","NUH / restructured hospitals"],["Experience","Specialist accreditation"],["Verdict","Specialised, steady demand"]],
+  gaps:[{need:"Specialist accreditation",have:true},{need:"AI-imaging literacy",have:false,proof:"show you can supervise an AI triage tool, not be replaced by it"}],
+  plan:[["7 days","Read the GNN brain-imaging evidence (Brain Sci. 2023)"],["14 days","Audit one AI triage tool's false-negative risk"],["30 days","Draft a human-in-the-loop scan-triage protocol"]],
+  edge:"Your edge is surgical judgement and patient trust - the deepest human-led zone. AI triages scans; you decide and operate.",
+  progression:["Consultant","Senior Consultant","Head of Department"],
+  crossover:["Neurology","Clinical informatics (AI + imaging)"],
+  positioning:"I use AI to pre-read routine scans and protect my time for the judgement, surgery and trust that AI cannot own."
+};
+if(NODES["role:ba"]) NODES["role:ba"].candidate={
+  exposure:"Moderate", exposurePct:48, resilience:66,
+  anatomy:[{l:"Documentation",pct:30,ai:"auto"},{l:"Analysis",pct:25,ai:"aug"},{l:"Requirements elicitation",pct:25,ai:"human"},{l:"Stakeholder alignment",pct:20,ai:"human"}],
+  skills:[{s:"Documentation",ai:"auto"},{s:"Process mapping",ai:"aug"},{s:"SQL",ai:"assist"},{s:"Requirements Gathering",ai:"human"},{s:"Stakeholder Management",ai:"human"}],
+  demand:[["Postings","DBS + similar"],["Experience","3-5 yrs"],["Salary","~$5k-7k (rough)"],["Verdict","Steady demand"]],
+  gaps:[{need:"Requirements Gathering",have:false,proof:"a requirements doc you wrote"},{need:"Stakeholder Management",have:false,proof:"a cross-team alignment story"}],
+  plan:[["7 days","Write one crisp requirements doc"],["14 days","Map one process end-to-end"],["30 days","Run a stakeholder alignment session"]],
+  edge:"Requirements elicitation + stakeholder alignment are your edge - human, ambiguous, trust-based.",
+  progression:["Business Analyst","Senior BA","Product Owner"],
+  crossover:["Data Analyst","Project Manager"],
+  positioning:"I translate between business and delivery - AI drafts the docs, I own the ambiguity and the alignment."
+};
+if(NODES["dept:neurosurg"]) NODES["dept:neurosurg"].org={
+  outcome:"Safe, timely neurosurgical care with the best possible patient outcomes.",
+  valueStream:{leadTime:"referral -> surgery: days to weeks",steps:[{n:"Referral",k:"erode"},{n:"Scan + triage",k:"create"},{n:"Diagnosis",k:"create"},{n:"Surgery decision",k:"capture"},{n:"Operation",k:"capture"},{n:"Recovery",k:"capture"}]},
+  capability:{constraint:"Scan triage + reporting turnaround",rootCause:"Radiology backlog; manual triage",measure:"AI triage can flag urgent scans faster"},
+  dependencies:[{name:"Radiology",realm:"internal",rel:"reads the scans"},{name:"Patients / families",realm:"external",rel:"consent + trust"},{name:"MOH standards",realm:"external",rel:"clinical governance"}],
+  edge:[{lens:"Product edge",note:"AI-assisted triage to surface urgent scans first"},{lens:"Journey edge",note:"Clearer consent + recovery guidance for patients"},{lens:"Enterprise edge",note:"Share the imaging-AI capability across Neurology too"}],
+  future:[{step:"Scan triage",v:"AI absorbs - flags urgent scans (Brain Sci. 2023 GNN)"},{step:"Diagnosis",v:"AI-augmented, clinician confirms"},{step:"Surgery decision",v:"stays human-led (judgement + trust)"}],
+  hiring:"Hire a [[role:neurosurg|Consultant Neurosurgeon]] who supervises AI triage and owns the surgical-judgement edge."
+};
 if(NODES["dept:analytics"]) NODES["dept:analytics"].valueStream={leadTime:"~10 days each month-end",friction:"Manual data pull is the bottleneck (value-eroding) - and is why the Data Analyst role exists. AI can absorb it.",steps:[{n:"Pull data",k:"erode"},{n:"Validate",k:"create"},{n:"Build report",k:"create"},{n:"Stakeholder review",k:"capture"},{n:"Decision",k:"capture"}]};
 if(NODES["dept:analytics"]) NODES["dept:analytics"].org={
   outcome:"Faster, trustworthy monthly decisions for the business units.",

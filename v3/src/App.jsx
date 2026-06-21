@@ -1100,6 +1100,14 @@
 // at the ecotone), (5) edge of core (Product/Journey/Enterprise edge - where growth hides), (6)
 // Future State (which steps AI absorbs vs stay human-led), (7) so who to hire (links back to the job
 // ad). No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.112 -> v3.0.113).
+// v3.0.114 - 2026-06-21 - HDR #152 - WikiGraph /demo: more journeys across domains (Human Lead:
+// polish). Static demo only - data only, reuses the existing journey renderers. Added full CANDIDATE
+// journeys for the Neurosurgery Consultant (clinical: edge = surgical judgement + patient trust; AI
+// triages brain scans per Brain Sci. 2023) and the Business Analyst; and a full ORGANISATION journey
+// for the Neurosurgery department (patient pathway value stream: referral -> scan/triage ->
+// diagnosis -> surgery decision -> operation -> recovery; AI absorbs triage, judgement stays human-
+// led; hiring links back to the consultant role). Shows both journeys hold across banking + health-
+// care. No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.113 -> v3.0.114).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
