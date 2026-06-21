@@ -1091,6 +1091,15 @@
 // least automatable = AI-readiness), (6) Progression + Crossover, (7) Positioning + next move. AI
 // levels coloured on the v3 blue<->orange ramp (no red/green). No app/engine change; api/mcf.js +
 // frozen symbols untouched. G1 (v3.0.111 -> v3.0.112).
+// v3.0.113 - 2026-06-21 - HDR #151 - WikiGraph /demo: full guided ORGANISATION journey (Human Lead:
+// "proceed with organization"). Static demo only. The Organisation lens on a Department (Group Data
+// & Analytics) now renders a 7-step journey mirroring the candidate one, built on Steve Pereira's
+// Flow Engineering four maps + Lewis & McKone Edge Strategy: (1) Outcome Map, (2) Value Stream Map
+// (steps tagged value-creating/capturing/eroding + lead time), (3) Capability Map (constraint +
+// root cause + measure), (4) Dependency Map (internal/external deps tagged by realm - externals sit
+// at the ecotone), (5) edge of core (Product/Journey/Enterprise edge - where growth hides), (6)
+// Future State (which steps AI absorbs vs stay human-led), (7) so who to hire (links back to the job
+// ad). No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.112 -> v3.0.113).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
