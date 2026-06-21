@@ -165,6 +165,21 @@
   .plan{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
   .plan-c{flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:8px;font-size:.75rem}
   .plan-c b{display:block;color:var(--eu);font-size:.6875rem;margin-bottom:3px}
+  .brief{margin-top:14px;border:1px solid var(--blueBd);border-radius:14px;padding:16px;background:linear-gradient(180deg,#f4f8ff,var(--surface));box-shadow:var(--neo)}
+  .brief-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .brief-head .bt{font-size:1rem;font-weight:800;color:var(--text)}
+  .brief-print{min-height:36px;padding:6px 12px;border-radius:8px;border:1px solid var(--blueBd);background:var(--blueBg);color:var(--blue);font-weight:700;font-size:.75rem}
+  .brief-row{display:flex;gap:10px;font-size:.8125rem;margin:7px 0}
+  .brief-row .bk{min-width:108px;color:var(--muted);font-weight:700}
+  .brief-row .bv{flex:1;color:var(--text)}
+  .brief-foot{margin-top:10px;font-size:.6875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:8px}
+  @media print {
+    body *{visibility:hidden}
+    .brief, .brief *{visibility:visible}
+    .brief{position:absolute;left:0;top:0;width:100%;box-shadow:none;border:none;background:#fff}
+    .brief-print{display:none}
+    body{background:#fff;background-image:none}
+  }
   /* v3 surfaces are neumorphic: same tone as the page, raised by dual light/dark shadows */
   .note,.searchcard,.graph-card,.pcard{box-shadow:var(--neo)}
   .picker{box-shadow:var(--neoSm)}
@@ -613,7 +628,7 @@ function renderLens(id){ const el=$("lensbar"); if(!el) return; el.innerHTML="";
     b.onclick=()=>{ LENS=k; renderNote(id,true); }; el.appendChild(b); }); }
 function renderLensInto(n,id,note){
   if(realmOf(id)==="edge"){ const e=document.createElement("div"); e.className="edge-call"; e.innerHTML="<b>Edge zone (ecotone).</b> This sits where the organisation meets the outside world - the boundary where value and interaction are richest, and where work is least automatable. Candidate: stand here. Organisation: the edge of the core is where growth hides."; note.appendChild(e); }
-  if(LENS==="candidate" && n.candidate && n.candidate.anatomy){ renderCandidateJourney(n.candidate, note); }
+  if(LENS==="candidate" && n.candidate && n.candidate.anatomy){ renderCandidateJourney(n.candidate, n, note); }
   else if(LENS==="candidate" && n.candidate){ const c=n.candidate; const d=document.createElement("div"); d.className="lblock"; d.innerHTML="<h4>Candidate view - from the v3 result engine</h4>";
     const ex=document.createElement("div"); ex.className="expo"; ex.innerHTML='<span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+(c.exposurePct||40)+'%"></span></span>'; d.appendChild(ex);
     [["Most automatable",c.automatable],["Human-led core",c.resilient],["Your fit",c.fit],["Edge position",c.edge]].forEach(([k,v])=>{ if(!v) return; const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); });
@@ -630,7 +645,24 @@ function renderLensInto(n,id,note){
 const AI_LABEL={auto:"Full Automation",aug:"AI-Augmented",assist:"AI-Assisted",human:"Human-Led"};
 const AI_CLS={auto:"ai-auto",aug:"ai-aug",assist:"ai-assist",human:"ai-human"};
 const AI_COLOR={auto:"#b45309",aug:"#d97706",assist:"#1a56db",human:"#0e7490"};
-function renderCandidateJourney(c, note){
+function renderBrief(c, n, note){
+  const edge=c.skills.filter(s=>s.ai==="human").map(s=>s.s).join(", ");
+  const d=document.createElement("div"); d.className="brief";
+  const head=document.createElement("div"); head.className="brief-head";
+  const t=document.createElement("span"); t.className="bt"; t.textContent="Candidate Brief - "+n.title;
+  const pr=document.createElement("button"); pr.className="brief-print"; pr.type="button"; pr.innerHTML="&#128424; Print / save as PDF"; pr.onclick=()=>window.print();
+  head.appendChild(t); head.appendChild(pr); d.appendChild(head);
+  const row=(k,vNode)=>{ const r=document.createElement("div"); r.className="brief-row"; const kk=document.createElement("span"); kk.className="bk"; kk.textContent=k; const vv=document.createElement("span"); vv.className="bv"; if(typeof vNode==="string") vv.textContent=vNode; else vv.appendChild(vNode); r.appendChild(kk); r.appendChild(vv); d.appendChild(r); };
+  row("AI-readiness", c.exposure+" exposure - resilience "+c.resilience+"/100 (higher = more human-led)");
+  row("Your edge", edge+" - the human-led core AI cannot own");
+  row("Build next", c.plan.map(p=>p[0]+": "+p[1]).join("   "));
+  row("Position", "“"+c.positioning+"”");
+  row("Next move", renderRich(n.nextMove));
+  const f=document.createElement("div"); f.className="brief-foot"; f.textContent="AI-assisted; human decides. Source: sample data (demo). Build your proof, then re-read.";
+  d.appendChild(f); note.appendChild(d);
+}
+function renderCandidateJourney(c, n, note){
+  renderBrief(c, n, note);
   const head=document.createElement("div"); head.className="lblock";
   head.innerHTML="<h4>Candidate guidance - a guided read, chained from your v3 result panels</h4>"+
     '<div class="expo"><span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+c.exposurePct+'%"></span></span></div>'+
