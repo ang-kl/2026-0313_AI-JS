@@ -984,6 +984,16 @@
 // with a taller responsive height, stronger node repulsion + longer links + higher move clamp so
 // nodes no longer pile up, and a white text halo (paint-order) so labels read over edges/siblings.
 // No app/engine change; api/mcf.js + frozen symbols untouched. G1 (v3.0.98 -> v3.0.99).
+// v3.0.100 - 2026-06-21 - HDR #138 - WikiGraph /demo: radial ecosystem graph + Obsidian-paper
+// model (Human Lead: "follow the paper ... title inside the bubble ... one centre and branch out
+// ... interlink only shows if i click"; ref = brainsci-13-01462 radial GNN dendrogram). Static
+// prototype only. public/demo.html rebuilt: (1) sample data restructured into the ecosystem from
+// the two Obsidian papers - Organisation -> Department -> Role -> Job Ad -> skills / stakeholders /
+// risks / AI impact / positioning, with the causal spine (org AI-pressure -> dept friction -> role
+// pressure -> ad). (2) Graph is now a RADIAL TREE like the paper: one centre, collapsed by default,
+// branches appear only on tap (expand/collapse), labels INSIDE rounded bubbles, colour = layer,
+// bubble carries the title; pan/zoom + legend. No app/engine change; api/mcf.js + frozen symbols
+// untouched. G1 (v3.0.99 -> v3.0.100).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
