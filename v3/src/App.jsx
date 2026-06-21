@@ -1027,6 +1027,14 @@
 // ministries are honest "listed in SGDI, not mapped" leaves; a NUS->NUHS cross-link demonstrates
 // the loop between Education and Health. 75 nodes, 0 broken links. No app/engine change; api/mcf.js
 // + frozen symbols untouched. G1 (v3.0.103 -> v3.0.104).
+// v3.0.105 - 2026-06-21 - HDR #143 - WikiGraph /demo: wire org chart to LIVE careers.gov.sg roles
+// (Human Lead: "wire the org chart to live careers.gov.sg roles under each agency"). Static demo
+// shell only - public/demo.html now fetches the SAME-ORIGIN /api/careers (action:company) when a
+// wired statutory board / agency is tapped (HSA, HPB, SPF, SCDF, ICA, HTX, SkillsFuture, ITE...),
+// injecting the real current roles as branch nodes with an "Open on careers.gov.sg" link; empty or
+// failed fetches show an honest withheld/error node, never invented roles. Verified live: HSA 9,
+// SPF 7, SkillsFuture 29. No app/engine change - reuses the existing /api/careers endpoint;
+// api/mcf.js + frozen symbols untouched. G1 (v3.0.104 -> v3.0.105).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 

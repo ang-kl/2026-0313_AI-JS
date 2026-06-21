@@ -381,6 +381,15 @@ const NODES = {
   "role:htx":{layer:"role",typeLabel:"Role",title:"Engineer, HTX",prov:"mcf",fields:[["Agency","[[mha:htx|HTX]]"],["Source","careers.gov.sg"]],body:"An engineering role under [[mha:htx|HTX]], advertised on careers.gov.sg. Sensor and data work; human judgement on deployment.",kids:["mha:htx"],nextMove:"frame projects where you turned technology into an operational outcome."}
 };
 
+/* agencies whose branches load LIVE roles from careers.gov.sg (same-origin /api/careers) on tap */
+const LIVEMAP={
+  "sb:hsa":"Health Sciences Authority","sb:hpb":"Health Promotion Board","sb:cda":"Communicable Diseases Agency","sb:aic":"Agency for Integrated Care",
+  "cl:nhg":"National Healthcare Group","cl:shs":"Singapore Health Services",
+  "mha:spf":"Singapore Police Force","mha:scdf":"Singapore Civil Defence Force","mha:ica":"Immigration & Checkpoints Authority","mha:isd":"Internal Security Department","mha:cnb":"Central Narcotics Bureau","mha:hta":"Home Team Academy",
+  "moe:ssg":"SkillsFuture Singapore","moe:ite":"Institute of Technical Education","moe:seab":"Singapore Examinations and Assessment Board"
+};
+Object.entries(LIVEMAP).forEach(([id,q])=>{ if(NODES[id]) NODES[id].live=q; });
+
 const PERSONAS=[
   {key:"standards",ico:"📐",t:"Standards / Skills",d:"Find standard skills and occupations (ESCO / ISCO).",
     intent:"“Show me the standard concept and who hires for it.”",label:"Skill or occupation",ph:"e.g. Data Analysis, Stakeholder Management",
@@ -467,6 +476,7 @@ function renderNote(id){
   const h2=document.createElement("h2"); h2.textContent=n.title; note.appendChild(h2);
   (n.fields||[]).forEach(([k,v])=>{ const f=document.createElement("div"); f.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.appendChild(renderRich(v)); f.appendChild(kk); f.appendChild(vv); note.appendChild(f); });
   const body=document.createElement("div"); body.className="body"; const pp=document.createElement("p"); pp.appendChild(renderRich(n.body)); body.appendChild(pp); note.appendChild(body);
+  if(n.url){ const a=document.createElement("a"); a.href=n.url; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent="Open on careers.gov.sg ↗"; a.style.cssText="display:inline-block;margin-top:2px;font-size:.8125rem;font-weight:700;color:var(--blue)"; note.appendChild(a); }
   if(n.kids&&n.kids.length){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Branches"; note.appendChild(st);
     const chips=document.createElement("div"); chips.className="chips"; n.kids.forEach(lid=>{ const ln=NODES[lid]; if(!ln) return; const cc=document.createElement("button"); cc.className="linkchip"; cc.type="button"; cc.textContent=ln.title; cc.onclick=()=>go({kind:"note",id:lid}); chips.appendChild(cc); }); note.appendChild(chips); }
   if(n.patterns){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Common patterns"; note.appendChild(st);
@@ -506,7 +516,23 @@ function layoutOrg(){
 function layout(){ if(G.mode==="org") layoutOrg(); else layoutRadial(); }
 
 function pillOf(id){ const n=NODES[id]; const label=(n.title.length>24?n.title.slice(0,23)+"…":n.title)+(n.count?(" ("+n.count+")"):""); return {label, w:Math.max(60,label.length*7.2+26), h:32}; }
-function orgExpandable(id){ return (NODES[id].kids||[]).filter(k=>NODES[k]).length>0; }
+function orgExpandable(id){ return ((NODES[id].kids||[]).filter(k=>NODES[k]).length>0) || (NODES[id].live && !NODES[id]._loaded); }
+async function loadLive(id){
+  const n=NODES[id]; if(!n||!n.live||n._loaded||n._loading) return; n._loading=true;
+  const key=id.replace(/[^a-z0-9]/gi,"");
+  NODES["live:"+key+":loading"]={layer:"pressure",typeLabel:"Loading",title:"Loading live roles…",prov:"unverified",fields:[],body:"Fetching current roles from careers.gov.sg…",kids:[id]};
+  n.kids=["live:"+key+":loading"]; if(G.mode==="org") G.expanded.add(id); relayout();
+  let kids=[];
+  try{
+    const res=await fetch("/api/careers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"company",company:n.live,limit:8})});
+    const d=await res.json(); const jobs=(d&&d.jobs)||[];
+    jobs.forEach((j,i)=>{ const rid="live:"+key+":"+i; NODES[rid]={layer:"role",typeLabel:"Live role (careers.gov.sg)",title:(j.title||"Role"),prov:"mcf",
+      fields:[["Agency",n.title],["Source","careers.gov.sg (live, fetched just now)"]],body:"A live role at "+n.title+", fetched from careers.gov.sg.",kids:[id],url:(j.mcfUrl||j.url||"")}; kids.push(rid); });
+    if(!kids.length){ NODES["live:"+key+":none"]={layer:"pressure",typeLabel:"Note",title:"No current roles",prov:"unverified",fields:[],body:"careers.gov.sg returned no open roles for "+n.title+" right now. We withhold rather than invent.",kids:[id]}; kids=["live:"+key+":none"]; }
+    n._total=d&&d.total;
+  }catch(e){ NODES["live:"+key+":err"]={layer:"risk",typeLabel:"Note",title:"Could not load live roles",prov:"unverified",fields:[],body:"Could not reach careers.gov.sg (this works on the live site, not a local file).",kids:[id]}; kids=["live:"+key+":err"]; }
+  n.kids=kids; n._loaded=true; n._loading=false; relayout();
+}
 function ensureDOM(){
   const NS="http://www.w3.org/2000/svg", svg=$("graph"); svg.innerHTML="";
   const view=document.createElementNS(NS,"g"); svg.appendChild(view); G.els={view,line:{},node:{}};
@@ -542,6 +568,7 @@ function onNodeTap(id){
   if(G.mode==="org"){ if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); }
   else { const idx=G.stack.indexOf(id); if(idx>=0) G.stack=G.stack.slice(0,idx+1); else G.stack.push(id); }
   relayout();
+  if(NODES[id].live && !NODES[id]._loaded && !NODES[id]._loading) loadLive(id);
 }
 function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>20?n.title.slice(0,19)+"…":n.title)):"Open note")+" &#8599;"; }
 function stopGraph(){ if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
