@@ -1009,6 +1009,16 @@
 // copy sweep relabelled the cards + panel but missed this tab label. Source-neutral now; the panel
 // names both sources inside. Presentation only; api/mcf.js + frozen symbols untouched. G1
 // (v3.0.101 -> v3.0.102).
+// v3.0.103 - 2026-06-21 - HDR #141 - WikiGraph /demo: real government org chart from SGDI (Human
+// Lead: "pull real SGDI data into the org chart"). Static prototype only. public/demo.html: the
+// Employer persona "Ministry of Health" now resolves to a real org tree mapped from the Singapore
+// Government Directory (sgdi.gov.sg, fetched read-only) - MOH -> 3 policy pillars + statutory boards
+// (HSA, HPB, CDA, AIC...) + healthcare clusters (NHG, NUHS, SingHealth); NUHS -> National University
+// Hospital -> clinical departments (Neurosurgery, Neurology) -> a careers.gov.sg consultant role ->
+// an AI-imaging-triage impact node that cites the brainsci-13-01462 brain-imaging GNN paper (human
+// judgement stays human-led). New "agency" layer + legend entry; gov structure tagged derived,
+// roles via careers.gov.sg. No app/engine change; api/mcf.js + frozen symbols untouched. G1
+// (v3.0.102 -> v3.0.103).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
