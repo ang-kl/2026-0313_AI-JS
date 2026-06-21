@@ -165,7 +165,6 @@
     <div class="note" id="note"></div>
     <div class="section-t" id="gTitle">Ecosystem graph</div>
     <div class="gtools">
-      <button id="gMode" type="button">Switch to org chart</button>
       <span class="ghint" id="gHint"></span>
       <span class="spacer"></span>
       <button id="gOpen" type="button">Open note &#8599;</button>
@@ -594,7 +593,7 @@ function stopGraph(){ if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
 function seedGraph(id){ G.root=id; G.stack=[id]; G.expanded= G.mode==="org" ? new Set([id,...(NODES[id].kids||[]).filter(k=>NODES[k])]) : new Set([id]); G.sel=id; G.pos={}; G.from={}; G.view={x:0,y:0,k:1}; G.pos[id]={x:CX,y:CY,s:1}; updateOpenBtn(); relayout(); syncModeUI(); }
 function gZoom(f){ const k2=clampN(G.view.k*f,0.4,2.8),wx=(CX-G.view.x)/G.view.k,wy=(CY-G.view.y)/G.view.k; G.view.k=k2; G.view.x=CX-wx*k2; G.view.y=CY-wy*k2; applyView(); }
 function setMode(m){ G.mode=m; if(m==="org"){ G.expanded=new Set([G.root,...(NODES[G.root].kids||[]).filter(k=>NODES[k])]); } else { G.stack=[G.root]; } G.sel=G.root; G.pos={}; relayout(); syncModeUI(); }
-function syncModeUI(){ const mb=$("gMode"); if(mb) mb.textContent = G.mode==="org"?"Switch to radial":"Switch to org chart"; const tt=$("gTitle"); if(tt) tt.textContent = G.mode==="org"?"Org chart - top-down, tap a node to open or close":"Radial - one centre, tap a bubble to dive in (depth loops)"; const h=$("gHint"); if(h) h.textContent = G.mode==="org" ? "Top = start &middot; each row down = the next layer &middot; tap to open/close &middot; double-tap to read".replace(/&middot;/g,"·") : "Centre = where you are · ring = its branches (tap to dive) · small top row = your path (tap to go back) · double-tap to read"; }
+function syncModeUI(){ const tt=$("gTitle"); if(tt) tt.textContent="Ecosystem graph - one centre, tap a bubble to dive in"; const h=$("gHint"); if(h) h.textContent="Centre = where you are · ring = its branches (tap to dive, depth loops) · small top row = your path (tap to go back) · double-tap to read"; }
 function renderLegend(){ const el=$("legend"); if(!el) return; const layers=["organisation","department","agency","pressure","role","job_ad","skill","stakeholder","risk","ai_impact","positioning"]; const sw=layers.map(k=>`<span><i style="background:${LAYER[k].b};border:1px solid ${LAYER[k].bd}"></i>${LAYER[k].t}</span>`).join(""); el.innerHTML=`<span style="font-weight:700;color:var(--text)">Colour = layer:</span>${sw}<span style="font-weight:700;color:var(--text)">Bigger bubble = repeats more often.</span>`; }
 (function gInit(){
   const svg=$("graph"); let pan=null;
@@ -602,7 +601,6 @@ function renderLegend(){ const el=$("legend"); if(!el) return; const layers=["or
   svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
   svg.addEventListener("pointerup",()=>{pan=null;}); svg.addEventListener("pointercancel",()=>{pan=null;});
   svg.addEventListener("wheel",e=>{ e.preventDefault(); gZoom(e.deltaY<0?1.12:0.9); },{passive:false});
-  $("gMode").onclick=()=>setMode(G.mode==="org"?"radial":"org");
   $("gOpen").onclick=()=>{ if(G.sel) go({kind:"note",id:G.sel}); };
   $("gReset").onclick=()=>{ if(G.root) setMode(G.mode); };
   $("gZin").onclick=()=>gZoom(1.2); $("gZout").onclick=()=>gZoom(1/1.2);
