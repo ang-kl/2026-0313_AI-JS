@@ -151,16 +151,17 @@
     <div class="crumbs" id="crumbs"></div>
     <div class="nextmove" id="nextmove"></div>
     <div class="note" id="note"></div>
-    <div class="section-t">Ecosystem graph - one centre, tap a node to branch out</div>
+    <div class="section-t" id="gTitle">Ecosystem graph</div>
     <div class="gtools">
-      <span class="ghint">Collapsed by default &middot; tap a node to reveal its branches &middot; double-tap (or Open note) to read &middot; drag to pan</span>
+      <button id="gMode" type="button">Switch to org chart</button>
+      <span class="ghint" id="gHint"></span>
       <span class="spacer"></span>
       <button id="gOpen" type="button">Open note &#8599;</button>
-      <button id="gReset" type="button" aria-label="Collapse back to the centre">Reset</button>
+      <button id="gReset" type="button" aria-label="Back to the centre">Reset</button>
       <button id="gZin" type="button" aria-label="Zoom in">+</button>
       <button id="gZout" type="button" aria-label="Zoom out">&minus;</button>
     </div>
-    <div class="graph-card"><svg id="graph" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Radial ecosystem graph - one centre, tap a node to reveal its branches"></svg></div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ecosystem graph - radial or top-down org chart"></svg></div>
     <div class="legend" id="legend"></div>
     <footer class="note-foot">
       <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
@@ -404,36 +405,45 @@ function renderNote(id){
   renderLegend(); seedGraph(id);
 }
 
-/* ===== radial ecosystem graph: one centre, collapsed, branch out on click ===== */
-const CX=500, CY=280, RING=170;
-const G={root:null,expanded:new Set(),sel:null,pos:{},target:{},from:{},order:[],parent:{},tree:{},view:{x:0,y:0,k:1},els:null,raf:null,t0:0};
+/* ===== ecosystem graph: radial focus-browser + top-down org chart ===== */
+const CX=500, CY=300, RING=210;
+const G={mode:"radial",root:null,stack:[],expanded:new Set(),sel:null,pos:{},target:{},from:{},scaleT:{},order:[],parent:{},edges:[],view:{x:0,y:0,k:1},els:null,raf:null,t0:0};
 const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+function curNode(){ return G.stack[G.stack.length-1] || G.root; }
+function countBump(id){ const c=NODES[id]&&NODES[id].count; return c?Math.min(0.5,(c-1)*0.13):0; }
 
-function buildTree(){
-  const tree={}, parent={null:null}, order=[], visited=new Set([G.root]); parent[G.root]=null;
-  (function dfs(id){ order.push(id); const ks=G.expanded.has(id)?(NODES[id].kids||[]).filter(k=>NODES[k]&&!visited.has(k)):[]; tree[id]=ks; ks.forEach(k=>{ visited.add(k); parent[k]=id; }); ks.forEach(dfs); })(G.root);
-  return {tree,parent,order};
+function layoutRadial(){
+  const cur=curNode(), kids=(NODES[cur].kids||[]).filter(k=>NODES[k]), order=[], target={}, scaleT={}; G.parent={};
+  const trail=G.stack.slice(0,-1);
+  trail.forEach((id,i)=>{ target[id]={x:130+i*92,y:50}; scaleT[id]=0.55; if(i>0) G.parent[id]=trail[i-1]; order.push(id); });
+  target[cur]={x:CX,y:CY}; scaleT[cur]=1.18; if(trail.length) G.parent[cur]=trail[trail.length-1]; order.push(cur);
+  kids.forEach((k,i)=>{ const a=(i/kids.length)*Math.PI*2 - Math.PI/2; target[k]={x:CX+Math.cos(a)*RING,y:CY+Math.sin(a)*RING}; scaleT[k]=0.82+countBump(k); G.parent[k]=cur; order.push(k); });
+  G.order=order; G.target=target; G.scaleT=scaleT;
+  G.edges=[]; for(let i=1;i<G.stack.length;i++) G.edges.push([G.stack[i-1],G.stack[i]]); kids.forEach(k=>G.edges.push([cur,k]));
 }
-function layout(){
-  const {tree,parent,order}=buildTree(); G.tree=tree; G.parent=parent; G.order=order;
-  const depth={}, ang={}; let leaf=0;
-  (function assign(id,d){ depth[id]=d; const ks=tree[id]; if(!ks.length){ ang[id]=leaf+0.5; leaf++; } else { ks.forEach(k=>assign(k,d+1)); ang[id]=ks.reduce((s,k)=>s+ang[k],0)/ks.length; } })(G.root,0);
-  const total=Math.max(1,leaf); G.target={};
-  order.forEach(id=>{ if(id===G.root){ G.target[id]={x:CX,y:CY}; return; } const a=(ang[id]/total)*Math.PI*2 - Math.PI/2; const rad=depth[id]*RING; G.target[id]={x:CX+Math.cos(a)*rad, y:CY+Math.sin(a)*rad}; });
+function layoutOrg(){
+  const root=G.root, visited=new Set([root]), parent={}, tree={}, order=[];
+  (function dfs(id){ order.push(id); const ks=G.expanded.has(id)?(NODES[id].kids||[]).filter(k=>NODES[k]&&!visited.has(k)):[]; tree[id]=ks; ks.forEach(k=>{visited.add(k);parent[k]=id;}); ks.forEach(dfs); })(root);
+  const depth={}, xs={}; let leaf=0;
+  (function assign(id,d){ depth[id]=d; const ks=tree[id]; if(!ks.length){ xs[id]=leaf; leaf++; } else { ks.forEach(k=>assign(k,d+1)); xs[id]=(xs[ks[0]]+xs[ks[ks.length-1]])/2; } })(root,0);
+  const total=Math.max(1,leaf), COLW=180, ROWH=98, target={}, scaleT={};
+  order.forEach(id=>{ target[id]={x:CX+(xs[id]-(total-1)/2)*COLW, y:70+depth[id]*ROWH}; scaleT[id]=0.95+countBump(id); });
+  G.order=order; G.parent=parent; G.target=target; G.scaleT=scaleT;
+  G.edges=order.filter(id=>parent[id]!=null).map(id=>[parent[id],id]);
 }
-function pillW(id){ const n=NODES[id]; const label=(n.title.length>26?n.title.slice(0,25)+"…":n.title)+(n.count?(" ("+n.count+")"):""); const big=id===G.root; return {label, w:Math.max(58, label.length*(big?8.2:7.0)+24), h:big?42:30, fs:big?14:12}; }
-function hiddenKids(id){ const ks=(NODES[id].kids||[]).filter(k=>NODES[k]); if(!ks.length) return 0; if(!G.expanded.has(id)) return ks.length; const shown=new Set(G.order); return ks.filter(k=>!shown.has(k)||G.parent[k]!==id).length; }
+function layout(){ if(G.mode==="org") layoutOrg(); else layoutRadial(); }
+
+function pillOf(id){ const n=NODES[id]; const label=(n.title.length>24?n.title.slice(0,23)+"…":n.title)+(n.count?(" ("+n.count+")"):""); return {label, w:Math.max(60,label.length*7.2+26), h:32}; }
+function orgExpandable(id){ return (NODES[id].kids||[]).filter(k=>NODES[k]).length>0; }
 function ensureDOM(){
   const NS="http://www.w3.org/2000/svg", svg=$("graph"); svg.innerHTML="";
   const view=document.createElementNS(NS,"g"); svg.appendChild(view); G.els={view,line:{},node:{}};
-  G.order.forEach(id=>{ const par=G.parent[id]; if(par==null) return; const l=document.createElementNS(NS,"path"); l.setAttribute("fill","none"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.6"); view.appendChild(l); G.els.line[id]={l,par}; });
-  G.order.forEach(id=>{ const n=NODES[id], lay=LAYER[n.layer]||LAYER.skill, pw=pillW(id), exp=G.expanded.has(id), hk=hiddenKids(id);
-    const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button");
-    g.setAttribute("aria-label",(exp?"Collapse ":(hk?"Expand ":""))+n.title+(hk?(" - "+hk+" branches"):"")+", "+(LAYER[n.layer]||{t:""}).t);
+  G.edges.forEach(([a,b])=>{ const l=document.createElementNS(NS,"path"); l.setAttribute("fill","none"); l.setAttribute("stroke","#cbd5e1"); l.setAttribute("stroke-width","1.6"); view.appendChild(l); G.els.line[a+">"+b]={l,a,b}; });
+  G.order.forEach(id=>{ const n=NODES[id], lay=LAYER[n.layer]||LAYER.skill, pw=pillOf(id);
+    const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button"); g.setAttribute("aria-label",n.title+", "+(lay.t||""));
     const rect=document.createElementNS(NS,"rect"); rect.setAttribute("x",-pw.w/2); rect.setAttribute("y",-pw.h/2); rect.setAttribute("width",pw.w); rect.setAttribute("height",pw.h); rect.setAttribute("rx",pw.h/2); rect.setAttribute("fill",lay.b); rect.setAttribute("stroke",id===G.sel?lay.c:lay.bd); rect.setAttribute("stroke-width",id===G.sel?3:1.6); g.appendChild(rect);
-    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("dy","0.34em"); t.setAttribute("fill",lay.c); t.setAttribute("font-size",pw.fs); t.setAttribute("font-weight","700"); t.textContent=pw.label; g.appendChild(t);
-    if(hk||exp){ const bx=pw.w/2, bc=document.createElementNS(NS,"circle"); bc.setAttribute("cx",bx); bc.setAttribute("cy",0); bc.setAttribute("r",9); bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",lay.c); bc.setAttribute("stroke-width","1.6"); g.appendChild(bc);
-      const bt=document.createElementNS(NS,"text"); bt.setAttribute("x",bx); bt.setAttribute("text-anchor","middle"); bt.setAttribute("dy","0.32em"); bt.setAttribute("fill",lay.c); bt.setAttribute("font-size","13"); bt.setAttribute("font-weight","800"); bt.textContent=exp?"−":"+"; g.appendChild(bt); }
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("dy","0.34em"); t.setAttribute("fill",lay.c); t.setAttribute("font-size","13"); t.setAttribute("font-weight","700"); t.textContent=pw.label; g.appendChild(t);
+    if(G.mode==="org" && orgExpandable(id)){ const bx=pw.w/2; const bc=document.createElementNS(NS,"circle"); bc.setAttribute("cx",bx); bc.setAttribute("cy",0); bc.setAttribute("r",9); bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",lay.c); bc.setAttribute("stroke-width","1.6"); g.appendChild(bc); const bt=document.createElementNS(NS,"text"); bt.setAttribute("x",bx); bt.setAttribute("text-anchor","middle"); bt.setAttribute("dy","0.32em"); bt.setAttribute("fill",lay.c); bt.setAttribute("font-size","13"); bt.setAttribute("font-weight","800"); bt.textContent=G.expanded.has(id)?"−":"+"; g.appendChild(bt); }
     g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
     g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});
     g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();onNodeTap(id);} });
@@ -442,33 +452,41 @@ function ensureDOM(){
 }
 function applyView(){ if(G.els&&G.els.view) G.els.view.setAttribute("transform",`translate(${G.view.x},${G.view.y}) scale(${G.view.k})`); }
 function paint(){
-  G.order.forEach(id=>{ const g=G.els.node[id]; const p=G.pos[id]; if(g&&p) g.setAttribute("transform",`translate(${p.x},${p.y})`); });
-  G.order.forEach(id=>{ const e=G.els.line[id]; if(!e) return; const a=G.pos[e.par], b=G.pos[id]; if(!a||!b) return; const mx=(a.x+b.x)/2; e.l.setAttribute("d",`M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`); });
+  G.order.forEach(id=>{ const g=G.els.node[id], p=G.pos[id]; if(g&&p) g.setAttribute("transform",`translate(${p.x},${p.y}) scale(${p.s||1})`); });
+  Object.values(G.els.line).forEach(e=>{ const a=G.pos[e.a], b=G.pos[e.b]; if(!a||!b) return; if(G.mode==="org"){ const my=(a.y+b.y)/2; e.l.setAttribute("d",`M${a.x},${a.y} L${a.x},${my} L${b.x},${my} L${b.x},${b.y}`); } else { e.l.setAttribute("d",`M${a.x},${a.y} L${b.x},${b.y}`); } });
 }
 function relayout(){
   layout(); G.from={};
-  G.order.forEach(id=>{ G.from[id]= G.pos[id] || (G.parent[id]!=null&&G.pos[G.parent[id]]) || G.pos[G.root] || {x:CX,y:CY}; });
+  G.order.forEach(id=>{ if(G.pos[id]) G.from[id]={...G.pos[id]}; else { const par=G.parent[id], pp=par!=null&&G.pos[par]; G.from[id]= pp ? {x:pp.x,y:pp.y,s:0.3} : {x:CX,y:CY,s:0.3}; } });
   ensureDOM(); G.t0=Date.now(); if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(animate);
 }
 function animate(){
-  const p=Math.min(1,(Date.now()-G.t0)/360), e=1-Math.pow(1-p,3);
-  G.order.forEach(id=>{ const f=G.from[id]||G.target[id], t=G.target[id]; G.pos[id]={x:f.x+(t.x-f.x)*e, y:f.y+(t.y-f.y)*e}; });
+  const p=Math.min(1,(Date.now()-G.t0)/380), e=1-Math.pow(1-p,3);
+  G.order.forEach(id=>{ const f=G.from[id]||G.target[id], t=G.target[id], st=G.scaleT[id]||1, fs=(f.s==null?st:f.s); G.pos[id]={x:f.x+(t.x-f.x)*e, y:f.y+(t.y-f.y)*e, s:fs+(st-fs)*e}; });
   paint(); if(p<1) G.raf=requestAnimationFrame(animate); else G.raf=null;
 }
-function onNodeTap(id){ G.sel=id; if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); updateOpenBtn(); relayout(); }
-function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>22?n.title.slice(0,21)+"…":n.title)):"Open note")+" &#8599;"; }
+function onNodeTap(id){
+  G.sel=id; updateOpenBtn();
+  if(G.mode==="org"){ if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); }
+  else { const idx=G.stack.indexOf(id); if(idx>=0) G.stack=G.stack.slice(0,idx+1); else G.stack.push(id); }
+  relayout();
+}
+function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>20?n.title.slice(0,19)+"…":n.title)):"Open note")+" &#8599;"; }
 function stopGraph(){ if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
-function seedGraph(id){ G.root=id; G.expanded=new Set(); G.sel=id; G.pos={}; G.from={}; G.view={x:0,y:0,k:1}; G.pos[id]={x:CX,y:CY}; updateOpenBtn(); relayout(); }
-function gZoom(f){ const k2=clampN(G.view.k*f,0.4,2.6),wx=(CX-G.view.x)/G.view.k,wy=(CY-G.view.y)/G.view.k; G.view.k=k2; G.view.x=CX-wx*k2; G.view.y=CY-wy*k2; applyView(); }
-function renderLegend(){ const used=new Set(); G && Object.keys(NODES).forEach(()=>{}); const el=$("legend"); if(!el) return; const layers=["organisation","department","role","job_ad","skill","stakeholder","risk","ai_impact"]; el.innerHTML=layers.map(k=>`<span><i style="background:${LAYER[k].b};border:1px solid ${LAYER[k].bd}"></i>${LAYER[k].t}</span>`).join(""); }
+function seedGraph(id){ G.root=id; G.stack=[id]; G.expanded= G.mode==="org" ? new Set([id,...(NODES[id].kids||[]).filter(k=>NODES[k])]) : new Set([id]); G.sel=id; G.pos={}; G.from={}; G.view={x:0,y:0,k:1}; G.pos[id]={x:CX,y:CY,s:1}; updateOpenBtn(); relayout(); syncModeUI(); }
+function gZoom(f){ const k2=clampN(G.view.k*f,0.4,2.8),wx=(CX-G.view.x)/G.view.k,wy=(CY-G.view.y)/G.view.k; G.view.k=k2; G.view.x=CX-wx*k2; G.view.y=CY-wy*k2; applyView(); }
+function setMode(m){ G.mode=m; if(m==="org"){ G.expanded=new Set([G.root,...(NODES[G.root].kids||[]).filter(k=>NODES[k])]); } else { G.stack=[G.root]; } G.sel=G.root; G.pos={}; relayout(); syncModeUI(); }
+function syncModeUI(){ const mb=$("gMode"); if(mb) mb.textContent = G.mode==="org"?"Switch to radial":"Switch to org chart"; const tt=$("gTitle"); if(tt) tt.textContent = G.mode==="org"?"Org chart - top-down, tap a node to open or close":"Radial - one centre, tap a bubble to dive in (depth loops)"; const h=$("gHint"); if(h) h.textContent = G.mode==="org" ? "Top = start &middot; each row down = the next layer &middot; tap to open/close &middot; double-tap to read".replace(/&middot;/g,"·") : "Centre = where you are · ring = its branches (tap to dive) · small top row = your path (tap to go back) · double-tap to read"; }
+function renderLegend(){ const el=$("legend"); if(!el) return; const layers=["organisation","department","pressure","role","job_ad","skill","stakeholder","risk","ai_impact","positioning"]; const sw=layers.map(k=>`<span><i style="background:${LAYER[k].b};border:1px solid ${LAYER[k].bd}"></i>${LAYER[k].t}</span>`).join(""); el.innerHTML=`<span style="font-weight:700;color:var(--text)">Colour = layer:</span>${sw}<span style="font-weight:700;color:var(--text)">Bigger bubble = repeats more often.</span>`; }
 (function gInit(){
   const svg=$("graph"); let pan=null;
   svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=1000/(svg.clientWidth||1000); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
   svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
   svg.addEventListener("pointerup",()=>{pan=null;}); svg.addEventListener("pointercancel",()=>{pan=null;});
   svg.addEventListener("wheel",e=>{ e.preventDefault(); gZoom(e.deltaY<0?1.12:0.9); },{passive:false});
+  $("gMode").onclick=()=>setMode(G.mode==="org"?"radial":"org");
   $("gOpen").onclick=()=>{ if(G.sel) go({kind:"note",id:G.sel}); };
-  $("gReset").onclick=()=>{ if(G.root) seedGraph(G.root); };
+  $("gReset").onclick=()=>{ if(G.root) setMode(G.mode); };
   $("gZin").onclick=()=>gZoom(1.2); $("gZout").onclick=()=>gZoom(1/1.2);
 })();
 
