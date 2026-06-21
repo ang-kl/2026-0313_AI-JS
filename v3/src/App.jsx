@@ -1035,6 +1035,13 @@
 // failed fetches show an honest withheld/error node, never invented roles. Verified live: HSA 9,
 // SPF 7, SkillsFuture 29. No app/engine change - reuses the existing /api/careers endpoint;
 // api/mcf.js + frozen symbols untouched. G1 (v3.0.104 -> v3.0.105).
+// v3.0.106 - 2026-06-21 - HDR #144 - WikiGraph /demo: match the current v3 styles + colours (Human
+// Lead: "use the styles and colours of current v3 throughout the demo"). Static prototype only -
+// public/demo.html restyled to the v3 C palette: page bg #e6ebf2, surfaces #fff, text #1a202c,
+// accent #1a56db, CTA deep-blue #003399, teal/amber/purple families, 14px card radius + soft raise
+// shadow, and the v3 gradient hero heading (text->accent->teal). Graph layer colours pulled into the
+// same blue/teal/purple/amber families (still no red/green). No app/engine change; api/mcf.js +
+// frozen symbols untouched. G1 (v3.0.105 -> v3.0.106).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
