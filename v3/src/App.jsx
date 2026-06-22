@@ -1144,6 +1144,13 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.126 - 2026-06-22 - HDR #164 - Career WikiGraph Neural view: stronger starfield glow (Human
+// Lead picked option 3). src/wiki/NeuralGraph.jsx: adds a blurred bloom layer (feGaussianBlur filter
+// #neuralBloom) of soft colour halos behind every node - brighter for central nodes, dimmed for minor -
+// giving a real galaxy glow; each lit/major node also gets a bright near-white inner core (the "star"
+// centre); the canvas is a deeper radial-gradient navy (#0c1426 -> #060912) so the stars pop. Replaces
+// the old single per-node halo. Render-only; no engine/data change; frozen door byte-identical.
+// R007/R006 clean; colour-blind safe (blue/teal/purple/amber/slate). G1 (v3.0.125 -> v3.0.126).
 // v3.0.125 - 2026-06-22 - HDR #163 - Career WikiGraph "Neural" view (Human Lead shared the Obsidian
 // graph as the target: "Neural look - visualize the relationships... find hidden patterns... visually
 // engaging and interactive graph"; + two refs showing shape/dimming aid reading). Decisions (asked):

@@ -252,7 +252,7 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
       </div>
 
       {/* Dark-galaxy canvas */}
-      <div style={{ background: "#0b1120", border: "1px solid #1e293b", borderRadius: 16, padding: 6, boxShadow: "inset 0 1px 14px rgba(0,0,0,0.5)" }}>
+      <div style={{ background: "radial-gradient(ellipse at center, #0c1426 0%, #060912 75%)", border: "1px solid #1e293b", borderRadius: 16, padding: 6, boxShadow: "inset 0 1px 20px rgba(0,0,0,0.6)" }}>
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
@@ -266,7 +266,23 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
           onPointerCancel={onPointerUp}
           onWheel={onWheel}
         >
+          <defs>
+            <filter id="neuralBloom" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
+          </defs>
           <g transform={transform}>
+            {/* Starfield bloom - a blurred glow halo behind every node, brighter for central ones */}
+            <g filter="url(#neuralBloom)" style={{ pointerEvents: "none" }}>
+              {(sim.nodes || []).map(s => {
+                const realm = ecotone && realmById ? (realmById[s.id] || "internal") : null;
+                const col = dotColour(s.node, ecotone, realm);
+                const lit = isLit(s.id);
+                const baseOp = impOpacity(s.imp);
+                const go = (lit ? baseOp : baseOp * 0.3) * 0.6;
+                return <circle key={"glow" + s.id} cx={s.x} cy={s.y} r={s.r * 1.8 + 4} fill={col} opacity={go} />;
+              })}
+            </g>
             {/* Links */}
             {(sim.links || []).map((l, i) => {
               const crosses = ecotone && realmById && realmById[l.s.id] && realmById[l.t.id] && realmById[l.s.id] !== realmById[l.t.id];
@@ -315,9 +331,6 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
                   onBlur={() => setHoverId(h => (h === s.id ? null : h))}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onNodeTap && onNodeTap(s.id); } }}
                 >
-                  {glow && (
-                    <NodeGlyph shape={shape} r={s.r + 4} fill={col} stroke="none" strokeWidth={0} opacity={op * 0.22} />
-                  )}
                   <NodeGlyph
                     shape={shape}
                     r={s.r}
@@ -326,6 +339,10 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
                     strokeWidth={isSel ? 2.4 : 1.2}
                     opacity={op}
                   />
+                  {/* bright inner core - the "star" centre */}
+                  {(glow || lit) && (
+                    <circle r={Math.max(1.5, s.r * 0.42)} fill="#f8fbff" opacity={op * (major ? 0.85 : 0.55)} style={{ pointerEvents: "none" }} />
+                  )}
                   {showLabel && (
                     <text
                       x={0}
