@@ -1,11 +1,13 @@
-// WikiGraphView.jsx - PR1: radial focus-browser graph shell
-// Ported from v3/public/demo.html (the /demo prototype, PRs #159-#168).
-// PR1 scope: entry + shell only. No lenses, no journeys, no ecotone yet (PR2-PR5).
-// Consumes a {nodes, edges} payload from getKnowledgeGraph() (passed as prop).
+// WikiGraphView.jsx - PR3: Candidate lens + radial focus-browser graph
+// Extends PR1 shell (entry + graph) with: lens toggle (Candidate / Organisation),
+// CandidateJourney seven-step panel wired to live engine result fields,
+// CandidateBrief printable one-pager. Organisation lens = placeholder for PR4.
+// Consumes a {nodes, edges} payload from getKnowledgeGraph() + the live result object.
 // R007: ASCII only in JSX strings. R006: no multi-line async arrow in JSX props.
 // No red/green - blue/amber/teal/purple only. 44px touch targets. aria-labels on SVG.
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import CandidateJourney from "./CandidateJourney.jsx";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -36,13 +38,13 @@ const NEO = {
   inset:   "inset 3px 3px 7px rgba(174,189,212,0.5), inset -3px -3px 7px rgba(255,255,255,0.85)",
 };
 
-// Prov chip kinds (same as App.jsx Prov component)
+// Prov chip kinds - colours aligned exactly to App.jsx PROV (the canonical palette)
 const PROV_META = {
-  mcf:        { icon: "●", label: "from posting",  bg: "#ecfeff", bdr: "#a5f3fc", fg: "#0e7490" },
-  computed:   { icon: "✓", label: "computed",       bg: "#e8f0fe", bdr: "#c7d2fe", fg: "#1a56db" },
-  derived:    { icon: "◐", label: "derived",        bg: "#fffbeb", bdr: "#fcd9a0", fg: "#b45309" },
-  ai:         { icon: "~",      label: "AI estimate",    bg: "#f3e8ff", bdr: "#ddd6fe", fg: "#7c3aed" },
-  unverified: { icon: "?",      label: "unverified",     bg: "#f1f5f9", bdr: "#cbd5e1", fg: "#64748b" },
+  mcf:        { icon: "●", label: "from posting",  bg: "#f0fdfa", bdr: "#99f6e4", fg: "#0f766e" },
+  computed:   { icon: "✓", label: "computed",       bg: "#eef2ff", bdr: "#c7d2fe", fg: "#1e40af" },
+  derived:    { icon: "◐", label: "derived",        bg: "#ecfeff", bdr: "#a5f3fc", fg: "#0e7490" },
+  ai:         { icon: "~", label: "AI estimate",    bg: "#fffbeb", bdr: "#fde68a", fg: "#b45309" },
+  unverified: { icon: "?", label: "unverified",     bg: "#f5f7fa", bdr: "#dde3ec", fg: "#5b6878" },
 };
 
 // Node-type colours keyed to the cluster field the KG uses.
@@ -440,13 +442,37 @@ function NodeDetail({ node, nodeId }) {
   );
 }
 
+// ── Organisation lens placeholder ─────────────────────────────────────────────
+function OrgLensPlaceholder() {
+  return (
+    <div style={{
+      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
+      padding: "28px 24px", textAlign: "center", boxShadow: NEO.raiseSm,
+      marginBottom: 14,
+    }}>
+      <p style={{ margin: "0 0 6px", fontSize: "0.9375rem", fontWeight: 800, color: C.text }}>
+        Organisation perspective - arriving next
+      </p>
+      <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, lineHeight: 1.6 }}>
+        The Organisation value-stream journey (Outcome Map, Value Stream, Capability Map,
+        Dependency Map, Edge of Core, Future State, and "So who to hire") is being built
+        in PR4. The derivation rules are specified in v3-wikigraph-spec.md §5.2.
+      </p>
+    </div>
+  );
+}
+
 // ── Main WikiGraphView export ─────────────────────────────────────────────────
 // Props:
-//   nodes   - array of KG node objects (from getKnowledgeGraph payload)
-//   edges   - array of KG edge objects
-//   title   - string, the searched role title
-//   onBack  - function, called when user taps "New search"
-export default function WikiGraphView({ nodes = [], edges = [], title = "", onBack, embedded = false }) {
+//   nodes    - array of KG node objects (from getKnowledgeGraph payload)
+//   edges    - array of KG edge objects
+//   title    - string, the searched role title
+//   result   - the live v3 result object (App.jsx state); used by the Candidate lens
+//   onBack   - function, called when user taps "New search"
+//   embedded - bool, hides the in-view back button when mounted as a result-page tab
+export default function WikiGraphView({ nodes = [], edges = [], title = "", result = null, onBack, embedded = false }) {
+  // Lens state: "candidate" (default) | "organisation"
+  const [lens, setLens] = useState("candidate");
   // Build an id-keyed map and attach children lists from edges
   const nodeMap = {};
   (nodes || []).forEach(n => {
@@ -499,7 +525,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", onBa
           fontSize: "0.8125rem", fontWeight: 700, color: C.accent, cursor: "pointer",
           minHeight: 44, display: "inline-flex", alignItems: "center",
         }}>
-        {"←"} New search
+        {"<-"} New search
       </button>
       )}
 
@@ -528,28 +554,81 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", onBa
         </p>
       </div>
 
+      {/* ── Lens toggle: Candidate / Organisation ── */}
+      <div
+        role="tablist"
+        aria-label="Switch view lens"
+        style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}
+      >
+        {[
+          { key: "candidate",    label: "Candidate view",    desc: "Seven-step career journey wired to engine output" },
+          { key: "organisation", label: "Organisation view", desc: "Value-stream perspective (arriving next)" },
+        ].map(function(opt) {
+          const active = lens === opt.key;
+          return (
+            <button
+              key={opt.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              aria-label={opt.label + " - " + opt.desc}
+              onClick={function() { setLens(opt.key); }}
+              style={{
+                minHeight: 44, padding: "8px 18px", borderRadius: 10,
+                border: `2px solid ${active ? C.accent : C.border}`,
+                background: active ? C.accentSoft : C.surface,
+                color: active ? C.accent : C.textSub,
+                fontWeight: active ? 800 : 600,
+                fontSize: "0.8125rem",
+                cursor: "pointer",
+                boxShadow: active ? NEO.raiseSm : "none",
+                transition: "border-color 0.15s, background 0.15s",
+              }}>
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Lens content: Candidate journey (above graph) ── */}
+      {lens === "candidate" && (
+        <CandidateJourney result={result} title={title} />
+      )}
+      {lens === "organisation" && (
+        <OrgLensPlaceholder />
+      )}
+
+      {/* Graph section header */}
+      <div style={{ marginBottom: 8, marginTop: 4 }}>
+        <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Role ecosystem graph
+        </p>
+      </div>
+
       {/* Breadcrumb trail */}
       {stack.length > 1 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 8, fontSize: "0.75rem", color: C.muted }}>
           <span style={{ fontWeight: 700 }}>Path:</span>
-          {stack.map((id, i) => (
-            <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-              {i > 0 && <span style={{ color: C.muted }}>/</span>}
-              <button
-                type="button"
-                onClick={() => {
-                  setStack(prev => prev.slice(0, i + 1));
-                  setSelectedId(id);
-                }}
-                style={{
-                  background: "none", border: "none", color: C.accent, fontWeight: 700,
-                  padding: "8px 8px", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem",
-                  minHeight: 44,
-                }}>
-                {(nodeMap[id] && nodeMap[id].label) || id}
-              </button>
-            </span>
-          ))}
+          {stack.map(function(id, i) {
+            return (
+              <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                {i > 0 && <span style={{ color: C.muted }}>/</span>}
+                <button
+                  type="button"
+                  onClick={function() {
+                    setStack(function(prev) { return prev.slice(0, i + 1); });
+                    setSelectedId(id);
+                  }}
+                  style={{
+                    background: "none", border: "none", color: C.accent, fontWeight: 700,
+                    padding: "8px 8px", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem",
+                    minHeight: 44,
+                  }}>
+                  {(nodeMap[id] && nodeMap[id].label) || id}
+                </button>
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -577,16 +656,6 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", onBa
 
       {/* Selected node detail */}
       <NodeDetail node={selectedNode} nodeId={selectedId} />
-
-      {/* PR1 status note - no lenses/journeys yet */}
-      <div style={{
-        marginTop: 14, padding: "10px 14px", borderRadius: 10,
-        background: C.accentSoft, border: `1px solid #c7d2fe`,
-        fontSize: "0.75rem", color: C.accent,
-      }}>
-        <strong>Shell view (PR1).</strong> Lenses, journeys, ecotone overlay and Candidate Brief arrive in PR2-PR5.
-        Data shown is from the existing role knowledge graph - no new computation.
-      </div>
 
       {/* Footer - "AI-assisted; human decides" - mandatory per spec */}
       <footer style={{

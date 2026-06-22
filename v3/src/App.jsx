@@ -1144,6 +1144,22 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.120 - 2026-06-22 - HDR #158 - PR3: Candidate lens for the Career WikiGraph. Adds the lens
+// toggle (Candidate view / Organisation view pills) above the radial graph; the Candidate Journey
+// seven-step panel wired to REAL engine result fields: (1) Job Anatomy - result.jobAnatomy
+// (aiResilienceScore, layerMix - COMPUTED); (2) Skill Analysis - result.skills[].level buckets
+// (COMPUTED); (3) Demand Proof - demandProofLocal over result.responsibilitiesData.jobs (DERIVED;
+// withheld under 4 postings per D4 floor); (4) Foundation - result.foundationData (~ AI estimate;
+// withheld gracefully when absent); (5) The Edge - Human-Led skills derived deterministically from
+// result.skills (DERIVED rule per spec §2.1); (6) Progression + Crossover - result.progressionData /
+// result.crossoverData (~ AI estimate); (7) Next move - result.progressionData[dir=up][0] pick
+// (COMPUTED pick, ~ wording). The Candidate Brief is a printable one-pager with the same fields +
+// Print / save as PDF button + @media print CSS (only the brief prints). Organisation lens =
+// placeholder card ("arriving next") for PR4. Every figure and every journey line carries a Prov
+// chip. Absent fields withhold rather than invent (R-WIKI-TIER). New files: src/wiki/CandidateJourney.jsx,
+// src/wiki/CandidateBrief.jsx. App.jsx: one-line change to pass result prop to WikiGraphView.
+// WikiGraphView.jsx: lens toggle + imports. buildKnowledgeGraph, getKnowledgeGraph, all frozen
+// symbols, api/mcf.js, engine-data/* byte-identical. G1 (v3.0.119 -> v3.0.120).
 // v3.0.119 - 2026-06-22 - HDR #157 - WikiGraph is now a TAB, not a separate view (Human Lead: "i
 // prefer the old layout with the navigation and the different AI impact and job graph etc."). The
 // PR1 separate "wiki_view" dead-end is removed; the Career WikiGraph is a result-page tab "wikigraph"
@@ -13580,7 +13596,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       return <RoleGraphPanel key="rolegraph" result={result} title={sel?.title || ""} />;
     }
     if (key === "wikigraph") {
-      return <WikiGraphView key="wikigraph" embedded nodes={wikiKgPayload.nodes || []} edges={wikiKgPayload.edges || []} title={sel?.title || query.trim()} />;
+      return <WikiGraphView key="wikigraph" embedded nodes={wikiKgPayload.nodes || []} edges={wikiKgPayload.edges || []} title={sel?.title || query.trim()} result={result} />;
     }
     return null;
   }
