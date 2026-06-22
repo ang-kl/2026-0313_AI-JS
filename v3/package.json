@@ -1,6 +1,6 @@
 {
   "name": "ai-job-analyser-v3",
-  "version": "3.0.122",
+  "version": "3.0.123",
   "private": true,
   "type": "module",
   "scripts": {

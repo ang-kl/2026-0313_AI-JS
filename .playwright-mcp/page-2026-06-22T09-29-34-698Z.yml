@@ -1,0 +1,396 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e194]:
+        - generic [ref=e195]:
+          - generic [ref=e197]:
+            - paragraph [ref=e198]: Navigation
+            - tree "Section navigation" [ref=e199]:
+              - treeitem "Understand - active" [expanded] [ref=e200]:
+                - button "Understand - active" [ref=e201] [cursor=pointer]:
+                  - generic [ref=e202]: "1"
+                  - generic [ref=e203]: Understand
+                  - generic [ref=e204]: "- active"
+                  - generic [ref=e205]: ▼
+                - group [ref=e206]:
+                  - treeitem "Why this role exists" [ref=e207] [cursor=pointer]:
+                    - generic [ref=e208]: Why this role exists
+                  - treeitem "Same job, other names" [ref=e209] [cursor=pointer]:
+                    - generic [ref=e210]: Same job, other names
+                  - treeitem "🕸 Role Graph" [ref=e211] [cursor=pointer]:
+                    - generic [ref=e212]: 🕸 Role Graph
+                  - treeitem "🌐 Career WikiGraph" [ref=e213] [cursor=pointer]:
+                    - generic [ref=e214]: 🌐 Career WikiGraph
+              - treeitem "Position" [ref=e215]:
+                - button "Position" [ref=e216] [cursor=pointer]:
+                  - generic [ref=e217]: "2"
+                  - generic [ref=e218]: Position
+                  - generic [ref=e219]: ▼
+              - treeitem "Become" [ref=e220]:
+                - button "Become" [ref=e221] [cursor=pointer]:
+                  - generic [ref=e222]: "3"
+                  - generic [ref=e223]: Become
+                  - generic [ref=e224]: ▼
+              - treeitem "AI Readiness" [ref=e225]:
+                - button "AI Readiness" [ref=e226] [cursor=pointer]:
+                  - generic [ref=e227]: "4"
+                  - generic [ref=e228]: AI Readiness
+                  - generic [ref=e229]: ▼
+              - treeitem "Arm" [ref=e230]:
+                - button "Arm" [ref=e231] [cursor=pointer]:
+                  - generic [ref=e232]: "5"
+                  - generic [ref=e233]: Arm
+                  - generic [ref=e234]: ▼
+            - button "New here? How to read this analysis" [ref=e236] [cursor=pointer]:
+              - generic [ref=e237]: 💡 New here? How to read this analysis
+              - generic [ref=e238]: ▼
+          - generic [ref=e239]:
+            - generic [ref=e240]:
+              - heading "Data Analyst" [level=2] [ref=e241]
+              - paragraph [ref=e242]: Examines data to identify patterns, trends, and insights that support business decisions.
+              - paragraph [ref=e243]:
+                - text: ESCO v1.2.1 · Information and Communications Technology Professionals
+                - generic [ref=e244]:
+                  - text: ·
+                  - 'link "ISCO-08: 2151" [ref=e245] [cursor=pointer]':
+                    - /url: https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08
+              - button "＋ Start comparison with this role" [ref=e248] [cursor=pointer]
+            - generic "What this means for you - plain-language summary" [ref=e249]:
+              - generic [ref=e250]:
+                - paragraph [ref=e251]: What this means for you
+                - generic [ref=e252]: assembled from the reads on this page
+              - paragraph [ref=e253]:
+                - text: Your edge is the
+                - strong [ref=e254]: 2 human-led skills
+                - text: AI cannot hold
+                - generic [ref=e255]:
+                  - text: ":"
+                  - emphasis [ref=e257]: Ambiguity Tolerance in Incomplete Data Scenarios
+                  - generic [ref=e258]:
+                    - text: ","
+                    - emphasis [ref=e259]: Cross-Cultural Collaboration in Regional Teams
+                - text: .
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e260]:
+                  - generic [ref=e261]: ~
+                  - text: AI estimate
+              - note [ref=e262]: AI-assisted; human decides. Assembled from the reads on this page - no new number. Per-clause provenance shown inline above.
+            - generic [ref=e263]:
+              - heading "What is this role and why does it exist?" [level=2] [ref=e264]
+              - generic [ref=e266]:
+                - generic [ref=e267]:
+                  - generic [ref=e268]:
+                    - paragraph [ref=e269]: Organisational placement
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e270]:
+                      - generic [ref=e271]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e272]: typically sits within Data and Analytics or Business Intelligence - reporting to Chief Data Officer, VP Analytics, or Chief Information Officer
+                  - paragraph [ref=e273]: Typical department placement - illustrative, not derived from this specific posting.
+                - generic [ref=e274]:
+                  - generic [ref=e275]:
+                    - paragraph [ref=e276]: Why the organisation wants this role
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e277]:
+                      - generic [ref=e278]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e279]: withheld - too few duties to ground a narration (need 3 or more).
+                - paragraph [ref=e280]: "AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting."
+              - generic [ref=e282]:
+                - generic [ref=e283]:
+                  - paragraph [ref=e284]: Role Graph - what Data Analyst actually is, mapped end-to-end
+                  - paragraph [ref=e285]:
+                    - text: Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to
+                    - strong [ref=e286]: ESCO
+                    - text: skills - reverse-maps those to the
+                    - strong [ref=e287]: ISCO-08
+                    - text: occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready
+                    - strong [ref=e288]: role - occupation - skill - responsibility
+                    - text: graph and a skill-analysis card.
+                  - generic [ref=e289]:
+                    - generic [ref=e290]: 1. Source role
+                    - generic [ref=e291]: 2. Itemise statements
+                    - generic [ref=e292]: 3. Infer activities/skills
+                    - generic [ref=e293]: 4. Map → ESCO skills
+                    - generic [ref=e294]: 5. Reverse-map → ISCO-08
+                    - generic [ref=e295]: 6. Trading-score & rank
+                    - generic [ref=e296]: 7. Build graph + card
+                - group "Graph view" [ref=e297]:
+                  - button "Layered" [pressed] [ref=e298] [cursor=pointer]
+                  - button "Knowledge graph" [ref=e299] [cursor=pointer]
+                - generic [ref=e300]:
+                  - paragraph [ref=e301]: Not enough role data yet for the graph
+                  - paragraph [ref=e302]: This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live SG job postings (MyCareersFuture + careers.gov.sg) - or a specific posting - and the graph will fill in.
+              - generic [ref=e304]:
+                - generic [ref=e305]:
+                  - generic [ref=e306]:
+                    - generic [ref=e307]:
+                      - paragraph [ref=e308]: Career WikiGraph
+                      - heading "Data Analyst" [level=2] [ref=e309]
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: ✓ computed
+                      - generic [ref=e312]: ◐ derived
+                  - paragraph [ref=e313]: One centre, tap a bubble to dive in - the path shrinks into a trail at the top. Tap the trail to go back.
+                - tablist "Switch view lens" [ref=e314]:
+                  - tab "Candidate view - Seven-step career journey wired to engine output" [selected] [ref=e315] [cursor=pointer]: Candidate view
+                  - tab "Organisation view - Value-stream perspective (arriving next)" [ref=e316] [cursor=pointer]: Organisation view
+                - generic [ref=e317]:
+                  - button "Hide Candidate Brief" [expanded] [ref=e319] [cursor=pointer]
+                  - generic "Candidate Brief - printable one-pager" [ref=e321]:
+                    - generic [ref=e322]:
+                      - generic [ref=e323]:
+                        - paragraph [ref=e324]: Candidate Brief
+                        - heading "Data Analyst" [level=3] [ref=e325]
+                      - button "Print or save Candidate Brief as PDF" [ref=e326] [cursor=pointer]: Print / save as PDF
+                    - generic [ref=e327]:
+                      - generic [ref=e328]: AI-readiness
+                      - generic [ref=e330]: not enough evidence (Job Anatomy not yet loaded)
+                    - generic [ref=e331]:
+                      - generic [ref=e332]: Your edge
+                      - generic [ref=e333]:
+                        - text: Ambiguity Tolerance in Incomplete Data Scenarios, Cross-Cultural Collaboration in Regional Teams - the Human-Led core AI cannot own
+                        - generic [ref=e334]:
+                          - generic [ref=e335]: ◐
+                          - text: derived
+                    - generic [ref=e336]:
+                      - generic [ref=e337]: Build next
+                      - generic [ref=e339]: not enough evidence (Foundation plan not loaded (select a persona on the result page))
+                    - generic [ref=e340]:
+                      - generic [ref=e341]: Next move
+                      - generic [ref=e342]:
+                        - strong [ref=e343]: Senior Data Analyst
+                        - text: "- Lead analysis projects, mentor junior analysts, own data quality"
+                        - generic [ref=e344]:
+                          - generic [ref=e345]: ~
+                          - text: AI estimate
+                    - generic [ref=e346]:
+                      - generic [ref=e347]: Crossover
+                      - generic [ref=e348]:
+                        - strong [ref=e349]: Supply Chain Analyst
+                        - text: via Time series forecasting for demand planning
+                        - generic [ref=e350]:
+                          - generic [ref=e351]: ~
+                          - text: AI estimate
+                    - generic [ref=e352]:
+                      - strong [ref=e353]: AI-assisted; human decides.
+                      - text: "Source: computed from live SG role data (ESCO / ISCO / MCF) - Confidence: varies per row (see badge) - Time-window: current session. Build your proof, then re-read."
+                  - generic [ref=e354]:
+                    - paragraph [ref=e355]: Candidate guidance
+                    - paragraph [ref=e356]: A guided read chained from your v3 result panels - every step pulls live engine output
+                  - generic [ref=e357]:
+                    - generic [ref=e358]:
+                      - generic [ref=e359]: "1"
+                      - heading "What this role really is (Job Anatomy)" [level=4] [ref=e360]
+                    - generic [ref=e362]:
+                      - text: "Not enough evidence: Job Anatomy not yet loaded - the tab appears once live SG job ads are fetched - withheld rather than invented."
+                      - generic [ref=e363]:
+                        - generic [ref=e364]: "?"
+                        - text: unverified
+                  - generic [ref=e365]:
+                    - generic [ref=e366]:
+                      - generic [ref=e367]: "2"
+                      - heading "What it asks for, by AI level (Skill Analysis)" [level=4] [ref=e368]
+                    - generic [ref=e370]:
+                      - generic [ref=e371]:
+                        - generic [ref=e372]: 25 skills classified
+                        - generic [ref=e373]:
+                          - generic [ref=e374]: ✓
+                          - text: computed
+                      - generic [ref=e375]:
+                        - generic [ref=e376]:
+                          - generic [ref=e377]: Human-Led
+                          - generic [ref=e378]: (2)
+                        - generic [ref=e379]:
+                          - generic [ref=e380]: Ambiguity Tolerance in Incomplete Data Scenarios
+                          - generic [ref=e381]: Cross-Cultural Collaboration in Regional Teams
+                      - generic [ref=e382]:
+                        - generic [ref=e383]:
+                          - generic [ref=e384]: AI-Assisted
+                          - generic [ref=e385]: (2)
+                        - generic [ref=e386]:
+                          - generic [ref=e387]: Stakeholder Requirement Clarification and Scoping
+                          - generic [ref=e388]: Iterative Feedback Integration from Business Partners
+                      - generic [ref=e389]:
+                        - generic [ref=e390]:
+                          - generic [ref=e391]: AI-Augmented
+                          - generic [ref=e392]: (16)
+                        - generic [ref=e393]:
+                          - generic [ref=e394]: Statistical Hypothesis Testing and Significance Validation
+                          - generic [ref=e395]: Time Series Forecasting and Trend Decomposition
+                          - generic [ref=e396]: ETL Pipeline Design and Data Integration
+                          - generic [ref=e397]: Dashboard Development and Metric Visualization
+                          - generic [ref=e398]: Regression Modeling and Predictive Analytics
+                          - generic [ref=e399]: A/B Test Design and Results Interpretation
+                          - generic [ref=e400]: Customer Segmentation and Cohort Analysis
+                          - generic [ref=e401]: Business Process Mining from Transaction Data
+                          - generic [ref=e402]: +8 more
+                      - generic [ref=e403]:
+                        - generic [ref=e404]:
+                          - generic [ref=e405]: Full Automation
+                          - generic [ref=e406]: (5)
+                        - generic [ref=e407]:
+                          - generic [ref=e408]: SQL Query Optimization and Database Performance Tuning
+                          - generic [ref=e409]: Data Cleaning and Missing Value Imputation
+                          - generic [ref=e410]: Exploratory Data Analysis and Pattern Discovery
+                          - generic [ref=e411]: Data Quality Audit and Anomaly Detection
+                          - generic [ref=e412]: Python Data Manipulation with Pandas and Numpy
+                      - paragraph [ref=e413]: Build proof on the Human-Led skills first - they are your edge and the least automatable.
+                  - generic [ref=e414]:
+                    - generic [ref=e415]:
+                      - generic [ref=e416]: "3"
+                      - heading "Is the demand real (Demand Proof)" [level=4] [ref=e417]
+                    - generic [ref=e419]:
+                      - text: "Not enough evidence: less than 4 MCF postings in the sample (D4 floor) - demand not proven - withheld rather than invented."
+                      - generic [ref=e420]:
+                        - generic [ref=e421]: "?"
+                        - text: unverified
+                  - generic [ref=e422]:
+                    - generic [ref=e423]:
+                      - generic [ref=e424]: "4"
+                      - heading "Your gaps and build plan (Foundation)" [level=4] [ref=e425]
+                    - generic [ref=e427]:
+                      - text: "Not enough evidence: Foundation plan not loaded - select a persona (Employees / Fresh Grad / Crossover) on the result page to generate it - withheld rather than invented."
+                      - generic [ref=e428]:
+                        - generic [ref=e429]: "?"
+                        - text: unverified
+                  - generic [ref=e430]:
+                    - generic [ref=e431]:
+                      - generic [ref=e432]: "5"
+                      - heading "The edge to aim for (stand where work is Human-Led)" [level=4] [ref=e433]
+                    - generic [ref=e435]:
+                      - paragraph [ref=e436]:
+                        - text: "Stand at the edge - these Human-Led skills are where AI cannot replace you:"
+                        - generic [ref=e437]:
+                          - generic [ref=e438]: ◐
+                          - text: derived
+                      - paragraph [ref=e439]: "Derivation rule: Human-Led skills (level = HUMAN) from the engine skill classification are the candidate's edge. This is a deterministic filter over computed skill levels, not LLM prose."
+                      - generic [ref=e440]:
+                        - generic [ref=e441]: Ambiguity Tolerance in Incomplete Data Scenarios
+                        - generic [ref=e442]: Cross-Cultural Collaboration in Regional Teams
+                  - generic [ref=e443]:
+                    - generic [ref=e444]:
+                      - generic [ref=e445]: "6"
+                      - heading "Where you can go (Progression + Crossover)" [level=4] [ref=e446]
+                    - generic [ref=e448]:
+                      - generic [ref=e449]:
+                        - generic [ref=e450]:
+                          - generic [ref=e451]: Progression
+                          - generic [ref=e452]:
+                            - generic [ref=e453]: ~
+                            - text: AI estimate
+                        - generic [ref=e454]:
+                          - generic [ref=e455]: Senior Data Analyst
+                          - generic [ref=e456]: Analytics Manager
+                          - generic [ref=e457]: Business Intelligence Developer
+                          - generic [ref=e458]: Data Engineer
+                      - generic [ref=e459]:
+                        - generic [ref=e460]:
+                          - generic [ref=e461]: Crossover
+                          - generic [ref=e462]:
+                            - generic [ref=e463]: ~
+                            - text: AI estimate
+                        - generic [ref=e464]:
+                          - generic [ref=e465]: Supply Chain Analyst
+                          - generic [ref=e466]: Financial Risk Analyst
+                          - generic [ref=e467]: Operations Intelligence Specialist
+                  - generic [ref=e468]:
+                    - generic [ref=e469]:
+                      - generic [ref=e470]: "7"
+                      - heading "Your positioning + next move" [level=4] [ref=e471]
+                    - generic [ref=e473]:
+                      - generic [ref=e474]:
+                        - generic [ref=e475]: Next move (up)
+                        - generic [ref=e476]:
+                          - generic [ref=e477]: ~
+                          - text: AI estimate
+                      - generic [ref=e478]:
+                        - paragraph [ref=e479]: Senior Data Analyst
+                        - paragraph [ref=e480]: Lead analysis projects, mentor junior analysts, own data quality
+                        - paragraph [ref=e481]: "Build: Statistical Modelling, Stakeholder Communication, Project Management, Data Governance"
+                      - paragraph [ref=e482]:
+                        - text: "Position yourself as: strong on Ambiguity Tolerance in Incomplete Data Scenarios + Cross-Cultural Collaboration in Regional Teams - the human-led core that survives the AI shift."
+                        - generic [ref=e483]:
+                          - generic [ref=e484]: ◐
+                          - text: derived
+                - paragraph [ref=e486]: Role ecosystem graph
+                - generic [ref=e487]:
+                  - generic [ref=e488]:
+                    - generic [ref=e489]: Centre = where you are - tap a bubble to dive in, tap trail to go back
+                    - button "Zoom in" [ref=e490] [cursor=pointer]: +
+                    - button "Zoom out" [ref=e491] [cursor=pointer]: "-"
+                    - button "Reset graph view to centre" [ref=e492] [cursor=pointer]: Reset
+                  - img "Career WikiGraph - radial ecosystem - one centre, tap a bubble to dive in" [ref=e494]:
+                    - button "Data Analyst - role - press Enter to select" [pressed] [ref=e496] [cursor=pointer]:
+                      - generic: Data Analyst
+                  - generic [ref=e498]:
+                    - generic [ref=e499]: "Colour = cluster layer:"
+                    - generic [ref=e500]: individual
+                    - generic [ref=e502]: department
+                    - generic [ref=e504]: organisation
+                    - generic [ref=e506]: competition
+                    - generic [ref=e508]: unscoped
+                    - generic [ref=e510]: Bigger bubble = more occurrences.
+                  - generic [ref=e511]:
+                    - generic [ref=e512]: "Source:"
+                    - generic [ref=e513]: ● from posting
+                    - generic [ref=e514]: ✓ computed
+                    - generic [ref=e515]: ◐ derived
+                    - generic [ref=e516]: ~ AI estimate
+                    - generic [ref=e517]: "? unverified"
+                - generic [ref=e518]:
+                  - generic [ref=e519]:
+                    - generic [ref=e520]: role
+                    - generic [ref=e521]: ● from posting
+                  - heading "Data Analyst" [level=3] [ref=e522]
+                  - paragraph [ref=e523]: "Confidence: high"
+                - generic [ref=e524]:
+                  - strong [ref=e525]: AI-assisted; human decides.
+                  - text: "Source: computed from role data (ESCO / ISCO / MCF) - Confidence: shown per node - Time-window: current session. Node size = occurrence count; colour = cluster layer. Links appear only where evidence exists."
+            - note "How to read the provenance badges" [ref=e527]:
+              - generic [ref=e528]: "Badges, where shown:"
+              - generic [ref=e529]:
+                - generic "Taken verbatim from the live MyCareersFuture posting." [ref=e530]:
+                  - generic [ref=e531]: ●
+                  - text: from MyCareersFuture
+                - text: posting facts
+              - generic [ref=e532]:
+                - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e533]':
+                  - generic [ref=e534]: ✓
+                  - text: computed
+                - text: deterministic, reproducible
+              - generic [ref=e535]:
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e536]:
+                  - generic [ref=e537]: ~
+                  - text: AI estimate
+                - text: AI judgement, may vary
+              - generic [ref=e538]:
+                - 'generic "Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." [ref=e539]':
+                  - generic [ref=e540]: ◐
+                  - text: derived
+                - text: computed from the sampled ads
+        - button "A note on how to use this ▼" [ref=e542] [cursor=pointer]:
+          - generic [ref=e543]: A note on how to use this
+          - generic [ref=e544]: ▼
+        - generic [ref=e546]:
+          - paragraph [ref=e547]: ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          - generic [ref=e548]:
+            - link "Share feedback" [ref=e549] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=e550] [cursor=pointer]
+            - button "Legal" [ref=e551] [cursor=pointer]
+            - link "Terms" [ref=e552] [cursor=pointer]:
+              - /url: /terms.html

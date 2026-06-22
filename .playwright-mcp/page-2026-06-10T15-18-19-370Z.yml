@@ -1,0 +1,546 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e78] [cursor=pointer]
+    - main "Job skills analyser" [ref=e10]:
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - heading "Financial Analyst" [level=2] [ref=e114]
+          - paragraph [ref=e115]: Analyzes financial data and market trends to provide investment recommendations and support business decision-making.
+          - paragraph [ref=e116]:
+            - text: ESCO v1.2.1 · Finance and mathematics professionals
+            - generic [ref=e117]:
+              - text: ·
+              - 'link "ISCO-08: 3131" [ref=e118] [cursor=pointer]':
+                - /url: https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08
+          - button "＋ Start comparison with this role" [ref=e121] [cursor=pointer]
+        - note "How to read the provenance badges" [ref=e122]:
+          - generic [ref=e123]: "Badges, where shown:"
+          - generic [ref=e124]:
+            - generic "Taken verbatim from the live MyCareersFuture posting." [ref=e125]:
+              - generic [ref=e126]: ●
+              - text: from MyCareersFuture
+            - text: posting facts
+          - generic [ref=e127]:
+            - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e128]':
+              - generic [ref=e129]: ✓
+              - text: computed
+            - text: deterministic, reproducible
+          - generic [ref=e130]:
+            - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e131]:
+              - generic [ref=e132]: ~
+              - text: AI estimate
+            - text: AI judgement, may vary
+          - generic [ref=e133]:
+            - 'generic "Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." [ref=e134]':
+              - generic [ref=e135]: ◐
+              - text: derived
+            - text: computed from the sampled ads
+        - generic [ref=e136]:
+          - generic [ref=e137]:
+            - paragraph [ref=e138]: AI-Exposure Index
+            - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e139]':
+              - generic [ref=e140]: ✓
+              - text: computed
+          - paragraph [ref=e141]:
+            - text: 96/100
+            - generic [ref=e142]: high exposure - medium confidence
+          - paragraph [ref=e143]: "Deterministic: AIOE (Felten et al. 2021) via this role's ESCO skill evidence (ISCO 2413/2631/3311 - Financial analysts). Z-score range 1.256 to 1.526 - a range, never a faked point. Same evidence, same number, every run."
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - paragraph [ref=e146]: Skill-by-skill AI involvement
+            - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e147]:
+              - generic [ref=e148]: ~
+              - text: AI estimate
+          - paragraph [ref=e149]:
+            - generic [ref=e150]: 16 of 23
+            - text: skills have some level of AI involvement today - an AI judgement per skill, shown for detail, not the page's headline figure.
+          - generic [ref=e151]:
+            - 'generic "Full Automation: 5" [ref=e152]'
+            - 'generic "AI-Augmented: 11" [ref=e153]'
+            - 'generic "AI-Assisted: 7" [ref=e154]'
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: ⚡
+              - generic [ref=e158]: 5 Full Automation
+            - generic [ref=e159]:
+              - generic [ref=e160]: ~
+              - generic [ref=e161]: 11 AI-Augmented
+            - generic [ref=e162]:
+              - generic [ref=e163]: ●
+              - generic [ref=e164]: 7 AI-Assisted
+            - generic [ref=e165]:
+              - generic [ref=e166]: ♦
+              - generic [ref=e167]: 0 Human-Led
+        - generic [ref=e168]:
+          - button "📊 Skills by Automation Segment ▼" [ref=e169] [cursor=pointer]:
+            - generic [ref=e170]:
+              - generic [ref=e171]: 📊
+              - generic [ref=e172]: Skills by Automation Segment
+            - generic [ref=e173]: ▼
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - generic [ref=e176]: ℹ️
+              - paragraph [ref=e177]:
+                - text: Each column groups skills by AI involvement level today.
+                - strong [ref=e178]: Tap any skill name
+                - text: to open its AI prompt and step-by-step guide in the Skill Analysis tab.
+            - generic [ref=e179]:
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - generic [ref=e182]: ⚡
+                  - generic [ref=e183]: Full Automation
+                  - generic [ref=e184]: "5"
+                - button "Digital Data Processing" [ref=e185] [cursor=pointer]:
+                  - generic [ref=e187]: Digital Data Processing
+                - button "Empirical Analysis" [ref=e188] [cursor=pointer]:
+                  - generic [ref=e190]: Empirical Analysis
+                - button "Perform Business Research" [ref=e191] [cursor=pointer]:
+                  - generic [ref=e193]: Perform Business Research
+                - button "Quantitative Analysis" [ref=e194] [cursor=pointer]:
+                  - generic [ref=e196]: Quantitative Analysis
+                - button "Statistics" [ref=e197] [cursor=pointer]:
+                  - generic [ref=e199]: Statistics
+              - generic [ref=e200]:
+                - generic [ref=e201]:
+                  - generic [ref=e202]: ~
+                  - generic [ref=e203]: AI-Augmented
+                  - generic [ref=e204]: "11"
+                - button "Accounting" [ref=e205] [cursor=pointer]:
+                  - generic [ref=e207]: Accounting
+                - button "Asset Management" [ref=e208] [cursor=pointer]:
+                  - generic [ref=e210]: Asset Management
+                - button "Business Analytics" [ref=e211] [cursor=pointer]:
+                  - generic [ref=e213]: Business Analytics
+                - button "Business Processes" [ref=e214] [cursor=pointer]:
+                  - generic [ref=e216]: Business Processes
+                - button "Create a Financial Report" [ref=e217] [cursor=pointer]:
+                  - generic [ref=e219]: Create a Financial Report
+                - button "Financial Management" [ref=e220] [cursor=pointer]:
+                  - generic [ref=e222]: Financial Management
+                - button "Fundamental Analysis" [ref=e223] [cursor=pointer]:
+                  - generic [ref=e225]: Fundamental Analysis
+                - button "Interpret Financial Statements" [ref=e226] [cursor=pointer]:
+                  - generic [ref=e228]: Interpret Financial Statements
+                - button "Perform Business Analysis" [ref=e229] [cursor=pointer]:
+                  - generic [ref=e231]: Perform Business Analysis
+                - button "Prepare Financial Projections" [ref=e232] [cursor=pointer]:
+                  - generic [ref=e234]: Prepare Financial Projections
+                - button "Use Business Simulation Tools" [ref=e235] [cursor=pointer]:
+                  - generic [ref=e237]: Use Business Simulation Tools
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - generic [ref=e240]: ●
+                  - generic [ref=e241]: AI-Assisted
+                  - generic [ref=e242]: "7"
+                - button "Advise on Financial Matters" [ref=e243] [cursor=pointer]:
+                  - generic [ref=e245]: Advise on Financial Matters
+                - button "Consider Economic Criteria in Decision Making" [ref=e246] [cursor=pointer]:
+                  - generic [ref=e248]: Consider Economic Criteria in Decision Making
+                - button "Economics" [ref=e249] [cursor=pointer]:
+                  - generic [ref=e251]: Economics
+                - button "Investment Banking" [ref=e252] [cursor=pointer]:
+                  - generic [ref=e254]: Investment Banking
+                - button "Macroeconomics" [ref=e255] [cursor=pointer]:
+                  - generic [ref=e257]: Macroeconomics
+                - button "Microeconomics" [ref=e258] [cursor=pointer]:
+                  - generic [ref=e260]: Microeconomics
+                - button "Offer Financial Services" [ref=e261] [cursor=pointer]:
+                  - generic [ref=e263]: Offer Financial Services
+              - generic [ref=e264]:
+                - generic [ref=e265]:
+                  - generic [ref=e266]: ♦
+                  - generic [ref=e267]: Human-Led
+                  - generic [ref=e268]: "0"
+                - paragraph [ref=e269]: None assessed at this level
+            - generic [ref=e270]:
+              - paragraph [ref=e271]: Pro-worker lens - does AI here replace you, or make you more valuable?
+              - generic [ref=e272]:
+                - generic [ref=e273]:
+                  - generic [ref=e274]: Full Automation
+                  - paragraph [ref=e275]:
+                    - strong [ref=e276]: automating
+                    - text: (replaces the worker) - AI can do the task instead of the worker - the substitution the paper warns deskills when it only replaces.
+                - generic [ref=e277]:
+                  - generic [ref=e278]: AI-Augmented
+                  - paragraph [ref=e279]:
+                    - strong [ref=e280]: labor-augmenting
+                    - text: (empowers the worker) - AI raises the worker's output on the task - pro-worker when it makes human skill more valuable.
+                - generic [ref=e281]:
+                  - generic [ref=e282]: AI-Assisted
+                  - paragraph [ref=e283]:
+                    - strong [ref=e284]: expertise-leveling
+                    - text: (empowers the worker) - AI lifts a less-expert worker toward competence - pro-worker; widens who can do the work.
+              - paragraph [ref=e285]: "Lens after Acemoglu, Autor & Johnson 2026 (NBER w34854, \"Building Pro-Worker AI\"): only new-task-creating is unambiguously pro-worker. A documented crosswalk from the levels above - a framing, not a measurement."
+          - generic [ref=e286]:
+            - generic [ref=e287]: ♦
+            - paragraph [ref=e288]:
+              - strong [ref=e289]: No Human-Led skills shown?
+              - text: For this role, all essential skills were assessed as having some level of AI involvement today. Human-Led only applies where AI genuinely cannot help - think crisis judgment, physical care, or building trust with real people at stake. If that does not feel right, check the Skill Analysis tab for the full reasoning.
+        - generic [ref=e290]:
+          - paragraph [ref=e291]: Navigation
+          - paragraph [ref=e292]: "Tap a section to explore the results:"
+          - generic [ref=e293]:
+            - button "📋 Skill Analysis" [ref=e294] [cursor=pointer]
+            - button "⬆️ Career Progression" [ref=e295] [cursor=pointer]
+            - button "🔄 Role Crossover" [ref=e296] [cursor=pointer]
+            - button "🗂 Skill Categories" [ref=e297] [cursor=pointer]
+            - button "🏢 Role Context" [ref=e298] [cursor=pointer]
+            - button "⚖️ Compare" [ref=e299]
+            - button "🇸🇬 MyCareersFuture Jobs" [ref=e300] [cursor=pointer]
+            - button "🕸 Role Graph" [ref=e301] [cursor=pointer]
+            - button "📄 Resume Check" [ref=e302] [cursor=pointer]
+        - generic [ref=e303]:
+          - generic [ref=e304]:
+            - generic [ref=e305]:
+              - paragraph [ref=e306]: 23 skills drawn from ESCO v1.2
+              - button "Collapse all" [ref=e307] [cursor=pointer]
+            - paragraph [ref=e308]: Skills are ordered by automation level - Human-Led first, Full Automation last. Tap any group header to expand or collapse.
+            - paragraph [ref=e309]: Ratings reflect general occupational exposure across the role. They are not calibrated to seniority, organisation size, or sector. Results are AI-generated and may differ between searches.
+          - generic [ref=e310]:
+            - paragraph [ref=e311]: How does a skill map to this role?
+            - paragraph [ref=e312]: Enter any skill to see where it appears in this role and how AI is affecting it. In English for best results.
+            - generic [ref=e313]:
+              - textbox "e.g. facilitation, Excel, managing conflict..." [ref=e314]
+              - button "Search" [disabled] [ref=e315]
+          - generic [ref=e316]:
+            - button "🔵 AI-Assisted 7 skills ▲ collapse" [ref=e317] [cursor=pointer]:
+              - generic [ref=e318]:
+                - generic [ref=e319]: 🔵
+                - generic [ref=e320]: AI-Assisted
+                - generic [ref=e321]: 7 skills
+              - generic [ref=e322]: ▲ collapse
+            - generic [ref=e323]:
+              - paragraph [ref=e324]: AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.
+              - generic [ref=e325] [cursor=pointer]:
+                - generic [ref=e326]:
+                  - generic [ref=e327]: "1"
+                  - generic [ref=e328]:
+                    - paragraph [ref=e329]: Macroeconomics
+                    - generic [ref=e330]:
+                      - paragraph [ref=e331]: Soft Skill
+                      - link "ESCO d1910ad7" [ref=e332]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fd1910ad7-0c87-4f38-8a41-7c193e5dc16d
+                  - generic [ref=e333]: ● AI-Assisted
+                  - generic [ref=e335]: ▲
+                - paragraph [ref=e336]: The economic field that studies the performance and behaviour of all the sectors of an economy aggregated. This field evaluates the financial performance of a country and considers indicator such as gross domestic product (GDP), price levels, unemployment rates, and inflation.
+                - generic [ref=e337]:
+                  - generic [ref=e339]: "Broader: economics"
+                  - paragraph [ref=e340]: "● Apply: Use AI to compile this week's regional GDP and inflation forecasts for your analysis"
+                  - generic [ref=e341]:
+                    - generic [ref=e342]:
+                      - paragraph [ref=e343]: AI Tool
+                      - paragraph [ref=e344]: LLM
+                    - generic [ref=e345]:
+                      - paragraph [ref=e346]: Approach
+                      - paragraph [ref=e347]: AI surfaces macro data and scenarios; analyst applies geopolitical and ASEAN trade judgment
+                  - paragraph [ref=e351]:
+                    - text: Generating an AI prompt for
+                    - strong [ref=e352]: Macroeconomics
+                    - text: "- an"
+                    - strong [ref=e353]: AI-Assisted
+                    - text: technical skill. "What to do Next" will include a 3-step guide on how to act on this skill. Please wait a moment - thank you.
+                  - button "🔍 Who uses this skill?" [ref=e354]:
+                    - generic [ref=e355]: 🔍
+                    - text: Who uses this skill?
+              - generic [ref=e356] [cursor=pointer]:
+                - generic [ref=e357]:
+                  - generic [ref=e358]: "2"
+                  - generic [ref=e359]:
+                    - paragraph [ref=e360]: Consider Economic Criteria in Decision Making
+                    - generic [ref=e361]:
+                      - paragraph [ref=e362]: Technical Skill
+                      - link "ESCO d41262ae" [ref=e363]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fd41262ae-eca1-4ede-89a8-46d2d99a7a31
+                  - generic [ref=e364]: ● AI-Assisted
+                  - generic [ref=e366]: ▼
+                - paragraph [ref=e367]: Develop proposals and take appropriate decisions taking into account economic criteria.
+              - generic [ref=e368] [cursor=pointer]:
+                - generic [ref=e369]:
+                  - generic [ref=e370]: "3"
+                  - generic [ref=e371]:
+                    - paragraph [ref=e372]: Economics
+                    - generic [ref=e373]:
+                      - paragraph [ref=e374]: Soft Skill
+                      - link "ESCO 88af9294" [ref=e375]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F88af9294-b697-4687-ae19-aefbb6234dfa
+                  - generic [ref=e376]: ● AI-Assisted
+                  - generic [ref=e378]: ▼
+                - paragraph [ref=e379]: Economic principles and practices, financial and commodity markets, banking and the analysis of financial data.
+              - generic [ref=e380] [cursor=pointer]:
+                - generic [ref=e381]:
+                  - generic [ref=e382]: "4"
+                  - generic [ref=e383]:
+                    - paragraph [ref=e384]: Investment Banking
+                    - generic [ref=e385]:
+                      - paragraph [ref=e386]: Soft Skill
+                      - link "ESCO 49047409" [ref=e387]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F49047409-9307-4b41-9b04-a9615f049044
+                  - generic [ref=e388]: ● AI-Assisted
+                  - generic [ref=e390]: ▼
+                - paragraph [ref=e391]: The branch of banking that provides services of capital raising and mergers and acquisitions (M&A).
+              - generic [ref=e392] [cursor=pointer]:
+                - generic [ref=e393]:
+                  - generic [ref=e394]: "5"
+                  - generic [ref=e395]:
+                    - paragraph [ref=e396]: Microeconomics
+                    - generic [ref=e397]:
+                      - paragraph [ref=e398]: Soft Skill
+                      - link "ESCO 7cacd304" [ref=e399]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F7cacd304-996d-47d1-88ef-4ddb9ce102bd
+                  - generic [ref=e400]: ● AI-Assisted
+                  - generic [ref=e402]: ▼
+                - paragraph [ref=e403]: The economic field that studies the behaviour and interactions between specific actors of the economy, namely consumers and firms. It is the field that analyses the decision-making process of individuals and the factors that influence purchasing decisions.
+              - generic [ref=e404] [cursor=pointer]:
+                - generic [ref=e405]:
+                  - generic [ref=e406]: "6"
+                  - generic [ref=e407]:
+                    - paragraph [ref=e408]: Advise on Financial Matters
+                    - generic [ref=e409]:
+                      - paragraph [ref=e410]: Technical Skill
+                      - link "ESCO 79c36c91" [ref=e411]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F79c36c91-28a5-44b7-ab9b-7093b2d4b21e
+                  - generic [ref=e412]: ● AI-Assisted
+                  - generic [ref=e414]: ▼
+                - paragraph [ref=e415]: Consult, advise, and propose solutions with regards to financial management such as acquiring new assets, incurring in investments, and tax efficiency methods.
+              - generic [ref=e416] [cursor=pointer]:
+                - generic [ref=e417]:
+                  - generic [ref=e418]: "7"
+                  - generic [ref=e419]:
+                    - paragraph [ref=e420]: Offer Financial Services
+                    - generic [ref=e421]:
+                      - paragraph [ref=e422]: Technical Skill
+                      - link "ESCO e3c7bd87" [ref=e423]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fe3c7bd87-edc1-4d9a-a3d5-36415de1aac6
+                  - generic [ref=e424]: ● AI-Assisted
+                  - generic [ref=e426]: ▼
+                - paragraph [ref=e427]: Provide a broad range of financial services to clients such as assistance with financial products, financial planning, insurances, money and investment management.
+          - generic [ref=e428]:
+            - button "🟡 AI-Augmented 11 skills ▲ collapse" [ref=e429] [cursor=pointer]:
+              - generic [ref=e430]:
+                - generic [ref=e431]: 🟡
+                - generic [ref=e432]: AI-Augmented
+                - generic [ref=e433]: 11 skills
+              - generic [ref=e434]: ▲ collapse
+            - generic [ref=e435]:
+              - paragraph [ref=e436]: These skills are significantly shaped by AI today. Understanding the tools gives you an edge.
+              - generic [ref=e437] [cursor=pointer]:
+                - generic [ref=e438]:
+                  - generic [ref=e439]: "1"
+                  - generic [ref=e440]:
+                    - paragraph [ref=e441]: Asset Management
+                    - generic [ref=e442]:
+                      - paragraph [ref=e443]: Soft Skill
+                      - link "ESCO b02b38c4" [ref=e444]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fb02b38c4-d46d-44da-9479-1310060bd74d
+                  - generic [ref=e445]: ~ AI-Augmented
+                  - generic [ref=e447]: ▼
+                - paragraph [ref=e448]: The process of increasing total wealth over time through investments that have potential to grow in value.
+              - generic [ref=e449] [cursor=pointer]:
+                - generic [ref=e450]:
+                  - generic [ref=e451]: "2"
+                  - generic [ref=e452]:
+                    - paragraph [ref=e453]: Create a Financial Report
+                    - generic [ref=e454]:
+                      - paragraph [ref=e455]: Technical Skill
+                      - link "ESCO dd7c9dfd" [ref=e456]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fdd7c9dfd-6e2c-46fd-aefc-369402d0200c
+                  - generic [ref=e457]: ~ AI-Augmented
+                  - generic [ref=e459]: ▼
+                - paragraph [ref=e460]: Finalise project accounting. Prepare an actual budget, compare the discrepancy between the planned and actual budget, and draw final conclusions.
+              - generic [ref=e461] [cursor=pointer]:
+                - generic [ref=e462]:
+                  - generic [ref=e463]: "3"
+                  - generic [ref=e464]:
+                    - paragraph [ref=e465]: Business Processes
+                    - generic [ref=e466]:
+                      - paragraph [ref=e467]: Soft Skill
+                      - link "ESCO 9e84a506" [ref=e468]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F9e84a506-df06-4be3-874a-fa01293e3dd5
+                  - generic [ref=e469]: ~ AI-Augmented
+                  - generic [ref=e471]: ▼
+                - paragraph [ref=e472]: Processes which an organisation applies to improve efficiency, set new objectives and reach goals in a profitable and timely manner.
+              - generic [ref=e473] [cursor=pointer]:
+                - generic [ref=e474]:
+                  - generic [ref=e475]: "4"
+                  - generic [ref=e476]:
+                    - paragraph [ref=e477]: Interpret Financial Statements
+                    - generic [ref=e478]:
+                      - paragraph [ref=e479]: Technical Skill
+                      - link "ESCO 5f1d1319" [ref=e480]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F5f1d1319-7954-4a9b-90c7-57668e3a0d4b
+                  - generic [ref=e481]: ~ AI-Augmented
+                  - generic [ref=e483]: ▼
+                - paragraph [ref=e484]: Read, understand, and interpret the key lines and indicators in financial statements. Extract the most important information from financial statements depending on the needs and integrate this information in the development of the department's plans.
+              - generic [ref=e485] [cursor=pointer]:
+                - generic [ref=e486]:
+                  - generic [ref=e487]: "5"
+                  - generic [ref=e488]:
+                    - paragraph [ref=e489]: Use Business Simulation Tools
+                    - generic [ref=e490]:
+                      - paragraph [ref=e491]: Technical Skill
+                      - link "ESCO 4b3ae518" [ref=e492]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F4b3ae518-6746-4487-8d3b-4cfc063a43d0
+                  - generic [ref=e493]: ~ AI-Augmented
+                  - generic [ref=e495]: ▼
+                - paragraph [ref=e496]: Employ software to perform simulations to improve business skills such as business acumen, financial and market analysis and decision making.
+              - generic [ref=e497] [cursor=pointer]:
+                - generic [ref=e498]:
+                  - generic [ref=e499]: "6"
+                  - generic [ref=e500]:
+                    - paragraph [ref=e501]: Accounting
+                    - generic [ref=e502]:
+                      - paragraph [ref=e503]: Soft Skill
+                      - link "ESCO ecc18804" [ref=e504]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fecc18804-a466-40d9-98b4-fba5cd67dd4b
+                  - generic [ref=e505]: ~ AI-Augmented
+                  - generic [ref=e507]: ▼
+                - paragraph [ref=e508]: The documentation and processing of data regarding financial activities.
+              - generic [ref=e509] [cursor=pointer]:
+                - generic [ref=e510]:
+                  - generic [ref=e511]: "7"
+                  - generic [ref=e512]:
+                    - paragraph [ref=e513]: Fundamental Analysis
+                    - generic [ref=e514]:
+                      - paragraph [ref=e515]: Soft Skill
+                      - link "ESCO 9c6974e1" [ref=e516]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F9c6974e1-8d8b-43e9-b6b0-75da7634bfc9
+                  - generic [ref=e517]: ~ AI-Augmented
+                  - generic [ref=e519]: ▼
+                - paragraph [ref=e520]: The techniques for measuring the intrinsic value of a financial security through the assessment its economic and financial factors. It combines together the analysis of macroeconomic trends and of financial statements of the companies.
+              - generic [ref=e521] [cursor=pointer]:
+                - generic [ref=e522]:
+                  - generic [ref=e523]: "8"
+                  - generic [ref=e524]:
+                    - paragraph [ref=e525]: Financial Management
+                    - generic [ref=e526]:
+                      - paragraph [ref=e527]: Soft Skill
+                      - link "ESCO 52e53619" [ref=e528]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F52e53619-fa77-4f72-b237-5e4aae784dc2
+                  - generic [ref=e529]: ~ AI-Augmented
+                  - generic [ref=e531]: ▼
+                - paragraph [ref=e532]: The field of finance that concerns the practical process analysis and tools for designating financial resources. It encompasses the structure of businesses, the investment sources, and the value increase of corporations due to managerial decision-making.
+              - generic [ref=e533] [cursor=pointer]:
+                - generic [ref=e534]:
+                  - generic [ref=e535]: "9"
+                  - generic [ref=e536]:
+                    - paragraph [ref=e537]: Prepare Financial Projections
+                    - generic [ref=e538]:
+                      - paragraph [ref=e539]: Technical Skill
+                      - link "ESCO d37bc902" [ref=e540]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Fd37bc902-f640-48d7-9db4-544db9aa65fa
+                  - generic [ref=e541]: ~ AI-Augmented
+                  - generic [ref=e543]: ▼
+                - paragraph [ref=e544]: Gather financial data, exert analyses, and come up with financial projections for small and big businesses.
+              - generic [ref=e545] [cursor=pointer]:
+                - generic [ref=e546]:
+                  - generic [ref=e547]: "10"
+                  - generic [ref=e548]:
+                    - paragraph [ref=e549]: Perform Business Analysis
+                    - generic [ref=e550]:
+                      - paragraph [ref=e551]: Technical Skill
+                      - link "ESCO 27ed854c" [ref=e552]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F27ed854c-15b8-4ba2-90e9-ae888a219703
+                  - generic [ref=e553]: ~ AI-Augmented
+                  - generic [ref=e555]: ▼
+                - paragraph [ref=e556]: Evaluate the condition of a business on its own and in relation to the competitive business domain, performing research, placing data in context of the business' needs and determining areas of opportunity.
+              - generic [ref=e557] [cursor=pointer]:
+                - generic [ref=e558]:
+                  - generic [ref=e559]: "11"
+                  - generic [ref=e560]:
+                    - paragraph [ref=e561]: Business Analytics
+                    - generic [ref=e562]:
+                      - paragraph [ref=e563]: Soft Skill
+                      - link "ESCO 98a1dec3" [ref=e564]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F98a1dec3-8138-4f46-a596-5e2a83b884b9
+                  - generic [ref=e565]: ~ AI-Augmented
+                  - generic [ref=e567]: ▼
+                - paragraph [ref=e568]: The disciplines and technologies for solving business problems through employing quantitative methods such as data analysis and statistical models.
+          - generic [ref=e569]:
+            - button "🟧 Full Automation 5 skills ▲ collapse" [ref=e570] [cursor=pointer]:
+              - generic [ref=e571]:
+                - generic [ref=e572]: 🟧
+                - generic [ref=e573]: Full Automation
+                - generic [ref=e574]: 5 skills
+              - generic [ref=e575]: ▲ collapse
+            - generic [ref=e576]:
+              - paragraph [ref=e577]: An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.
+              - generic [ref=e578] [cursor=pointer]:
+                - generic [ref=e579]:
+                  - generic [ref=e580]: "1"
+                  - generic [ref=e581]:
+                    - paragraph [ref=e582]: Digital Data Processing
+                    - generic [ref=e583]:
+                      - paragraph [ref=e584]: Technical Skill
+                      - link "ESCO 629685b8" [ref=e585]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F629685b8-5f9e-4522-8cff-b3e2c4ec625a
+                  - generic [ref=e586]: ⚡ Full Automation
+                  - generic [ref=e588]: ▼
+                - paragraph [ref=e589]: Identify, locate, retrieve, store, organise and analyse digital information, judging its relevance and purpose.
+              - generic [ref=e590] [cursor=pointer]:
+                - generic [ref=e591]:
+                  - generic [ref=e592]: "2"
+                  - generic [ref=e593]:
+                    - paragraph [ref=e594]: Quantitative Analysis
+                    - generic [ref=e595]:
+                      - paragraph [ref=e596]: Soft Skill
+                      - link "ESCO 6360a934" [ref=e597]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F6360a934-cc87-4954-9656-b32db20592e3
+                  - generic [ref=e598]: ⚡ Full Automation
+                  - generic [ref=e600]: ▼
+                - paragraph [ref=e601]: The technique of employing statistical and mathematical modelling and measurement to represent a specific reality through numbers.
+              - generic [ref=e602] [cursor=pointer]:
+                - generic [ref=e603]:
+                  - generic [ref=e604]: "3"
+                  - generic [ref=e605]:
+                    - paragraph [ref=e606]: Perform Business Research
+                    - generic [ref=e607]:
+                      - paragraph [ref=e608]: Technical Skill
+                      - link "ESCO 0839eea4" [ref=e609]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F0839eea4-c57b-4c14-b19b-923fbedb5d88
+                  - generic [ref=e610]: ⚡ Full Automation
+                  - generic [ref=e612]: ▼
+                - paragraph [ref=e613]: Search and collect information relevant for the development of businesses in different fields ranging from legal, accounting, finance, up to commercial matters.
+              - generic [ref=e614] [cursor=pointer]:
+                - generic [ref=e615]:
+                  - generic [ref=e616]: "4"
+                  - generic [ref=e617]:
+                    - paragraph [ref=e618]: Empirical Analysis
+                    - generic [ref=e619]:
+                      - paragraph [ref=e620]: Soft Skill
+                      - link "ESCO f6ac6241" [ref=e621]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2Ff6ac6241-adb2-4ce2-b35f-09832cbb11ea
+                  - generic [ref=e622]: ⚡ Full Automation
+                  - generic [ref=e624]: ▼
+                - paragraph [ref=e625]: The evidence-based method that is used to analyse and interpret information with the aim of drawing conclusions about a specific issue.
+              - generic [ref=e626] [cursor=pointer]:
+                - generic [ref=e627]:
+                  - generic [ref=e628]: "5"
+                  - generic [ref=e629]:
+                    - paragraph [ref=e630]: Statistics
+                    - generic [ref=e631]:
+                      - paragraph [ref=e632]: Soft Skill
+                      - link "ESCO 7ee4c2ea" [ref=e633]:
+                        - /url: https://esco.ec.europa.eu/en/classification/skills?uri=http%3A%2F%2Fdata.europa.eu%2Fesco%2Fskill%2F7ee4c2ea-b349-4bd2-81a3-ec31475d4833
+                  - generic [ref=e634]: ⚡ Full Automation
+                  - generic [ref=e636]: ▼
+                - paragraph [ref=e637]: The study of statistical theory, methods and practices such as collection, organisation, analysis, interpretation and presentation of data. It deals with all aspects of data including the planning of data collection in terms of the design of surveys and experiments in order to forecast and plan work-related activities.
+        - button "A note on how to use this ▼" [ref=e639] [cursor=pointer]:
+          - generic [ref=e640]: A note on how to use this
+          - generic [ref=e641]: ▼
+        - generic [ref=e643]:
+          - paragraph [ref=e644]: ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          - generic [ref=e645]:
+            - link "Share feedback" [ref=e646] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=e647] [cursor=pointer]
+            - button "Legal" [ref=e648] [cursor=pointer]
+            - link "Terms" [ref=e649] [cursor=pointer]:
+              - /url: /terms.html

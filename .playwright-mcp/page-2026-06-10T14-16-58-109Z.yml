@@ -1,0 +1,172 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e78] [cursor=pointer]
+    - main "Job skills analyser" [ref=e10]:
+      - generic [ref=e129]:
+        - generic [ref=e130]:
+          - paragraph [ref=e132]: 24 skills confirmed - analysing automation exposure and mapping career paths...
+          - generic [ref=e138]: 2 of 3
+        - generic [ref=e139]:
+          - paragraph [ref=e140]: The skills in this role - from the ESCO taxonomy
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - generic [ref=e143]: "1"
+              - paragraph [ref=e144]: Define Technical Requirements
+            - paragraph [ref=e145]: Specify technical properties of goods, materials, methods, processes, services, systems, software and functionalities by identifying and responding to the particular needs that are to be satisfied according to customer requirements.
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - generic [ref=e148]: "2"
+              - paragraph [ref=e149]: Debug Software
+            - paragraph [ref=e150]: Repair computer code by analysing testing results, locating the defects causing the software to output an incorrect or unexpected result and remove these faults.
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - generic [ref=e153]: "3"
+              - paragraph [ref=e154]: ICT Debugging Tools
+            - paragraph [ref=e155]: The ICT tools used to test and debug programs and software code, such as GNU Debugger (GDB), Intel Debugger (IDB), Microsoft Visual Studio Debugger, Valgrind and WinDbg.
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - generic [ref=e158]: "4"
+              - paragraph [ref=e159]: Perform Scientific Research
+            - paragraph [ref=e160]: Gain, correct or improve knowledge about phenomena by using scientific methods and techniques, based on empirical or measurable observations.
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - generic [ref=e163]: "5"
+              - paragraph [ref=e164]: Engineering Processes
+            - paragraph [ref=e165]: The systematic approach to the development and maintenance of engineering systems.
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - generic [ref=e168]: "6"
+              - paragraph [ref=e169]: Manage Engineering Project
+            - paragraph [ref=e170]: Manage engineering project resources, budget, deadlines, and human resources, and plan schedules as well as any technical activities pertinent to the project.
+          - generic [ref=e171]:
+            - generic [ref=e172]:
+              - generic [ref=e173]: "7"
+              - paragraph [ref=e174]: Project Management
+            - paragraph [ref=e175]: The discipline of project management, the activities which comprise this area and the variables implied in it, such as time, resources, requirements, deadlines, and responding to unexpected events.
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - generic [ref=e178]: "8"
+              - paragraph [ref=e179]: Integrated Development Environment Software
+            - paragraph [ref=e180]: The suite of software development tools for writing programs, such as compiler, debugger, code editor, code highlights, packaged in a unified user interface, such as Visual Studio or Eclipse.
+          - generic [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e183]: "9"
+              - paragraph [ref=e184]: Develop Software Prototype
+            - paragraph [ref=e185]: Create a first incomplete or preliminary version of a piece of software application to simulate some specific aspects of the final product.
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]: "10"
+              - paragraph [ref=e189]: Use an Application-Specific Interface
+            - paragraph [ref=e190]: Understand and use interfaces particular to an application or use case.
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - generic [ref=e193]: "11"
+              - paragraph [ref=e194]: Web Services
+            - paragraph [ref=e195]: XML-based information systems that allows for direct interactions between applications through Internet. It is a set of protocols for transferring data between applications and systems.
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - generic [ref=e198]: "12"
+              - paragraph [ref=e199]: Computer Programming
+            - paragraph [ref=e200]: The techniques and principles of software development, such as analysis, algorithms, coding, testing and compiling of programming paradigms (e.g. object oriented programming, functional programming) and of programming languages.
+          - generic [ref=e201]:
+            - generic [ref=e202]:
+              - generic [ref=e203]: "13"
+              - paragraph [ref=e204]: Analyse Software Specifications
+            - paragraph [ref=e205]: Assess the specifications of a software product or system to be developed by identifying functional and non-functional requirements, constraints and possible sets of use cases which illustrate interactions between the software and its users.
+          - generic [ref=e206]:
+            - generic [ref=e207]:
+              - generic [ref=e208]: "14"
+              - paragraph [ref=e209]: Develop Automated Migration Methods
+            - paragraph [ref=e210]: Create automated transfer of ICT information between storage types, formats and systems to save human resources from performing the task manually.
+          - generic [ref=e211]:
+            - generic [ref=e212]:
+              - generic [ref=e213]: "15"
+              - paragraph [ref=e214]: Use Software Libraries
+            - paragraph [ref=e215]: Utilise collections of codes and software packages which capture frequently used routines to help programmers simplify their work.
+          - generic [ref=e216]:
+            - generic [ref=e217]:
+              - generic [ref=e218]: "16"
+              - paragraph [ref=e219]: Create Flowchart Diagram
+            - paragraph [ref=e220]: Compose a diagram that illustrates systematic progress through a procedure or system using connecting lines and a set of symbols.
+          - generic [ref=e221]:
+            - generic [ref=e222]:
+              - generic [ref=e223]: "17"
+              - paragraph [ref=e224]: Use Technical Drawing Software
+            - paragraph [ref=e225]: Create technical designs and technical drawings using specialised software.
+          - generic [ref=e226]:
+            - generic [ref=e227]:
+              - generic [ref=e228]: "18"
+              - paragraph [ref=e229]: Utilise Computer-Aided Software Engineering Tools
+            - paragraph [ref=e230]: Use software tools (CASE) to support the development lifecycle, design and implementation of software and applications of high-quality that can be easily maintained.
+          - generic [ref=e231]:
+            - generic [ref=e232]:
+              - generic [ref=e233]: "19"
+              - paragraph [ref=e234]: Tools for Software Configuration Management
+            - paragraph [ref=e235]: The software programs to perform configuration identification, control, status accounting and audit, such as CVS, ClearCase, Subversion, GIT and TortoiseSVN perform this management.
+          - generic [ref=e236]:
+            - generic [ref=e237]:
+              - generic [ref=e238]: "20"
+              - paragraph [ref=e239]: Technical Drawings
+            - paragraph [ref=e240]: Drawing software and the various symbols, perspectives, units of measurement, notation systems, visual styles and page layouts used in technical drawings.
+          - generic [ref=e241]:
+            - generic [ref=e242]:
+              - generic [ref=e243]: "21"
+              - paragraph [ref=e244]: Identify Customer Requirements
+            - paragraph [ref=e245]: Apply techniques and tools, such as surveys, questionnaires, ICT applications, for eliciting, defining, analysing, documenting and maintaining user requirements from system, service or product.
+          - generic [ref=e246]:
+            - generic [ref=e247]:
+              - generic [ref=e248]: "22"
+              - paragraph [ref=e249]: Use Software Design Patterns
+            - paragraph [ref=e250]: Utilise reusable solutions, formalised best practices, to solve common ICT development tasks in software development and design.
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e253]: "23"
+              - paragraph [ref=e254]: Engineering Principles
+            - paragraph [ref=e255]: The engineering elements like functionality, replicability, and costs in relation to the design and how they are applied in the completion of engineering projects.
+          - generic [ref=e256]:
+            - generic [ref=e257]:
+              - generic [ref=e258]: "24"
+              - paragraph [ref=e259]: Interpret Technical Requirements
+            - paragraph [ref=e260]: Analyse, understand and apply the information provided regarding technical conditions.
+        - generic [ref=e261]:
+          - generic [ref=e262]:
+            - paragraph [ref=e263]: What will be shown
+            - paragraph [ref=e264]:
+              - text: You're analysing a
+              - strong [ref=e265]: 🇸🇬 MyCareersFuture (MCF)
+              - text: "role: your search is matched to"
+              - strong [ref=e266]: live MyCareersFuture postings
+              - text: for that title (responsibilities and demand) plus the ESCO skills taxonomy —
+              - strong [ref=e267]: not a generic or made-up role
+              - text: ". The results screen shows every skill in this MyCareersFuture role distributed across five automation levels:"
+              - strong [ref=e268]: Full Automation
+              - text: ","
+              - strong [ref=e269]: AI-Agentic
+              - text: ","
+              - strong [ref=e270]: AI-Augmented
+              - text: ","
+              - strong [ref=e271]: AI-Assisted
+              - text: ", and"
+              - strong [ref=e272]: Human-Led
+              - text: . Skills by Automation Segment gives a visual overview of this distribution. The Skill Analysis tab shows each skill with a ready-to-use AI prompt and guidance on what to do next. Career Progression maps where this role can go, Role Crossover identifies transferable skills, Skill Categories groups skills thematically, and Role Context shows how the role operates across different sectors and organisations.
+          - generic [ref=e273]:
+            - paragraph [ref=e274]: What each section enables
+            - paragraph [ref=e275]:
+              - strong [ref=e276]: Skill Analysis
+              - text: contains a Prompt Card with a ready-to-use AI prompt and a What to Do Next card with a three-step action guide.
+              - strong [ref=e277]: Career Progression
+              - text: shows realistic next roles with skill gaps identified, supporting development planning for practitioners, managers, and career advisers.
+              - strong [ref=e278]: Role Crossover
+              - text: highlights the transferable skills that open doors to adjacent roles.
+              - strong [ref=e279]: Skill Categories
+              - text: groups skills into thematic clusters for structured learning.
+              - strong [ref=e280]: Role Context
+              - text: maps how the role operates across sectors and organisations in Singapore and the ASEAN region.

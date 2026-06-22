@@ -1,0 +1,102 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e194]:
+        - button "Back to new search" [ref=e195] [cursor=pointer]: ← New search
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - paragraph [ref=e199]: Career WikiGraph
+              - heading "Data Analyst" [level=2] [ref=e200]
+            - generic [ref=e201]:
+              - generic [ref=e202]: ✓ computed
+              - generic [ref=e203]: ◐ derived
+          - paragraph [ref=e204]: One centre, tap a bubble to dive in - the path shrinks into a trail at the top. Tap the trail to go back.
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - generic [ref=e207]: Centre = where you are - tap a bubble to dive in, tap trail to go back
+            - button "Zoom in" [ref=e208] [cursor=pointer]: +
+            - button "Zoom out" [ref=e209] [cursor=pointer]: "-"
+            - button "Reset graph view to centre" [ref=e210] [cursor=pointer]: Reset
+          - img "Career WikiGraph - radial ecosystem - one centre, tap a bubble to dive in" [ref=e212]:
+            - generic [ref=e213]:
+              - button "Data Analyst - role - press Enter to select" [pressed] [ref=e230] [cursor=pointer]:
+                - generic: Data Analyst
+              - button "Write SQL queries to extract, validate, and analyze data from databases and data warehouses for reporting and insights - duty - press Enter to select" [ref=e232] [cursor=pointer]:
+                - generic: Write SQL queriesto extract,validate, andanalyze data fromdatabases and datawarehouses forreporting andinsights
+              - button "Design and build dashboards using Power BI, Tableau, Looker, or Qlik to track KPIs and operational performance - duty - press Enter to select" [ref=e234] [cursor=pointer]:
+                - generic: Design and builddashboards usingPower BI, Tableau,Looker, or Qlik totrack KPIs andoperationalperformance
+              - button "Perform data extraction, cleaning, validation, and quality checks to ensure accuracy across datasets - duty - press Enter to select" [ref=e236] [cursor=pointer]:
+                - generic: Perform dataextraction,cleaning,validation, andquality checks toensure accuracyacross datasets
+              - button "Gather and translate business requirements into data models, reports, and analytical solutions - duty - press Enter to select" [ref=e238] [cursor=pointer]:
+                - generic: Gather andtranslate businessrequirements intodata models,reports, andanalyticalsolutions
+              - button "Conduct root-cause investigation into data discrepancies, anomalies, and validation rule failures - duty - press Enter to select" [ref=e240] [cursor=pointer]:
+                - generic: Conduct root-causeinvestigation intodatadiscrepancies,anomalies, andvalidation rulefailures
+              - button "Develop and maintain ETL pipelines to ingest, process, and transform data from multiple regional sources - duty - press Enter to select" [ref=e242] [cursor=pointer]:
+                - generic: Develop andmaintain ETLpipelines toingest, process,and transform datafrom multipleregional sources
+              - button "Support recurring financial, regulatory, and operational reporting with ad-hoc analysis and automation initiatives - duty - press Enter to select" [ref=e244] [cursor=pointer]:
+                - generic: Support recurringfinancial,regulatory, andoperationalreporting withad-hoc analysisand automationinitiatives
+              - button "Map data structures, relationships, and API payloads across systems to document integration requirements and transformation logic - duty - press Enter to select" [ref=e246] [cursor=pointer]:
+                - generic: Map datastructures,relationships, andAPI payloadsacross systems todocumentintegrationrequirements andtransformationlogic
+              - button "Present data findings and analytical insights to business stakeholders and senior leaders with clear storytelling - duty - press Enter to select" [ref=e248] [cursor=pointer]:
+                - generic: Present datafindings andanalyticalinsights tobusinessstakeholders andsenior leaderswith clearstorytelling
+              - button "Establish data governance practices including data lineage, metadata management, access controls, and ownership standards - duty - press Enter to select" [ref=e250] [cursor=pointer]:
+                - generic: Establish datagovernancepracticesincluding datalineage, metadatamanagement, accesscontrols, andownershipstandards
+              - button "Conduct deep-dive analyses into operational performance, resource allocation, and time-tracking to identify inefficiencies - duty - press Enter to select" [ref=e252] [cursor=pointer]:
+                - generic: Conduct deep-diveanalyses intooperationalperformance,resourceallocation, andtime-tracking toidentifyinefficiencies
+              - button "Perform data reconciliation and validation across banking, financial, and regulatory datasets for accuracy and compliance - duty - press Enter to select" [ref=e254] [cursor=pointer]:
+                - generic: Perform datareconciliation andvalidation acrossbanking,financial, andregulatorydatasets foraccuracy andcompliance
+              - button "Collaborate with cross-functional teams including finance, risk, compliance, and business stakeholders on data requirements - duty - press Enter to select" [ref=e256] [cursor=pointer]:
+                - generic: Collaborate withcross-functionalteams includingfinance, risk,compliance, andbusinessstakeholders ondata requirements
+              - button "Maintain comprehensive documentation of data processes, mapping specifications, business rules, and project deliverables - duty - press Enter to select" [ref=e258] [cursor=pointer]:
+                - generic: Maintaincomprehensivedocumentation ofdata processes,mappingspecifications,business rules,and projectdeliverables
+              - button "Identify trends, seasonal patterns, and forecast future operational needs from complex analytical datasets - duty - press Enter to select" [ref=e260] [cursor=pointer]:
+                - generic: Identify trends,seasonal patterns,and forecastfuture operationalneeds from complexanalyticaldatasets
+              - button "Support data migration, platform integration, and reporting automation projects across regional environments - duty - press Enter to select" [ref=e262] [cursor=pointer]:
+                - generic: Support datamigration,platformintegration, andreportingautomationprojects acrossregionalenvironments
+              - button "Capgemini Singapore PTE. LTD. - organisation - press Enter to select" [ref=e264] [cursor=pointer]:
+                - generic: CapgeminiSingapore PTE.LTD.
+          - generic [ref=e266]:
+            - generic [ref=e267]: "Colour = cluster layer:"
+            - generic [ref=e268]: individual
+            - generic [ref=e270]: department
+            - generic [ref=e272]: organisation
+            - generic [ref=e274]: competition
+            - generic [ref=e276]: unscoped
+            - generic [ref=e278]: Bigger bubble = more occurrences.
+          - generic [ref=e279]:
+            - generic [ref=e280]: "Source:"
+            - generic [ref=e281]: ● from posting
+            - generic [ref=e282]: ✓ computed
+            - generic [ref=e283]: ◐ derived
+            - generic [ref=e284]: ~ AI estimate
+            - generic [ref=e285]: "? unverified"
+        - generic [ref=e286]:
+          - generic [ref=e287]:
+            - generic [ref=e288]: role
+            - generic [ref=e289]: ● from posting
+          - heading "Data Analyst" [level=3] [ref=e290]
+          - paragraph [ref=e291]: "Confidence: high"
+        - generic [ref=e292]:
+          - strong [ref=e293]: Shell view (PR1).
+          - text: Lenses, journeys, ecotone overlay and Candidate Brief arrive in PR2-PR5. Data shown is from the existing role knowledge graph - no new computation.
+        - generic [ref=e294]:
+          - strong [ref=e295]: AI-assisted; human decides.
+          - text: "Source: computed from role data (ESCO / ISCO / MCF) - Confidence: shown per node - Time-window: current session. Node size = occurrence count; colour = cluster layer. Links appear only where evidence exists."

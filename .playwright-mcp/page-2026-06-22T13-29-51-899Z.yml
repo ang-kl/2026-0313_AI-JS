@@ -1,0 +1,1185 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - button "Back to top" [ref=e751] [cursor=pointer]:
+      - generic [ref=e752]: ↑
+      - generic [ref=e753]: Top
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e380]:
+        - generic [ref=e381]:
+          - generic [ref=e383]:
+            - paragraph [ref=e384]: Navigation
+            - tree "Section navigation" [ref=e385]:
+              - treeitem "Understand - active" [expanded] [ref=e386]:
+                - button "Understand - active" [ref=e387] [cursor=pointer]:
+                  - generic [ref=e388]: "1"
+                  - generic [ref=e389]: Understand
+                  - generic [ref=e390]: "- active"
+                  - generic [ref=e391]: ▼
+                - group [ref=e392]:
+                  - treeitem "Why this role exists" [ref=e393] [cursor=pointer]:
+                    - generic [ref=e394]: Why this role exists
+                  - treeitem "Same job, other names" [ref=e395] [cursor=pointer]:
+                    - generic [ref=e396]: Same job, other names
+                  - treeitem "🕸 Role Graph" [ref=e397] [cursor=pointer]:
+                    - generic [ref=e398]: 🕸 Role Graph
+                  - treeitem "🌐 Career WikiGraph" [ref=e399] [cursor=pointer]:
+                    - generic [ref=e400]: 🌐 Career WikiGraph
+                  - treeitem "📝 Responsibilities" [ref=e754] [cursor=pointer]:
+                    - generic [ref=e755]: 📝 Responsibilities
+                  - treeitem "🧬 Job Anatomy" [ref=e1162] [cursor=pointer]:
+                    - generic [ref=e1163]: 🧬 Job Anatomy
+              - treeitem "Position" [ref=e401]:
+                - button "Position" [ref=e402] [cursor=pointer]:
+                  - generic [ref=e403]: "2"
+                  - generic [ref=e404]: Position
+                  - generic [ref=e405]: ▼
+              - treeitem "Become" [ref=e406]:
+                - button "Become" [ref=e407] [cursor=pointer]:
+                  - generic [ref=e408]: "3"
+                  - generic [ref=e409]: Become
+                  - generic [ref=e410]: ▼
+              - treeitem "AI Readiness" [ref=e411]:
+                - button "AI Readiness" [ref=e412] [cursor=pointer]:
+                  - generic [ref=e413]: "4"
+                  - generic [ref=e414]: AI Readiness
+                  - generic [ref=e415]: ▼
+              - treeitem "Arm" [ref=e416]:
+                - button "Arm" [ref=e417] [cursor=pointer]:
+                  - generic [ref=e418]: "5"
+                  - generic [ref=e419]: Arm
+                  - generic [ref=e420]: ▼
+            - button "New here? How to read this analysis" [ref=e422] [cursor=pointer]:
+              - generic [ref=e423]: 💡 New here? How to read this analysis
+              - generic [ref=e424]: ▼
+          - generic [ref=e425]:
+            - generic [ref=e426]:
+              - heading "Data Analyst" [level=2] [ref=e427]
+              - paragraph [ref=e428]: Analyzes and interprets data to help organizations make informed business decisions.
+              - paragraph [ref=e429]:
+                - text: ESCO v1.2.1 · Specialists in Information and Communication Technologies
+                - generic [ref=e430]:
+                  - text: ·
+                  - 'link "ISCO-08: 2159" [ref=e431] [cursor=pointer]':
+                    - /url: https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08
+              - button "＋ Start comparison with this role" [ref=e434] [cursor=pointer]
+            - generic "What this means for you - plain-language summary" [ref=e435]:
+              - generic [ref=e436]:
+                - paragraph [ref=e437]: What this means for you
+                - generic [ref=e438]: assembled from the reads on this page
+              - paragraph [ref=e1164]:
+                - text: AI mostly augments this role today - it handles heavy lifting while you direct and sign off each step.
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e1165]:
+                  - generic [ref=e1166]: ~
+                  - text: AI estimate
+                - generic [ref=e1167]: (12 of 24 duties classified as AI-augmented)
+              - paragraph [ref=e439]:
+                - text: Your edge is the
+                - strong [ref=e440]: 2 human-led skills
+                - text: AI cannot hold
+                - generic [ref=e441]:
+                  - text: ":"
+                  - emphasis [ref=e443]: Information Confidentiality
+                  - generic [ref=e444]:
+                    - text: ","
+                    - emphasis [ref=e445]: Data Ethics
+                - text: .
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e446]:
+                  - generic [ref=e447]: ~
+                  - text: AI estimate
+              - note [ref=e448]: AI-assisted; human decides. Assembled from the reads on this page - no new number. Per-clause provenance shown inline above.
+            - generic [ref=e449]:
+              - heading "What is this role and why does it exist?" [level=2] [ref=e450]
+              - generic [ref=e452]:
+                - generic [ref=e453]:
+                  - generic [ref=e454]:
+                    - paragraph [ref=e455]: Organisational placement
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e456]:
+                      - generic [ref=e457]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e458]: typically sits within Business Intelligence and Analytics, or Data and Insights - e.g. Finance and FP&A, or Marketing Analytics
+                  - paragraph [ref=e459]: Typical department placement - illustrative, not derived from this specific posting.
+                - generic [ref=e756]:
+                  - generic [ref=e757]:
+                    - paragraph [ref=e758]: Why the organisation wants this role
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e759]:
+                      - generic [ref=e760]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e761]: Loading...
+                  - paragraph [ref=e762]: "AI-assisted; human decides. Source: this role's duty statements + department context. Confidence: indicative. Time-window: current posting only."
+                - button "🔎 Forensic Reversal - why this role exists ▼" [ref=e764] [cursor=pointer]:
+                  - generic [ref=e765]:
+                    - generic [ref=e766]: 🔎
+                    - generic [ref=e767]: Forensic Reversal - why this role exists
+                  - generic [ref=e768]: ▼
+                - paragraph [ref=e466]: "AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting."
+              - button "Same job, other names 10 sibling titles" [ref=e769] [cursor=pointer]:
+                - generic [ref=e470]:
+                  - generic [ref=e471]: 🏷️
+                  - generic [ref=e472]: Same job, other names
+                  - generic [ref=e473]: 10 sibling titles
+                - generic [ref=e474]: ▼
+              - generic [ref=e476]:
+                - generic [ref=e477]:
+                  - paragraph [ref=e478]: Role Graph - what Data Analyst actually is, mapped end-to-end
+                  - paragraph [ref=e479]:
+                    - text: Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to
+                    - strong [ref=e480]: ESCO
+                    - text: skills - reverse-maps those to the
+                    - strong [ref=e481]: ISCO-08
+                    - text: occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready
+                    - strong [ref=e482]: role - occupation - skill - responsibility
+                    - text: graph and a skill-analysis card.
+                  - generic [ref=e483]:
+                    - generic [ref=e484]: 1. Source role
+                    - generic [ref=e485]: 2. Itemise statements
+                    - generic [ref=e486]: 3. Infer activities/skills
+                    - generic [ref=e487]: 4. Map → ESCO skills
+                    - generic [ref=e488]: 5. Reverse-map → ISCO-08
+                    - generic [ref=e489]: 6. Trading-score & rank
+                    - generic [ref=e490]: 7. Build graph + card
+                - group "Graph view" [ref=e491]:
+                  - button "Layered" [pressed] [ref=e492] [cursor=pointer]
+                  - button "Knowledge graph" [ref=e493] [cursor=pointer]
+                - paragraph [ref=e772]: Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…
+              - generic [ref=e498]:
+                - generic [ref=e499]:
+                  - generic [ref=e500]:
+                    - generic [ref=e501]:
+                      - paragraph [ref=e502]: Career WikiGraph
+                      - heading "Data Analyst" [level=2] [ref=e503]
+                    - generic [ref=e504]:
+                      - generic [ref=e505]: ✓ computed
+                      - generic [ref=e506]: ◐ derived
+                  - paragraph [ref=e507]: One centre, tap a bubble to dive in - the path shrinks into a trail at the top. Tap the trail to go back.
+                - tablist "Switch view lens" [ref=e508]:
+                  - tab "Candidate view - Seven-step career journey wired to engine output" [ref=e509] [cursor=pointer]: Candidate view
+                  - 'tab "Organisation view - Value-stream perspective: value stream, capability map, future state" [selected] [ref=e510] [cursor=pointer]': Organisation view
+                - generic [ref=e773]:
+                  - generic [ref=e774]:
+                    - paragraph [ref=e775]: Organisation guidance
+                    - paragraph [ref=e776]: A value-stream read chained from live engine output - why this role exists, how work flows, and where AI reshapes it
+                  - generic [ref=e777]:
+                    - strong [ref=e778]: "Derivation rule (value-stream tags):"
+                    - text: "derived from duty.layer: Activity=creating, Coordination=eroding, Accountability/Relational/Judgment=capturing. Tag = derived; AI-exposure level = computed. Prose framing = AI estimate where present."
+                  - generic [ref=e779]:
+                    - generic [ref=e780]:
+                      - generic [ref=e781]: "1"
+                      - heading "What the org needs from this role" [level=4] [ref=e782]
+                    - generic [ref=e783]:
+                      - generic [ref=e784]:
+                        - generic [ref=e785]:
+                          - generic [ref=e786]: Organisational placement
+                          - generic [ref=e787]:
+                            - generic [ref=e788]: ~
+                            - text: AI estimate
+                        - paragraph [ref=e789]: typically sits within Business Intelligence and Analytics, or Data and Insights - e.g. Finance and FP&A, or Marketing Analytics
+                        - paragraph [ref=e790]: Typical department placement - illustrative from role context, not derived from this specific posting.
+                      - generic [ref=e791]:
+                        - generic [ref=e792]:
+                          - generic [ref=e793]: 16 duty statements (verbatim from posting)
+                          - generic [ref=e794]:
+                            - generic [ref=e795]: ●
+                            - text: from posting
+                        - generic [ref=e796]:
+                          - generic [ref=e797]: Extract and validate data from databases, data warehouses, and ERP systems using SQL queries.
+                          - generic [ref=e798]: Design and build end-to-end data pipelines to ingest, process, and transform data from diverse sources.
+                          - generic [ref=e799]: Perform data cleansing, validation, and quality checks to ensure accuracy and consistency.
+                          - generic [ref=e800]: Build and maintain dashboards and reports using BI tools such as Power BI, Tableau, or Looker.
+                          - generic [ref=e801]: Conduct data analysis to uncover actionable insights, trends, and business opportunities.
+                          - generic [ref=e802]: +11 more (see Responsibilities tab)
+                  - generic [ref=e803]:
+                    - generic [ref=e804]:
+                      - generic [ref=e805]: "2"
+                      - heading "The work as a value stream" [level=4] [ref=e806]
+                    - generic [ref=e1168]:
+                      - generic [ref=e1169]:
+                        - generic [ref=e1170]: 24 duties classified
+                        - generic [ref=e1171]:
+                          - generic [ref=e1172]: ◐
+                          - text: derived
+                        - generic [ref=e1173]: tag
+                        - generic [ref=e1174]:
+                          - generic [ref=e1175]: ✓
+                          - text: computed
+                        - generic [ref=e1176]: AI level
+                      - generic [ref=e1177]:
+                        - generic [ref=e1178]: value-creating
+                        - generic [ref=e1179]: value-capturing
+                        - generic [ref=e1180]: value-eroding
+                      - generic [ref=e1181]:
+                        - generic [ref=e1182]:
+                          - generic [ref=e1183]:
+                            - generic [ref=e1184]: Provide ad-hoc data analysis and insights for business decision-making
+                            - generic [ref=e1185]:
+                              - generic [ref=e1186]:
+                                - text: value-creating
+                                - generic [ref=e1187]:
+                                  - generic [ref=e1188]: ◐
+                                  - text: derived
+                              - generic [ref=e1189]:
+                                - text: AI-Augmented
+                                - generic [ref=e1190]:
+                                  - generic [ref=e1191]: ✓
+                                  - text: computed
+                          - generic [ref=e1192]: "Layer: Activity - seen in 6 of 12 ads"
+                        - generic [ref=e1193]:
+                          - generic [ref=e1194]:
+                            - generic [ref=e1195]: Update and maintain Power BI dashboards
+                            - generic [ref=e1196]:
+                              - generic [ref=e1197]:
+                                - text: value-creating
+                                - generic [ref=e1198]:
+                                  - generic [ref=e1199]: ◐
+                                  - text: derived
+                              - generic [ref=e1200]:
+                                - text: AI-Augmented
+                                - generic [ref=e1201]:
+                                  - generic [ref=e1202]: ✓
+                                  - text: computed
+                          - generic [ref=e1203]: "Layer: Activity - seen in 6 of 12 ads"
+                        - generic [ref=e1204]:
+                          - generic [ref=e1205]:
+                            - generic [ref=e1206]: Assist in data mapping between Salesforce objects and external systems
+                            - generic [ref=e1207]:
+                              - generic [ref=e1208]:
+                                - text: value-creating
+                                - generic [ref=e1209]:
+                                  - generic [ref=e1210]: ◐
+                                  - text: derived
+                              - generic [ref=e1211]:
+                                - text: AI-Augmented
+                                - generic [ref=e1212]:
+                                  - generic [ref=e1213]: ✓
+                                  - text: computed
+                          - generic [ref=e1214]: "Layer: Activity - seen in 4 of 12 ads"
+                        - generic [ref=e1215]:
+                          - generic [ref=e1216]:
+                            - generic [ref=e1217]: Document data templates, mappings, and transformation logic
+                            - generic [ref=e1218]:
+                              - generic [ref=e1219]:
+                                - text: value-creating
+                                - generic [ref=e1220]:
+                                  - generic [ref=e1221]: ◐
+                                  - text: derived
+                              - generic [ref=e1222]:
+                                - text: AI-Augmented
+                                - generic [ref=e1223]:
+                                  - generic [ref=e1224]: ✓
+                                  - text: computed
+                          - generic [ref=e1225]: "Layer: Activity - seen in 4 of 12 ads"
+                        - generic [ref=e1226]:
+                          - generic [ref=e1227]:
+                            - generic [ref=e1228]: Ensure data accuracy, consistency, and documentation
+                            - generic [ref=e1229]:
+                              - generic [ref=e1230]:
+                                - text: value-capturing
+                                - generic [ref=e1231]:
+                                  - generic [ref=e1232]: ◐
+                                  - text: derived
+                              - generic [ref=e1233]:
+                                - text: AI-Assisted
+                                - generic [ref=e1234]:
+                                  - generic [ref=e1235]: ✓
+                                  - text: computed
+                          - generic [ref=e1236]: "Layer: Accountability - seen in 4 of 12 ads"
+                        - generic [ref=e1237]:
+                          - generic [ref=e1238]:
+                            - generic [ref=e1239]: Partner with business stakeholders to translate requirements
+                            - generic [ref=e1240]:
+                              - generic [ref=e1241]:
+                                - text: value-capturing
+                                - generic [ref=e1242]:
+                                  - generic [ref=e1243]: ◐
+                                  - text: derived
+                              - generic [ref=e1244]:
+                                - text: AI-Assisted
+                                - generic [ref=e1245]:
+                                  - generic [ref=e1246]: ✓
+                                  - text: computed
+                          - generic [ref=e1247]: "Layer: Relational - seen in 4 of 12 ads"
+                        - generic [ref=e1248]:
+                          - generic [ref=e1249]:
+                            - generic [ref=e1250]: Support data projects, reporting enhancements, and automation
+                            - generic [ref=e1251]:
+                              - generic [ref=e1252]:
+                                - text: value-eroding
+                                - generic [ref=e1253]:
+                                  - generic [ref=e1254]: ◐
+                                  - text: derived
+                              - generic [ref=e1255]:
+                                - text: AI-Augmented
+                                - generic [ref=e1256]:
+                                  - generic [ref=e1257]: ✓
+                                  - text: computed
+                          - generic [ref=e1258]: "Layer: Coordination - seen in 4 of 12 ads"
+                        - generic [ref=e1259]:
+                          - generic [ref=e1260]:
+                            - generic [ref=e1261]: Accurate and timely delivery of regional reporting
+                            - generic [ref=e1262]:
+                              - generic [ref=e1263]:
+                                - text: value-capturing
+                                - generic [ref=e1264]:
+                                  - generic [ref=e1265]: ◐
+                                  - text: derived
+                              - generic [ref=e1266]:
+                                - text: AI-Assisted
+                                - generic [ref=e1267]:
+                                  - generic [ref=e1268]: ✓
+                                  - text: computed
+                          - generic [ref=e1269]: "Layer: Accountability - seen in 4 of 12 ads"
+                        - generic [ref=e1270]:
+                          - generic [ref=e1271]:
+                            - generic [ref=e1272]: Data quality checks across datasets
+                            - generic [ref=e1273]:
+                              - generic [ref=e1274]:
+                                - text: value-creating
+                                - generic [ref=e1275]:
+                                  - generic [ref=e1276]: ◐
+                                  - text: derived
+                              - generic [ref=e1277]:
+                                - text: AI-Augmented
+                                - generic [ref=e1278]:
+                                  - generic [ref=e1279]: ✓
+                                  - text: computed
+                          - generic [ref=e1280]: "Layer: Activity - seen in 4 of 12 ads"
+                        - generic [ref=e1281]:
+                          - generic [ref=e1282]:
+                            - generic [ref=e1283]: Design, build, and optimise end-to-end data pipelines
+                            - generic [ref=e1284]:
+                              - generic [ref=e1285]:
+                                - text: value-creating
+                                - generic [ref=e1286]:
+                                  - generic [ref=e1287]: ◐
+                                  - text: derived
+                              - generic [ref=e1288]:
+                                - text: AI-Augmented
+                                - generic [ref=e1289]:
+                                  - generic [ref=e1290]: ✓
+                                  - text: computed
+                          - generic [ref=e1291]: "Layer: Activity - seen in 3 of 12 ads"
+                        - paragraph [ref=e1292]: +14 more duties (see Job Anatomy tab)
+                  - generic [ref=e811]:
+                    - generic [ref=e812]:
+                      - generic [ref=e813]: "3"
+                      - heading "The capability constraint (Capability Map)" [level=4] [ref=e814]
+                    - generic [ref=e1293]:
+                      - generic [ref=e1294]:
+                        - generic [ref=e1295]: AI-resilience score
+                        - generic [ref=e1296]:
+                          - generic [ref=e1297]: ✓
+                          - text: computed
+                      - generic [ref=e1298]:
+                        - generic [ref=e1299]: 51/100
+                        - generic [ref=e1300]: higher = more human-led
+                        - generic [ref=e1301]:
+                          - generic [ref=e1302]: ✓
+                          - text: computed
+                      - generic [ref=e1303]:
+                        - generic [ref=e1304]:
+                          - generic [ref=e1305]: Work-layer mix
+                          - generic [ref=e1306]:
+                            - generic [ref=e1307]: ✓
+                            - text: computed
+                        - generic [ref=e1308]:
+                          - generic "Activity 53%" [ref=e1309]
+                          - generic "Coordination 11%" [ref=e1310]
+                          - generic "Accountability 18%" [ref=e1311]
+                          - generic "Relational 8%" [ref=e1312]
+                          - generic "Judgment 10%" [ref=e1313]
+                        - generic [ref=e1314]:
+                          - generic [ref=e1315]: Activity 53%
+                          - generic [ref=e1316]: Coordination 11%
+                          - generic [ref=e1317]: Accountability 18%
+                          - generic [ref=e1318]: Relational 8%
+                          - generic [ref=e1319]: Judgment 10%
+                      - generic [ref=e1320]:
+                        - strong [ref=e1321]: "Constraint:"
+                        - text: 2 Full Automation + 12 AI-Augmented duties = 14 AI-exposed duties out of 24 total. The dominant layer is
+                        - strong [ref=e1322]: Activity
+                        - text: .
+                        - generic [ref=e1323]:
+                          - generic [ref=e1324]: ✓
+                          - text: computed
+                  - generic [ref=e819]:
+                    - generic [ref=e820]:
+                      - generic [ref=e821]: "4"
+                      - heading "Dependencies (who and what this role connects to)" [level=4] [ref=e822]
+                    - generic [ref=e1325]:
+                      - generic [ref=e1326]:
+                        - generic [ref=e1327]: Stakeholders named in the ads
+                        - generic [ref=e1328]:
+                          - generic [ref=e1329]: ●
+                          - text: from posting
+                      - generic [ref=e1330]:
+                        - generic [ref=e1331]: Business stakeholders
+                        - generic [ref=e1332]: Business teams
+                        - generic [ref=e1333]: Cross-functional teams
+                        - generic [ref=e1334]: Data migration teams
+                        - generic [ref=e1335]: Finance team
+                        - generic [ref=e1336]: Functional teams
+                      - paragraph [ref=e1337]:
+                        - text: External dependencies sit across the boundary where value and risk concentrate. Derived from verbatim stakeholder mentions in the sampled job ads.
+                        - generic [ref=e1338]:
+                          - generic [ref=e1339]: ●
+                          - text: from posting
+                  - generic [ref=e827]:
+                    - generic [ref=e828]:
+                      - generic [ref=e829]: "5"
+                      - heading "Friction and edge of core (where durable value sits)" [level=4] [ref=e830]
+                    - generic [ref=e1340]:
+                      - generic [ref=e1341]:
+                        - generic [ref=e1342]:
+                          - generic [ref=e1343]: Friction (value-eroding duties)
+                          - generic [ref=e1344]:
+                            - generic [ref=e1345]: ◐
+                            - text: derived
+                        - paragraph [ref=e1346]: "Derivation rule: layer = Coordination => value-eroding (bridges handoffs, no direct output). These are the bottlenecks AI can absorb first."
+                        - generic [ref=e1347]:
+                          - generic [ref=e1349]:
+                            - generic [ref=e1350]: Support data projects, reporting enhancements, and automation
+                            - generic [ref=e1351]: seen in 4 of 12 ads
+                            - generic [ref=e1352]:
+                              - generic [ref=e1353]: ◐
+                              - text: derived
+                          - generic [ref=e1355]:
+                            - generic [ref=e1356]: Support daily reporting and dashboard maintenance
+                            - generic [ref=e1357]: seen in 2 of 12 ads
+                            - generic [ref=e1358]:
+                              - generic [ref=e1359]: ◐
+                              - text: derived
+                          - generic [ref=e1361]:
+                            - generic [ref=e1362]: Support testing activities (SIT/UAT) with experienced consultants
+                            - generic [ref=e1363]: seen in 2 of 12 ads
+                            - generic [ref=e1364]:
+                              - generic [ref=e1365]: ◐
+                              - text: derived
+                      - generic [ref=e1366]:
+                        - generic [ref=e1367]:
+                          - generic [ref=e1368]: Edge of core (Human-Led duties)
+                          - generic [ref=e1369]:
+                            - generic [ref=e1370]: ◐
+                            - text: derived
+                        - paragraph [ref=e1371]: "Derivation rule: exposureNow = HUMAN or LOW => the duties AI cannot meaningfully replace. This is where the org's durable value sits (Lewis & McKone, Edge Strategy)."
+                        - generic [ref=e1372]:
+                          - generic [ref=e1373]: Ensure data accuracy, consistency, and docume...
+                          - generic [ref=e1374]: Partner with business stakeholders to transla...
+                          - generic [ref=e1375]: Accurate and timely delivery of regional repo...
+                          - generic [ref=e1376]: Generate actionable insights and opportunities
+                          - generic [ref=e1377]: Improved reporting controls and automation
+                          - generic [ref=e1378]: Interpret financial data to identify trends, ...
+                          - generic [ref=e1379]: +4 more
+                  - generic [ref=e835]:
+                    - generic [ref=e836]:
+                      - generic [ref=e837]: "6"
+                      - heading "Where AI reshapes the flow (future state)" [level=4] [ref=e838]
+                    - generic [ref=e1380]:
+                      - generic [ref=e1381]:
+                        - generic [ref=e1382]:
+                          - generic [ref=e1383]: AI absorbs (14 duties)
+                          - generic [ref=e1384]:
+                            - generic [ref=e1385]: ✓
+                            - text: computed
+                        - generic [ref=e1386]:
+                          - generic [ref=e1387]:
+                            - generic [ref=e1388]: Provide ad-hoc data analysis and insights for business decision-making
+                            - generic [ref=e1389]:
+                              - generic [ref=e1390]: AI-Augmented
+                              - generic [ref=e1391]:
+                                - generic [ref=e1392]: ✓
+                                - text: computed
+                          - generic [ref=e1393]:
+                            - generic [ref=e1394]: Update and maintain Power BI dashboards
+                            - generic [ref=e1395]:
+                              - generic [ref=e1396]: AI-Augmented
+                              - generic [ref=e1397]:
+                                - generic [ref=e1398]: ✓
+                                - text: computed
+                          - generic [ref=e1399]:
+                            - generic [ref=e1400]: Assist in data mapping between Salesforce objects and external systems
+                            - generic [ref=e1401]:
+                              - generic [ref=e1402]: AI-Augmented
+                              - generic [ref=e1403]:
+                                - generic [ref=e1404]: ✓
+                                - text: computed
+                          - generic [ref=e1405]:
+                            - generic [ref=e1406]: Document data templates, mappings, and transformation logic
+                            - generic [ref=e1407]:
+                              - generic [ref=e1408]: AI-Augmented
+                              - generic [ref=e1409]:
+                                - generic [ref=e1410]: ✓
+                                - text: computed
+                          - generic [ref=e1411]:
+                            - generic [ref=e1412]: Support data projects, reporting enhancements, and automation
+                            - generic [ref=e1413]:
+                              - generic [ref=e1414]: AI-Augmented
+                              - generic [ref=e1415]:
+                                - generic [ref=e1416]: ✓
+                                - text: computed
+                          - paragraph [ref=e1417]: +9 more AI-exposed duties
+                      - generic [ref=e1418]:
+                        - generic [ref=e1419]:
+                          - generic [ref=e1420]: Stays human-led (10 duties)
+                          - generic [ref=e1421]:
+                            - generic [ref=e1422]: ✓
+                            - text: computed
+                        - generic [ref=e1423]:
+                          - generic [ref=e1424]: Ensure data accuracy, consistency, an...
+                          - generic [ref=e1425]: Partner with business stakeholders to...
+                          - generic [ref=e1426]: Accurate and timely delivery of regio...
+                          - generic [ref=e1427]: Generate actionable insights and oppo...
+                          - generic [ref=e1428]: Improved reporting controls and autom...
+                          - generic [ref=e1429]: Interpret financial data to identify ...
+                          - generic [ref=e1430]: +4 more
+                      - generic [ref=e1431]:
+                        - generic [ref=e1432]:
+                          - generic [ref=e1433]: ✓
+                          - text: computed
+                        - text: 9 of 24 duties move further into AI's reach within ~2 years — resilience ~51 → ~43 by ~2027.
+                  - generic [ref=e843]:
+                    - generic [ref=e844]:
+                      - generic [ref=e845]: "7"
+                      - heading "So who to hire (back to the job ad)" [level=4] [ref=e846]
+                    - generic [ref=e848]:
+                      - generic [ref=e849]:
+                        - generic [ref=e850]:
+                          - generic [ref=e851]: ●
+                          - text: from posting
+                        - generic [ref=e852]: verbatim from the posted job ad
+                      - generic [ref=e853]:
+                        - paragraph [ref=e854]: Salesforce Data Analyst
+                        - paragraph [ref=e855]: Capgemini Singapore PTE. LTD.
+                        - paragraph [ref=e856]:
+                          - text: "Salary: $4,500 - $6,000"
+                          - generic [ref=e857]:
+                            - generic [ref=e858]: ●
+                            - text: from posting
+                        - link "View full job posting for Salesforce Data Analyst on careers.gov.sg" [ref=e859] [cursor=pointer]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-0e934c4d7e1d9b51dfea965bb8ab4404
+                          - text: View job posting (careers.gov.sg / MCF)
+                      - paragraph [ref=e860]:
+                        - text: 12 postings sampled. Showing the first.
+                        - generic [ref=e861]:
+                          - generic [ref=e862]: ◐
+                          - text: derived
+                - paragraph [ref=e684]: Role ecosystem graph
+                - generic [ref=e685]:
+                  - generic [ref=e686]:
+                    - generic [ref=e687]: Centre = where you are - tap a bubble to dive in, tap trail to go back
+                    - button "Zoom in" [ref=e688] [cursor=pointer]: +
+                    - button "Zoom out" [ref=e689] [cursor=pointer]: "-"
+                    - button "Reset graph view to centre" [ref=e690] [cursor=pointer]: Reset
+                  - img "Career WikiGraph - radial ecosystem - one centre, tap a bubble to dive in" [ref=e692]:
+                    - generic [ref=e693]:
+                      - button "Data Analyst - role - press Enter to select" [pressed] [ref=e694] [cursor=pointer]:
+                        - generic: Data Analyst
+                      - button "Extract and validate data from databases, data warehouses, and ERP systems using SQL queries. - duty - press Enter to select" [ref=e879] [cursor=pointer]:
+                        - generic: Extract andvalidate data fromdatabases, datawarehouses, andERP systems usingSQL queries.
+                      - button "Design and build end-to-end data pipelines to ingest, process, and transform data from diverse sources. - duty - press Enter to select" [ref=e881] [cursor=pointer]:
+                        - generic: Design and buildend-to-end datapipelines toingest, process,and transform datafrom diversesources.
+                      - button "Perform data cleansing, validation, and quality checks to ensure accuracy and consistency. - duty - press Enter to select" [ref=e883] [cursor=pointer]:
+                        - generic: Perform datacleansing,validation, andquality checks toensure accuracyand consistency.
+                      - button "Build and maintain dashboards and reports using BI tools such as Power BI, Tableau, or Looker. - duty - press Enter to select" [ref=e885] [cursor=pointer]:
+                        - generic: Build and maintaindashboards andreports using BItools such asPower BI, Tableau,or Looker.
+                      - button "Conduct data analysis to uncover actionable insights, trends, and business opportunities. - duty - press Enter to select" [ref=e887] [cursor=pointer]:
+                        - generic: Conduct dataanalysis touncover actionableinsights, trends,and businessopportunities.
+                      - button "Translate business requirements into analytical outputs, data models, and reporting solutions. - duty - press Enter to select" [ref=e889] [cursor=pointer]:
+                        - generic: Translate businessrequirements intoanalyticaloutputs, datamodels, andreportingsolutions.
+                      - button "Map and document data structures, field definitions, and relationships across systems. - duty - press Enter to select" [ref=e891] [cursor=pointer]:
+                        - generic: Map and documentdata structures,field definitions,and relationshipsacross systems.
+                      - button "Support data integration activities and ETL processes within cloud-based data platforms. - duty - press Enter to select" [ref=e893] [cursor=pointer]:
+                        - generic: Support dataintegrationactivities and ETLprocesses withincloud-based dataplatforms.
+                      - button "Define and enforce data governance standards, ownership, and stewardship practices across the organisation. - duty - press Enter to select" [ref=e895] [cursor=pointer]:
+                        - generic: Define and enforcedata governancestandards,ownership, andstewardshippractices acrossthe organisation.
+                      - button "Implement data quality checks, validation rules, and monitoring within data pipelines. - duty - press Enter to select" [ref=e897] [cursor=pointer]:
+                        - generic: Implement dataquality checks,validation rules,and monitoringwithin datapipelines.
+                      - button "Perform data reconciliation and root-cause analysis to resolve discrepancies and inconsistencies. - duty - press Enter to select" [ref=e899] [cursor=pointer]:
+                        - generic: Perform datareconciliation androot-causeanalysis toresolvediscrepancies andinconsistencies.
+                      - button "Present and communicate complex analytical findings to business stakeholders and senior leaders. - duty - press Enter to select" [ref=e901] [cursor=pointer]:
+                        - generic: Present andcommunicatecomplex analyticalfindings tobusinessstakeholders andsenior leaders.
+                      - button "Support reporting automation and process improvement initiatives to enhance efficiency. - duty - press Enter to select" [ref=e903] [cursor=pointer]:
+                        - generic: Support reportingautomation andprocessimprovementinitiatives toenhanceefficiency.
+                      - button "Develop curated data layers and semantic models to support analytics and downstream use cases. - duty - press Enter to select" [ref=e905] [cursor=pointer]:
+                        - generic: Develop curateddata layers andsemantic models tosupport analyticsand downstream usecases.
+                      - button "Maintain comprehensive documentation of data mappings, processes, and business requirements. - duty - press Enter to select" [ref=e907] [cursor=pointer]:
+                        - generic: Maintaincomprehensivedocumentation ofdata mappings,processes, andbusinessrequirements.
+                      - button "Collaborate with cross-functional teams to identify data requirements and process optimisation opportunities. - duty - press Enter to select" [ref=e909] [cursor=pointer]:
+                        - generic: Collaborate withcross-functionalteams to identifydata requirementsand processoptimisationopportunities.
+                      - button "Capgemini Singapore PTE. LTD. - organisation - press Enter to select" [ref=e911] [cursor=pointer]:
+                        - generic: CapgeminiSingapore PTE.LTD.
+                  - generic [ref=e696]:
+                    - generic [ref=e697]: "Colour = cluster layer:"
+                    - generic [ref=e698]: individual
+                    - generic [ref=e700]: department
+                    - generic [ref=e702]: organisation
+                    - generic [ref=e704]: competition
+                    - generic [ref=e706]: unscoped
+                    - generic [ref=e708]: Bigger bubble = more occurrences.
+                  - generic [ref=e709]:
+                    - generic [ref=e710]: "Source:"
+                    - generic [ref=e711]: ● from posting
+                    - generic [ref=e712]: ✓ computed
+                    - generic [ref=e713]: ◐ derived
+                    - generic [ref=e714]: ~ AI estimate
+                    - generic [ref=e715]: "? unverified"
+                - generic [ref=e716]:
+                  - generic [ref=e717]:
+                    - generic [ref=e718]: role
+                    - generic [ref=e719]: ● from posting
+                  - heading "Data Analyst" [level=3] [ref=e720]
+                  - paragraph [ref=e721]: "Confidence: high"
+                - generic [ref=e722]:
+                  - strong [ref=e723]: AI-assisted; human decides.
+                  - text: "Source: computed from role data (ESCO / ISCO / MCF) - Confidence: shown per node - Time-window: current session. Node size = occurrence count; colour = cluster layer. Links appear only where evidence exists."
+              - generic [ref=e914]:
+                - generic [ref=e915]:
+                  - paragraph [ref=e916]: 📝 Responsibilities Analysis
+                  - paragraph [ref=e917]: Extract, transform, analyse and visualise data to deliver insights and reporting solutions for business decision-making.
+                  - paragraph [ref=e918]:
+                    - text: Extracted from
+                    - strong [ref=e919]: 24 live SG postings (MyCareersFuture + careers.gov.sg)
+                    - text: . AI exposure ratings are indicative - your context may differ.
+                - generic [ref=e920]:
+                  - button "📝 Responsibilities" [ref=e921] [cursor=pointer]
+                  - button "🗂 Categories" [ref=e922] [cursor=pointer]
+                  - button "⬆️ By Seniority" [ref=e923] [cursor=pointer]
+                  - button "🔄 Crossover Roles" [ref=e924] [cursor=pointer]
+                  - button "🏢 By Sector" [ref=e925] [cursor=pointer]
+                - generic [ref=e926]:
+                  - generic [ref=e927]:
+                    - generic [ref=e928]:
+                      - paragraph [ref=e929]: How AI touches these 16 responsibilities
+                      - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e930]:
+                        - generic [ref=e931]: ~
+                        - text: AI estimate
+                    - generic [ref=e937]:
+                      - generic [ref=e938]: 1 Full Automation
+                      - generic [ref=e939]: 12 AI-Augmented
+                      - generic [ref=e940]: 3 Human-Led
+                  - generic [ref=e941]:
+                    - generic [ref=e942]:
+                      - generic [ref=e943]: Human-Led
+                      - generic [ref=e944]: (3)
+                      - generic [ref=e945]: · Presence, judgement, or accountability keep these duties human-led.
+                    - generic [ref=e946]:
+                      - generic [ref=e949]:
+                        - generic [ref=e951]: ♦ Human-Led
+                        - generic [ref=e952]:
+                          - paragraph [ref=e953]: Define and enforce data governance standards, ownership, and stewardship practices across the organisation.
+                          - generic [ref=e954]:
+                            - generic [ref=e955]: Compliance & Governance
+                            - generic [ref=e956]: Common
+                            - generic [ref=e957]: ↳ Define Data Quality Criteria
+                            - generic [ref=e958]: ↳ Establish Data Processes
+                            - generic [ref=e959]: ↳ Data Ethics
+                      - generic [ref=e962]:
+                        - generic [ref=e964]: ♦ Human-Led
+                        - generic [ref=e965]:
+                          - paragraph [ref=e966]: Present and communicate complex analytical findings to business stakeholders and senior leaders.
+                          - generic [ref=e967]:
+                            - generic [ref=e968]: Stakeholder & Client
+                            - generic [ref=e969]: Common
+                            - generic [ref=e970]: ↳ Data Visualisation Software
+                      - generic [ref=e973]:
+                        - generic [ref=e975]: ♦ Human-Led
+                        - generic [ref=e976]:
+                          - paragraph [ref=e977]: Collaborate with cross-functional teams to identify data requirements and process optimisation opportunities.
+                          - generic [ref=e978]:
+                            - generic [ref=e979]: Stakeholder & Client
+                            - generic [ref=e980]: Core duty
+                  - generic [ref=e981]:
+                    - generic [ref=e982]:
+                      - generic [ref=e983]: AI-Augmented
+                      - generic [ref=e984]: (12)
+                      - generic [ref=e985]: · AI markedly speeds these up; a human still directs and signs off.
+                    - generic [ref=e986]:
+                      - generic [ref=e989] [cursor=pointer]:
+                        - generic [ref=e991]: ~ AI-Augmented
+                        - generic [ref=e992]:
+                          - paragraph [ref=e993]: Design and build end-to-end data pipelines to ingest, process, and transform data from diverse sources.
+                          - generic [ref=e994]:
+                            - generic [ref=e995]: Technical & Systems
+                            - generic [ref=e996]: Common
+                            - generic [ref=e997]: ↳ Data Engineering
+                            - generic [ref=e998]: ↳ Establish Data Processes
+                            - generic [ref=e999]: ▼ how AI applies
+                      - generic [ref=e1002] [cursor=pointer]:
+                        - generic [ref=e1004]: ~ AI-Augmented
+                        - generic [ref=e1005]:
+                          - paragraph [ref=e1006]: Perform data cleansing, validation, and quality checks to ensure accuracy and consistency.
+                          - generic [ref=e1007]:
+                            - generic [ref=e1008]: Delivery & Execution
+                            - generic [ref=e1009]: Core duty
+                            - generic [ref=e1010]: ↳ Perform Data Cleansing
+                            - generic [ref=e1011]: ↳ Data Quality Assessment
+                            - generic [ref=e1012]: ▼ how AI applies
+                      - generic [ref=e1015] [cursor=pointer]:
+                        - generic [ref=e1017]: ~ AI-Augmented
+                        - generic [ref=e1018]:
+                          - paragraph [ref=e1019]: Build and maintain dashboards and reports using BI tools such as Power BI, Tableau, or Looker.
+                          - generic [ref=e1020]:
+                            - generic [ref=e1021]: Delivery & Execution
+                            - generic [ref=e1022]: Core duty
+                            - generic [ref=e1023]: ↳ Data Visualisation Software
+                            - generic [ref=e1024]: ▼ how AI applies
+                      - generic [ref=e1027] [cursor=pointer]:
+                        - generic [ref=e1029]: ~ AI-Augmented
+                        - generic [ref=e1030]:
+                          - paragraph [ref=e1031]: Conduct data analysis to uncover actionable insights, trends, and business opportunities.
+                          - generic [ref=e1032]:
+                            - generic [ref=e1033]: Analysis & Reporting
+                            - generic [ref=e1034]: Core duty
+                            - generic [ref=e1035]: ↳ Apply Statistical Analysis Techniques
+                            - generic [ref=e1036]: ↳ Data Mining
+                            - generic [ref=e1037]: ↳ Interpret Current Data
+                            - generic [ref=e1038]: ▼ how AI applies
+                      - generic [ref=e1041] [cursor=pointer]:
+                        - generic [ref=e1043]: ~ AI-Augmented
+                        - generic [ref=e1044]:
+                          - paragraph [ref=e1045]: Translate business requirements into analytical outputs, data models, and reporting solutions.
+                          - generic [ref=e1046]:
+                            - generic [ref=e1047]: Planning & Coordination
+                            - generic [ref=e1048]: Common
+                            - generic [ref=e1049]: ↳ Information Structure
+                            - generic [ref=e1050]: ▼ how AI applies
+                      - generic [ref=e1053] [cursor=pointer]:
+                        - generic [ref=e1055]: ~ AI-Augmented
+                        - generic [ref=e1056]:
+                          - paragraph [ref=e1057]: Map and document data structures, field definitions, and relationships across systems.
+                          - generic [ref=e1058]:
+                            - generic [ref=e1059]: Analysis & Reporting
+                            - generic [ref=e1060]: Common
+                            - generic [ref=e1061]: ↳ Information Categorisation
+                            - generic [ref=e1062]: ↳ Documentation Types
+                            - generic [ref=e1063]: ▼ how AI applies
+                      - generic [ref=e1066] [cursor=pointer]:
+                        - generic [ref=e1068]: ~ AI-Augmented
+                        - generic [ref=e1069]:
+                          - paragraph [ref=e1070]: Support data integration activities and ETL processes within cloud-based data platforms.
+                          - generic [ref=e1071]:
+                            - generic [ref=e1072]: Technical & Systems
+                            - generic [ref=e1073]: Common
+                            - generic [ref=e1074]: ↳ Data Engineering
+                            - generic [ref=e1075]: ↳ Digital Data Processing
+                            - generic [ref=e1076]: ▼ how AI applies
+                      - generic [ref=e1079] [cursor=pointer]:
+                        - generic [ref=e1081]: ~ AI-Augmented
+                        - generic [ref=e1082]:
+                          - paragraph [ref=e1083]: Implement data quality checks, validation rules, and monitoring within data pipelines.
+                          - generic [ref=e1084]:
+                            - generic [ref=e1085]: Compliance & Governance
+                            - generic [ref=e1086]: Common
+                            - generic [ref=e1087]: ↳ Define Data Quality Criteria
+                            - generic [ref=e1088]: ↳ Data Quality Assessment
+                            - generic [ref=e1089]: ▼ how AI applies
+                      - generic [ref=e1092] [cursor=pointer]:
+                        - generic [ref=e1094]: ~ AI-Augmented
+                        - generic [ref=e1095]:
+                          - paragraph [ref=e1096]: Perform data reconciliation and root-cause analysis to resolve discrepancies and inconsistencies.
+                          - generic [ref=e1097]:
+                            - generic [ref=e1098]: Analysis & Reporting
+                            - generic [ref=e1099]: Common
+                            - generic [ref=e1100]: ↳ Data Quality Assessment
+                            - generic [ref=e1101]: ↳ Interpret Current Data
+                            - generic [ref=e1102]: ▼ how AI applies
+                      - generic [ref=e1105] [cursor=pointer]:
+                        - generic [ref=e1107]: ~ AI-Augmented
+                        - generic [ref=e1108]:
+                          - paragraph [ref=e1109]: Support reporting automation and process improvement initiatives to enhance efficiency.
+                          - generic [ref=e1110]:
+                            - generic [ref=e1111]: Improvement & Innovation
+                            - generic [ref=e1112]: Common
+                            - generic [ref=e1113]: ↳ Establish Data Processes
+                            - generic [ref=e1114]: ▼ how AI applies
+                      - generic [ref=e1117] [cursor=pointer]:
+                        - generic [ref=e1119]: ~ AI-Augmented
+                        - generic [ref=e1120]:
+                          - paragraph [ref=e1121]: Develop curated data layers and semantic models to support analytics and downstream use cases.
+                          - generic [ref=e1122]:
+                            - generic [ref=e1123]: Technical & Systems
+                            - generic [ref=e1124]: Occasional
+                            - generic [ref=e1125]: ↳ Data Engineering
+                            - generic [ref=e1126]: ↳ Information Structure
+                            - generic [ref=e1127]: ▼ how AI applies
+                      - generic [ref=e1130] [cursor=pointer]:
+                        - generic [ref=e1132]: ~ AI-Augmented
+                        - generic [ref=e1133]:
+                          - paragraph [ref=e1134]: Maintain comprehensive documentation of data mappings, processes, and business requirements.
+                          - generic [ref=e1135]:
+                            - generic [ref=e1136]: Compliance & Governance
+                            - generic [ref=e1137]: Common
+                            - generic [ref=e1138]: ↳ Documentation Types
+                            - generic [ref=e1139]: ▼ how AI applies
+                  - generic [ref=e1140]:
+                    - generic [ref=e1141]:
+                      - generic [ref=e1142]: Full Automation
+                      - generic [ref=e1143]: (1)
+                      - generic [ref=e1144]: · An AI agent can run these end-to-end today; the human reviews the outcome.
+                    - generic [ref=e1148] [cursor=pointer]:
+                      - generic [ref=e1150]: ⚡ Full Automation
+                      - generic [ref=e1151]:
+                        - paragraph [ref=e1152]: Extract and validate data from databases, data warehouses, and ERP systems using SQL queries.
+                        - generic [ref=e1153]:
+                          - generic [ref=e1154]: Technical & Systems
+                          - generic [ref=e1155]: Core duty
+                          - generic [ref=e1156]: ↳ Use Databases
+                          - generic [ref=e1157]: ↳ Query Languages
+                          - generic [ref=e1158]: ▼ how AI applies
+                - paragraph [ref=e1159]: "Based on live postings: Salesforce Data Analyst · Salesforce Data Analyst (Graduate Program) · Senior Data Analyst (Data Engineering Role) · Data Analyst (Bank |Up to $8k) · #HOT# Junir Data Analyst - 12 Months contract · Data Analyst · 6 Months Associate, Data Analyst (Financial Institution) ($5-6K) #BYR · Senior Regulatory Reporting Data Analyst (Banking Domain) – 12 Months Contract. Source: MyCareersFuture Singapore."
+              - generic [ref=e1435]:
+                - generic [ref=e1436]:
+                  - paragraph [ref=e1437]: Job Anatomy - what this role actually is
+                  - paragraph [ref=e1438]: Hands-on data production and dashboard maintenance for regional business reporting.
+                  - paragraph [ref=e1439]: Across 12 live SG job ads - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.
+                - generic [ref=e1440]:
+                  - paragraph [ref=e1441]:
+                    - button "Work-layer mixi" [ref=e1443]:
+                      - text: Work-layer mix
+                      - superscript [ref=e1444]: i
+                  - generic [ref=e1445]:
+                    - generic "Activity 53%" [ref=e1446]
+                    - generic "Coordination 11%" [ref=e1447]
+                    - generic "Accountability 18%" [ref=e1448]
+                    - generic "Relational 8%" [ref=e1449]
+                    - generic "Judgment 10%" [ref=e1450]
+                  - generic [ref=e1451]:
+                    - generic [ref=e1452]:
+                      - text: Activity
+                      - generic [ref=e1454]: 53%
+                    - generic [ref=e1455]:
+                      - text: Coordination
+                      - generic [ref=e1457]: 11%
+                    - generic [ref=e1458]:
+                      - text: Accountability
+                      - generic [ref=e1460]: 18%
+                    - generic [ref=e1461]:
+                      - text: Relational
+                      - generic [ref=e1463]: 8%
+                    - generic [ref=e1464]:
+                      - text: Judgment
+                      - generic [ref=e1466]: 10%
+                  - paragraph [ref=e1467]: Most of this role is hands-on production work today.
+                - generic [ref=e1468]:
+                  - paragraph [ref=e1469]: What the ads imply about the role's place in the org
+                  - paragraph [ref=e1470]: "reports to Regional Manager - ~2-4 years - supervises junior analysts - regional - Asia - SEAA Region - Global - tools: SQL, Power BI, Excel, Databricks, Tableau - works with: Business stakeholders, Business teams, Cross-functional teams, Data migration teams, Finance team"
+                - generic [ref=e1471]:
+                  - generic [ref=e1472]:
+                    - paragraph [ref=e1473]: What this job really is
+                    - paragraph [ref=e1474]: "Most time is spent running queries, building dashboards, and documenting data flows—not strategizing. The role is execution-heavy: SQL, Excel, Power BI work that turns raw data into usable reports for stakeholders across Asia."
+                  - generic [ref=e1475]:
+                    - paragraph [ref=e1476]: What supervisors actually expect
+                    - paragraph [ref=e1477]: Reliable delivery of accurate regional reports on schedule, and the ability to learn tools quickly as systems change. Supervisors hire for steady output, not breakthrough insight—someone who follows process and catches errors before they reach leadership.
+                - generic [ref=e1478]:
+                  - paragraph [ref=e1479]: Duties - frequency - work layer - AI exposure now to ~2027
+                  - generic [ref=e1480]:
+                    - generic [ref=e1481]:
+                      - paragraph [ref=e1482]: Provide ad-hoc data analysis and insights for business decision-making
+                      - generic [ref=e1483]:
+                        - generic [ref=e1484]: Activity
+                        - generic [ref=e1485]: in 6/12 ads
+                    - generic [ref=e1486]:
+                      - generic [ref=e1487]: AI-Augmented
+                      - generic [ref=e1488]: ↗
+                      - generic [ref=e1489]: Full Automation
+                  - generic [ref=e1490]:
+                    - generic [ref=e1491]:
+                      - paragraph [ref=e1492]: Update and maintain Power BI dashboards
+                      - generic [ref=e1493]:
+                        - generic [ref=e1494]: Activity
+                        - generic [ref=e1495]: in 6/12 ads
+                    - generic [ref=e1496]:
+                      - generic [ref=e1497]: AI-Augmented
+                      - generic [ref=e1498]: →
+                      - generic [ref=e1499]: AI-Augmented
+                  - generic [ref=e1500]:
+                    - generic [ref=e1501]:
+                      - paragraph [ref=e1502]: Accurate and timely delivery of regional reporting
+                      - generic [ref=e1503]:
+                        - generic [ref=e1504]: Accountability
+                        - generic [ref=e1505]: in 4/12 ads
+                        - generic [ref=e1506]: "- outcome / KPI"
+                    - generic [ref=e1507]:
+                      - generic [ref=e1508]: AI-Assisted
+                      - generic [ref=e1509]: →
+                      - generic [ref=e1510]: AI-Assisted
+                  - generic [ref=e1511]:
+                    - generic [ref=e1512]:
+                      - paragraph [ref=e1513]: Ensure data accuracy, consistency, and documentation
+                      - generic [ref=e1514]:
+                        - generic [ref=e1515]: Accountability
+                        - generic [ref=e1516]: in 4/12 ads
+                    - generic [ref=e1517]:
+                      - generic [ref=e1518]: AI-Assisted
+                      - generic [ref=e1519]: →
+                      - generic [ref=e1520]: AI-Assisted
+                  - generic [ref=e1521]:
+                    - generic [ref=e1522]:
+                      - paragraph [ref=e1523]: Partner with business stakeholders to translate requirements
+                      - generic [ref=e1524]:
+                        - generic [ref=e1525]: Relational
+                        - generic [ref=e1526]: in 4/12 ads
+                    - generic [ref=e1527]:
+                      - generic [ref=e1528]: AI-Assisted
+                      - generic [ref=e1529]: →
+                      - generic [ref=e1530]: AI-Assisted
+                  - generic [ref=e1531]:
+                    - generic [ref=e1532]:
+                      - paragraph [ref=e1533]: Assist in data mapping between Salesforce objects and external systems
+                      - generic [ref=e1534]:
+                        - generic [ref=e1535]: Activity
+                        - generic [ref=e1536]: in 4/12 ads
+                    - generic [ref=e1537]:
+                      - generic [ref=e1538]: AI-Augmented
+                      - generic [ref=e1539]: ↗
+                      - generic [ref=e1540]: Full Automation
+                  - generic [ref=e1541]:
+                    - generic [ref=e1542]:
+                      - paragraph [ref=e1543]: Data quality checks across datasets
+                      - generic [ref=e1544]:
+                        - generic [ref=e1545]: Activity
+                        - generic [ref=e1546]: in 4/12 ads
+                        - generic [ref=e1547]: "- outcome / KPI"
+                    - generic [ref=e1548]:
+                      - generic [ref=e1549]: AI-Augmented
+                      - generic [ref=e1550]: ↗
+                      - generic [ref=e1551]: Full Automation
+                  - generic [ref=e1552]:
+                    - generic [ref=e1553]:
+                      - paragraph [ref=e1554]: Document data templates, mappings, and transformation logic
+                      - generic [ref=e1555]:
+                        - generic [ref=e1556]: Activity
+                        - generic [ref=e1557]: in 4/12 ads
+                    - generic [ref=e1558]:
+                      - generic [ref=e1559]: AI-Augmented
+                      - generic [ref=e1560]: →
+                      - generic [ref=e1561]: AI-Augmented
+                  - generic [ref=e1562]:
+                    - generic [ref=e1563]:
+                      - paragraph [ref=e1564]: Support data projects, reporting enhancements, and automation
+                      - generic [ref=e1565]:
+                        - generic [ref=e1566]: Coordination
+                        - generic [ref=e1567]: in 4/12 ads
+                    - generic [ref=e1568]:
+                      - generic [ref=e1569]: AI-Augmented
+                      - generic [ref=e1570]: →
+                      - generic [ref=e1571]: AI-Augmented
+                  - generic [ref=e1572]:
+                    - generic [ref=e1573]:
+                      - paragraph [ref=e1574]: Generate actionable insights and opportunities
+                      - generic [ref=e1575]:
+                        - generic [ref=e1576]: Judgment
+                        - generic [ref=e1577]: in 3/12 ads
+                        - generic [ref=e1578]: "- outcome / KPI"
+                    - generic [ref=e1579]:
+                      - generic [ref=e1580]: AI-Assisted
+                      - generic [ref=e1581]: →
+                      - generic [ref=e1582]: AI-Assisted
+                  - generic [ref=e1583]:
+                    - generic [ref=e1584]:
+                      - paragraph [ref=e1585]: Improved reporting controls and automation
+                      - generic [ref=e1586]:
+                        - generic [ref=e1587]: Accountability
+                        - generic [ref=e1588]: in 3/12 ads
+                        - generic [ref=e1589]: "- outcome / KPI"
+                    - generic [ref=e1590]:
+                      - generic [ref=e1591]: AI-Assisted
+                      - generic [ref=e1592]: ↗
+                      - generic [ref=e1593]: AI-Augmented
+                  - generic [ref=e1594]:
+                    - generic [ref=e1595]:
+                      - paragraph [ref=e1596]: Design, build, and optimise end-to-end data pipelines
+                      - generic [ref=e1597]:
+                        - generic [ref=e1598]: Activity
+                        - generic [ref=e1599]: in 3/12 ads
+                    - generic [ref=e1600]:
+                      - generic [ref=e1601]: AI-Augmented
+                      - generic [ref=e1602]: ↗
+                      - generic [ref=e1603]: Full Automation
+                  - generic [ref=e1604]:
+                    - generic [ref=e1605]:
+                      - paragraph [ref=e1606]: Approve data ownership and stewardship practices
+                      - generic [ref=e1607]:
+                        - generic [ref=e1608]: Accountability
+                        - generic [ref=e1609]: in 2/12 ads
+                        - generic [ref=e1610]: "- owns / signs off"
+                    - generic [ref=e1611]:
+                      - generic [ref=e1612]: AI-Assisted
+                      - generic [ref=e1613]: →
+                      - generic [ref=e1614]: AI-Assisted
+                  - generic [ref=e1615]:
+                    - generic [ref=e1616]:
+                      - paragraph [ref=e1617]: Define and enforce data governance standards
+                      - generic [ref=e1618]:
+                        - generic [ref=e1619]: Judgment
+                        - generic [ref=e1620]: in 2/12 ads
+                        - generic [ref=e1621]: "- owns / signs off"
+                    - generic [ref=e1622]:
+                      - generic [ref=e1623]: AI-Assisted
+                      - generic [ref=e1624]: →
+                      - generic [ref=e1625]: AI-Assisted
+                  - generic [ref=e1626]:
+                    - generic [ref=e1627]:
+                      - paragraph [ref=e1628]: Interpret financial data to identify trends, risks, and opportunities
+                      - generic [ref=e1629]:
+                        - generic [ref=e1630]: Judgment
+                        - generic [ref=e1631]: in 2/12 ads
+                    - generic [ref=e1632]:
+                      - generic [ref=e1633]: AI-Assisted
+                      - generic [ref=e1634]: →
+                      - generic [ref=e1635]: AI-Assisted
+                  - generic [ref=e1636]:
+                    - generic [ref=e1637]:
+                      - paragraph [ref=e1638]: Support requirement discussions with business and functional teams
+                      - generic [ref=e1639]:
+                        - generic [ref=e1640]: Relational
+                        - generic [ref=e1641]: in 2/12 ads
+                    - generic [ref=e1642]:
+                      - generic [ref=e1643]: AI-Assisted
+                      - generic [ref=e1644]: →
+                      - generic [ref=e1645]: AI-Assisted
+                  - generic [ref=e1646]:
+                    - generic [ref=e1647]:
+                      - paragraph [ref=e1648]: Support testing activities (SIT/UAT) with experienced consultants
+                      - generic [ref=e1649]:
+                        - generic [ref=e1650]: Coordination
+                        - generic [ref=e1651]: in 2/12 ads
+                    - generic [ref=e1652]:
+                      - generic [ref=e1653]: AI-Assisted
+                      - generic [ref=e1654]: →
+                      - generic [ref=e1655]: AI-Assisted
+                  - generic [ref=e1656]:
+                    - generic [ref=e1657]:
+                      - paragraph [ref=e1658]: Clarified data inconsistencies, edge cases, and validation rules
+                      - generic [ref=e1659]:
+                        - generic [ref=e1660]: Activity
+                        - generic [ref=e1661]: in 2/12 ads
+                        - generic [ref=e1662]: "- outcome / KPI"
+                    - generic [ref=e1663]:
+                      - generic [ref=e1664]: AI-Augmented
+                      - generic [ref=e1665]: ↗
+                      - generic [ref=e1666]: Full Automation
+                  - generic [ref=e1667]:
+                    - generic [ref=e1668]:
+                      - paragraph [ref=e1669]: Implement data governance practices including lineage and metadata management
+                      - generic [ref=e1670]:
+                        - generic [ref=e1671]: Activity
+                        - generic [ref=e1672]: in 2/12 ads
+                    - generic [ref=e1673]:
+                      - generic [ref=e1674]: AI-Augmented
+                      - generic [ref=e1675]: ↗
+                      - generic [ref=e1676]: Full Automation
+                  - generic [ref=e1677]:
+                    - generic [ref=e1678]:
+                      - paragraph [ref=e1679]: Perform data patching when required
+                      - generic [ref=e1680]:
+                        - generic [ref=e1681]: Activity
+                        - generic [ref=e1682]: in 2/12 ads
+                    - generic [ref=e1683]:
+                      - generic [ref=e1684]: AI-Augmented
+                      - generic [ref=e1685]: ↗
+                      - generic [ref=e1686]: Full Automation
+                  - generic [ref=e1687]:
+                    - generic [ref=e1688]:
+                      - paragraph [ref=e1689]: Support daily reporting and dashboard maintenance
+                      - generic [ref=e1690]:
+                        - generic [ref=e1691]: Coordination
+                        - generic [ref=e1692]: in 2/12 ads
+                    - generic [ref=e1693]:
+                      - generic [ref=e1694]: AI-Augmented
+                      - generic [ref=e1695]: ↗
+                      - generic [ref=e1696]: Full Automation
+                  - generic [ref=e1697]:
+                    - generic [ref=e1698]:
+                      - paragraph [ref=e1699]: Support regulatory and financial reporting activities
+                      - generic [ref=e1700]:
+                        - generic [ref=e1701]: Activity
+                        - generic [ref=e1702]: in 2/12 ads
+                    - generic [ref=e1703]:
+                      - generic [ref=e1704]: AI-Augmented
+                      - generic [ref=e1705]: →
+                      - generic [ref=e1706]: AI-Augmented
+                  - generic [ref=e1707]:
+                    - generic [ref=e1708]:
+                      - paragraph [ref=e1709]: Perform data extraction, cleaning, and validation
+                      - generic [ref=e1710]:
+                        - generic [ref=e1711]: Activity
+                        - generic [ref=e1712]: in 2/12 ads
+                    - generic [ref=e1713]:
+                      - generic [ref=e1714]: Full Automation
+                      - generic [ref=e1715]: →
+                      - generic [ref=e1716]: Full Automation
+                  - generic [ref=e1717]:
+                    - generic [ref=e1718]:
+                      - paragraph [ref=e1719]: Query and analyse complex datasets using SQL
+                      - generic [ref=e1720]:
+                        - generic [ref=e1721]: Activity
+                        - generic [ref=e1722]: in 2/12 ads
+                    - generic [ref=e1723]:
+                      - generic [ref=e1724]: Full Automation
+                      - generic [ref=e1725]: →
+                      - generic [ref=e1726]: Full Automation
+                - generic [ref=e1727]:
+                  - paragraph [ref=e1728]: How to prepare - build the layers AI can't take
+                  - list [ref=e1729]:
+                    - listitem [ref=e1730]:
+                      - strong [ref=e1731]: Relational
+                      - text: "- Least exposed to AI; most durable as tools automate query work.. Build deeper relationships with 2-3 key business stakeholder teams monthly.."
+                    - listitem [ref=e1732]:
+                      - strong [ref=e1733]: Accountability
+                      - text: "- Currently low exposure; will remain low because judgment calls are rare.. Own one end-to-end data quality audit cycle per quarter; raise issues early.."
+                    - listitem [ref=e1734]:
+                      - strong [ref=e1735]: Judgment
+                      - text: "- Small but growing; needed when dashboards fail or requirements conflict.. Document three past decisions where you picked one approach over another, review with your manager.."
+            - note "How to read the provenance badges" [ref=e725]:
+              - generic [ref=e726]: "Badges, where shown:"
+              - generic [ref=e727]:
+                - generic "Taken verbatim from the live MyCareersFuture posting." [ref=e728]:
+                  - generic [ref=e729]: ●
+                  - text: from MyCareersFuture
+                - text: posting facts
+              - generic [ref=e730]:
+                - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e731]':
+                  - generic [ref=e732]: ✓
+                  - text: computed
+                - text: deterministic, reproducible
+              - generic [ref=e733]:
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e734]:
+                  - generic [ref=e735]: ~
+                  - text: AI estimate
+                - text: AI judgement, may vary
+              - generic [ref=e736]:
+                - 'generic "Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." [ref=e737]':
+                  - generic [ref=e738]: ◐
+                  - text: derived
+                - text: computed from the sampled ads
+        - button "Open the job advertisement" [ref=e1160] [cursor=pointer]:
+          - generic [ref=e1161]: 📄
+          - text: Job ad
+        - button "A note on how to use this ▼" [ref=e740] [cursor=pointer]:
+          - generic [ref=e741]: A note on how to use this
+          - generic [ref=e742]: ▼
+        - generic [ref=e744]:
+          - paragraph [ref=e745]: ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          - generic [ref=e746]:
+            - link "Share feedback" [ref=e747] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=e748] [cursor=pointer]
+            - button "Legal" [ref=e749] [cursor=pointer]
+            - link "Terms" [ref=e750] [cursor=pointer]:
+              - /url: /terms.html

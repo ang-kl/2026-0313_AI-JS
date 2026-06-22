@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: ★ AI Readiness across Skills and Competences · JobAds from Singapore
+      - generic [ref=e5]: MVP demo
+      - button "Home" [ref=e6] [cursor=pointer]
+      - button "← Back" [disabled] [ref=e7]
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - heading "A job ad is the visible surface of a system." [level=1] [ref=e11]
+      - paragraph [ref=e12]: "Pick a starting point, then read down the ecosystem: Organisation → Department → Role → Job Ad → stakeholders, risks, AI impact. Sample data only; no live jobs are fetched."
+    - generic [ref=e13]:
+      - button "Standards / Skills Find standard skills and occupations (ESCO / ISCO). “Show me the standard concept and who hires for it.”" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: 📐
+        - generic [ref=e16]: Standards / Skills
+        - generic [ref=e17]: Find standard skills and occupations (ESCO / ISCO).
+        - generic [ref=e18]: “Show me the standard concept and who hires for it.”
+      - button "Find MCF Jobs Current openings, turned into a linked ecosystem. “Find current jobs and the system behind them.”" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: 🇸🇬
+        - generic [ref=e21]: Find MCF Jobs
+        - generic [ref=e22]: Current openings, turned into a linked ecosystem.
+        - generic [ref=e23]: “Find current jobs and the system behind them.”
+      - button "Fresh Grad Pathways Realistic entry pathways and the proof to build. “I am a fresh grad - where do I start?”" [ref=e24] [cursor=pointer]:
+        - generic [ref=e25]: 🎓
+        - generic [ref=e26]: Fresh Grad Pathways
+        - generic [ref=e27]: Realistic entry pathways and the proof to build.
+        - generic [ref=e28]: “I am a fresh grad - where do I start?”
+      - button "Employer Search What an employer repeatedly hires for, top-down. “What does this employer expect?”" [ref=e29] [cursor=pointer]:
+        - generic [ref=e30]: 🏢
+        - generic [ref=e31]: Employer Search
+        - generic [ref=e32]: What an employer repeatedly hires for, top-down.
+        - generic [ref=e33]: “What does this employer expect?”
