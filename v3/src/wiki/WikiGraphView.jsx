@@ -446,7 +446,7 @@ function NodeDetail({ node, nodeId }) {
 //   edges   - array of KG edge objects
 //   title   - string, the searched role title
 //   onBack  - function, called when user taps "New search"
-export default function WikiGraphView({ nodes = [], edges = [], title = "", onBack }) {
+export default function WikiGraphView({ nodes = [], edges = [], title = "", onBack, embedded = false }) {
   // Build an id-keyed map and attach children lists from edges
   const nodeMap = {};
   (nodes || []).forEach(n => {
@@ -488,7 +488,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", onBa
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
-      {/* Back button */}
+      {/* Back button (hidden when embedded as a result-page tab - the page has its own nav) */}
+      {!embedded && (
       <button
         type="button"
         aria-label="Back to new search"
@@ -500,6 +501,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", onBa
         }}>
         {"←"} New search
       </button>
+      )}
 
       {/* Header */}
       <div style={{
