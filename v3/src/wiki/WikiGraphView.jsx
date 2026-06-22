@@ -13,6 +13,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import CandidateJourney from "./CandidateJourney.jsx";
 import OrgJourney from "./OrgJourney.jsx";
 import { computeRealmMap } from "./wikiRealmOf.js";
+import { nodeImportance, impToScale } from "./graphMetrics.js";
+import NeuralGraph from "./NeuralGraph.jsx";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -137,28 +139,8 @@ function pillOf(label, count) {
   };
 }
 
-// ── Major / minor ranking ─────────────────────────────────────────────────────
-// Drives bubble size, spoke weight and which ring a child lands on. Deterministic.
-const TYPE_WEIGHT = {
-  role: 1.0, occupation: 0.92, iscoOccupation: 0.92,
-  "mirror-occupation": 0.84, organisation: 0.8,
-  skill: 0.56, escoSkill: 0.56,
-  qualification: 0.32, duty: 0.3,
-};
-function nodeImportance(node, nodeMap) {
-  if (!node) return 0.45;
-  const tw = TYPE_WEIGHT[node.type] != null ? TYPE_WEIGHT[node.type] : 0.5;
-  const cnt = Number(node.count) || 0;
-  const countBump = Math.min(0.32, Math.max(0, cnt - 1) * 0.07); // repeats -> bigger
-  const kids = (node.children || []).filter(k => nodeMap && nodeMap[k]).length;
-  const hubBump = Math.min(0.28, kids * 0.05);                   // a branch hub -> major
-  return tw + countBump + hubBump;
-}
-// Map importance (~0.3..1.4) to a bubble scale: minor small, major large.
-function impToScale(imp) {
-  const t = Math.max(0, Math.min(1, (imp - 0.3) / 1.05));
-  return 0.56 + t * 0.46; // 0.56 (minor) .. ~1.02 (major)
-}
+// nodeImportance + impToScale now live in graphMetrics.js (shared with the neural view).
+
 // Gentle curved spoke (a perpendicular bow) for the organic, neural-graph look.
 function curvePath(a, b, bow) {
   if (!bow) return `M${a.x},${a.y} L${b.x},${b.y}`;
@@ -621,6 +603,8 @@ function NodeDetail({ node, nodeId, realm }) {
 export default function WikiGraphView({ nodes = [], edges = [], title = "", result = null, onBack, embedded = false }) {
   // Lens state: "candidate" (default) | "organisation"
   const [lens, setLens] = useState("candidate");
+  // Graph mode: "focus" (radial focus-browser) | "neural" (force-directed whole graph)
+  const [graphMode, setGraphMode] = useState("focus");
   // Ecotone overlay state (off by default - the plain cluster view is the resting state)
   const [ecotone, setEcotone] = useState(false);
   // Deterministic realm map over the WHOLE graph (spec section 2.1) - derived tier
@@ -750,11 +734,37 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         <OrgJourney result={result} title={title} />
       )}
 
-      {/* Graph section header + ecotone overlay toggle */}
+      {/* Graph section header + mode toggle + ecotone overlay toggle */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 8, marginTop: 4 }}>
-        <p style={{ margin: 0, flex: 1, minWidth: 140, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <p style={{ margin: 0, flex: 1, minWidth: 120, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Role ecosystem graph
         </p>
+        {/* Focus (radial) vs Neural (force-directed) view toggle */}
+        <div role="tablist" aria-label="Graph view mode" style={{ display: "inline-flex", borderRadius: 10, border: `1px solid ${C.border}`, overflow: "hidden", boxShadow: NEO.raiseSm }}>
+          {[
+            { key: "focus", label: "Focus", desc: "Radial - one centre, tap to dive in" },
+            { key: "neural", label: "Neural", desc: "Force-directed - the whole web at once" },
+          ].map(function(opt) {
+            const active = graphMode === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-label={opt.label + " view - " + opt.desc}
+                onClick={function() { setGraphMode(opt.key); }}
+                style={{
+                  minHeight: 44, padding: "8px 16px", border: "none",
+                  background: active ? C.accentSoft : C.surface,
+                  color: active ? C.accent : C.textSub,
+                  fontWeight: active ? 800 : 600, fontSize: "0.8125rem", cursor: "pointer",
+                }}>
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
         <button
           type="button"
           aria-pressed={ecotone}
@@ -778,8 +788,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         </button>
       </div>
 
-      {/* Breadcrumb trail */}
-      {stack.length > 1 && (
+      {/* Breadcrumb trail (focus mode only) */}
+      {graphMode === "focus" && stack.length > 1 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 8, fontSize: "0.75rem", color: C.muted }}>
           <span style={{ fontWeight: 700 }}>Path:</span>
           {stack.map(function(id, i) {
@@ -818,6 +828,15 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
             [UNVERIFIED: insufficient data to build the ecosystem]
           </p>
         </div>
+      ) : graphMode === "neural" ? (
+        <NeuralGraph
+          nodes={nodes}
+          edges={edges}
+          selectedId={selectedId}
+          onNodeTap={setSelectedId}
+          ecotone={ecotone}
+          realmById={realmMap.realm}
+        />
       ) : (
         <RadialSVG
           nodeMap={nodeMap}
