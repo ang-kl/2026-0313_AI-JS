@@ -1115,6 +1115,18 @@
 // "Print / save as PDF" button (window.print + @media print shows only the brief). Turns the read
 // into something the candidate keeps. No app/engine change; api/mcf.js + frozen symbols untouched.
 // G1 (v3.0.114 -> v3.0.115).
+// v3.0.116 - 2026-06-22 - HDR #154 - WikiGraph W1: Employer persona wired LIVE (?view=wiki). First
+// productionisation slice off the static /demo. Additive: a ?view=wiki route in main.jsx +
+// EmployerWikiView, which runs the SAME live action:"company"+duties:true MCF fetch CompanyPanel
+// uses, then buildCompanyAgents -> buildEmployerWiki (pure, deterministic, non-inventive note +
+// [[wikilink]] builder; two-pass so a link emits only when both endpoints exist) +
+// companyAgentsToKgPayload -> embedded KGGraph. Obsidian-style notes (employer/jobad/duty/skill/
+// agent) with provenance chips, backlinks, and a deterministic "next best move". Wikilink<->graph
+// highlight rides the EXISTING KGGraph onNodeTap (no new prop). Validate: conformance-auditor PASS
+// (G1-G8 + hard gates; D1-D8 N/A - no LLM on surface); a11y-honesty-reviewer 3 FAIL touch targets
+// (wikilinks/backlinks/filter-tabs) + 3 WARN fixed (>=44px, ProvLegend, backlink titles).
+// 17/17 unit checks. Frozen symbols (buildCompanyAgents/companyAgentsToKgPayload/CompanyPanel/
+// CompanyAgentSidePanel/KGGraph/api/*) byte-identical. G1 (v3.0.115 -> v3.0.116).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
@@ -12086,7 +12098,7 @@ function _renderBody(body, onNav) {
       return (
         <button key={i} aria-label={"Go to note: " + part.label}
           onClick={function() { onNav(part.targetId); }}
-          style={{ display:"inline", background:"#ecfeff", border:"1px solid #a5f3fc", color:"#0e7490", fontWeight:700, borderRadius:7, padding:"1px 7px", margin:"0 1px", fontSize:"0.9em", lineHeight:1.9, cursor:"pointer", font:"inherit" }}>
+          style={{ display:"inline-flex", alignItems:"center", verticalAlign:"middle", minHeight:44, background:"#ecfeff", border:"1px solid #a5f3fc", color:"#0e7490", fontWeight:700, borderRadius:7, padding:"2px 9px", margin:"0 1px", fontSize:"0.9em", lineHeight:1.4, cursor:"pointer", font:"inherit" }}>
           {part.label}
         </button>
       );
@@ -12112,7 +12124,8 @@ function NoteTypeChip({ type }) {
 }
 
 // W1: shared note frame - used by all three W1 renderers.
-function _NoteFrame({ note, onNav, children }) {
+function _NoteFrame({ note, onNav, titleOf, children }) {
+  var _label = titleOf || function(id) { return id; };
   var provKind = note.source === "from MCF" ? "mcf" : "derived";
   return (
     <article aria-label={"Note: " + note.title}
@@ -12149,10 +12162,10 @@ function _NoteFrame({ note, onNav, children }) {
           <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
             {note.backlinks.map(function(srcId) {
               return (
-                <button key={srcId} aria-label={"Back to: " + srcId}
+                <button key={srcId} aria-label={"Back to: " + _label(srcId)}
                   onClick={function() { onNav(srcId); }}
-                  style={{ minHeight:34, background:C.tealBg, border:"1px solid " + C.tealBdr, color:C.teal, fontWeight:700, borderRadius:8, padding:"5px 11px", fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
-                  {srcId}
+                  style={{ minHeight:44, display:"inline-flex", alignItems:"center", background:C.tealBg, border:"1px solid " + C.tealBdr, color:C.teal, fontWeight:700, borderRadius:8, padding:"10px 12px", fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
+                  {_label(srcId)}
                 </button>
               );
             })}
@@ -12164,38 +12177,38 @@ function _NoteFrame({ note, onNav, children }) {
 }
 
 // W1: EmployerNote renderer
-function EmployerNote({ note, onNav }) {
-  return <_NoteFrame note={note} onNav={onNav} />;
+function EmployerNote({ note, onNav, titleOf }) {
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
 // W1: JobAdNote renderer
-function JobAdNote({ note, onNav }) {
-  return <_NoteFrame note={note} onNav={onNav} />;
+function JobAdNote({ note, onNav, titleOf }) {
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
 // W1: SkillNote renderer
-function SkillNote({ note, onNav }) {
-  return <_NoteFrame note={note} onNav={onNav} />;
+function SkillNote({ note, onNav, titleOf }) {
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
 // W1: DutyNote + AgentNote share the same frame (builder choice per spec)
-function DutyNote({ note, onNav }) {
-  return <_NoteFrame note={note} onNav={onNav} />;
+function DutyNote({ note, onNav, titleOf }) {
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
-function AgentNote({ note, onNav }) {
-  return <_NoteFrame note={note} onNav={onNav} />;
+function AgentNote({ note, onNav, titleOf }) {
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
 // W1: pick the correct renderer for a note type
-function WikiNoteRenderer({ note, onNav }) {
+function WikiNoteRenderer({ note, onNav, titleOf }) {
   if (!note) return null;
-  if (note.type === "employer") return <EmployerNote note={note} onNav={onNav} />;
-  if (note.type === "jobad")   return <JobAdNote   note={note} onNav={onNav} />;
-  if (note.type === "skill")   return <SkillNote   note={note} onNav={onNav} />;
-  if (note.type === "duty")    return <DutyNote    note={note} onNav={onNav} />;
-  if (note.type === "agent")   return <AgentNote   note={note} onNav={onNav} />;
-  return <_NoteFrame note={note} onNav={onNav} />;
+  if (note.type === "employer") return <EmployerNote note={note} onNav={onNav} titleOf={titleOf} />;
+  if (note.type === "jobad")   return <JobAdNote   note={note} onNav={onNav} titleOf={titleOf} />;
+  if (note.type === "skill")   return <SkillNote   note={note} onNav={onNav} titleOf={titleOf} />;
+  if (note.type === "duty")    return <DutyNote    note={note} onNav={onNav} titleOf={titleOf} />;
+  if (note.type === "agent")   return <AgentNote   note={note} onNav={onNav} titleOf={titleOf} />;
+  return <_NoteFrame note={note} onNav={onNav} titleOf={titleOf} />;
 }
 
 // W1: NextMoveBanner
@@ -12369,6 +12382,10 @@ export function EmployerWikiView({ companyQuery }) {
   if (wikiData && activeNoteId) {
     activeNote = wikiData.notes.find(function(n) { return n.id === activeNoteId; }) || null;
   }
+  // W1 a11y: resolve a note id to its human-readable title for backlink labels.
+  var _titleById = {};
+  if (wikiData) { wikiData.notes.forEach(function(n) { _titleById[n.id] = n.title; }); }
+  var titleOf = function(id) { return _titleById[id] || id; };
 
   var headerStyle = { position:"sticky", top:0, zIndex:5, background:"linear-gradient(100deg,#0a2a5e,#003399)", borderBottom:"1px solid rgba(255,255,255,.12)" };
   var brandStyle = { fontWeight:800, fontSize:"0.9375rem", letterSpacing:"-0.01em", color:"#fff", lineHeight:1.25 };
@@ -12461,6 +12478,9 @@ export function EmployerWikiView({ companyQuery }) {
               </div>
             )}
 
+            {/* Provenance legend - explains the ● from MCF / ◐ derived chips on arrival */}
+            <div style={{ marginTop:14 }}><ProvLegend /></div>
+
             {/* Next-best-move banner */}
             <NextMoveBanner nextMove={wikiData.nextMove} onNav={handleNavNote} />
 
@@ -12468,7 +12488,7 @@ export function EmployerWikiView({ companyQuery }) {
             {history.length > 0 && (
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, alignItems:"center", paddingTop:14, fontSize:"0.75rem", color:C.muted }}>
                 <button onClick={handleBack} aria-label="Back to previous note"
-                  style={{ background:"none", border:"none", color:C.accent, fontWeight:700, padding:"2px 4px", borderRadius:6, cursor:"pointer", font:"inherit" }}>
+                  style={{ minHeight:44, display:"inline-flex", alignItems:"center", background:"none", border:"none", color:C.accent, fontWeight:700, padding:"4px 8px", borderRadius:6, cursor:"pointer", font:"inherit" }}>
                   Back
                 </button>
                 <span style={{ color:C.muted }}>/</span>
@@ -12490,7 +12510,7 @@ export function EmployerWikiView({ companyQuery }) {
                           var first = wikiData.notes.find(function(n) { return n.type === t; });
                           if (first) handleNavNote(first.id);
                         }}
-                        style={{ minHeight:38, display:"inline-flex", alignItems:"center", gap:6, padding:"7px 12px", borderRadius:10, border:"1px solid " + C.border, background:C.surface, color:C.textSub, fontWeight:700, fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
+                        style={{ minHeight:44, display:"inline-flex", alignItems:"center", gap:6, padding:"10px 12px", borderRadius:10, border:"1px solid " + C.border, background:C.surface, color:C.textSub, fontWeight:700, fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
                         <span>{t}</span>
                         <span style={{ fontSize:"0.6875rem", fontWeight:700, color:C.muted }}>({count})</span>
                       </button>
@@ -12498,7 +12518,7 @@ export function EmployerWikiView({ companyQuery }) {
                   })}
                 </div>
                 {activeNote ? (
-                  <WikiNoteRenderer note={activeNote} onNav={handleNavNote} />
+                  <WikiNoteRenderer note={activeNote} onNav={handleNavNote} titleOf={titleOf} />
                 ) : (
                   wikiData.notes.length > 0 ? (
                     <p style={{ color:C.muted, fontSize:"0.875rem" }}>Select a note type above or click a wikilink to start reading.</p>
