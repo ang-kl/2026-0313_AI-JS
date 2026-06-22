@@ -1,14 +1,18 @@
-// WikiGraphView.jsx - PR3: Candidate lens + radial focus-browser graph
-// Extends PR1 shell (entry + graph) with: lens toggle (Candidate / Organisation),
-// CandidateJourney seven-step panel wired to live engine result fields,
-// CandidateBrief printable one-pager. Organisation lens = placeholder for PR4.
+// WikiGraphView.jsx - PR5: + Ecotone overlay
+// Lens toggle (Candidate / Organisation) over the radial focus-browser graph;
+// CandidateJourney + CandidateBrief; OrgJourney value stream.
+// PR5 adds the ECOTONE overlay (toggle): nodes tinted by realm (internal / edge / external)
+// from the deterministic wikiRealmOf rule (computeRealmMap, tier "derived"), realm encoded by
+// BOTH colour AND shape (thin solid / thick + amber glow / dashed), cross-realm links amber
+// dashed, a realm legend with present/withheld state, and an edge-zone callout on selection.
 // Consumes a {nodes, edges} payload from getKnowledgeGraph() + the live result object.
 // R007: ASCII only in JSX strings. R006: no multi-line async arrow in JSX props.
 // No red/green - blue/amber/teal/purple only. 44px touch targets. aria-labels on SVG.
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import CandidateJourney from "./CandidateJourney.jsx";
 import OrgJourney from "./OrgJourney.jsx";
+import { computeRealmMap } from "./wikiRealmOf.js";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -56,6 +60,15 @@ const CLUSTER_COLOUR = {
   organisation: { fill: "#f3e8ff", stroke: "#ddd6fe", text: "#7c3aed" },
   competition:  { fill: "#fffbeb", stroke: "#fcd9a0", text: "#b45309" },
   unscoped:     { fill: "#f1f5f9", stroke: "#cbd5e1", text: "#5b6878" },
+};
+
+// Ecotone realm tokens (spec section 2.1). Blue / amber / teal only - NO red/green.
+// Each realm ALSO carries a non-colour SHAPE cue (stroke style) so the overlay is
+// readable without relying on hue (colour-blind safe).
+const REALM = {
+  internal: { c: "#1a56db", label: "Internal",       cue: "thin solid edge",  dash: "none", w: 1.8, glow: false },
+  edge:     { c: "#b45309", label: "Edge (ecotone)", cue: "thick edge + glow", dash: "none", w: 3.2, glow: true },
+  external: { c: "#0e7490", label: "External",       cue: "dashed edge",      dash: "5 4",  w: 2.2, glow: false },
 };
 
 // Fallback when cluster is unknown
@@ -201,7 +214,7 @@ function useGraphAnim(target, scaleT, order, fromRef) {
 }
 
 // ── SVG radial graph inner component ─────────────────────────────────────────
-function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
+function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, realms, withheld }) {
   const { order, target, scaleT, parentOf, edges } = layoutRadial(
     nodeMap, stack[stack.length - 1] || "", stack
   );
@@ -311,17 +324,25 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
           onPointerCancel={handlePointerUp}
           onWheel={handleWheel}
         >
+          {/* Amber glow for edge-species nodes (ecotone overlay) - non-colour cue is the halo itself */}
+          <defs>
+            <filter id="wikiEdgeGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#b45309" floodOpacity="0.75" />
+            </filter>
+          </defs>
           <g transform={svgTransform}>
             {/* Edges */}
             {edges.map(([a, b]) => {
               const pa = pos[a], pb = pos[b];
               if (!pa || !pb) return null;
+              const crosses = ecotone && realmById && realmById[a] && realmById[b] && realmById[a] !== realmById[b];
               return (
                 <path
                   key={a + ">" + b}
                   fill="none"
-                  stroke="#cbd5e1"
-                  strokeWidth="1.6"
+                  stroke={crosses ? "#b45309" : "#cbd5e1"}
+                  strokeWidth={crosses ? "2.6" : "1.6"}
+                  strokeDasharray={crosses ? "6 4" : "none"}
                   d={`M${pa.x},${pa.y} L${pb.x},${pb.y}`}
                 />
               );
@@ -338,13 +359,21 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
               const isSel = id === selectedId;
               const sy = -((pill.lines.length - 1) * pill.lh) / 2;
 
+              // Ecotone overlay: stroke encodes realm by BOTH colour and shape (solid / thick+glow / dashed)
+              const rk = ecotone && realmById ? (realmById[id] || "internal") : null;
+              const rt = rk ? REALM[rk] : null;
+              const strokeCol = rt ? rt.c : (isSel ? col.text : col.stroke);
+              const strokeW = rt ? rt.w : (isSel ? 3 : 1.6);
+              const strokeDash = rt && rt.dash !== "none" ? rt.dash : undefined;
+              const rectFilter = rt && rt.glow ? "url(#wikiEdgeGlow)" : undefined;
+
               return (
                 <g
                   key={id}
                   data-node="1"
                   tabIndex={0}
                   role="button"
-                  aria-label={(n.label || id) + " - " + (n.type || "node") + " - press Enter to select"}
+                  aria-label={(n.label || id) + " - " + (n.type || "node") + (rk ? " - realm: " + REALM[rk].label : "") + " - press Enter to select"}
                   aria-pressed={isSel}
                   transform={`translate(${p.x},${p.y}) scale(${p.s || 1})`}
                   style={{ cursor: "pointer" }}
@@ -363,8 +392,10 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
                     height={pill.h}
                     rx={Math.min(16, pill.h / 2)}
                     fill={col.fill}
-                    stroke={isSel ? col.text : col.stroke}
-                    strokeWidth={isSel ? 3 : 1.6}
+                    stroke={strokeCol}
+                    strokeWidth={strokeW}
+                    strokeDasharray={strokeDash}
+                    filter={rectFilter}
                   />
                   <text
                     textAnchor="middle"
@@ -386,17 +417,50 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
         </svg>
       </div>
 
-      {/* Colour legend */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", margin: "8px 2px 0", fontSize: "0.6875rem", color: C.textSub }}>
-        <span style={{ fontWeight: 700, color: C.text }}>Colour = cluster layer:</span>
-        {Object.entries(CLUSTER_COLOUR).map(([k, col]) => (
-          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-            <i style={{ width: 10, height: 10, borderRadius: 3, background: col.fill, border: `1px solid ${col.stroke}`, display: "inline-block" }} />
-            {k}
-          </span>
-        ))}
-        <span style={{ fontWeight: 700, color: C.text }}>Bigger bubble = more occurrences.</span>
-      </div>
+      {/* Legend - cluster colours by default; realm legend when the ecotone overlay is on */}
+      {ecotone ? (
+        <div style={{ margin: "8px 2px 0", fontSize: "0.6875rem", color: C.textSub }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", alignItems: "center" }}>
+            <span style={{ fontWeight: 700, color: C.text }}>Ecotone realm (edge = shape):</span>
+            {["internal", "edge", "external"].map(k => {
+              const r = REALM[k];
+              const present = (realms || []).find(x => x.id === k);
+              const isPresent = present ? present.present : false;
+              return (
+                <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: isPresent ? 1 : 0.45 }}>
+                  <i style={{
+                    width: 13, height: 13, borderRadius: 3, background: "#fff",
+                    border: `${k === "edge" ? 3 : 2}px ${k === "external" ? "dashed" : "solid"} ${r.c}`,
+                    boxShadow: k === "edge" ? `0 0 5px 1px ${r.c}` : "none",
+                    display: "inline-block",
+                  }} />
+                  {r.label} <span style={{ color: C.muted }}>({r.cue}{isPresent ? "" : " - none here"})</span>
+                </span>
+              );
+            })}
+          </div>
+          <p style={{ margin: "5px 0 0", color: C.muted, lineHeight: 1.5 }}>
+            The <strong style={{ color: C.amber }}>edge (amber glow)</strong> is where internal meets external -
+            richest value, least automatable. Amber dashed links cross the boundary.
+          </p>
+          {(withheld || []).length > 0 && (
+            <p style={{ margin: "4px 0 0", color: C.muted, lineHeight: 1.5 }}>
+              <strong style={{ color: C.text }}>Withheld (not invented):</strong> {(withheld || []).join("; ")}.
+            </p>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", margin: "8px 2px 0", fontSize: "0.6875rem", color: C.textSub }}>
+          <span style={{ fontWeight: 700, color: C.text }}>Colour = cluster layer:</span>
+          {Object.entries(CLUSTER_COLOUR).map(([k, col]) => (
+            <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i style={{ width: 10, height: 10, borderRadius: 3, background: col.fill, border: `1px solid ${col.stroke}`, display: "inline-block" }} />
+              {k}
+            </span>
+          ))}
+          <span style={{ fontWeight: 700, color: C.text }}>Bigger bubble = more occurrences.</span>
+        </div>
+      )}
 
       {/* Provenance legend - what each source chip means (incl. the unverified fallback) */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 12px", margin: "6px 2px 0", fontSize: "0.6875rem", color: C.textSub }}>
@@ -408,10 +472,11 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId }) {
 }
 
 // ── Selected node detail panel ────────────────────────────────────────────────
-function NodeDetail({ node, nodeId }) {
+function NodeDetail({ node, nodeId, realm }) {
   if (!node) return null;
   const col = clusterColour(node);
   const prov = node.source || "unverified";
+  const r = realm ? REALM[realm] : null;
 
   return (
     <div style={{ marginTop: 14, border: `1px solid ${C.border}`, borderRadius: 14, padding: 14, boxShadow: NEO.raiseSm }}>
@@ -420,12 +485,25 @@ function NodeDetail({ node, nodeId }) {
           {node.type || node.cluster || "node"}
         </span>
         <ProvChip kind={prov} />
+        {r && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.6875rem", fontWeight: 700, borderRadius: 999, padding: "2px 9px", background: "#fff", border: `2px ${realm === "external" ? "dashed" : "solid"} ${r.c}`, color: r.c, boxShadow: realm === "edge" ? `0 0 4px 0 ${r.c}` : "none" }}>
+            Realm: {r.label}
+          </span>
+        )}
+        {r && <ProvChip kind="derived" />}
         {node.level && (
           <span style={{ fontSize: "0.6875rem", fontWeight: 700, borderRadius: 999, padding: "2px 8px", background: C.amberBg, border: `1px solid ${C.amberBdr}`, color: C.amber }}>
             AI exposure: {node.level}
           </span>
         )}
       </div>
+      {realm === "edge" && (
+        <div style={{ margin: "0 0 10px", padding: "9px 11px", borderRadius: 10, background: C.amberBg, border: `1px solid ${C.amberBdr}`, fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>
+          <strong style={{ color: C.amber }}>Edge zone (ecotone).</strong> This sits where the organisation
+          meets the outside world - the boundary where value and interaction are richest, and where work
+          is least automatable. Candidate: stand here. Organisation: the edge of the core is where growth hides.
+        </div>
+      )}
       <h3 style={{ margin: "0 0 8px", fontSize: "1rem", fontWeight: 800, color: C.text }}>
         {node.label || nodeId}
       </h3>
@@ -456,6 +534,10 @@ function NodeDetail({ node, nodeId }) {
 export default function WikiGraphView({ nodes = [], edges = [], title = "", result = null, onBack, embedded = false }) {
   // Lens state: "candidate" (default) | "organisation"
   const [lens, setLens] = useState("candidate");
+  // Ecotone overlay state (off by default - the plain cluster view is the resting state)
+  const [ecotone, setEcotone] = useState(false);
+  // Deterministic realm map over the WHOLE graph (spec section 2.1) - derived tier
+  const realmMap = useMemo(() => computeRealmMap(nodes, edges), [nodes, edges]);
   // Build an id-keyed map and attach children lists from edges
   const nodeMap = {};
   (nodes || []).forEach(n => {
@@ -581,11 +663,32 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         <OrgJourney result={result} title={title} />
       )}
 
-      {/* Graph section header */}
-      <div style={{ marginBottom: 8, marginTop: 4 }}>
-        <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      {/* Graph section header + ecotone overlay toggle */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 8, marginTop: 4 }}>
+        <p style={{ margin: 0, flex: 1, minWidth: 140, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Role ecosystem graph
         </p>
+        <button
+          type="button"
+          aria-pressed={ecotone}
+          aria-label={"Ecotone overlay - tint nodes by realm internal, edge, external - currently " + (ecotone ? "on" : "off")}
+          onClick={function() { setEcotone(function(v) { return !v; }); }}
+          style={{
+            minHeight: 44, padding: "8px 16px", borderRadius: 10,
+            border: `2px solid ${ecotone ? C.amber : C.border}`,
+            background: ecotone ? C.amberBg : C.surface,
+            color: ecotone ? C.amber : C.textSub,
+            fontWeight: ecotone ? 800 : 600, fontSize: "0.8125rem",
+            cursor: "pointer", boxShadow: ecotone ? NEO.raiseSm : "none",
+            display: "inline-flex", alignItems: "center", gap: 7,
+          }}>
+          <span aria-hidden="true" style={{
+            width: 12, height: 12, borderRadius: 3, background: "#fff",
+            border: `3px solid ${C.amber}`,
+            boxShadow: ecotone ? `0 0 5px 1px ${C.amber}` : "none", display: "inline-block",
+          }} />
+          Ecotone overlay {ecotone ? "on" : "off"}
+        </button>
       </div>
 
       {/* Breadcrumb trail */}
@@ -634,11 +737,15 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
           stack={stack}
           onNodeTap={handleNodeTap}
           selectedId={selectedId}
+          ecotone={ecotone}
+          realmById={realmMap.realm}
+          realms={realmMap.realms}
+          withheld={realmMap.withheld}
         />
       )}
 
       {/* Selected node detail */}
-      <NodeDetail node={selectedNode} nodeId={selectedId} />
+      <NodeDetail node={selectedNode} nodeId={selectedId} realm={ecotone ? realmMap.realm[selectedId] : null} />
 
       {/* Footer - "AI-assisted; human decides" - mandatory per spec */}
       <footer style={{

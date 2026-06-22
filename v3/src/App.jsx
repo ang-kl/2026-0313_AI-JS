@@ -1144,6 +1144,24 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.122 - 2026-06-22 - HDR #160 - PR5: Ecotone overlay + final sweep for the Career WikiGraph.
+// Adds an "Ecotone overlay" toggle above the radial graph (off by default). When on, every graph
+// node is tinted by REALM from the new deterministic classifier src/wiki/wikiRealmOf.js:
+// computeRealmMap(nodes, edges) returns internal | edge | external per node (tier DERIVED) -
+// external = a node whose VERBATIM label matches a CLOSED marker set (regulator/customer/vendor/
+// ministry/MAS/... WIKI_EXTERNAL_MARKERS) or a mirror-occupation (competition = external market);
+// edge = an internal node bridging to an external node (the ecotone "edge species"); internal =
+// default. Realm is encoded by BOTH colour AND shape (internal thin solid blue / edge thick amber +
+// glow / external dashed teal) for colour-blind safety; cross-realm links draw amber dashed; the
+// legend swaps to a realm legend showing present/withheld state; an edge-zone callout appears on
+// selection; the selected-node panel carries a Realm chip + DERIVED prov chip. Withhold over invent
+// (spec 2.2): when no external marker and no boundary edge exist, the edge/external lanes are absent
+// (present:false) and named in withheld[] - NO faked lane. Pure rule, NO LLM, NO Date.now. New file
+// src/wiki/wikiRealmOf.js (R005: WIKI_EXTERNAL_MARKERS, wikiRealmOf, computeRealmMap). WikiGraphView.jsx:
+// overlay wiring only. App.jsx HDR bump only - no engine edit, no panel edit. buildKnowledgeGraph,
+// getKnowledgeGraph, all six frozen symbols, api/mcf.js, api/claude.js, api/careers.js, engine-data/*
+// byte-identical. R007/R006/R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
+// a11y-honesty + conformance gate PASS. G1 (v3.0.121 -> v3.0.122).
 // v3.0.121 - 2026-06-22 - HDR #159 - PR4: Organisation lens for the Career WikiGraph. Replaces
 // OrgLensPlaceholder with a real seven-step value-stream journey wired to REAL result fields:
 // (1) Why this role exists - result.responsibilitiesData.responsibilities (MCF verbatim) +

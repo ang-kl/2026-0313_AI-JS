@@ -731,6 +731,11 @@ export default function OrgJourney({ result, title }) {
           <Withheld reason="No MCF job ad in the sample - the job ad link cannot be grounded" />
         )}
       </JourneyStep>
+
+      {/* Mandatory artifact footer - AI-assisted; human decides (spec section 7.4) */}
+      <p style={{ margin: "16px 0 0", padding: "10px 12px", borderRadius: 10, background: "#f1f5f9", border: `1px solid ${C.border}`, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.55 }}>
+        <strong style={{ color: C.text }}>AI-assisted; human decides.</strong> Source: role data (ESCO / ISCO / MCF). Confidence: shown per chip. Time-window: current session.
+      </p>
     </div>
   );
 }
