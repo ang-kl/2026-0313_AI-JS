@@ -8,6 +8,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import CandidateJourney from "./CandidateJourney.jsx";
+import OrgJourney from "./OrgJourney.jsx";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -442,25 +443,7 @@ function NodeDetail({ node, nodeId }) {
   );
 }
 
-// ── Organisation lens placeholder ─────────────────────────────────────────────
-function OrgLensPlaceholder() {
-  return (
-    <div style={{
-      background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
-      padding: "28px 24px", textAlign: "center", boxShadow: NEO.raiseSm,
-      marginBottom: 14,
-    }}>
-      <p style={{ margin: "0 0 6px", fontSize: "0.9375rem", fontWeight: 800, color: C.text }}>
-        Organisation perspective - arriving next
-      </p>
-      <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, lineHeight: 1.6 }}>
-        The Organisation value-stream journey (Outcome Map, Value Stream, Capability Map,
-        Dependency Map, Edge of Core, Future State, and "So who to hire") is being built
-        in PR4. The derivation rules are specified in v3-wikigraph-spec.md §5.2.
-      </p>
-    </div>
-  );
-}
+// OrgLensPlaceholder removed in PR4 - replaced by OrgJourney (real implementation)
 
 // ── Main WikiGraphView export ─────────────────────────────────────────────────
 // Props:
@@ -562,7 +545,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
       >
         {[
           { key: "candidate",    label: "Candidate view",    desc: "Seven-step career journey wired to engine output" },
-          { key: "organisation", label: "Organisation view", desc: "Value-stream perspective (arriving next)" },
+          { key: "organisation", label: "Organisation view", desc: "Value-stream perspective: value stream, capability map, future state" },
         ].map(function(opt) {
           const active = lens === opt.key;
           return (
@@ -595,7 +578,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         <CandidateJourney result={result} title={title} />
       )}
       {lens === "organisation" && (
-        <OrgLensPlaceholder />
+        <OrgJourney result={result} title={title} />
       )}
 
       {/* Graph section header */}

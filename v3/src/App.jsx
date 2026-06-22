@@ -1144,6 +1144,25 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.121 - 2026-06-22 - HDR #159 - PR4: Organisation lens for the Career WikiGraph. Replaces
+// OrgLensPlaceholder with a real seven-step value-stream journey wired to REAL result fields:
+// (1) Why this role exists - result.responsibilitiesData.responsibilities (MCF verbatim) +
+// result.contextData.department (AI estimate; withheld when absent); (2) Value stream -
+// result.jobAnatomy.duties with valueTagOf derivation rule (DERIVED tag: Activity=value-creating,
+// Coordination=value-eroding, Accountability/Relational/Judgment=value-capturing; COMPUTED AI level);
+// (3) Capability constraint - result.jobAnatomy.aiResilienceScore + layerMix + AI-exposed duty count
+// (COMPUTED); (4) Dependencies - result.jobAnatomy.orgContext.stakeholders (MCF verbatim; withheld
+// when absent); (5) Friction and edge of core - value-eroding duties + human-led duties (DERIVED
+// rule from layer/exposureNow; withheld when no duties); (6) Future state - which duties AI absorbs
+// vs stays human-led from exposureNow level (COMPUTED); (7) Back to the job ad - first MCF job ad
+// verbatim link (MCF). New file: src/wiki/OrgJourney.jsx. WikiGraphView.jsx: import + wire.
+// App.jsx line-1 HDR bump only; no panel edit, no engine edit. Frozen symbols, api/mcf.js,
+// engine-data/* byte-identical. NOTE: the value-tag rule uses duty.layer as a deterministic PROXY
+// (Activity=creating / Coordination=eroding / Accountability/Relational/Judgment=capturing) - a
+// documented simplification of spec section 2.1's edge-degree/handoff-marker method, which needs the
+// full wiki-graph payload not wired until PR2; still a pure function of the duty, never LLM. a11y +
+// honesty gate PASS after adding per-card prov chips to the step 5/6 block cards + removing dead
+// demandProofLocal. G1 (v3.0.120 -> v3.0.121).
 // v3.0.120 - 2026-06-22 - HDR #158 - PR3: Candidate lens for the Career WikiGraph. Adds the lens
 // toggle (Candidate view / Organisation view pills) above the radial graph; the Candidate Journey
 // seven-step panel wired to REAL engine result fields: (1) Job Anatomy - result.jobAnatomy
