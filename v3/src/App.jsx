@@ -1115,6 +1115,14 @@
 // "Print / save as PDF" button (window.print + @media print shows only the brief). Turns the read
 // into something the candidate keeps. No app/engine change; api/mcf.js + frozen symbols untouched.
 // G1 (v3.0.114 -> v3.0.115).
+// v3.0.116 - 2026-06-22 - HDR #154 - doc: WikiGraph build plan (Human Lead: "craft a plan as in
+// the /doc using today's date ... use html ... include UI changes"). Doc-only - adds
+// doc/v3-wikigraph-plan-2026-06-22.html: a styled HTML build plan turning the /demo prototype into
+// a real additive feature, with the deterministic-vs-advisory honesty contract (each element ->
+// verbatim/computed/derived/advisory tier + chip), the data/logic changes, the UI changes (new
+// entry, radial WikiGraph view + lens toggle + ecotone overlay, candidate/org journey panels,
+// Candidate Brief, provenance everywhere) and a phased PR0->PR5 plan. No app/engine change;
+// api/mcf.js + frozen symbols untouched. G1 (v3.0.115 -> v3.0.116).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
