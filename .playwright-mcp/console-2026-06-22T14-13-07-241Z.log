@@ -1,0 +1,429 @@
+[     198ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[     198ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[    1344ms] [LOG] Browsi Library enabled! @ :10
+[    1699ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    1943ms] [LOG] oop ads :  JSHandle@node @ :85
+[    1948ms] [LOG] inside the intiate load ads @ :3
+[    2181ms] [LOG] video attached @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    2184ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    2937ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[    2982ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[    3067ms] [LOG] track PageView @ :0
+[    3197ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[    3543ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[    3871ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[    4290ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[    4304ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[    4593ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[    4892ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    4906ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    5042ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[    5044ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[    5680ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[    5729ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[    6059ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[    8590ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    8825ms] [WARNING] [GPT] Slot ad-desktop-side2-1 rendered inside of the viewport.
+https://goo.gle/gpt-message#169 @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:4741
+[    8885ms] [ERROR] Attestation check for Attribution Reporting on https://ad.doubleclick.net failed. @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:0
+[    8889ms] [ERROR] Attestation check for Attribution Reporting on https://ad.doubleclick.net failed. @ https://www.8days.sg/entertainment/asian/zhou-dongyu-theatre-refund-859526:0
+[    9511ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=12346156&moatClientLevel2=4105806139&moatClientLevel3=7345413747&moatClientLevel4=138563449701&moatClientSlicer1=22678678208&moatClientSlicer2=22718582999&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side2/entertainment/asian/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[    9616ms] [WARNING] [MediaVoicePlugin 9d64a2] {document: #document} WARNING [641879458] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[    8590ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    9935ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11150ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=19492036&moatClientLevel2=4041268470&moatClientLevel3=7279571272&moatClientLevel4=138535318929&moatClientSlicer1=22678678208&moatClientSlicer2=22718582963&zMoatSZ=1x1&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/outstream1/entertainment/asian/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[    8590ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    9935ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11222ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    8590ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    9935ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11222ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   12601ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   25465ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://assets.adobedtm.com/2926360f3839/e78e8e66a581/launch-b838945f5569.min.js:13
+[   25902ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/:6340
+[   26556ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/:6340
+[   26559ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/:6340
+[   27665ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=4753149039&moatClientLevel2=4049194532&moatClientLevel3=7289382706&moatClientLevel4=138559785872&moatClientSlicer1=22678678208&moatClientSlicer2=22692207922&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/homepage/landingpage/na&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   27710ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   37896ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://assets.adobedtm.com/2926360f3839/e78e8e66a581/launch-b838945f5569.min.js:13
+[   38072ms] [LOG] Browsi Library enabled! @ :10
+[   38631ms] [LOG] oop ads :  JSHandle@node @ :85
+[   38649ms] [LOG] inside the intiate load ads @ :3
+[   38650ms] [LOG] test animate call @ :172
+[   38887ms] [LOG] video attached @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[   38890ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[   39080ms] ReferenceError: instgrm is not defined
+    at _init (https://www.8days.sg/sites/8days/files/js/js_zuuiTo3EDqiAQXyvqipMp4Lp2aYAU6Bc7gCuuc0kiB8.js?scope=footer&delta=2&language=en&theme=mc_8days_theme&include=eJx1U9GS2yAM_CFzvPYj7q0fwMggE91hxAg5Cff1xY7Ta0k748Hy7hoJVoLgMCtps1fCmyCENkEIypCbfQZvi3DWaU7w1exM_AYfcJ8WllWpVPsMpsgcEzqFaGNfxu_Hb3-B67R69yNAqy7RLCDNnnwRXFAwe3Tzpsr5W6kXXNF6AnOjEFFNFAovNJfmlJ3iXUdugezbzPcRj5ASShthQpNZyeNIrEDZrZi3F4KvaJT7U0aqcGoLpTTilRRN7Vk-m7l0G1BeFNtcvdCMZr9wc4VEAfSlqGM19UbqLy8cc-pOjfCVAvI_QeNBeKt4lAspciJwFUH8xcKm7HktCRVPzJ2XOihPcuUAj42knzOh3dvN5W7QEznITS_2fLuPukOeBZ-2pr7XOzTe9J09pJ_KAhEHFQbSwmUrA16LkI7iZ4f8CX3fU0w8Q-pkXihuAkqcq-3pe7d29x8deNa5Ypdl9Gp_R72PuduNR5u4ObH__J9SMFJVlB54KN092JWn62XPaymb86ZMhBV70n5SOCfYUa59qgTWrlOMj1qnArXeWPY599KK2hGY9smvx_zXY0R_AS56mAQ:179:113)
+    at Object.attach (https://www.8days.sg/sites/8days/files/js/js_zuuiTo3EDqiAQXyvqipMp4Lp2aYAU6Bc7gCuuc0kiB8.js?scope=footer&delta=2&language=en&theme=mc_8days_theme&include=eJx1U9GS2yAM_CFzvPYj7q0fwMggE91hxAg5Cff1xY7Ta0k748Hy7hoJVoLgMCtps1fCmyCENkEIypCbfQZvi3DWaU7w1exM_AYfcJ8WllWpVPsMpsgcEzqFaGNfxu_Hb3-B67R69yNAqy7RLCDNnnwRXFAwe3Tzpsr5W6kXXNF6AnOjEFFNFAovNJfmlJ3iXUdugezbzPcRj5ASShthQpNZyeNIrEDZrZi3F4KvaJT7U0aqcGoLpTTilRRN7Vk-m7l0G1BeFNtcvdCMZr9wc4VEAfSlqGM19UbqLy8cc-pOjfCVAvI_QeNBeKt4lAspciJwFUH8xcKm7HktCRVPzJ2XOihPcuUAj42knzOh3dvN5W7QEznITS_2fLuPukOeBZ-2pr7XOzTe9J09pJ_KAhEHFQbSwmUrA16LkI7iZ4f8CX3fU0w8Q-pkXihuAkqcq-3pe7d29x8deNa5Ypdl9Gp_R72PuduNR5u4ObH__J9SMFJVlB54KN092JWn62XPaymb86ZMhBV70n5SOCfYUa59qgTWrlOMj1qnArXeWPY599KK2hGY9smvx_zXY0R_AS56mAQ:179:304)
+    at https://www.8days.sg/sites/8days/files/js/js_zGhwmTKPmsdmePSXsKn39LOFRUlnuvyvVn-oyGbyCFU.js?scope=header&delta=0&language=en&theme=mc_8days_theme&include=eJx1U9GS2yAM_CFzvPYj7q0fwMggE91hxAg5Cff1xY7Ta0k748Hy7hoJVoLgMCtps1fCmyCENkEIypCbfQZvi3DWaU7w1exM_AYfcJ8WllWpVPsMpsgcEzqFaGNfxu_Hb3-B67R69yNAqy7RLCDNnnwRXFAwe3Tzpsr5W6kXXNF6AnOjEFFNFAovNJfmlJ3iXUdugezbzPcRj5ASShthQpNZyeNIrEDZrZi3F4KvaJT7U0aqcGoLpTTilRRN7Vk-m7l0G1BeFNtcvdCMZr9wc4VEAfSlqGM19UbqLy8cc-pOjfCVAvI_QeNBeKt4lAspciJwFUH8xcKm7HktCRVPzJ2XOihPcuUAj42knzOh3dvN5W7QEznITS_2fLuPukOeBZ-2pr7XOzTe9J09pJ_KAhEHFQbSwmUrA16LkI7iZ4f8CX3fU0w8Q-pkXihuAkqcq-3pe7d29x8deNa5Ypdl9Gp_R72PuduNR5u4ObH__J9SMFJVlB54KN092JWn62XPaymb86ZMhBV70n5SOCfYUa59qgTWrlOMj1qnArXeWPY599KK2hGY9smvx_zXY0R_AS56mAQ:7:427
+    at Array.forEach (<anonymous>)
+    at Drupal.attachBehaviors (https://www.8days.sg/sites/8days/files/js/js_zGhwmTKPmsdmePSXsKn39LOFRUlnuvyvVn-oyGbyCFU.js?scope=header&delta=0&language=en&theme=mc_8days_theme&include=eJx1U9GS2yAM_CFzvPYj7q0fwMggE91hxAg5Cff1xY7Ta0k748Hy7hoJVoLgMCtps1fCmyCENkEIypCbfQZvi3DWaU7w1exM_AYfcJ8WllWpVPsMpsgcEzqFaGNfxu_Hb3-B67R69yNAqy7RLCDNnnwRXFAwe3Tzpsr5W6kXXNF6AnOjEFFNFAovNJfmlJ3iXUdugezbzPcRj5ASShthQpNZyeNIrEDZrZi3F4KvaJT7U0aqcGoLpTTilRRN7Vk-m7l0G1BeFNtcvdCMZr9wc4VEAfSlqGM19UbqLy8cc-pOjfCVAvI_QeNBeKt4lAspciJwFUH8xcKm7HktCRVPzJ2XOihPcuUAj42knzOh3dvN5W7QEznITS_2fLuPukOeBZ-2pr7XOzTe9J09pJ_KAhEHFQbSwmUrA16LkI7iZ4f8CX3fU0w8Q-pkXihuAkqcq-3pe7d29x8deNa5Ypdl9Gp_R72PuduNR5u4ObH__J9SMFJVlB54KN092JWn62XPaymb86ZMhBV70n5SOCfYUa59qgTWrlOMj1qnArXeWPY599KK2hGY9smvx_zXY0R_AS56mAQ:7:353)
+    at footerFix (https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4887:10)
+    at nrWrapper (https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4839:13468)
+[   39747ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[   39750ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[   40128ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[   40213ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[   40260ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[   40502ms] [LOG] track PageView @ :0
+[   40537ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[   40594ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[   41338ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[   41826ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[   41834ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[   41922ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=16085596&moatClientLevel2=4085194023&moatClientLevel3=7323349876&moatClientLevel4=138561103180&moatClientSlicer1=22678678208&moatClientSlicer2=22718583419&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   41942ms] [WARNING] [MediaVoicePlugin 9cb151] {document: #document} WARNING [698345122] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[   42116ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[   42324ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5135153950&moatClientLevel2=4064890291&moatClientLevel3=7336711180&moatClientLevel4=138562076964&moatClientSlicer1=22678678208&moatClientSlicer2=22718582939&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42697ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42848ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[   42850ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[   43707ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[   44018ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[   44563ms] [WARNING] [GPT] Slot ad-desktop-side2-1 rendered inside of the viewport.
+https://goo.gle/gpt-message#169 @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[   45006ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5735924799&moatClientLevel2=4024810270&moatClientLevel3=7337332442&moatClientLevel4=138563035689&moatClientSlicer1=22678678208&moatClientSlicer2=22718580296&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side2/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42697ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   45083ms] [WARNING] [MediaVoicePlugin 99c524] {document: #document} WARNING [1823159205] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[   45286ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   94856ms] [WARNING] [Martech Error] Cannot read properties of undefined (reading 'omniture') @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[  114270ms] [LOG] iframe set src https://www.mewatch.sg/embed/543978?cid=8days-site_mewatch&autoplay=1&8daysembed=true @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[  116247ms] [LOG] oop ads :  JSHandle@node @ :85
+[  116250ms] [LOG] inside the intiate load ads @ :3
+[  116251ms] [LOG] test animate call @ :172
+[  116799ms] [LOG] track PageView @ :0
+[  116828ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  116891ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5135153950&moatClientLevel2=4064890291&moatClientLevel3=7336711180&moatClientLevel4=138562076988&moatClientSlicer1=22678678208&moatClientSlicer2=22792753939&zMoatSZ=970x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/local/listingpage/na&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42697ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   45286ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  117019ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  117059ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  117155ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  117356ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  117389ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  117390ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  117437ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/entertainment/local/juin-teh-parents-elope-put-mum-through-school-859591?cid=internal_mcdrecs_22062026_8days:4838
+[  117471ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  117755ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  117794ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  117795ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  118356ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  118572ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  119523ms] [WARNING] It is recommended that a robustness level be specified. Not specifying the robustness level could result in unexpected behavior. @ https://static.mewatch.sg/axis.ccc1670.c.js:0
+[  120029ms] Uncaught SecurityError: Failed to read a named property 'document' from 'Window': Blocked a frame with origin "https://www.mewatch.sg" from accessing a frame with origin "https://www.8days.sg". Protocols, domains, and ports must match.
+    at initialLoad (https://websdk.appsflyersdk.com/?st=banners&:3:2459)
+    at init (https://websdk.appsflyersdk.com/?st=banners&:3:2508)
+[  120763ms] [INFO] Smartech Initiated @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  121378ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  121391ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  121466ms] [INFO] %c @playkit-js/kaltura-player-js 3.17.72 color: #ff98f9;  font-size: large @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  121467ms] [INFO] %c For more details see https://github.com/kaltura/kaltura-player-js color: #ff98f9; @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  121559ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzMQ.js:0
+[  121880ms] [LOG] Invoking image pixel user sync for bidder: "rubicon" @ https://ads.pubmatic.com/AdServer/js/pwtSync/load-cookie.html?pubid=159356&profid=9949&bidders=pubmatic:9
+[  121881ms] [LOG] Invoking Iframe pixel for bidder" + "pubmatic" @ https://ads.pubmatic.com/AdServer/js/pwtSync/load-cookie.html?pubid=159356&profid=9949&bidders=pubmatic:9
+[  121883ms] [LOG] Invoking Iframe pixel for bidder" + "ix" @ https://ads.pubmatic.com/AdServer/js/pwtSync/load-cookie.html?pubid=159356&profid=9949&bidders=pubmatic:9
+[  121885ms] [LOG] Invoking Iframe pixel for bidder" + "unruly" @ https://ads.pubmatic.com/AdServer/js/pwtSync/load-cookie.html?pubid=159356&profid=9949&bidders=pubmatic:9
+[  121886ms] [LOG] Invoking image pixel user sync for bidder: "appnexus" @ https://ads.pubmatic.com/AdServer/js/pwtSync/load-cookie.html?pubid=159356&profid=9949&bidders=pubmatic:9
+[  123207ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  123402ms] [WARNING] [Meta Pixel] - You are sending a non-standard event 'Lead_VOD (MCS)'. The preferred way to send these events is using trackCustom. See 'https://developers.facebook.com/docs/ads-for-websites/pixel-events/#events' for more information. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  123462ms] [WARNING] [Meta Pixel] - You are sending a non-standard event 'Lead_VOD'. The preferred way to send these events is using trackCustom. See 'https://developers.facebook.com/docs/ads-for-websites/pixel-events/#events' for more information. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  123468ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  123726ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzMQ.js:0
+[  125311ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=19492036&moatClientLevel2=4041268470&moatClientLevel3=7279571272&moatClientLevel4=138535318929&moatClientSlicer1=22678678208&moatClientSlicer2=22718583374&zMoatSZ=1x1&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/outstream1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42697ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   45286ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  117471ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  125382ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42327ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   42697ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   45286ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  117471ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  125382ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  126342ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  128608ms] [LOG] Browsi Library enabled! @ :10
+[  128989ms] [LOG] oop ads :  JSHandle@node @ :85
+[  128992ms] [LOG] inside the intiate load ads @ :3
+[  128993ms] [LOG] test animate call @ :172
+[  129090ms] [LOG] video attached @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  129092ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  129191ms] [LOG] track PageView @ :0
+[  129234ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  129250ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  129290ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[  129296ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  129456ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  129461ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  129530ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  129536ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  129538ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  129709ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  129823ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  130122ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  130513ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  130826ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[  130849ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  130851ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  132601ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=16085596&moatClientLevel2=4085194023&moatClientLevel3=7323349876&moatClientLevel4=138561103180&moatClientSlicer1=22678678208&moatClientSlicer2=22718583419&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  132660ms] [WARNING] [MediaVoicePlugin ef6eae] {document: #document} WARNING [1022268584] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[  133010ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  133278ms] [INFO] Powered by AMP ⚡ HTML – Version 2605071401000 https://e58d701ecab9c401eaf65613fb1a9c31.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html @ https://cdn.ampproject.org/amp4ads-v0.js:1
+[  133371ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=4753149039&moatClientLevel2=4049194532&moatClientLevel3=7289382706&moatClientLevel4=138559785872&moatClientSlicer1=22678678208&moatClientSlicer2=22718582939&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  133010ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  133514ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  134365ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=19492036&moatClientLevel2=4041268470&moatClientLevel3=7279571272&moatClientLevel4=138535318929&moatClientSlicer1=22678678208&moatClientSlicer2=22718583374&zMoatSZ=1x1&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/outstream1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  133010ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  133514ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  134447ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  133010ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  133514ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  134447ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  135108ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  143085ms] [WARNING] [Martech Error] Cannot read properties of undefined (reading 'omniture') @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  148996ms] [LOG] iframe set src https://www.mewatch.sg/embed/785937?autoplay=1&8daysembed=true @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  150552ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  150574ms] [LOG] oop ads :  JSHandle@node @ :85
+[  150576ms] [LOG] inside the intiate load ads @ :3
+[  150577ms] [LOG] test animate call @ :172
+[  150895ms] [LOG] track PageView @ :0
+[  150980ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  151000ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  151127ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  151380ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  151403ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  151444ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  151446ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  151477ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://js-agent.newrelic.com/nr-loader-spa-1.313.1.min.js:1
+[  151647ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  151793ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  152365ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  152960ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  153486ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5315733347&moatClientLevel2=4071314600&moatClientLevel3=7312978448&moatClientLevel4=138564490057&moatClientSlicer1=22678678208&moatClientSlicer2=22718583374&zMoatSZ=640x360&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/outstream1/entertainment/local/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  153543ms] [WARNING] This ad's html cannot be accessed using the getHtml method on googletag.Slot. Returning the empty string instead. @ https://www.8days.sg/entertainment/local/juin-teh-star-awards-win-celebration-856891:4733
+[  153617ms] [WARNING] It is recommended that a robustness level be specified. Not specifying the robustness level could result in unexpected behavior. @ https://static.mewatch.sg/axis.ccc1670.c.js:0
+[  153872ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://sync.search.spotxchange.com/partner?adv_id=7025&gdpr=0&uid=CAESELtkwxU2pT_cadNWpheqpdM&google_cver=1:0
+[  153872ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://sync.search.spotxchange.com/partner?adv_id=7025&gdpr=0&redir=https%3A%2F%2Fcm.g.doubleclick.net%2Fpixel%3Fgoogle_nid%3Dspotxchange_dbm%26google_hm%3D%24SPOTX_BASE64_USER_ID:0
+[  154566ms] [ERROR] Attestation check for Attribution Reporting on https://ad.doubleclick.net failed. @ https://www.8days.sg/eatanddrink:0
+[  154830ms] Uncaught SecurityError: Failed to read a named property 'document' from 'Window': Blocked a frame with origin "https://www.mewatch.sg" from accessing a frame with origin "https://www.8days.sg". Protocols, domains, and ports must match.
+    at initialLoad (https://websdk.appsflyersdk.com/?st=banners&:3:2459)
+    at init (https://websdk.appsflyersdk.com/?st=banners&:3:2508)
+[  154794ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://assets.adobedtm.com/2926360f3839/e78e8e66a581/launch-b838945f5569.min.js:13
+[  155376ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink:4127
+[  155773ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink:4127
+[  155933ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink:4127
+[  156814ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5177652885&moatClientLevel2=4092501336&moatClientLevel3=7330631263&moatClientLevel4=138562717954&moatClientSlicer1=22678678208&moatClientSlicer2=22792753993&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/eat_drink/landingpage/na&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  156896ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  177739ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://assets.adobedtm.com/2926360f3839/e78e8e66a581/launch-b838945f5569.min.js:13
+[  177935ms] [LOG] Browsi Library enabled! @ :10
+[  178176ms] [LOG] oop ads :  JSHandle@node @ :85
+[  178189ms] [LOG] inside the intiate load ads @ :3
+[  178190ms] [LOG] test animate call @ :172
+[  178514ms] [LOG] video attached @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  178516ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  178523ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  178538ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  178627ms] [LOG] track PageView @ :0
+[  178775ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  179009ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  179017ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  179099ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  179326ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  179403ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[  179716ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  179720ms] [WARNING] [GPT] Slot.updateTargetingFromMap is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  179841ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  179845ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  179925ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[  180535ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  180732ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  182706ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://bcp.crwdcntrl.net/6/data?xcid=7477:0
+[  182707ms] [ERROR] LT.JS: Aborting due to error contacting Lotame's servers. Error reason was ''. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[  182997ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=16085596&moatClientLevel2=4085194023&moatClientLevel3=7323349876&moatClientLevel4=138561103180&moatClientSlicer1=22678678208&moatClientSlicer2=22718583434&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side2/eat_drink/news_reviews/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  183027ms] [WARNING] [MediaVoicePlugin 05e90b] {document: #document} WARNING [572393634] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[  183396ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  183946ms] [ERROR] Failed to load resource: the server responded with a status of 429 () @ https://bcp.crwdcntrl.net/6/data?xcid=10127:0
+[  183947ms] [ERROR] LT.JS: Aborting due to error contacting Lotame's servers. Error reason was ''. @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  241637ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://assets.adobedtm.com/2926360f3839/e78e8e66a581/launch-b838945f5569.min.js:13
+[  242095ms] [LOG] Browsi Library enabled! @ :10
+[  242697ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  244057ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  244132ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  247033ms] [INFO] Powered by AMP ⚡ HTML – Version 2605071401000 https://8d31c526e369d71872240a4a62c069b7.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html @ https://cdn.ampproject.org/amp4ads-v0.js:1
+[  247879ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5177652885&moatClientLevel2=4092501336&moatClientLevel3=7330631263&moatClientLevel4=138562717954&moatClientSlicer1=22678678208&moatClientSlicer2=23067387494&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/eat_drink/news_reviews/landingpage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  248170ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  250024ms] [LOG] Browsi Library enabled! @ :10
+[  250390ms] [LOG] oop ads :  JSHandle@node @ :85
+[  250394ms] [LOG] inside the intiate load ads @ :3
+[  250395ms] [LOG] test animate call @ :172
+[  250894ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://www.8days.sg/eatanddrink/newsandreviews/lou-shang-closing-after-400k-losses-859396:5460
+[  250870ms] [LOG] track PageView @ :0
+[  251113ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  251258ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  251307ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[  251316ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  251573ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  251581ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  251584ms] [LOG] video attached @ https://www.8days.sg/eatanddrink/newsandreviews/lou-shang-closing-after-400k-losses-859396:5460
+[  251589ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink/newsandreviews/lou-shang-closing-after-400k-losses-859396:5460
+[  251592ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  251601ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  251690ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  252030ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  253094ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  253559ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink/newsandreviews/lou-shang-closing-after-400k-losses-859396:5460
+[  253574ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink/newsandreviews/lou-shang-closing-after-400k-losses-859396:5460
+[  253731ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  254846ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[  255596ms] [LOG] Browsi Library enabled! @ :10
+[  256082ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  256544ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  257482ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  257489ms] [WARNING] [GPT] Slot.updateTargetingFromMap is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink/newsandreviews:4554
+[  260641ms] [LOG] Browsi Library enabled! @ :10
+[  261121ms] [LOG] oop ads :  JSHandle@node @ :85
+[  261125ms] [LOG] inside the intiate load ads @ :3
+[  261125ms] [LOG] test animate call @ :172
+[  261584ms] [WARNING] 🚀 container.buildInfo.environment is deprecated.Please use `container.environment.stage` instead @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  261788ms] [LOG] track PageView @ :0
+[  261810ms] [LOG] dynamic loading js @ https://data.melisten.sg/sites/default/files/dynamic.js?_=5940459:0
+[  261883ms] [LOG] IS_LIVERADIO true @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  262018ms] [LOG] BUILD NUMBER = 20260610150333 @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:77
+[  262115ms] [ERROR] LT.JS: There was a problem while setting up the TCF IFRAME LOCATOR API: SecurityError: Failed to read a named property '__tcfapiLocator' from 'Window': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame. @ https://tags.crwdcntrl.net/lt/c/7477/lt.min.js:0
+[  262239ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  262247ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  262283ms] [LOG] video attached @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  262286ms] [LOG] track pageview {ssoid: NA, noadflag: false, loginstatus: false, loginsource: NA, usertype: NA} @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  262427ms] [WARNING] [Meta pixel] 764703270366164 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  262429ms] [WARNING] [Meta pixel] 315990935844432 is unavailable on this website due to it's traffic permission settings. Go to https://www.facebook.com/business/help/572690630080597 to learn more. @ https://connect.facebook.net/en_US/fbevents.js:183
+[  262486ms] [WARNING] [TikTok Pixel] - Missing 'content_id' paramter
+Issue: The 'content_id' parameter isn't being received. This is required for Video Shopping Ads (VSA).
+Suggestion: Include the 'content_id' parameter in your source code. This is required for Video Shopping Ads (VSA). See https://ads.tiktok.com/help/article/standard-events-parameters?redirected=2 for more information. @ https://analytics.tiktok.com/i18n/pixel/static/main.MTdlOTMwMzYzOQ.js:0
+[  262489ms] [LOG] App.mounted @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  263142ms] [WARNING] [GPT] PubAdsService.collapseEmptyDivs is deprecated, use googletag.setConfig({collapseDiv: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  263147ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.8days.sg/eatanddrink/newsandreviews/fathers-day-2026-last-minute-dining-singapore-seafood-brunch-buffet-cantonese-859281:5995
+[  264180ms] [INFO] Smartech Initiated @ https://osjs.netcoresmartech.com/v1/js-versioning?clientkey=ADGMOT35CHFLVDHBJNIG50K96A8U7J0LD2T9HPQGQB96I63U8CT0&siteid=deca7f09e3e943f1fbc85c383e538044&rc=s&tk1=20241129111433&tk2=20260303103410:1
+[  265154ms] [ERROR] [melistenLogo bcPlayerEmbed] SecurityError: Failed to read a named property 'hostname' from 'Location': Blocked a frame with origin "https://www.melisten.sg" from accessing a cross-origin frame.
+    at S.<anonymous> (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:17618)
+    at S.s [as melistenLogo] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36816)
+    at o.onLoadedmetadata (https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:49:142342)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840)
+    at Et (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:89711)
+    at S.trigger (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:94310)
+    at S.<computed> [as handleTechLoadedmetadata_] (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:36402)
+    at S.<anonymous> (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:10:1536)
+    at At.a.dispatcher (https://players.brightcove.net/6057984932001/QVJp08lS0_default/index.min.js:1:88840) @ https://www.melisten.sg/liveradio/static/js/app.f9ee3837.js:48
+[  266869ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ https://tcheck.outbrainimg.com/tcheck/check/d3d3LjhkYXlzLnNn:0
+[  268854ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5735924799&moatClientLevel2=4024810270&moatClientLevel3=7337332442&moatClientLevel4=138563035689&moatClientSlicer1=22678678208&moatClientSlicer2=22718583410&zMoatSZ=300x600&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/side1/eat_drink/news_reviews/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  269296ms] [WARNING] [MediaVoicePlugin a3a708] {document: #document} WARNING [371902526] [Creative] No property found. Using UNKNOWN. @ https://static.polarcdn.com/creative/creative.js:1
+[  269530ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  269537ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://z.moatads.com/mediacorpdfp700751500196/moatad.js#moatClientLevel1=5135153950&moatClientLevel2=4064890291&moatClientLevel3=7336711180&moatClientLevel4=138562076964&moatClientSlicer1=22678678208&moatClientSlicer2=22718583320&zMoatSZ=728x90&zMoatPT=&zMoatPS=&zMoatMMV=&zMoatAU=/4654/8days_dweb/lb1/eat_drink/news_reviews/articlepage&zMoatMData=&zMoatMGV=&zMoatMSafety=&refresh=1:0
+[  269648ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[  278193ms] [INFO] Powered by AMP ⚡ HTML – Version 2605071401000 https://ceac99d23e424fe6c3500e667945f528.safeframe.googlesyndication.com/safeframe/1-0-45/html/container.html @ https://cdn.ampproject.org/amp4ads-v0.js:1

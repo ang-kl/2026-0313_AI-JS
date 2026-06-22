@@ -1,0 +1,160 @@
+[     185ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[     185ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[    1282ms] [LOG] jQuery load successful @ https://cdp.sph.com.sg/activation/activation.js:20
+[    1494ms] [LOG] [gifting::validate] invalid call check @ https://www.straitstimes.com/assets/Article-DwDdx4cV.js:0
+[    1545ms] [LOG] [gifting::validate] invalid call check @ https://www.straitstimes.com/assets/Article-DwDdx4cV.js:0
+[    1576ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Lt (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:31361)
+    at zm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:82212)
+    at rm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:116126)
+    at Dd (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:116099)
+    at Md (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:115960)
+    at xm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:111553)
+    at ay (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:123415)
+    at MessagePort.Gl (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:9:1564)
+[    1605ms] [LOG] [lr::init] no env @ https://www.straitstimes.com/assets/root-qogn6EEl.js:105
+[    1614ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://www.straitstimes.com/assets/Taboola-BLWYV-ue.js:0
+[    1614ms] [LOG] [cdp::intervention] invoked:: attaching runner try - in  @ https://www.straitstimes.com/assets/Taboola-BLWYV-ue.js:0
+[    1616ms] [LOG] prepare CDP data @ https://cdp.sph.com.sg/activation/activation.js:1550
+[    1618ms] [LOG] run @ https://cdp.sph.com.sg/activation/activation.js:1993
+[    1622ms] [LOG] [cdp::intervention] invoked:: attaching runner try - out @ https://www.straitstimes.com/assets/Taboola-BLWYV-ue.js:0
+[    1628ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://www.straitstimes.com/assets/root-qogn6EEl.js:105
+[    1637ms] [LOG] [cdp::paywall] inside useffect checks @ https://www.straitstimes.com/assets/Article-DwDdx4cV.js:0
+[    1638ms] [LOG] prepare CDP data @ https://cdp.sph.com.sg/activation/activation.js:1550
+[    1639ms] [LOG] run @ https://cdp.sph.com.sg/activation/activation.js:1993
+[    1640ms] [LOG] [cdp::paywall] CDP script ran @ https://www.straitstimes.com/assets/Article-DwDdx4cV.js:0
+[    1641ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://www.straitstimes.com/assets/Taboola-BLWYV-ue.js:0
+[    1641ms] [LOG] [cdp::intervention] ready @ https://www.straitstimes.com/assets/Taboola-BLWYV-ue.js:0
+[    1693ms] [INFO] 🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:9228
+[    1736ms] [LOG] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    1879ms] [LOG] VWO VARIANT: null @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    1948ms] [LOG] VWO VARIANT: null @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    1974ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    2562ms] [LOG] [cdp::paywall] ready @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    3086ms] [WARNING] adgb - not initialized. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    3919ms] [INFO] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    3979ms] [WARNING] [GSI_LOGGER]: Your client application uses one of the Google One Tap prompt UI status methods that may stop functioning when FedCM becomes mandatory. Refer to the migration guide to update your code accordingly and opt-in to FedCM to test your changes. Learn more: https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#display_moment and https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#skipped_moment @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    4217ms] [WARNING] [GPT] PubAdsService.getTargeting is deprecated, use googletag.getConfig('targeting') instead.
+https://goo.gle/gpt-message#200 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    4217ms] [LOG] load permutive @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    4779ms] [ERROR] Not signed in with the identity provider. @ https://www.straitstimes.com/singapore/courts-crime/jail-for-man-who-molested-sia-stewardess-and-harassed-her-during-a-flight:0
+[    6052ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    6052ms] [WARNING] One Tap skipped: unknown_reason @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    7980ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ https://capi-automation.s3.us-east-2.amazonaws.com/public/client_js/capiParamBuilder/clientParamBuilder.bundle.js:0
+[    8001ms] [LOG] prestitial : L2 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    8266ms] [LOG] [Ad Refresh] Non Programmatic 2 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    8267ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    9176ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    9737ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://tags.bluekai.com/site/2964?id=OdoaxDbf1WBESD5:0
+[   10437ms] [WARNING] Unrecognized feature: 'undefinedclipboard-write'. @ https://www.straitstimes.com/:149
+[   10619ms] [LOG] jQuery load successful @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11169ms] [ERROR] Access to script at 'https://cdn.sphlabs.com/suid/suid.min.js' from origin 'https://www.straitstimes.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/embeds/en/matches-widget/index.html?web=210&mobile=210&tablet=210&section=home:144
+[   11170ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://cdn.sphlabs.com/suid/suid.min.js:0
+[   11410ms] [INFO] 🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙 @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11428ms] [LOG] Sentry initialized successfully! @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11858ms] [LOG] [lr::init] no env @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11862ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11862ms] [LOG] [cdp::intervention] invoked:: attaching runner try - in  @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11863ms] [LOG] prepare CDP data @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11865ms] [LOG] run @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11867ms] [LOG] [cdp::intervention] invoked:: attaching runner try - out @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   11869ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13082ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13083ms] [LOG] [cdp::intervention] ready @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13090ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13294ms] [LOG] VWO VARIANT: null @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13340ms] [LOG] prestitial : L1 @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13341ms] [WARNING] [GPT] PubAdsService.getTargeting is deprecated, use googletag.getConfig('targeting') instead.
+https://goo.gle/gpt-message#200 @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13341ms] [LOG] load permutive @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13641ms] [ERROR] ST Fetch error: TypeError: Failed to fetch
+    at window.fetch (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/BNzo9aw1.js:1:2573)
+    at zt (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/nodes/0.B_oS_i1Q.js:14:1597)
+    at https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/nodes/0.B_oS_i1Q.js:14:2415
+    at re (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:21360)
+    at https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:29454
+    at Rn (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:19314)
+    at Et (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:20297)
+    at je (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:10441)
+    at Jt._n (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:9319)
+    at Jt.flush_effects (https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/chunks/DtmEqPSB.js:1:8135) @ https://www.straitstimes.com/multimedia/graphics/2025/12/worldcup-2026-fixtures/_app/immutable/nodes/0.B_oS_i1Q.js:13
+[   13681ms] [ERROR] NeuronCore initialization failed: ModuleSchemaImportError: Failed to import module from URL: https://neuron.platform.sphdigital.com.sg/config/default.config.json. Error: Failed to fetch
+    at On.load (https://www.straitstimes.com/assets/root-qogn6EEl.js:69:3593) @ https://www.straitstimes.com/assets/nr-loader-spa-1.290.1.min-CWmC8H94.js:860
+[   13740ms] [LOG] jQuery load successful @ https://cdp.sph.com.sg/activation/activation.js:20
+[   13805ms] [INFO] 🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:9228
+[   13822ms] [LOG] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13896ms] [LOG] [gifting::validate] invalid call check @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13919ms] [LOG] [gifting::validate] invalid call check @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14034ms] Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Lt (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:31361)
+    at zm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:82212)
+    at rm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:116126)
+    at Dd (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:116099)
+    at Md (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:115960)
+    at xm (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:111553)
+    at ay (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:24:123415)
+    at MessagePort.Gl (https://www.straitstimes.com/assets/entry.client-CbDsjVae.js:9:1564)
+[   13964ms] [LOG] [lr::init] no env @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13969ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13970ms] [LOG] [cdp::intervention] invoked:: attaching runner try - in  @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13970ms] [LOG] prepare CDP data @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13971ms] [LOG] run @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13973ms] [LOG] [cdp::intervention] invoked:: attaching runner try - out @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13976ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13982ms] [LOG] [cdp::paywall] inside useffect checks @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13983ms] [LOG] prepare CDP data @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13984ms] [LOG] run @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13986ms] [LOG] [cdp::paywall] CDP script ran @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13986ms] [LOG] [cdp::intervention] loadInterventionScript invoked @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13987ms] [LOG] [cdp::intervention] ready @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   13988ms] [LOG] MySPH :: Not authenticated or no userInfo, setting anonymous user @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14062ms] [LOG] VWO VARIANT: null @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14085ms] [LOG] VWO VARIANT: null @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14579ms] [INFO] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14748ms] [LOG] [cdp::paywall] ready @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14865ms] [WARNING] [GSI_LOGGER]: Your client application uses one of the Google One Tap prompt UI status methods that may stop functioning when FedCM becomes mandatory. Refer to the migration guide to update your code accordingly and opt-in to FedCM to test your changes. Learn more: https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#display_moment and https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#skipped_moment @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   14946ms] [ERROR] Not signed in with the identity provider. @ https://www.straitstimes.com/singapore/courts-crime/jail-for-man-who-molested-sia-stewardess-and-harassed-her-during-a-flight:0
+[   14998ms] [WARNING] adgb - not initialized. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   15197ms] [WARNING] [GPT] PubAdsService.getTargeting is deprecated, use googletag.getConfig('targeting') instead.
+https://goo.gle/gpt-message#200 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   15197ms] [LOG] load permutive @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   16987ms] [LOG] prestitial : L2 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17255ms] [LOG] [Ad Refresh] Non Programmatic 2 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17255ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17928ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   18722ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   18722ms] [WARNING] One Tap skipped: unknown_reason @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   20512ms] [ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ https://user-sync.fwmrm.net/ad/u?mode=user-register&dspid=34&gdpr=0&gdpr_consent=&us_privacy=&gpp=&gpp_sid=&_fw_is_lat=&_fw_atts=&_fw_coppa=&dspuid=94c40d24-6301-46f5-a833-505fa5291a28:0
+[   20512ms] [ERROR] Failed to load resource: net::ERR_TOO_MANY_REDIRECTS @ https://user-sync.fwmrm.net/ad/u?mode=user-register&dspid=34&gdpr=0&gdpr_consent=&us_privacy=&gpp=&gpp_sid=&_fw_is_lat=&_fw_atts=&_fw_coppa=&dspuid=94c40d24-6301-46f5-a833-505fa5291a28:0
+[   23613ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://eb2.3lift.com/xuid?idenv=:0
+[   29147ms] [LOG] [Ad Refresh] Non Programmatic 2 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   29148ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   29148ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-imu1 is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   29386ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17928ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   29478ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-midarticlespecial is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   29509ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   29662ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   17928ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   29662ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   30223ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   30827ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://id5-sync.com/k/155.gif?puid=AAtF407UcnYAAAAsiJ3gRQ&id5AccountNum=155&numCascadesAllowed=9&gdpr=0:0
+[   35595ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 out of view. Cancelled. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   35664ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial out of view. Cancelled. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   35801ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-midarticlespecial2 is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   35867ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial2 in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17928ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   29662ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   30223ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   35957ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   65868ms] [LOG] [Ad Refresh] Refreshing slot dfp-ad-midarticlespecial2. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   67216ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-midarticlespecial2 is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   67216ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial2 in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   17928ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   29662ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   30223ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   35957ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   67363ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   72556ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial2 out of view. Cancelled. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   73612ms] [LOG] Inline impression @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501

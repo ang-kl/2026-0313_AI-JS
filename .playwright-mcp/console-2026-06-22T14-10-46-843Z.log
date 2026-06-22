@@ -1,0 +1,59 @@
+[     147ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[     147ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[    1325ms] [WARNING] Neuron's track function has been removed. For more information about          this change, please see the Neuron documentation.           See: https://sph.atlassian.net/wiki/spaces/DAPP/pages/1852179209/Neuron+WebSDK+Custom+Tracking @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    1325ms] [WARNING] Neuron's track function has been removed. For more information about          this change, please see the Neuron documentation.           See: https://sph.atlassian.net/wiki/spaces/DAPP/pages/1852179209/Neuron+WebSDK+Custom+Tracking @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    1347ms] [LOG] load lotame @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2263ms] [LOG] jQuery load successful @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2279ms] [LOG] prepare CDP data @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2534ms] [LOG] run @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2619ms] [WARNING] adgb - not initialized. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2641ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://dsuwzj1tch87b.cloudfront.net/uid/sph-uid.min.js:0
+[    2656ms] [LOG] VWO VARIANT: null @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2925ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2929ms] [WARNING] [GPT] PubAdsService.enableSingleRequest is deprecated, use googletag.setConfig({singleRequest: ...}) instead.
+https://goo.gle/gpt-message#170 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    2936ms] [LOG] load permutive @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    4821ms] [LOG] Variables are now defined! @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    4923ms] [LOG] [Ad Refresh] Ignored: dfp-ad-prestitial is in the ignore list. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    5789ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ https://pxl.connexity.net/c/cse?a=R&A=22c&D=569a&V=9&I0k=ptnrid&I0v=06a1ff57-8aa0-4970-b572-858f926ff627-tuct1132c7ea:0
+[    6411ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-lb1 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6411ms] [LOG] [Ad Refresh] Non Programmatic 2 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6411ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6412ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-lb1 is ready. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6447ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-imu1 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6448ms] [LOG] [Ad Refresh] Non Programmatic 2 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6448ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6448ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-imu1 is ready. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6449ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-midarticlespecial @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6449ms] [LOG] [Ad Refresh] House - REFRESH @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6449ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-midarticlespecial is ready. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6682ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-imu2 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6691ms] [LOG] [Ad Refresh] Programmatic - REFRESH @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    6694ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-imu2 is ready. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    7473ms] [INFO] Loading the script 'https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.IdpIFrameHttp.en_US.ZhD9mVJ_MG8.2018.O/am=BCAADQ/d=1/rs=AOaEmlF5DyBjGxgJ_qKnGPzPXZKFDj6rBg/m=base' violates the following Content Security Policy directive: "script-src 'unsafe-inline' 'unsafe-eval' blob: data:". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback. The policy is report-only, so the violation has been logged but no further action has been taken. @ https://accounts.google.com/o/oauth2/iframe#origin=https%3A%2F%2Fdisqus.com&rpcToken=508264786.5322217&clearCache=1&supportBlocked3PCookies=1:0
+[    7590ms] [INFO] Powered by AMP ⚡ HTML – Version 2605071401000 https://www.stomp.sg/trending-now/grayce-tan-joins-orangetee-resumes-posting-real-estate-content-months-after-plb-saga @ https://cdn.ampproject.org/rtv/012605071401000/amp4ads-v0.mjs:1
+[    7734ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://accounts.google.com/_/IdpIFrameHttp/cspreport/fine-allowlist:0
+[    7741ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7754ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7760ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7925ms] [WARNING] Your client application uses libraries for user authentication or authorization that are deprecated. See the [Migration Guide](https://developers.google.com/identity/gsi/web/guides/gis-migration) for more information. @ https://c.disquscdn.com/next/embed/common.bundle.b55d27c570b9a1d7c55230a121a02945.js:6
+[    8421ms] [LOG] [Ad Refresh] Slot dfp-ad-imu2 in view. Timer started. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    8422ms] [LOG] [Ad Refresh] Slot dfp-ad-lb1 in view. Timer started. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    9753ms] [ERROR] Failed to load resource: the server responded with a status of 451 () @ https://pippio.com/api/sync?pid=1391&ref=https%3A%2F%2Fwww.stomp.sg%2Ftrending-now%2Fgrayce-tan-joins-orangetee-resumes-posting-real-estate-content-months-after-plb-saga&it=1&iv=c1ttbloc13rbi2a:0
+[   11762ms] [LOG] [Ad Refresh] Slot dfp-ad-lb1 out of view. Cancelled. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   19731ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-bn1 @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   19732ms] [LOG] [Ad Refresh] House - REFRESH @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   19733ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-bn1 is ready. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   19818ms] [LOG] [Ad Refresh] Slot dfp-ad-bn1 in view. Timer started. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[    7741ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7754ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    7760ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   19978ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   21279ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.flex items-center justify-center rounded-full bg-cloud-900/60 p-md hover:bg-cloud-900/80>
+Ancestor with aria-hidden: <div.flex grow items-center justify-center h-full> @ https://www.stomp.sg/trending-now/grayce-tan-joins-orangetee-resumes-posting-real-estate-content-months-after-plb-saga:0
+[   34319ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 in view. Timer started. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   36829ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 out of view. Cancelled. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0
+[   36830ms] [LOG] [Ad Refresh] Slot dfp-ad-imu2 out of view. Cancelled. @ https://www.stomp.sg/assets/nr-loader-spa-1.292.0.min-C1CiG4Rg.js:0

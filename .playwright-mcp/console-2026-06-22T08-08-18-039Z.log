@@ -1,0 +1,8 @@
+[    2012ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/:0
+[    2059ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-BzJ8H_rI.js:922
+[   76253ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0
+[   76254ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0
+[   76323ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0
+[   76565ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0
+[   76747ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0
+[   77361ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v3.takearoundabout.com/api/claude:0

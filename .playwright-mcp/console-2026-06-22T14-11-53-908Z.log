@@ -1,0 +1,80 @@
+[     150ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[     150ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.aL-yoOAsD_I.2018.O/am=GAIFAAAAAICZAAMF/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2PoaunZ0ZR3tGuCWowwEHI2fVTIlA/dti=1/m=_b,_tp:287
+[    4327ms] [WARNING] Neuron's track function has been removed. For more information about          this change, please see the Neuron documentation.           See: https://sph.atlassian.net/wiki/spaces/DAPP/pages/1852179209/Neuron+WebSDK+Custom+Tracking @ https://www.businesstimes.com.sg/assets-web2/vendor-C2hHR5lw.js:145
+[    4327ms] [WARNING] Neuron's track function has been removed. For more information about          this change, please see the Neuron documentation.           See: https://sph.atlassian.net/wiki/spaces/DAPP/pages/1852179209/Neuron+WebSDK+Custom+Tracking @ https://www.businesstimes.com.sg/assets-web2/vendor-C2hHR5lw.js:145
+[    4329ms] [LOG] [ClientAdSettingsData] useEffect called @ https://www.businesstimes.com.sg/assets-web2/root-DniLv_PZ.js:0
+[    4351ms] [LOG] [TABOOLA] Initial value: undefined @ https://www.businesstimes.com.sg/assets-web2/ArticleWrapper-BepOyRNU.js:0
+[    4371ms] [ERROR] [PostHog.js] Unique user id has not been set in posthog.identify @ https://www.businesstimes.com.sg/assets-web2/vendor-C2hHR5lw.js:144
+[    4384ms] [LOG] chartbeat: window._data.level2 companies & markets @ https://www.businesstimes.com.sg/assets-web2/root-DniLv_PZ.js:0
+[    4384ms] [LOG] chartbeat: window._data.author Young Zhan Heng @ https://www.businesstimes.com.sg/assets-web2/root-DniLv_PZ.js:0
+[    4385ms] [LOG] chartbeat: _sf_async_config {uid: 52075, domain: businesstimes.com.sg, flickerControl: false, useCanonical: true, useCanonicalDomain: false} @ https://www.businesstimes.com.sg/assets-web2/root-DniLv_PZ.js:0
+[    4941ms] [LOG] jQuery load successful @ https://cdp.sph.com.sg/activation/activation.js:20
+[    5182ms] [WARNING] adgb - not initialized. @ https://cdn.taboola.com/libtrc/sphmedia-businesstimes/loader.js:54
+[    5402ms] [LOG] prepare CDP data @ https://cdp.sph.com.sg/activation/activation.js:1550
+[    5405ms] [LOG] run @ https://cdp.sph.com.sg/activation/activation.js:1993
+[    5415ms] [LOG] xxl: desktop mode @ https://adtag.sphdigital.com/tag/smx/smx_prebid.js:20
+[    5419ms] [LOG] [BetterAds] betterads_head2.js loaded @ https://www.businesstimes.com.sg/_web2/betterads_head3.js?v=3.6.0:1
+[    5419ms] [LOG] [BetterAds] canRunAds true @ https://www.businesstimes.com.sg/_web2/betterads_head3.js?v=3.6.0:2
+[    5419ms] [LOG] [BetterAds] screen.width 2048 @ https://www.businesstimes.com.sg/_web2/betterads_head3.js?v=3.6.0:3
+[    5419ms] [LOG] [BetterAds] postitial_enabled 1 @ https://www.businesstimes.com.sg/_web2/betterads_head3.js?v=3.6.0:4
+[    6072ms] [WARNING] [GPT] PubAdsService.getTargeting is deprecated, use googletag.getConfig('targeting') instead.
+https://goo.gle/gpt-message#200 @ https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m202606150101/pubads_impl.js?cb=31099186:18
+[    6122ms] [LOG] VWO VARIANT: null @ https://cdp.sph.com.sg/activation/activation.js:1383
+[    6234ms] [LOG] prepare CDP data @ https://cdp.sph.com.sg/activation/activation.js:1550
+[    6235ms] [LOG] run @ https://cdp.sph.com.sg/activation/activation.js:1993
+[    6284ms] [WARNING] [GPT] Slot.setTargeting is deprecated, use Slot.setConfig({targeting: ...}) instead.
+https://goo.gle/gpt-message#171 @ https://securepubads.g.doubleclick.net/pagead/managed/js/gpt/m202606150101/pubads_impl.js?cb=31099186:18
+[    6403ms] [INFO] 🌐 i18next is made possible by our own product, Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:9228
+[    6434ms] [LOG] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    7242ms] [LOG] VWO VARIANT: null @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    9027ms] [LOG] [Ad Refresh] Ignored: dfp-ad-prestitial is in the ignore list. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    9593ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-lb1 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    9593ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[    9646ms] [WARNING] [GSI_LOGGER]: Your client application uses one of the Google One Tap prompt UI status methods that may stop functioning when FedCM becomes mandatory. Refer to the migration guide to update your code accordingly and opt-in to FedCM to test your changes. Learn more: https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#display_moment and https://developers.google.com/identity/gsi/web/guides/fedcm-migration?s=dc#skipped_moment @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   10027ms] [ERROR] Access to fetch at 'https://accounts.google.com/gsi/style' from origin 'https://www.businesstimes.com.sg' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://www.businesstimes.com.sg/companies-markets/simba-ordered-pay-s700000-damages-indoor-skydiving-operator-altitude-xperience-trespass:0
+[   10028ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://accounts.google.com/gsi/style:0
+[   10220ms] [ERROR] Not signed in with the identity provider. @ https://www.businesstimes.com.sg/companies-markets/simba-ordered-pay-s700000-damages-indoor-skydiving-operator-altitude-xperience-trespass:0
+[   11168ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11179ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11757ms] [INFO] Sentry initialized successfully! @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   11819ms] [ERROR] [GSI_LOGGER]: FedCM get() rejects with NetworkError: Error retrieving a token. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   11820ms] [WARNING] One Tap skipped: unknown_reason @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   11830ms] [LOG] Video obj:video1, id:_Video1, registered to logger: [object Object] @ https://media.innity.net/202606_57143/239782/372890/assets_372890/html5.config_372890.js:54
+[   11830ms] [LOG] Innity_video_player_version:--4.7.3 @ https://media.innity.net/202606_57143/239782/372890/assets_372890/InnityAppsCreative.js:1326
+[   12147ms] [WARNING] Proxy and ad version is different! Proxy v1.0.69 vs Ad v1.0.1 @ https://media.innity.net/202604_56783/238043/371639/assets_371639/InnityAppsCreative.js:811
+[   12269ms] Uncaught (in promise) TypeError: Cannot read properties of null (reading 'db')
+    at <anonymous> (https://cdn.moengage.com/release/dc_1/moe_webSdk.min.latest.js:1:8115)
+    at <anonymous> (https://cdn.moengage.com/release/dc_1/moe_webSdk.min.latest.js:1:8338)
+    at nrWrapper (https://www.businesstimes.com.sg/assets-web2/nr-loader-spa.1.252.0.min-Dzh5270D.js:1042:30)
+[   52117ms] [WARNING] Proxy and ad version is different! Proxy v1.0.69 vs Ad v1.0.1 @ https://media.innity.net/202604_56783/238043/371639/assets_371639/InnityAppsCreative.js:811
+[   52568ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-imu1 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   52568ms] [LOG] [Ad Refresh image] : "AD_RENDERING"... @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   52569ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-imu1 is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   11168ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11179ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   52799ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   62665ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   63345ms] [LOG] [Ad Refresh] Slot dfp-ad-imu1 out of view. Cancelled. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   63546ms] [LOG] [Ad Refresh] Slot Id =>  dfp-ad-midarticlespecial @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   63546ms] [LOG] [Ad Refresh] Programmatic - REFRESH @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   63546ms] [LOG] [Ad Refresh] SUCCESS: Slot dfp-ad-midarticlespecial is ready. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   63549ms] [WARNING] [GPT] Slot dfp-ad-midarticlespecial rendered inside of the viewport.
+https://goo.gle/gpt-message#169 @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   11168ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   11179ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   52799ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   64124ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   64385ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial in view. Timer started. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501
+[   65469ms] SecurityError: Failed to read a named property 'removeEventListener' from 'Window': An attempt was made to break through the security policy of the user agent.
+    at https://js-agent.newrelic.com/nr-spa-recorder-1.252.0.min.js:2:41316
+    at https://js-agent.newrelic.com/nr-spa-recorder-1.252.0.min.js:2:72295
+    at Array.forEach (<anonymous>)
+    at https://js-agent.newrelic.com/nr-spa-recorder-1.252.0.min.js:2:72283
+    at At.stopRecording (https://js-agent.newrelic.com/nr-spa-recorder-1.252.0.min.js:2:74531)
+    at a.<anonymous> (https://js-agent.newrelic.com/nr-spa-1.252.0.min.js:2:42508)
+    at Object.emit (https://www.businesstimes.com.sg/assets-web2/nr-loader-spa.1.252.0.min-Dzh5270D.js:518:24)
+    at m.onPause (https://js-agent.newrelic.com/nr-spa-1.252.0.min.js:2:77407)
+    at m.pause (https://js-agent.newrelic.com/nr-spa-1.252.0.min.js:2:75700)
+    at https://js-agent.newrelic.com/nr-spa-1.252.0.min.js:2:75461
+[   65472ms] [LOG] [Ad Refresh] Slot dfp-ad-midarticlespecial out of view. Cancelled. @ https://static.idp.sph.com.sg/mySPH-lightbox/4.x.x/js/mySPH.js:3501

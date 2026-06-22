@@ -34,7 +34,7 @@ const NEO = {
 
 // AI-exposure levels colour ramp (blue<->amber, no red/green)
 const EXPO_CONFIG = {
-  HIGH:   { label: "Full Automation",  color: "#9a3412", bg: "#fff7ed", border: "#fed7aa" },
+  HIGH:   { label: "Full Automation",  color: "#c2410c", bg: "#fff7ed", border: "#fed7aa" },
   MEDIUM: { label: "AI-Augmented",     color: "#b45309", bg: "#fffbeb", border: "#fde68a" },
   LOW:    { label: "AI-Assisted",      color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc" },
   HUMAN:  { label: "Human-Led",        color: "#1e40af", bg: "#eef2ff", border: "#c7d2fe" },
@@ -136,7 +136,7 @@ const VALUE_TAG_CONFIG = {
 // ── Job layer colour map (mirrors CandidateJourney) ──────────────────────────
 const JOB_LAYER_ORDER = ["Activity", "Coordination", "Accountability", "Relational", "Judgment"];
 const JOB_LAYER_COLORS = {
-  Activity:       "#9a3412",
+  Activity:       "#c2410c",
   Coordination:   "#b45309",
   Accountability: "#0e7490",
   Relational:     "#1e40af",

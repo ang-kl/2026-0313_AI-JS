@@ -1,0 +1,3872 @@
+[
+  {
+    "soc_code": "11-1011",
+    "title": "Chief Executives",
+    "aioe": 1.334246
+  },
+  {
+    "soc_code": "11-1021",
+    "title": "General and Operations Managers",
+    "aioe": 0.5748773
+  },
+  {
+    "soc_code": "11-2011",
+    "title": "Advertising and Promotions Managers",
+    "aioe": 1.294387
+  },
+  {
+    "soc_code": "11-2021",
+    "title": "Marketing Managers",
+    "aioe": 1.315032
+  },
+  {
+    "soc_code": "11-2022",
+    "title": "Sales Managers",
+    "aioe": 1.26628
+  },
+  {
+    "soc_code": "11-2031",
+    "title": "Public Relations Managers",
+    "aioe": 1.293689
+  },
+  {
+    "soc_code": "11-3011",
+    "title": "Administrative Services Managers",
+    "aioe": 0.7398278
+  },
+  {
+    "soc_code": "11-3021",
+    "title": "Computer and Information Systems Managers",
+    "aioe": 1.059853
+  },
+  {
+    "soc_code": "11-3031",
+    "title": "Financial Managers",
+    "aioe": 1.446232
+  },
+  {
+    "soc_code": "11-3051",
+    "title": "Industrial Production Managers",
+    "aioe": 0.5086878
+  },
+  {
+    "soc_code": "11-3061",
+    "title": "Purchasing Managers",
+    "aioe": 1.423426
+  },
+  {
+    "soc_code": "11-3071",
+    "title": "Transportation, Storage, and Distribution Managers",
+    "aioe": 0.8907923
+  },
+  {
+    "soc_code": "11-3111",
+    "title": "Compensation and Benefits Managers",
+    "aioe": 1.298235
+  },
+  {
+    "soc_code": "11-3121",
+    "title": "Human Resources Managers",
+    "aioe": 1.320417
+  },
+  {
+    "soc_code": "11-3131",
+    "title": "Training and Development Managers",
+    "aioe": 1.284423
+  },
+  {
+    "soc_code": "11-9013",
+    "title": "Farmers, Ranchers, and Other Agricultural Managers",
+    "aioe": -0.1443684
+  },
+  {
+    "soc_code": "11-9021",
+    "title": "Construction Managers",
+    "aioe": 1.029139
+  },
+  {
+    "soc_code": "11-9031",
+    "title": "Education Administrators, Preschool and Child Care Center/Program",
+    "aioe": 0.838007
+  },
+  {
+    "soc_code": "11-9032",
+    "title": "Education Administrators, Elementary and Secondary School",
+    "aioe": 1.048811
+  },
+  {
+    "soc_code": "11-9033",
+    "title": "Education Administrators, Postsecondary",
+    "aioe": 1.461149
+  },
+  {
+    "soc_code": "11-9039",
+    "title": "Education Administrators, All Other",
+    "aioe": 0.3541265
+  },
+  {
+    "soc_code": "11-9041",
+    "title": "Engineering Managers",
+    "aioe": 0.8370105
+  },
+  {
+    "soc_code": "11-9051",
+    "title": "Food Service Managers",
+    "aioe": -0.1213112
+  },
+  {
+    "soc_code": "11-9061",
+    "title": "Funeral Directors",
+    "aioe": 0.3719018
+  },
+  {
+    "soc_code": "11-9071",
+    "title": "Gaming Managers",
+    "aioe": 0.8299207
+  },
+  {
+    "soc_code": "11-9081",
+    "title": "Lodging Managers",
+    "aioe": 0.4021726
+  },
+  {
+    "soc_code": "11-9111",
+    "title": "Medical and Health Services Managers",
+    "aioe": 1.260259
+  },
+  {
+    "soc_code": "11-9121",
+    "title": "Natural Sciences Managers",
+    "aioe": 1.327906
+  },
+  {
+    "soc_code": "11-9131",
+    "title": "Postmasters and Mail Superintendents",
+    "aioe": 0.8233757
+  },
+  {
+    "soc_code": "11-9141",
+    "title": "Property, Real Estate, and Community Association Managers",
+    "aioe": 1.215396
+  },
+  {
+    "soc_code": "11-9151",
+    "title": "Social and Community Service Managers",
+    "aioe": 1.156153
+  },
+  {
+    "soc_code": "11-9161",
+    "title": "Emergency Management Directors",
+    "aioe": 1.030768
+  },
+  {
+    "soc_code": "11-9199",
+    "title": "Managers, All Other",
+    "aioe": 0.9646872
+  },
+  {
+    "soc_code": "13-1011",
+    "title": "Agents and Business Managers of Artists, Performers, and Athletes",
+    "aioe": 1.068559
+  },
+  {
+    "soc_code": "13-1021",
+    "title": "Purchasing Agents and Buyers, Farm Products",
+    "aioe": 0.7687054
+  },
+  {
+    "soc_code": "13-1022",
+    "title": "Wholesale and Retail Buyers, Except Farm Products",
+    "aioe": 0.8188258
+  },
+  {
+    "soc_code": "13-1023",
+    "title": "Purchasing Agents, Except Wholesale, Retail, and Farm Products",
+    "aioe": 1.509181
+  },
+  {
+    "soc_code": "13-1031",
+    "title": "Claims Adjusters, Examiners, and Investigators",
+    "aioe": 1.274024
+  },
+  {
+    "soc_code": "13-1032",
+    "title": "Insurance Appraisers, Auto Damage",
+    "aioe": 0.6634955
+  },
+  {
+    "soc_code": "13-1041",
+    "title": "Compliance Officers, Except Agriculture, Construction, Health and Safety, and Transportation",
+    "aioe": 0.6981205
+  },
+  {
+    "soc_code": "13-1051",
+    "title": "Cost Estimators",
+    "aioe": 1.367669
+  },
+  {
+    "soc_code": "13-1071",
+    "title": "Employment, Recruitment, and Placement Specialists",
+    "aioe": 1.36005
+  },
+  {
+    "soc_code": "13-1074",
+    "title": "Farm Labor Contractors",
+    "aioe": -0.4354025
+  },
+  {
+    "soc_code": "13-1075",
+    "title": "Labor Relations Specialists",
+    "aioe": 1.334834
+  },
+  {
+    "soc_code": "13-1081",
+    "title": "Logisticians",
+    "aioe": 1.297303
+  },
+  {
+    "soc_code": "13-1111",
+    "title": "Management Analysts",
+    "aioe": 1.432417
+  },
+  {
+    "soc_code": "13-1121",
+    "title": "Meeting and Convention Planners",
+    "aioe": 0.3740207
+  },
+  {
+    "soc_code": "13-1131",
+    "title": "Fundraisers",
+    "aioe": 1.242567
+  },
+  {
+    "soc_code": "13-1141",
+    "title": "Compensation, Benefits, and Job Analysis Specialists",
+    "aioe": 1.440985
+  },
+  {
+    "soc_code": "13-1151",
+    "title": "Training and Development Specialists",
+    "aioe": 1.198409
+  },
+  {
+    "soc_code": "13-1161",
+    "title": "Market Research Analysts and Marketing Specialists",
+    "aioe": 1.426757
+  },
+  {
+    "soc_code": "13-1199",
+    "title": "Business Operations Specialists, All Other",
+    "aioe": 1.047687
+  },
+  {
+    "soc_code": "13-2011",
+    "title": "Accountants and Auditors",
+    "aioe": 1.481956
+  },
+  {
+    "soc_code": "13-2021",
+    "title": "Appraisers and Assessors of Real Estate",
+    "aioe": 0.8413203
+  },
+  {
+    "soc_code": "13-2031",
+    "title": "Budget Analysts",
+    "aioe": 1.502988
+  },
+  {
+    "soc_code": "13-2041",
+    "title": "Credit Analysts",
+    "aioe": 1.345268
+  },
+  {
+    "soc_code": "13-2051",
+    "title": "Financial Analysts",
+    "aioe": 1.380615
+  },
+  {
+    "soc_code": "13-2052",
+    "title": "Personal Financial Advisors",
+    "aioe": 1.400749
+  },
+  {
+    "soc_code": "13-2053",
+    "title": "Insurance Underwriters",
+    "aioe": 1.326652
+  },
+  {
+    "soc_code": "13-2061",
+    "title": "Financial Examiners",
+    "aioe": 1.526064
+  },
+  {
+    "soc_code": "13-2071",
+    "title": "Loan Counselors",
+    "aioe": 1.385381
+  },
+  {
+    "soc_code": "13-2072",
+    "title": "Loan Officers",
+    "aioe": 1.385739
+  },
+  {
+    "soc_code": "13-2081",
+    "title": "Tax Examiners, Collectors, and Revenue Agents",
+    "aioe": 1.36682
+  },
+  {
+    "soc_code": "13-2082",
+    "title": "Tax Preparers",
+    "aioe": 1.29371
+  },
+  {
+    "soc_code": "13-2099",
+    "title": "Financial Specialists, All Other",
+    "aioe": 1.361362
+  },
+  {
+    "soc_code": "15-1111",
+    "title": "Computer and Information Research Scientists",
+    "aioe": 1.154269
+  },
+  {
+    "soc_code": "15-1121",
+    "title": "Computer Systems Analysts",
+    "aioe": 1.19815
+  },
+  {
+    "soc_code": "15-1122",
+    "title": "Information Security Analysts",
+    "aioe": 1.250146
+  },
+  {
+    "soc_code": "15-1131",
+    "title": "Computer Programmers",
+    "aioe": 1.271506
+  },
+  {
+    "soc_code": "15-1132",
+    "title": "Software Developers, Applications",
+    "aioe": 1.200923
+  },
+  {
+    "soc_code": "15-1133",
+    "title": "Software Developers, Systems Software",
+    "aioe": 1.283308
+  },
+  {
+    "soc_code": "15-1134",
+    "title": "Web Developers",
+    "aioe": 1.089463
+  },
+  {
+    "soc_code": "15-1141",
+    "title": "Database Administrators",
+    "aioe": 1.284863
+  },
+  {
+    "soc_code": "15-1142",
+    "title": "Network and Computer Systems Administrators",
+    "aioe": 0.7895315
+  },
+  {
+    "soc_code": "15-1143",
+    "title": "Computer Network Architects",
+    "aioe": 0.5803306
+  },
+  {
+    "soc_code": "15-1151",
+    "title": "Computer User Support Specialists",
+    "aioe": 0.299343
+  },
+  {
+    "soc_code": "15-1152",
+    "title": "Computer Network Support Specialists",
+    "aioe": 0.7860606
+  },
+  {
+    "soc_code": "15-1199",
+    "title": "Computer Occupations, All Other",
+    "aioe": 1.232705
+  },
+  {
+    "soc_code": "15-2011",
+    "title": "Actuaries",
+    "aioe": 1.516474
+  },
+  {
+    "soc_code": "15-2021",
+    "title": "Mathematicians",
+    "aioe": 1.472319
+  },
+  {
+    "soc_code": "15-2031",
+    "title": "Operations Research Analysts",
+    "aioe": 1.40002
+  },
+  {
+    "soc_code": "15-2041",
+    "title": "Statisticians",
+    "aioe": 1.382724
+  },
+  {
+    "soc_code": "15-2091",
+    "title": "Mathematical Technicians",
+    "aioe": 0.7559803
+  },
+  {
+    "soc_code": "17-1011",
+    "title": "Architects, Except Landscape and Naval",
+    "aioe": 1.047142
+  },
+  {
+    "soc_code": "17-1012",
+    "title": "Landscape Architects",
+    "aioe": 1.034388
+  },
+  {
+    "soc_code": "17-1021",
+    "title": "Cartographers and Photogrammetrists",
+    "aioe": 0.8169979
+  },
+  {
+    "soc_code": "17-1022",
+    "title": "Surveyors",
+    "aioe": 0.1460606
+  },
+  {
+    "soc_code": "17-2011",
+    "title": "Aerospace Engineers",
+    "aioe": 1.338738
+  },
+  {
+    "soc_code": "17-2021",
+    "title": "Agricultural Engineers",
+    "aioe": 0.9409636
+  },
+  {
+    "soc_code": "17-2031",
+    "title": "Biomedical Engineers",
+    "aioe": 0.9874239
+  },
+  {
+    "soc_code": "17-2041",
+    "title": "Chemical Engineers",
+    "aioe": 1.341336
+  },
+  {
+    "soc_code": "17-2051",
+    "title": "Civil Engineers",
+    "aioe": 1.282867
+  },
+  {
+    "soc_code": "17-2061",
+    "title": "Computer Hardware Engineers",
+    "aioe": 1.141812
+  },
+  {
+    "soc_code": "17-2071",
+    "title": "Electrical Engineers",
+    "aioe": 1.126725
+  },
+  {
+    "soc_code": "17-2072",
+    "title": "Electronics Engineers, Except Computer",
+    "aioe": 0.6654578
+  },
+  {
+    "soc_code": "17-2081",
+    "title": "Environmental Engineers",
+    "aioe": 1.343561
+  },
+  {
+    "soc_code": "17-2111",
+    "title": "Health and Safety Engineers, Except Mining Safety Engineers and Inspectors",
+    "aioe": 0.9948935
+  },
+  {
+    "soc_code": "17-2112",
+    "title": "Industrial Engineers",
+    "aioe": 1.13787
+  },
+  {
+    "soc_code": "17-2121",
+    "title": "Marine Engineers and Naval Architects",
+    "aioe": 0.5472173
+  },
+  {
+    "soc_code": "17-2131",
+    "title": "Materials Engineers",
+    "aioe": 1.037278
+  },
+  {
+    "soc_code": "17-2141",
+    "title": "Mechanical Engineers",
+    "aioe": 1.004709
+  },
+  {
+    "soc_code": "17-2151",
+    "title": "Mining and Geological Engineers, Including Mining Safety Engineers",
+    "aioe": 1.34695
+  },
+  {
+    "soc_code": "17-2161",
+    "title": "Nuclear Engineers",
+    "aioe": 1.303009
+  },
+  {
+    "soc_code": "17-2171",
+    "title": "Petroleum Engineers",
+    "aioe": 1.247779
+  },
+  {
+    "soc_code": "17-2199",
+    "title": "Engineers, All Other",
+    "aioe": 0.787566
+  },
+  {
+    "soc_code": "17-3011",
+    "title": "Architectural and Civil Drafters",
+    "aioe": 0.9233925
+  },
+  {
+    "soc_code": "17-3012",
+    "title": "Electrical and Electronics Drafters",
+    "aioe": 0.910166
+  },
+  {
+    "soc_code": "17-3013",
+    "title": "Mechanical Drafters",
+    "aioe": 0.8410071
+  },
+  {
+    "soc_code": "17-3021",
+    "title": "Aerospace Engineering and Operations Technicians",
+    "aioe": 0.3909402
+  },
+  {
+    "soc_code": "17-3022",
+    "title": "Civil Engineering Technicians",
+    "aioe": 0.9323219
+  },
+  {
+    "soc_code": "17-3023",
+    "title": "Electrical and Electronic Engineering Technicians",
+    "aioe": 0.3515252
+  },
+  {
+    "soc_code": "17-3024",
+    "title": "Electro-Mechanical Technicians",
+    "aioe": -0.3040507
+  },
+  {
+    "soc_code": "17-3025",
+    "title": "Environmental Engineering Technicians",
+    "aioe": 0.0438054
+  },
+  {
+    "soc_code": "17-3026",
+    "title": "Industrial Engineering Technicians",
+    "aioe": 0.6106679
+  },
+  {
+    "soc_code": "17-3027",
+    "title": "Mechanical Engineering Technicians",
+    "aioe": -0.1192367
+  },
+  {
+    "soc_code": "17-3029",
+    "title": "Engineering Technicians, Except Drafters, All Other",
+    "aioe": 0.1941278
+  },
+  {
+    "soc_code": "17-3031",
+    "title": "Surveying and Mapping Technicians",
+    "aioe": 0.0852324
+  },
+  {
+    "soc_code": "19-1011",
+    "title": "Animal Scientists",
+    "aioe": 1.041358
+  },
+  {
+    "soc_code": "19-1012",
+    "title": "Food Scientists and Technologists",
+    "aioe": 0.7943575
+  },
+  {
+    "soc_code": "19-1013",
+    "title": "Soil and Plant Scientists",
+    "aioe": 0.6320696
+  },
+  {
+    "soc_code": "19-1020",
+    "title": "Biologists",
+    "aioe": 0.752081
+  },
+  {
+    "soc_code": "19-1021",
+    "title": "Biochemists and Biophysicists",
+    "aioe": 0.9060509
+  },
+  {
+    "soc_code": "19-1022",
+    "title": "Microbiologists",
+    "aioe": 0.6955647
+  },
+  {
+    "soc_code": "19-1023",
+    "title": "Zoologists and Wildlife Biologists",
+    "aioe": 0.3175953
+  },
+  {
+    "soc_code": "19-1029",
+    "title": "Biological Scientists, All Other",
+    "aioe": 1.010193
+  },
+  {
+    "soc_code": "19-1031",
+    "title": "Conservation Scientists",
+    "aioe": 0.0690313
+  },
+  {
+    "soc_code": "19-1032",
+    "title": "Foresters",
+    "aioe": -0.184381
+  },
+  {
+    "soc_code": "19-1041",
+    "title": "Epidemiologists",
+    "aioe": 1.436287
+  },
+  {
+    "soc_code": "19-1042",
+    "title": "Medical Scientists, Except Epidemiologists",
+    "aioe": 1.279928
+  },
+  {
+    "soc_code": "19-2011",
+    "title": "Astronomers",
+    "aioe": 1.373737
+  },
+  {
+    "soc_code": "19-2012",
+    "title": "Physicists",
+    "aioe": 1.345736
+  },
+  {
+    "soc_code": "19-2021",
+    "title": "Atmospheric and Space Scientists",
+    "aioe": 1.373917
+  },
+  {
+    "soc_code": "19-2031",
+    "title": "Chemists",
+    "aioe": 0.5011251
+  },
+  {
+    "soc_code": "19-2032",
+    "title": "Materials Scientists",
+    "aioe": 1.032757
+  },
+  {
+    "soc_code": "19-2041",
+    "title": "Environmental Scientists and Specialists, Including Health",
+    "aioe": 1.014113
+  },
+  {
+    "soc_code": "19-2042",
+    "title": "Geoscientists, Except Hydrologists and Geographers",
+    "aioe": 0.7143481
+  },
+  {
+    "soc_code": "19-2043",
+    "title": "Hydrologists",
+    "aioe": 0.6405071
+  },
+  {
+    "soc_code": "19-2099",
+    "title": "Physical Scientists, All Other",
+    "aioe": 1.140157
+  },
+  {
+    "soc_code": "19-3011",
+    "title": "Economists",
+    "aioe": 1.403764
+  },
+  {
+    "soc_code": "19-3022",
+    "title": "Survey Researchers",
+    "aioe": 1.42653
+  },
+  {
+    "soc_code": "19-3031",
+    "title": "Clinical, Counseling, and School Psychologists",
+    "aioe": 1.456361
+  },
+  {
+    "soc_code": "19-3032",
+    "title": "Industrial-Organizational Psychologists",
+    "aioe": 1.402475
+  },
+  {
+    "soc_code": "19-3039",
+    "title": "Psychologists, All Other",
+    "aioe": 1.389854
+  },
+  {
+    "soc_code": "19-3041",
+    "title": "Sociologists",
+    "aioe": 1.411125
+  },
+  {
+    "soc_code": "19-3051",
+    "title": "Urban and Regional Planners",
+    "aioe": 1.227516
+  },
+  {
+    "soc_code": "19-3091",
+    "title": "Anthropologists and Archeologists",
+    "aioe": 0.6965665
+  },
+  {
+    "soc_code": "19-3092",
+    "title": "Geographers",
+    "aioe": 1.436298
+  },
+  {
+    "soc_code": "19-3093",
+    "title": "Historians",
+    "aioe": 1.098921
+  },
+  {
+    "soc_code": "19-3094",
+    "title": "Political Scientists",
+    "aioe": 1.418863
+  },
+  {
+    "soc_code": "19-3099",
+    "title": "Social Scientists and Related Workers, All Other",
+    "aioe": 1.328048
+  },
+  {
+    "soc_code": "19-4011",
+    "title": "Agricultural and Food Science Technicians",
+    "aioe": 0.095719
+  },
+  {
+    "soc_code": "19-4021",
+    "title": "Biological Technicians",
+    "aioe": 0.3012355
+  },
+  {
+    "soc_code": "19-4031",
+    "title": "Chemical Technicians",
+    "aioe": 0.0628057
+  },
+  {
+    "soc_code": "19-4041",
+    "title": "Geological and Petroleum Technicians",
+    "aioe": 0.0832659
+  },
+  {
+    "soc_code": "19-4051",
+    "title": "Nuclear Technicians",
+    "aioe": 0.1696743
+  },
+  {
+    "soc_code": "19-4061",
+    "title": "Social Science Research Assistants",
+    "aioe": 1.204652
+  },
+  {
+    "soc_code": "19-4091",
+    "title": "Environmental Science and Protection Technicians, Including Health",
+    "aioe": 0.0169452
+  },
+  {
+    "soc_code": "19-4092",
+    "title": "Forensic Science Technicians",
+    "aioe": 0.2400518
+  },
+  {
+    "soc_code": "19-4093",
+    "title": "Forest and Conservation Technicians",
+    "aioe": -0.6672396
+  },
+  {
+    "soc_code": "19-4099",
+    "title": "Life, Physical, and Social Science Technicians, All Other",
+    "aioe": 0.4501044
+  },
+  {
+    "soc_code": "21-1011",
+    "title": "Substance Abuse and Behavioral Disorder Counselors",
+    "aioe": 1.030841
+  },
+  {
+    "soc_code": "21-1012",
+    "title": "Educational, Vocational, and School Counselors",
+    "aioe": 0.9739287
+  },
+  {
+    "soc_code": "21-1013",
+    "title": "Marriage and Family Therapists",
+    "aioe": 1.367434
+  },
+  {
+    "soc_code": "21-1014",
+    "title": "Mental Health Counselors",
+    "aioe": 1.34239
+  },
+  {
+    "soc_code": "21-1015",
+    "title": "Rehabilitation Counselors",
+    "aioe": 0.5025014
+  },
+  {
+    "soc_code": "21-1021",
+    "title": "Child, Family, and School Social Workers",
+    "aioe": 0.7761707
+  },
+  {
+    "soc_code": "21-1022",
+    "title": "Medical and Public Health Social Workers",
+    "aioe": 0.9339648
+  },
+  {
+    "soc_code": "21-1023",
+    "title": "Mental Health and Substance Abuse Social Workers",
+    "aioe": 1.119216
+  },
+  {
+    "soc_code": "21-1091",
+    "title": "Health Educators",
+    "aioe": 0.691658
+  },
+  {
+    "soc_code": "21-1092",
+    "title": "Probation Officers and Correctional Treatment Specialists",
+    "aioe": 0.5272448
+  },
+  {
+    "soc_code": "21-1093",
+    "title": "Social and Human Service Assistants",
+    "aioe": 0.4652255
+  },
+  {
+    "soc_code": "21-1094",
+    "title": "Community Health Workers",
+    "aioe": 0.0371229
+  },
+  {
+    "soc_code": "21-2011",
+    "title": "Clergy",
+    "aioe": 1.282559
+  },
+  {
+    "soc_code": "21-2021",
+    "title": "Directors, Religious Activities and Education",
+    "aioe": 1.210922
+  },
+  {
+    "soc_code": "23-1011",
+    "title": "Lawyers",
+    "aioe": 1.328783
+  },
+  {
+    "soc_code": "23-1012",
+    "title": "Judicial Law Clerks",
+    "aioe": 1.462973
+  },
+  {
+    "soc_code": "23-1021",
+    "title": "Administrative Law Judges, Adjudicators, and Hearing Officers",
+    "aioe": 1.374714
+  },
+  {
+    "soc_code": "23-1022",
+    "title": "Arbitrators, Mediators, and Conciliators",
+    "aioe": 1.431593
+  },
+  {
+    "soc_code": "23-1023",
+    "title": "Judges, Magistrate Judges, and Magistrates",
+    "aioe": 1.496494
+  },
+  {
+    "soc_code": "23-2011",
+    "title": "Paralegals and Legal Assistants",
+    "aioe": 1.292055
+  },
+  {
+    "soc_code": "23-2091",
+    "title": "Court Reporters",
+    "aioe": 0.835246
+  },
+  {
+    "soc_code": "23-2093",
+    "title": "Title Examiners, Abstractors, and Searchers",
+    "aioe": 1.279954
+  },
+  {
+    "soc_code": "25-1011",
+    "title": "Business Teachers, Postsecondary",
+    "aioe": 1.349314
+  },
+  {
+    "soc_code": "25-1021",
+    "title": "Computer Science Teachers, Postsecondary",
+    "aioe": 1.277778
+  },
+  {
+    "soc_code": "25-1022",
+    "title": "Mathematical Science Teachers, Postsecondary",
+    "aioe": 1.338676
+  },
+  {
+    "soc_code": "25-1031",
+    "title": "Architecture Teachers, Postsecondary",
+    "aioe": 1.222022
+  },
+  {
+    "soc_code": "25-1032",
+    "title": "Engineering Teachers, Postsecondary",
+    "aioe": 1.351133
+  },
+  {
+    "soc_code": "25-1041",
+    "title": "Agricultural Sciences Teachers, Postsecondary",
+    "aioe": 0.7546685
+  },
+  {
+    "soc_code": "25-1042",
+    "title": "Biological Science Teachers, Postsecondary",
+    "aioe": 1.227677
+  },
+  {
+    "soc_code": "25-1043",
+    "title": "Forestry and Conservation Science Teachers, Postsecondary",
+    "aioe": 1.260278
+  },
+  {
+    "soc_code": "25-1051",
+    "title": "Atmospheric, Earth, Marine, and Space Sciences Teachers, Postsecondary",
+    "aioe": 1.306156
+  },
+  {
+    "soc_code": "25-1052",
+    "title": "Chemistry Teachers, Postsecondary",
+    "aioe": 1.333947
+  },
+  {
+    "soc_code": "25-1053",
+    "title": "Environmental Science Teachers, Postsecondary",
+    "aioe": 1.347519
+  },
+  {
+    "soc_code": "25-1054",
+    "title": "Physics Teachers, Postsecondary",
+    "aioe": 1.044191
+  },
+  {
+    "soc_code": "25-1061",
+    "title": "Anthropology and Archeology Teachers, Postsecondary",
+    "aioe": 1.321694
+  },
+  {
+    "soc_code": "25-1062",
+    "title": "Area, Ethnic, and Cultural Studies Teachers, Postsecondary",
+    "aioe": 1.308699
+  },
+  {
+    "soc_code": "25-1063",
+    "title": "Economics Teachers, Postsecondary",
+    "aioe": 1.319012
+  },
+  {
+    "soc_code": "25-1064",
+    "title": "Geography Teachers, Postsecondary",
+    "aioe": 1.318899
+  },
+  {
+    "soc_code": "25-1065",
+    "title": "Political Science Teachers, Postsecondary",
+    "aioe": 1.368397
+  },
+  {
+    "soc_code": "25-1066",
+    "title": "Psychology Teachers, Postsecondary",
+    "aioe": 1.33366
+  },
+  {
+    "soc_code": "25-1067",
+    "title": "Sociology Teachers, Postsecondary",
+    "aioe": 1.349229
+  },
+  {
+    "soc_code": "25-1071",
+    "title": "Health Specialties Teachers, Postsecondary",
+    "aioe": 0.924754
+  },
+  {
+    "soc_code": "25-1072",
+    "title": "Nursing Instructors and Teachers, Postsecondary",
+    "aioe": 0.5170682
+  },
+  {
+    "soc_code": "25-1081",
+    "title": "Education Teachers, Postsecondary",
+    "aioe": 1.192988
+  },
+  {
+    "soc_code": "25-1082",
+    "title": "Library Science Teachers, Postsecondary",
+    "aioe": 1.386292
+  },
+  {
+    "soc_code": "25-1111",
+    "title": "Criminal Justice and Law Enforcement Teachers, Postsecondary",
+    "aioe": 1.389999
+  },
+  {
+    "soc_code": "25-1112",
+    "title": "Law Teachers, Postsecondary",
+    "aioe": 1.35645
+  },
+  {
+    "soc_code": "25-1113",
+    "title": "Social Work Teachers, Postsecondary",
+    "aioe": 1.347327
+  },
+  {
+    "soc_code": "25-1121",
+    "title": "Art, Drama, and Music Teachers, Postsecondary",
+    "aioe": 0.7582769
+  },
+  {
+    "soc_code": "25-1122",
+    "title": "Communications Teachers, Postsecondary",
+    "aioe": 1.347435
+  },
+  {
+    "soc_code": "25-1123",
+    "title": "English Language and Literature Teachers, Postsecondary",
+    "aioe": 1.417833
+  },
+  {
+    "soc_code": "25-1124",
+    "title": "Foreign Language and Literature Teachers, Postsecondary",
+    "aioe": 1.33412
+  },
+  {
+    "soc_code": "25-1125",
+    "title": "History Teachers, Postsecondary",
+    "aioe": 1.43749
+  },
+  {
+    "soc_code": "25-1126",
+    "title": "Philosophy and Religion Teachers, Postsecondary",
+    "aioe": 1.363522
+  },
+  {
+    "soc_code": "25-1191",
+    "title": "Graduate Teaching Assistants",
+    "aioe": 1.111356
+  },
+  {
+    "soc_code": "25-1192",
+    "title": "Home Economics Teachers, Postsecondary",
+    "aioe": 1.211652
+  },
+  {
+    "soc_code": "25-1193",
+    "title": "Recreation and Fitness Studies Teachers, Postsecondary",
+    "aioe": 1.16489
+  },
+  {
+    "soc_code": "25-1194",
+    "title": "Vocational Education Teachers, Postsecondary",
+    "aioe": 0.1622185
+  },
+  {
+    "soc_code": "25-2011",
+    "title": "Preschool Teachers, Except Special Education",
+    "aioe": 0.0306372
+  },
+  {
+    "soc_code": "25-2012",
+    "title": "Kindergarten Teachers, Except Special Education",
+    "aioe": 0.3644047
+  },
+  {
+    "soc_code": "25-2021",
+    "title": "Elementary School Teachers, Except Special Education",
+    "aioe": 0.8869491
+  },
+  {
+    "soc_code": "25-2022",
+    "title": "Middle School Teachers, Except Special and Vocational Education",
+    "aioe": 1.286445
+  },
+  {
+    "soc_code": "25-2023",
+    "title": "Vocational Education Teachers, Middle School",
+    "aioe": 0.5199191
+  },
+  {
+    "soc_code": "25-2031",
+    "title": "Secondary School Teachers, Except Special and Vocational Education",
+    "aioe": 1.191325
+  },
+  {
+    "soc_code": "25-2032",
+    "title": "Vocational Education Teachers, Secondary School",
+    "aioe": 0.3734505
+  },
+  {
+    "soc_code": "25-2051",
+    "title": "Special Education Teachers, Preschool",
+    "aioe": 0.3750564
+  },
+  {
+    "soc_code": "25-2052",
+    "title": "Special Education Teachers, Kindergarten and Elementary School",
+    "aioe": 0.7357486
+  },
+  {
+    "soc_code": "25-2053",
+    "title": "Special Education Teachers, Middle School",
+    "aioe": 1.296072
+  },
+  {
+    "soc_code": "25-2054",
+    "title": "Special Education Teachers, Secondary School",
+    "aioe": 0.9587653
+  },
+  {
+    "soc_code": "25-2059",
+    "title": "Special Education Teachers, All Other",
+    "aioe": -0.6632917
+  },
+  {
+    "soc_code": "25-3011",
+    "title": "Adult Literacy, Remedial Education, and GED Teachers and Instructors",
+    "aioe": 1.348951
+  },
+  {
+    "soc_code": "25-3021",
+    "title": "Self-Enrichment Education Teachers",
+    "aioe": 0.526352
+  },
+  {
+    "soc_code": "25-3099",
+    "title": "Teachers and Instructors, All Other",
+    "aioe": 1.32533
+  },
+  {
+    "soc_code": "25-4011",
+    "title": "Archivists",
+    "aioe": 0.6765602
+  },
+  {
+    "soc_code": "25-4012",
+    "title": "Curators",
+    "aioe": 0.7366658
+  },
+  {
+    "soc_code": "25-4013",
+    "title": "Museum Technicians and Conservators",
+    "aioe": -0.0912107
+  },
+  {
+    "soc_code": "25-4021",
+    "title": "Librarians",
+    "aioe": 1.037039
+  },
+  {
+    "soc_code": "25-4031",
+    "title": "Library Technicians",
+    "aioe": 0.037965
+  },
+  {
+    "soc_code": "25-9011",
+    "title": "Audio-Visual Collections Specialists",
+    "aioe": 0.4508702
+  },
+  {
+    "soc_code": "25-9021",
+    "title": "Farm and Home Management Advisors",
+    "aioe": 0.8604031
+  },
+  {
+    "soc_code": "25-9031",
+    "title": "Instructional Coordinators",
+    "aioe": 1.301855
+  },
+  {
+    "soc_code": "25-9041",
+    "title": "Teacher Assistants",
+    "aioe": 0.4516636
+  },
+  {
+    "soc_code": "27-1011",
+    "title": "Art Directors",
+    "aioe": 1.02251
+  },
+  {
+    "soc_code": "27-1012",
+    "title": "Craft Artists",
+    "aioe": -0.9295284
+  },
+  {
+    "soc_code": "27-1013",
+    "title": "Fine Artists, Including Painters, Sculptors, and Illustrators",
+    "aioe": -0.5690498
+  },
+  {
+    "soc_code": "27-1014",
+    "title": "Multi-Media Artists and Animators",
+    "aioe": 0.7058651
+  },
+  {
+    "soc_code": "27-1021",
+    "title": "Commercial and Industrial Designers",
+    "aioe": 0.867039
+  },
+  {
+    "soc_code": "27-1022",
+    "title": "Fashion Designers",
+    "aioe": 0.5801539
+  },
+  {
+    "soc_code": "27-1023",
+    "title": "Floral Designers",
+    "aioe": -0.2718452
+  },
+  {
+    "soc_code": "27-1024",
+    "title": "Graphic Designers",
+    "aioe": 0.7156958
+  },
+  {
+    "soc_code": "27-1025",
+    "title": "Interior Designers",
+    "aioe": 1.12168
+  },
+  {
+    "soc_code": "27-1026",
+    "title": "Merchandise Displayers and Window Trimmers",
+    "aioe": -1.001413
+  },
+  {
+    "soc_code": "27-1027",
+    "title": "Set and Exhibit Designers",
+    "aioe": -0.0519323
+  },
+  {
+    "soc_code": "27-2011",
+    "title": "Actors",
+    "aioe": 0.1590935
+  },
+  {
+    "soc_code": "27-2012",
+    "title": "Producers and Directors",
+    "aioe": 0.9388108
+  },
+  {
+    "soc_code": "27-2021",
+    "title": "Athletes and Sports Competitors",
+    "aioe": -1.814336
+  },
+  {
+    "soc_code": "27-2022",
+    "title": "Coaches and Scouts",
+    "aioe": 0.1168668
+  },
+  {
+    "soc_code": "27-2023",
+    "title": "Umpires, Referees, and Other Sports Officials",
+    "aioe": -0.0325617
+  },
+  {
+    "soc_code": "27-2031",
+    "title": "Dancers",
+    "aioe": -2.669758
+  },
+  {
+    "soc_code": "27-2032",
+    "title": "Choreographers",
+    "aioe": -1.575769
+  },
+  {
+    "soc_code": "27-2041",
+    "title": "Music Directors and Composers",
+    "aioe": 0.8829641
+  },
+  {
+    "soc_code": "27-2042",
+    "title": "Musicians and Singers",
+    "aioe": -0.0040058
+  },
+  {
+    "soc_code": "27-3011",
+    "title": "Radio and Television Announcers",
+    "aioe": 0.8493547
+  },
+  {
+    "soc_code": "27-3012",
+    "title": "Public Address System and Other Announcers",
+    "aioe": 0.6650665
+  },
+  {
+    "soc_code": "27-3021",
+    "title": "Broadcast News Analysts",
+    "aioe": 1.163517
+  },
+  {
+    "soc_code": "27-3022",
+    "title": "Reporters and Correspondents",
+    "aioe": 1.186679
+  },
+  {
+    "soc_code": "27-3031",
+    "title": "Public Relations Specialists",
+    "aioe": 1.284927
+  },
+  {
+    "soc_code": "27-3041",
+    "title": "Editors",
+    "aioe": 1.128221
+  },
+  {
+    "soc_code": "27-3042",
+    "title": "Technical Writers",
+    "aioe": 1.184001
+  },
+  {
+    "soc_code": "27-3043",
+    "title": "Writers and Authors",
+    "aioe": 0.9879274
+  },
+  {
+    "soc_code": "27-3091",
+    "title": "Interpreters and Translators",
+    "aioe": 1.111319
+  },
+  {
+    "soc_code": "27-4011",
+    "title": "Audio and Video Equipment Technicians",
+    "aioe": -0.0117747
+  },
+  {
+    "soc_code": "27-4012",
+    "title": "Broadcast Technicians",
+    "aioe": 0.1222249
+  },
+  {
+    "soc_code": "27-4013",
+    "title": "Radio Operators",
+    "aioe": 0.926126
+  },
+  {
+    "soc_code": "27-4014",
+    "title": "Sound Engineering Technicians",
+    "aioe": 0.4715462
+  },
+  {
+    "soc_code": "27-4021",
+    "title": "Photographers",
+    "aioe": -0.1680973
+  },
+  {
+    "soc_code": "27-4031",
+    "title": "Camera Operators, Television, Video, and Motion Picture",
+    "aioe": -0.4470009
+  },
+  {
+    "soc_code": "27-4032",
+    "title": "Film and Video Editors",
+    "aioe": 0.985707
+  },
+  {
+    "soc_code": "29-1011",
+    "title": "Chiropractors",
+    "aioe": -0.1911757
+  },
+  {
+    "soc_code": "29-1021",
+    "title": "Dentists, General",
+    "aioe": -0.1813301
+  },
+  {
+    "soc_code": "29-1022",
+    "title": "Oral and Maxillofacial Surgeons",
+    "aioe": -0.2389668
+  },
+  {
+    "soc_code": "29-1023",
+    "title": "Orthodontists",
+    "aioe": 0.1616631
+  },
+  {
+    "soc_code": "29-1024",
+    "title": "Prosthodontists",
+    "aioe": -0.1561403
+  },
+  {
+    "soc_code": "29-1031",
+    "title": "Dietitians and Nutritionists",
+    "aioe": 1.342809
+  },
+  {
+    "soc_code": "29-1041",
+    "title": "Optometrists",
+    "aioe": 0.5040194
+  },
+  {
+    "soc_code": "29-1051",
+    "title": "Pharmacists",
+    "aioe": 0.6058705
+  },
+  {
+    "soc_code": "29-1061",
+    "title": "Anesthesiologists",
+    "aioe": 0.2349698
+  },
+  {
+    "soc_code": "29-1062",
+    "title": "Family and General Practitioners",
+    "aioe": 1.031925
+  },
+  {
+    "soc_code": "29-1063",
+    "title": "Internists, General",
+    "aioe": 1.046167
+  },
+  {
+    "soc_code": "29-1064",
+    "title": "Obstetricians and Gynecologists",
+    "aioe": 0.2803215
+  },
+  {
+    "soc_code": "29-1065",
+    "title": "Pediatricians, General",
+    "aioe": 1.126144
+  },
+  {
+    "soc_code": "29-1066",
+    "title": "Psychiatrists",
+    "aioe": 1.280753
+  },
+  {
+    "soc_code": "29-1067",
+    "title": "Surgeons",
+    "aioe": -0.0504534
+  },
+  {
+    "soc_code": "29-1069",
+    "title": "Physicians and Surgeons, All Other",
+    "aioe": 0.7086123
+  },
+  {
+    "soc_code": "29-1071",
+    "title": "Physician Assistants",
+    "aioe": 0.1059147
+  },
+  {
+    "soc_code": "29-1081",
+    "title": "Podiatrists",
+    "aioe": 0.6279185
+  },
+  {
+    "soc_code": "29-1122",
+    "title": "Occupational Therapists",
+    "aioe": 0.1151615
+  },
+  {
+    "soc_code": "29-1123",
+    "title": "Physical Therapists",
+    "aioe": -0.3581922
+  },
+  {
+    "soc_code": "29-1124",
+    "title": "Radiation Therapists",
+    "aioe": -0.2189393
+  },
+  {
+    "soc_code": "29-1125",
+    "title": "Recreational Therapists",
+    "aioe": 0.2190109
+  },
+  {
+    "soc_code": "29-1126",
+    "title": "Respiratory Therapists",
+    "aioe": -0.1880507
+  },
+  {
+    "soc_code": "29-1127",
+    "title": "Speech-Language Pathologists",
+    "aioe": 1.146267
+  },
+  {
+    "soc_code": "29-1128",
+    "title": "Exercise Physiologists",
+    "aioe": -0.0331901
+  },
+  {
+    "soc_code": "29-1131",
+    "title": "Veterinarians",
+    "aioe": -0.0749958
+  },
+  {
+    "soc_code": "29-1141",
+    "title": "Registered Nurses",
+    "aioe": 0.2294097
+  },
+  {
+    "soc_code": "29-1151",
+    "title": "Nurse Anesthetists",
+    "aioe": 0.2413191
+  },
+  {
+    "soc_code": "29-1161",
+    "title": "Nurse Midwives",
+    "aioe": 0.1966265
+  },
+  {
+    "soc_code": "29-1171",
+    "title": "Nurse Practitioners",
+    "aioe": 0.1900572
+  },
+  {
+    "soc_code": "29-1181",
+    "title": "Audiologists",
+    "aioe": 0.6329063
+  },
+  {
+    "soc_code": "29-1199",
+    "title": "Health Diagnosing and Treating Practitioners, All Other",
+    "aioe": 0.7109566
+  },
+  {
+    "soc_code": "29-2011",
+    "title": "Medical and Clinical Laboratory Technologists",
+    "aioe": 0.2818067
+  },
+  {
+    "soc_code": "29-2012",
+    "title": "Medical and Clinical Laboratory Technicians",
+    "aioe": -0.1273315
+  },
+  {
+    "soc_code": "29-2021",
+    "title": "Dental Hygienists",
+    "aioe": -0.416508
+  },
+  {
+    "soc_code": "29-2031",
+    "title": "Cardiovascular Technologists and Technicians",
+    "aioe": -0.0909526
+  },
+  {
+    "soc_code": "29-2032",
+    "title": "Diagnostic Medical Sonographers",
+    "aioe": -0.264054
+  },
+  {
+    "soc_code": "29-2033",
+    "title": "Nuclear Medicine Technologists",
+    "aioe": 0.0855276
+  },
+  {
+    "soc_code": "29-2034",
+    "title": "Radiologic Technologists and Technicians",
+    "aioe": -0.5559037
+  },
+  {
+    "soc_code": "29-2035",
+    "title": "Magnetic Resonance Imaging Technologists",
+    "aioe": -0.0727627
+  },
+  {
+    "soc_code": "29-2041",
+    "title": "Emergency Medical Technicians and Paramedics",
+    "aioe": -0.6863446
+  },
+  {
+    "soc_code": "29-2051",
+    "title": "Dietetic Technicians",
+    "aioe": -0.1260282
+  },
+  {
+    "soc_code": "29-2052",
+    "title": "Pharmacy Technicians",
+    "aioe": 0.0070256
+  },
+  {
+    "soc_code": "29-2053",
+    "title": "Psychiatric Technicians",
+    "aioe": -0.2203484
+  },
+  {
+    "soc_code": "29-2054",
+    "title": "Respiratory Therapy Technicians",
+    "aioe": -0.1060473
+  },
+  {
+    "soc_code": "29-2055",
+    "title": "Surgical Technologists",
+    "aioe": -0.4830476
+  },
+  {
+    "soc_code": "29-2056",
+    "title": "Veterinary Technologists and Technicians",
+    "aioe": -0.3623179
+  },
+  {
+    "soc_code": "29-2057",
+    "title": "Ophthalmic Medical Technicians",
+    "aioe": 0.078734
+  },
+  {
+    "soc_code": "29-2061",
+    "title": "Licensed Practical and Licensed Vocational Nurses",
+    "aioe": -0.5137373
+  },
+  {
+    "soc_code": "29-2071",
+    "title": "Medical Records and Health Information Technicians",
+    "aioe": 0.5738765
+  },
+  {
+    "soc_code": "29-2081",
+    "title": "Opticians, Dispensing",
+    "aioe": 0.1013966
+  },
+  {
+    "soc_code": "29-2091",
+    "title": "Orthotists and Prosthetists",
+    "aioe": 0.066577
+  },
+  {
+    "soc_code": "29-2092",
+    "title": "Hearing Aid Specialists",
+    "aioe": 0.5648953
+  },
+  {
+    "soc_code": "29-2099",
+    "title": "Health Technologists and Technicians, All Other",
+    "aioe": -0.283854
+  },
+  {
+    "soc_code": "29-9011",
+    "title": "Occupational Health and Safety Specialists",
+    "aioe": 0.8349371
+  },
+  {
+    "soc_code": "29-9012",
+    "title": "Occupational Health and Safety Technicians",
+    "aioe": 0.3996866
+  },
+  {
+    "soc_code": "29-9091",
+    "title": "Athletic Trainers",
+    "aioe": -0.3311363
+  },
+  {
+    "soc_code": "29-9092",
+    "title": "Genetic Counselors",
+    "aioe": 1.527667
+  },
+  {
+    "soc_code": "29-9099",
+    "title": "Healthcare Practitioners and Technical Workers, All Other",
+    "aioe": 0.2295568
+  },
+  {
+    "soc_code": "31-1011",
+    "title": "Home Health Aides",
+    "aioe": -0.644942
+  },
+  {
+    "soc_code": "31-1013",
+    "title": "Psychiatric Aides",
+    "aioe": -0.496565
+  },
+  {
+    "soc_code": "31-1014",
+    "title": "Nursing Assistants",
+    "aioe": -0.9040212
+  },
+  {
+    "soc_code": "31-1015",
+    "title": "Orderlies",
+    "aioe": -1.679232
+  },
+  {
+    "soc_code": "31-2011",
+    "title": "Occupational Therapist Assistants",
+    "aioe": -0.3153762
+  },
+  {
+    "soc_code": "31-2012",
+    "title": "Occupational Therapist Aides",
+    "aioe": -0.7734322
+  },
+  {
+    "soc_code": "31-2021",
+    "title": "Physical Therapist Assistants",
+    "aioe": -0.5308535
+  },
+  {
+    "soc_code": "31-2022",
+    "title": "Physical Therapist Aides",
+    "aioe": -0.8823265
+  },
+  {
+    "soc_code": "31-9011",
+    "title": "Massage Therapists",
+    "aioe": -1.410233
+  },
+  {
+    "soc_code": "31-9091",
+    "title": "Dental Assistants",
+    "aioe": -0.5268759
+  },
+  {
+    "soc_code": "31-9092",
+    "title": "Medical Assistants",
+    "aioe": 0.1497917
+  },
+  {
+    "soc_code": "31-9093",
+    "title": "Medical Equipment Preparers",
+    "aioe": -0.7308648
+  },
+  {
+    "soc_code": "31-9094",
+    "title": "Medical Transcriptionists",
+    "aioe": 1.06259
+  },
+  {
+    "soc_code": "31-9095",
+    "title": "Pharmacy Aides",
+    "aioe": -0.1552654
+  },
+  {
+    "soc_code": "31-9096",
+    "title": "Veterinary Assistants and Laboratory Animal Caretakers",
+    "aioe": -0.7735824
+  },
+  {
+    "soc_code": "31-9097",
+    "title": "Phlebotomists",
+    "aioe": -0.2778475
+  },
+  {
+    "soc_code": "31-9099",
+    "title": "Healthcare Support Workers, All Other",
+    "aioe": 0.1660077
+  },
+  {
+    "soc_code": "33-1011",
+    "title": "First-Line Supervisors/Managers of Correctional Officers",
+    "aioe": -0.5584278
+  },
+  {
+    "soc_code": "33-1012",
+    "title": "First-Line Supervisors/Managers of Police and Detectives",
+    "aioe": -0.1923298
+  },
+  {
+    "soc_code": "33-1021",
+    "title": "First-Line Supervisors/Managers of Fire Fighting and Prevention Workers",
+    "aioe": -0.593021
+  },
+  {
+    "soc_code": "33-2011",
+    "title": "Fire Fighters",
+    "aioe": -1.320232
+  },
+  {
+    "soc_code": "33-2021",
+    "title": "Fire Inspectors and Investigators",
+    "aioe": 0.062793
+  },
+  {
+    "soc_code": "33-2022",
+    "title": "Forest Fire Inspectors and Prevention Specialists",
+    "aioe": -0.2144127
+  },
+  {
+    "soc_code": "33-3011",
+    "title": "Bailiffs",
+    "aioe": -0.5103183
+  },
+  {
+    "soc_code": "33-3012",
+    "title": "Correctional Officers and Jailers",
+    "aioe": -0.8875365
+  },
+  {
+    "soc_code": "33-3021",
+    "title": "Detectives and Criminal Investigators",
+    "aioe": 0.2257696
+  },
+  {
+    "soc_code": "33-3031",
+    "title": "Fish and Game Wardens",
+    "aioe": -0.4585168
+  },
+  {
+    "soc_code": "33-3041",
+    "title": "Parking Enforcement Workers",
+    "aioe": -0.6239931
+  },
+  {
+    "soc_code": "33-3051",
+    "title": "Police and Sheriff's Patrol Officers",
+    "aioe": -0.6681123
+  },
+  {
+    "soc_code": "33-3052",
+    "title": "Transit and Railroad Police",
+    "aioe": -0.8205515
+  },
+  {
+    "soc_code": "33-9011",
+    "title": "Animal Control Workers",
+    "aioe": -0.5946321
+  },
+  {
+    "soc_code": "33-9021",
+    "title": "Private Detectives and Investigators",
+    "aioe": 0.7483108
+  },
+  {
+    "soc_code": "33-9031",
+    "title": "Gaming Surveillance Officers and Gaming Investigators",
+    "aioe": 0.7283933
+  },
+  {
+    "soc_code": "33-9032",
+    "title": "Security Guards",
+    "aioe": -0.3908421
+  },
+  {
+    "soc_code": "33-9091",
+    "title": "Crossing Guards",
+    "aioe": -0.5699511
+  },
+  {
+    "soc_code": "33-9092",
+    "title": "Lifeguards, Ski Patrol, and Other Recreational Protective Service Workers",
+    "aioe": -0.4718385
+  },
+  {
+    "soc_code": "33-9093",
+    "title": "Transportation Security Screeners",
+    "aioe": -0.5068558
+  },
+  {
+    "soc_code": "33-9099",
+    "title": "Protective Service Workers, All Other",
+    "aioe": 0.0764088
+  },
+  {
+    "soc_code": "35-1011",
+    "title": "Chefs and Head Cooks",
+    "aioe": -0.2676433
+  },
+  {
+    "soc_code": "35-1012",
+    "title": "First-Line Supervisors/Managers of Food Preparation and Serving Workers",
+    "aioe": -0.2575492
+  },
+  {
+    "soc_code": "35-2011",
+    "title": "Cooks, Fast Food",
+    "aioe": -0.7131837
+  },
+  {
+    "soc_code": "35-2012",
+    "title": "Cooks, Institution and Cafeteria",
+    "aioe": -0.6360813
+  },
+  {
+    "soc_code": "35-2013",
+    "title": "Cooks, Private Household",
+    "aioe": -0.7867444
+  },
+  {
+    "soc_code": "35-2014",
+    "title": "Cooks, Restaurant",
+    "aioe": -0.7418264
+  },
+  {
+    "soc_code": "35-2015",
+    "title": "Cooks, Short Order",
+    "aioe": -0.5933817
+  },
+  {
+    "soc_code": "35-2021",
+    "title": "Food Preparation Workers",
+    "aioe": -1.226416
+  },
+  {
+    "soc_code": "35-3011",
+    "title": "Bartenders",
+    "aioe": -0.6159883
+  },
+  {
+    "soc_code": "35-3021",
+    "title": "Combined Food Preparation and Serving Workers, Including Fast Food",
+    "aioe": -0.5305266
+  },
+  {
+    "soc_code": "35-3022",
+    "title": "Counter Attendants, Cafeteria, Food Concession, and Coffee Shop",
+    "aioe": -0.4850956
+  },
+  {
+    "soc_code": "35-3031",
+    "title": "Waiters and Waitresses",
+    "aioe": -0.9481003
+  },
+  {
+    "soc_code": "35-3041",
+    "title": "Food Servers, Nonrestaurant",
+    "aioe": -0.7270206
+  },
+  {
+    "soc_code": "35-9011",
+    "title": "Dining Room and Cafeteria Attendants and Bartender Helpers",
+    "aioe": -1.927078
+  },
+  {
+    "soc_code": "35-9021",
+    "title": "Dishwashers",
+    "aioe": -1.738612
+  },
+  {
+    "soc_code": "35-9031",
+    "title": "Hosts and Hostesses, Restaurant, Lounge, and Coffee Shop",
+    "aioe": -0.0565477
+  },
+  {
+    "soc_code": "37-1011",
+    "title": "First-Line Supervisors/Managers of Housekeeping and Janitorial Workers",
+    "aioe": -0.5854128
+  },
+  {
+    "soc_code": "37-1012",
+    "title": "First-Line Supervisors/Managers of Landscaping, Lawn Service, and Groundskeeping Workers",
+    "aioe": -0.5548871
+  },
+  {
+    "soc_code": "37-2011",
+    "title": "Janitors and Cleaners, Except Maids and Housekeeping Cleaners",
+    "aioe": -1.436201
+  },
+  {
+    "soc_code": "37-2012",
+    "title": "Maids and Housekeeping Cleaners",
+    "aioe": -1.480657
+  },
+  {
+    "soc_code": "37-2021",
+    "title": "Pest Control Workers",
+    "aioe": -0.7255374
+  },
+  {
+    "soc_code": "37-3011",
+    "title": "Landscaping and Groundskeeping Workers",
+    "aioe": -1.824293
+  },
+  {
+    "soc_code": "37-3012",
+    "title": "Pesticide Handlers, Sprayers, and Applicators, Vegetation",
+    "aioe": -0.8847935
+  },
+  {
+    "soc_code": "37-3013",
+    "title": "Tree Trimmers and Pruners",
+    "aioe": -1.727035
+  },
+  {
+    "soc_code": "39-1011",
+    "title": "Gaming Supervisors",
+    "aioe": 1.128203
+  },
+  {
+    "soc_code": "39-1012",
+    "title": "Slot Key Persons",
+    "aioe": -0.1370162
+  },
+  {
+    "soc_code": "39-1021",
+    "title": "First-Line Supervisors/Managers of Personal Service Workers",
+    "aioe": 0.4303075
+  },
+  {
+    "soc_code": "39-2011",
+    "title": "Animal Trainers",
+    "aioe": -0.9167759
+  },
+  {
+    "soc_code": "39-2021",
+    "title": "Nonfarm Animal Caretakers",
+    "aioe": -0.8890408
+  },
+  {
+    "soc_code": "39-3011",
+    "title": "Gaming Dealers",
+    "aioe": 0.0605832
+  },
+  {
+    "soc_code": "39-3012",
+    "title": "Gaming and Sports Book Writers and Runners",
+    "aioe": 0.4652752
+  },
+  {
+    "soc_code": "39-3021",
+    "title": "Motion Picture Projectionists",
+    "aioe": -0.3786598
+  },
+  {
+    "soc_code": "39-3031",
+    "title": "Ushers, Lobby Attendants, and Ticket Takers",
+    "aioe": -0.2420959
+  },
+  {
+    "soc_code": "39-3091",
+    "title": "Amusement and Recreation Attendants",
+    "aioe": -0.5246153
+  },
+  {
+    "soc_code": "39-3092",
+    "title": "Costume Attendants",
+    "aioe": -0.4533608
+  },
+  {
+    "soc_code": "39-3093",
+    "title": "Locker Room, Coatroom, and Dressing Room Attendants",
+    "aioe": -0.3454376
+  },
+  {
+    "soc_code": "39-4011",
+    "title": "Embalmers",
+    "aioe": -0.7311451
+  },
+  {
+    "soc_code": "39-4021",
+    "title": "Funeral Attendants",
+    "aioe": -0.5445412
+  },
+  {
+    "soc_code": "39-4031",
+    "title": "Morticians, Undertakers, and Funeral Directors",
+    "aioe": -0.1903759
+  },
+  {
+    "soc_code": "39-5011",
+    "title": "Barbers",
+    "aioe": -0.7294621
+  },
+  {
+    "soc_code": "39-5012",
+    "title": "Hairdressers, Hairstylists, and Cosmetologists",
+    "aioe": -0.6824517
+  },
+  {
+    "soc_code": "39-5091",
+    "title": "Makeup Artists, Theatrical and Performance",
+    "aioe": -0.4596138
+  },
+  {
+    "soc_code": "39-5092",
+    "title": "Manicurists and Pedicurists",
+    "aioe": 0.0335124
+  },
+  {
+    "soc_code": "39-5093",
+    "title": "Shampooers",
+    "aioe": -0.905371
+  },
+  {
+    "soc_code": "39-5094",
+    "title": "Skin Care Specialists",
+    "aioe": -0.2628396
+  },
+  {
+    "soc_code": "39-6011",
+    "title": "Baggage Porters and Bellhops",
+    "aioe": -1.272015
+  },
+  {
+    "soc_code": "39-6012",
+    "title": "Concierges",
+    "aioe": 0.855832
+  },
+  {
+    "soc_code": "39-7011",
+    "title": "Tour Guides and Escorts",
+    "aioe": 0.357096
+  },
+  {
+    "soc_code": "39-7012",
+    "title": "Travel Guides",
+    "aioe": 0.6083829
+  },
+  {
+    "soc_code": "39-9011",
+    "title": "Child Care Workers",
+    "aioe": -0.3834794
+  },
+  {
+    "soc_code": "39-9021",
+    "title": "Personal and Home Care Aides",
+    "aioe": -0.5737774
+  },
+  {
+    "soc_code": "39-9031",
+    "title": "Fitness Trainers and Aerobics Instructors",
+    "aioe": -2.111948
+  },
+  {
+    "soc_code": "39-9032",
+    "title": "Recreation Workers",
+    "aioe": -0.2441154
+  },
+  {
+    "soc_code": "39-9041",
+    "title": "Residential Advisors",
+    "aioe": 0.4746119
+  },
+  {
+    "soc_code": "41-1011",
+    "title": "First-Line Supervisors/Managers of Retail Sales Workers",
+    "aioe": 0.0191826
+  },
+  {
+    "soc_code": "41-1012",
+    "title": "First-Line Supervisors/Managers of Non-Retail Sales Workers",
+    "aioe": 1.316195
+  },
+  {
+    "soc_code": "41-2011",
+    "title": "Cashiers",
+    "aioe": -0.2480887
+  },
+  {
+    "soc_code": "41-2012",
+    "title": "Gaming Change Persons and Booth Cashiers",
+    "aioe": -0.0500926
+  },
+  {
+    "soc_code": "41-2021",
+    "title": "Counter and Rental Clerks",
+    "aioe": 0.0784367
+  },
+  {
+    "soc_code": "41-2022",
+    "title": "Parts Salespersons",
+    "aioe": -0.1184909
+  },
+  {
+    "soc_code": "41-2031",
+    "title": "Retail Salespersons",
+    "aioe": 0.0873069
+  },
+  {
+    "soc_code": "41-3011",
+    "title": "Advertising Sales Agents",
+    "aioe": 1.162588
+  },
+  {
+    "soc_code": "41-3021",
+    "title": "Insurance Sales Agents",
+    "aioe": 1.341258
+  },
+  {
+    "soc_code": "41-3031",
+    "title": "Securities, Commodities, and Financial Services Sales Agents",
+    "aioe": 1.256298
+  },
+  {
+    "soc_code": "41-3041",
+    "title": "Travel Agents",
+    "aioe": 1.133598
+  },
+  {
+    "soc_code": "41-3099",
+    "title": "Sales Representatives, Services, All Other",
+    "aioe": 1.302674
+  },
+  {
+    "soc_code": "41-4011",
+    "title": "Sales Representatives, Wholesale and Manufacturing, Technical and Scientific Products",
+    "aioe": 0.8911985
+  },
+  {
+    "soc_code": "41-4012",
+    "title": "Sales Representatives, Wholesale and Manufacturing, Except Technical and Scientific Products",
+    "aioe": 0.8224681
+  },
+  {
+    "soc_code": "41-9011",
+    "title": "Demonstrators and Product Promoters",
+    "aioe": 0.1235652
+  },
+  {
+    "soc_code": "41-9012",
+    "title": "Models",
+    "aioe": -1.122021
+  },
+  {
+    "soc_code": "41-9021",
+    "title": "Real Estate Brokers",
+    "aioe": 1.149681
+  },
+  {
+    "soc_code": "41-9022",
+    "title": "Real Estate Sales Agents",
+    "aioe": 0.8649445
+  },
+  {
+    "soc_code": "41-9031",
+    "title": "Sales Engineers",
+    "aioe": 1.145416
+  },
+  {
+    "soc_code": "41-9041",
+    "title": "Telemarketers",
+    "aioe": 1.118129
+  },
+  {
+    "soc_code": "41-9091",
+    "title": "Door-To-Door Sales Workers, News and Street Vendors, and Related Workers",
+    "aioe": 1.107101
+  },
+  {
+    "soc_code": "43-1011",
+    "title": "First-Line Supervisors/Managers of Office and Administrative Support Workers",
+    "aioe": 1.038688
+  },
+  {
+    "soc_code": "43-2011",
+    "title": "Switchboard Operators, Including Answering Service",
+    "aioe": 0.9832644
+  },
+  {
+    "soc_code": "43-2021",
+    "title": "Telephone Operators",
+    "aioe": 1.019712
+  },
+  {
+    "soc_code": "43-3011",
+    "title": "Bill and Account Collectors",
+    "aioe": 1.271991
+  },
+  {
+    "soc_code": "43-3021",
+    "title": "Billing and Posting Clerks and Machine Operators",
+    "aioe": 1.333455
+  },
+  {
+    "soc_code": "43-3031",
+    "title": "Bookkeeping, Accounting, and Auditing Clerks",
+    "aioe": 1.039749
+  },
+  {
+    "soc_code": "43-3041",
+    "title": "Gaming Cage Workers",
+    "aioe": 0.4026518
+  },
+  {
+    "soc_code": "43-3051",
+    "title": "Payroll and Timekeeping Clerks",
+    "aioe": 1.257632
+  },
+  {
+    "soc_code": "43-3061",
+    "title": "Procurement Clerks",
+    "aioe": 1.487838
+  },
+  {
+    "soc_code": "43-3071",
+    "title": "Tellers",
+    "aioe": 0.4727723
+  },
+  {
+    "soc_code": "43-4011",
+    "title": "Brokerage Clerks",
+    "aioe": 1.144877
+  },
+  {
+    "soc_code": "43-4021",
+    "title": "Correspondence Clerks",
+    "aioe": 1.149758
+  },
+  {
+    "soc_code": "43-4031",
+    "title": "Court, Municipal, and License Clerks",
+    "aioe": 1.166267
+  },
+  {
+    "soc_code": "43-4041",
+    "title": "Credit Authorizers, Checkers, and Clerks",
+    "aioe": 1.440296
+  },
+  {
+    "soc_code": "43-4051",
+    "title": "Customer Service Representatives",
+    "aioe": 0.9562519
+  },
+  {
+    "soc_code": "43-4061",
+    "title": "Eligibility Interviewers, Government Programs",
+    "aioe": 1.226286
+  },
+  {
+    "soc_code": "43-4071",
+    "title": "File Clerks",
+    "aioe": 0.2839743
+  },
+  {
+    "soc_code": "43-4081",
+    "title": "Hotel, Motel, and Resort Desk Clerks",
+    "aioe": 0.6063127
+  },
+  {
+    "soc_code": "43-4111",
+    "title": "Interviewers, Except Eligibility and Loan",
+    "aioe": 1.297031
+  },
+  {
+    "soc_code": "43-4121",
+    "title": "Library Assistants, Clerical",
+    "aioe": 0.2038919
+  },
+  {
+    "soc_code": "43-4131",
+    "title": "Loan Interviewers and Clerks",
+    "aioe": 1.364395
+  },
+  {
+    "soc_code": "43-4141",
+    "title": "New Accounts Clerks",
+    "aioe": 1.174998
+  },
+  {
+    "soc_code": "43-4151",
+    "title": "Order Clerks",
+    "aioe": 0.8388861
+  },
+  {
+    "soc_code": "43-4161",
+    "title": "Human Resources Assistants, Except Payroll and Timekeeping",
+    "aioe": 1.353098
+  },
+  {
+    "soc_code": "43-4171",
+    "title": "Receptionists and Information Clerks",
+    "aioe": 1.013186
+  },
+  {
+    "soc_code": "43-4181",
+    "title": "Reservation and Transportation Ticket Agents and Travel Clerks",
+    "aioe": 0.227312
+  },
+  {
+    "soc_code": "43-5011",
+    "title": "Cargo and Freight Agents",
+    "aioe": 1.405415
+  },
+  {
+    "soc_code": "43-5021",
+    "title": "Couriers and Messengers",
+    "aioe": -0.9591126
+  },
+  {
+    "soc_code": "43-5031",
+    "title": "Police, Fire, and Ambulance Dispatchers",
+    "aioe": 0.9074452
+  },
+  {
+    "soc_code": "43-5032",
+    "title": "Dispatchers, Except Police, Fire, and Ambulance",
+    "aioe": 1.234523
+  },
+  {
+    "soc_code": "43-5041",
+    "title": "Meter Readers, Utilities",
+    "aioe": -0.9723772
+  },
+  {
+    "soc_code": "43-5051",
+    "title": "Postal Service Clerks",
+    "aioe": -0.5186997
+  },
+  {
+    "soc_code": "43-5052",
+    "title": "Postal Service Mail Carriers",
+    "aioe": -1.064715
+  },
+  {
+    "soc_code": "43-5053",
+    "title": "Postal Service Mail Sorters, Processors, and Processing Machine Operators",
+    "aioe": -1.185001
+  },
+  {
+    "soc_code": "43-5061",
+    "title": "Production, Planning, and Expediting Clerks",
+    "aioe": 0.6999103
+  },
+  {
+    "soc_code": "43-5071",
+    "title": "Shipping, Receiving, and Traffic Clerks",
+    "aioe": -0.7463213
+  },
+  {
+    "soc_code": "43-5081",
+    "title": "Stock Clerks and Order Fillers",
+    "aioe": -0.7892948
+  },
+  {
+    "soc_code": "43-5111",
+    "title": "Weighers, Measurers, Checkers, and Samplers, Recordkeeping",
+    "aioe": -0.1860789
+  },
+  {
+    "soc_code": "43-6011",
+    "title": "Executive Secretaries and Administrative Assistants",
+    "aioe": 1.079643
+  },
+  {
+    "soc_code": "43-6012",
+    "title": "Legal Secretaries",
+    "aioe": 1.014541
+  },
+  {
+    "soc_code": "43-6013",
+    "title": "Medical Secretaries",
+    "aioe": 1.217982
+  },
+  {
+    "soc_code": "43-6014",
+    "title": "Secretaries, Except Legal, Medical, and Executive",
+    "aioe": 1.099056
+  },
+  {
+    "soc_code": "43-9011",
+    "title": "Computer Operators",
+    "aioe": 0.7040519
+  },
+  {
+    "soc_code": "43-9021",
+    "title": "Data Entry Keyers",
+    "aioe": 0.3108081
+  },
+  {
+    "soc_code": "43-9022",
+    "title": "Word Processors and Typists",
+    "aioe": 0.6219606
+  },
+  {
+    "soc_code": "43-9031",
+    "title": "Desktop Publishers",
+    "aioe": 0.3437743
+  },
+  {
+    "soc_code": "43-9041",
+    "title": "Insurance Claims and Policy Processing Clerks",
+    "aioe": 1.240201
+  },
+  {
+    "soc_code": "43-9051",
+    "title": "Mail Clerks and Mail Machine Operators, Except Postal Service",
+    "aioe": -0.8184676
+  },
+  {
+    "soc_code": "43-9061",
+    "title": "Office Clerks, General",
+    "aioe": 0.9888986
+  },
+  {
+    "soc_code": "43-9071",
+    "title": "Office Machine Operators, Except Computer",
+    "aioe": -0.5171404
+  },
+  {
+    "soc_code": "43-9081",
+    "title": "Proofreaders and Copy Markers",
+    "aioe": 1.288375
+  },
+  {
+    "soc_code": "43-9111",
+    "title": "Statistical Assistants",
+    "aioe": 1.389965
+  },
+  {
+    "soc_code": "45-1011",
+    "title": "First-Line Supervisors/Managers of Farming, Fishing, and Forestry Workers",
+    "aioe": -0.4791843
+  },
+  {
+    "soc_code": "45-2011",
+    "title": "Agricultural Inspectors",
+    "aioe": 0.1704867
+  },
+  {
+    "soc_code": "45-2021",
+    "title": "Animal Breeders",
+    "aioe": -1.044292
+  },
+  {
+    "soc_code": "45-2041",
+    "title": "Graders and Sorters, Agricultural Products",
+    "aioe": -1.370968
+  },
+  {
+    "soc_code": "45-2091",
+    "title": "Agricultural Equipment Operators",
+    "aioe": -1.145156
+  },
+  {
+    "soc_code": "45-2092",
+    "title": "Farmworkers and Laborers, Crop, Nursery, and Greenhouse",
+    "aioe": -1.601349
+  },
+  {
+    "soc_code": "45-2093",
+    "title": "Farmworkers, Farm and Ranch Animals",
+    "aioe": -1.108432
+  },
+  {
+    "soc_code": "45-3011",
+    "title": "Fishers and Related Fishing Workers",
+    "aioe": -1.513249
+  },
+  {
+    "soc_code": "45-3021",
+    "title": "Hunters and Trappers",
+    "aioe": -1.304797
+  },
+  {
+    "soc_code": "45-4011",
+    "title": "Forest and Conservation Workers",
+    "aioe": -1.064205
+  },
+  {
+    "soc_code": "45-4021",
+    "title": "Fallers",
+    "aioe": -1.795407
+  },
+  {
+    "soc_code": "45-4022",
+    "title": "Logging Equipment Operators",
+    "aioe": -1.003702
+  },
+  {
+    "soc_code": "45-4023",
+    "title": "Log Graders and Scalers",
+    "aioe": -0.4768305
+  },
+  {
+    "soc_code": "47-1011",
+    "title": "First-Line Supervisors/Managers of Construction Trades and Extraction Workers",
+    "aioe": -0.3054048
+  },
+  {
+    "soc_code": "47-2011",
+    "title": "Boilermakers",
+    "aioe": -1.097532
+  },
+  {
+    "soc_code": "47-2021",
+    "title": "Brickmasons and Blockmasons",
+    "aioe": -1.75434
+  },
+  {
+    "soc_code": "47-2022",
+    "title": "Stonemasons",
+    "aioe": -1.714759
+  },
+  {
+    "soc_code": "47-2031",
+    "title": "Carpenters",
+    "aioe": -1.323631
+  },
+  {
+    "soc_code": "47-2041",
+    "title": "Carpet Installers",
+    "aioe": -1.564577
+  },
+  {
+    "soc_code": "47-2042",
+    "title": "Floor Layers, Except Carpet, Wood, and Hard Tiles",
+    "aioe": -1.301024
+  },
+  {
+    "soc_code": "47-2043",
+    "title": "Floor Sanders and Finishers",
+    "aioe": -1.748722
+  },
+  {
+    "soc_code": "47-2044",
+    "title": "Tile and Marble Setters",
+    "aioe": -1.22543
+  },
+  {
+    "soc_code": "47-2051",
+    "title": "Cement Masons and Concrete Finishers",
+    "aioe": -1.777407
+  },
+  {
+    "soc_code": "47-2053",
+    "title": "Terrazzo Workers and Finishers",
+    "aioe": -1.776065
+  },
+  {
+    "soc_code": "47-2061",
+    "title": "Construction Laborers",
+    "aioe": -1.622988
+  },
+  {
+    "soc_code": "47-2071",
+    "title": "Paving, Surfacing, and Tamping Equipment Operators",
+    "aioe": -1.184739
+  },
+  {
+    "soc_code": "47-2072",
+    "title": "Pile-Driver Operators",
+    "aioe": -1.220009
+  },
+  {
+    "soc_code": "47-2073",
+    "title": "Operating Engineers and Other Construction Equipment Operators",
+    "aioe": -0.8815078
+  },
+  {
+    "soc_code": "47-2081",
+    "title": "Drywall and Ceiling Tile Installers",
+    "aioe": -1.647971
+  },
+  {
+    "soc_code": "47-2082",
+    "title": "Tapers",
+    "aioe": -1.540774
+  },
+  {
+    "soc_code": "47-2111",
+    "title": "Electricians",
+    "aioe": -0.7796905
+  },
+  {
+    "soc_code": "47-2121",
+    "title": "Glaziers",
+    "aioe": -1.388901
+  },
+  {
+    "soc_code": "47-2131",
+    "title": "Insulation Workers, Floor, Ceiling, and Wall",
+    "aioe": -1.618772
+  },
+  {
+    "soc_code": "47-2132",
+    "title": "Insulation Workers, Mechanical",
+    "aioe": -1.268615
+  },
+  {
+    "soc_code": "47-2141",
+    "title": "Painters, Construction and Maintenance",
+    "aioe": -1.58799
+  },
+  {
+    "soc_code": "47-2142",
+    "title": "Paperhangers",
+    "aioe": -1.72753
+  },
+  {
+    "soc_code": "47-2151",
+    "title": "Pipelayers",
+    "aioe": -1.225611
+  },
+  {
+    "soc_code": "47-2152",
+    "title": "Plumbers, Pipefitters, and Steamfitters",
+    "aioe": -1.121219
+  },
+  {
+    "soc_code": "47-2161",
+    "title": "Plasterers and Stucco Masons",
+    "aioe": -1.755588
+  },
+  {
+    "soc_code": "47-2171",
+    "title": "Reinforcing Iron and Rebar Workers",
+    "aioe": -1.970997
+  },
+  {
+    "soc_code": "47-2181",
+    "title": "Roofers",
+    "aioe": -1.752941
+  },
+  {
+    "soc_code": "47-2211",
+    "title": "Sheet Metal Workers",
+    "aioe": -1.174972
+  },
+  {
+    "soc_code": "47-2221",
+    "title": "Structural Iron and Steel Workers",
+    "aioe": -1.780065
+  },
+  {
+    "soc_code": "47-2231",
+    "title": "Solar Photovoltaic Installers",
+    "aioe": -0.9441692
+  },
+  {
+    "soc_code": "47-3011",
+    "title": "Helpers--Brickmasons, Blockmasons, Stonemasons, and Tile and Marble Setters",
+    "aioe": -1.94229
+  },
+  {
+    "soc_code": "47-3012",
+    "title": "Helpers--Carpenters",
+    "aioe": -1.425282
+  },
+  {
+    "soc_code": "47-3013",
+    "title": "Helpers--Electricians",
+    "aioe": -1.506896
+  },
+  {
+    "soc_code": "47-3014",
+    "title": "Helpers--Painters, Paperhangers, Plasterers, and Stucco Masons",
+    "aioe": -2.04484
+  },
+  {
+    "soc_code": "47-3015",
+    "title": "Helpers--Pipelayers, Plumbers, Pipefitters, and Steamfitters",
+    "aioe": -1.678876
+  },
+  {
+    "soc_code": "47-3016",
+    "title": "Helpers--Roofers",
+    "aioe": -1.89822
+  },
+  {
+    "soc_code": "47-4011",
+    "title": "Construction and Building Inspectors",
+    "aioe": 0.2860245
+  },
+  {
+    "soc_code": "47-4021",
+    "title": "Elevator Installers and Repairers",
+    "aioe": -0.8604742
+  },
+  {
+    "soc_code": "47-4031",
+    "title": "Fence Erectors",
+    "aioe": -1.902113
+  },
+  {
+    "soc_code": "47-4041",
+    "title": "Hazardous Materials Removal Workers",
+    "aioe": -0.6887439
+  },
+  {
+    "soc_code": "47-4051",
+    "title": "Highway Maintenance Workers",
+    "aioe": -1.27909
+  },
+  {
+    "soc_code": "47-4061",
+    "title": "Rail-Track Laying and Maintenance Equipment Operators",
+    "aioe": -1.39906
+  },
+  {
+    "soc_code": "47-4071",
+    "title": "Septic Tank Servicers and Sewer Pipe Cleaners",
+    "aioe": -1.210591
+  },
+  {
+    "soc_code": "47-4091",
+    "title": "Segmental Pavers",
+    "aioe": -0.9827304
+  },
+  {
+    "soc_code": "47-4099",
+    "title": "Construction and Related Workers, All Other",
+    "aioe": -0.8728439
+  },
+  {
+    "soc_code": "47-5011",
+    "title": "Derrick Operators, Oil and Gas",
+    "aioe": -1.415002
+  },
+  {
+    "soc_code": "47-5012",
+    "title": "Rotary Drill Operators, Oil and Gas",
+    "aioe": -0.7737326
+  },
+  {
+    "soc_code": "47-5013",
+    "title": "Service Unit Operators, Oil, Gas, and Mining",
+    "aioe": -0.971916
+  },
+  {
+    "soc_code": "47-5021",
+    "title": "Earth Drillers, Except Oil and Gas",
+    "aioe": -0.7018391
+  },
+  {
+    "soc_code": "47-5031",
+    "title": "Explosives Workers, Ordnance Handling Experts, and Blasters",
+    "aioe": -0.773027
+  },
+  {
+    "soc_code": "47-5041",
+    "title": "Continuous Mining Machine Operators",
+    "aioe": -1.165492
+  },
+  {
+    "soc_code": "47-5042",
+    "title": "Mine Cutting and Channeling Machine Operators",
+    "aioe": -1.200425
+  },
+  {
+    "soc_code": "47-5051",
+    "title": "Rock Splitters, Quarry",
+    "aioe": -1.763494
+  },
+  {
+    "soc_code": "47-5061",
+    "title": "Roof Bolters, Mining",
+    "aioe": -1.618518
+  },
+  {
+    "soc_code": "47-5071",
+    "title": "Roustabouts, Oil and Gas",
+    "aioe": -1.518977
+  },
+  {
+    "soc_code": "47-5081",
+    "title": "Helpers--Extraction Workers",
+    "aioe": -1.543154
+  },
+  {
+    "soc_code": "49-1011",
+    "title": "First-Line Supervisors/Managers of Mechanics, Installers, and Repairers",
+    "aioe": -0.0205169
+  },
+  {
+    "soc_code": "49-2011",
+    "title": "Computer, Automated Teller, and Office Machine Repairers",
+    "aioe": -0.3458247
+  },
+  {
+    "soc_code": "49-2021",
+    "title": "Radio Mechanics",
+    "aioe": -0.6335382
+  },
+  {
+    "soc_code": "49-2022",
+    "title": "Telecommunications Equipment Installers and Repairers, Except Line Installers",
+    "aioe": -0.853048
+  },
+  {
+    "soc_code": "49-2091",
+    "title": "Avionics Technicians",
+    "aioe": -0.1728535
+  },
+  {
+    "soc_code": "49-2092",
+    "title": "Electric Motor, Power Tool, and Related Repairers",
+    "aioe": -0.8106341
+  },
+  {
+    "soc_code": "49-2093",
+    "title": "Electrical and Electronics Installers and Repairers, Transportation Equipment",
+    "aioe": -0.8303875
+  },
+  {
+    "soc_code": "49-2094",
+    "title": "Electrical and Electronics Repairers, Commercial and Industrial Equipment",
+    "aioe": -0.4632031
+  },
+  {
+    "soc_code": "49-2095",
+    "title": "Electrical and Electronics Repairers, Powerhouse, Substation, and Relay",
+    "aioe": -0.5522636
+  },
+  {
+    "soc_code": "49-2096",
+    "title": "Electronic Equipment Installers and Repairers, Motor Vehicles",
+    "aioe": -0.7915968
+  },
+  {
+    "soc_code": "49-2097",
+    "title": "Electronic Home Entertainment Equipment Installers and Repairers",
+    "aioe": -0.571284
+  },
+  {
+    "soc_code": "49-2098",
+    "title": "Security and Fire Alarm Systems Installers",
+    "aioe": -0.6926484
+  },
+  {
+    "soc_code": "49-3011",
+    "title": "Aircraft Mechanics and Service Technicians",
+    "aioe": -0.6551197
+  },
+  {
+    "soc_code": "49-3021",
+    "title": "Automotive Body and Related Repairers",
+    "aioe": -1.180589
+  },
+  {
+    "soc_code": "49-3022",
+    "title": "Automotive Glass Installers and Repairers",
+    "aioe": -1.202285
+  },
+  {
+    "soc_code": "49-3023",
+    "title": "Automotive Service Technicians and Mechanics",
+    "aioe": -0.9547055
+  },
+  {
+    "soc_code": "49-3031",
+    "title": "Bus and Truck Mechanics and Diesel Engine Specialists",
+    "aioe": -1.010472
+  },
+  {
+    "soc_code": "49-3041",
+    "title": "Farm Equipment Mechanics",
+    "aioe": -1.20703
+  },
+  {
+    "soc_code": "49-3042",
+    "title": "Mobile Heavy Equipment Mechanics, Except Engines",
+    "aioe": -1.169815
+  },
+  {
+    "soc_code": "49-3043",
+    "title": "Rail Car Repairers",
+    "aioe": -1.448102
+  },
+  {
+    "soc_code": "49-3051",
+    "title": "Motorboat Mechanics",
+    "aioe": -0.8863602
+  },
+  {
+    "soc_code": "49-3052",
+    "title": "Motorcycle Mechanics",
+    "aioe": -0.763721
+  },
+  {
+    "soc_code": "49-3053",
+    "title": "Outdoor Power Equipment and Other Small Engine Mechanics",
+    "aioe": -0.8941408
+  },
+  {
+    "soc_code": "49-3091",
+    "title": "Bicycle Repairers",
+    "aioe": -0.9226068
+  },
+  {
+    "soc_code": "49-3092",
+    "title": "Recreational Vehicle Service Technicians",
+    "aioe": -0.9244052
+  },
+  {
+    "soc_code": "49-3093",
+    "title": "Tire Repairers and Changers",
+    "aioe": -1.550724
+  },
+  {
+    "soc_code": "49-9011",
+    "title": "Mechanical Door Repairers",
+    "aioe": -1.383152
+  },
+  {
+    "soc_code": "49-9012",
+    "title": "Control and Valve Installers and Repairers, Except Mechanical Door",
+    "aioe": -0.7606913
+  },
+  {
+    "soc_code": "49-9021",
+    "title": "Heating, Air Conditioning, and Refrigeration Mechanics and Installers",
+    "aioe": -0.8491117
+  },
+  {
+    "soc_code": "49-9031",
+    "title": "Home Appliance Repairers",
+    "aioe": -0.9703799
+  },
+  {
+    "soc_code": "49-9041",
+    "title": "Industrial Machinery Mechanics",
+    "aioe": -1.133177
+  },
+  {
+    "soc_code": "49-9043",
+    "title": "Maintenance Workers, Machinery",
+    "aioe": -0.9735492
+  },
+  {
+    "soc_code": "49-9044",
+    "title": "Millwrights",
+    "aioe": -1.266085
+  },
+  {
+    "soc_code": "49-9045",
+    "title": "Refractory Materials Repairers, Except Brickmasons",
+    "aioe": -1.237463
+  },
+  {
+    "soc_code": "49-9051",
+    "title": "Electrical Power-Line Installers and Repairers",
+    "aioe": -1.081398
+  },
+  {
+    "soc_code": "49-9052",
+    "title": "Telecommunications Line Installers and Repairers",
+    "aioe": -1.083883
+  },
+  {
+    "soc_code": "49-9061",
+    "title": "Camera and Photographic Equipment Repairers",
+    "aioe": 0.0546422
+  },
+  {
+    "soc_code": "49-9062",
+    "title": "Medical Equipment Repairers",
+    "aioe": -0.2768838
+  },
+  {
+    "soc_code": "49-9063",
+    "title": "Musical Instrument Repairers and Tuners",
+    "aioe": -0.5306271
+  },
+  {
+    "soc_code": "49-9064",
+    "title": "Watch Repairers",
+    "aioe": -0.2123996
+  },
+  {
+    "soc_code": "49-9071",
+    "title": "Maintenance and Repair Workers, General",
+    "aioe": -1.014408
+  },
+  {
+    "soc_code": "49-9081",
+    "title": "Wind Turbine Service Technicians",
+    "aioe": -0.9709935
+  },
+  {
+    "soc_code": "49-9091",
+    "title": "Coin, Vending, and Amusement Machine Servicers and Repairers",
+    "aioe": -0.7233995
+  },
+  {
+    "soc_code": "49-9092",
+    "title": "Commercial Divers",
+    "aioe": -1.102728
+  },
+  {
+    "soc_code": "49-9093",
+    "title": "Fabric Menders, Except Garment",
+    "aioe": -1.372839
+  },
+  {
+    "soc_code": "49-9094",
+    "title": "Locksmiths and Safe Repairers",
+    "aioe": -0.8657498
+  },
+  {
+    "soc_code": "49-9095",
+    "title": "Manufactured Building and Mobile Home Installers",
+    "aioe": -1.414062
+  },
+  {
+    "soc_code": "49-9096",
+    "title": "Riggers",
+    "aioe": -1.221519
+  },
+  {
+    "soc_code": "49-9097",
+    "title": "Signal and Track Switch Repairers",
+    "aioe": -0.858221
+  },
+  {
+    "soc_code": "49-9098",
+    "title": "Helpers--Installation, Maintenance, and Repair Workers",
+    "aioe": -1.346555
+  },
+  {
+    "soc_code": "49-9099",
+    "title": "Installation, Maintenance, and Repair Workers, All Other",
+    "aioe": -0.5900791
+  },
+  {
+    "soc_code": "51-1011",
+    "title": "First-Line Supervisors/Managers of Production and Operating Workers",
+    "aioe": -0.0845282
+  },
+  {
+    "soc_code": "51-2011",
+    "title": "Aircraft Structure, Surfaces, Rigging, and Systems Assemblers",
+    "aioe": -0.8684706
+  },
+  {
+    "soc_code": "51-2021",
+    "title": "Coil Winders, Tapers, and Finishers",
+    "aioe": -0.8289722
+  },
+  {
+    "soc_code": "51-2022",
+    "title": "Electrical and Electronic Equipment Assemblers",
+    "aioe": -0.6248807
+  },
+  {
+    "soc_code": "51-2023",
+    "title": "Electromechanical Equipment Assemblers",
+    "aioe": -0.4977276
+  },
+  {
+    "soc_code": "51-2031",
+    "title": "Engine and Other Machine Assemblers",
+    "aioe": -0.9561453
+  },
+  {
+    "soc_code": "51-2041",
+    "title": "Structural Metal Fabricators and Fitters",
+    "aioe": -1.076307
+  },
+  {
+    "soc_code": "51-2091",
+    "title": "Fiberglass Laminators and Fabricators",
+    "aioe": -1.216496
+  },
+  {
+    "soc_code": "51-2092",
+    "title": "Team Assemblers",
+    "aioe": -0.8305441
+  },
+  {
+    "soc_code": "51-2093",
+    "title": "Timing Device Assemblers, Adjusters, and Calibrators",
+    "aioe": -0.2552991
+  },
+  {
+    "soc_code": "51-3011",
+    "title": "Bakers",
+    "aioe": -0.3852989
+  },
+  {
+    "soc_code": "51-3021",
+    "title": "Butchers and Meat Cutters",
+    "aioe": -0.9709924
+  },
+  {
+    "soc_code": "51-3022",
+    "title": "Meat, Poultry, and Fish Cutters and Trimmers",
+    "aioe": -1.10563
+  },
+  {
+    "soc_code": "51-3023",
+    "title": "Slaughterers and Meat Packers",
+    "aioe": -1.834668
+  },
+  {
+    "soc_code": "51-3091",
+    "title": "Food and Tobacco Roasting, Baking, and Drying Machine Operators and Tenders",
+    "aioe": -0.758859
+  },
+  {
+    "soc_code": "51-3092",
+    "title": "Food Batchmakers",
+    "aioe": -0.3791114
+  },
+  {
+    "soc_code": "51-3093",
+    "title": "Food Cooking Machine Operators and Tenders",
+    "aioe": -0.5559894
+  },
+  {
+    "soc_code": "51-4011",
+    "title": "Computer-Controlled Machine Tool Operators, Metal and Plastic",
+    "aioe": -0.6737444
+  },
+  {
+    "soc_code": "51-4012",
+    "title": "Numerical Tool and Process Control Programmers",
+    "aioe": -0.0241824
+  },
+  {
+    "soc_code": "51-4021",
+    "title": "Extruding and Drawing Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.234352
+  },
+  {
+    "soc_code": "51-4022",
+    "title": "Forging Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.8046677
+  },
+  {
+    "soc_code": "51-4023",
+    "title": "Rolling Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.08921
+  },
+  {
+    "soc_code": "51-4031",
+    "title": "Cutting, Punching, and Press Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.036569
+  },
+  {
+    "soc_code": "51-4032",
+    "title": "Drilling and Boring Machine Tool Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.7598132
+  },
+  {
+    "soc_code": "51-4033",
+    "title": "Grinding, Lapping, Polishing, and Buffing Machine Tool Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.9901662
+  },
+  {
+    "soc_code": "51-4034",
+    "title": "Lathe and Turning Machine Tool Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.06734
+  },
+  {
+    "soc_code": "51-4035",
+    "title": "Milling and Planing Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.8703219
+  },
+  {
+    "soc_code": "51-4041",
+    "title": "Machinists",
+    "aioe": -0.8675535
+  },
+  {
+    "soc_code": "51-4051",
+    "title": "Metal-Refining Furnace Operators and Tenders",
+    "aioe": -1.167465
+  },
+  {
+    "soc_code": "51-4052",
+    "title": "Pourers and Casters, Metal",
+    "aioe": -1.00914
+  },
+  {
+    "soc_code": "51-4061",
+    "title": "Model Makers, Metal and Plastic",
+    "aioe": -0.7421977
+  },
+  {
+    "soc_code": "51-4062",
+    "title": "Patternmakers, Metal and Plastic",
+    "aioe": -0.6131331
+  },
+  {
+    "soc_code": "51-4071",
+    "title": "Foundry Mold and Coremakers",
+    "aioe": -1.740349
+  },
+  {
+    "soc_code": "51-4072",
+    "title": "Molding, Coremaking, and Casting Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.146139
+  },
+  {
+    "soc_code": "51-4081",
+    "title": "Multiple Machine Tool Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.74266
+  },
+  {
+    "soc_code": "51-4111",
+    "title": "Tool and Die Makers",
+    "aioe": -0.5317897
+  },
+  {
+    "soc_code": "51-4121",
+    "title": "Welders, Cutters, Solderers, and Brazers",
+    "aioe": -1.197596
+  },
+  {
+    "soc_code": "51-4122",
+    "title": "Welding, Soldering, and Brazing Machine Setters, Operators, and Tenders",
+    "aioe": -1.002411
+  },
+  {
+    "soc_code": "51-4191",
+    "title": "Heat Treating Equipment Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -1.092486
+  },
+  {
+    "soc_code": "51-4192",
+    "title": "Lay-Out Workers, Metal and Plastic",
+    "aioe": -0.7221353
+  },
+  {
+    "soc_code": "51-4193",
+    "title": "Plating and Coating Machine Setters, Operators, and Tenders, Metal and Plastic",
+    "aioe": -0.8999876
+  },
+  {
+    "soc_code": "51-4194",
+    "title": "Tool Grinders, Filers, and Sharpeners",
+    "aioe": -0.8809238
+  },
+  {
+    "soc_code": "51-5111",
+    "title": "Prepress Technicians and Workers",
+    "aioe": 0.4107973
+  },
+  {
+    "soc_code": "51-5112",
+    "title": "Printing Press Operators",
+    "aioe": -0.7093881
+  },
+  {
+    "soc_code": "51-5113",
+    "title": "Print Binding and Finishing Workers",
+    "aioe": -0.9062089
+  },
+  {
+    "soc_code": "51-6011",
+    "title": "Laundry and Dry-Cleaning Workers",
+    "aioe": -1.054399
+  },
+  {
+    "soc_code": "51-6021",
+    "title": "Pressers, Textile, Garment, and Related Materials",
+    "aioe": -1.950063
+  },
+  {
+    "soc_code": "51-6031",
+    "title": "Sewing Machine Operators",
+    "aioe": -0.9639661
+  },
+  {
+    "soc_code": "51-6041",
+    "title": "Shoe and Leather Workers and Repairers",
+    "aioe": -0.990912
+  },
+  {
+    "soc_code": "51-6042",
+    "title": "Shoe Machine Operators and Tenders",
+    "aioe": -1.029855
+  },
+  {
+    "soc_code": "51-6051",
+    "title": "Sewers, Hand",
+    "aioe": -0.5987218
+  },
+  {
+    "soc_code": "51-6052",
+    "title": "Tailors, Dressmakers, and Custom Sewers",
+    "aioe": -0.4305268
+  },
+  {
+    "soc_code": "51-6061",
+    "title": "Textile Bleaching and Dyeing Machine Operators and Tenders",
+    "aioe": -0.8609312
+  },
+  {
+    "soc_code": "51-6062",
+    "title": "Textile Cutting Machine Setters, Operators, and Tenders",
+    "aioe": -1.022949
+  },
+  {
+    "soc_code": "51-6063",
+    "title": "Textile Knitting and Weaving Machine Setters, Operators, and Tenders",
+    "aioe": -1.241662
+  },
+  {
+    "soc_code": "51-6064",
+    "title": "Textile Winding, Twisting, and Drawing Out Machine Setters, Operators, and Tenders",
+    "aioe": -1.392929
+  },
+  {
+    "soc_code": "51-6091",
+    "title": "Extruding and Forming Machine Setters, Operators, and Tenders, Synthetic and Glass Fibers",
+    "aioe": -0.8596925
+  },
+  {
+    "soc_code": "51-6092",
+    "title": "Fabric and Apparel Patternmakers",
+    "aioe": -0.0831096
+  },
+  {
+    "soc_code": "51-6093",
+    "title": "Upholsterers",
+    "aioe": -1.313735
+  },
+  {
+    "soc_code": "51-7011",
+    "title": "Cabinetmakers and Bench Carpenters",
+    "aioe": -1.327489
+  },
+  {
+    "soc_code": "51-7021",
+    "title": "Furniture Finishers",
+    "aioe": -1.197727
+  },
+  {
+    "soc_code": "51-7031",
+    "title": "Model Makers, Wood",
+    "aioe": -0.7278869
+  },
+  {
+    "soc_code": "51-7032",
+    "title": "Patternmakers, Wood",
+    "aioe": -1.057897
+  },
+  {
+    "soc_code": "51-7041",
+    "title": "Sawing Machine Setters, Operators, and Tenders, Wood",
+    "aioe": -1.165031
+  },
+  {
+    "soc_code": "51-7042",
+    "title": "Woodworking Machine Setters, Operators, and Tenders, Except Sawing",
+    "aioe": -1.130357
+  },
+  {
+    "soc_code": "51-8011",
+    "title": "Nuclear Power Reactor Operators",
+    "aioe": 0.7705302
+  },
+  {
+    "soc_code": "51-8012",
+    "title": "Power Distributors and Dispatchers",
+    "aioe": 0.5012214
+  },
+  {
+    "soc_code": "51-8013",
+    "title": "Power Plant Operators",
+    "aioe": -0.3482779
+  },
+  {
+    "soc_code": "51-8021",
+    "title": "Stationary Engineers and Boiler Operators",
+    "aioe": -0.5032496
+  },
+  {
+    "soc_code": "51-8031",
+    "title": "Water and Liquid Waste Treatment Plant and System Operators",
+    "aioe": -0.44501
+  },
+  {
+    "soc_code": "51-8091",
+    "title": "Chemical Plant and System Operators",
+    "aioe": -0.3831282
+  },
+  {
+    "soc_code": "51-8092",
+    "title": "Gas Plant Operators",
+    "aioe": -0.2982082
+  },
+  {
+    "soc_code": "51-8093",
+    "title": "Petroleum Pump System Operators, Refinery Operators, and Gaugers",
+    "aioe": -0.370036
+  },
+  {
+    "soc_code": "51-8099",
+    "title": "Plant and System Operators, All Other",
+    "aioe": -0.6702387
+  },
+  {
+    "soc_code": "51-9011",
+    "title": "Chemical Equipment Operators and Tenders",
+    "aioe": -0.511521
+  },
+  {
+    "soc_code": "51-9012",
+    "title": "Separating, Filtering, Clarifying, Precipitating, and Still Machine Setters, Operators, and Tenders",
+    "aioe": -0.9379141
+  },
+  {
+    "soc_code": "51-9021",
+    "title": "Crushing, Grinding, and Polishing Machine Setters, Operators, and Tenders",
+    "aioe": -1.043476
+  },
+  {
+    "soc_code": "51-9022",
+    "title": "Grinding and Polishing Workers, Hand",
+    "aioe": -1.146524
+  },
+  {
+    "soc_code": "51-9023",
+    "title": "Mixing and Blending Machine Setters, Operators, and Tenders",
+    "aioe": -0.819664
+  },
+  {
+    "soc_code": "51-9031",
+    "title": "Cutters and Trimmers, Hand",
+    "aioe": -0.9479839
+  },
+  {
+    "soc_code": "51-9032",
+    "title": "Cutting and Slicing Machine Setters, Operators, and Tenders",
+    "aioe": -1.079282
+  },
+  {
+    "soc_code": "51-9041",
+    "title": "Extruding, Forming, Pressing, and Compacting Machine Setters, Operators, and Tenders",
+    "aioe": -1.042151
+  },
+  {
+    "soc_code": "51-9051",
+    "title": "Furnace, Kiln, Oven, Drier, and Kettle Operators and Tenders",
+    "aioe": -0.9582346
+  },
+  {
+    "soc_code": "51-9061",
+    "title": "Inspectors, Testers, Sorters, Samplers, and Weighers",
+    "aioe": -0.0293395
+  },
+  {
+    "soc_code": "51-9071",
+    "title": "Jewelers and Precious Stone and Metal Workers",
+    "aioe": -0.1560197
+  },
+  {
+    "soc_code": "51-9081",
+    "title": "Dental Laboratory Technicians",
+    "aioe": 0.0013206
+  },
+  {
+    "soc_code": "51-9082",
+    "title": "Medical Appliance Technicians",
+    "aioe": -0.4949538
+  },
+  {
+    "soc_code": "51-9083",
+    "title": "Ophthalmic Laboratory Technicians",
+    "aioe": -0.5966759
+  },
+  {
+    "soc_code": "51-9111",
+    "title": "Packaging and Filling Machine Operators and Tenders",
+    "aioe": -0.978608
+  },
+  {
+    "soc_code": "51-9121",
+    "title": "Coating, Painting, and Spraying Machine Setters, Operators, and Tenders",
+    "aioe": -1.121331
+  },
+  {
+    "soc_code": "51-9122",
+    "title": "Painters, Transportation Equipment",
+    "aioe": -1.447553
+  },
+  {
+    "soc_code": "51-9123",
+    "title": "Painting, Coating, and Decorating Workers",
+    "aioe": -0.9705587
+  },
+  {
+    "soc_code": "51-9141",
+    "title": "Semiconductor Processors",
+    "aioe": -0.6372312
+  },
+  {
+    "soc_code": "51-9151",
+    "title": "Photographic Process Workers and Processing Machine Operators",
+    "aioe": -0.3615806
+  },
+  {
+    "soc_code": "51-9191",
+    "title": "Cementing and Gluing Machine Operators and Tenders",
+    "aioe": -1.311418
+  },
+  {
+    "soc_code": "51-9192",
+    "title": "Cleaning, Washing, and Metal Pickling Equipment Operators and Tenders",
+    "aioe": -1.141885
+  },
+  {
+    "soc_code": "51-9193",
+    "title": "Cooling and Freezing Equipment Operators and Tenders",
+    "aioe": -0.9604952
+  },
+  {
+    "soc_code": "51-9194",
+    "title": "Etchers and Engravers",
+    "aioe": -0.6395226
+  },
+  {
+    "soc_code": "51-9195",
+    "title": "Molders, Shapers, and Casters, Except Metal and Plastic",
+    "aioe": -1.183408
+  },
+  {
+    "soc_code": "51-9196",
+    "title": "Paper Goods Machine Setters, Operators, and Tenders",
+    "aioe": -0.8740445
+  },
+  {
+    "soc_code": "51-9197",
+    "title": "Tire Builders",
+    "aioe": -1.610915
+  },
+  {
+    "soc_code": "51-9198",
+    "title": "Helpers--Production Workers",
+    "aioe": -1.411304
+  },
+  {
+    "soc_code": "51-9199",
+    "title": "Production Workers, All Other",
+    "aioe": -1.290964
+  },
+  {
+    "soc_code": "53-1011",
+    "title": "Aircraft Cargo Handling Supervisors",
+    "aioe": -0.7091902
+  },
+  {
+    "soc_code": "53-1021",
+    "title": "First-Line Supervisors/Managers of Helpers, Laborers, and Material Movers, Hand",
+    "aioe": 0.1160332
+  },
+  {
+    "soc_code": "53-1031",
+    "title": "First-Line Supervisors/Managers of Transportation and Material-Moving Machine and Vehicle Operators",
+    "aioe": 0.1466245
+  },
+  {
+    "soc_code": "53-2011",
+    "title": "Airline Pilots, Copilots, and Flight Engineers",
+    "aioe": -0.2070626
+  },
+  {
+    "soc_code": "53-2012",
+    "title": "Commercial Pilots",
+    "aioe": -0.1817332
+  },
+  {
+    "soc_code": "53-2021",
+    "title": "Air Traffic Controllers",
+    "aioe": 1.152798
+  },
+  {
+    "soc_code": "53-2022",
+    "title": "Airfield Operations Specialists",
+    "aioe": 0.4845738
+  },
+  {
+    "soc_code": "53-2031",
+    "title": "Flight Attendants",
+    "aioe": -0.7621183
+  },
+  {
+    "soc_code": "53-3011",
+    "title": "Ambulance Drivers and Attendants, Except Emergency Medical Technicians",
+    "aioe": -0.8298703
+  },
+  {
+    "soc_code": "53-3021",
+    "title": "Bus Drivers, Transit and Intercity",
+    "aioe": -0.605453
+  },
+  {
+    "soc_code": "53-3022",
+    "title": "Bus Drivers, School",
+    "aioe": -0.2977046
+  },
+  {
+    "soc_code": "53-3031",
+    "title": "Driver/Sales Workers",
+    "aioe": -0.7293087
+  },
+  {
+    "soc_code": "53-3032",
+    "title": "Truck Drivers, Heavy and Tractor-Trailer",
+    "aioe": -1.149057
+  },
+  {
+    "soc_code": "53-3033",
+    "title": "Truck Drivers, Light or Delivery Services",
+    "aioe": -1.120501
+  },
+  {
+    "soc_code": "53-3041",
+    "title": "Taxi Drivers and Chauffeurs",
+    "aioe": -0.6322603
+  },
+  {
+    "soc_code": "53-4011",
+    "title": "Locomotive Engineers",
+    "aioe": -0.4977403
+  },
+  {
+    "soc_code": "53-4012",
+    "title": "Locomotive Firers",
+    "aioe": -0.771071
+  },
+  {
+    "soc_code": "53-4013",
+    "title": "Rail Yard Engineers, Dinkey Operators, and Hostlers",
+    "aioe": -0.8320907
+  },
+  {
+    "soc_code": "53-4021",
+    "title": "Railroad Brake, Signal, and Switch Operators",
+    "aioe": -1.217647
+  },
+  {
+    "soc_code": "53-4031",
+    "title": "Railroad Conductors and Yardmasters",
+    "aioe": -0.4662731
+  },
+  {
+    "soc_code": "53-4041",
+    "title": "Subway and Streetcar Operators",
+    "aioe": -0.6155429
+  },
+  {
+    "soc_code": "53-5011",
+    "title": "Sailors and Marine Oilers",
+    "aioe": -1.150001
+  },
+  {
+    "soc_code": "53-5021",
+    "title": "Captains, Mates, and Pilots of Water Vessels",
+    "aioe": -0.4281868
+  },
+  {
+    "soc_code": "53-5022",
+    "title": "Motorboat Operators",
+    "aioe": -0.8871186
+  },
+  {
+    "soc_code": "53-5031",
+    "title": "Ship Engineers",
+    "aioe": -0.5264951
+  },
+  {
+    "soc_code": "53-6011",
+    "title": "Bridge and Lock Tenders",
+    "aioe": -0.6322159
+  },
+  {
+    "soc_code": "53-6021",
+    "title": "Parking Lot Attendants",
+    "aioe": -0.8353891
+  },
+  {
+    "soc_code": "53-6031",
+    "title": "Service Station Attendants",
+    "aioe": -1.221489
+  },
+  {
+    "soc_code": "53-6041",
+    "title": "Traffic Technicians",
+    "aioe": 0.3995872
+  },
+  {
+    "soc_code": "53-6051",
+    "title": "Transportation Inspectors",
+    "aioe": -0.18376
+  },
+  {
+    "soc_code": "53-6061",
+    "title": "Transportation Attendants, Except Flight Attendants",
+    "aioe": -0.3752249
+  },
+  {
+    "soc_code": "53-7011",
+    "title": "Conveyor Operators and Tenders",
+    "aioe": -0.7554432
+  },
+  {
+    "soc_code": "53-7021",
+    "title": "Crane and Tower Operators",
+    "aioe": -1.030619
+  },
+  {
+    "soc_code": "53-7031",
+    "title": "Dredge Operators",
+    "aioe": -1.016648
+  },
+  {
+    "soc_code": "53-7032",
+    "title": "Excavating and Loading Machine and Dragline Operators",
+    "aioe": -1.144356
+  },
+  {
+    "soc_code": "53-7033",
+    "title": "Loading Machine Operators, Underground Mining",
+    "aioe": -1.262688
+  },
+  {
+    "soc_code": "53-7041",
+    "title": "Hoist and Winch Operators",
+    "aioe": -0.9781997
+  },
+  {
+    "soc_code": "53-7051",
+    "title": "Industrial Truck and Tractor Operators",
+    "aioe": -1.39869
+  },
+  {
+    "soc_code": "53-7061",
+    "title": "Cleaners of Vehicles and Equipment",
+    "aioe": -1.629897
+  },
+  {
+    "soc_code": "53-7062",
+    "title": "Laborers and Freight, Stock, and Material Movers, Hand",
+    "aioe": -1.709183
+  },
+  {
+    "soc_code": "53-7063",
+    "title": "Machine Feeders and Offbearers",
+    "aioe": -1.037413
+  },
+  {
+    "soc_code": "53-7064",
+    "title": "Packers and Packagers, Hand",
+    "aioe": -1.51362
+  },
+  {
+    "soc_code": "53-7071",
+    "title": "Gas Compressor and Gas Pumping Station Operators",
+    "aioe": -0.6909992
+  },
+  {
+    "soc_code": "53-7072",
+    "title": "Pump Operators, Except Wellhead Pumpers",
+    "aioe": -0.8422927
+  },
+  {
+    "soc_code": "53-7073",
+    "title": "Wellhead Pumpers",
+    "aioe": -1.091197
+  },
+  {
+    "soc_code": "53-7081",
+    "title": "Refuse and Recyclable Material Collectors",
+    "aioe": -1.283373
+  },
+  {
+    "soc_code": "53-7111",
+    "title": "Shuttle Car Operators",
+    "aioe": -1.351998
+  },
+  {
+    "soc_code": "53-7121",
+    "title": "Tank Car, Truck, and Ship Loaders",
+    "aioe": -1.38776
+  }
+]
