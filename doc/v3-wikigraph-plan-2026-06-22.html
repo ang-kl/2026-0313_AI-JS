@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>v3 WikiGraph - Build Plan - 2026-06-22</title>
+<style>
+  :root{
+    --bg:#e6ebf2;--surface:#ffffff;--border:#d6deea;--text:#1a202c;--sub:#4a5568;--muted:#5b6878;
+    --blue:#1a56db;--blueBg:#e8f0fe;--blueBd:#c7d2fe;--eu:#003399;--navy:#0a2a5e;
+    --teal:#0e7490;--tealBg:#ecfeff;--amber:#b45309;--amberBg:#fffbeb;--purple:#7c3aed;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);line-height:1.6;
+    font-family:'IBM Plex Sans','Inter',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:980px;margin:0 auto;padding:0 22px 80px}
+  header.bar{background:linear-gradient(100deg,var(--navy),var(--eu));color:#fff;padding:26px 22px}
+  .bar-in{max-width:980px;margin:0 auto}
+  header h1{margin:0 0 4px;font-size:1.5rem;letter-spacing:-.02em}
+  header .meta{font-size:.8125rem;opacity:.85}
+  .badge{display:inline-block;font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+    background:#ffcc00;color:#1a202c;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:middle}
+  h2{font-size:1.2rem;margin:34px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--blueBd);letter-spacing:-.01em}
+  h3{font-size:.95rem;margin:18px 0 6px;color:var(--eu)}
+  p,li{font-size:.9375rem}
+  .lead{color:var(--sub)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin:14px 0;
+    box-shadow:6px 6px 14px rgba(174,189,212,.4),-6px -6px 13px rgba(255,255,255,.8)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.8125rem}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{background:var(--blueBg);color:var(--eu);font-size:.6875rem;text-transform:uppercase;letter-spacing:.03em}
+  .chip{display:inline-block;font-size:.6875rem;font-weight:700;border-radius:7px;padding:1px 7px;white-space:nowrap}
+  .c-det{background:var(--blueBg);border:1px solid var(--blueBd);color:var(--blue)}
+  .c-vrb{background:var(--tealBg);border:1px solid #a5f3fc;color:var(--teal)}
+  .c-der{background:var(--amberBg);border:1px solid #fcd9a0;color:var(--amber)}
+  .c-adv{background:#f3e8ff;border:1px solid #ddd6fe;color:var(--purple)}
+  pre.mock{background:#0f1b2d;color:#cfe0ff;border-radius:12px;padding:16px;overflow:auto;font-size:.75rem;line-height:1.5;
+    font-family:'IBM Plex Mono',ui-monospace,monospace}
+  .pill{display:inline-block;background:var(--blueBg);border:1px solid var(--blueBd);color:var(--blue);
+    border-radius:999px;padding:3px 11px;font-size:.75rem;font-weight:700;margin:2px}
+  .note{background:var(--amberBg);border:1px solid #fcd9a0;border-radius:12px;padding:12px 14px;font-size:.8125rem;color:#7c4a06;margin:14px 0}
+  .ok{color:var(--teal);font-weight:700}
+  ul{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  code{background:#eef2f8;border:1px solid var(--border);border-radius:5px;padding:1px 5px;font-size:.85em;font-family:'IBM Plex Mono',ui-monospace,monospace}
+  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <h1>v3 Career WikiGraph &mdash; Build Plan <span class="badge">Draft for review</span></h1>
+  <div class="meta">2026-06-22 &middot; SG Career View (takearoundabout.com v3) &middot; Author: build agent &middot; Status: pre-PR0, awaiting Human Lead approval</div>
+</div></header>
+
+<div class="wrap">
+
+  <h2>1. Why this, why now</h2>
+  <p class="lead">A live, clickable prototype at <a href="https://v3.takearoundabout.com/demo">v3.takearoundabout.com/demo</a> has proven the shape end-to-end across PRs #159&ndash;#178 (v3.0.96&rarr;v3.0.115). This plan turns that prototype into a real, additive feature in the v3 app &mdash; without disturbing the existing result engine or the landing page.</p>
+  <div class="card">
+    <h3>Frameworks demonstrated (all grounded in the existing v3 engine)</h3>
+    <span class="pill">Obsidian job-ad ecosystem + flipbook</span>
+    <span class="pill">Radial dendrogram (brainsci GNN)</span>
+    <span class="pill">SGDI real gov org chart</span>
+    <span class="pill">Ecotone / edge-effect</span>
+    <span class="pill">Edge Strategy (Lewis &amp; McKone)</span>
+    <span class="pill">Customer Value Chain (Teixeira)</span>
+    <span class="pill">Flow Engineering (Pereira)</span>
+    <span class="pill">v3 result engine (Job Anatomy, Skill Analysis, Demand Proof, Foundation, AI-exposure)</span>
+  </div>
+
+  <h2>2. The honesty contract &mdash; how much is deterministic</h2>
+  <p>The single most important rule: <b>the engine authors every number and verdict; the LLM only narrates; nothing is fabricated</b> (withheld instead). Every line in the feature must carry a provenance chip matching its tier.</p>
+  <table>
+    <tr><th>Tier</th><th>Chip</th><th>What it covers</th><th>Reproducible?</th></tr>
+    <tr><td><b>Verbatim</b></td><td><span class="chip c-vrb">&#9679; from posting</span></td><td>Job-ad facts: title, employer, salary, experience, qualifications; SGDI org structure; live careers.gov.sg roles</td><td class="ok">Yes &mdash; copied</td></tr>
+    <tr><td><b>Computed</b></td><td><span class="chip c-det">&#10003; computed</span></td><td>AI-exposure index + resilience (SSOC&rarr;ISCO&rarr;SOC&rarr;AIOE); ESCO/ISCO mappings; the headline numbers</td><td class="ok">Yes &mdash; same input &rarr; same output</td></tr>
+    <tr><td><b>Derived</b></td><td><span class="chip c-der">&#9680; derived</span></td><td>Pattern counts ("seen in 2 of 2 ads"), demand recency, salary percentiles &mdash; counts over the corpus (a rough read)</td><td class="ok">Yes &mdash; for this sample</td></tr>
+    <tr><td><b>Advisory</b></td><td><span class="chip c-adv">~ AI estimate</span></td><td>Narration; the journey prose; value-stream tags; ecotone realm; positioning; the 7/14/30 plan; the next-move sentence (the <i>pick</i> is computed, the <i>words</i> advisory)</td><td>No &mdash; varies; withheld if unsupported</td></tr>
+  </table>
+  <div class="note"><b>Candid flag.</b> The candidate/organisation <b>journeys lean on the advisory tier</b> more than today's result page does. Discipline for the build: every journey line must trace to a deterministic fact <i>or</i> carry a <span class="chip c-adv">~</span> chip, and the edge / value-stream reads need a <b>real derivation rule</b>, not just LLM prose.</div>
+
+  <h2>3. What changes (data + logic)</h2>
+  <table>
+    <tr><th>Area</th><th>Change</th><th>Reuse vs new</th></tr>
+    <tr><td>Graph data</td><td><code>wikiGraphBuilder.js</code> consumes the existing <code>buildKnowledgeGraph()</code> output + a new cross-ad aggregation (repeated skills / quals / experience / employer)</td><td>Reuse + extend</td></tr>
+    <tr><td>Realms</td><td><code>realmOf()</code> classifies each node internal / edge / external (heuristic, tagged derived)</td><td>New</td></tr>
+    <tr><td>Candidate journey</td><td>Chains existing panels: Job Anatomy, Skill Analysis, Demand Proof, Foundation, Progression, Crossover, Positioning, AI-exposure</td><td>Reuse engine</td></tr>
+    <tr><td>Org journey</td><td>Value stream from the role corpus + Flow Engineering maps; Teixeira value tags; Edge Strategy</td><td>New (deterministic counts + advisory narration)</td></tr>
+    <tr><td>Candidate Brief</td><td>One-page consolidation + print</td><td>New</td></tr>
+    <tr><td>Frozen door</td><td><code>api/mcf.js</code>, <code>api/claude.js</code>, <code>engine-data/*</code>, the 6 frozen symbols stay byte-identical</td><td class="ok">Untouched</td></tr>
+  </table>
+
+  <h2>4. UI changes</h2>
+  <p>Additive. The current v3 landing page stays exactly as-is (per the Human Lead). The WikiGraph is reached as a new surface.</p>
+
+  <h3>4.1 New entry point</h3>
+  <p>A fourth way in, alongside today's three modes &mdash; a <b>"Career WikiGraph"</b> card on the home, or a dedicated <code>?view=wiki</code> route (like leap / graph / spherical). Nothing on the existing landing is removed.</p>
+  <pre class="mock">CURRENT landing (unchanged)            +  NEW entry
+[ Analyse role ] [ Browse SG jobs ]       [ Career WikiGraph  &#8594; ]
+[ Search by employer ]                    "See a role as a living ecosystem"</pre>
+
+  <h3>4.2 The WikiGraph view (radial ecosystem)</h3>
+  <pre class="mock">+--------------------------------------------------------------+
+|  [ &#129489; Candidate view ] [ &#127970; Organisation view ]   &lt;- LENS    |
+|  Your next best move is to ...                  (next move)  |
+|--------------------------------------------------------------|
+|  Note: Data Analyst   &#9679; from posting   &#10003; computed          |
+|  ...fields + body with clickable [[wikilinks]]...           |
+|  -- guided journey panels appear here (4.3 / 4.4) --        |
+|--------------------------------------------------------------|
+|  ECOSYSTEM GRAPH   [ Ecotone overlay ] [ Open note ] [+] [-] |
+|         radial: one centre, tap to dive, word-wrapped        |
+|         bubbles; ecotone tints internal / edge / external    |
+|  Colour = layer | size = repeats | amber glow = edge species|
++--------------------------------------------------------------+</pre>
+  <ul>
+    <li><b>Radial focus-browser</b> &mdash; one centre, tap a bubble to re-centre (depth loops); path shrinks into a trail; <b>labels word-wrap, never truncate</b>.</li>
+    <li><b>Ecotone overlay</b> toggle &mdash; nodes tinted internal (blue) / edge (amber glow) / external (teal); boundary-crossing links emphasised.</li>
+    <li><b>Lens toggle</b> &mdash; Candidate vs Organisation changes the panel content, not the graph.</li>
+    <li>Styling: the existing v3 neumorphic soft-UI, navy header, <code>#e6ebf2</code>, NEO shadows. No red/green.</li>
+  </ul>
+
+  <h3>4.3 Candidate journey panel (on a role)</h3>
+  <pre class="mock">CANDIDATE BRIEF - Data Analyst             [ &#128424; Print / save as PDF ]
+ AI-readiness  Moderate - resilience 62/100      &#10003; computed
+ Your edge     Stakeholder Mgmt, Requirements     &#9680; derived
+ Build next    7d / 14d / 30d plan                ~ AI estimate
+ Position      "I connect data, stakeholders..."  ~ AI estimate
+ Next move     strengthen Stakeholder evidence    &#10003; pick / ~ words
+----------------------------------------------------------------
+ 1 Job Anatomy     work-layer mix + AI-resilience      &#10003;
+ 2 Skill Analysis  skills by AI level (Human-Led..Full)&#10003;/~
+ 3 Demand Proof    recency / salary / verdict          &#9680;
+ 4 Foundation      gaps + 7/14/30 plan                 ~
+ 5 The edge        stand where work is human-led       ~ (rule)
+ 6 Progression     where you can go + crossover         &#10003;
+ 7 Positioning     thesis + next move                   ~</pre>
+
+  <h3>4.4 Organisation journey panel (on a department / org)</h3>
+  <pre class="mock"> 1 Outcome Map        what the dept wants
+ 2 Value Stream       steps tagged value-creating/capturing/eroding + lead time
+ 3 Capability Map     the constraint + root cause + measure
+ 4 Dependency Map     internal | external deps (externals at the ecotone)
+ 5 Edge of core       Product / Journey / Enterprise edge
+ 6 Future State       which steps AI absorbs vs stay human-led
+ 7 So who to hire     links back to the job ad</pre>
+
+  <h3>4.5 Provenance everywhere</h3>
+  <p>Every figure and journey line shows its chip (<span class="chip c-vrb">&#9679;</span> <span class="chip c-det">&#10003;</span> <span class="chip c-der">&#9680;</span> <span class="chip c-adv">~</span>), and each artifact carries the footer <i>"AI-assisted; human decides &middot; Source &middot; Confidence &middot; Time-window"</i>. 44px touch targets; SVG aria-labels; keyboard-operable nodes.</p>
+
+  <h2>5. Build plan (phased PRs)</h2>
+  <table>
+    <tr><th>PR</th><th>Goal</th><th>Gate</th></tr>
+    <tr><td><b>PR0</b></td><td>Spec <code>v3-wikigraph-spec.md</code> &mdash; node model, realm rules, the determinism mapping (each journey line &rarr; tier), withhold floors, AU-7 for any frozen-door note</td><td>spec self-review</td></tr>
+    <tr><td><b>PR1</b></td><td>New entry + WikiGraph shell (radial graph, reuse <code>KGGraph</code>); no journey yet</td><td>a11y + regression (landing + routes intact)</td></tr>
+    <tr><td><b>PR2</b></td><td><code>wikiGraphBuilder</code> cross-ad engine + ecotone overlay</td><td>conformance D1&ndash;D8 (no LLM&rarr;number)</td></tr>
+    <tr><td><b>PR3</b></td><td>Candidate lens journey wired to the <i>live</i> engine panels + Candidate Brief</td><td>conformance G2/G3 + a11y footer</td></tr>
+    <tr><td><b>PR4</b></td><td>Organisation lens + value stream (derivation rule, not prose)</td><td>conformance (derived vs advisory tags)</td></tr>
+    <tr><td><b>PR5</b></td><td>Polish: Compare, re-assess loop; full a11y + honesty sweep; vault</td><td>both review agents PASS</td></tr>
+  </table>
+  <p>Every PR: bump <code>v3.0.&lt;N&gt;</code> + HDR journal + index.html + package.json/lock; R-FREEZE exit 0; ASCII-only JSX (R007); no red/green.</p>
+
+  <h2>6. Verification</h2>
+  <ul>
+    <li><code>npm run build</code> green; R-FREEZE byte-identical; conformance-auditor + a11y-honesty-reviewer PASS before each version bump.</li>
+    <li>Determinism snapshot: same posting &rarr; identical engine output (the headline numbers).</li>
+    <li>Live check on v3.takearoundabout.com after merge: a role shows the candidate journey grounded in real engine output; a department shows the value stream; provenance chips present on every line.</li>
+    <li>Honesty test: a thin job ad &rarr; smaller graph, withheld links, lower confidence &mdash; never invented.</li>
+  </ul>
+
+  <h2>7. Open decisions for the Human Lead</h2>
+  <ul>
+    <li>Entry point: a fourth home card <i>or</i> a dedicated <code>?view=wiki</code> route? (Plan assumes additive, not replacing the landing.)</li>
+    <li>How much of the journey to ship grounded in the live engine in PR3 vs narrate (sets the deterministic-vs-advisory ratio).</li>
+    <li>Close the two remaining workflow gaps (Compare, re-assess) in PR5 or defer.</li>
+  </ul>
+
+  <footer>
+    v3 Career WikiGraph build plan &middot; 2026-06-22 &middot; Demo: v3.takearoundabout.com/demo &middot;
+    Companion specs: v3/script/v3-knowledge-graph-spec.md, v3-candidate-journey-spec.md, v3-result-engine-spec.md &middot;
+    This is a plan for review &mdash; no code changes until PR0 is approved.
+  </footer>
+</div>
+</body>
+</html>
