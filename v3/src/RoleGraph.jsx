@@ -24,7 +24,7 @@ const PROV = {
   none:     { icon: "?",      color: "#64748b", bg: "#f1f5f9", label: "unverified" },
 };
 const BAND = {
-  high:     { color: "#9a3412", bg: "#fff7ed", label: "high" },
+  high:     { color: "#c2410c", bg: "#fff7ed", label: "high" },
   moderate: { color: "#b45309", bg: "#fffbeb", label: "moderate" },
   low:      { color: "#0e7490", bg: "#ecfeff", label: "low" },
 };

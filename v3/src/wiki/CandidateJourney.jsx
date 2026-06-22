@@ -36,7 +36,7 @@ const NEO = {
 
 // AI-exposure levels colour map (blue<->amber ramp, no red/green)
 const LEVELS = {
-  HIGH:  { label: "Full Automation", color: "#9a3412", bg: "#fff7ed", border: "#fed7aa", icon: "*"  },
+  HIGH:  { label: "Full Automation", color: "#c2410c", bg: "#fff7ed", border: "#fed7aa", icon: "*"  },
   MEDIUM:{ label: "AI-Augmented",    color: "#b45309", bg: "#fffbeb", border: "#fde68a", icon: "~"  },
   LOW:   { label: "AI-Assisted",     color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc", icon: "●"  },
   HUMAN: { label: "Human-Led",       color: "#1e40af", bg: "#eef2ff", border: "#c7d2fe", icon: "♦"  },
@@ -161,7 +161,7 @@ function demandProofLocal(jobs, nowMs) {
 const DEMAND_VERDICT = {
   active:   { glyph: "^", label: "Active demand",   color: "#1e40af" },
   moderate: { glyph: "*", label: "Moderate demand", color: "#0e7490" },
-  thin:     { glyph: "v", label: "Thin / unproven", color: "#9a3412" },
+  thin:     { glyph: "v", label: "Thin / unproven", color: "#c2410c" },
 };
 
 const fmtSGD = function(x) { return (x == null ? "-" : "$" + Math.round(x).toLocaleString("en-SG")); };
@@ -196,7 +196,7 @@ export default function CandidateJourney({ result, title }) {
 
   const JOB_LAYER_ORDER = ["Activity", "Coordination", "Accountability", "Relational", "Judgment"];
   const JOB_LAYER_COLORS = {
-    Activity:       "#9a3412",
+    Activity:       "#c2410c",
     Coordination:   "#b45309",
     Accountability: "#0e7490",
     Relational:     "#1e40af",
