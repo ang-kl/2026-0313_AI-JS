@@ -1144,6 +1144,23 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.124 - 2026-06-22 - HDR #162 - Career WikiGraph radial layout rework (Human Lead: "very ugly,
+// only hub and spoke, where are the major and minor spoke... should be graceful... smaller font...
+// expand appropriately like neural view graph"). Replaces the flat one-ring, one-size wheel in
+// src/wiki/WikiGraphView.jsx with a hierarchical organic layout: (1) nodeImportance(node) ranks each
+// child by TYPE_WEIGHT (role/occupation/org = major, skill = mid, duty/qual = minor) + count repeats +
+// hub bump (a node with many children reads as a major branch); (2) bubble SIZE scales with importance
+// (impToScale: minor ~0.56 -> major ~1.0, centre 1.24) so major and minor are visually distinct;
+// (3) TWO-RING split when >8 children - majors on an inner prominent ring, minors on an outer ring
+// offset half a slot (declutters; single weighted ring for <=8); (4) angular span weighted by
+// importance so majors get breathing room; (5) curved spokes (curvePath quadratic bow) with weight +
+// opacity by importance - major branches heavier/darker, minor faint (the "major vs minor spoke");
+// (6) smaller fonts (12.5 -> 11, lighter pills); (7) new children grow OUT from the tapped node
+// (useGraphAnim seeds them tiny at the parent's last position - the neural expand). Deterministic
+// (index-based jitter, no Math.random in layout). Render-only, additive; buildKnowledgeGraph /
+// getKnowledgeGraph consumed read-only; all frozen symbols + api/* + engine-data/* byte-identical.
+// Ecotone overlay realm strokes still apply over the new sizes. R007/R006 clean; no red/green; SVG
+// aria-label + keyboard nodes retained. G1 (v3.0.123 -> v3.0.124).
 // v3.0.123 - 2026-06-22 - HDR #161 - a11y palette: normalise the "Full Automation" / high-exposure
 // hue from burnt-orange #9a3412 to a clearer orange #c2410c app-wide (Human Lead, deuteranopia:
 // "shift to a clearer orange app-wide" - the prior hue sat near the red-orange boundary and could
