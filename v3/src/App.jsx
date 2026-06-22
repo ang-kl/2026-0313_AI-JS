@@ -11645,6 +11645,922 @@ function companyAgentsToKgPayload(model) {
   };
 }
 
+// ---- WikiGraph W1: buildEmployerWiki + EmployerWikiView ----
+// Spec: v3/script/v3-wikigraph-w1-employer-spec.md (READY_FOR_BUILD)
+// Pure deterministic note/wikilink builder over the live CO1+CO2 model.
+// NO fetch, NO LLM, NO new number minted.
+// R005-greppable: buildEmployerWiki, EmployerWikiView
+
+// W1: stable-id slug for org and skill nodes (ASCII, deterministic).
+function _wikiSlug(s) {
+  return _phraseNorm(s).replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 60);
+}
+
+// W1: build all notes (pass 1 = create, pass 2 = compose bodies + resolve links/backlinks).
+// Input: model from buildCompanyAgents. Output: { notes, withheld, nextMove, stats }.
+function buildEmployerWiki(model) {
+  if (!model) return { notes: [], withheld: [], nextMove: null, stats: {} };
+
+  const notes = [];
+
+  // ---- Pass 1: create all notes (no bodies/links yet) ----
+
+  // Employer note
+  const orgSlug = _wikiSlug(model.company || "employer");
+  const orgId = "org:" + orgSlug;
+  notes.push({
+    id: orgId,
+    title: model.company || "",
+    type: "employer",
+    wikilink: "[[employer:" + orgSlug + "|" + (model.company || "") + "]]",
+    source: "from MCF",
+    confidence: model.stats ? (model.stats.postings + " posting" + (model.stats.postings === 1 ? "" : "s") + " sampled") : "from MCF",
+    fields: [],
+    body: "",
+    links: [],
+    backlinks: [],
+    kgNodeId: null,
+  });
+
+  // Collect all distinct posting uuids from clusters + provenance
+  const uuidToJob = {};
+  const allJobs = (model._jobs || []);
+  allJobs.forEach(function(j) { if (j && j.uuid) uuidToJob[j.uuid] = j; });
+  // Also gather from cluster provenance (primary source)
+  (model.clusters || []).forEach(function(c) {
+    (c.provenance || []).forEach(function(p) {
+      if (p && p.uuid && !uuidToJob[p.uuid]) {
+        uuidToJob[p.uuid] = p;
+      }
+    });
+  });
+
+  // JobAd notes - one per distinct uuid from cluster provenance
+  // (verbatim MCF; these are the postings the model was built from)
+  const jobadIds = {}; // uuid -> note id
+  Object.keys(uuidToJob).forEach(function(uuid) {
+    const j = uuidToJob[uuid];
+    const jobId = "jobad:" + uuid;
+    jobadIds[uuid] = jobId;
+    notes.push({
+      id: jobId,
+      title: j.title || ("Posting " + uuid.slice(0, 8)),
+      type: "jobad",
+      wikilink: "[[jobad:" + uuid + "|" + (j.title || uuid.slice(0, 8)) + "]]",
+      source: "from MCF",
+      confidence: j.postedDate ? ("posted " + j.postedDate.slice(0, 10)) : "from MCF",
+      fields: [],
+      body: "",
+      links: [],
+      backlinks: [],
+      kgNodeId: null,
+    });
+  });
+
+  // Duty notes - one per cluster (capped per companyAgentsToKgPayload keep-rule)
+  const _agentClusterIds = new Set((model.agents || []).map(function(a) { return a.clusterId; }));
+  const keptClusters = (model.clusters || []).slice()
+    .sort(function(a, b) { return (b.recurrence - a.recurrence) || a.repDuty.localeCompare(b.repDuty); })
+    .filter(function(c, i) { return i < COMPANY_AGENT_MAX_DUTIES || _agentClusterIds.has(c.id); });
+
+  const dutyIds = {}; // cluster id -> note id
+  keptClusters.forEach(function(c) {
+    const dutyId = "duty:" + c.id;
+    dutyIds[c.id] = dutyId;
+    notes.push({
+      id: dutyId,
+      title: c.repDuty,
+      type: "duty",
+      wikilink: "[[duty:" + c.id + "|" + c.repDuty + "]]",
+      source: "derived",
+      confidence: "recurs across " + c.recurrence + " role" + (c.recurrence === 1 ? "" : "s") + ", " + c.level,
+      fields: [],
+      body: "",
+      links: [],
+      backlinks: [],
+      kgNodeId: c.id,
+    });
+  });
+
+  // Skill notes - one per distinct skill string across kept clusters
+  const skillSeen = {}; // slug -> note id
+  keptClusters.forEach(function(c) {
+    (c.skills || []).forEach(function(sk) {
+      const skillStr = typeof sk === "string" ? sk : (sk.skill || "");
+      if (!skillStr) return;
+      const slug = _wikiSlug(skillStr);
+      if (!slug) return;
+      const skillId = "skill:" + slug;
+      if (!skillSeen[slug]) {
+        skillSeen[slug] = skillId;
+        notes.push({
+          id: skillId,
+          title: skillStr,
+          type: "skill",
+          wikilink: "[[skill:" + slug + "|" + skillStr + "]]",
+          source: "from MCF",
+          confidence: "from posting",
+          fields: [],
+          body: "",
+          links: [],
+          backlinks: [],
+          kgNodeId: null,
+        });
+      }
+    });
+  });
+
+  // Agent notes - one per model.agents[] (W1.5: emitted only when model not withheld)
+  const agentIds = {}; // agent id -> note id
+  const emitAgents = !(model.withheld && model.withheld.length > 0 && (model.agents || []).length === 0);
+  if (emitAgents) {
+    (model.agents || []).forEach(function(ag) {
+      const agentNoteId = "agent:" + ag.id;
+      agentIds[ag.id] = agentNoteId;
+      // Find corresponding kgNode id: companyAgentsToKgPayload uses ag.id as the node id.
+      notes.push({
+        id: agentNoteId,
+        title: ag.label,
+        type: "agent",
+        wikilink: "[[agent:" + ag.id + "|" + ag.label + "]]",
+        source: "derived",
+        confidence: "score " + ag.score + ", recurs across " + ag.recurrence + " role" + (ag.recurrence === 1 ? "" : "s"),
+        fields: [],
+        body: "",
+        links: [],
+        backlinks: [],
+        kgNodeId: ag.id,
+      });
+    });
+  }
+
+  // Build a lookup for fast id->note access
+  const noteById = {};
+  notes.forEach(function(n) { noteById[n.id] = n; });
+
+  // ---- Pass 2: compose bodies + resolve links/backlinks ----
+  // Only emit a [[wikilink]] when BOTH endpoints exist in noteById.
+  // This guarantees invariant 1 (no dangling links).
+
+  // Helper: emit wikilink token only when target exists
+  function safeWikilink(targetId) {
+    var t = noteById[targetId];
+    if (!t) return null;
+    // Use the full targetId in the token so the renderer can resolve it back to the note.
+    return "[[" + targetId + "|" + t.title + "]]";
+  }
+
+  // Helper: add a directed link (and defer backlink composition to the closure pass)
+  function addLink(fromId, toId) {
+    var src = noteById[fromId];
+    var tgt = noteById[toId];
+    if (!src || !tgt) return;
+    if (src.links.indexOf(toId) === -1) src.links.push(toId);
+  }
+
+  // Employer note: links to all jobads + all agents
+  Object.keys(jobadIds).forEach(function(uuid) {
+    addLink(orgId, jobadIds[uuid]);
+  });
+  (model.agents || []).forEach(function(ag) {
+    if (agentIds[ag.id]) addLink(orgId, agentIds[ag.id]);
+  });
+
+  // Employer fields
+  var orgNote = noteById[orgId];
+  orgNote.fields = [
+    ["Type", "Employer (employer persona)"],
+    ["Postings sampled", String((model.stats && model.stats.postings) || 0)],
+    ["Duty clusters", String((model.stats && model.stats.clusters) || 0)],
+    ["Agent candidates", String((model.stats && model.stats.agents) || 0)],
+  ];
+  // Employer body
+  var jobadWikilinks = Object.keys(jobadIds).slice(0, 6).map(function(uuid) {
+    return safeWikilink(jobadIds[uuid]);
+  }).filter(Boolean).join(", ");
+  orgNote.body = (model.company || "This employer") + " has " + ((model.stats && model.stats.postings) || 0)
+    + " sampled posting" + (((model.stats && model.stats.postings) || 0) === 1 ? "" : "s") + " on MyCareersFuture."
+    + (jobadWikilinks ? " Postings include: " + jobadWikilinks + "." : "")
+    + ((model.withheld && model.withheld.length > 0) ? " Note: " + model.withheld[0] : "");
+
+  // JobAd notes: links to duties that span that uuid + skills on that uuid
+  keptClusters.forEach(function(c) {
+    var dutyNoteId = dutyIds[c.id];
+    if (!dutyNoteId) return;
+    // duty -> each jobad in its roleUuids
+    c.roleUuids.forEach(function(uuid) {
+      if (jobadIds[uuid]) {
+        addLink(dutyNoteId, jobadIds[uuid]);
+        addLink(jobadIds[uuid], dutyNoteId);
+      }
+    });
+    // duty -> skills
+    (c.skills || []).forEach(function(sk) {
+      var skillStr = typeof sk === "string" ? sk : (sk.skill || "");
+      if (!skillStr) return;
+      var slug = _wikiSlug(skillStr);
+      var skillId = "skill:" + slug;
+      if (skillSeen[slug]) {
+        addLink(dutyNoteId, skillId);
+        // jobads that span this cluster also link to the skill
+        c.roleUuids.forEach(function(uuid) {
+          if (jobadIds[uuid]) addLink(jobadIds[uuid], skillId);
+        });
+      }
+    });
+    // agent that backs this cluster
+    var backingAgent = (model.agents || []).find(function(a) { return a.clusterId === c.id; });
+    if (backingAgent && agentIds[backingAgent.id]) {
+      addLink(dutyNoteId, agentIds[backingAgent.id]);
+    }
+  });
+
+  // Agent -> duty + jobads
+  (model.agents || []).forEach(function(ag) {
+    if (!agentIds[ag.id]) return;
+    var agentNoteId = agentIds[ag.id];
+    if (dutyIds[ag.clusterId]) addLink(agentNoteId, dutyIds[ag.clusterId]);
+    var cluster = keptClusters.find(function(c) { return c.id === ag.clusterId; });
+    if (cluster) {
+      cluster.roleUuids.forEach(function(uuid) {
+        if (jobadIds[uuid]) addLink(agentNoteId, jobadIds[uuid]);
+      });
+    }
+  });
+
+  // Compose duty note fields + body
+  keptClusters.forEach(function(c) {
+    var dutyNoteId = dutyIds[c.id];
+    if (!dutyNoteId) return;
+    var dutyNote = noteById[dutyNoteId];
+    dutyNote.fields = [
+      ["Exposure band", c.level],
+      ["Recurrence", c.recurrence + " of " + ((model.stats && model.stats.postings) || "sampled") + " roles"],
+      ["AI-adjacent signals", String(c.aiAdjacency || 0)],
+      ["Promoted", c.promoted ? "yes" : "no"],
+    ];
+    var jobadLinks = c.roleUuids.slice(0, 4).map(function(uuid) {
+      return safeWikilink(jobadIds[uuid]);
+    }).filter(Boolean).join(", ");
+    var skillLinks = (c.skills || []).slice(0, 4).map(function(sk) {
+      var skillStr = typeof sk === "string" ? sk : (sk.skill || "");
+      if (!skillStr) return null;
+      var slug = _wikiSlug(skillStr);
+      return safeWikilink("skill:" + slug);
+    }).filter(Boolean).join(", ");
+    var backingAgent = (model.agents || []).find(function(a) { return a.clusterId === c.id; });
+    var agentLink = (backingAgent && agentIds[backingAgent.id]) ? safeWikilink(agentIds[backingAgent.id]) : null;
+    dutyNote.body = "Recurring duty: \"" + c.repDuty + "\". "
+      + "Appears across " + c.recurrence + " of the sampled roles"
+      + (jobadLinks ? " (" + jobadLinks + ")" : "") + ". "
+      + "Exposure: " + c.level + "."
+      + (skillLinks ? " Related skills: " + skillLinks + "." : "")
+      + (agentLink ? " Agent candidate: " + agentLink + "." : "");
+  });
+
+  // Compose jobad note fields + body
+  Object.keys(uuidToJob).forEach(function(uuid) {
+    var jobadNote = noteById[jobadIds[uuid]];
+    if (!jobadNote) return;
+    var j = uuidToJob[uuid];
+    jobadNote.fields = [
+      ["Posted", j.postedDate ? j.postedDate.slice(0, 10) : "[UNVERIFIED]"],
+      ["Employer", safeWikilink(orgId) || (model.company || "")],
+    ];
+    if (j.mcfUrl) jobadNote.fields.push(["MCF URL", j.mcfUrl]);
+    // Duties that span this uuid
+    var spanningDuties = keptClusters.filter(function(c) {
+      return c.roleUuids.indexOf(uuid) !== -1;
+    });
+    var dutyLinks = spanningDuties.slice(0, 4).map(function(c) {
+      return safeWikilink(dutyIds[c.id]);
+    }).filter(Boolean).join(", ");
+    jobadNote.body = "Job ad for " + (j.title || "this role") + " at " + (safeWikilink(orgId) || model.company || "this employer") + "."
+      + (dutyLinks ? " Recurring duties from this posting: " + dutyLinks + "." : "");
+  });
+
+  // Compose skill note fields + body
+  Object.keys(skillSeen).forEach(function(slug) {
+    var skillId = "skill:" + slug;
+    var skillNote = noteById[skillId];
+    if (!skillNote) return;
+    // Duties that list this skill
+    var spanningDuties = keptClusters.filter(function(c) {
+      return (c.skills || []).some(function(sk) {
+        var s = typeof sk === "string" ? sk : (sk.skill || "");
+        return _wikiSlug(s) === slug;
+      });
+    });
+    // Jobads that include this skill (via those duties)
+    var spanUuids = new Set();
+    spanningDuties.forEach(function(c) {
+      c.roleUuids.forEach(function(u) { spanUuids.add(u); });
+    });
+    skillNote.fields = [
+      ["Seen in", spanUuids.size + " of " + ((model.stats && model.stats.postings) || "sampled") + " roles"],
+    ];
+    var dutyLinks = spanningDuties.slice(0, 3).map(function(c) {
+      return safeWikilink(dutyIds[c.id]);
+    }).filter(Boolean).join(", ");
+    var jobadLinks = Array.from(spanUuids).slice(0, 3).map(function(uuid) {
+      return safeWikilink(jobadIds[uuid]);
+    }).filter(Boolean).join(", ");
+    skillNote.body = "Skill: \"" + skillNote.title + "\". "
+      + "Appears in " + spanUuids.size + " of the sampled postings"
+      + (jobadLinks ? " (" + jobadLinks + ")" : "") + "."
+      + (dutyLinks ? " Related duties: " + dutyLinks + "." : "");
+  });
+
+  // Compose agent note fields + body
+  (model.agents || []).forEach(function(ag) {
+    if (!agentIds[ag.id]) return;
+    var agentNote = noteById[agentIds[ag.id]];
+    if (!agentNote) return;
+    var cluster = keptClusters.find(function(c) { return c.id === ag.clusterId; });
+    agentNote.fields = [
+      ["Score", String(ag.score)],
+      ["Recurrence", ag.recurrence + " role" + (ag.recurrence === 1 ? "" : "s")],
+      ["Exposure", ag.level],
+    ];
+    var dutyLink = (cluster && dutyIds[cluster.id]) ? safeWikilink(dutyIds[cluster.id]) : null;
+    var jobadLinks = cluster ? cluster.roleUuids.slice(0, 3).map(function(uuid) {
+      return safeWikilink(jobadIds[uuid]);
+    }).filter(Boolean).join(", ") : "";
+    agentNote.body = "Agent candidate: " + ag.label + ". "
+      + "Backed by " + (dutyLink ? "duty " + dutyLink : "a recurring duty cluster") + ". "
+      + "Recurs across " + ag.recurrence + " of this employer's sampled role" + (ag.recurrence === 1 ? "" : "s")
+      + (jobadLinks ? " (" + jobadLinks + ")" : "") + ".";
+  });
+
+  // ---- Closure pass: compute backlinks ----
+  // backlinks[B] = all notes A where B is in A.links
+  notes.forEach(function(n) { n.backlinks = []; });
+  notes.forEach(function(n) {
+    n.links.forEach(function(targetId) {
+      var tgt = noteById[targetId];
+      if (tgt && tgt.backlinks.indexOf(n.id) === -1) {
+        tgt.backlinks.push(n.id);
+      }
+    });
+  });
+
+  // ---- nextMove derivation (W1.4) ----
+  var nextMove = null;
+  var agentList = model.agents || [];
+  if (agentList.length > 0) {
+    var a0 = agentList[0];
+    nextMove = {
+      kind: "agent",
+      targetId: "agent:" + a0.id,
+      line: "your next best move is to review " + a0.label + " - it recurs across " + a0.recurrence + " of this employer's sampled role" + (a0.recurrence === 1 ? "" : "s"),
+      source: "derived",
+      prov: "derived",
+    };
+  } else if (keptClusters.length > 0) {
+    // Highest-recurrence HUMAN-level duty; ties broken by repDuty.localeCompare
+    var humanDuties = keptClusters.filter(function(c) { return c.level === "HUMAN"; });
+    if (humanDuties.length > 0) {
+      var best = humanDuties.slice().sort(function(a, b) {
+        if (b.recurrence !== a.recurrence) return b.recurrence - a.recurrence;
+        return a.repDuty.localeCompare(b.repDuty);
+      })[0];
+      var bestDutyId = dutyIds[best.id];
+      if (bestDutyId && noteById[bestDutyId]) {
+        nextMove = {
+          kind: "duty",
+          targetId: bestDutyId,
+          line: "the work most likely to stay human-led here is " + safeWikilink(bestDutyId) + ", recurring across " + best.recurrence + " role" + (best.recurrence === 1 ? "" : "s"),
+          source: "derived",
+          prov: "derived",
+        };
+      }
+    }
+  }
+
+  // W1.5: withhold nextMove when model is thin
+  if (model.withheld && model.withheld.length > 0 && agentList.length === 0) {
+    nextMove = null;
+  }
+
+  return {
+    notes: notes,
+    withheld: model.withheld || [],
+    nextMove: nextMove,
+    stats: {
+      notes: notes.length,
+      byType: {
+        employer: notes.filter(function(n) { return n.type === "employer"; }).length,
+        jobad: notes.filter(function(n) { return n.type === "jobad"; }).length,
+        duty: notes.filter(function(n) { return n.type === "duty"; }).length,
+        skill: notes.filter(function(n) { return n.type === "skill"; }).length,
+        agent: notes.filter(function(n) { return n.type === "agent"; }).length,
+      },
+    },
+  };
+}
+
+// W1: WikiNote renderers (R007: ASCII only in JSX strings; R006: named handlers)
+// Shared helper: render a [[wikilink]] token as a keyboard-focusable button.
+// Wikilink pattern: [[type:id|label]] - extract label for display.
+function _renderBody(body, onNav) {
+  if (!body) return null;
+  // Split on [[type:id|label]] tokens
+  var parts = [];
+  var remaining = body;
+  var wlRe = /\[\[([^\]|]+)\|([^\]]+)\]\]/g;
+  var match;
+  var lastIndex = 0;
+  wlRe.lastIndex = 0;
+  while ((match = wlRe.exec(body)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ kind: "text", text: body.slice(lastIndex, match.index) });
+    }
+    parts.push({ kind: "wikilink", targetId: match[1], label: match[2] });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < body.length) {
+    parts.push({ kind: "text", text: body.slice(lastIndex) });
+  }
+  return parts.map(function(part, i) {
+    if (part.kind === "wikilink") {
+      return (
+        <button key={i} aria-label={"Go to note: " + part.label}
+          onClick={function() { onNav(part.targetId); }}
+          style={{ display:"inline", background:"#ecfeff", border:"1px solid #a5f3fc", color:"#0e7490", fontWeight:700, borderRadius:7, padding:"1px 7px", margin:"0 1px", fontSize:"0.9em", lineHeight:1.9, cursor:"pointer", font:"inherit" }}>
+          {part.label}
+        </button>
+      );
+    }
+    return <span key={i}>{part.text}</span>;
+  });
+}
+
+// W1: NoteTypeChip - type label chip (no red/green)
+function NoteTypeChip({ type }) {
+  var style = { employer: { color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe" },
+                jobad: { color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc" },
+                duty: { color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" },
+                skill: { color:"#0e7490", bg:"#cffafe", border:"#67e8f9" },
+                agent: { color:"#0369a1", bg:"#e0f2fe", border:"#7dd3fc" } }[type]
+    || { color:"#5b6878", bg:"#f5f7fa", border:"#dde3ec" };
+  var label = { employer:"Employer", jobad:"Job Ad", duty:"Duty cluster", skill:"Skill", agent:"Agent candidate" }[type] || type;
+  return (
+    <span style={{ fontSize:"0.6875rem", fontWeight:800, textTransform:"uppercase", letterSpacing:"0.03em", borderRadius:999, padding:"3px 9px", color:style.color, background:style.bg, border:"1px solid " + style.border }}>
+      {label}
+    </span>
+  );
+}
+
+// W1: shared note frame - used by all three W1 renderers.
+function _NoteFrame({ note, onNav, children }) {
+  var provKind = note.source === "from MCF" ? "mcf" : "derived";
+  return (
+    <article aria-label={"Note: " + note.title}
+      style={{ background:C.surface, border:"1px solid " + C.border, borderRadius:16, padding:20, marginTop:6, boxShadow:"4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85)" }}>
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, alignItems:"center", marginBottom:4 }}>
+        <NoteTypeChip type={note.type} />
+        <Prov kind={provKind} small />
+      </div>
+      <h2 style={{ margin:"8px 0 4px", fontSize:"1.25rem", letterSpacing:"-0.01em", color:C.text }}>{note.title}</h2>
+      <p style={{ margin:"0 0 2px", fontSize:"0.6875rem", color:C.muted }}>{note.confidence}</p>
+      {note.fields && note.fields.length > 0 && (
+        <div style={{ margin:"10px 0 8px" }}>
+          {note.fields.map(function(f, i) {
+            var label = f[0], value = f[1];
+            // Value may contain [[wikilinks]]
+            return (
+              <div key={i} style={{ display:"flex", gap:8, fontSize:"0.8125rem", margin:"5px 0" }}>
+                <span style={{ color:C.muted, minWidth:120, fontWeight:600 }}>{label}</span>
+                <span style={{ color:C.text, flex:1 }}>{_renderBody(String(value || ""), onNav)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {children}
+      {note.body && (
+        <div style={{ fontSize:"0.9375rem", color:C.text, lineHeight:1.6, margin:"10px 0 8px" }}>
+          {_renderBody(note.body, onNav)}
+        </div>
+      )}
+      {note.backlinks && note.backlinks.length > 0 && (
+        <div style={{ marginTop:12 }}>
+          <div style={{ fontSize:"0.6875rem", fontWeight:800, textTransform:"uppercase", letterSpacing:"0.04em", color:C.textSub, marginBottom:6 }}>Linked from</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+            {note.backlinks.map(function(srcId) {
+              return (
+                <button key={srcId} aria-label={"Back to: " + srcId}
+                  onClick={function() { onNav(srcId); }}
+                  style={{ minHeight:34, background:C.tealBg, border:"1px solid " + C.tealBdr, color:C.teal, fontWeight:700, borderRadius:8, padding:"5px 11px", fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
+                  {srcId}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </article>
+  );
+}
+
+// W1: EmployerNote renderer
+function EmployerNote({ note, onNav }) {
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+// W1: JobAdNote renderer
+function JobAdNote({ note, onNav }) {
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+// W1: SkillNote renderer
+function SkillNote({ note, onNav }) {
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+// W1: DutyNote + AgentNote share the same frame (builder choice per spec)
+function DutyNote({ note, onNav }) {
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+function AgentNote({ note, onNav }) {
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+// W1: pick the correct renderer for a note type
+function WikiNoteRenderer({ note, onNav }) {
+  if (!note) return null;
+  if (note.type === "employer") return <EmployerNote note={note} onNav={onNav} />;
+  if (note.type === "jobad")   return <JobAdNote   note={note} onNav={onNav} />;
+  if (note.type === "skill")   return <SkillNote   note={note} onNav={onNav} />;
+  if (note.type === "duty")    return <DutyNote    note={note} onNav={onNav} />;
+  if (note.type === "agent")   return <AgentNote   note={note} onNav={onNav} />;
+  return <_NoteFrame note={note} onNav={onNav} />;
+}
+
+// W1: NextMoveBanner
+function NextMoveBanner({ nextMove, onNav }) {
+  if (!nextMove) return null;
+  return (
+    <div role="note" aria-label="Your next best move"
+      style={{ display:"flex", gap:10, alignItems:"flex-start", margin:"18px 0 16px", padding:"12px 14px", borderRadius:12, background:C.amberBg, border:"1px solid " + C.amberBdr }}>
+      <span aria-hidden="true" style={{ fontSize:"1.1rem", lineHeight:1.4 }}>*</span>
+      <div style={{ flex:1 }}>
+        <span style={{ fontSize:"0.875rem", color:"#7c4a06" }}>
+          {_renderBody(nextMove.line, onNav)}
+        </span>
+        <span style={{ marginLeft:8 }}><Prov kind="derived" small /></span>
+      </div>
+    </div>
+  );
+}
+
+// W1: EmployerWikiView - the WikiGraph shell.
+// Runs the SAME CO1+CO2 fetch the CompanyPanel uses (action:"company" + duties:true),
+// calls buildCompanyAgents -> buildEmployerWiki + companyAgentsToKgPayload,
+// renders note column + embedded KGGraph + nextMove banner.
+// Named fetch functions (R006).
+// R005: EmployerWikiView greppable.
+export function EmployerWikiView({ companyQuery }) {
+  var [fetchState, setFetchState] = useState({ loading: false, error: "", phase: "idle" });
+  var [wikiData, setWikiData] = useState(null);  // { notes, withheld, nextMove, stats }
+  var [kgPayload, setKgPayload] = useState(null);
+  var [companyName, setCompanyName] = useState("");
+  var [matches, setMatches] = useState([]);
+  var [chosenKey, setChosenKey] = useState(null);
+  var [ambiguous, setAmbiguous] = useState(false);
+  var [activeNoteId, setActiveNoteId] = useState(null);
+  var [tapNodeId, setTapNodeId] = useState(null);
+  var [history, setHistory] = useState([]); // Back stack of note ids
+  var [inputVal, setInputVal] = useState(companyQuery || "");
+
+  // CO1 fetch: action:"company" - mirrors CompanyPanel.loadCompanyBoth
+  function fetchCompanyCO1(query) {
+    setFetchState({ loading: true, error: "", phase: "co1" });
+    setWikiData(null);
+    setKgPayload(null);
+    setMatches([]);
+    setChosenKey(null);
+    setAmbiguous(false);
+    setActiveNoteId(null);
+    setHistory([]);
+    fetch("/api/mcf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "company", company: query, limit: 50 }),
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var ms = Array.isArray(data.matches) ? data.matches : [];
+        if (ms.length === 0) {
+          setFetchState({ loading: false, error: data.message || ("No results found for \"" + query + "\"."), phase: "idle" });
+          return;
+        }
+        if (ms.length === 1) {
+          setMatches(ms);
+          setAmbiguous(false);
+          fetchCompanyCO2(ms[0]);
+        } else {
+          setMatches(ms);
+          setAmbiguous(true);
+          setFetchState({ loading: false, error: "", phase: "disambig" });
+        }
+      })
+      .catch(function(err) {
+        setFetchState({ loading: false, error: "Could not reach MyCareersFuture. Please try again.", phase: "idle" });
+      });
+  }
+
+  // CO2 fetch: action:"company" + duties:true - mirrors CompanyPanel.loadDuties
+  function fetchCompanyCO2(matchGroup) {
+    setFetchState({ loading: true, error: "", phase: "co2" });
+    fetch("/api/mcf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "company", company: matchGroup.displayName, duties: true, detailLimit: 5, limit: 50 }),
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var enrichedGroup = (Array.isArray(data.matches) && data.matches.length === 1)
+          ? data.matches[0] : matchGroup;
+        var model = buildCompanyAgents(enrichedGroup);
+        var kg = companyAgentsToKgPayload(model);
+        var wiki = buildEmployerWiki(model);
+        setCompanyName(model.company || matchGroup.displayName || "");
+        setKgPayload(kg);
+        setWikiData(wiki);
+        // Default active note: employer note (first note)
+        if (wiki.notes && wiki.notes.length > 0) setActiveNoteId(wiki.notes[0].id);
+        setFetchState({ loading: false, error: "", phase: "ready" });
+      })
+      .catch(function() {
+        setFetchState({ loading: false, error: "Could not load duty details. Showing postings only.", phase: "idle" });
+      });
+  }
+
+  // Auto-fetch if companyQuery is pre-supplied via URL
+  useEffect(function() {
+    if (companyQuery) {
+      setInputVal(companyQuery);
+      fetchCompanyCO1(companyQuery);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyQuery]);
+
+  // Note navigation: push current to history, set new active
+  function handleNavNote(targetId) {
+    if (!wikiData) return;
+    var noteById = {};
+    wikiData.notes.forEach(function(n) { noteById[n.id] = n; });
+    if (!noteById[targetId]) return;
+    setHistory(function(h) { return activeNoteId ? h.concat([activeNoteId]) : h; });
+    setActiveNoteId(targetId);
+    // Highlight graph node if note has a kgNodeId
+    var t = noteById[targetId];
+    if (t && t.kgNodeId) setTapNodeId(t.kgNodeId);
+  }
+
+  function handleBack() {
+    if (history.length === 0) return;
+    var prev = history[history.length - 1];
+    setHistory(function(h) { return h.slice(0, h.length - 1); });
+    setActiveNoteId(prev);
+    if (wikiData) {
+      var noteById = {};
+      wikiData.notes.forEach(function(n) { noteById[n.id] = n; });
+      var pn = noteById[prev];
+      if (pn && pn.kgNodeId) setTapNodeId(pn.kgNodeId);
+    }
+  }
+
+  // Graph node tap: navigate to matching wiki note
+  function handleGraphNodeTap(nodeId) {
+    setTapNodeId(nodeId);
+    if (!wikiData) return;
+    // Find the note whose kgNodeId matches
+    var match = wikiData.notes.find(function(n) { return n.kgNodeId === nodeId; });
+    if (match) {
+      setHistory(function(h) { return activeNoteId ? h.concat([activeNoteId]) : h; });
+      setActiveNoteId(match.id);
+    }
+  }
+
+  // Keyboard nav: ArrowLeft = back, ArrowRight = first linked note
+  function handleKeyDown(e) {
+    if (e.key === "ArrowLeft") { e.preventDefault(); handleBack(); }
+    if (e.key === "ArrowRight" && wikiData && activeNoteId) {
+      var noteById = {};
+      wikiData.notes.forEach(function(n) { noteById[n.id] = n; });
+      var cur = noteById[activeNoteId];
+      if (cur && cur.links && cur.links.length > 0) handleNavNote(cur.links[0]);
+    }
+  }
+
+  function handleSearch(e) {
+    e.preventDefault();
+    if (inputVal.trim()) fetchCompanyCO1(inputVal.trim());
+  }
+
+  function handleInputChange(e) {
+    setInputVal(e.target.value);
+  }
+
+  var activeNote = null;
+  if (wikiData && activeNoteId) {
+    activeNote = wikiData.notes.find(function(n) { return n.id === activeNoteId; }) || null;
+  }
+
+  var headerStyle = { position:"sticky", top:0, zIndex:5, background:"linear-gradient(100deg,#0a2a5e,#003399)", borderBottom:"1px solid rgba(255,255,255,.12)" };
+  var brandStyle = { fontWeight:800, fontSize:"0.9375rem", letterSpacing:"-0.01em", color:"#fff", lineHeight:1.25 };
+  var wrapStyle = { maxWidth:1200, margin:"0 auto", padding:"0 24px 64px" };
+  var mainStyle = { display:"flex", gap:20, alignItems:"flex-start", marginTop:16, flexWrap:"wrap" };
+  var noteColStyle = { flex:"1 1 380px", minWidth:0 };
+  var graphColStyle = { flex:"1 1 420px", minWidth:0 };
+
+  return (
+    <div style={{ background:C.bg, minHeight:"100vh", fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif", backgroundImage:"radial-gradient(rgba(120,150,200,.18) 1px, transparent 1.5px)", backgroundSize:"26px 26px" }}
+      onKeyDown={handleKeyDown} tabIndex={-1}>
+
+      {/* Header */}
+      <header style={headerStyle}>
+        <div style={{ maxWidth:1200, margin:"0 auto", padding:"10px 24px", display:"flex", flexWrap:"wrap", alignItems:"center", gap:"8px 10px" }}>
+          <span style={brandStyle}>WikiGraph - Employer</span>
+          <span style={{ fontSize:"0.625rem", fontWeight:800, textTransform:"uppercase", letterSpacing:"0.04em", color:C.amber, background:C.amberBg, border:"1px solid " + C.amberBdr, borderRadius:999, padding:"2px 8px" }}>BETA</span>
+          <span style={{ flex:1 }} />
+          {history.length > 0 && (
+            <button onClick={handleBack} aria-label="Back to previous note"
+              style={{ minHeight:44, padding:"8px 14px", borderRadius:8, border:"1px solid rgba(255,255,255,.3)", background:"rgba(255,255,255,.14)", color:"#fff", fontWeight:700, fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
+              Back
+            </button>
+          )}
+          {companyName && (
+            <span style={{ fontSize:"0.8125rem", color:"rgba(255,255,255,.8)", fontWeight:700 }}>{companyName}</span>
+          )}
+        </div>
+      </header>
+
+      <div style={wrapStyle}>
+        {/* Search bar */}
+        <div style={{ background:C.surface, border:"1px solid " + C.border, borderRadius:16, padding:20, marginTop:16, boxShadow:"4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85)" }}>
+          <h2 style={{ margin:"0 0 2px", fontSize:"1.2rem", color:C.text }}>WikiGraph - Employer</h2>
+          <p style={{ margin:"0 0 14px", fontStyle:"italic", fontSize:"0.8125rem", color:C.muted }}>Enter an employer name to view their live job-ad wiki - duty clusters, agent candidates, and next-best-move guidance from the CO2 engine.</p>
+          <form onSubmit={handleSearch} style={{ display:"flex", gap:8 }}>
+            <label htmlFor="wiki-company-input" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>Employer name</label>
+            <input id="wiki-company-input" type="text" value={inputVal} onChange={handleInputChange}
+              aria-label="Employer name" placeholder="e.g. Metta, DBS, Grab..."
+              style={{ flex:1, background:"#fbfcfe", border:"1.5px solid " + C.accent, borderRadius:8, color:C.text, padding:"12px 14px", fontSize:"1rem", fontFamily:"inherit", boxShadow:"inset 3px 3px 7px rgba(174,189,212,.5), inset -3px -3px 7px rgba(255,255,255,.85)" }} />
+            <button type="submit" aria-label="Search employer"
+              style={{ background:C.eu, color:"#fff", border:"none", borderRadius:8, padding:"0 20px", minHeight:48, fontWeight:700, fontSize:"0.8125rem", whiteSpace:"nowrap", cursor:"pointer", font:"inherit" }}>
+              Search
+            </button>
+          </form>
+        </div>
+
+        {/* Loading */}
+        {fetchState.loading && (
+          <div style={{ textAlign:"center", padding:"32px 20px", color:C.muted, fontSize:"0.875rem" }}>
+            <div style={{ width:30, height:30, margin:"0 auto 12px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
+            {fetchState.phase === "co1" ? "Searching MyCareersFuture..." : "Building wiki from duty data..."}
+          </div>
+        )}
+
+        {/* Error */}
+        {!fetchState.loading && fetchState.error && (
+          <div style={{ background:C.amberBg, border:"1px solid " + C.amberBdr, borderRadius:10, padding:"20px 18px", marginTop:14 }}>
+            <p style={{ margin:0, fontSize:"0.8125rem", color:"#78350f" }}>{fetchState.error}</p>
+          </div>
+        )}
+
+        {/* Disambiguation picker */}
+        {fetchState.phase === "disambig" && ambiguous && matches.length > 1 && (
+          <div style={{ background:C.surface, border:"1px solid " + C.border, borderRadius:12, padding:16, marginTop:14 }}>
+            <p style={{ margin:"0 0 12px", fontSize:"0.8125rem", fontWeight:700, color:C.text }}>Multiple employers match - select one:</p>
+            <div role="list" aria-label="Matched employers">
+              {matches.map(function(m) {
+                return (
+                  <button key={m.key} role="listitem"
+                    aria-label={m.displayName + " - " + m.count + " posting" + (m.count === 1 ? "" : "s")}
+                    onClick={function() { setChosenKey(m.key); fetchCompanyCO2(m); }}
+                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", minHeight:44, textAlign:"left", marginBottom:8, padding:"10px 14px", background:C.surface, border:"1px solid " + C.border, borderRadius:8, cursor:"pointer", font:"inherit", gap:12 }}>
+                    <span style={{ fontSize:"0.9375rem", fontWeight:700, color:C.text }}>{m.displayName}</span>
+                    <span style={{ fontSize:"0.8125rem", fontWeight:700, color:C.teal, background:C.tealBg, border:"1px solid " + C.tealBdr, borderRadius:10, padding:"2px 10px", whiteSpace:"nowrap", flexShrink:0 }}>{m.count} posting{m.count === 1 ? "" : "s"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Wiki main area */}
+        {fetchState.phase === "ready" && wikiData && (
+          <>
+            {/* Withhold banner */}
+            {wikiData.withheld && wikiData.withheld.length > 0 && (
+              <div style={{ background:C.amberBg, border:"1px solid " + C.amberBdr, borderRadius:10, padding:"12px 16px", marginTop:14, fontSize:"0.8125rem", color:"#78350f" }}>
+                <span style={{ fontWeight:700 }}>Note: </span>{wikiData.withheld[0]}
+              </div>
+            )}
+
+            {/* Next-best-move banner */}
+            <NextMoveBanner nextMove={wikiData.nextMove} onNav={handleNavNote} />
+
+            {/* Breadcrumb */}
+            {history.length > 0 && (
+              <div style={{ display:"flex", flexWrap:"wrap", gap:6, alignItems:"center", paddingTop:14, fontSize:"0.75rem", color:C.muted }}>
+                <button onClick={handleBack} aria-label="Back to previous note"
+                  style={{ background:"none", border:"none", color:C.accent, fontWeight:700, padding:"2px 4px", borderRadius:6, cursor:"pointer", font:"inherit" }}>
+                  Back
+                </button>
+                <span style={{ color:C.muted }}>/</span>
+                <span>{activeNoteId}</span>
+              </div>
+            )}
+
+            <div style={mainStyle}>
+              {/* Note column */}
+              <div style={noteColStyle}>
+                {/* Note type filter tabs */}
+                <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
+                  {["employer","jobad","duty","skill","agent"].map(function(t) {
+                    var count = wikiData.notes.filter(function(n) { return n.type === t; }).length;
+                    if (count === 0) return null;
+                    return (
+                      <button key={t} aria-label={"Filter: " + t + " (" + count + " notes)"}
+                        onClick={function() {
+                          var first = wikiData.notes.find(function(n) { return n.type === t; });
+                          if (first) handleNavNote(first.id);
+                        }}
+                        style={{ minHeight:38, display:"inline-flex", alignItems:"center", gap:6, padding:"7px 12px", borderRadius:10, border:"1px solid " + C.border, background:C.surface, color:C.textSub, fontWeight:700, fontSize:"0.8125rem", cursor:"pointer", font:"inherit" }}>
+                        <span>{t}</span>
+                        <span style={{ fontSize:"0.6875rem", fontWeight:700, color:C.muted }}>({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeNote ? (
+                  <WikiNoteRenderer note={activeNote} onNav={handleNavNote} />
+                ) : (
+                  wikiData.notes.length > 0 ? (
+                    <p style={{ color:C.muted, fontSize:"0.875rem" }}>Select a note type above or click a wikilink to start reading.</p>
+                  ) : (
+                    <p style={{ color:C.muted, fontSize:"0.875rem" }}>No notes could be built from this employer's data.</p>
+                  )
+                )}
+              </div>
+
+              {/* Graph column */}
+              {kgPayload && (
+                <div style={graphColStyle}>
+                  <div style={{ background:C.surface, border:"1px solid " + C.border, borderRadius:16, padding:8, boxShadow:"4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85)" }}>
+                    <div style={{ fontSize:"0.6875rem", fontWeight:800, textTransform:"uppercase", letterSpacing:"0.04em", color:C.muted, padding:"6px 8px 2px" }}>Employer graph</div>
+                    <KGGraph kg={kgPayload} onNodeTap={handleGraphNodeTap} layout="lanes" />
+                    {tapNodeId && (
+                      <div style={{ padding:"6px 8px", fontSize:"0.6875rem", color:C.muted }}>
+                        Highlighted node: {tapNodeId}
+                      </div>
+                    )}
+                  </div>
+                  {/* Side panel: reuse CompanyAgentSidePanel */}
+                  {tapNodeId && (
+                    <CompanyAgentSidePanel nodeId={tapNodeId} kgPayload={kgPayload}
+                      onClose={function() { setTapNodeId(null); }} />
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Wiki note list (all notes, compact) */}
+            <div style={{ marginTop:22 }}>
+              <div style={{ fontSize:"0.8125rem", fontWeight:800, textTransform:"uppercase", letterSpacing:"0.04em", color:C.textSub, marginBottom:8 }}>All notes ({wikiData.notes.length})</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                {wikiData.notes.map(function(n) {
+                  var isActive = n.id === activeNoteId;
+                  return (
+                    <button key={n.id}
+                      aria-label={"Open note: " + n.title}
+                      aria-pressed={isActive}
+                      onClick={function() { handleNavNote(n.id); }}
+                      style={{ minHeight:44, padding:"8px 14px", borderRadius:10, border:"1px solid " + (isActive ? C.accent : C.border), background:isActive ? C.accentSoft : C.surface, color:isActive ? C.accent : C.textSub, fontWeight:700, fontSize:"0.8125rem", cursor:"pointer", font:"inherit", boxShadow:"4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85)" }}>
+                      {n.title.slice(0, 40)}{n.title.length > 40 ? "..." : ""}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Footer */}
+        <footer role="contentinfo" style={{ marginTop:18, padding:"12px 14px", borderRadius:12, background:"#f1f5f9", border:"1px solid " + C.border, fontSize:"0.75rem", color:C.textSub }}>
+          <strong style={{ color:C.text }}>AI-assisted; human decides.</strong>
+          {"  Source: MyCareersFuture (live) - Confidence: shown per note (derived = from CO2 engine) - Time-window: sampled postings at time of fetch."}
+          <br />{"WikiGraph W1 - Employer persona. Notes are 1:1 with the CO2 model; no note, link, agent, or next-move is fabricated. D1-D8 N/A: no LLM prompt in this view."}
+        </footer>
+      </div>
+    </div>
+  );
+}
+
 // CO2.8: CompanyAgentSidePanel - node-detail side panel opened via onNodeTap.
 // Shows "Connected to" (roles + skills) and "From these postings" (provenance).
 // 44px targets, aria, no red/green.
