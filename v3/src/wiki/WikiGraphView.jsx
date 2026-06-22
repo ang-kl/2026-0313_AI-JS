@@ -120,23 +120,59 @@ function wrapLabel(s, maxChars) {
   return lines.length ? lines : [""];
 }
 
-// Compute pill geometry for a node label (mirrors demo pillOf)
+// Compute pill geometry for a node label. Smaller, lighter pills (the major/minor
+// distinction is carried by the per-node scale, not by a chunky base size).
 function pillOf(label, count) {
   const txt = label + (count ? " (" + count + ")" : "");
-  const MAX_CHARS = 18;
+  const MAX_CHARS = 16;
   const lines = wrapLabel(txt, MAX_CHARS);
   const longest = Math.max(1, ...lines.map(l => l.length));
-  const LH = 15;
+  const LH = 13;
   return {
     lines,
-    w: Math.max(66, longest * 7.0 + 26),
-    h: Math.max(32, lines.length * LH + 14),
+    w: Math.max(54, longest * 6.2 + 22),
+    h: Math.max(27, lines.length * LH + 11),
     lh: LH,
+    fs: 11,
   };
 }
 
+// ── Major / minor ranking ─────────────────────────────────────────────────────
+// Drives bubble size, spoke weight and which ring a child lands on. Deterministic.
+const TYPE_WEIGHT = {
+  role: 1.0, occupation: 0.92, iscoOccupation: 0.92,
+  "mirror-occupation": 0.84, organisation: 0.8,
+  skill: 0.56, escoSkill: 0.56,
+  qualification: 0.32, duty: 0.3,
+};
+function nodeImportance(node, nodeMap) {
+  if (!node) return 0.45;
+  const tw = TYPE_WEIGHT[node.type] != null ? TYPE_WEIGHT[node.type] : 0.5;
+  const cnt = Number(node.count) || 0;
+  const countBump = Math.min(0.32, Math.max(0, cnt - 1) * 0.07); // repeats -> bigger
+  const kids = (node.children || []).filter(k => nodeMap && nodeMap[k]).length;
+  const hubBump = Math.min(0.28, kids * 0.05);                   // a branch hub -> major
+  return tw + countBump + hubBump;
+}
+// Map importance (~0.3..1.4) to a bubble scale: minor small, major large.
+function impToScale(imp) {
+  const t = Math.max(0, Math.min(1, (imp - 0.3) / 1.05));
+  return 0.56 + t * 0.46; // 0.56 (minor) .. ~1.02 (major)
+}
+// Gentle curved spoke (a perpendicular bow) for the organic, neural-graph look.
+function curvePath(a, b, bow) {
+  if (!bow) return `M${a.x},${a.y} L${b.x},${b.y}`;
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const cx = (a.x + b.x) / 2 + (-dy / len) * bow;
+  const cy = (a.y + b.y) / 2 + (dx / len) * bow;
+  return `M${a.x},${a.y} Q${cx.toFixed(1)},${cy.toFixed(1)} ${b.x},${b.y}`;
+}
+
 // ── Radial graph layout ───────────────────────────────────────────────────────
-const CX = 500, CY = 300, RING = 210;
+const CX = 500, CY = 300;
+const RING_SINGLE = 200, RING_MAJOR = 158, RING_MINOR = 274;
+const MAJOR_T = 0.7; // importance threshold that splits major (inner) vs minor (outer)
 
 function layoutRadial(nodeMap, centreId, stack) {
   const centre = nodeMap[centreId] || {};
@@ -146,44 +182,86 @@ function layoutRadial(nodeMap, centreId, stack) {
   const target = {};
   const scaleT = {};
   const parentOf = {};
+  const impById = {};
 
   trail.forEach((id, i) => {
-    target[id] = { x: 130 + i * 92, y: 50 };
-    scaleT[id] = 0.55;
+    target[id] = { x: 120 + i * 86, y: 44 };
+    scaleT[id] = 0.5;
+    impById[id] = 0.5;
     if (i > 0) parentOf[id] = trail[i - 1];
     order.push(id);
   });
 
   target[centreId] = { x: CX, y: CY };
-  scaleT[centreId] = 1.18;
+  scaleT[centreId] = 1.24;
+  impById[centreId] = 1.6;
   if (trail.length) parentOf[centreId] = trail[trail.length - 1];
   order.push(centreId);
 
-  rawKids.forEach((k, i) => {
-    const a = (i / rawKids.length) * Math.PI * 2 - Math.PI / 2;
-    target[k] = { x: CX + Math.cos(a) * RING, y: CY + Math.sin(a) * RING };
-    scaleT[k] = 0.82;
-    parentOf[k] = centreId;
-    order.push(k);
-  });
+  // rank children by importance (keeps original order index for stable jitter)
+  const ranked = rawKids.map((k, i) => ({ k, i, imp: nodeImportance(nodeMap[k], nodeMap) }));
+  ranked.forEach(o => { impById[o.k] = o.imp; });
+
+  // place a set of children on a ring; angular span is weighted by importance so
+  // major nodes get breathing room and minor nodes pack tighter (declutters).
+  const placeRing = (arr, radius, angOffset) => {
+    const weights = arr.map(o => 0.55 + o.imp);
+    const tot = weights.reduce((s, w) => s + w, 0) || 1;
+    let acc = 0;
+    arr.forEach((o, idx) => {
+      const w = weights[idx];
+      const frac = (acc + w / 2) / tot;
+      acc += w;
+      const ang = frac * Math.PI * 2 - Math.PI / 2 + angOffset;
+      const jitter = (((o.i * 41) % 17) - 8) * 1.4; // deterministic, organic wobble
+      const r = radius + jitter + o.imp * 12;        // heavier nodes sit a touch further out
+      target[o.k] = { x: CX + Math.cos(ang) * r, y: CY + Math.sin(ang) * r };
+      scaleT[o.k] = impToScale(o.imp);
+      parentOf[o.k] = centreId;
+      order.push(o.k);
+    });
+  };
+
+  if (ranked.length <= 8) {
+    placeRing(ranked, RING_SINGLE, 0);
+  } else {
+    const major = ranked.filter(o => o.imp >= MAJOR_T);
+    const minor = ranked.filter(o => o.imp < MAJOR_T);
+    if (!major.length || !minor.length) {
+      placeRing(ranked, RING_SINGLE, 0); // avoid an empty ring
+    } else {
+      placeRing(major, RING_MAJOR, 0);
+      placeRing(minor, RING_MINOR, Math.PI / Math.max(1, minor.length)); // offset so minors sit between majors
+    }
+  }
 
   const edges = [];
   for (let i = 1; i < stack.length; i++) edges.push([stack[i - 1], stack[i]]);
   rawKids.forEach(k => edges.push([centreId, k]));
 
-  return { order, target, scaleT, parentOf, edges };
+  return { order, target, scaleT, parentOf, edges, impById };
 }
 
 // ── Animated positions state machine ─────────────────────────────────────────
-function useGraphAnim(target, scaleT, order, fromRef) {
+function useGraphAnim(target, scaleT, order, fromRef, parentOf) {
   const [pos, setPos] = useState({});
   const rafRef = useRef(null);
 
   useEffect(() => {
-    const from = fromRef.current || {};
+    const prev = fromRef.current || {};
+    // Seed: existing nodes start from their last spot; brand-new children start
+    // tiny at their parent's last position, so they grow OUT (the neural expand).
+    const from = {};
+    order.forEach(id => {
+      if (prev[id]) { from[id] = prev[id]; return; }
+      const par = parentOf && parentOf[id];
+      const pf = par && prev[par];
+      const t = target[id] || { x: CX, y: CY };
+      from[id] = pf ? { x: pf.x, y: pf.y, s: 0.22 } : { x: t.x, y: t.y, s: 0.3 };
+    });
     const t0 = Date.now();
     function animate() {
-      const p = Math.min(1, (Date.now() - t0) / 380);
+      const p = Math.min(1, (Date.now() - t0) / 440);
       const e = 1 - Math.pow(1 - p, 3);
       const next = {};
       order.forEach(id => {
@@ -215,11 +293,12 @@ function useGraphAnim(target, scaleT, order, fromRef) {
 
 // ── SVG radial graph inner component ─────────────────────────────────────────
 function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, realms, withheld }) {
-  const { order, target, scaleT, parentOf, edges } = layoutRadial(
+  const { order, target, scaleT, parentOf, edges, impById } = layoutRadial(
     nodeMap, stack[stack.length - 1] || "", stack
   );
   const fromRef = useRef({});
-  const pos = useGraphAnim(target, scaleT, order, fromRef);
+  const pos = useGraphAnim(target, scaleT, order, fromRef, parentOf);
+  const stackSet = new Set(stack);
 
   // Save positions so next layout can pick up from them
   useEffect(() => {
@@ -331,19 +410,27 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
             </filter>
           </defs>
           <g transform={svgTransform}>
-            {/* Edges */}
-            {edges.map(([a, b]) => {
+            {/* Edges - curved spokes; major branches heavier + darker, minor faint */}
+            {edges.map(([a, b], ei) => {
               const pa = pos[a], pb = pos[b];
               if (!pa || !pb) return null;
               const crosses = ecotone && realmById && realmById[a] && realmById[b] && realmById[a] !== realmById[b];
+              const spoke = !(stackSet.has(a) && stackSet.has(b)); // trail edges stay straight
+              const wgt = impById[b] != null ? impById[b] : 0.5;
+              const baseW = 0.9 + wgt * 2.3;                       // ~1.1 (minor) .. ~3.3 (major)
+              const sw = crosses ? Math.max(2.6, baseW) : baseW;
+              const op = crosses ? 1 : (0.3 + wgt * 0.48);         // minor faint, major solid
+              const bow = spoke ? ((ei % 2 ? 1 : -1) * Math.hypot(pb.x - pa.x, pb.y - pa.y) * 0.13) : 0;
               return (
                 <path
                   key={a + ">" + b}
                   fill="none"
-                  stroke={crosses ? "#b45309" : "#cbd5e1"}
-                  strokeWidth={crosses ? "2.6" : "1.6"}
+                  stroke={crosses ? "#b45309" : "#c3cedd"}
+                  strokeWidth={sw.toFixed(2)}
+                  strokeOpacity={op.toFixed(2)}
+                  strokeLinecap="round"
                   strokeDasharray={crosses ? "6 4" : "none"}
-                  d={`M${pa.x},${pa.y} L${pb.x},${pb.y}`}
+                  d={curvePath(pa, pb, bow)}
                 />
               );
             })}
@@ -400,7 +487,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
                   <text
                     textAnchor="middle"
                     fill={col.text}
-                    fontSize="12.5"
+                    fontSize={pill.fs}
                     fontWeight="700"
                     style={{ pointerEvents: "none" }}
                   >
@@ -458,7 +545,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
               {k}
             </span>
           ))}
-          <span style={{ fontWeight: 700, color: C.text }}>Bigger bubble = more occurrences.</span>
+          <span style={{ fontWeight: 700, color: C.text }}>Bigger bubble + heavier spoke = more central (role, occupations); smaller = supporting detail.</span>
         </div>
       )}
 
@@ -757,7 +844,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         Source: computed from role data (ESCO / ISCO / MCF) -{" "}
         Confidence: shown per node -{" "}
         Time-window: current session.
-        Node size = occurrence count; colour = cluster layer. Links appear only where evidence exists.
+        Node size + spoke weight = how central the item is (major branches heavier, minor lighter); colour = cluster layer. Links appear only where evidence exists.
       </footer>
     </div>
   );
