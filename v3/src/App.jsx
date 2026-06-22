@@ -1144,6 +1144,16 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.119 - 2026-06-22 - HDR #157 - WikiGraph is now a TAB, not a separate view (Human Lead: "i
+// prefer the old layout with the navigation and the different AI impact and job graph etc."). The
+// PR1 separate "wiki_view" dead-end is removed; the Career WikiGraph is a result-page tab "wikigraph"
+// in buildTabs (label "Career WikiGraph"), placed in the "understand" pillar next to Role Graph, and
+// rendered via <WikiGraphView embedded ...> (the embedded prop hides the in-view back button - the
+// result page owns the nav). A wiki-mode search now lands on the FULL result page with the wikigraph
+// tab active (setStep("results") + setActiveTab("wikigraph") when wikiDestRef), so every existing
+// tab (Skill Analysis, Job Anatomy/AI impact, Role Graph, Demand Proof, ...) stays present. The
+// graph payload is built lazily when the tab is open. buildKnowledgeGraph consumed read-only; all
+// frozen symbols + api/mcf.js untouched. G1 (v3.0.118 -> v3.0.119).
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
@@ -7168,7 +7178,7 @@ const _PILLAR_MAP = {
   // PL5: "understand-s1" renders first (why-the-org-wants-this-role: ForensicReversal +
   // Role Context department read + SYSTEM_WHY_ROLE narration). "rolegraph" is section 2.
   // PL8: "understand-also" renders AlsoAdvertisedAs (same job, other names) after rolegraph.
-  "understand":   ["understand-s1", "understand-also", "rolegraph", "responsibilities", "jobanatomy", "rolemix"],
+  "understand":   ["understand-s1", "understand-also", "rolegraph", "wikigraph", "responsibilities", "jobanatomy", "rolemix"],
   // PL6: "position-market" renders after context; holds the four market/employer reads
   // (DemandProof, AdLanguageScan, EmployerReality, CompanyBackground) pulled from deepread.
   // compare + mcf_jobs follow as position utility.
@@ -12463,25 +12473,21 @@ export default function App({ initialSearchMode } = {}) {
     setStep("mcf_company");
   }, [query]);
 
-  // WIKI1: Career WikiGraph mode. Mirrors startJobsBrowse; resolves the typed
-  // role via the existing ESCO/KG engine (doSearch -> doAnalyse) then opens
-  // step "wiki_view" which renders WikiGraphView fed from getKnowledgeGraph.
-  // PR1 shell: transitions to wiki_view; actual KG feed wired after doAnalyse
-  // completes and result is set (see wiki_view render block below).
-  // WIKI1: destination ref. A wiki-mode search runs the same resolve + analyse
-  // pipeline as Analyse role, but doAnalyse routes to step "wiki_view" instead of
-  // "results". A ref (not state) survives the async resolve + ESCO picker.
+  // WIKI1: Career WikiGraph mode. A wiki-mode search runs the SAME resolve +
+  // analyse pipeline as Analyse role; a destination ref (survives the async ESCO
+  // picker) makes doAnalyse land on the full result page with the "wikigraph" TAB
+  // active - so all the existing navigation (Skill Analysis, Job Anatomy, Role
+  // Graph, ...) stays present. The WikiGraph is a tab, not a separate view.
   const wikiDestRef = useRef(false);
   // WIKI1: build the graph payload fresh from the live result (NOT via the
-  // role-key cache, which would freeze a duty-less graph captured before the
-  // background enrichment lands). Recomputes only when result changes, so duties
-  // fill in as the analysis completes, then stays stable. buildKnowledgeGraph is
-  // consumed read-only - never edited.
+  // role-key cache, which would freeze a duty-less graph). Computed lazily only
+  // when the wikigraph tab is open; recomputes as result enriches, then stable.
+  // buildKnowledgeGraph is consumed read-only - never edited.
   const wikiKgPayload = useMemo(() => {
-    if (step !== "wiki_view" || !result) return { nodes: [], edges: [] };
+    if (activeTab !== "wikigraph" || !result) return { nodes: [], edges: [] };
     try { return buildKnowledgeGraph(result, (query || "").trim()); }
     catch (_e) { return { nodes: [], edges: [] }; }
-  }, [step, result, query]);
+  }, [activeTab, result, query]);
 
   const doSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -12762,7 +12768,8 @@ export default function App({ initialSearchMode } = {}) {
       analysisComplete = true;
       clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null;
       logStep("analysis", "results_shown", _msSince(_t0), `${merged.length} skills`);
-      setStep(wikiDestRef.current ? "wiki_view" : "results");
+      setStep("results");
+      if (wikiDestRef.current) setActiveTab("wikigraph");
 
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
@@ -13239,6 +13246,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { key:"compare",     label:"⚖️ Compare",                 color:"#1a56db" },
       { key:"mcf_jobs",    label:"🇸🇬 SG Jobs",    color:"#0e7490" },
       { key:"rolegraph",   label:"🕸 Role Graph",              color:"#4338ca" },
+      { key:"wikigraph",   label:"🌐 Career WikiGraph",        color:"#0e7490" },
       // { key:"resume", label:"📄 Resume Check", paused:true } -- removed (PL2)
     ];
   };
@@ -13570,6 +13578,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     }
     if (key === "rolegraph") {
       return <RoleGraphPanel key="rolegraph" result={result} title={sel?.title || ""} />;
+    }
+    if (key === "wikigraph") {
+      return <WikiGraphView key="wikigraph" embedded nodes={wikiKgPayload.nodes || []} edges={wikiKgPayload.edges || []} title={sel?.title || query.trim()} />;
     }
     return null;
   }
@@ -14045,21 +14056,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           </div>
         )}
 
-        {/* WIKI1: Career WikiGraph view. step "wiki_view" is set by doAnalyse when wikiDestRef is true.
-            WikiGraphView receives the KG payload from getKnowledgeGraph if a result
-            is already loaded, otherwise an empty payload (the shell still renders).
-            PR1: shell only - no lenses/journeys/ecotone yet (PR2-PR5). */}
-        {step === "wiki_view" && (() => {
-          const kgPayload = wikiKgPayload;
-          return (
-            <WikiGraphView
-              nodes={kgPayload.nodes || []}
-              edges={kgPayload.edges || []}
-              title={query.trim()}
-              onBack={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
-            />
-          );
-        })()}
+        {/* WIKI1: the Career WikiGraph is now a TAB in the result page (key "wikigraph"),
+            not a separate view - so analysing a role keeps the full navigation. */}
 
         {step === "picking" && (() => {
           // Group by sector
