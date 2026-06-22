@@ -1123,6 +1123,15 @@
 // entry, radial WikiGraph view + lens toggle + ecotone overlay, candidate/org journey panels,
 // Candidate Brief, provenance everywhere) and a phased PR0->PR5 plan. No app/engine change;
 // api/mcf.js + frozen symbols untouched. G1 (v3.0.115 -> v3.0.116).
+// v3.0.117 - 2026-06-22 - HDR #155 - PR0: Career WikiGraph SPEC (Human Lead approved the plan ->
+// "build"). Doc-only - adds v3/script/v3-wikigraph-spec.md (status READY_FOR_BUILD) authored by the
+// spec-author agent: the WikiGraph as an ADDITIVE reading surface over data the app already
+// computes; the four-tier honesty contract (verbatim/computed/derived/advisory) + a new R-WIKI-TIER
+// rule forcing a per-line provenance tier so the deterministic-vs-advisory ratio is provable;
+// deterministic realmOf + valueTagOf DERIVATION RULES (not LLM prose); wiki node/edge data model;
+// the two lenses + journeys mapped step-by-step to the reused v3 panels; the PR0->PR5 slice; D1-D8 +
+// G1-G8 gates; AU-7 frozen-door note. No app/engine change yet; api/mcf.js + frozen symbols
+// untouched. G1 (v3.0.116 -> v3.0.117).
 import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 
