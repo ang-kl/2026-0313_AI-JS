@@ -1144,6 +1144,25 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.125 - 2026-06-22 - HDR #163 - Career WikiGraph "Neural" view (Human Lead shared the Obsidian
+// graph as the target: "Neural look - visualize the relationships... find hidden patterns... visually
+// engaging and interactive graph"; + two refs showing shape/dimming aid reading). Decisions (asked):
+// ADD as a toggle (Focus radial vs Neural force-directed), DARK galaxy canvas. New file
+// src/wiki/NeuralGraph.jsx: a force-directed view of the WHOLE wiki graph at once - O(n^2) repulsion +
+// link springs + centering + damping, rAF cooled (deterministic phyllotaxis init, no Math.random in
+// the seed). Readability levers from the refs, adapted for the Human Lead's red-green colour blindness:
+// SIZE = importance, BRIGHTNESS = importance (minor/supporting nodes DIMMED so the named structure
+// reads - the Obsidian "dim the marginalia" idea), SHAPE = type (diamond=occupation, square=org,
+// triangle=competitor, big circle=role hub, circle=skill/detail - the Obsidian sample used RED for a
+// category but SHAPE is the colour-blind-safe non-colour cue here), COLOUR = cluster (blue/teal/purple/
+// amber/slate vivid on dark; NO red/green). Interactive: drag a node (pin while held, releases back into
+// the web), pan, scroll-zoom, hover/focus highlights the node + its links and dims the rest. aria-label
+// + keyboard-operable nodes + 44px toolbar. New shared src/wiki/graphMetrics.js (nodeImportance,
+// impToScale, TYPE_WEIGHT) extracted from WikiGraphView so both views rank identically. WikiGraphView:
+// Focus/Neural mode toggle (role=tablist) in the graph header; renders NeuralGraph when neural; trail
+// hidden in neural; ecotone overlay (realm colour + amber cross-realm links) works in both. Render-only,
+// additive; buildKnowledgeGraph/getKnowledgeGraph consumed read-only; all frozen symbols + api/* +
+// engine-data/* byte-identical. R007/R006 clean. G1 (v3.0.124 -> v3.0.125).
 // v3.0.124 - 2026-06-22 - HDR #162 - Career WikiGraph radial layout rework (Human Lead: "very ugly,
 // only hub and spoke, where are the major and minor spoke... should be graceful... smaller font...
 // expand appropriately like neural view graph"). Replaces the flat one-ring, one-size wheel in
