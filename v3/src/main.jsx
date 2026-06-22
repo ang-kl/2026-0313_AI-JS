@@ -27,6 +27,10 @@ const debugPanel = dmm === 'panel'
 const leap = params.get('view') === 'leap'
 const graph = params.get('view') === 'graph'
 const spherical = window.location.pathname.replace(/\/+$/, '') === '/spherical' || params.get('view') === 'spherical'
+// WIKI1 (PR1): ?view=wiki routes to the main App with wiki mode pre-selected.
+// The App handles step="wiki_view" via the fourth mode card and startWikiGraph().
+// A bare ?view=wiki with no query just opens the App landing with the wiki card active.
+const wikiView = params.get('view') === 'wiki'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -34,7 +38,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Suspense fallback={<div style={{ position: 'fixed', inset: 0, background: '#0b1220', color: '#9aa5b4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif', fontSize: 14 }}>Entering the sphere...</div>}>
         <SphericalGallery />
       </Suspense>
-    ) : graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App />}
+    ) : graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App initialSearchMode={wikiView ? "wiki" : undefined} />}
     <SpeedInsights />
   </React.StrictMode>,
 )

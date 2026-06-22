@@ -1132,8 +1132,21 @@
 // the two lenses + journeys mapped step-by-step to the reused v3 panels; the PR0->PR5 slice; D1-D8 +
 // G1-G8 gates; AU-7 frozen-door note. No app/engine change yet; api/mcf.js + frozen symbols
 // untouched. G1 (v3.0.116 -> v3.0.117).
-import { useState, useCallback, useRef, useEffect, lazy, Suspense } from "react";
+// v3.0.118 - 2026-06-22 - HDR #156 - PR1: Career WikiGraph entry + shell (additive; no engine edit).
+// Adds fourth mode card "Career WikiGraph" on the landing alongside Analyse role / Browse SG jobs /
+// Search by employer. A wiki-mode search runs the SAME resolve + analyse pipeline as Analyse role;
+// a destination ref (wikiDestRef) makes doAnalyse route to step "wiki_view" instead of "results"
+// (the ref survives the async ESCO resolve + picker). New component src/wiki/WikiGraphView.jsx: a
+// React port of the /demo radial focus-browser graph (one centre, tap to recentre, trail at top,
+// word-wrapped labels, pan/zoom/reset, animated relayout). The graph payload is built fresh via
+// buildKnowledgeGraph in a useMemo on result (NOT the role-key cache, which would freeze a
+// duty-less graph) so it fills in as the analysis enriches, then stays stable - consumes, never
+// edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
+// untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
+// G1 (v3.0.117 -> v3.0.118).
+import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
+import WikiGraphView from "./wiki/WikiGraphView.jsx";
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
@@ -12156,9 +12169,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   );
 }
 
-export default function App() {
+export default function App({ initialSearchMode } = {}) {
   const [query,     setQuery]     = useState("");
-  const [searchMode, setSearchMode] = useState("role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture) | "company" (CO1: search by employer)
+  const [searchMode, setSearchMode] = useState(initialSearchMode || "role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture) | "company" (CO1: search by employer) | "wiki" (WIKI1: Career WikiGraph)
   const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
@@ -12378,7 +12391,7 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step]);
 
-  const reset = () => { pickerCancelRef.current = true; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
+  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -12449,6 +12462,26 @@ export default function App() {
     track("company_search_started", { q: query.trim().slice(0, 60) });
     setStep("mcf_company");
   }, [query]);
+
+  // WIKI1: Career WikiGraph mode. Mirrors startJobsBrowse; resolves the typed
+  // role via the existing ESCO/KG engine (doSearch -> doAnalyse) then opens
+  // step "wiki_view" which renders WikiGraphView fed from getKnowledgeGraph.
+  // PR1 shell: transitions to wiki_view; actual KG feed wired after doAnalyse
+  // completes and result is set (see wiki_view render block below).
+  // WIKI1: destination ref. A wiki-mode search runs the same resolve + analyse
+  // pipeline as Analyse role, but doAnalyse routes to step "wiki_view" instead of
+  // "results". A ref (not state) survives the async resolve + ESCO picker.
+  const wikiDestRef = useRef(false);
+  // WIKI1: build the graph payload fresh from the live result (NOT via the
+  // role-key cache, which would freeze a duty-less graph captured before the
+  // background enrichment lands). Recomputes only when result changes, so duties
+  // fill in as the analysis completes, then stays stable. buildKnowledgeGraph is
+  // consumed read-only - never edited.
+  const wikiKgPayload = useMemo(() => {
+    if (step !== "wiki_view" || !result) return { nodes: [], edges: [] };
+    try { return buildKnowledgeGraph(result, (query || "").trim()); }
+    catch (_e) { return { nodes: [], edges: [] }; }
+  }, [step, result, query]);
 
   const doSearch = useCallback(async () => {
     if (!query.trim()) return;
@@ -12729,7 +12762,7 @@ export default function App() {
       analysisComplete = true;
       clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null;
       logStep("analysis", "results_shown", _msSince(_t0), `${merged.length} skills`);
-      setStep("results");
+      setStep(wikiDestRef.current ? "wiki_view" : "results");
 
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
@@ -13858,13 +13891,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   { k:"role", label:"Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
                   { k:"jobs", label:"Browse SG jobs", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Explore current Singapore openings - public service and private sector - and compare what employers are asking for." },
                   { k:"company", label:"Search by employer", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg." },
+                  { k:"wiki", label:"Career WikiGraph", desc:"See a role as a living ecosystem - one centre, branch out." },
                 ].map(m => (
                   <div key={m.k}
                     style={{ flex:"1 1 30%", minWidth:0, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
                       border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
                       background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
-                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
+                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); wikiDestRef.current = (m.k === "wiki"); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
                       style={{ textAlign:"left", padding: "8px 12px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
@@ -13882,14 +13916,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   aria-label={searchMode === "company" ? "Company name" : "Job title or role"} aria-describedby="search-hint"
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }}
-                  onKeyDown={e=>{ if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } } }}
+                  onKeyDown={e=>{ if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else if(searchMode==="wiki"){ wikiDestRef.current = true; doSearch(); } else { wikiDestRef.current = false; doSearch(); } } }}
                   placeholder={searchMode === "company" ? "e.g. DBS Bank, Ministry of Health, LTA" : "e.g. Data Analyst, Operations Manager, HR Executive"}
                   style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize: "1rem", fontFamily:"inherit" }} autoFocus />
                 <button className="lux-cta lux-focus"
-                  onClick={() => { if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else { doSearch(); } }}
-                  aria-label={searchMode==="company" ? "Find company postings" : searchMode==="jobs" ? "Browse SG jobs" : "Analyse role"}
+                  onClick={() => { if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else if(searchMode==="wiki"){ wikiDestRef.current = true; doSearch(); } else { wikiDestRef.current = false; doSearch(); } }}
+                  aria-label={searchMode==="company" ? "Find company postings" : searchMode==="jobs" ? "Browse SG jobs" : searchMode==="wiki" ? "Open Career WikiGraph" : "Analyse role"}
                   style={{ background:C.eu, border:"none", borderRadius: 8, color:"#fff", padding: "12px 22px", fontSize: "0.8125rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap", display:"inline-flex", alignItems:"center", gap:7 }}>
-                  <span>{searchMode==="company" ? "Find company" : searchMode==="jobs" ? "Browse" : "Analyse role"}</span>
+                  <span>{searchMode==="company" ? "Find company" : searchMode==="jobs" ? "Browse" : searchMode==="wiki" ? "WikiGraph" : "Analyse role"}</span>
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
@@ -13952,7 +13986,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             {/* Intro card - below search box */}
             <IntroCard onPersonaSelect={setPersona} toggleRef={toggleRef} />
             {/* Persona toggle - after intro card. LUX3: staggered entrance down the stack. */}
-            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} disabled={searchMode === "company"} /></div>
+            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} disabled={searchMode === "company" || searchMode === "wiki"} /></div>
             <div className="lux-rise" style={{ "--lux-d":"0.18s" }}>
               <CommunityNote />
               <Tagline />
@@ -14010,6 +14044,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             )}
           </div>
         )}
+
+        {/* WIKI1: Career WikiGraph view. step "wiki_view" is set by doAnalyse when wikiDestRef is true.
+            WikiGraphView receives the KG payload from getKnowledgeGraph if a result
+            is already loaded, otherwise an empty payload (the shell still renders).
+            PR1: shell only - no lenses/journeys/ecotone yet (PR2-PR5). */}
+        {step === "wiki_view" && (() => {
+          const kgPayload = wikiKgPayload;
+          return (
+            <WikiGraphView
+              nodes={kgPayload.nodes || []}
+              edges={kgPayload.edges || []}
+              title={query.trim()}
+              onBack={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
+            />
+          );
+        })()}
 
         {step === "picking" && (() => {
           // Group by sector
