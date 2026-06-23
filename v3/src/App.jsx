@@ -1144,6 +1144,13 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.131 - 2026-06-22 - HDR #169 - Fix: O-I-A themes blobbed (live 16-duty R&R collapsed to 2 themes).
+// Cause: union-find single-link clustering CHAINS duties transitively (A-B share t1, B-C share t2 ->
+// A,B,C all merge) into one giant theme on a compliance-dense ad. Fix in src/wiki/buildWikiTopics.js:
+// drop union-find; assign each duty NON-transitively to ONE headword = its most-grouping term with
+// doc-freq <= ceil(N/3) (so over-generic words like "compliance"/"regulatory" can't name-and-swallow a
+// theme), then group by headword. Same 16-duty ad now yields 7 distinct themes (Compliance/Regulatory/
+// ACRA/AML/Fraud/KYC/Risk) instead of 2. Still pure/deterministic; frozen door byte-identical. G1 (130->131).
 // v3.0.130 - 2026-06-22 - HDR #168 - Career WikiGraph: O-I-A "surgical cut" of the job R&R (Human
 // Lead: "the wikigraph should first do a proper O-I-A on job r&R... observe, extract key words mapping,
 // segment paragraphs into themes, use interpretation"; chose topic-groups-as-structure + work-mode/
