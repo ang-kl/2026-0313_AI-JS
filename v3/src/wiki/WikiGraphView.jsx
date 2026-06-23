@@ -17,6 +17,7 @@ import { nodeImportance, impToScale } from "./graphMetrics.js";
 import NeuralGraph from "./NeuralGraph.jsx";
 import { themeifyGraph } from "./themeGraph.js";
 import WikiCanvas from "./WikiCanvas.jsx";
+import WikiDissectDrawer from "./WikiDissectDrawer.jsx";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -739,6 +740,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   const [ecotone, setEcotone] = useState(false);
   // Expanded graph overlay (the right-rail mini expands to a full-screen graph with all controls)
   const [expanded, setExpanded] = useState(false);
+  // Left "Job ad" dissect drawer (floating overlay; markings drive the centre + graph)
+  const [dissectOpen, setDissectOpen] = useState(false);
 
   // O-I-A "surgical cut": reshape the raw KG payload into Role -> Theme groups -> duties.
   // Deterministic decorator (themeGraph.js); falls back to the raw payload when too few duties.
@@ -814,6 +817,13 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
     if (typeof document === "undefined") return;
     const el = document.getElementById(id);
     if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // A dissect-drawer marking was tapped: focus that duty in the graph + scroll the canvas to its theme.
+  function handleMarkingTap(dutyId, themeId) {
+    setSelectedId(dutyId);
+    scrollToId(themeId);
+    setDissectOpen(false);
   }
 
   // The graph block (mode toggle + ecotone + breadcrumb + the graph itself) - reused full in the overlay.
@@ -1048,6 +1058,27 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
           </div>
         </div>
       )}
+
+      {/* ── "Job ad" FAB (bottom-left) -> the dissected job ad drawer ── */}
+      {themed.themed && (
+        <button type="button" onClick={function() { setDissectOpen(true); }}
+          aria-label="Open the job ad, dissected by theme"
+          style={{ position: "fixed", left: 22, bottom: 88, zIndex: 950, minHeight: 48, padding: "10px 18px",
+            borderRadius: 999, border: "none", background: C.eu, color: "#fff", fontWeight: 800, fontSize: "0.8125rem",
+            boxShadow: "0 6px 18px rgba(2,6,23,0.28)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span aria-hidden="true">{String.fromCharCode(0x2702)}</span> Job ad
+        </button>
+      )}
+      <WikiDissectDrawer
+        open={dissectOpen}
+        onClose={function() { setDissectOpen(false); }}
+        topics={themed.topics}
+        dutyMeta={themed.dutyMeta}
+        nodeMap={nodeMap}
+        glosses={glosses}
+        result={result}
+        onMarkingTap={handleMarkingTap}
+      />
     </div>
   );
 }

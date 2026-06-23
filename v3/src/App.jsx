@@ -1144,6 +1144,18 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.140 - 2026-06-22 - HDR #178 - WikiGraph "Job ad" FAB -> dissected-job-ad drawer (Human Lead:
+// "left panel be navigation Floating Drawer and bottom Job ad FAB... open the whole drawer with dissect
+// markings which can be click and change the centre panel"; chose: job ad marked up + floating overlay).
+// New src/wiki/WikiDissectDrawer.jsx: a LEFT floating overlay (backdrop + slide-in panel) opened by a
+// bottom-left "Job ad" (scissors) FAB on the WikiGraph surface. It shows the verbatim posting context
+// (from MCF) + the O-I-A dissection as theme-coloured tappable MARKINGS (each duty, with its work-mode /
+// AI-exposure). Tapping a marking calls handleMarkingTap(dutyId, themeId) -> setSelectedId(dutyId)
+// (the right graph highlights that duty) + scrollToId(themeId) (the centre canvas scrolls to that theme)
+// + closes the drawer. So: tap a marking -> centre + graph focus, exactly the requested interaction.
+// WikiGraphView: dissectOpen state, the FAB, the drawer, the handler. Render-only over the themed payload
+// + verbatim posting; deterministic; LLM gloss only renames a theme label; no red/green (theme tints
+// decorative). FAB at bottom-left z950 (stacked above the existing app job-ad FAB for now). G1 (139 -> 140).
 // v3.0.139 - 2026-06-22 - HDR #177 - Docs-style 2-pane for the ORGANISATION perspective (Human Lead:
 // "the 3 panel doesn['t] show in the organisation perspective" -> bring it over). The employer AI-moments
 // is graph-PRIMARY (the graph is the content, the inverse of the role view where reads are the content +
