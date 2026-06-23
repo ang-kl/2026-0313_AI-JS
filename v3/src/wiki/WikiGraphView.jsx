@@ -608,8 +608,40 @@ const LEVEL_COLOUR = {
   HIGH:   { bg: "#fff7ed", bd: "#fed7aa", fg: "#c2410c" },
 };
 
+// ADVISORY theme-label gloss: rename a deterministic seed ("mas") to a readable phrase
+// ("Regulatory liaison"). The LLM only RELABELS for reading - it never changes which duties are
+// in a theme (the grouping is deterministic; the seed stays the node identity). Digit-stripped;
+// fails soft to the deterministic label. This is the "Interpret" step, tier ai (~).
+async function fetchThemeGlosses(topics) {
+  const groups = (topics || [])
+    .filter(t => t.seed && t.seed !== "other")
+    .map(t => `- "${t.seed}": ${(t.keywords || []).slice(0, 6).join(", ")}`)
+    .join("\n");
+  if (!groups) return {};
+  const system = "You label groups of job responsibilities for readability. For EACH group (identified by its seed key) return a short, natural 2-4 word English label naming the theme (e.g. seed 'mas' with regulatory terms -> 'Regulatory liaison'). Output ONLY JSON shaped {\"labels\":{\"<seed>\":\"<label>\"}}. No digits, no markdown, no commentary.";
+  const res = await fetch("/api/claude", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ model: "claude-fable-5", max_tokens: 400, system, messages: [{ role: "user", content: "Groups:\n" + groups }] }),
+  });
+  if (!res.ok) throw new Error("gloss " + res.status);
+  const data = await res.json();
+  const text = (data.content || []).filter(b => b && b.type === "text").map(b => b.text).join("");
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) return {};
+  let parsed;
+  try { parsed = JSON.parse(m[0]); } catch (_) { return {}; }
+  const labels = (parsed && parsed.labels) || {};
+  const out = {};
+  Object.keys(labels).forEach(k => {
+    const v = String(labels[k] || "").replace(/[0-9]/g, "").replace(/["{}\[\]]/g, "").trim().slice(0, 40);
+    if (v) out[k] = v;
+  });
+  return out;
+}
+
 // The O-I-A "surgical cut" readout: Observe -> Extract -> Segment -> Interpret, deterministic.
-function OIASurgicalCut({ topics, dutyMeta, stats, nodeMap }) {
+function OIASurgicalCut({ topics, dutyMeta, stats, nodeMap, glosses }) {
   const [open, setOpen] = useState(true);
   if (!topics || !topics.length) return null;
   const tagStyle = (c) => ({
@@ -637,12 +669,15 @@ function OIASurgicalCut({ topics, dutyMeta, stats, nodeMap }) {
         <div style={{ padding: "8px 16px 14px" }}>
           {topics.map(function(tp) {
             const col = CLUSTER_COLOUR.theme;
+            const gloss = glosses && glosses[tp.seed];
             return (
               <div key={tp.id} style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
                 <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: "0.8125rem", fontWeight: 800, color: col.text, background: col.fill, border: `1px solid ${col.stroke}`, borderRadius: 8, padding: "2px 10px" }}>
-                    {tp.label}
+                    {gloss || tp.label}
                   </span>
+                  {gloss ? <ProvChip kind="ai" /> : null}
+                  {gloss ? <span style={{ fontSize: "0.625rem", color: C.muted }}>(terms: {tp.label})</span> : null}
                   <span style={{ fontSize: "0.6875rem", color: C.muted }}>{tp.dutyIds.length} {tp.dutyIds.length === 1 ? "duty" : "duties"}</span>
                   {tp.keywords.length > 0 && (
                     <span style={{ fontSize: "0.6875rem", color: C.textSub }}>
@@ -670,8 +705,9 @@ function OIASurgicalCut({ topics, dutyMeta, stats, nodeMap }) {
           })}
           <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>
             Themes are grouped by shared key terms in the posting (deterministic, not AI-authored).
-            Each duty carries its work mode and AI-exposure level from the engine. A duty with no shared
-            theme sits under "Other responsibilities" rather than being forced into one.
+            Each duty carries its <strong style={{ color: C.text }}>work mode</strong> (from Job Anatomy when
+            loaded, otherwise estimated from the leading verb) and its <strong style={{ color: C.text }}>AI-exposure</strong>
+            level (engine). A duty with no shared theme sits under "Other responsibilities" rather than being forced into one.
           </p>
         </div>
       )}
@@ -700,7 +736,29 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   // O-I-A "surgical cut": reshape the raw KG payload into Role -> Theme groups -> duties.
   // Deterministic decorator (themeGraph.js); falls back to the raw payload when too few duties.
   const themed = useMemo(() => themeifyGraph(nodes, edges, result), [nodes, edges, result]);
-  const gNodes = themed.nodes;
+
+  // Advisory "Interpret" step: an LLM gloss turns seed labels (MAS, KYC) into readable phrases.
+  // Grouping stays deterministic; gloss is display-only, fails soft to the seed label.
+  const [glosses, setGlosses] = useState({});
+  const glossReqRef = useRef("");
+  useEffect(() => {
+    if (!themed.themed || !themed.topics.length) return;
+    const key = (title || "") + "|" + themed.topics.map(t => t.seed).join(",");
+    if (glossReqRef.current === key) return;
+    glossReqRef.current = key;
+    let alive = true;
+    fetchThemeGlosses(themed.topics)
+      .then(g => { if (alive) setGlosses(g); })
+      .catch(() => { if (alive) setGlosses({}); });
+    return () => { alive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [themed, title]);
+
+  // Apply the gloss to theme node display labels (seed stays the node identity).
+  const gNodes = useMemo(
+    () => (themed.nodes || []).map(n => (n.type === "theme" && glosses[n.seed]) ? { ...n, label: glosses[n.seed] } : n),
+    [themed.nodes, glosses]
+  );
   const gEdges = themed.edges;
 
   // Deterministic realm map over the WHOLE (themed) graph (spec section 2.1) - derived tier
@@ -832,7 +890,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
 
       {/* O-I-A surgical cut readout (themes + per-duty mode/exposure tags) */}
       {themed.themed && (
-        <OIASurgicalCut topics={themed.topics} dutyMeta={themed.dutyMeta} stats={themed.stats} nodeMap={nodeMap} />
+        <OIASurgicalCut topics={themed.topics} dutyMeta={themed.dutyMeta} stats={themed.stats} nodeMap={nodeMap} glosses={glosses} />
       )}
 
       {/* Graph section header + mode toggle + ecotone overlay toggle */}

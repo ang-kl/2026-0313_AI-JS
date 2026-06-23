@@ -8,6 +8,28 @@ import { buildTopics } from "./buildWikiTopics.js";
 
 function norm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 80); }
 
+// Deterministic work-mode estimate from a duty's verbs (aligned to the engine's JOB_LAYERS).
+// Used as the ALWAYS-ON fallback when result.jobAnatomy (lazy, LLM-classified) is not loaded yet,
+// so the [work-mode] chip never blanks. The engine's layer is preferred when present.
+const MODE_VERBS = {
+  Relational:     ["liaise", "liaison", "advise", "advising", "advisory", "communicate", "engage", "represent", "negotiate", "respond", "correspond", "correspondence", "partner", "collaborate", "consult", "present", "influence", "relationship", "stakeholder", "engagement"],
+  Judgment:       ["assess", "evaluate", "decide", "judge", "analyse", "analyze", "investigate", "determine", "recommend", "interpret", "diagnose", "examine", "appraise", "review", "reviews", "audit", "assessment"],
+  Accountability: ["oversee", "ensure", "govern", "approve", "authorise", "authorize", "supervise", "own", "certify", "accountable", "mandate", "endorse", "sign", "lead"],
+  Coordination:   ["coordinate", "schedule", "route", "forward", "escalate", "consolidate", "organise", "organize", "facilitate", "align", "arrange", "integrate", "manage"],
+};
+export function deriveWorkMode(text) {
+  const words = String(text || "").toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  if (!words.length) return "Activity";
+  const lead = words[0];
+  for (const layer of ["Relational", "Judgment", "Accountability", "Coordination"]) {
+    if (MODE_VERBS[layer].includes(lead)) return layer;
+  }
+  for (const layer of ["Judgment", "Relational", "Accountability", "Coordination"]) {
+    if (words.some(w => MODE_VERBS[layer].includes(w))) return layer;
+  }
+  return "Activity"; // hands-on production is the default
+}
+
 export function themeifyGraph(nodes, edges, result) {
   const safeNodes = nodes || [], safeEdges = edges || [];
   const roleNode = safeNodes.find(n => n.type === "role");
@@ -25,14 +47,16 @@ export function themeifyGraph(nodes, edges, result) {
   }
 
   const duties = dutyNodes.map(n => ({
-    id: n.id, text: n.label, level: n.level || null, layer: layerByText[norm(n.label)] || null,
+    id: n.id, text: n.label, level: n.level || null,
+    // engine layer when Job Anatomy is loaded; else the deterministic always-on estimate
+    layer: layerByText[norm(n.label)] || deriveWorkMode(n.label),
   }));
   const { topics, dutyMeta, stats } = buildTopics(duties);
 
   // Theme nodes (derived) - the segments.
   const themeNodes = topics.map(tp => ({
     id: tp.id, type: "theme", cluster: "theme",
-    label: tp.label, source: "derived", confidence: "from R&R segmentation",
+    label: tp.label, seed: tp.seed, source: "derived", confidence: "from R&R segmentation",
     count: tp.dutyIds.length, keywords: tp.keywords,
   }));
 
