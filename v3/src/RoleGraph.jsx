@@ -411,7 +411,7 @@ function _forceLayout(nodes, edges, width, height) {
 //   layout        - optional; "lanes" (default), "force" (neural/spring), or "workflow"
 //                   (deterministic left-to-right DAG). Back-compatible: omitting layout
 //                   defaults to "lanes". The lanes view is the a11y/keyboard path.
-export function KGGraph({ kg, onNodeTap, layout }) {
+export function KGGraph({ kg, onNodeTap, layout, embedded }) {
   const effectiveLayout = layout === "force" ? "force" : layout === "workflow" ? "workflow" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [wide, setWide] = useState(true);
@@ -454,8 +454,8 @@ export function KGGraph({ kg, onNodeTap, layout }) {
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: P.bg, color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: "clamp(12px,3vw,28px)" }}>
-      <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+    <div style={{ minHeight: embedded ? "auto" : "100vh", background: embedded ? "transparent" : P.bg, color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: embedded ? 0 : "clamp(12px,3vw,28px)" }}>
+      <div style={{ maxWidth: embedded ? "none" : 1240, margin: "0 auto" }}>
 
         <header style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#0f766e" }}>{hasEdges ? "Knowledge graph - wired structure of the role" : "Knowledge graph - grouped role map"}</div>
