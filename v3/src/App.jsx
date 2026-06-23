@@ -1144,6 +1144,11 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.133 - 2026-06-22 - HDR #171 - Fix: O-I-A theme-label gloss 404'd live. fetchThemeGlosses used
+// model "claude-fable-5", which the /api/claude proxy rejects as an unknown model (404) -> gloss never
+// applied, themes stayed as seed words. Switched to the proven narration model "claude-haiku-4-5-20251001"
+// (the claudeCall default). Work-mode chips (deriveWorkMode) verified live this build. Render-only;
+// frozen door byte-identical. G1 (v3.0.132 -> v3.0.133).
 // v3.0.132 - 2026-06-22 - HDR #170 - O-I-A polish (Human Lead picked 1+2): (1) WORK-MODE chip always-on -
 // new deterministic deriveWorkMode(text) in src/wiki/themeGraph.js classifies a duty's leading verb into
 // the engine's JOB_LAYERS (Relational/Judgment/Accountability/Coordination, else Activity); used as the
