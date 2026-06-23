@@ -1144,6 +1144,18 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.132 - 2026-06-22 - HDR #170 - O-I-A polish (Human Lead picked 1+2): (1) WORK-MODE chip always-on -
+// new deterministic deriveWorkMode(text) in src/wiki/themeGraph.js classifies a duty's leading verb into
+// the engine's JOB_LAYERS (Relational/Judgment/Accountability/Coordination, else Activity); used as the
+// fallback when result.jobAnatomy (lazy + LLM-classified) is not yet loaded, so every duty shows BOTH a
+// [work-mode] and [AI-exposure] chip (engine layer preferred when present). (2) LLM theme-label GLOSS -
+// the "Interpret" step: fetchThemeGlosses() batches one /api/claude (claude-fable-5) call that renames the
+// deterministic seed labels ("MAS","KYC") into readable phrases ("Regulatory liaison"); JSON-only,
+// digit-stripped, fails soft to the seed. The LLM ONLY relabels for reading - the grouping stays
+// deterministic and the seed remains the node identity (engine-wins). Gloss carries a ~ ai chip + shows
+// the deterministic terms beside it; applied to both the theme nodes (Focus + Neural) and the O-I-A panel.
+// New prompt is bounded (no digit, no structure, advisory). Frozen door byte-identical. R005:
+// deriveWorkMode, fetchThemeGlosses. No red/green. G1 (v3.0.131 -> v3.0.132).
 // v3.0.131 - 2026-06-22 - HDR #169 - Fix: O-I-A themes blobbed (live 16-duty R&R collapsed to 2 themes).
 // Cause: union-find single-link clustering CHAINS duties transitively (A-B share t1, B-C share t2 ->
 // A,B,C all merge) into one giant theme on a compliance-dense ad. Fix in src/wiki/buildWikiTopics.js:
