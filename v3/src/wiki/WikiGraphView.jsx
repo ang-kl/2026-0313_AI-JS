@@ -1063,7 +1063,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
       {themed.themed && (
         <button type="button" onClick={function() { setDissectOpen(true); }}
           aria-label="Open the job ad, dissected by theme"
-          style={{ position: "fixed", left: 22, bottom: 88, zIndex: 950, minHeight: 48, padding: "10px 18px",
+          style={{ position: "fixed", left: 22, bottom: 22, zIndex: 950, minHeight: 48, padding: "10px 18px",
             borderRadius: 999, border: "none", background: C.eu, color: "#fff", fontWeight: 800, fontSize: "0.8125rem",
             boxShadow: "0 6px 18px rgba(2,6,23,0.28)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
           <span aria-hidden="true">{String.fromCharCode(0x2702)}</span> Job ad

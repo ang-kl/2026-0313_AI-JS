@@ -1144,6 +1144,12 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.141 - 2026-06-22 - HDR #179 - Merge the two "Job ad" FABs (Human Lead: "merge"). On the WikiGraph
+// tab there were two bottom-left FABs: the app-level plain-posting JobAdFab + the new dissect FAB. The
+// app JobAdFab render now carries `&& activeTab !== "wikigraph"` so it is suppressed on the wiki tab; the
+// dissect FAB moves from bottom:88 to the standard bottom:22 spot - so the WikiGraph has ONE "Job ad" FAB
+// that opens the dissected drawer (which itself shows the verbatim posting context + the markings). Other
+// tabs keep the plain-posting JobAdFab unchanged. Render-only; frozen door byte-identical. G1 (140 -> 141).
 // v3.0.140 - 2026-06-22 - HDR #178 - WikiGraph "Job ad" FAB -> dissected-job-ad drawer (Human Lead:
 // "left panel be navigation Floating Drawer and bottom Job ad FAB... open the whole drawer with dissect
 // markings which can be click and change the centre panel"; chose: job ad marked up + floating overlay).
@@ -14759,8 +14765,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 </>
               )}
 
-              {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll */}
-              {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "" }); }} />}
+              {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll.
+                  On the WikiGraph tab the single "Job ad" FAB is the DISSECT drawer (WikiGraphView owns it),
+                  so the plain-posting FAB is suppressed there to avoid two bottom-left buttons. */}
+              {jobAdAvailable(result) && !adDrawerOpen && activeTab !== "wikigraph" && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "" }); }} />}
               <JobAdDrawer result={result} open={adDrawerOpen} onClose={() => setAdDrawerOpen(false)} />
 
               <Disclaimer />
