@@ -1144,6 +1144,20 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.137 - 2026-06-22 - HDR #175 - Make the AI-moments graph readable (Human Lead: "Lanes/Neural/
+// Workflow... no significant value, i cannot zoom, the square is so hard[ened] i cannot read the text,
+// too many text truncated... read must be able to read/expand/collapse, professionally style UI/UX";
+// chose: PATCH KGGraph in place, everywhere it is used). Edits to src/RoleGraph.jsx KGForceView (the
+// Neural view, where fixed 104x44 boxes with overflow:hidden clipped the duty text): (1) TAP-TO-EXPAND -
+// the tapped node now grows in place to a wide auto-height card showing its FULL text + type, "tap to
+// collapse" (read/expand/collapse); non-tapped nodes get a clean 3-line soft clamp (-webkit-line-clamp)
+// instead of a hard mid-word cut, bigger font. (2) Small graphs (<= LOD_NODE_CEILING, i.e. nearly all)
+// now IGNORE the LOD so zooming just SCALES - nodes no longer vanish/appear as you zoom (the "cannot
+// zoom" frustration). (3) Caption rewritten to teach tap-to-expand. App.jsx: the company AI-moments
+// segmented control drops the redundant WORKFLOW mode (it duplicated the column Cards view) and renames
+// "Lanes" -> "Cards" - now Cards (readable) | Neural (tap-to-expand graph). This KGGraph edit is
+// Human-Lead-directed; the earlier arc-scoped "RoleGraph FREEZE / consume only" no longer applies.
+// Render-only; api/* + engine-data + the 6 frozen symbols byte-identical. G1 (v3.0.136 -> v3.0.137).
 // v3.0.136 - 2026-06-22 - HDR #174 - Declutter the employer result (Human Lead: "if i select from MCF,
 // then the career.gov doesn't have to be there"). The careers.gov.sg RIGHT column now renders only when
 // it is loading or actually has roles (showCsg); for a private/MCF employer (e.g. DBS) it has none, so
@@ -12255,10 +12269,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                      {/* CO2.2: 3-way segmented control - Lanes | Neural | Workflow.
-                          Each segment is 44px min, aria-pressed, drives agentLayout state. */}
+                      {/* 2-way segmented control - Cards | Neural. (Workflow dropped - it duplicated
+                          the column Cards view; Cards = readable, Neural = tap-to-expand graph.) */}
                       <div role="group" aria-label="Graph layout" style={{ display: "flex", border: "1px solid #7dd3fc", borderRadius: 8, overflow: "hidden" }}>
-                        {[["lanes", "Lanes"], ["force", "Neural"], ["workflow", "Workflow"]].map(function(pair) {
+                        {[["lanes", "Cards"], ["force", "Neural"]].map(function(pair) {
                           const val = pair[0], lbl = pair[1];
                           const active = agentLayout === val;
                           return (
@@ -12266,7 +12280,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                               onClick={function() { setAgentLayout(val); }}
                               aria-pressed={active}
                               aria-label={lbl + " layout" + (active ? ", currently selected" : "")}
-                              style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "workflow" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "force" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                               {lbl}
                             </button>
                           );
