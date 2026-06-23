@@ -1144,6 +1144,18 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.127 - 2026-06-22 - HDR #165 - Career WikiGraph Neural view: click a node -> highlight the PATH
+// BACK to the role centre (Human Lead: "when i click the branch it should show the path back"). In
+// src/wiki/NeuralGraph.jsx: a deterministic BFS over the link graph finds the shortest path from the
+// selected node to the root (the role node); those links glow bright cyan (#67e8f9 + bloom, with a crisp
+// #a5f3fc overlay) and only the path nodes stay lit while the rest dim; a clickable "Path back:"
+// breadcrumb (role -> ... -> node) appears under the canvas, each step re-selectable. Hovering still
+// does the local neighbour-trace; selecting does the path-home trace. Pure graph traversal, no LLM, no
+// engine/data change. Render-only; frozen door byte-identical; colour-blind safe (cyan path, no red/green).
+// G1 (v3.0.126 -> v3.0.127). NOTE: the Human Lead also asked for a proper O-I-A "surgical cut" of the
+// job R&R (observe -> extract/map keywords -> segment paragraphs into themes -> interpret) as the graph's
+// node source - a separate, larger data-model slice queued next (buildWikiGraph, spec section 6), not in
+// this PR.
 // v3.0.126 - 2026-06-22 - HDR #164 - Career WikiGraph Neural view: stronger starfield glow (Human
 // Lead picked option 3). src/wiki/NeuralGraph.jsx: adds a blurred bloom layer (feGaussianBlur filter
 // #neuralBloom) of soft colour halos behind every node - brighter for central nodes, dimmed for minor -
