@@ -1144,6 +1144,23 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.130 - 2026-06-22 - HDR #168 - Career WikiGraph: O-I-A "surgical cut" of the job R&R (Human
+// Lead: "the wikigraph should first do a proper O-I-A on job r&R... observe, extract key words mapping,
+// segment paragraphs into themes, use interpretation"; chose topic-groups-as-structure + work-mode/
+// exposure tags). Two NEW deterministic modules (no LLM, no fetch, no Date.now): src/wiki/buildWikiTopics.js
+// (Observe raw duties -> Extract salient key terms + acronyms -> Segment into themes by CONNECTED
+// COMPONENTS over distinctive shared terms, excluding over-generic words so themes stay distinct;
+// a duty with no shared link becomes its own named theme, never a forced "Other") and src/wiki/themeGraph.js
+// (themeifyGraph: reshapes the FROZEN getKnowledgeGraph payload into Role -> Theme groups -> duties,
+// re-routing role->duty edges through derived theme nodes; tags each duty with its work mode from
+// jobAnatomy + AI-exposure level; falls back to the raw payload when < 3 duties). WikiGraphView consumes
+// the themed payload in BOTH Focus and Neural views (theme = hexagon shape / green, a new shape=type cue)
+// and renders an OIASurgicalCut panel listing each theme, its key terms, and every duty with [work-mode]
+// [AI-exposure] chips. graphMetrics: theme weight 0.9 (major). The ENGINE forms the groups; an LLM may
+// later only gloss a label (advisory) - it never authors a group/edge/tag. buildKnowledgeGraph /
+// getKnowledgeGraph consumed read-only; all frozen symbols + api/* + engine-data/* byte-identical.
+// R005: WIKI_STOPWORDS, extractKeywords, buildTopics, themeifyGraph. No red/green (shape carries type).
+// G1 (v3.0.129 -> v3.0.130).
 // v3.0.129 - 2026-06-22 - HDR #167 - Fix: Neural path-back stayed hidden right after a click because
 // the cursor rests ON the just-clicked node, so hoverId === selectedId and the hover branch suppressed
 // the path. src/wiki/NeuralGraph.jsx: introduce activeHover = a hover of a DIFFERENT node than the
