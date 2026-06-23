@@ -679,11 +679,13 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   const { zoom, panX, panY, band, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
     _useViewport(kg.nodes.length);
 
-  // Edge LOD: show edge only when both endpoints' tier <= band.
+  // Small graphs ignore LOD so zooming just SCALES (no confusing vanish/appear of nodes).
+  const smallGraph = kg.nodes.length <= LOD_NODE_CEILING;
+  // Edge LOD: show edge only when both endpoints' tier <= band (skipped on small graphs).
   function edgeEligible(e) {
     const sa = nodeById[e.source], ta = nodeById[e.target];
     if (!sa || !ta) return false;
-    return _nodeTier(sa) <= band && _nodeTier(ta) <= band;
+    return smallGraph || (_nodeTier(sa) <= band && _nodeTier(ta) <= band);
   }
 
   return (
@@ -721,7 +723,9 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
             const st = KG_TYPE_STYLE[n.type] || KG_TYPE_STYLE.skill;
             const hi = isHighlighted(n);
             const isT = traced === n.id;
-            const eligible = _nodeTier(n) <= band;
+            const eligible = smallGraph || _nodeTier(n) <= band;
+            // Tapped node EXPANDS in place to full readable text (tap again to collapse).
+            const boxW = isT ? 236 : 118;
             // Ineligible nodes: opacity 0, removed from tab order (hidden keyboard trap guard).
             return (
               <button key={n.id}
@@ -729,23 +733,34 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
                 tabIndex={eligible ? 0 : -1}
                 aria-pressed={isT}
                 aria-hidden={!eligible}
-                aria-label={n.type + ": " + n.label + ". Tap to trace."}
+                aria-label={n.type + ": " + n.label + (isT ? ". Tap to collapse." : ". Tap to read in full.")}
                 style={{
                   position: "absolute",
-                  left: Math.round(p.x - 52), top: Math.round(p.y - 20),
-                  width: 104, minHeight: 44,
+                  left: Math.round(p.x - boxW / 2), top: Math.round(p.y - 20),
+                  width: boxW, minHeight: 44, maxWidth: "none",
                   border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
-                  borderRadius: 8, background: isT ? st.bg : P.surface,
-                  fontSize: 10, fontWeight: 600, color: st.color,
-                  cursor: eligible ? "pointer" : "default", padding: "4px 6px", textAlign: "center",
+                  borderRadius: 10, background: isT ? "#ffffff" : P.surface,
+                  fontSize: isT ? 12 : 10.5, fontWeight: 600, color: st.color,
+                  cursor: eligible ? "pointer" : "default", padding: isT ? "9px 11px" : "5px 7px",
+                  textAlign: isT ? "left" : "center",
                   opacity: eligible ? (hi ? 1 : P.dim) : 0,
-                  transition: "opacity " + transDur + " ease, transform " + transDur + " ease",
-                  transform: eligible ? "scale(1)" : "scale(0.85)",
-                  boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
-                  overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
+                  transition: "opacity " + transDur + " ease",
+                  boxShadow: isT ? "0 8px 22px rgba(2,6,23,0.22)" : "none",
+                  zIndex: isT ? 30 : 1,
+                  lineHeight: 1.4, wordBreak: "normal", overflowWrap: "anywhere",
+                  overflow: isT ? "visible" : "hidden",
+                  display: isT ? "block" : "-webkit-box",
+                  WebkitLineClamp: isT ? "unset" : 3,
+                  WebkitBoxOrient: "vertical",
                   pointerEvents: eligible ? "auto" : "none",
                 }}>
-                {n.label}
+                {isT ? (
+                  <span>
+                    <span style={{ display: "block", fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", opacity: 0.65, marginBottom: 4 }}>{n.type}</span>
+                    {n.label}
+                    <span style={{ display: "block", marginTop: 6, fontSize: 10, fontWeight: 700, color: "#1e40af" }}>tap to collapse</span>
+                  </span>
+                ) : n.label}
               </button>
             );
           })}
@@ -753,7 +768,7 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
 
         <_ZoomToolbar onZoomIn={zoomIn} onZoomOut={zoomOut} onFit={resetFit} zoom={zoom} />
       </div>
-      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Neural (force) layout - same data as lanes view. Positions are deterministic (fixed seed). Tap a node to trace connections. Wheel/pinch to zoom; drag to pan; +/- keys when graph is focused.</p>
+      <p style={{ fontSize: 11, color: P.muted, marginTop: 6 }}>Neural graph - <strong>tap a node to expand it and read the full text</strong> (tap again to collapse). Tap also traces its connections. Wheel/pinch or +/- to zoom; drag or arrow keys to pan. Prefer reading? Switch to <strong>Cards</strong>.</p>
     </div>
   );
 }
