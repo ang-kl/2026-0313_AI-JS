@@ -1144,6 +1144,12 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.136 - 2026-06-22 - HDR #174 - Declutter the employer result (Human Lead: "if i select from MCF,
+// then the career.gov doesn't have to be there"). The careers.gov.sg RIGHT column now renders only when
+// it is loading or actually has roles (showCsg); for a private/MCF employer (e.g. DBS) it has none, so
+// the redundant "No careers.gov.sg roles..." panel is dropped and the MyCareersFuture results take the
+// full width (csg-cols class only applied when the second column is shown). Render-only; the dual-source
+// careers.gov.sg path + api/careers.js untouched. G1 (v3.0.135 -> v3.0.136).
 // v3.0.135 - 2026-06-22 - HDR #173 - Career WikiGraph 3-pane shell, slice 3 (Human Lead picked 3:
 // "wire left nav + centre canvas + right rail"). WikiGraphView restructured into a 2-column layout
 // (the result page's pillar nav is the third pane): CENTRE <main id=wiki-reads> = lens toggle +
@@ -12135,8 +12141,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     );
   }
 
+  // Only show the careers.gov.sg column when it is loading or actually has roles.
+  // For a private / MCF employer (e.g. DBS) there are none - so drop the redundant
+  // "no roles" panel and let the MyCareersFuture results take the full width.
+  const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0);
+
   return (
-    <div className="csg-cols">
+    <div className={showCsg ? "csg-cols" : ""}>
       {/* LEFT COLUMN: MyCareersFuture company results */}
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -12328,7 +12339,8 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         )}
       </div>
 
-      {/* RIGHT COLUMN: careers.gov.sg agency postings */}
+      {/* RIGHT COLUMN: careers.gov.sg agency postings - hidden when there are none (private/MCF employer) */}
+      {showCsg && (
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>&#127963; careers.gov.sg</span>
@@ -12375,6 +12387,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           </>
         )}
       </div>
+      )}
     </div>
   );
 }
