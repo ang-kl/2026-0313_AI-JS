@@ -1144,6 +1144,18 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.135 - 2026-06-22 - HDR #173 - Career WikiGraph 3-pane shell, slice 3 (Human Lead picked 3:
+// "wire left nav + centre canvas + right rail"). WikiGraphView restructured into a 2-column layout
+// (the result page's pillar nav is the third pane): CENTRE <main id=wiki-reads> = lens toggle +
+// Candidate/Org journey + the O-I-A canvas + node detail + footer; RIGHT <aside> (sticky) = a docked
+// INTERACTIVE GRAPH mini (Focus, RadialSVG new `compact` prop: graph only, ~230px, no toolbar/legends)
+// with an Expand button -> a full-screen dialog overlay carrying the full controls (Focus/Neural toggle,
+// ecotone, path-back breadcrumb, node detail) + an "On this page" TOC that smooth-scrolls to the reads,
+// the canvas, and each theme section (WikiCanvas sections now carry id=themeId). graphControls + graphBody
+// extracted so the mini and the overlay share one source. maxWidth 900 -> 1240; flex-wrap so on phones the
+// rail drops below the centre (responsive). Render-only; the graph reflects the same payload; frozen door
+// byte-identical; no red/green; expand icon via String.fromCharCode (R007). The graph stops dominating the
+// reading flow - it is now a calm right-rail mini, expandable on demand. G1 (v3.0.134 -> v3.0.135).
 // v3.0.134 - 2026-06-22 - HDR #172 - Career WikiGraph "canvas" centre, slice 1 (Human Lead sent the
 // Obsidian Help 3-pane layout + the Obsidian Canvas refs; "interlinks by text not visual"; steers: graph
 // -> right-rail panel not a tab, mini-graph default Focus, O-I-A -> centre canvas of word/text/theme
