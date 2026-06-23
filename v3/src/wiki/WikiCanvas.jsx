@@ -80,6 +80,7 @@ export default function WikiCanvas({ topics, dutyMeta, nodeMap, glosses, edges, 
           return (
             <section
               key={tp.id}
+              id={tp.id}
               aria-label={"Theme: " + (gloss || tp.label)}
               style={{ background: tint.bg, border: `1.5px solid ${tint.bd}`, borderRadius: 14, padding: 12 }}
             >

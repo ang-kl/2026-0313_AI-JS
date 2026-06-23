@@ -277,7 +277,7 @@ function useGraphAnim(target, scaleT, order, fromRef, parentOf) {
 }
 
 // ── SVG radial graph inner component ─────────────────────────────────────────
-function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, realms, withheld }) {
+function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, realms, withheld, compact }) {
   const { order, target, scaleT, parentOf, edges, impById } = layoutRadial(
     nodeMap, stack[stack.length - 1] || "", stack
   );
@@ -345,7 +345,8 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
 
   return (
     <div>
-      {/* Toolbar */}
+      {/* Toolbar (hidden in the compact mini - controls live in the expanded view) */}
+      {!compact && (
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, margin: "8px 0 4px" }}>
         <span style={{ fontSize: "0.75rem", color: C.muted, flex: 1 }}>
           Centre = where you are - tap a bubble to dive in, tap trail to go back
@@ -372,6 +373,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
           Reset
         </button>
       </div>
+      )}
 
       {/* SVG canvas */}
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: 8, boxShadow: NEO.raise }}>
@@ -381,7 +383,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
           preserveAspectRatio="xMidYMid meet"
           role="img"
           aria-label="Career WikiGraph - radial ecosystem - one centre, tap a bubble to dive in"
-          style={{ display: "block", width: "100%", height: "clamp(380px,60vh,580px)", touchAction: "none", cursor: "grab" }}
+          style={{ display: "block", width: "100%", height: compact ? "230px" : "clamp(380px,60vh,580px)", touchAction: "none", cursor: "grab" }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -489,6 +491,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
         </svg>
       </div>
 
+      {!compact && (<>
       {/* Legend - cluster colours by default; realm legend when the ecotone overlay is on */}
       {ecotone ? (
         <div style={{ margin: "8px 2px 0", fontSize: "0.6875rem", color: C.textSub }}>
@@ -539,6 +542,7 @@ function RadialSVG({ nodeMap, stack, onNodeTap, selectedId, ecotone, realmById, 
         <span style={{ fontWeight: 700, color: C.text }}>Source:</span>
         {Object.keys(PROV_META).map(k => <ProvChip key={k} kind={k} />)}
       </div>
+      </>)}
     </div>
   );
 }
@@ -733,6 +737,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   const [graphMode, setGraphMode] = useState("focus");
   // Ecotone overlay state (off by default - the plain cluster view is the resting state)
   const [ecotone, setEcotone] = useState(false);
+  // Expanded graph overlay (the right-rail mini expands to a full-screen graph with all controls)
+  const [expanded, setExpanded] = useState(false);
 
   // O-I-A "surgical cut": reshape the raw KG payload into Role -> Theme groups -> duties.
   // Deterministic decorator (themeGraph.js); falls back to the raw payload when too few duties.
@@ -803,8 +809,62 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   const centreId = stack[stack.length - 1] || rootId;
   const selectedNode = nodeMap[selectedId];
 
+  // helper: smooth-scroll a centre section into view (for the On-this-page TOC)
+  function scrollToId(id) {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(id);
+    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // The graph block (mode toggle + ecotone + breadcrumb + the graph itself) - reused full in the overlay.
+  const graphControls = (
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 8 }}>
+      <p style={{ margin: 0, flex: 1, minWidth: 120, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        Role ecosystem graph
+      </p>
+      <div role="tablist" aria-label="Graph view mode" style={{ display: "inline-flex", borderRadius: 10, border: `1px solid ${C.border}`, overflow: "hidden", boxShadow: NEO.raiseSm }}>
+        {[
+          { key: "focus", label: "Focus", desc: "Radial - one centre, tap to dive in" },
+          { key: "neural", label: "Neural", desc: "Force-directed - the whole web at once" },
+        ].map(function(opt) {
+          const active = graphMode === opt.key;
+          return (
+            <button key={opt.key} type="button" role="tab" aria-selected={active}
+              aria-label={opt.label + " view - " + opt.desc}
+              onClick={function() { setGraphMode(opt.key); }}
+              style={{ minHeight: 44, padding: "8px 16px", border: "none", background: active ? C.accentSoft : C.surface, color: active ? C.accent : C.textSub, fontWeight: active ? 800 : 600, fontSize: "0.8125rem", cursor: "pointer" }}>
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" aria-pressed={ecotone}
+        aria-label={"Ecotone overlay - tint nodes by realm internal, edge, external - currently " + (ecotone ? "on" : "off")}
+        onClick={function() { setEcotone(function(v) { return !v; }); }}
+        style={{ minHeight: 44, padding: "8px 16px", borderRadius: 10, border: `2px solid ${ecotone ? C.amber : C.border}`, background: ecotone ? C.amberBg : C.surface, color: ecotone ? C.amber : C.textSub, fontWeight: ecotone ? 800 : 600, fontSize: "0.8125rem", cursor: "pointer", boxShadow: ecotone ? NEO.raiseSm : "none", display: "inline-flex", alignItems: "center", gap: 7 }}>
+        <span aria-hidden="true" style={{ width: 12, height: 12, borderRadius: 3, background: "#fff", border: `3px solid ${C.amber}`, boxShadow: ecotone ? `0 0 5px 1px ${C.amber}` : "none", display: "inline-block" }} />
+        Ecotone overlay {ecotone ? "on" : "off"}
+      </button>
+    </div>
+  );
+
+  const graphBody = (mini) => (
+    gNodes.length === 0 ? (
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: mini ? 18 : 32, textAlign: "center", boxShadow: NEO.raiseSm }}>
+        <p style={{ margin: 0, color: C.muted, fontSize: "0.8125rem" }}>No graph data for this role yet.</p>
+        {!mini && <p style={{ margin: "8px 0 0", color: C.muted, fontSize: "0.75rem" }}>[UNVERIFIED: insufficient data to build the ecosystem]</p>}
+      </div>
+    ) : (!mini && graphMode === "neural") ? (
+      <NeuralGraph nodes={gNodes} edges={gEdges} selectedId={selectedId} onNodeTap={setSelectedId} ecotone={ecotone} realmById={realmMap.realm} />
+    ) : (
+      <RadialSVG nodeMap={nodeMap} stack={stack} onNodeTap={handleNodeTap} selectedId={selectedId} ecotone={ecotone} realmById={realmMap.realm} realms={realmMap.realms} withheld={realmMap.withheld} compact={mini} />
+    )
+  );
+
+  const tocBtn = { display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: C.accent, fontWeight: 700, padding: "6px 6px", borderRadius: 6, cursor: "pointer", fontSize: "0.8125rem", minHeight: 36, lineHeight: 1.35 };
+
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1240, margin: "0 auto" }}>
       {/* Back button (hidden when embedded as a result-page tab - the page has its own nav) */}
       {!embedded && (
       <button
@@ -881,7 +941,11 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         })}
       </div>
 
-      {/* ── Lens content: Candidate journey (above graph) ── */}
+      {/* ── 2-pane: centre reads/canvas (left) + docked graph & TOC (right) ── */}
+      <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <main id="wiki-reads" style={{ flex: "1 1 520px", minWidth: 0 }}>
+
+      {/* ── Lens content: Candidate / Organisation journey ── */}
       {lens === "candidate" && (
         <CandidateJourney result={result} title={title} />
       )}
@@ -891,7 +955,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
 
       {/* O-I-A surgical cut as a CANVAS - theme groups + duty cards + [[wikilink]] interlinks (by text) */}
       {themed.themed && (
-        <div style={{ marginBottom: 14 }}>
+        <div id="wiki-canvas" style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span aria-hidden="true" style={{ fontSize: "1rem" }}>{"\u{1FA7A}"}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -906,123 +970,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         </div>
       )}
 
-      {/* Graph section header + mode toggle + ecotone overlay toggle */}
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 8, marginTop: 4 }}>
-        <p style={{ margin: 0, flex: 1, minWidth: 120, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          Role ecosystem graph
-        </p>
-        {/* Focus (radial) vs Neural (force-directed) view toggle */}
-        <div role="tablist" aria-label="Graph view mode" style={{ display: "inline-flex", borderRadius: 10, border: `1px solid ${C.border}`, overflow: "hidden", boxShadow: NEO.raiseSm }}>
-          {[
-            { key: "focus", label: "Focus", desc: "Radial - one centre, tap to dive in" },
-            { key: "neural", label: "Neural", desc: "Force-directed - the whole web at once" },
-          ].map(function(opt) {
-            const active = graphMode === opt.key;
-            return (
-              <button
-                key={opt.key}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                aria-label={opt.label + " view - " + opt.desc}
-                onClick={function() { setGraphMode(opt.key); }}
-                style={{
-                  minHeight: 44, padding: "8px 16px", border: "none",
-                  background: active ? C.accentSoft : C.surface,
-                  color: active ? C.accent : C.textSub,
-                  fontWeight: active ? 800 : 600, fontSize: "0.8125rem", cursor: "pointer",
-                }}>
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          aria-pressed={ecotone}
-          aria-label={"Ecotone overlay - tint nodes by realm internal, edge, external - currently " + (ecotone ? "on" : "off")}
-          onClick={function() { setEcotone(function(v) { return !v; }); }}
-          style={{
-            minHeight: 44, padding: "8px 16px", borderRadius: 10,
-            border: `2px solid ${ecotone ? C.amber : C.border}`,
-            background: ecotone ? C.amberBg : C.surface,
-            color: ecotone ? C.amber : C.textSub,
-            fontWeight: ecotone ? 800 : 600, fontSize: "0.8125rem",
-            cursor: "pointer", boxShadow: ecotone ? NEO.raiseSm : "none",
-            display: "inline-flex", alignItems: "center", gap: 7,
-          }}>
-          <span aria-hidden="true" style={{
-            width: 12, height: 12, borderRadius: 3, background: "#fff",
-            border: `3px solid ${C.amber}`,
-            boxShadow: ecotone ? `0 0 5px 1px ${C.amber}` : "none", display: "inline-block",
-          }} />
-          Ecotone overlay {ecotone ? "on" : "off"}
-        </button>
-      </div>
-
-      {/* Breadcrumb trail (focus mode only) */}
-      {graphMode === "focus" && stack.length > 1 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 8, fontSize: "0.75rem", color: C.muted }}>
-          <span style={{ fontWeight: 700 }}>Path:</span>
-          {stack.map(function(id, i) {
-            return (
-              <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                {i > 0 && <span style={{ color: C.muted }}>/</span>}
-                <button
-                  type="button"
-                  onClick={function() {
-                    setStack(function(prev) { return prev.slice(0, i + 1); });
-                    setSelectedId(id);
-                  }}
-                  style={{
-                    background: "none", border: "none", color: C.accent, fontWeight: 700,
-                    padding: "8px 8px", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem",
-                    minHeight: 44,
-                  }}>
-                  {(nodeMap[id] && nodeMap[id].label) || id}
-                </button>
-              </span>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Graph or empty state */}
-      {gNodes.length === 0 ? (
-        <div style={{
-          background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
-          padding: 32, textAlign: "center", boxShadow: NEO.raiseSm,
-        }}>
-          <p style={{ margin: 0, color: C.muted, fontSize: "0.875rem" }}>
-            No graph data available for this role yet.
-          </p>
-          <p style={{ margin: "8px 0 0", color: C.muted, fontSize: "0.75rem" }}>
-            [UNVERIFIED: insufficient data to build the ecosystem]
-          </p>
-        </div>
-      ) : graphMode === "neural" ? (
-        <NeuralGraph
-          nodes={gNodes}
-          edges={gEdges}
-          selectedId={selectedId}
-          onNodeTap={setSelectedId}
-          ecotone={ecotone}
-          realmById={realmMap.realm}
-        />
-      ) : (
-        <RadialSVG
-          nodeMap={nodeMap}
-          stack={stack}
-          onNodeTap={handleNodeTap}
-          selectedId={selectedId}
-          ecotone={ecotone}
-          realmById={realmMap.realm}
-          realms={realmMap.realms}
-          withheld={realmMap.withheld}
-        />
-      )}
-
-      {/* Selected node detail */}
+      {/* Selected node detail (centre) */}
       <NodeDetail node={selectedNode} nodeId={selectedId} realm={ecotone ? realmMap.realm[selectedId] : null} />
 
       {/* Footer - "AI-assisted; human decides" - mandatory per spec */}
@@ -1033,10 +981,73 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
       }}>
         <strong style={{ color: C.text }}>AI-assisted; human decides.</strong>{" "}
         Source: computed from role data (ESCO / ISCO / MCF) -{" "}
-        Confidence: shown per node -{" "}
-        Time-window: current session.
-        Node size + spoke weight = how central the item is (major branches heavier, minor lighter); colour = cluster layer. Links appear only where evidence exists.
+        Confidence: shown per node - Time-window: current session.
       </footer>
+        </main>
+
+        {/* ── Right rail: docked graph (Focus mini + expand) + On this page TOC ── */}
+        <aside style={{ flex: "1 1 280px", maxWidth: 340, minWidth: 240, position: "sticky", top: 12, alignSelf: "flex-start" }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 10, boxShadow: NEO.raiseSm, marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <span style={{ flex: 1, fontSize: "0.6875rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Interactive graph</span>
+              <button type="button" aria-label="Expand the graph to full screen" onClick={function() { setExpanded(true); }}
+                style={{ minHeight: 36, padding: "5px 11px", borderRadius: 8, border: `1px solid ${C.border}`, background: C.surface, color: C.accent, fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <span aria-hidden="true">{String.fromCharCode(0x2922)}</span> Expand
+              </button>
+            </div>
+            {graphBody(true)}
+            <p style={{ margin: "6px 2px 0", fontSize: "0.625rem", color: C.muted }}>Focus view - tap a bubble to dive in. Expand for Neural, ecotone and the path-back.</p>
+          </div>
+
+          <nav aria-label="On this page" style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "12px 14px", boxShadow: NEO.raiseSm }}>
+            <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>On this page</p>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+              <li><button type="button" onClick={function() { scrollToId("wiki-reads"); }} style={tocBtn}>{lens === "candidate" ? "Candidate reads" : "Organisation reads"}</button></li>
+              {themed.themed && <li><button type="button" onClick={function() { scrollToId("wiki-canvas"); }} style={tocBtn}>Surgical cut (canvas)</button></li>}
+              {themed.themed && themed.topics.map(function(tp) {
+                return <li key={tp.id}><button type="button" onClick={function() { scrollToId(tp.id); }} style={{ ...tocBtn, paddingLeft: 16, color: C.textSub, fontWeight: 600 }}>{(glosses && glosses[tp.seed]) || tp.label}</button></li>;
+              })}
+            </ul>
+          </nav>
+        </aside>
+      </div>
+
+      {/* ── Expanded graph overlay (full controls: Focus/Neural, ecotone, path-back) ── */}
+      {expanded && (
+        <div role="dialog" aria-modal="true" aria-label="Career WikiGraph - expanded graph"
+          onClick={function() { setExpanded(false); }}
+          style={{ position: "fixed", inset: 0, background: "rgba(2,6,23,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 14 }}>
+          <div onClick={function(e) { e.stopPropagation(); }}
+            style={{ background: C.bg, borderRadius: 16, padding: 16, width: "min(1100px, 96vw)", maxHeight: "94vh", overflow: "auto", boxShadow: NEO.raise }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <h3 style={{ margin: 0, flex: 1, fontSize: "1rem", fontWeight: 800, color: C.text }}>Role ecosystem graph - {title || "role"}</h3>
+              <button type="button" aria-label="Close expanded graph" onClick={function() { setExpanded(false); }}
+                style={{ minHeight: 44, padding: "8px 16px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontWeight: 700, fontSize: "0.8125rem", cursor: "pointer" }}>
+                Close
+              </button>
+            </div>
+            {graphControls}
+            {graphMode === "focus" && stack.length > 1 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 8, fontSize: "0.75rem", color: C.muted }}>
+                <span style={{ fontWeight: 700 }}>Path:</span>
+                {stack.map(function(id, i) {
+                  return (
+                    <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {i > 0 && <span style={{ color: C.muted }}>/</span>}
+                      <button type="button" onClick={function() { setStack(function(prev) { return prev.slice(0, i + 1); }); setSelectedId(id); }}
+                        style={{ background: "none", border: "none", color: C.accent, fontWeight: 700, padding: "8px 8px", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem", minHeight: 44 }}>
+                        {(nodeMap[id] && nodeMap[id].label) || id}
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {graphBody(false)}
+            <NodeDetail node={selectedNode} nodeId={selectedId} realm={ecotone ? realmMap.realm[selectedId] : null} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
