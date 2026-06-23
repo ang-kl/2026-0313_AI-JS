@@ -72,38 +72,31 @@ export function buildTopics(duties) {
   // 2. doc frequency per term
   const df = {};
   list.forEach(d => termSet[d.id].forEach(t => { df[t] = (df[t] || 0) + 1; }));
-  const genericMax = Math.max(2, Math.floor(N * 0.6)); // a term in > 60% of duties is too generic to link on
+  // A term shared by more than ~1/3 of the duties is too generic to NAME a theme on a compliance-
+  // heavy ad ("compliance", "regulatory") - linking on it just chains everything into one blob.
+  const cap = Math.max(2, Math.ceil(N / 3));
 
-  // 3. SEGMENT - union-find duties that share a distinctive term
-  const parent = {};
-  list.forEach(d => { parent[d.id] = d.id; });
-  const find = x => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
-  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
-  Object.keys(df).filter(t => df[t] >= 2 && df[t] <= genericMax).forEach(t => {
-    const members = list.filter(d => termSet[d.id].has(t)).map(d => d.id);
-    for (let i = 1; i < members.length; i++) union(members[0], members[i]);
+  // 3. SEGMENT - assign each duty to ONE headword: its most-grouping, non-generic term.
+  //    Non-transitive (no union-find chaining) -> tight, distinct themes.
+  const headword = {};
+  list.forEach(d => {
+    const terms = [...termSet[d.id]];
+    let cands = terms.filter(t => df[t] >= 2 && df[t] <= cap);  // shared but specific
+    if (!cands.length) cands = terms.filter(t => df[t] <= cap); // else any non-generic term it owns
+    if (!cands.length) cands = terms;                            // last resort
+    // prefer the most-grouping term (higher df), then acronyms, then alpha (deterministic)
+    cands.sort((a, b) => (df[b] - df[a]) || ((acrCase[b] ? 1 : 0) - (acrCase[a] ? 1 : 0)) || (a < b ? -1 : 1));
+    headword[d.id] = cands[0] || "general";
   });
 
-  // 4. components -> topics, each labelled by its strongest distinctive term
-  const comps = {};
-  list.forEach(d => { const r = find(d.id); (comps[r] = comps[r] || []).push(d.id); });
-  let raw = Object.keys(comps).map(r => {
-    const ids = comps[r].slice().sort();
-    const inCount = {};
-    ids.forEach(id => termSet[id].forEach(t => { inCount[t] = (inCount[t] || 0) + 1; }));
-    const cand = Object.keys(inCount);
-    const shared = cand.filter(t => inCount[t] >= 2 && df[t] <= genericMax);
-    let label;
-    if (shared.length) {
-      shared.sort((a, b) => (inCount[b] - inCount[a]) || (df[a] - df[b]) || ((acrCase[b] ? 1 : 0) - (acrCase[a] ? 1 : 0)) || (a < b ? -1 : 1));
-      label = shared[0];
-    } else {
-      cand.sort((a, b) => (df[a] - df[b]) || ((acrCase[b] ? 1 : 0) - (acrCase[a] ? 1 : 0)) || (a < b ? -1 : 1));
-      label = cand[0] || "general";
-    }
+  // 4. group by headword -> topics
+  const groups = {};
+  list.forEach(d => { const h = headword[d.id]; (groups[h] = groups[h] || []).push(d.id); });
+  let raw = Object.keys(groups).map(h => {
+    const ids = groups[h].slice().sort();
     const keywords = [];
     ids.forEach(id => dutyMeta[id].keywords.forEach(k => { if (!keywords.includes(k)) keywords.push(k); }));
-    return { ids, term: label, size: ids.length, keywords };
+    return { ids, term: h, size: ids.length, keywords };
   });
 
   // 5. cap to keep it legible; smallest spill into one honest "Other"
