@@ -17,6 +17,9 @@ import { nodeImportance } from "./graphMetrics.js";
 
 const W = 1000, H = 620, CX = W / 2, CY = H / 2;
 
+// canonical undirected edge key
+function ek(a, b) { return a < b ? a + "|" + b : b + "|" + a; }
+
 // Force constants (module scope so the tick callback can stay stable).
 const REP = 5200, LINK_K = 0.035, LINK_LEN = 86, CENTER = 0.016, DAMP = 0.85, COOL = 0.972;
 
@@ -235,8 +238,43 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sig]);
 
-  const focusId = hoverId || selectedId;
-  const isLit = id => !focusId || id === focusId || (neighbours[focusId] && neighbours[focusId].has(id));
+  // Root = the role node (or first node) - the centre every path traces back to.
+  const rootId = useMemo(() => {
+    const r = (nodes || []).find(n => n && n.type === "role");
+    return r ? r.id : (nodes && nodes[0] ? nodes[0].id : null);
+  }, [nodes]);
+
+  // Shortest path (BFS over the link graph) from the selected node back to the root.
+  const pathInfo = useMemo(() => {
+    if (!selectedId) return { nodeSet: new Set(), edgeSet: new Set(), order: [] };
+    if (!rootId || selectedId === rootId) return { nodeSet: new Set([selectedId]), edgeSet: new Set(), order: [selectedId] };
+    const prev = {}, seen = new Set([selectedId]), q = [selectedId];
+    while (q.length) {
+      const cur = q.shift();
+      if (cur === rootId) break;
+      const nb = neighbours[cur];
+      if (!nb) continue;
+      nb.forEach(n => { if (!seen.has(n)) { seen.add(n); prev[n] = cur; q.push(n); } });
+    }
+    if (!seen.has(rootId)) return { nodeSet: new Set([selectedId]), edgeSet: new Set(), order: [selectedId] };
+    const order = [];
+    let c = rootId;
+    while (c != null) { order.push(c); if (c === selectedId) break; c = prev[c]; }
+    const nodeSet = new Set(order), edgeSet = new Set();
+    for (let i = 0; i < order.length - 1; i++) edgeSet.add(ek(order[i], order[i + 1]));
+    return { nodeSet, edgeSet, order };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId, rootId, sig]);
+
+  // Lit rules: hover -> the node + its direct neighbours; else a selection -> the path back to root; else all.
+  const isLit = id => {
+    if (hoverId) return id === hoverId || (neighbours[hoverId] && neighbours[hoverId].has(id));
+    if (selectedId && pathInfo.nodeSet.size) return pathInfo.nodeSet.has(id);
+    return true;
+  };
+  const onPathEdge = (a, b) => selectedId && !hoverId && pathInfo.edgeSet.has(ek(a, b));
+  const labelOf = id => { const s = sim.byId[id]; return (s && s.node && s.node.label) || id; };
+  const focusId = hoverId || selectedId; // the actively focused node (for label + ring emphasis)
   const transform = `translate(${view.x},${view.y}) scale(${view.k})`;
 
   return (
@@ -283,21 +321,34 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
                 return <circle key={"glow" + s.id} cx={s.x} cy={s.y} r={s.r * 1.8 + 4} fill={col} opacity={go} />;
               })}
             </g>
-            {/* Links */}
+            {/* Links - path-back links glow bright cyan when a node is selected */}
             {(sim.links || []).map((l, i) => {
               const crosses = ecotone && realmById && realmById[l.s.id] && realmById[l.t.id] && realmById[l.s.id] !== realmById[l.t.id];
+              const onPath = onPathEdge(l.s.id, l.t.id);
               const lit = isLit(l.s.id) && isLit(l.t.id);
+              const stroke = onPath ? "#67e8f9" : (crosses ? "#fbbf24" : "#475569");
+              const sw = onPath ? 2.6 : (crosses ? 1.8 : 1);
+              const op = onPath ? 0.98 : (lit ? (crosses ? 0.95 : 0.5) : 0.1);
               return (
                 <line
                   key={i}
                   x1={l.s.x} y1={l.s.y} x2={l.t.x} y2={l.t.y}
-                  stroke={crosses ? "#fbbf24" : "#475569"}
-                  strokeWidth={crosses ? 1.8 : 1}
-                  strokeOpacity={lit ? (crosses ? 0.95 : 0.5) : 0.12}
-                  strokeDasharray={crosses ? "5 4" : "none"}
+                  stroke={stroke}
+                  strokeWidth={sw}
+                  strokeOpacity={op}
+                  strokeLinecap="round"
+                  strokeDasharray={crosses && !onPath ? "5 4" : "none"}
+                  filter={onPath ? "url(#neuralBloom)" : undefined}
                 />
               );
             })}
+            {/* a crisp overlay of the path links on top of the glow */}
+            {selectedId && !hoverId && (sim.links || []).map((l, i) => (
+              onPathEdge(l.s.id, l.t.id) ? (
+                <line key={"p" + i} x1={l.s.x} y1={l.s.y} x2={l.t.x} y2={l.t.y}
+                  stroke="#a5f3fc" strokeWidth="1.4" strokeOpacity="0.95" strokeLinecap="round" />
+              ) : null
+            ))}
 
             {/* Nodes */}
             {(sim.nodes || []).map(s => {
@@ -362,6 +413,32 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
           </g>
         </svg>
       </div>
+
+      {/* Path back - the chain of links from the clicked node home to the role centre */}
+      {selectedId && pathInfo.order.length > 1 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center", margin: "8px 2px 0", fontSize: "0.75rem", color: "#5b6878" }}>
+          <span style={{ fontWeight: 700, color: "#0e7490" }}>Path back:</span>
+          {pathInfo.order.map(function(id, i) {
+            return (
+              <span key={id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                {i > 0 && <span aria-hidden="true" style={{ color: "#94a3b8" }}>{"->"}</span>}
+                <button
+                  type="button"
+                  onClick={function() { onNodeTap && onNodeTap(id); }}
+                  aria-label={"Select " + labelOf(id)}
+                  style={{
+                    background: id === selectedId ? "#ecfeff" : "none",
+                    border: id === selectedId ? "1px solid #a5f3fc" : "1px solid transparent",
+                    color: "#0e7490", fontWeight: 700, padding: "5px 8px", borderRadius: 7,
+                    cursor: "pointer", fontSize: "0.75rem", minHeight: 44,
+                  }}>
+                  {labelOf(id)}
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Legend - shape = type, size + brightness = importance, colour = cluster */}
       <div style={{ margin: "8px 2px 0", fontSize: "0.6875rem", color: "#4a5568" }}>
