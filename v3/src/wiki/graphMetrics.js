@@ -4,7 +4,7 @@
 
 // Major / minor weight by node type (role/occupation/org = major, skill = mid, duty/qual = minor).
 export const TYPE_WEIGHT = {
-  role: 1.0, occupation: 0.92, iscoOccupation: 0.92,
+  role: 1.0, theme: 0.9, occupation: 0.92, iscoOccupation: 0.92,
   "mirror-occupation": 0.84, organisation: 0.8,
   skill: 0.56, escoSkill: 0.56,
   qualification: 0.32, duty: 0.3,

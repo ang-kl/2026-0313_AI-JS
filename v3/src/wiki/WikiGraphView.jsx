@@ -15,6 +15,7 @@ import OrgJourney from "./OrgJourney.jsx";
 import { computeRealmMap } from "./wikiRealmOf.js";
 import { nodeImportance, impToScale } from "./graphMetrics.js";
 import NeuralGraph from "./NeuralGraph.jsx";
+import { themeifyGraph } from "./themeGraph.js";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -61,6 +62,7 @@ const CLUSTER_COLOUR = {
   department:   { fill: "#ecfeff", stroke: "#a5f3fc", text: "#0e7490" },
   organisation: { fill: "#f3e8ff", stroke: "#ddd6fe", text: "#7c3aed" },
   competition:  { fill: "#fffbeb", stroke: "#fcd9a0", text: "#b45309" },
+  theme:        { fill: "#ecfdf5", stroke: "#a7f3d0", text: "#047857" },
   unscoped:     { fill: "#f1f5f9", stroke: "#cbd5e1", text: "#5b6878" },
 };
 
@@ -590,6 +592,93 @@ function NodeDetail({ node, nodeId, realm }) {
   );
 }
 
+// Work-mode + AI-exposure tag colours (blue/teal/amber/orange - no red/green).
+const MODE_COLOUR = {
+  Activity:       { bg: "#fff7ed", bd: "#fed7aa", fg: "#c2410c" },
+  Coordination:   { bg: "#fffbeb", bd: "#fde68a", fg: "#b45309" },
+  Accountability: { bg: "#ecfeff", bd: "#a5f3fc", fg: "#0e7490" },
+  Relational:     { bg: "#eef2ff", bd: "#c7d2fe", fg: "#1e40af" },
+  Judgment:       { bg: "#f3e8ff", bd: "#ddd6fe", fg: "#7c3aed" },
+};
+const LEVEL_LABEL = { HUMAN: "Human-Led", LOW: "AI-Assisted", MEDIUM: "AI-Augmented", HIGH: "Full Automation" };
+const LEVEL_COLOUR = {
+  HUMAN:  { bg: "#eef2ff", bd: "#c7d2fe", fg: "#1e40af" },
+  LOW:    { bg: "#ecfeff", bd: "#a5f3fc", fg: "#0e7490" },
+  MEDIUM: { bg: "#fffbeb", bd: "#fde68a", fg: "#b45309" },
+  HIGH:   { bg: "#fff7ed", bd: "#fed7aa", fg: "#c2410c" },
+};
+
+// The O-I-A "surgical cut" readout: Observe -> Extract -> Segment -> Interpret, deterministic.
+function OIASurgicalCut({ topics, dutyMeta, stats, nodeMap }) {
+  const [open, setOpen] = useState(true);
+  if (!topics || !topics.length) return null;
+  const tagStyle = (c) => ({
+    display: "inline-flex", alignItems: "center", fontSize: "0.625rem", fontWeight: 700,
+    borderRadius: 6, padding: "1px 6px", background: c.bg, border: `1px solid ${c.bd}`, color: c.fg, whiteSpace: "nowrap",
+  });
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, marginBottom: 14, boxShadow: NEO.raiseSm, overflow: "hidden" }}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={function() { setOpen(function(v) { return !v; }); }}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "#f0fdf4", cursor: "pointer", textAlign: "left", minHeight: 44 }}>
+        <span aria-hidden="true" style={{ fontSize: "1rem" }}>{"\u{1FA7A}"}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: "0.875rem", fontWeight: 800, color: C.text }}>Surgical cut of the R&amp;R (O-I-A)</span>
+          <span style={{ display: "block", fontSize: "0.6875rem", color: C.muted }}>
+            Observe -&gt; Extract key terms -&gt; Segment into {stats.topics} themes -&gt; Interpret. {stats.duties} duties, deterministic.
+          </span>
+        </span>
+        <ProvChip kind="derived" />
+        <span aria-hidden="true" style={{ color: C.muted }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{ padding: "8px 16px 14px" }}>
+          {topics.map(function(tp) {
+            const col = CLUSTER_COLOUR.theme;
+            return (
+              <div key={tp.id} style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: "0.8125rem", fontWeight: 800, color: col.text, background: col.fill, border: `1px solid ${col.stroke}`, borderRadius: 8, padding: "2px 10px" }}>
+                    {tp.label}
+                  </span>
+                  <span style={{ fontSize: "0.6875rem", color: C.muted }}>{tp.dutyIds.length} {tp.dutyIds.length === 1 ? "duty" : "duties"}</span>
+                  {tp.keywords.length > 0 && (
+                    <span style={{ fontSize: "0.6875rem", color: C.textSub }}>
+                      <strong style={{ color: C.text }}>key terms:</strong> {tp.keywords.slice(0, 6).join(", ")}
+                    </span>
+                  )}
+                </div>
+                <ul style={{ margin: "6px 0 0", padding: "0 0 0 2px", listStyle: "none" }}>
+                  {tp.dutyIds.map(function(did) {
+                    const m = dutyMeta[did] || {};
+                    const text = (nodeMap[did] && nodeMap[did].label) || did;
+                    const mc = m.layer && MODE_COLOUR[m.layer];
+                    const lc = m.level && LEVEL_COLOUR[m.level];
+                    return (
+                      <li key={did} style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 6, margin: "4px 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.5 }}>
+                        <span style={{ flex: 1, minWidth: 180 }}>{text}</span>
+                        {mc && <span style={tagStyle(mc)}>{m.layer}</span>}
+                        {lc && <span style={tagStyle(lc)}>{LEVEL_LABEL[m.level] || m.level}</span>}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
+          <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: C.muted, lineHeight: 1.5 }}>
+            Themes are grouped by shared key terms in the posting (deterministic, not AI-authored).
+            Each duty carries its work mode and AI-exposure level from the engine. A duty with no shared
+            theme sits under "Other responsibilities" rather than being forced into one.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // OrgLensPlaceholder removed in PR4 - replaced by OrgJourney (real implementation)
 
 // ── Main WikiGraphView export ─────────────────────────────────────────────────
@@ -607,14 +696,21 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   const [graphMode, setGraphMode] = useState("focus");
   // Ecotone overlay state (off by default - the plain cluster view is the resting state)
   const [ecotone, setEcotone] = useState(false);
-  // Deterministic realm map over the WHOLE graph (spec section 2.1) - derived tier
-  const realmMap = useMemo(() => computeRealmMap(nodes, edges), [nodes, edges]);
+
+  // O-I-A "surgical cut": reshape the raw KG payload into Role -> Theme groups -> duties.
+  // Deterministic decorator (themeGraph.js); falls back to the raw payload when too few duties.
+  const themed = useMemo(() => themeifyGraph(nodes, edges, result), [nodes, edges, result]);
+  const gNodes = themed.nodes;
+  const gEdges = themed.edges;
+
+  // Deterministic realm map over the WHOLE (themed) graph (spec section 2.1) - derived tier
+  const realmMap = useMemo(() => computeRealmMap(gNodes, gEdges), [gNodes, gEdges]);
   // Build an id-keyed map and attach children lists from edges
   const nodeMap = {};
-  (nodes || []).forEach(n => {
+  (gNodes || []).forEach(n => {
     nodeMap[n.id] = { ...n, children: [] };
   });
-  (edges || []).forEach(e => {
+  (gEdges || []).forEach(e => {
     if (nodeMap[e.source]) {
       if (!nodeMap[e.source].children.includes(e.target)) {
         nodeMap[e.source].children.push(e.target);
@@ -623,7 +719,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   });
 
   // Find the root: the node with type "role" or the first node
-  const rootId = (nodes.find(n => n.type === "role") || nodes[0] || { id: "" }).id;
+  const rootId = (gNodes.find(n => n.type === "role") || gNodes[0] || { id: "" }).id;
 
   const [stack, setStack] = useState(rootId ? [rootId] : []);
   const [selectedId, setSelectedId] = useState(rootId || null);
@@ -734,6 +830,11 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         <OrgJourney result={result} title={title} />
       )}
 
+      {/* O-I-A surgical cut readout (themes + per-duty mode/exposure tags) */}
+      {themed.themed && (
+        <OIASurgicalCut topics={themed.topics} dutyMeta={themed.dutyMeta} stats={themed.stats} nodeMap={nodeMap} />
+      )}
+
       {/* Graph section header + mode toggle + ecotone overlay toggle */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 8, marginTop: 4 }}>
         <p style={{ margin: 0, flex: 1, minWidth: 120, fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -816,7 +917,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
       )}
 
       {/* Graph or empty state */}
-      {nodes.length === 0 ? (
+      {gNodes.length === 0 ? (
         <div style={{
           background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14,
           padding: 32, textAlign: "center", boxShadow: NEO.raiseSm,
@@ -830,8 +931,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         </div>
       ) : graphMode === "neural" ? (
         <NeuralGraph
-          nodes={nodes}
-          edges={edges}
+          nodes={gNodes}
+          edges={gEdges}
           selectedId={selectedId}
           onNodeTap={setSelectedId}
           ecotone={ecotone}

@@ -29,6 +29,7 @@ const DOT = {
   department:   "#22d3ee",
   organisation: "#c084fc",
   competition:  "#fbbf24",
+  theme:        "#34d399",
   unscoped:     "#94a3b8",
 };
 const REALM_DOT = { internal: "#60a5fa", edge: "#fbbf24", external: "#22d3ee" };
@@ -41,6 +42,7 @@ function dotColour(node, ecotone, realm) {
 // Shape family per type - the non-colour cue that carries the node category.
 function shapeOf(type) {
   if (type === "role") return "hub";
+  if (type === "theme") return "hexagon";
   if (type === "occupation" || type === "iscoOccupation") return "diamond";
   if (type === "organisation") return "square";
   if (type === "mirror-occupation") return "triangle";
@@ -48,7 +50,7 @@ function shapeOf(type) {
 }
 
 const SHAPE_LABEL = {
-  hub: "role (hub)", diamond: "occupation", square: "organisation",
+  hub: "role (hub)", hexagon: "theme group", diamond: "occupation", square: "organisation",
   triangle: "competitor role", circle: "skill / duty / detail",
 };
 
@@ -64,6 +66,12 @@ function NodeGlyph({ shape, r, fill, stroke, strokeWidth, opacity }) {
   if (shape === "triangle") {
     const a = r * 1.15;
     return <polygon points={`0,${-a} ${a * 0.87},${a * 0.5} ${-a * 0.87},${a * 0.5}`} {...common} />;
+  }
+  if (shape === "hexagon") {
+    const a = r * 1.12;
+    const pts = [];
+    for (let i = 0; i < 6; i++) { const ang = Math.PI / 6 + i * Math.PI / 3; pts.push(`${(a * Math.cos(ang)).toFixed(1)},${(a * Math.sin(ang)).toFixed(1)}`); }
+    return <polygon points={pts.join(" ")} {...common} />;
   }
   return <circle r={r} {...common} />; // hub + circle are both circles (hub is just larger via r)
 }
@@ -448,6 +456,7 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", alignItems: "center" }}>
           <span style={{ fontWeight: 700, color: "#1a202c" }}>Shape = type:</span>
           <ShapeKey shape="hub" label="role" />
+          <ShapeKey shape="hexagon" label="theme" />
           <ShapeKey shape="diamond" label="occupation" />
           <ShapeKey shape="square" label="organisation" />
           <ShapeKey shape="triangle" label="competitor" />
