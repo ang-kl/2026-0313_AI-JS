@@ -228,15 +228,16 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
   }, []);
 
   const sim = simRef.current;
+  // adjacency straight from the edges prop (stable; not from the async-built sim)
   const neighbours = useMemo(() => {
     const map = {};
-    (sim.links || []).forEach(l => {
-      (map[l.s.id] = map[l.s.id] || new Set()).add(l.t.id);
-      (map[l.t.id] = map[l.t.id] || new Set()).add(l.s.id);
+    (edges || []).forEach(e => {
+      if (!e || e.source == null || e.target == null) return;
+      (map[e.source] = map[e.source] || new Set()).add(e.target);
+      (map[e.target] = map[e.target] || new Set()).add(e.source);
     });
     return map;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sig]);
+  }, [edges]);
 
   // Root = the role node (or first node) - the centre every path traces back to.
   const rootId = useMemo(() => {
@@ -263,8 +264,7 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
     const nodeSet = new Set(order), edgeSet = new Set();
     for (let i = 0; i < order.length - 1; i++) edgeSet.add(ek(order[i], order[i + 1]));
     return { nodeSet, edgeSet, order };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, rootId, sig]);
+  }, [selectedId, rootId, neighbours]);
 
   // Lit rules: hover -> the node + its direct neighbours; else a selection -> the path back to root; else all.
   const isLit = id => {

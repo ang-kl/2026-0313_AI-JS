@@ -1144,6 +1144,13 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.128 - 2026-06-22 - HDR #166 - Fix: Neural path-back never lit up (Human Lead reported it via
+// the build, verified live - no breadcrumb, 0 cyan path links). Root cause: in src/wiki/NeuralGraph.jsx
+// the `neighbours` adjacency map was memoised from `sim.links`, but the force sim is built in a useEffect
+// AFTER render, so neighbours computed once from the empty initial sim and never refreshed -> BFS found
+// no path. Fix: derive `neighbours` straight from the `edges` prop (always present), and key pathInfo on
+// `neighbours`. Now clicking a node lights the cyan path home + the "Path back:" breadcrumb. Render-only;
+// frozen door byte-identical. G1 (v3.0.127 -> v3.0.128).
 // v3.0.127 - 2026-06-22 - HDR #165 - Career WikiGraph Neural view: click a node -> highlight the PATH
 // BACK to the role centre (Human Lead: "when i click the branch it should show the path back"). In
 // src/wiki/NeuralGraph.jsx: a deterministic BFS over the link graph finds the shortest path from the
