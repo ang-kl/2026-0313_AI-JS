@@ -1144,6 +1144,19 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.134 - 2026-06-22 - HDR #172 - Career WikiGraph "canvas" centre, slice 1 (Human Lead sent the
+// Obsidian Help 3-pane layout + the Obsidian Canvas refs; "interlinks by text not visual"; steers: graph
+// -> right-rail panel not a tab, mini-graph default Focus, O-I-A -> centre canvas of word/text/theme
+// relationships). NEW src/wiki/WikiCanvas.jsx renders the O-I-A as a CARD BOARD (the centre canvas):
+// each theme is a coloured group box (decorative blue/teal/purple/amber tints, no red/green, label is the
+// cue) holding duty CARDS; each card shows the duty text + its key-term [[wikilinks]] + the skills it
+// depends-on (-> [[skill]] from the deterministic edges) + [work-mode][AI-exposure] tags; plus reference
+// cards for the role's occupation (ESCO/ISCO) and organisation (the embedded-note analog). Relationships
+// are shown BY TEXT (wikilink chips), not a node blob - the visual graph stays the separate Focus/Neural
+// view. WikiGraphView renders WikiCanvas in place of the OIASurgicalCut list under the same O-I-A header.
+// Render-only over the themed payload + edges (deterministic); LLM gloss only renames a theme label (~).
+// Slice 1 of the layout rework (centre canvas); right-rail docked-expandable graph + On-this-page TOC +
+// 3-pane shell are the next slices. Frozen door byte-identical; R007 clean. G1 (v3.0.133 -> v3.0.134).
 // v3.0.133 - 2026-06-22 - HDR #171 - Fix: O-I-A theme-label gloss 404'd live. fetchThemeGlosses used
 // model "claude-fable-5", which the /api/claude proxy rejects as an unknown model (404) -> gloss never
 // applied, themes stayed as seed words. Switched to the proven narration model "claude-haiku-4-5-20251001"

@@ -16,6 +16,7 @@ import { computeRealmMap } from "./wikiRealmOf.js";
 import { nodeImportance, impToScale } from "./graphMetrics.js";
 import NeuralGraph from "./NeuralGraph.jsx";
 import { themeifyGraph } from "./themeGraph.js";
+import WikiCanvas from "./WikiCanvas.jsx";
 
 // ── palette mirrors C in App.jsx ─────────────────────────────────────────────
 const C = {
@@ -888,9 +889,21 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         <OrgJourney result={result} title={title} />
       )}
 
-      {/* O-I-A surgical cut readout (themes + per-duty mode/exposure tags) */}
+      {/* O-I-A surgical cut as a CANVAS - theme groups + duty cards + [[wikilink]] interlinks (by text) */}
       {themed.themed && (
-        <OIASurgicalCut topics={themed.topics} dutyMeta={themed.dutyMeta} stats={themed.stats} nodeMap={nodeMap} glosses={glosses} />
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span aria-hidden="true" style={{ fontSize: "1rem" }}>{"\u{1FA7A}"}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 800, color: C.text }}>Surgical cut of the R&amp;R (O-I-A) - canvas</p>
+              <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted }}>
+                Observe -&gt; Extract key terms -&gt; Segment into {themed.stats.topics} themes -&gt; Interpret. {themed.stats.duties} duties, deterministic.
+              </p>
+            </div>
+            <ProvChip kind="derived" />
+          </div>
+          <WikiCanvas topics={themed.topics} dutyMeta={themed.dutyMeta} nodeMap={nodeMap} glosses={glosses} edges={gEdges} nodes={gNodes} />
+        </div>
       )}
 
       {/* Graph section header + mode toggle + ecotone overlay toggle */}
