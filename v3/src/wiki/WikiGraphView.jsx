@@ -622,7 +622,7 @@ async function fetchThemeGlosses(topics) {
   const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model: "claude-fable-5", max_tokens: 400, system, messages: [{ role: "user", content: "Groups:\n" + groups }] }),
+    body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 400, system, messages: [{ role: "user", content: "Groups:\n" + groups }] }),
   });
   if (!res.ok) throw new Error("gloss " + res.status);
   const data = await res.json();
