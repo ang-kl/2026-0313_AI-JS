@@ -1144,6 +1144,17 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.139 - 2026-06-22 - HDR #177 - Docs-style 2-pane for the ORGANISATION perspective (Human Lead:
+// "the 3 panel doesn['t] show in the organisation perspective" -> bring it over). The employer AI-moments
+// is graph-PRIMARY (the graph is the content, the inverse of the role view where reads are the content +
+// graph is a rail), so the docs layout maps to: GRAPH centre + a docked DETAILS/INDEX rail. KGGraph gains
+// an `embedded` prop (drops the minHeight:100vh / full-page padding / 1240 cap so it sits as a clean card,
+// not a standalone page); CompanyAgentSidePanel gains an `inline` prop (renders as a static docked card,
+// not the fixed right-edge overlay drawer). The AI-moments now renders a 2-pane: <main> KGGraph embedded |
+// <aside> sticky rail that shows the tapped node's CompanyAgentSidePanel inline, or - when nothing is
+// tapped - an "Agent candidates" INDEX (top agents, click to focus). flex-wrap stacks the rail below on
+// phones. Render-only; the role's Role Graph KGGraph (no embedded prop) is unchanged; frozen symbols +
+// api/* + engine-data byte-identical. G1 (v3.0.138 -> v3.0.139).
 // v3.0.138 - 2026-06-22 - HDR #176 - Stop truncating AI-moments node text upstream (follow-up to #175).
 // Live tap-to-expand revealed labels still cut mid-word ("...improve work pr") because
 // companyAgentsToKgPayload truncated duty-cluster + agent node labels with .slice(0,80). Raised both to
@@ -11914,7 +11925,7 @@ function companyAgentsToKgPayload(model) {
 // CO2.8: CompanyAgentSidePanel - node-detail side panel opened via onNodeTap.
 // Shows "Connected to" (roles + skills) and "From these postings" (provenance).
 // 44px targets, aria, no red/green.
-function CompanyAgentSidePanel({ nodeId, kgPayload, onClose }) {
+function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
   if (!nodeId || !kgPayload) return null;
   const model = kgPayload._agentsModel;
   if (!model) return null;
@@ -11937,8 +11948,10 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose }) {
   const lvlStyle = level && LEVELS[level] ? LEVELS[level] : null;
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={"Detail: " + title}
-      style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "clamp(280px,35vw,400px)", background: "#fff", borderLeft: "1px solid #dde3ec", boxShadow: "-4px 0 24px rgba(0,0,0,0.10)", zIndex: 999, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: 14, fontFamily: "system-ui,-apple-system,sans-serif" }}>
+    <div role={inline ? "region" : "dialog"} aria-modal={inline ? undefined : "true"} aria-label={"Detail: " + title}
+      style={inline
+        ? { position: "static", width: "100%", background: "#fff", border: "1px solid #dde3ec", borderRadius: 14, overflowY: "auto", padding: "16px 16px", display: "flex", flexDirection: "column", gap: 14, fontFamily: "system-ui,-apple-system,sans-serif", maxHeight: "72vh" }
+        : { position: "fixed", top: 0, right: 0, bottom: 0, width: "clamp(280px,35vw,400px)", background: "#fff", borderLeft: "1px solid #dde3ec", boxShadow: "-4px 0 24px rgba(0,0,0,0.10)", zIndex: 999, overflowY: "auto", padding: "20px 18px", display: "flex", flexDirection: "column", gap: 14, fontFamily: "system-ui,-apple-system,sans-serif" }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 10, fontWeight: 800, color: "#0f766e", textTransform: "uppercase", letterSpacing: "0.06em" }}>{kgNode.type === "agent" ? "Agent candidate" : "Duty cluster"}</div>
@@ -12326,13 +12339,34 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                   </div>
                 </details>
 
-                {/* Tier graph: reuses KGGraph from RoleGraph.jsx */}
-                <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} />
-
-                {/* Side panel */}
-                {tapNodeId && (
-                  <CompanyAgentSidePanel nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
-                )}
+                {/* Docs-style 2-pane: graph centre + docked details/index rail (the org perspective). */}
+                <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+                  <main style={{ flex: "1 1 460px", minWidth: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "10px 12px" }}>
+                    <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} embedded />
+                  </main>
+                  <aside style={{ flex: "1 1 280px", maxWidth: 360, minWidth: 250, position: "sticky", top: 12, alignSelf: "flex-start" }}>
+                    {tapNodeId ? (
+                      <CompanyAgentSidePanel inline nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
+                    ) : (
+                      <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px 16px" }}>
+                        <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 800, color: "#5b6878", textTransform: "uppercase", letterSpacing: "0.05em" }}>Agent candidates</p>
+                        <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                          {agentsKgPayload.nodes.filter(function(n) { return n.type === "agent"; }).slice(0, 10).map(function(n) {
+                            return (
+                              <li key={n.id}>
+                                <button type="button" onClick={function() { handleAgentNodeTap(n.id); }}
+                                  style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", color: "#0369a1", fontWeight: 700, padding: "7px 6px", borderRadius: 6, cursor: "pointer", fontSize: 12.5, lineHeight: 1.35, minHeight: 36 }}>
+                                  {n.label}
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <p style={{ margin: "8px 0 0", fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}>Tap an agent (or any node in the graph) to see its connections, skills and the postings it spans.</p>
+                      </div>
+                    )}
+                  </aside>
+                </div>
 
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
                   <span style={{ fontWeight: 700 }}>Prov:</span> nodes are <span style={{ fontWeight: 700 }}>from MCF</span> (company categories) or <span style={{ fontWeight: 700 }}>derived</span> (cluster + ranking from sampled postings). Recurrence = distinct postings spanned. Score = recurrence x exposure weight. No LLM authored any cluster, count or rank.
