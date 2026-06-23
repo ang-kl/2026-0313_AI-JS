@@ -1144,6 +1144,12 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.138 - 2026-06-22 - HDR #176 - Stop truncating AI-moments node text upstream (follow-up to #175).
+// Live tap-to-expand revealed labels still cut mid-word ("...improve work pr") because
+// companyAgentsToKgPayload truncated duty-cluster + agent node labels with .slice(0,80). Raised both to
+// .slice(0,220) so the full duty reads in the expanded node (the render already word-wraps + soft-clamps
+// the preview and shows everything on tap). Engine data shaping only; deterministic; no LLM; frozen
+// symbols + api/* + engine-data byte-identical. G1 (v3.0.137 -> v3.0.138).
 // v3.0.137 - 2026-06-22 - HDR #175 - Make the AI-moments graph readable (Human Lead: "Lanes/Neural/
 // Workflow... no significant value, i cannot zoom, the square is so hard[ened] i cannot read the text,
 // too many text truncated... read must be able to read/expand/collapse, professionally style UI/UX";
@@ -11858,7 +11864,7 @@ function companyAgentsToKgPayload(model) {
     nodes.push({
       id: c.id,
       type: "duty",
-      label: c.repDuty.slice(0, 80),
+      label: c.repDuty.slice(0, 220),
       cluster: "duties",
       source: "derived",
       confidence: c.promoted ? "promoted" : (provKey || ""),
@@ -11875,7 +11881,7 @@ function companyAgentsToKgPayload(model) {
     nodes.push({
       id: ag.id,
       type: "agent",
-      label: ag.label.slice(0, 80),
+      label: ag.label.slice(0, 220),
       cluster: "agents",
       source: "derived",
       confidence: "score " + ag.score,
