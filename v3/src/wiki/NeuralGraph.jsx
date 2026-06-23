@@ -266,13 +266,16 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
     return { nodeSet, edgeSet, order };
   }, [selectedId, rootId, neighbours]);
 
-  // Lit rules: hover -> the node + its direct neighbours; else a selection -> the path back to root; else all.
+  // Hovering a DIFFERENT node previews its neighbours; hovering the selected node (e.g. the
+  // cursor resting on it right after a click) must NOT hide that node's path-back.
+  const activeHover = hoverId && hoverId !== selectedId ? hoverId : null;
+  // Lit rules: a foreign hover -> that node + its neighbours; else a selection -> path back; else all.
   const isLit = id => {
-    if (hoverId) return id === hoverId || (neighbours[hoverId] && neighbours[hoverId].has(id));
+    if (activeHover) return id === activeHover || (neighbours[activeHover] && neighbours[activeHover].has(id));
     if (selectedId && pathInfo.nodeSet.size) return pathInfo.nodeSet.has(id);
     return true;
   };
-  const onPathEdge = (a, b) => selectedId && !hoverId && pathInfo.edgeSet.has(ek(a, b));
+  const onPathEdge = (a, b) => selectedId && !activeHover && pathInfo.edgeSet.has(ek(a, b));
   const labelOf = id => { const s = sim.byId[id]; return (s && s.node && s.node.label) || id; };
   const focusId = hoverId || selectedId; // the actively focused node (for label + ring emphasis)
   const transform = `translate(${view.x},${view.y}) scale(${view.k})`;
@@ -343,7 +346,7 @@ export default function NeuralGraph({ nodes = [], edges = [], selectedId, onNode
               );
             })}
             {/* a crisp overlay of the path links on top of the glow */}
-            {selectedId && !hoverId && (sim.links || []).map((l, i) => (
+            {selectedId && !activeHover && (sim.links || []).map((l, i) => (
               onPathEdge(l.s.id, l.t.id) ? (
                 <line key={"p" + i} x1={l.s.x} y1={l.s.y} x2={l.t.x} y2={l.t.y}
                   stroke="#a5f3fc" strokeWidth="1.4" strokeOpacity="0.95" strokeLinecap="round" />

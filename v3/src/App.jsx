@@ -1144,6 +1144,12 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.129 - 2026-06-22 - HDR #167 - Fix: Neural path-back stayed hidden right after a click because
+// the cursor rests ON the just-clicked node, so hoverId === selectedId and the hover branch suppressed
+// the path. src/wiki/NeuralGraph.jsx: introduce activeHover = a hover of a DIFFERENT node than the
+// selection; the path-back (cyan links + breadcrumb + dimming) now shows whenever a node is selected,
+// and only a foreign hover previews neighbours instead. Render-only; frozen door byte-identical.
+// (Isolated nodes with no route to the role correctly show no path - honest, not a bug.) G1 (128 -> 129).
 // v3.0.128 - 2026-06-22 - HDR #166 - Fix: Neural path-back never lit up (Human Lead reported it via
 // the build, verified live - no breadcrumb, 0 cyan path links). Root cause: in src/wiki/NeuralGraph.jsx
 // the `neighbours` adjacency map was memoised from `sim.links`, but the force sim is built in a useEffect
