@@ -1144,6 +1144,11 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.142 - 2026-06-24 - HDR #180 - RIN1/RIN2 V3 reinvention shell (Human Lead: "Finish all the PR
+// and deploy all at once"). Result view now has Context / Map / Decision panels on wide screens and
+// Ask / Map / Decide tabs on phone. RoleGraph is first in Understand/Map, keeps the V2 fast read,
+// and collapses the method pipeline behind a 44px control. Decision panel states no autonomous action
+// is allowed until risk, owner, scope, and audit exist. Render-only; v3-only; engine/API/v2 untouched.
 // v3.0.141 - 2026-06-22 - HDR #179 - Merge the two "Job ad" FABs (Human Lead: "merge"). On the WikiGraph
 // tab there were two bottom-left FABs: the app-level plain-posting JobAdFab + the new dissect FAB. The
 // app JobAdFab render now carries `&& activeTab !== "wikigraph"` so it is suppressed on the wiki tab; the
@@ -7430,10 +7435,11 @@ const _PILLARS = [
 // Every live buildTabs key appears in exactly ONE pillar array (cross-checked; zero orphans).
 // Keys follow the PL2 ledger + spec-PL4 placement for conditional/un-ledgered tabs.
 const _PILLAR_MAP = {
-  // PL5: "understand-s1" renders first (why-the-org-wants-this-role: ForensicReversal +
-  // Role Context department read + SYSTEM_WHY_ROLE narration). "rolegraph" is section 2.
+  // RIN2: RoleGraph renders first in the Map panel to preserve the V2 fast-read edge.
+  // "understand-s1" follows with why-the-org-wants-this-role: ForensicReversal +
+  // Role Context department read + SYSTEM_WHY_ROLE narration.
   // PL8: "understand-also" renders AlsoAdvertisedAs (same job, other names) after rolegraph.
-  "understand":   ["understand-s1", "understand-also", "rolegraph", "wikigraph", "responsibilities", "jobanatomy", "rolemix"],
+  "understand":   ["rolegraph", "understand-s1", "understand-also", "wikigraph", "responsibilities", "jobanatomy", "rolemix"],
   // PL6: "position-market" renders after context; holds the four market/employer reads
   // (DemandProof, AdLanguageScan, EmployerReality, CompanyBackground) pulled from deepread.
   // compare + mcf_jobs follow as position utility.
@@ -7500,6 +7506,54 @@ function PillarBar({ activePillar, onSelect }) {
               >{p.n}</span>
               <span>{p.name}</span>
               {active && <span style={{ fontSize: "0.625rem", fontWeight: 700 }}>- active</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const _RIN_RESULT_PANELS = [
+  { key: "ask", label: "Ask" },
+  { key: "map", label: "Map" },
+  { key: "decide", label: "Decide" },
+];
+
+function RinResultPanelTabs({ activePanel, onSelect }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <p style={{ margin: "0 0 6px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Three panels</p>
+      <div role="tablist" aria-label="Result panels" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
+        {_RIN_RESULT_PANELS.map((p, idx) => {
+          const active = activePanel === p.key;
+          return (
+            <button
+              key={p.key}
+              role="tab"
+              aria-selected={active}
+              onClick={() => onSelect(p.key)}
+              style={{
+                minHeight: 44,
+                padding: "7px 8px",
+                borderRadius: 12,
+                border: "2px solid",
+                borderColor: active ? C.accent : C.border,
+                background: active ? C.accent : C.surface,
+                color: active ? "#fff" : C.textSub,
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <span aria-hidden="true">{idx + 1}</span>
+              <span>{p.label}</span>
+              {active && <span style={{ fontSize: "0.625rem" }}>active</span>}
             </button>
           );
         })}
@@ -9952,6 +10006,7 @@ function RoleGraphPanel({ result, title }) {
   const [showJson, setShowJson] = useState(false);
   const [showStmts, setShowStmts] = useState(false);
   const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
+  const [pipeOpen, setPipeOpen] = useState(false); // RIN2: keep Map panel graph-first; pipeline detail expands on demand
   const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge"
   const graphScrollRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
@@ -10132,11 +10187,26 @@ function RoleGraphPanel({ result, title }) {
   return (
     <div>
       <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
-        <p style={{ margin: "0 0 3px", fontSize: "0.8125rem", fontWeight: 800, color: "#3730a3" }}>Role Graph - what {toTitleCase(title || "this role")} actually is, mapped end-to-end</p>
-        <p style={{ margin: 0, fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to <strong>ESCO</strong> skills - reverse-maps those to the <strong>ISCO-08</strong> occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready <strong>role - occupation - skill - responsibility</strong> graph and a skill-analysis card.</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: "0.6875rem", color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+            <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", fontWeight: 800, color: "#3730a3", textTransform: "uppercase", letterSpacing: "0.06em" }}>Map panel - RoleGraph</p>
+            <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: C.text, lineHeight: 1.35 }}>{toTitleCase(title || "this role")} as work, skills, and occupation evidence</h3>
+            <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The graph keeps the V2 fast read, now grounded in live duties, ESCO skills, and ISCO-08 occupation evidence.</p>
+          </div>
+          <button type="button" onClick={() => setPipeOpen(o => !o)} aria-expanded={pipeOpen}
+            style={{ minHeight: 44, padding: "7px 12px", borderRadius: 10, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: "0.75rem", fontWeight: 800, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span>{pipeOpen ? "Hide method" : "Show method"}</span>
+            <span aria-hidden="true">{pipeOpen ? "up" : "down"}</span>
+          </button>
         </div>
+        {pipeOpen && (
+          <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #c7d2fe" }}>
+            <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities, infers work activities and skills, maps them to <strong>ESCO</strong>, reverse-maps to <strong>ISCO-08</strong>, then assembles an API-ready role - occupation - skill - responsibility graph.</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: "0.6875rem", color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* KG1: view toggle - Layered (default) / Knowledge graph */}
@@ -12572,6 +12642,7 @@ export default function App({ initialSearchMode } = {}) {
   // at mount (deep-link effects replaceState the URL later, so re-reads would lose it).
   const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") !== "1"; } catch (_) { return true; } });
   const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 900px)").matches; } catch (_) { return false; } });
+  const [resultPanel, setResultPanel] = useState("map"); // RIN1: phone result panels - ask | map | decide
   useEffect(() => {
     if (!uiV2) return;
     try {
@@ -13607,6 +13678,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
   // pillar-section render (renderSection guards on data presence instead).
   function handlePillarSelect(key) {
     setActivePillar(key);
+    setResultPanel("map");
     setActiveNavSection(null); // PL-NAV: clear section focus when pillar-level nav fires
     setSegmentPanelOpen(false);
     track("pillar_viewed", { pillar: key });
@@ -14715,53 +14787,80 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               })()}
             </>
           );
+          const uiDecisionPanel = (
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding:"14px 16px", marginBottom:12 }}>
+              <p style={{ margin:"0 0 4px", fontSize:"0.6875rem", fontWeight:800, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>Decision</p>
+              <h2 style={{ margin:"0 0 8px", fontSize:"1rem", fontWeight:800, color:C.text, lineHeight:1.35 }}>Human decides from live evidence</h2>
+              <div style={{ display:"grid", gap:8 }}>
+                <div style={{ border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 10px", background:"#f8fafc" }}>
+                  <p style={{ margin:"0 0 2px", fontSize:"0.6875rem", fontWeight:800, color:C.textSub }}>Current path</p>
+                  <p style={{ margin:0, fontSize:"0.75rem", color:C.textSub, lineHeight:1.5 }}>Read the role, inspect the map, then choose apply, prepare, compare, or redesign.</p>
+                </div>
+                <div style={{ border:"1px solid #fed7aa", borderRadius:8, padding:"8px 10px", background:"#fff7ed" }}>
+                  <p style={{ margin:"0 0 2px", fontSize:"0.6875rem", fontWeight:800, color:"#9a3412" }}>Agent status</p>
+                  <p style={{ margin:0, fontSize:"0.75rem", color:"#9a3412", lineHeight:1.5 }}>No autonomous action is allowed from this screen. Agent candidates remain analysis until risk, owner, scope, and audit are present.</p>
+                </div>
+                <div style={{ border:"1px solid #bfdbfe", borderRadius:8, padding:"8px 10px", background:"#eff6ff" }}>
+                  <p style={{ margin:"0 0 2px", fontSize:"0.6875rem", fontWeight:800, color:"#1e40af" }}>Owner</p>
+                  <p style={{ margin:0, fontSize:"0.75rem", color:"#1e40af", lineHeight:1.5 }}>The accountable owner is the user reviewing this evidence; V3 does not make hiring or deployment decisions.</p>
+                </div>
+              </div>
+            </div>
+          );
           return (
             <div>
-              {/* UI2 wide: two-column grid - sticky liquid-glass nav rail left, all result content right.
-                  uiNavBox renders exactly once per layout path (left col on wide, zero on narrow uiV2).
-                  PillarBar renders only on narrow (phone); never on wide. */}
+              {/* RIN1: three-panel shell - Context / Map / Decision.
+                  The existing pillar result content stays in Map; Context and Decision organise
+                  already-computed material without changing any engine output. */}
               {(uiV2 && uiWide) ? (
-                <div style={{ display:"grid", gridTemplateColumns:"312px minmax(0,1fr)", gap:20, alignItems:"start" }}>
-                  {/* Left rail: sticky liquid-glass nav - top:64 sits it below the sticky header (zIndex:50) */}
-                  <div style={{ position:"sticky", top:64 }}>{uiNavBox}</div>
-                  {/* Right column: title card + summary + comparison banner + pillar content + legend (no PillarBar on wide) */}
-                  <div style={{ minWidth:0 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"minmax(260px,312px) minmax(0,1fr) minmax(280px,340px)", gap:16, alignItems:"start" }}>
+                  <aside aria-label="Context panel" style={{ position:"sticky", top:64, minWidth:0 }}>
                     {uiTitleCard}
-                    {/* Feature 2: plain-language TL;DR summary card */}
+                    {uiNavBox}
+                  </aside>
+                  <section aria-label="Map panel" style={{ minWidth:0 }}>
                     {uiSummaryCard}
-                    {uiComparisonBanner}
-                    {/* PL4: pillar view */}
-                    {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
-                    {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
                     {renderPillarView()}
-                    {/* UI2: badges legend as footnote */}
+                  </section>
+                  <aside aria-label="Decision panel" style={{ position:"sticky", top:64, minWidth:0 }}>
+                    {uiComparisonBanner}
+                    {uiDecisionPanel}
                     <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>
-                  </div>
+                  </aside>
                 </div>
-              ) : (
-                /* non-wide (phone) or !uiV2: single-column stacked layout.
-                   uiV2 phone: PillarBar is the nav (no tree); no stacked uiNavBox.
-                   !uiV2 legacy: ProvLegend + uiNavBox tree as before. */
+              ) : uiV2 ? (
                 <>
-                  {uiTitleCard}
-                  {/* Feature 2: plain-language TL;DR summary card (phone path) */}
-                  {uiSummaryCard}
-                  {/* PL3: PillarBar - phone-only nav (uiV2 narrow). Hidden on wide (nav rail used instead). */}
-                  {uiV2 && <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />}
-                  {/* Text-size control moved to the global app header (mounted once there) */}
-                  {uiComparisonBanner}
-                  {!uiV2 && (
+                  <RinResultPanelTabs activePanel={resultPanel} onSelect={setResultPanel} />
+                  {resultPanel === "ask" && (
                     <>
-                      <ProvLegend />
-                      {uiNavBox}
+                      {uiTitleCard}
+                      {uiSummaryCard}
+                      <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
                     </>
                   )}
-                  {/* v1.8.9: coach mark overlay removed - first AI skill blinks inline */}
-                  {/* PL4: pillar view */}
-                  {/* [PL2] activeTab === "rehearse" -- removed (PL2) */}
-                  {/* [PL2] activeTab === "coverletter" -- removed (PL2) */}
+                  {resultPanel === "map" && (
+                    <>
+                      <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
+                      {renderPillarView()}
+                    </>
+                  )}
+                  {resultPanel === "decide" && (
+                    <>
+                      {uiComparisonBanner}
+                      {uiDecisionPanel}
+                      <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>
+                    </>
+                  )}
+                </>
+              ) : (
+                /* !uiV2 legacy: keep the stacked layout behind ?ui=1. */
+                <>
+                  {uiTitleCard}
+                  {uiSummaryCard}
+                  {uiComparisonBanner}
+                  <ProvLegend />
+                  {uiNavBox}
                   {renderPillarView()}
-                  {uiV2 && <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>}
                 </>
               )}
 
