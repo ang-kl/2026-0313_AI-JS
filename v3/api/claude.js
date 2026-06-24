@@ -3,21 +3,48 @@ export const config = {
   maxDuration: 300,
 };
 
-// v6: prompt caching helper - only injects cache_control when system prompt
-// meets Haiku 4.5 minimum of 4,096 tokens (~16,000 chars). Safe to call on
-// every request - returns body unchanged if system is absent or too short.
-function injectCaching(body) {
-  if (!body.system) return body;
-  const blocks = Array.isArray(body.system)
-    ? body.system
-    : [{ type: "text", text: body.system }];
-  const totalChars = blocks.reduce((sum, b) => sum + (b.text || "").length, 0);
-  if (totalChars < 16000) return body;
-  const cached = blocks.map((b, i) => {
-    if (i !== blocks.length - 1) return b;
-    return Object.assign({}, b, { cache_control: { type: "ephemeral" } });
+function textFromSystem(system) {
+  if (!system) return "";
+  if (typeof system === "string") return system;
+  if (!Array.isArray(system)) return "";
+  return system.map(b => (b && b.text) ? String(b.text) : "").filter(Boolean).join("\n\n");
+}
+
+function textFromMessages(messages) {
+  return (messages || []).map(m => {
+    const content = m && m.content;
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) {
+      return content.map(c => {
+        if (typeof c === "string") return c;
+        return (c && (c.text || c.content)) ? String(c.text || c.content) : "";
+      }).filter(Boolean).join("\n");
+    }
+    return "";
+  }).filter(Boolean).join("\n\n");
+}
+
+function openAiModelFor(requestedModel) {
+  const requested = String(requestedModel || "");
+  if (/^(gpt|o[0-9]|o-)/i.test(requested)) return requested;
+  const configured = process.env.OPENAI_MODEL || "";
+  if (configured) return configured;
+  if (/opus|sonnet|fable/i.test(requested)) {
+    return process.env.OPENAI_MODEL_STRONG || "gpt-4.1";
+  }
+  return process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini";
+}
+
+function textFromOpenAI(data) {
+  if (typeof data?.output_text === "string" && data.output_text) return data.output_text;
+  const chunks = [];
+  (data?.output || []).forEach(item => {
+    (item?.content || []).forEach(part => {
+      if (typeof part?.text === "string") chunks.push(part.text);
+      if (typeof part?.content === "string") chunks.push(part.content);
+    });
   });
-  return Object.assign({}, body, { system: cached });
+  return chunks.join("");
 }
 
 const WARM_ERRORS = {
@@ -32,9 +59,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    console.error("[proxy] ANTHROPIC_API_KEY not set");
+    console.error("[proxy] OPENAI_API_KEY not set");
     return res.status(500).json({ ...WARM_ERRORS.server, debug: "API key missing" });
   }
 
@@ -44,53 +71,64 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Invalid request body", code: "BAD_REQUEST" });
   }
 
-  // Apply prompt caching to system block when present
-  const cachedBody = injectCaching(req.body);
+  const openAiModel = openAiModelFor(model);
+  const instructions = textFromSystem(system);
+  const input = textFromMessages(messages);
 
   // Log model and token budget for debugging
-  console.log(`[proxy] model=${cachedBody.model} max_tokens=${cachedBody.max_tokens} system_len=${typeof cachedBody.system === 'string' ? cachedBody.system.length : 'array'}`);
+  console.log(`[proxy] provider=openai requested_model=${model} openai_model=${openAiModel} max_tokens=${max_tokens} system_len=${instructions.length}`);
 
   // Timeout: 280s (leaves 20s buffer inside Vercel 300s maxDuration)
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 280000);
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "anthropic-version": "2023-06-01",
-        "x-api-key": apiKey,
+        "authorization": `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(cachedBody),
+      body: JSON.stringify({
+        model: openAiModel,
+        instructions,
+        input,
+        max_output_tokens: max_tokens,
+      }),
       signal: controller.signal,
     });
 
     clearTimeout(timeout);
     const data = await response.json();
-    console.log(`[proxy] status=${response.status} stop_reason=${data?.stop_reason} content_blocks=${data?.content?.length}`);
+    console.log(`[proxy] status=${response.status} provider=openai output_blocks=${data?.output?.length || 0}`);
 
     if (!response.ok) {
       const status = response.status;
-      const aType = (data && data.error && data.error.type) || "";
-      const aMsg = (data && data.error && data.error.message) || "";
-      const detail = `HTTP ${status}${aType ? " " + aType : ""}${aMsg ? ": " + aMsg : ""}`.slice(0, 300);
-      console.error(`[proxy] Anthropic error ${status}:`, JSON.stringify(data));
+      const oType = (data && data.error && (data.error.type || data.error.code)) || "";
+      const oMsg = (data && data.error && data.error.message) || "";
+      const detail = `HTTP ${status}${oType ? " " + oType : ""}${oMsg ? ": " + oMsg : ""}`.slice(0, 300);
+      console.error(`[proxy] OpenAI error ${status}:`, JSON.stringify(data));
       // 401/403 = auth failure: say so plainly (was misleadingly mapped to "reached our limit").
-      if (status === 401 || status === 403) return res.status(503).json({ code: "AUTH", message: "The AI service rejected the API key. Please check ANTHROPIC_API_KEY in this project's Vercel settings.", debug: detail });
+      if (status === 401 || status === 403) return res.status(503).json({ code: "AUTH", message: "The AI service rejected the API key. Please check OPENAI_API_KEY in this project's Vercel settings.", debug: detail });
       if (status === 429 || status === 529) return res.status(503).json({ ...WARM_ERRORS.overload, debug: detail });
       if (status >= 500)                    return res.status(503).json({ ...WARM_ERRORS.server,   debug: detail });
-      return res.status(status).json({ error: aMsg || `HTTP ${status}`, code: aType || `HTTP_${status}`, debug: detail });
+      return res.status(status).json({ error: oMsg || `HTTP ${status}`, code: oType || `HTTP_${status}`, debug: detail });
     }
 
     // Validate response has content
-    const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
+    const text = textFromOpenAI(data);
     if (!text) {
-      console.error("[proxy] Empty content in Anthropic response");
-      return res.status(503).json({ ...WARM_ERRORS.server, debug: "Empty response from Anthropic" });
+      console.error("[proxy] Empty content in OpenAI response");
+      return res.status(503).json({ ...WARM_ERRORS.server, debug: "Empty response from OpenAI" });
     }
 
-    return res.status(200).json(data);
+    return res.status(200).json({
+      id: data.id,
+      model: data.model || openAiModel,
+      stop_reason: data.status || "complete",
+      content: [{ type: "text", text }],
+      provider: "openai",
+    });
 
   } catch (err) {
     clearTimeout(timeout);

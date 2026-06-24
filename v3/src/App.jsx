@@ -1144,6 +1144,11 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.144 - 2026-06-24 - HDR #182 - Vercel route guard + OpenAI key migration for V3. The SPA fallback
+// now excludes /_vercel/ so Vercel Insights and Speed Insights scripts are served by the platform
+// instead of being rewritten to index.html. /api/claude keeps the internal response contract but now
+// reads OPENAI_API_KEY and calls OpenAI Responses; CSP connect-src switches from api.anthropic.com to
+// api.openai.com. UI/engine/v2 untouched.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -9259,7 +9264,7 @@ function ResultFooter() {
     <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
         <p style={{ margin:0, fontSize: "0.75rem", color:C.mutedLight }}>
-          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (OpenAI).
         </p>
         <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
           <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
@@ -9317,7 +9322,7 @@ function ResultFooter() {
             <strong style={{ color:C.text }}>Occupation codes (ISCO-08)</strong> - Each occupation in this tool is mapped to an ISCO-08 code - the International Standard Classification of Occupations (2008 revision), published by the International Labour Organization (ILO). ISCO-08 classifies all jobs globally into a four-level hierarchy of 10 major groups, 43 sub-major groups, 130 minor groups, and 436 unit groups. The codes displayed in this tool are sourced via the ESCO API, which maps each ESCO occupation to exactly one ISCO-08 unit group. ISCO-08 codes are used for reference and cross-referencing only - they indicate the occupational group from which skills are drawn, not a formal classification of the user&apos;s specific role. © 2012 International Labour Organization.
           </p>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
-            <strong style={{ color:C.text }}>How ratings are generated</strong> - Each skill is assessed by Claude (Anthropic) against current AI capability research. This is AI-generated analysis, not a lookup from a fixed classification table. Results reflect general occupational patterns and will vary between searches.
+            <strong style={{ color:C.text }}>How ratings are generated</strong> - Each skill is assessed by an OpenAI model against current AI capability research. This is AI-generated analysis, not a lookup from a fixed classification table. Results reflect general occupational patterns and will vary between searches.
           </p>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Known limitations</strong> - Ratings reflect broad occupational trends, not your specific organisation, industry sector, or seniority level. The tool may carry anchoring bias - the first rating seen tends to anchor subsequent interpretation. Results are most useful as a structured starting point for reflection, not as a definitive assessment.
