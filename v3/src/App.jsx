@@ -1160,6 +1160,9 @@
 // v3.0.147 - 2026-06-24 - HDR #185 - Function-keyword guard: "transformation" is treated as a
 // function area, not a precise job title, so the picker now shows the same refine notice used for
 // strategy/change/project functions and suggests concrete transformation titles. V3-only.
+// v3.0.148 - 2026-06-24 - HDR #186 - Function-keyword guard fix: instant search can pre-fill
+// occs before the Analyse button is clicked, causing doSearch() to return early into the picker
+// before setting the notice. The guard now runs before that early-return branch. V3-only.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -12986,6 +12989,8 @@ export default function App({ initialSearchMode } = {}) {
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }    // Paint loading state immediately before any other work - critical for INP score
     const tidyQuery = toTitleCase(query.trim());
+    const funcHit = detectFunctionKeyword(query.trim().toLowerCase());
+    setFunctionKeywordNotice(funcHit || null);
     if (occs.length > 0 && !pickerLoading) {
       if (occs.length === 1) { track("occupation_selected", { auto: true }); doAnalyse(occs[0]); return; }
       setStep("picking"); return;
@@ -12998,10 +13003,7 @@ export default function App({ initialSearchMode } = {}) {
     track("occupation_searched");
     track("role_searched", { query: tidyQuery.slice(0, 30) });
     pickerCancelRef.current = true; // cancel any in-flight background full search
-    setNoExactMatch(null); setPickerFullError(false); setFunctionKeywordNotice(null);
-    // Detect bare function/discipline names before lookup or API call
-    const funcHit = detectFunctionKeyword(query.trim().toLowerCase());
-    if (funcHit) setFunctionKeywordNotice(funcHit);
+    setNoExactMatch(null); setPickerFullError(false);
     try {
       // v1.8.9: check hardcoded senior management lookup first - instant + deterministic
       const seniorHit = lookupSeniorMgmt(tidyQuery);
