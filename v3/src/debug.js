@@ -168,7 +168,8 @@ export function initDebug() {
   if (!hasWin()) return;
   try {
     const sp = new URLSearchParams(location.search);
-    const p = sp.get('dmm') || sp.get('debug'); // ?dmm=1 is the switch; ?debug= kept as alias
+    const pathDmm = String(location.pathname || '').replace(/^\/+/, '').match(/^dmm=(1|0|panel|logs)$/);
+    const p = sp.get('dmm') || sp.get('debug') || (pathDmm ? pathDmm[1] : null); // ?dmm=1 is the switch; /dmm=1 tolerated.
     if (p === '1' || p === 'panel' || p === 'logs') sessionStorage.setItem(SS_ENABLED, '1');
     else if (p === '0') sessionStorage.removeItem(SS_ENABLED);
     enabled = sessionStorage.getItem(SS_ENABLED) === '1';

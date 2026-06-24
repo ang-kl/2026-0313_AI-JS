@@ -1167,6 +1167,10 @@
 // results now classify each posting as title / responsibility / segment / related match for the
 // searched phrase, ranking title matches first while preserving secondary evidence below. Adds a
 // floating job drawer with source counts and analyse-all access. V3-only.
+// v3.0.150 - 2026-06-24 - HDR #188 - SG Jobs drawer polish: compact evidence-panel styling,
+// clearer source totals, keyboard Escape close, aria-expanded state, and safer bottom-left spacing
+// above the existing Job ad float. Also tolerates legacy /dmm=1 debug links as aliases for ?dmm=1.
+// V3-only.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -11155,6 +11159,8 @@ function recordAndClassifySeen(title, jobs) {
 const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - (Date.parse((a && a.postedDate) || "") || 0);
 
 const JOB_SEARCH_BUCKET_ORDER = { title: 0, responsibility: 1, segment: 2, other: 3 };
+const JOB_TOC_BUTTON_BOTTOM = 82;
+const JOB_TOC_DRAWER_BOTTOM = 138;
 function jobSearchTokens(query) {
   return String(query || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(t => t.length >= 3).slice(0, 6);
 }
@@ -11196,6 +11202,41 @@ function countJobSearchBuckets(jobs) {
     return acc;
   }, { title: 0, responsibility: 0, segment: 0, other: 0 });
 }
+function jobSearchEvidenceLine(counts) {
+  const c = counts || {};
+  return [
+    `Title ${c.title || 0}`,
+    `Duty ${c.responsibility || 0}`,
+    `Segment ${c.segment || 0}`,
+  ].join(" · ");
+}
+function JobTocSourceButton({ id, label, total, counts, onJump }) {
+  const titleCount = (counts && counts.title) || 0;
+  const dutyCount = (counts && counts.responsibility) || 0;
+  const segmentCount = (counts && counts.segment) || 0;
+  const maxCount = Math.max(1, total || 1);
+  const titlePct = Math.max(2, Math.round((titleCount / maxCount) * 100));
+  const dutyPct = dutyCount ? Math.max(2, Math.round((dutyCount / maxCount) * 100)) : 0;
+  const segmentPct = segmentCount ? Math.max(2, Math.round((segmentCount / maxCount) * 100)) : 0;
+  return (
+    <button type="button" onClick={() => onJump(id)}
+      aria-label={`${label}: ${total} postings. ${jobSearchEvidenceLine(counts)}`}
+      style={{ minHeight: 52, textAlign: "left", border: `1px solid ${C.border}`, borderRadius: 8, background: "#f8fafc", padding: "9px 10px", cursor: "pointer" }}>
+      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, fontSize: "0.75rem", fontWeight: 800, color: C.text }}>
+        <span>{label}</span>
+        <span style={{ color: C.muted, fontWeight: 700 }}>{total}</span>
+      </span>
+      <span aria-hidden="true" style={{ display: "flex", height: 6, overflow: "hidden", borderRadius: 999, marginTop: 7, background: "#e5e7eb" }}>
+        <span style={{ width: `${titlePct}%`, background: "#0e7490" }} />
+        {dutyPct > 0 && <span style={{ width: `${dutyPct}%`, background: "#f59e0b" }} />}
+        {segmentPct > 0 && <span style={{ width: `${segmentPct}%`, background: "#1a56db" }} />}
+      </span>
+      <span style={{ display: "block", marginTop: 5, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.35 }}>
+        {jobSearchEvidenceLine(counts)}
+      </span>
+    </button>
+  );
+}
 function JobMatchBreak({ bucket, id }) {
   const meta = jobSearchBucketMeta(bucket);
   return (
@@ -11218,6 +11259,12 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const [jobTocOpen, setJobTocOpen] = useState(false);
   const PER_PAGE = 10;
   useEffect(() => { setPage(0); }, [freshGrad, recencyFilter]); // reset paging when a filter toggles
+  useEffect(() => {
+    if (!jobTocOpen) return undefined;
+    const onKey = e => { if (e.key === "Escape") setJobTocOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [jobTocOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -11414,29 +11461,26 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
       {!state.loading && (state.jobs.length > 0 || state.csgJobs.length > 0) && (
         <>
-        <button type="button" aria-label="Open job table of contents" onClick={() => setJobTocOpen(o => !o)}
-          style={{ position: "fixed", left: 16, bottom: 78, zIndex: 50, minHeight: 44, display: "inline-flex", alignItems: "center", gap: 8, background: "#123b67", color: "#fff", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 12, padding: "10px 14px", fontSize: "0.8125rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 12px 30px rgba(15,23,42,0.24)" }}>
-          <span aria-hidden="true">☰</span> Jobs
+        <button type="button" aria-label="Open job table of contents" aria-expanded={jobTocOpen} aria-controls="sg-jobs-toc-drawer" onClick={() => setJobTocOpen(o => !o)}
+          style={{ position: "fixed", left: 16, bottom: JOB_TOC_BUTTON_BOTTOM, zIndex: 50, minHeight: 44, display: "inline-flex", alignItems: "center", gap: 8, background: "#123b67", color: "#fff", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 12, padding: "10px 14px", fontSize: "0.8125rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 12px 30px rgba(15,23,42,0.24)" }}>
+          <span aria-hidden="true">☰</span> Jobs <span aria-hidden="true" style={{ opacity: 0.8, fontSize: "0.6875rem" }}>{totalPostings}</span>
         </button>
         {jobTocOpen && (
-          <div role="dialog" aria-label="Job results navigation" style={{ position: "fixed", left: 16, bottom: 132, zIndex: 51, width: "min(330px, calc(100vw - 32px))", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, boxShadow: "0 18px 44px rgba(15,23,42,0.22)" }}>
+          <div id="sg-jobs-toc-drawer" role="dialog" aria-label="Job results navigation" style={{ position: "fixed", left: 16, bottom: JOB_TOC_DRAWER_BOTTOM, zIndex: 51, width: "min(340px, calc(100vw - 32px))", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, boxShadow: "0 18px 44px rgba(15,23,42,0.22)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: C.text }}>Job drawer</p>
+              <div>
+                <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: C.text }}>Job evidence</p>
+                <p style={{ margin: "2px 0 0", fontSize: "0.6875rem", color: C.muted }}>{totalPostings}{state.capped ? "+" : ""} live postings</p>
+              </div>
               <button type="button" aria-label="Close job drawer" onClick={() => setJobTocOpen(false)} style={{ minWidth: 44, minHeight: 44, border: `1px solid ${C.border}`, borderRadius: 8, background: C.surface, color: C.text, fontSize: "1rem", cursor: "pointer" }}>×</button>
             </div>
-            <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>Title matches are ranked first. Responsibility and segment matches are kept visible as secondary evidence.</p>
+            <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>Title matches rank first. Duties and segments stay visible as secondary evidence.</p>
             <div style={{ display: "grid", gap: 6 }}>
               {[
                 { id: "mcf-jobs", label: "MCF", counts: mcfMatchCounts, total: state.jobs.length },
                 { id: "csg-jobs", label: "Careers", counts: csgMatchCounts, total: state.csgJobs.length },
               ].map(src => (
-                <button key={src.id} type="button" onClick={() => jumpTo(src.id)}
-                  style={{ minHeight: 44, textAlign: "left", border: `1px solid ${C.border}`, borderRadius: 8, background: "#f8fafc", padding: "8px 10px", cursor: "pointer" }}>
-                  <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: C.text }}>{src.label} ({src.total})</span>
-                  <span style={{ display: "block", marginTop: 2, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.35 }}>
-                    Title {src.counts.title || 0} · Responsibility {src.counts.responsibility || 0} · Segment {src.counts.segment || 0}
-                  </span>
-                </button>
+                <JobTocSourceButton key={src.id} id={src.id} label={src.label} total={src.total} counts={src.counts} onJump={jumpTo} />
               ))}
               {onAnalyseCorpus && totalPostings >= 5 && (
                 <button type="button" onClick={() => onAnalyseCorpus([...state.jobs, ...state.csgJobs], sel?.title)}
