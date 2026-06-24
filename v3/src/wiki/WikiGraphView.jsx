@@ -740,6 +740,7 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
   const [ecotone, setEcotone] = useState(false);
   // Expanded graph overlay (the right-rail mini expands to a full-screen graph with all controls)
   const [expanded, setExpanded] = useState(false);
+  const [wikiRailOpen, setWikiRailOpen] = useState(false);
   // Left "Job ad" dissect drawer (floating overlay; markings drive the centre + graph)
   const [dissectOpen, setDissectOpen] = useState(false);
 
@@ -951,9 +952,18 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
         })}
       </div>
 
-      {/* ── 2-pane: centre reads/canvas (left) + docked graph & TOC (right) ── */}
-      <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
-        <main id="wiki-reads" style={{ flex: "1 1 520px", minWidth: 0 }}>
+      <button type="button" onClick={function() { setWikiRailOpen(true); }}
+        aria-label="Open WikiGraph navigation and graph rail"
+        style={{ position: "fixed", right: 18, bottom: 86, zIndex: 940, minHeight: 48, padding: "10px 16px",
+          borderRadius: 999, border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e40af",
+          fontWeight: 900, fontSize: "0.8125rem", boxShadow: "0 6px 18px rgba(2,6,23,0.18)",
+          cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span aria-hidden="true">{String.fromCharCode(0x25D7)}</span> Graph
+      </button>
+
+      {/* ── Centre-first WikiGraph: graph & TOC move into a collapsible floating rail ── */}
+      <div>
+        <main id="wiki-reads" style={{ width: "100%", minWidth: 0 }}>
 
       {/* ── Lens content: Candidate / Organisation journey ── */}
       {lens === "candidate" && (
@@ -995,8 +1005,20 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
       </footer>
         </main>
 
-        {/* ── Right rail: docked graph (Focus mini + expand) + On this page TOC ── */}
-        <aside style={{ flex: "1 1 280px", maxWidth: 340, minWidth: 240, position: "sticky", top: 12, alignSelf: "flex-start" }}>
+        {/* ── Right rail: collapsed by default, opened as a floating drawer ── */}
+        {wikiRailOpen && (
+        <div role="dialog" aria-modal="true" aria-label="WikiGraph rail"
+          onClick={function() { setWikiRailOpen(false); }}
+          style={{ position: "fixed", inset: 0, zIndex: 980, background: "rgba(15,23,42,0.35)", display: "flex", alignItems: "stretch", justifyContent: "flex-end" }}>
+        <aside onClick={function(e) { e.stopPropagation(); }}
+          style={{ width: "min(380px, 90vw)", minWidth: 0, overflowY: "auto", background: C.bg, padding: 14, boxShadow: "-12px 0 30px rgba(15,23,42,0.24)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+            <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 900, color: C.text }}>WikiGraph rail</p>
+            <button type="button" aria-label="Close WikiGraph rail" onClick={function() { setWikiRailOpen(false); }}
+              style={{ minHeight: 44, padding: "8px 12px", borderRadius: 10, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontWeight: 800, cursor: "pointer" }}>
+              Close
+            </button>
+          </div>
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: 10, boxShadow: NEO.raiseSm, marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <span style={{ flex: 1, fontSize: "0.6875rem", fontWeight: 800, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Interactive graph</span>
@@ -1020,6 +1042,8 @@ export default function WikiGraphView({ nodes = [], edges = [], title = "", resu
             </ul>
           </nav>
         </aside>
+        </div>
+        )}
       </div>
 
       {/* ── Expanded graph overlay (full controls: Focus/Neural, ecotone, path-back) ── */}

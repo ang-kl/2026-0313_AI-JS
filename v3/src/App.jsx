@@ -1144,6 +1144,11 @@
 // edits. buildKnowledgeGraph, getKnowledgeGraph, all frozen symbols, api/mcf.js, engine-data/*
 // untouched. R007, R006, R005 clean; no red/green; 44px targets; SVG aria-label; keyboard nodes.
 // G1 (v3.0.117 -> v3.0.118).
+// v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
+// drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
+// movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
+// moves to a collapsed right rail; RoleGraph can collapse in place or expand into a draggable floating
+// window. Centre Map content gets the space; engine/API/v2 untouched.
 // v3.0.142 - 2026-06-24 - HDR #180 - RIN1/RIN2 V3 reinvention shell (Human Lead: "Finish all the PR
 // and deploy all at once"). Result view now has Context / Map / Decision panels on wide screens and
 // Ask / Map / Decide tabs on phone. RoleGraph is first in Understand/Map, keeps the V2 fast read,
@@ -10007,8 +10012,12 @@ function RoleGraphPanel({ result, title }) {
   const [showStmts, setShowStmts] = useState(false);
   const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
   const [pipeOpen, setPipeOpen] = useState(false); // RIN2: keep Map panel graph-first; pipeline detail expands on demand
+  const [roleGraphOpen, setRoleGraphOpen] = useState(true); // RIN3: centre graph can collapse without losing place
+  const [roleGraphFloat, setRoleGraphFloat] = useState(false); // RIN3: graph can expand into a floating window
+  const [roleGraphFloatPos, setRoleGraphFloatPos] = useState({ x: 24, y: 72 });
   const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge"
   const graphScrollRef = useRef(null);
+  const roleGraphDragRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
 
   // For a single MCF-posting analysis the pipeline (and its 6-step progress) is
@@ -10183,6 +10192,26 @@ function RoleGraphPanel({ result, title }) {
       display: "inline-flex", alignItems: "center", justifyContent: "center",
     };
   }
+  function startRoleGraphDrag(e) {
+    roleGraphDragRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      ox: roleGraphFloatPos.x,
+      oy: roleGraphFloatPos.y,
+    };
+    if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  function moveRoleGraphDrag(e) {
+    const d = roleGraphDragRef.current;
+    if (!d) return;
+    const maxX = Math.max(8, (typeof window !== "undefined" ? window.innerWidth : 1200) - 360);
+    const maxY = Math.max(8, (typeof window !== "undefined" ? window.innerHeight : 800) - 220);
+    setRoleGraphFloatPos({
+      x: Math.max(8, Math.min(maxX, d.ox + e.clientX - d.x)),
+      y: Math.max(8, Math.min(maxY, d.oy + e.clientY - d.y)),
+    });
+  }
+  function stopRoleGraphDrag() { roleGraphDragRef.current = null; }
 
   return (
     <div>
@@ -10265,9 +10294,19 @@ function RoleGraphPanel({ result, title }) {
                 {hdr("The role-skill graph")}
                 <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>{g.graph.stats.occupations} occupations · {g.graph.stats.skills} skills · {g.graph.stats.responsibilities} responsibilities · {g.graph.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a responsibility to see the skills it needs (and back)"}</span>
               </div>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap", margin:"0 0 10px" }}>
+                <button type="button" onClick={() => setRoleGraphOpen(o => !o)} aria-expanded={roleGraphOpen}
+                  style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.textSub, fontWeight:800, fontSize:"0.75rem", cursor:"pointer" }}>
+                  {roleGraphOpen ? "Collapse graph" : "Show graph"}
+                </button>
+                <button type="button" onClick={() => setRoleGraphFloat(true)}
+                  style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:"1px solid #bfdbfe", background:"#eff6ff", color:"#1e40af", fontWeight:800, fontSize:"0.75rem", cursor:"pointer" }}>
+                  Expand floating graph
+                </button>
+              </div>
               {/* C+D: collapsible JD panel (left) - verbatim MCF text + the numbered duties that
                   match the [n] badges on the graph; tap a duty to light up its skills. */}
-              {(() => {
+              {roleGraphOpen && (() => {
                 const rd = result && result.responsibilitiesData;
                 const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
                 const respNodes = g.graph.nodes.filter(n => n.type === "responsibility")
@@ -10319,12 +10358,46 @@ function RoleGraphPanel({ result, title }) {
                   </div>
                 );
               })()}
-              {renderGraph(g.graph)}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
+              {roleGraphOpen && renderGraph(g.graph)}
+              {!roleGraphOpen && (
+                <div style={{ border:`1px dashed ${C.border}`, borderRadius:10, padding:"14px 16px", background:"#fbfdff", marginBottom:10 }}>
+                  <p style={{ margin:0, fontSize:"0.75rem", color:C.textSub, lineHeight:1.5 }}>Graph hidden to give the page more reading space. Open it here or use the floating graph window.</p>
+                </div>
+              )}
+              {roleGraphOpen && <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 8 }}>
                 {Object.entries(RG_NODE_STYLE).map(([k, v]) => <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.6875rem", color: C.textSub }}><span style={{ width: 11, height: 11, borderRadius: 6, background: v.bg, border: `1px solid ${v.border}`, display: "inline-block" }} />{v.label}</span>)}
                 <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
-              </div>
+              </div>}
               {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
+              {roleGraphFloat && (
+                <div role="dialog" aria-modal="true" aria-label="Floating role graph"
+                  style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
+                  <div
+                    style={{
+                      position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
+                      width:"min(1120px, calc(100vw - 32px))", maxHeight:"calc(100vh - 96px)",
+                      resize:"both", overflow:"auto", background:C.bg, border:`1px solid ${C.border}`,
+                      borderRadius:16, padding:14, boxShadow:"0 18px 50px rgba(15,23,42,0.32)",
+                    }}
+                  >
+                    <div
+                      onPointerDown={startRoleGraphDrag}
+                      onPointerMove={moveRoleGraphDrag}
+                      onPointerUp={stopRoleGraphDrag}
+                      onPointerCancel={stopRoleGraphDrag}
+                      style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
+                    >
+                      <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>RoleGraph floating window</h3>
+                      <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
+                      <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
+                        style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
+                        Close
+                      </button>
+                    </div>
+                    {renderGraph(g.graph)}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -12643,6 +12716,8 @@ export default function App({ initialSearchMode } = {}) {
   const [uiV2] = useState(() => { try { return new URLSearchParams(window.location.search).get("ui") !== "1"; } catch (_) { return true; } });
   const [uiWide, setUiWide] = useState(() => { try { return window.matchMedia("(min-width: 900px)").matches; } catch (_) { return false; } });
   const [resultPanel, setResultPanel] = useState("map"); // RIN1: phone result panels - ask | map | decide
+  const [rinNavOpen, setRinNavOpen] = useState(false); // RIN3: floating left navigation drawer
+  const [rinDecisionOpen, setRinDecisionOpen] = useState(false); // RIN3: collapsed right decision rail
   useEffect(() => {
     if (!uiV2) return;
     try {
@@ -14807,26 +14882,113 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               </div>
             </div>
           );
+          const uiFloatingNav = uiV2 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setRinNavOpen(true)}
+                aria-label="Open result navigation"
+                style={{
+                  position:"fixed", left:18, bottom:86, zIndex:940,
+                  minHeight:48, padding:"10px 16px", borderRadius:999,
+                  border:"none", background:"#0f2f63", color:"#fff",
+                  fontWeight:800, fontSize:"0.8125rem", cursor:"pointer",
+                  boxShadow:"0 6px 18px rgba(2,6,23,0.28)",
+                  display:"inline-flex", alignItems:"center", gap:8,
+                }}
+              >
+                <span aria-hidden="true">☰</span>
+                <span>Navigate</span>
+              </button>
+              {rinNavOpen && (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Result navigation"
+                  onClick={() => setRinNavOpen(false)}
+                  style={{ position:"fixed", inset:0, zIndex:980, background:"rgba(15,23,42,0.35)", display:"flex", alignItems:"stretch", justifyContent:"flex-start" }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      width:"min(360px, 88vw)", minHeight:"100%", overflowY:"auto",
+                      background:C.bg, padding:"16px", boxShadow:"12px 0 30px rgba(15,23,42,0.24)",
+                    }}
+                  >
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12 }}>
+                      <p style={{ margin:0, fontSize:"0.8125rem", fontWeight:900, color:C.text }}>Result navigation</p>
+                      <button type="button" onClick={() => setRinNavOpen(false)} aria-label="Close navigation"
+                        style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
+                        Close
+                      </button>
+                    </div>
+                    {uiTitleCard}
+                    {uiNavBox}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : null;
+          const uiFloatingDecision = (uiV2 && (uiWide || resultPanel !== "decide")) ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setRinDecisionOpen(true)}
+                aria-label="Open decision panel"
+                style={{
+                  position:"fixed", right:18, top: uiWide ? 142 : "auto", bottom: uiWide ? "auto" : 86, zIndex:940,
+                  minHeight:48, padding:"10px 16px", borderRadius:999,
+                  border:"1px solid #bfdbfe", background:"#eff6ff", color:"#1e40af",
+                  fontWeight:900, fontSize:"0.8125rem", cursor:"pointer",
+                  boxShadow:"0 6px 18px rgba(2,6,23,0.18)",
+                  display:"inline-flex", alignItems:"center", gap:8,
+                }}
+              >
+                <span aria-hidden="true">◧</span>
+                <span>Decision</span>
+              </button>
+              {rinDecisionOpen && (
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Decision rail"
+                  onClick={() => setRinDecisionOpen(false)}
+                  style={{ position:"fixed", inset:0, zIndex:980, background:"rgba(15,23,42,0.35)", display:"flex", alignItems:"stretch", justifyContent:"flex-end" }}
+                >
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      width:"min(390px, 90vw)", minHeight:"100%", overflowY:"auto",
+                      background:C.bg, padding:"16px", boxShadow:"-12px 0 30px rgba(15,23,42,0.24)",
+                    }}
+                  >
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, marginBottom:12 }}>
+                      <p style={{ margin:0, fontSize:"0.8125rem", fontWeight:900, color:C.text }}>Decision rail</p>
+                      <button type="button" onClick={() => setRinDecisionOpen(false)} aria-label="Close decision rail"
+                        style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
+                        Close
+                      </button>
+                    </div>
+                    {uiComparisonBanner}
+                    {uiDecisionPanel}
+                    <div style={{ marginTop:4, opacity:0.9 }}><ProvLegend /></div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : null;
           return (
             <div>
               {/* RIN1: three-panel shell - Context / Map / Decision.
                   The existing pillar result content stays in Map; Context and Decision organise
                   already-computed material without changing any engine output. */}
               {(uiV2 && uiWide) ? (
-                <div style={{ display:"grid", gridTemplateColumns:"minmax(260px,312px) minmax(0,1fr) minmax(280px,340px)", gap:16, alignItems:"start" }}>
-                  <aside aria-label="Context panel" style={{ position:"sticky", top:64, minWidth:0 }}>
-                    {uiTitleCard}
-                    {uiNavBox}
-                  </aside>
+                <div style={{ maxWidth: "min(1280px, 100%)", margin:"0 auto" }}>
                   <section aria-label="Map panel" style={{ minWidth:0 }}>
+                    {uiTitleCard}
                     {uiSummaryCard}
                     {renderPillarView()}
                   </section>
-                  <aside aria-label="Decision panel" style={{ position:"sticky", top:64, minWidth:0 }}>
-                    {uiComparisonBanner}
-                    {uiDecisionPanel}
-                    <div style={{ marginTop:4, opacity:0.85 }}><ProvLegend /></div>
-                  </aside>
                 </div>
               ) : uiV2 ? (
                 <>
@@ -14835,12 +14997,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     <>
                       {uiTitleCard}
                       {uiSummaryCard}
-                      <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
                     </>
                   )}
                   {resultPanel === "map" && (
                     <>
-                      <PillarBar activePillar={activePillar} onSelect={handlePillarSelect} />
                       {renderPillarView()}
                     </>
                   )}
@@ -14863,6 +15023,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   {renderPillarView()}
                 </>
               )}
+              {uiFloatingNav}
+              {uiFloatingDecision}
 
               {/* UI: the job ad floats - a fixed button + slide-in drawer, off the vertical scroll.
                   On the WikiGraph tab the single "Job ad" FAB is the DISSECT drawer (WikiGraphView owns it),
