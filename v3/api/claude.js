@@ -35,6 +35,10 @@ function openAiModelFor(requestedModel) {
   return process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini";
 }
 
+function geminiModelFor() {
+  return (process.env.GEMINI_MODEL || "").replace(/^models\//, "");
+}
+
 function textFromOpenAI(data) {
   if (typeof data?.output_text === "string" && data.output_text) return data.output_text;
   const chunks = [];
@@ -45,6 +49,107 @@ function textFromOpenAI(data) {
     });
   });
   return chunks.join("");
+}
+
+function textFromGemini(data) {
+  const chunks = [];
+  (data?.candidates || []).forEach(candidate => {
+    (candidate?.content?.parts || []).forEach(part => {
+      if (typeof part?.text === "string") chunks.push(part.text);
+    });
+  });
+  return chunks.join("");
+}
+
+function providerError(provider, status, data) {
+  const raw = data?.error || {};
+  const type = raw.type || raw.code || "";
+  const message = raw.message || "";
+  const detail = `HTTP ${status}${type ? " " + type : ""}${message ? ": " + message : ""}`.slice(0, 300);
+  const err = new Error(message || `${provider} HTTP ${status}`);
+  err.provider = provider;
+  err.status = status;
+  err.code = type || `HTTP_${status}`;
+  err.debug = detail;
+  err.raw = data;
+  return err;
+}
+
+async function callOpenAI({ apiKey, openAiModel, instructions, input, maxTokens, signal }) {
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: openAiModel,
+      instructions,
+      input,
+      max_output_tokens: maxTokens,
+    }),
+    signal,
+  });
+
+  const data = await response.json();
+  console.log(`[proxy] status=${response.status} provider=openai output_blocks=${data?.output?.length || 0}`);
+
+  if (!response.ok) throw providerError("openai", response.status, data);
+
+  const text = textFromOpenAI(data);
+  if (!text) {
+    const err = new Error("Empty response from OpenAI");
+    err.provider = "openai";
+    err.status = 503;
+    err.debug = "Empty response from OpenAI";
+    throw err;
+  }
+
+  return {
+    id: data.id,
+    model: data.model || openAiModel,
+    stop_reason: data.status || "complete",
+    content: [{ type: "text", text }],
+    provider: "openai",
+  };
+}
+
+async function callGemini({ apiKey, geminiModel, instructions, input, maxTokens, signal }) {
+  const body = {
+    contents: [{ role: "user", parts: [{ text: input }] }],
+    generationConfig: { maxOutputTokens: maxTokens },
+  };
+  if (instructions) body.systemInstruction = { parts: [{ text: instructions }] };
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  const data = await response.json();
+  console.log(`[proxy] status=${response.status} provider=gemini candidates=${data?.candidates?.length || 0}`);
+
+  if (!response.ok) throw providerError("gemini", response.status, data);
+
+  const text = textFromGemini(data);
+  if (!text) {
+    const err = new Error("Empty response from Gemini");
+    err.provider = "gemini";
+    err.status = 503;
+    err.debug = "Empty response from Gemini";
+    throw err;
+  }
+
+  return {
+    id: data.responseId || "",
+    model: geminiModel,
+    stop_reason: data.candidates?.[0]?.finishReason || "complete",
+    content: [{ type: "text", text }],
+    provider: "gemini",
+    fallback_from: "openai",
+  };
 }
 
 const WARM_ERRORS = {
@@ -59,10 +164,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    console.error("[proxy] OPENAI_API_KEY not set");
-    return res.status(500).json({ ...WARM_ERRORS.server, debug: "API key missing" });
+  const openAiKey = process.env.OPENAI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiModel = geminiModelFor();
+  const hasGeminiFallback = Boolean(geminiKey && geminiModel);
+  if (!openAiKey && !hasGeminiFallback) {
+    console.error("[proxy] OPENAI_API_KEY missing and Gemini fallback not fully configured");
+    return res.status(500).json({ ...WARM_ERRORS.server, debug: "Primary and fallback API keys missing" });
   }
 
   // Validate body
@@ -76,67 +184,44 @@ export default async function handler(req, res) {
   const input = textFromMessages(messages);
 
   // Log model and token budget for debugging
-  console.log(`[proxy] provider=openai requested_model=${model} openai_model=${openAiModel} max_tokens=${max_tokens} system_len=${instructions.length}`);
+  console.log(`[proxy] provider=openai requested_model=${model} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${max_tokens} system_len=${instructions.length}`);
 
   // Timeout: 280s (leaves 20s buffer inside Vercel 300s maxDuration)
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 280000);
 
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: openAiModel,
-        instructions,
-        input,
-        max_output_tokens: max_tokens,
-      }),
-      signal: controller.signal,
-    });
+    if (openAiKey) {
+      try {
+        const openAiResult = await callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: max_tokens, signal: controller.signal });
+        clearTimeout(timeout);
+        return res.status(200).json(openAiResult);
+      } catch (openAiErr) {
+        console.error(`[proxy] OpenAI failed; ${hasGeminiFallback ? "trying Gemini fallback" : "no Gemini fallback configured"}:`, openAiErr.debug || openAiErr.message);
+        if (!hasGeminiFallback) throw openAiErr;
+      }
+    }
 
+    const geminiResult = await callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: max_tokens, signal: controller.signal });
     clearTimeout(timeout);
-    const data = await response.json();
-    console.log(`[proxy] status=${response.status} provider=openai output_blocks=${data?.output?.length || 0}`);
-
-    if (!response.ok) {
-      const status = response.status;
-      const oType = (data && data.error && (data.error.type || data.error.code)) || "";
-      const oMsg = (data && data.error && data.error.message) || "";
-      const detail = `HTTP ${status}${oType ? " " + oType : ""}${oMsg ? ": " + oMsg : ""}`.slice(0, 300);
-      console.error(`[proxy] OpenAI error ${status}:`, JSON.stringify(data));
-      // 401/403 = auth failure: say so plainly (was misleadingly mapped to "reached our limit").
-      if (status === 401 || status === 403) return res.status(503).json({ code: "AUTH", message: "The AI service rejected the API key. Please check OPENAI_API_KEY in this project's Vercel settings.", debug: detail });
-      if (status === 429 || status === 529) return res.status(503).json({ ...WARM_ERRORS.overload, debug: detail });
-      if (status >= 500)                    return res.status(503).json({ ...WARM_ERRORS.server,   debug: detail });
-      return res.status(status).json({ error: oMsg || `HTTP ${status}`, code: oType || `HTTP_${status}`, debug: detail });
-    }
-
-    // Validate response has content
-    const text = textFromOpenAI(data);
-    if (!text) {
-      console.error("[proxy] Empty content in OpenAI response");
-      return res.status(503).json({ ...WARM_ERRORS.server, debug: "Empty response from OpenAI" });
-    }
-
-    return res.status(200).json({
-      id: data.id,
-      model: data.model || openAiModel,
-      stop_reason: data.status || "complete",
-      content: [{ type: "text", text }],
-      provider: "openai",
-    });
+    return res.status(200).json(geminiResult);
 
   } catch (err) {
     clearTimeout(timeout);
     const isTimeout = err.name === "AbortError";
-    console.error(`[proxy] ${isTimeout ? "Timeout" : "Fetch error"}:`, err.message);
+    const status = err.status || 503;
+    const provider = err.provider || "llm";
+    console.error(`[proxy] ${isTimeout ? "Timeout" : "Provider failure"} provider=${provider}:`, err.debug || err.message);
+    if (status === 401 || status === 403) {
+      const keyName = provider === "gemini" ? "GEMINI_API_KEY" : "OPENAI_API_KEY";
+      return res.status(503).json({ code: "AUTH", message: `The AI service rejected the API key. Please check ${keyName} in this project's Vercel settings.`, debug: err.debug || err.message });
+    }
+    if (status >= 400 && status < 500 && status !== 429) {
+      return res.status(status).json({ error: err.message || `HTTP ${status}`, code: err.code || `HTTP_${status}`, debug: err.debug || err.message });
+    }
     return res.status(503).json({
-      ...(isTimeout ? WARM_ERRORS.timeout : WARM_ERRORS.overload),
-      debug: isTimeout ? "Request timed out after 55s" : err.message,
+      ...(isTimeout ? WARM_ERRORS.timeout : (status === 429 ? WARM_ERRORS.overload : WARM_ERRORS.server)),
+      debug: isTimeout ? "Request timed out after 280s" : (err.debug || err.message),
     });
   }
 }
