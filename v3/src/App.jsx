@@ -1157,6 +1157,9 @@
 // (OPENAI_API_KEY) and adds Gemini as fallback when GEMINI_API_KEY + GEMINI_MODEL are configured.
 // The response contract stays unchanged for the UI; provider becomes "gemini" only when fallback is
 // actually used. Footer/methodology now state OpenAI primary with Gemini fallback. V3-only.
+// v3.0.147 - 2026-06-24 - HDR #185 - Function-keyword guard: "transformation" is treated as a
+// function area, not a precise job title, so the picker now shows the same refine notice used for
+// strategy/change/project functions and suggests concrete transformation titles. V3-only.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -1870,6 +1873,7 @@ const FUNCTION_KEYWORDS = [
   "organisational development", "organizational development", "organisation development",
   "human resources", "human resource", "learning and development", "learning & development",
   "talent management", "talent development", "change management",
+  "transformation",
   "finance", "marketing", "operations", "strategy", "procurement",
   "information technology", "information systems", "data analytics", "data science",
   "supply chain", "logistics", "legal", "compliance", "risk management",
@@ -1888,6 +1892,7 @@ const FUNCTION_SUGGESTIONS = {
   "learning & development": "Learning and Development Manager, L&D Specialist",
   "talent management": "Talent Management Specialist, Talent Manager, HR Business Partner",
   "change management": "Change Management Specialist, Change Manager, Organisational Development Consultant",
+  "transformation": "Transformation Manager, Digital Transformation Manager, Transformation Consultant, Transformation Office Lead",
   "finance": "Finance Manager, Financial Analyst, Financial Controller, CFO",
   "marketing": "Marketing Manager, Brand Manager, Digital Marketing Specialist",
   "operations": "Operations Manager, Operations Director, Chief Operating Officer",
