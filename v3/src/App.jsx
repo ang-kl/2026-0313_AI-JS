@@ -1163,6 +1163,10 @@
 // v3.0.148 - 2026-06-24 - HDR #186 - Function-keyword guard fix: instant search can pre-fill
 // occs before the Analyse button is clicked, causing doSearch() to return early into the picker
 // before setting the notice. The guard now runs before that early-return branch. V3-only.
+// v3.0.149 - 2026-06-24 - HDR #187 - SG Jobs browse re-ranking: live MCF and careers.gov.sg
+// results now classify each posting as title / responsibility / segment / related match for the
+// searched phrase, ranking title matches first while preserving secondary evidence below. Adds a
+// floating job drawer with source counts and analyse-all access. V3-only.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -10912,6 +10916,7 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
   const hasCats = Array.isArray(job.categories) && job.categories.length > 0;
   const hasDetail = detail.length > 0 || hasSkills || hasCats;
   const detailShown = detail.length > 1800 ? detail.slice(0, 1800).replace(/\s+\S*$/, "") + "…" : detail;
+  const matchMeta = job._matchBucket ? jobSearchBucketMeta(job._matchBucket) : null;
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
@@ -10946,6 +10951,11 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
         )}
         {job.seenInBoth && (
           <span aria-label="Seen in both MyCareersFuture and careers.gov.sg" style={{ fontSize: "0.6875rem", fontWeight: 600, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>also on careers.gov.sg</span>
+        )}
+        {matchMeta && (
+          <span aria-label={`Search match: ${matchMeta.label}`} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: "0.6875rem", fontWeight: 700, color: matchMeta.color, background: matchMeta.bg, border: `1px solid ${matchMeta.border}`, borderRadius: 10, padding: "1px 8px" }}>
+            <span aria-hidden="true">{matchMeta.icon}</span> {matchMeta.label}
+          </span>
         )}
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
@@ -11144,6 +11154,58 @@ function recordAndClassifySeen(title, jobs) {
 // Latest-first by verbatim MCF postedDate; undated postings sink to the bottom.
 const byLatestPosted = (a, b) => (Date.parse((b && b.postedDate) || "") || 0) - (Date.parse((a && a.postedDate) || "") || 0);
 
+const JOB_SEARCH_BUCKET_ORDER = { title: 0, responsibility: 1, segment: 2, other: 3 };
+function jobSearchTokens(query) {
+  return String(query || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(t => t.length >= 3).slice(0, 6);
+}
+function jobSearchHasToken(text, tokens) {
+  const hay = String(text || "").toLowerCase();
+  return tokens.some(t => hay.includes(t));
+}
+function classifyJobSearchMatch(job, query) {
+  const tokens = jobSearchTokens(query);
+  if (!tokens.length) return "other";
+  if (jobSearchHasToken(job && job.title, tokens)) return "title";
+  const responsibilityText = [job && job.responsibilitiesText, job && job.description].filter(Boolean).join(" ");
+  if (jobSearchHasToken(responsibilityText, tokens)) return "responsibility";
+  const segmentText = [
+    Array.isArray(job && job.categories) ? job.categories.join(" ") : "",
+    Array.isArray(job && job.skills) ? job.skills.join(" ") : "",
+    Array.isArray(job && job.positionLevels) ? job.positionLevels.join(" ") : "",
+    job && job.employmentType,
+  ].filter(Boolean).join(" ");
+  return jobSearchHasToken(segmentText, tokens) ? "segment" : "other";
+}
+function jobSearchBucketMeta(bucket) {
+  const meta = {
+    title: { label: "Title match", icon: "T", color: "#0e7490", bg: C.tealBg, border: C.tealBdr },
+    responsibility: { label: "Responsibility match", icon: "R", color: "#92400e", bg: C.amberBg, border: C.amberBdr },
+    segment: { label: "Segment match", icon: "S", color: "#1a56db", bg: "#eff6ff", border: "#bfdbfe" },
+    other: { label: "Related match", icon: "O", color: C.muted, bg: "#f5f7fa", border: C.border },
+  };
+  return meta[bucket] || meta.other;
+}
+function sortAndTagJobSearchMatches(jobs, query) {
+  return (Array.isArray(jobs) ? jobs : []).map(j => ({ ...j, _matchBucket: classifyJobSearchMatch(j, query) }))
+    .sort((a, b) => (JOB_SEARCH_BUCKET_ORDER[a._matchBucket] ?? 9) - (JOB_SEARCH_BUCKET_ORDER[b._matchBucket] ?? 9) || byLatestPosted(a, b));
+}
+function countJobSearchBuckets(jobs) {
+  return (Array.isArray(jobs) ? jobs : []).reduce((acc, j) => {
+    const k = j && j._matchBucket ? j._matchBucket : "other";
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, { title: 0, responsibility: 0, segment: 0, other: 0 });
+}
+function JobMatchBreak({ bucket, id }) {
+  const meta = jobSearchBucketMeta(bucket);
+  return (
+    <div id={id} style={{ scrollMarginTop: 90, display: "flex", alignItems: "center", gap: 8, margin: "4px 0 -2px" }}>
+      <span style={{ width: 24, height: 24, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.6875rem", fontWeight: 800, color: meta.color, background: meta.bg, border: `1px solid ${meta.border}` }}>{meta.icon}</span>
+      <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: 800, color: C.text, textTransform: "uppercase", letterSpacing: "0.04em" }}>{meta.label}</p>
+    </div>
+  );
+}
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
@@ -11153,6 +11215,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const [page, setPage] = useState(0);
   const [sectorFilter, setSectorFilter] = useState(null); // job-category sub-archetype filter
   const [recencyFilter, setRecencyFilter] = useState(null); // null (all) | "new" | "seen"
+  const [jobTocOpen, setJobTocOpen] = useState(false);
   const PER_PAGE = 10;
   useEffect(() => { setPage(0); }, [freshGrad, recencyFilter]); // reset paging when a filter toggles
 
@@ -11191,8 +11254,8 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       const csgList = (Array.isArray(csgJobs) ? csgJobs : []).map(j => ({ ...j, source: j.source || "careers.gov.sg" }));
       // Latest-first by postedDate; classify the MCF list into NEW vs SEEN-BEFORE
       // against this title's device-local history (and record this sighting).
-      const sortedJobs = mcfList.slice().sort(byLatestPosted);
-      const sortedCsg  = csgList.slice().sort(byLatestPosted);
+      const sortedJobs = sortAndTagJobSearchMatches(mcfList, sel?.title || "");
+      const sortedCsg  = sortAndTagJobSearchMatches(csgList, sel?.title || "");
       const seenInfo = recordAndClassifySeen(sel?.title || "", sortedJobs);
       setState({
         loading: false,
@@ -11289,18 +11352,42 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   const pageJobs = viewJobs.slice(safePage * PER_PAGE, safePage * PER_PAGE + PER_PAGE);
   const canQueue = (queueCount || 0) < 3;
   const fmtSeenDate = (ms) => { const d = new Date(ms); return isNaN(d) ? "" : d.toLocaleDateString("en-SG", { day: "numeric", month: "short" }); };
+  const mcfMatchCounts = countJobSearchBuckets(state.jobs);
+  const csgMatchCounts = countJobSearchBuckets(state.csgJobs);
+  const totalPostings = state.jobs.length + state.csgJobs.length;
+  const jumpTo = id => {
+    const el = typeof document !== "undefined" ? document.getElementById(id) : null;
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setJobTocOpen(false);
+  };
+  const renderJobCards = (jobs, sourcePrefix, seenEnabled) => (
+    <div className="mcf-grid">
+      {jobs.map((job, idx) => {
+        const prev = idx > 0 ? jobs[idx - 1]._matchBucket : null;
+        const showBreak = job._matchBucket && job._matchBucket !== prev;
+        return (
+          <div key={job.uuid || `${sourcePrefix}-${idx}`} style={{ display: "grid", gap: 8 }}>
+            {showBreak && <JobMatchBreak bucket={job._matchBucket} id={`${sourcePrefix}-${job._matchBucket}`} />}
+            <McfJobCard job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+              seen={seenEnabled ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
+              onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+          </div>
+        );
+      })}
+    </div>
+  );
 
   return (
-    <div>
+    <div id="sg-jobs-top" style={{ position: "relative" }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
         <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.375rem", fontWeight: 800, color: C.text }}>&#127480;&#127468; SG Job Postings</h2>
         <p style={{ margin: 0, fontSize: "0.875rem", color: C.textSub, lineHeight: 1.5 }}>
           Current openings from <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture</a> and <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing{onAnalyseCorpus ? " - or analyse all of them as one role" : ""}. Postings refresh daily.
         </p>
-        {onAnalyseCorpus && !state.loading && (state.jobs.length + state.csgJobs.length) >= 5 && (
-          <button onClick={() => onAnalyseCorpus([...state.jobs, ...state.csgJobs], sel?.title)}
+        {onAnalyseCorpus && !state.loading && totalPostings >= 5 && (
+          <button id="sg-jobs-analyse-all" onClick={() => onAnalyseCorpus([...state.jobs, ...state.csgJobs], sel?.title)}
             style={{ marginTop: 12, background: "#0e7490", border: "none", borderRadius: 10, color: "#fff", padding: "10px 16px", fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}>
-            📊 Analyse all {state.jobs.length + state.csgJobs.length}{state.capped ? "+" : ""} postings as one role →
+            📊 Analyse all {totalPostings}{state.capped ? "+" : ""} postings as one role →
           </button>
         )}
       </div>
@@ -11326,8 +11413,42 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
       )}
 
       {!state.loading && (state.jobs.length > 0 || state.csgJobs.length > 0) && (
+        <>
+        <button type="button" aria-label="Open job table of contents" onClick={() => setJobTocOpen(o => !o)}
+          style={{ position: "fixed", left: 16, bottom: 78, zIndex: 50, minHeight: 44, display: "inline-flex", alignItems: "center", gap: 8, background: "#123b67", color: "#fff", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 12, padding: "10px 14px", fontSize: "0.8125rem", fontWeight: 800, cursor: "pointer", boxShadow: "0 12px 30px rgba(15,23,42,0.24)" }}>
+          <span aria-hidden="true">☰</span> Jobs
+        </button>
+        {jobTocOpen && (
+          <div role="dialog" aria-label="Job results navigation" style={{ position: "fixed", left: 16, bottom: 132, zIndex: 51, width: "min(330px, calc(100vw - 32px))", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 12, boxShadow: "0 18px 44px rgba(15,23,42,0.22)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <p style={{ margin: 0, fontSize: "0.8125rem", fontWeight: 800, color: C.text }}>Job drawer</p>
+              <button type="button" aria-label="Close job drawer" onClick={() => setJobTocOpen(false)} style={{ minWidth: 44, minHeight: 44, border: `1px solid ${C.border}`, borderRadius: 8, background: C.surface, color: C.text, fontSize: "1rem", cursor: "pointer" }}>×</button>
+            </div>
+            <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>Title matches are ranked first. Responsibility and segment matches are kept visible as secondary evidence.</p>
+            <div style={{ display: "grid", gap: 6 }}>
+              {[
+                { id: "mcf-jobs", label: "MCF", counts: mcfMatchCounts, total: state.jobs.length },
+                { id: "csg-jobs", label: "Careers", counts: csgMatchCounts, total: state.csgJobs.length },
+              ].map(src => (
+                <button key={src.id} type="button" onClick={() => jumpTo(src.id)}
+                  style={{ minHeight: 44, textAlign: "left", border: `1px solid ${C.border}`, borderRadius: 8, background: "#f8fafc", padding: "8px 10px", cursor: "pointer" }}>
+                  <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: C.text }}>{src.label} ({src.total})</span>
+                  <span style={{ display: "block", marginTop: 2, fontSize: "0.6875rem", color: C.textSub, lineHeight: 1.35 }}>
+                    Title {src.counts.title || 0} · Responsibility {src.counts.responsibility || 0} · Segment {src.counts.segment || 0}
+                  </span>
+                </button>
+              ))}
+              {onAnalyseCorpus && totalPostings >= 5 && (
+                <button type="button" onClick={() => onAnalyseCorpus([...state.jobs, ...state.csgJobs], sel?.title)}
+                  style={{ minHeight: 44, border: "none", borderRadius: 8, background: "#0e7490", color: "#fff", padding: "9px 10px", fontSize: "0.75rem", fontWeight: 800, cursor: "pointer" }}>
+                  Analyse all {totalPostings}{state.capped ? "+" : ""} postings
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         <div className="csg-cols">
-          <div>
+          <div id="mcf-jobs" style={{ scrollMarginTop: 90 }}>
             <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127480;&#127468;</span> MyCareersFuture ({state.jobs.length})</h3>
             {state.jobs.length === 0 ? (
               <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic" }}>No MyCareersFuture postings matched this role today.</p>
@@ -11399,13 +11520,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
           {freshGrad && state.capped && baseJobs.length > 0 && (
             <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>Filtering the first {state.jobs.length} fetched postings — more entry-level roles may exist further down MyCareersFuture.</p>
           )}
-          <div className="mcf-grid">
-            {pageJobs.map(job => (
-              <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                seen={hasSeenHistory ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
-                onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
-            ))}
-          </div>
+          {renderJobCards(pageJobs, "mcf", hasSeenHistory)}
           {totalPages > 1 && (
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 14 }}>
               <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={safePage === 0}
@@ -11427,26 +11542,21 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         </>
             )}
           </div>
-          <div>
+          <div id="csg-jobs" style={{ scrollMarginTop: 90 }}>
             <h3 style={{ margin: "0 0 8px", fontSize: "0.9375rem", fontWeight: 800, color: C.text, display: "flex", alignItems: "center", gap: 5 }}><span aria-hidden="true">&#127963;</span> careers.gov.sg ({state.csgJobs.length})</h3>
             {state.csgJobs.length === 0 ? (
               <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, fontStyle: "italic", lineHeight: 1.5 }}>No public-service postings for this title on careers.gov.sg - it lists Singapore government roles only.</p>
             ) : (
               <>
-                <div className="mcf-grid">
-                  {state.csgJobs.slice(0, 10).map(job => (
-                    <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                      seen={undefined} fmtSeenDate={fmtSeenDate}
-                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
-                  ))}
-                </div>
-                {state.csgJobs.length > 10 && (
-                  <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>+{state.csgJobs.length - 10} more public-service postings on <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a>.</p>
+                {renderJobCards(state.csgJobs.slice(0, 20), "csg", false)}
+                {state.csgJobs.length > 20 && (
+                  <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: C.muted, fontStyle: "italic" }}>+{state.csgJobs.length - Math.min(state.csgJobs.length, 20)} more public-service postings on <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a>.</p>
                 )}
               </>
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );
