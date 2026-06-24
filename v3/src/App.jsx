@@ -1149,6 +1149,10 @@
 // instead of being rewritten to index.html. /api/claude keeps the internal response contract but now
 // reads OPENAI_API_KEY and calls OpenAI Responses; CSP connect-src switches from api.anthropic.com to
 // api.openai.com. UI/engine/v2 untouched.
+// v3.0.145 - 2026-06-24 - HDR #183 - OpenAI live hardening: long prompt-card batches can return
+// human-readable multi-paragraph JSON with raw line breaks inside strings. extractJSON now retries
+// parsing after escaping raw control characters inside JSON strings, so prompt-card generation survives
+// provider formatting drift without loosening the JSON-only contract. V3-only.
 // v3.0.143 - 2026-06-24 - HDR #181 - RIN3: centre-first result shell (Human Lead: "left navigation
 // drawer floating... right side panel collapse... role graph centre but collapsible and expand and window
 // movable"). Result navigation now opens from a bottom-left floating drawer above the Job ad FAB; Decision
@@ -1707,6 +1711,47 @@ function _alertOutage(err, tier) {
 
 
 
+function escapeJsonStringControlChars(jsonText) {
+  let out = "";
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < jsonText.length; i++) {
+    const c = jsonText[i];
+    if (escape) {
+      out += c;
+      escape = false;
+      continue;
+    }
+    if (c === "\\" && inString) {
+      out += c;
+      escape = true;
+      continue;
+    }
+    if (c === "\"") {
+      inString = !inString;
+      out += c;
+      continue;
+    }
+    if (inString && c === "\n") { out += "\\n"; continue; }
+    if (inString && c === "\r") { out += "\\r"; continue; }
+    if (inString && c === "\t") { out += "\\t"; continue; }
+    out += c;
+  }
+  return out;
+}
+
+function parseJSONLenient(jsonText) {
+  try {
+    return JSON.parse(jsonText);
+  } catch (firstErr) {
+    try {
+      return JSON.parse(escapeJsonStringControlChars(jsonText));
+    } catch (_) {
+      throw firstErr;
+    }
+  }
+}
+
 function extractJSON(raw, label) {
   let s = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
   const ai = s.indexOf("[");
@@ -1728,7 +1773,7 @@ function extractJSON(raw, label) {
     else if (c === CLOSE) {
       depth--;
       if (depth === 0) {
-        try { return JSON.parse(s.slice(start, i + 1)); } catch(_) { lastCompleteClose = i; }
+        try { return parseJSONLenient(s.slice(start, i + 1)); } catch(_) { lastCompleteClose = i; }
       }
       if (isArr && depth === 1) lastCompleteClose = i;
     }
@@ -1736,11 +1781,11 @@ function extractJSON(raw, label) {
   // Truncation recovery: close array at last complete inner object
   if (isArr && lastCompleteClose > start) {
     const attempt1 = s.slice(start, lastCompleteClose + 1) + "]";
-    try { const r = JSON.parse(attempt1); if (Array.isArray(r) && r.length > 0) return r; } catch(_) {}
+    try { const r = parseJSONLenient(attempt1); if (Array.isArray(r) && r.length > 0) return r; } catch(_) {}
   }
   const end = s.lastIndexOf(CLOSE);
   if (end > start) {
-    try { return JSON.parse(s.slice(start, end + 1)); } catch(_) {}
+    try { return parseJSONLenient(s.slice(start, end + 1)); } catch(_) {}
   }
   throw new Error(`Could not parse JSON for ${label}`);
 }
