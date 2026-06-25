@@ -10,6 +10,7 @@
     "api/datagov.js":       { "maxDuration": 30  },
     "api/anatomy.js":       { "maxDuration": 15  },
     "api/engine.js":        { "maxDuration": 15  },
+    "api/planning.js":      { "maxDuration": 15  },
     "api/auth.js":          { "maxDuration": 10  },
     "api/logout.js":        { "maxDuration": 5   },
     "api/login-config.js":  { "maxDuration": 8   }
