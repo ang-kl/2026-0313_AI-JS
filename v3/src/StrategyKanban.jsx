@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import skillsetText from '../skillset.md?raw'
 
-const STORAGE_KEY = 'v3.strategyKanban.fallback.v2'
+const STORAGE_KEY = 'v3.strategyKanban.fallback.v3'
 
-const lanes = [
-  { id: 'doctrine', title: 'Doctrine', cue: 'What must stay true' },
-  { id: 'ready', title: 'Ready', cue: 'Ready to shape into UI' },
-  { id: 'build', title: 'Build next', cue: 'Storyboard the product' },
-  { id: 'govern', title: 'Governance', cue: 'Keep agentic risk visible' },
-  { id: 'research', title: 'Research / data', cue: 'Evidence before advice' },
-  { id: 'decide', title: 'Needs decision', cue: 'Choose before building' },
-  { id: 'done', title: 'Done', cue: 'Accepted direction' },
+const defaultLanes = [
+  { id: 'doctrine', position: 0, title: 'Doctrine', cue: 'What must stay true' },
+  { id: 'ready', position: 1, title: 'Ready', cue: 'Ready to shape into UI' },
+  { id: 'build', position: 2, title: 'Build next', cue: 'Storyboard the product' },
+  { id: 'govern', position: 3, title: 'Governance', cue: 'Keep agentic risk visible' },
+  { id: 'research', position: 4, title: 'Research / data', cue: 'Evidence before advice' },
+  { id: 'decide', position: 5, title: 'Needs decision', cue: 'Choose before building' },
+  { id: 'done', position: 6, title: 'Done', cue: 'Accepted direction' },
 ]
 
 const seedCards = [
@@ -51,23 +52,43 @@ function normaliseCards(list) {
     .map((card, index) => ({ ...card, position: index }))
 }
 
+function normaliseLanes(list) {
+  const incoming = Array.isArray(list) ? list : []
+  const byId = new Map(incoming.filter(lane => lane && lane.id).map(lane => [lane.id, lane]))
+  return defaultLanes
+    .map((base, index) => {
+      const lane = byId.get(base.id) || {}
+      return {
+        ...base,
+        ...lane,
+        id: base.id,
+        position: Number.isFinite(Number(lane.position)) ? Number(lane.position) : index,
+        title: String(lane.title || base.title).trim().slice(0, 80),
+        cue: String(lane.cue || base.cue).trim().slice(0, 140),
+      }
+    })
+    .sort((a, b) => a.position - b.position)
+    .map((lane, index) => ({ ...lane, position: index }))
+}
+
 function loadFallback() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { cards: seedCards, deletedCards: [] }
+    if (!raw) return { cards: seedCards, deletedCards: [], lanes: defaultLanes }
     const parsed = JSON.parse(raw)
     return {
       cards: Array.isArray(parsed.cards) ? parsed.cards : seedCards,
       deletedCards: Array.isArray(parsed.deletedCards) ? parsed.deletedCards : [],
+      lanes: normaliseLanes(parsed.lanes),
     }
   } catch (_) {
-    return { cards: seedCards, deletedCards: [] }
+    return { cards: seedCards, deletedCards: [], lanes: defaultLanes }
   }
 }
 
-function saveFallback(cards, deletedCards) {
+function saveFallback(cards, deletedCards, lanes = defaultLanes) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, deletedCards }))
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, deletedCards, lanes }))
   } catch (_) {}
 }
 
@@ -84,8 +105,18 @@ function cardCount(cards, laneId) {
   return cards.filter(card => card.lane === laneId).length
 }
 
+function excerptTitle(text) {
+  const first = text.split('\n').map(line => line.trim()).find(Boolean) || 'Skillset excerpt'
+  return first.replace(/^#+\s*/, '').slice(0, 74)
+}
+
+function makeCardId() {
+  return window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `card-${Date.now()}`
+}
+
 export default function StrategyKanban() {
   const fallback = useMemo(loadFallback, [])
+  const [lanes, setLanes] = useState(fallback.lanes)
   const [cards, setCards] = useState(fallback.cards)
   const [deletedCards, setDeletedCards] = useState(fallback.deletedCards)
   const [storage, setStorage] = useState('loading')
@@ -94,6 +125,12 @@ export default function StrategyKanban() {
   const [selectedId, setSelectedId] = useState(null)
   const [draft, setDraft] = useState(blankDraft)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [excerpt, setExcerpt] = useState('')
+  const [excerptToolsOpen, setExcerptToolsOpen] = useState(false)
+  const [editingLaneId, setEditingLaneId] = useState('')
+  const [laneDraft, setLaneDraft] = useState({ title: '', cue: '' })
+  const [shortcutMenu, setShortcutMenu] = useState(null)
+  const selectionTimerRef = useRef(null)
 
   const selectedCard = useMemo(
     () => cards.find(card => card.id === selectedId) || null,
@@ -108,6 +145,7 @@ export default function StrategyKanban() {
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
+          setLanes(normaliseLanes(data.lanes || []))
           setStorage(data.storage || 'database')
           setMessage('Saved to planning database.')
         } else {
@@ -121,6 +159,20 @@ export default function StrategyKanban() {
         setMessage('Planning database unavailable. Using local draft until DB env is connected.')
       })
     return () => { alive = false }
+  }, [])
+
+  useEffect(() => {
+    function closeMenu(event) {
+      if (event.type === 'keydown' && event.key !== 'Escape') return
+      setShortcutMenu(null)
+    }
+    window.addEventListener('click', closeMenu)
+    window.addEventListener('keydown', closeMenu)
+    return () => {
+      if (selectionTimerRef.current) window.clearTimeout(selectionTimerRef.current)
+      window.removeEventListener('click', closeMenu)
+      window.removeEventListener('keydown', closeMenu)
+    }
   }, [])
 
   async function syncBoard(nextCards, note) {
@@ -142,7 +194,7 @@ export default function StrategyKanban() {
       setMessage('Move kept on screen, but database save failed.')
       return
     }
-    saveFallback(ordered, deletedCards)
+    saveFallback(ordered, deletedCards, lanes)
     setMessage(note || 'Saved locally.')
   }
 
@@ -165,10 +217,166 @@ export default function StrategyKanban() {
     syncBoard(next, 'Card position saved.')
   }
 
+  async function persistInsertedCard(card, nextCards, note) {
+    const ordered = normaliseCards(nextCards)
+    setCards(ordered)
+    setSelectedId(card.id)
+    if (storage === 'database') {
+      try {
+        const saved = await planningApi({ action: 'saveCard', card: { ...card, position: ordered.find(item => item.id === card.id)?.position ?? card.position } })
+        if (saved && saved.ok) {
+          const orderedAfterSave = normaliseCards(ordered)
+          const moved = await planningApi({
+            action: 'saveOrder',
+            cards: orderedAfterSave.map(({ id, lane, position }) => ({ id, lane, position })),
+          })
+          if (moved && moved.ok) {
+            setCards(normaliseCards(moved.cards || orderedAfterSave))
+            setDeletedCards(moved.deletedCards || deletedCards)
+            setMessage(note)
+            return
+          }
+        }
+      } catch (_) {}
+      setMessage('Card created on screen, but database save failed.')
+      saveFallback(ordered, deletedCards, lanes)
+      return
+    }
+    saveFallback(ordered, deletedCards, lanes)
+    setMessage(note)
+  }
+
+  function insertCardNear(cardId, side = 'after') {
+    const target = cards.find(card => card.id === cardId)
+    if (!target) return
+    const card = {
+      ...blankDraft,
+      id: makeCardId(),
+      lane: target.lane,
+      title: side === 'before' ? 'Card before' : 'Card after',
+      kind: 'Plan',
+      source: target.source || '',
+      body: '',
+      acceptance: 'Shape this card from the nearby storyboard context.',
+    }
+    const next = []
+    for (const item of cards) {
+      if (item.id === cardId && side === 'before') next.push(card)
+      next.push(item)
+      if (item.id === cardId && side === 'after') next.push(card)
+    }
+    persistInsertedCard(card, next, side === 'before' ? 'Card inserted before.' : 'Card inserted after.')
+    setShortcutMenu(null)
+  }
+
+  function duplicateCard(cardId) {
+    const target = cards.find(card => card.id === cardId)
+    if (!target) return
+    const card = {
+      ...target,
+      id: makeCardId(),
+      title: `${target.title} copy`.slice(0, 140),
+      position: target.position + 1,
+    }
+    const next = []
+    for (const item of cards) {
+      next.push(item)
+      if (item.id === cardId) next.push(card)
+    }
+    persistInsertedCard(card, next, 'Card duplicated.')
+    setShortcutMenu(null)
+  }
+
+  function newNoteFromCard(cardId) {
+    const target = cards.find(card => card.id === cardId)
+    if (!target) return
+    const card = {
+      ...blankDraft,
+      id: makeCardId(),
+      lane: target.lane,
+      title: `Note: ${target.title}`.slice(0, 140),
+      source: target.source || 'kanban',
+      kind: 'Note',
+      body: target.body,
+      acceptance: 'Turn this note into a storyboard card or merge it back into the source card.',
+    }
+    const next = []
+    for (const item of cards) {
+      next.push(item)
+      if (item.id === cardId) next.push(card)
+    }
+    persistInsertedCard(card, next, 'Note created from card.')
+    setShortcutMenu(null)
+  }
+
+  function moveCardToEdge(cardId, edge) {
+    const target = cards.find(card => card.id === cardId)
+    if (!target) return
+    const without = cards.filter(card => card.id !== cardId)
+    const next = []
+    let inserted = false
+    if (edge === 'top') {
+      for (const card of without) {
+        if (!inserted && card.lane === target.lane) {
+          next.push(target)
+          inserted = true
+        }
+        next.push(card)
+      }
+      if (!inserted) next.push(target)
+    } else {
+      for (const card of without) {
+        next.push(card)
+        if (card.lane === target.lane) inserted = true
+      }
+      const lastSameLane = next.map(card => card.lane).lastIndexOf(target.lane)
+      if (lastSameLane >= 0) next.splice(lastSameLane + 1, 0, target)
+      else next.push(target)
+    }
+    syncBoard(next, edge === 'top' ? 'Card moved to top.' : 'Card moved to bottom.')
+    setShortcutMenu(null)
+  }
+
+  function copyCardLink(cardId) {
+    const url = `${window.location.origin}${window.location.pathname}#card-${cardId}`
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).catch(() => {})
+    }
+    setMessage('Card link copied.')
+    setShortcutMenu(null)
+  }
+
+  function openShortcutMenu(event, cardId) {
+    event.preventDefault()
+    event.stopPropagation()
+    setSelectedId(cardId)
+    setShortcutMenu({
+      cardId,
+      x: Math.min(event.clientX || 0, window.innerWidth - 260),
+      y: Math.min(event.clientY || 0, window.innerHeight - 360),
+    })
+  }
+
   function openNewCard(lane = 'build') {
     setDraft({ ...blankDraft, lane })
     setSelectedId(null)
     setEditorOpen(true)
+  }
+
+  function openCardFromExcerpt(text = excerpt) {
+    const cleanText = text.trim()
+    if (!cleanText) return
+    setDraft({
+      ...blankDraft,
+      lane: selectedCard?.lane || 'build',
+      title: excerptTitle(cleanText),
+      source: 'skillset.md',
+      kind: 'Excerpt',
+      body: cleanText,
+      acceptance: 'Review this excerpt and decide whether it becomes doctrine, build work, governance, research, or an open decision.',
+    })
+    setEditorOpen(true)
+    setExcerptToolsOpen(false)
   }
 
   function openEdit(card) {
@@ -203,9 +411,51 @@ export default function StrategyKanban() {
     }
     const next = normaliseCards([...cards.filter(item => item.id !== id), card])
     setCards(next)
-    saveFallback(next, deletedCards)
+    saveFallback(next, deletedCards, lanes)
     setSelectedId(id)
     setEditorOpen(false)
+  }
+
+  async function saveCardRecord(card, successMessage = 'Card saved to planning database.') {
+    if (storage === 'database') {
+      try {
+        const data = await planningApi({ action: 'saveCard', card })
+        if (data && data.ok) {
+          setCards(normaliseCards(data.cards || []))
+          setDeletedCards(data.deletedCards || [])
+          setSelectedId(card.id)
+          setMessage(successMessage)
+          return
+        }
+      } catch (_) {}
+      setMessage('Database save failed. Card kept locally for this browser.')
+    }
+    const next = normaliseCards([...cards.filter(item => item.id !== card.id), card])
+    setCards(next)
+    saveFallback(next, deletedCards, lanes)
+    setSelectedId(card.id)
+    setMessage('Saved locally.')
+  }
+
+  function appendExcerptToSelected() {
+    const cleanText = excerpt.trim()
+    if (!cleanText || !selectedCard) return
+    const nextCard = {
+      ...selectedCard,
+      source: selectedCard.source || 'skillset.md',
+      body: `${selectedCard.body || ''}${selectedCard.body ? '\n\n' : ''}${cleanText}`,
+    }
+    saveCardRecord(nextCard, 'Excerpt appended to selected card.')
+    setExcerptToolsOpen(false)
+  }
+
+  function copyExcerpt() {
+    const cleanText = excerpt.trim()
+    if (!cleanText) return
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(cleanText).catch(() => {})
+    }
+    setMessage('Excerpt ready to copy or add to a card.')
   }
 
   async function deleteCard(cardId) {
@@ -228,7 +478,7 @@ export default function StrategyKanban() {
     const deleted = [{ ...card, deletedAt: new Date().toISOString() }, ...deletedCards]
     setCards(next)
     setDeletedCards(deleted)
-    saveFallback(next, deleted)
+    saveFallback(next, deleted, lanes)
     setSelectedId(null)
     setEditorOpen(false)
   }
@@ -252,15 +502,53 @@ export default function StrategyKanban() {
     const deleted = deletedCards.filter(item => item.id !== cardId)
     setCards(next)
     setDeletedCards(deleted)
-    saveFallback(next, deleted)
+    saveFallback(next, deleted, lanes)
     setSelectedId(cardId)
   }
 
   function resetLocalDraft() {
     setCards(seedCards)
     setDeletedCards([])
-    saveFallback(seedCards, [])
+    setLanes(defaultLanes)
+    saveFallback(seedCards, [], defaultLanes)
     setMessage('Local draft reset. Database cards are untouched.')
+  }
+
+  function openLaneEdit(lane) {
+    setEditingLaneId(lane.id)
+    setLaneDraft({ title: lane.title || '', cue: lane.cue || '' })
+  }
+
+  async function saveLaneHeader(event) {
+    event.preventDefault()
+    if (!editingLaneId) return
+    const nextLanes = normaliseLanes(lanes.map(lane => (
+      lane.id === editingLaneId
+        ? {
+            ...lane,
+            title: laneDraft.title.trim() || lane.title,
+            cue: laneDraft.cue.trim() || lane.cue,
+          }
+        : lane
+    )))
+    setLanes(nextLanes)
+    setEditingLaneId('')
+    setLaneDraft({ title: '', cue: '' })
+    if (storage === 'database') {
+      try {
+        const data = await planningApi({ action: 'saveLanes', lanes: nextLanes })
+        if (data && data.ok) {
+          setLanes(normaliseLanes(data.lanes || nextLanes))
+          setMessage('Lane header saved to planning database.')
+          return
+        }
+      } catch (_) {}
+      setMessage('Lane header kept on screen, but database save failed.')
+      saveFallback(cards, deletedCards, nextLanes)
+      return
+    }
+    saveFallback(cards, deletedCards, nextLanes)
+    setMessage('Lane header saved locally.')
   }
 
   function onDropLane(event, laneId) {
@@ -276,6 +564,20 @@ export default function StrategyKanban() {
     const cardId = event.dataTransfer.getData('text/plain') || draggingId
     if (cardId && cardId !== beforeId) moveCard(cardId, laneId, beforeId)
     setDraggingId(null)
+  }
+
+  function captureSkillsetSelection() {
+    if (selectionTimerRef.current) window.clearTimeout(selectionTimerRef.current)
+    const selected = String(window.getSelection ? window.getSelection() : '').trim()
+    if (!selected || selected.length < 8) {
+      setExcerptToolsOpen(false)
+      return
+    }
+    selectionTimerRef.current = window.setTimeout(() => {
+      setExcerpt(selected.slice(0, 1800))
+      setExcerptToolsOpen(true)
+      setMessage('Skillset excerpt selected. Choose Copy, New card, or Append.')
+    }, 2000)
   }
 
   return (
@@ -306,6 +608,32 @@ export default function StrategyKanban() {
       </section>
 
       <section className="planner-shell">
+        <aside className="skillset-reader" aria-label="skillset.md reader">
+          <header className="reader-head">
+            <div>
+              <p className="eyebrow">Source file</p>
+              <h2>skillset.md</h2>
+            </div>
+            <span>{skillsetText.split('\n').length} lines</span>
+          </header>
+          <p className="reader-hint">Highlight text and pause for 2 seconds.</p>
+          {excerptToolsOpen ? (
+            <div className="excerpt-tools" role="dialog" aria-label="Selected skillset excerpt actions">
+              <strong>{excerptTitle(excerpt)}</strong>
+              <p>{excerpt.slice(0, 180)}{excerpt.length > 180 ? '...' : ''}</p>
+              <div>
+                <button type="button" onClick={copyExcerpt}>Copy</button>
+                <button type="button" onClick={() => openCardFromExcerpt()}>New card</button>
+                <button type="button" className="light-button" disabled={!selectedCard} onClick={appendExcerptToSelected}>Append</button>
+                <button type="button" className="light-button" onClick={() => setExcerptToolsOpen(false)}>Close</button>
+              </div>
+            </div>
+          ) : null}
+          <pre className="skillset-text" onMouseUp={captureSkillsetSelection} onTouchEnd={captureSkillsetSelection}>
+            {skillsetText}
+          </pre>
+        </aside>
+
         <section className="board" aria-label="V3 strategy kanban board">
           {lanes.map(lane => {
             const laneCards = cards.filter(card => card.lane === lane.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -318,11 +646,27 @@ export default function StrategyKanban() {
                 onDrop={event => onDropLane(event, lane.id)}
               >
                 <header className="lane-head">
-                  <div>
-                    <h2>{lane.title}</h2>
-                    <p>{lane.cue}</p>
-                  </div>
-                  <span className="count">{cardCount(cards, lane.id)}</span>
+                  {editingLaneId === lane.id ? (
+                    <form className="lane-edit" onSubmit={saveLaneHeader}>
+                      <label>Lane header<input value={laneDraft.title} onChange={event => setLaneDraft({ ...laneDraft, title: event.target.value })} /></label>
+                      <label>Lane cue<input value={laneDraft.cue} onChange={event => setLaneDraft({ ...laneDraft, cue: event.target.value })} /></label>
+                      <div>
+                        <button type="submit">Save</button>
+                        <button type="button" className="light-button" onClick={() => setEditingLaneId('')}>Cancel</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="lane-title">
+                        <h2>{lane.title}</h2>
+                        <p>{lane.cue}</p>
+                      </div>
+                      <div className="lane-meta">
+                        <span className="count">{cardCount(cards, lane.id)}</span>
+                        <button type="button" className="rename-lane" onClick={() => openLaneEdit(lane)}>Rename</button>
+                      </div>
+                    </>
+                  )}
                 </header>
                 <div className="lane-actions">
                   {isTarget ? <button className="move-here" type="button" onClick={() => moveCard(selectedCard.id, lane.id)}>Move here</button> : null}
@@ -330,13 +674,22 @@ export default function StrategyKanban() {
                 </div>
                 <div className="cards">
                   {laneCards.map(card => (
-                    <button
+                    <article
                       key={card.id}
-                      type="button"
+                      id={`card-${card.id}`}
                       className={`card ${selectedId === card.id ? 'selected' : ''}`}
                       draggable
+                      tabIndex={0}
+                      role="button"
                       onClick={() => setSelectedId(selectedId === card.id ? null : card.id)}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          setSelectedId(selectedId === card.id ? null : card.id)
+                        }
+                      }}
                       onDoubleClick={() => openEdit(card)}
+                      onContextMenu={event => openShortcutMenu(event, card.id)}
                       onDragStart={event => {
                         event.dataTransfer.effectAllowed = 'move'
                         event.dataTransfer.setData('text/plain', card.id)
@@ -347,19 +700,62 @@ export default function StrategyKanban() {
                       onDragEnd={() => setDraggingId(null)}
                     >
                       <span className="card-topline">
+                        <span className="checkmark" aria-hidden="true" />
                         <span className="kind">{card.kind}</span>
-                        <span className="source">skillset.md {card.source || '-'}</span>
+                        <button
+                          type="button"
+                          className="card-dots"
+                          aria-label={`Open shortcuts for ${card.title}`}
+                          onClick={event => openShortcutMenu(event, card.id)}
+                        >
+                          ...
+                        </button>
                       </span>
                       <strong>{card.title}</strong>
+                      <span className="source">skillset.md {card.source || '-'}</span>
                       <span className="body">{card.body}</span>
                       <span className="acceptance">{card.acceptance}</span>
-                    </button>
+                    </article>
                   ))}
                 </div>
               </article>
             )
           })}
         </section>
+
+        {shortcutMenu ? (() => {
+          const card = cards.find(item => item.id === shortcutMenu.cardId)
+          if (!card) return null
+          return (
+            <div
+              className="shortcut-menu"
+              style={{ left: shortcutMenu.x, top: shortcutMenu.y }}
+              role="menu"
+              aria-label={`Shortcuts for ${card.title}`}
+              onClick={event => event.stopPropagation()}
+            >
+              <button type="button" role="menuitem" onClick={() => { openEdit(card); setShortcutMenu(null) }}>Edit card</button>
+              <button type="button" role="menuitem" onClick={() => newNoteFromCard(card.id)}>New note from card</button>
+              <button type="button" role="menuitem" onClick={() => copyCardLink(card.id)}>Copy link to card</button>
+              <hr />
+              <button type="button" role="menuitem" onClick={() => duplicateCard(card.id)}>Duplicate card</button>
+              <button type="button" role="menuitem" onClick={() => insertCardNear(card.id, 'before')}>Insert card before</button>
+              <button type="button" role="menuitem" onClick={() => insertCardNear(card.id, 'after')}>Insert card after</button>
+              <button type="button" role="menuitem" onClick={() => moveCardToEdge(card.id, 'top')}>Move to top</button>
+              <button type="button" role="menuitem" onClick={() => moveCardToEdge(card.id, 'bottom')}>Move to bottom</button>
+              <button type="button" role="menuitem" onClick={() => { deleteCard(card.id); setShortcutMenu(null) }}>Delete card</button>
+              <hr />
+              <p>Move to lane</p>
+              <div className="shortcut-lanes">
+                {lanes.filter(lane => lane.id !== card.lane).map(lane => (
+                  <button key={lane.id} type="button" role="menuitem" onClick={() => { moveCard(card.id, lane.id); setShortcutMenu(null) }}>
+                    {lane.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })() : null}
 
         <aside className="inspector" aria-label="Card editor">
           {selectedCard && !editorOpen ? (
@@ -445,7 +841,7 @@ body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 .kanban-hero, .story-strip, .kanban-note, .planner-shell {
-  max-width: 1540px;
+  max-width: 1840px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -559,32 +955,126 @@ button, .ghost-link {
 .storage-pill.local, .storage-pill.unavailable { background: #fff3dc; color: #8c5418; }
 .planner-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: 360px minmax(0, 1fr) 340px;
   gap: 14px;
   align-items: start;
+}
+.skillset-reader {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.reader-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.96);
+}
+.reader-head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.reader-head span {
+  min-height: 26px;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: var(--deep-blue);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.reader-hint {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid #edf1f7;
+  color: var(--muted);
+  font-size: 13px;
+}
+.skillset-text {
+  flex: 1;
+  min-height: 300px;
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #26354f;
+  font: 13px/1.48 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  user-select: text;
+}
+.skillset-text::selection {
+  background: rgba(242, 184, 75, 0.45);
+}
+.excerpt-tools {
+  margin: 10px 12px 0;
+  border: 1px solid rgba(36, 95, 214, 0.26);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(22, 32, 51, 0.14);
+  padding: 12px;
+}
+.excerpt-tools strong {
+  display: block;
+  font-size: 14px;
+}
+.excerpt-tools p {
+  margin: 7px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.42;
+}
+.excerpt-tools div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.excerpt-tools button {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.excerpt-tools button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 .board {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(278px, 1fr);
+  grid-auto-columns: minmax(292px, 1fr);
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 18px;
   scroll-snap-type: x proximity;
 }
-.lane, .inspector {
+.inspector {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.84);
   box-shadow: var(--shadow);
 }
 .lane {
+  border: 1px solid #242832;
+  background: #050607;
+  box-shadow: 0 18px 38px rgba(5, 6, 7, 0.24);
   min-height: 62vh;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
+  color: #eceff4;
 }
 .lane-target {
-  outline: 2px solid rgba(36, 95, 214, 0.28);
+  outline: 2px solid rgba(242, 184, 75, 0.42);
   outline-offset: 2px;
 }
 .lane-head {
@@ -593,34 +1083,91 @@ button, .ghost-link {
   z-index: 1;
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
   padding: 14px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid #242832;
+  background: rgba(5, 6, 7, 0.96);
   backdrop-filter: blur(10px);
+}
+.lane-title {
+  min-width: 0;
 }
 .lane-head h2 {
   margin: 0;
-  font-size: 17px;
+  font: 800 15px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
+  color: #f5f7fb;
 }
 .lane-head p {
   margin: 5px 0 0;
-  color: var(--muted);
-  font-size: 12px;
+  color: #a5adba;
+  font: 12px/1.32 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+.lane-meta {
+  display: grid;
+  gap: 7px;
+  justify-items: end;
+  flex: 0 0 auto;
 }
 .count {
   width: 30px;
   height: 30px;
-  border-radius: 999px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e9eefb;
-  color: var(--deep-blue);
-  font-size: 13px;
+  border: 1px solid #313743;
+  background: #11151c;
+  color: #f2b84b;
+  font: 850 13px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-weight: 850;
+}
+.rename-lane {
+  min-height: 28px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border-color: #313743;
+  background: #11151c;
+  color: #cbd5e1;
+  font-size: 11px;
+}
+.lane-edit {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+.lane-edit label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.lane-edit input {
+  width: 100%;
+  border: 1px solid #313743;
+  border-radius: 8px;
+  padding: 8px 9px;
+  color: #f5f7fb;
+  background: #0d1016;
+  font: inherit;
+  font-size: 13px;
+  text-transform: none;
+}
+.lane-edit div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.lane-edit button {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
 }
 .lane-actions {
   padding: 10px 12px 0;
@@ -631,72 +1178,153 @@ button, .ghost-link {
   font-size: 13px;
 }
 .move-here {
-  background: #eef4ff;
-  color: var(--deep-blue);
-  border-color: rgba(36, 95, 214, 0.36);
+  background: #13223f;
+  color: #dbe8ff;
+  border-color: rgba(83, 139, 245, 0.42);
+}
+.add-small {
+  border-color: #242832;
+  background: #0b0d10;
+  color: #cbd5e1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 .cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   padding: 12px;
 }
 .card {
   width: 100%;
   min-height: auto;
-  border: 1px solid #d7deeb;
-  border-left: 5px solid var(--blue);
+  border: 1px solid #252a33;
   border-radius: 8px;
-  background: #fff;
-  padding: 12px;
+  background: #070809;
+  padding: 11px 12px;
   text-align: left;
-  color: var(--ink);
-  font: inherit;
-  box-shadow: 0 8px 18px rgba(22, 32, 51, 0.08);
+  color: #f2f4f8;
+  font: 14px/1.42 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  box-shadow: none;
   cursor: grab;
   display: block;
 }
 .card:active { cursor: grabbing; }
+.card:hover {
+  border-color: #3a4250;
+  background: #0b0d10;
+}
 .card.selected {
-  border-color: var(--deep-blue);
-  border-left-color: var(--orange);
-  box-shadow: 0 0 0 3px rgba(36, 95, 214, 0.16), 0 10px 24px rgba(22, 32, 51, 0.14);
+  border-color: #7b61ff;
+  box-shadow: 0 0 0 2px rgba(123, 97, 255, 0.24);
 }
 .card-topline {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
   align-items: center;
   margin-bottom: 9px;
 }
-.kind, .source {
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #555e6d;
+  border-radius: 5px;
+  flex: 0 0 auto;
+}
+.kind {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  border-radius: 999px;
+  border-radius: 6px;
   padding: 0 8px;
   font-size: 11px;
   font-weight: 850;
   white-space: nowrap;
 }
-.kind { background: #e7f5f6; color: #126a72; }
-.source { background: #fff3dc; color: #8c5418; }
+.kind { background: #151b24; color: #f2b84b; border: 1px solid #313743; }
+.card-dots {
+  margin-left: auto;
+  min-height: 26px;
+  min-width: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #a5adba;
+  padding: 0 4px;
+  font: 900 16px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.card-dots:hover {
+  background: #1b2029;
+  color: #fff;
+}
+.source {
+  display: block;
+  margin-top: 8px;
+  color: #8f98a7;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
 .card strong {
   display: block;
-  font-size: 16px;
-  line-height: 1.2;
+  padding-left: 26px;
+  font-size: 15px;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
 }
 .body, .acceptance {
   display: block;
-  margin-top: 9px;
-  color: var(--muted);
+  margin-top: 8px;
+  color: #cbd5e1;
   font-size: 13px;
   line-height: 1.36;
+  overflow-wrap: anywhere;
 }
 .acceptance {
-  color: #42526d;
-  border-top: 1px solid #edf1f7;
-  padding-top: 9px;
+  color: #9aa4b2;
+  border-top: 1px solid #202631;
+  padding-top: 8px;
+}
+.shortcut-menu {
+  position: fixed;
+  z-index: 30;
+  width: 252px;
+  border: 1px solid #3b414d;
+  border-radius: 8px;
+  background: #242424;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42);
+  padding: 8px;
+  color: #f4f4f5;
+}
+.shortcut-menu button {
+  width: 100%;
+  min-height: 31px;
+  justify-content: flex-start;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #f4f4f5;
+  padding: 0 10px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.shortcut-menu button:hover {
+  background: #343434;
+}
+.shortcut-menu hr {
+  height: 1px;
+  border: 0;
+  background: #454545;
+  margin: 7px 8px;
+}
+.shortcut-menu p {
+  margin: 8px 10px 5px;
+  color: #b9bcc4;
+  font-size: 12px;
+  font-weight: 800;
+}
+.shortcut-lanes {
+  max-height: 150px;
+  overflow: auto;
 }
 .inspector {
   position: sticky;
@@ -776,7 +1404,7 @@ dd { margin: 0; font-size: 13px; font-weight: 750; }
   background: #eef4ff;
   color: var(--deep-blue);
 }
-button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .card:focus-visible {
   outline: 3px solid var(--amber);
   outline-offset: 2px;
 }
@@ -784,8 +1412,12 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
   .planner-shell {
     grid-template-columns: 1fr;
   }
+  .skillset-reader,
   .inspector {
     position: static;
+  }
+  .skillset-reader {
+    max-height: 54vh;
   }
 }
 @media (max-width: 760px) {

@@ -13,6 +13,16 @@ const BOARD_KEY = 'v3-skillset-storyboard';
 const LANES = new Set(['doctrine', 'ready', 'build', 'govern', 'research', 'decide', 'done']);
 const SESSION_COOKIE = 'tara_sess';
 
+const DEFAULT_LANES = [
+  { id: 'doctrine', position: 0, title: 'Doctrine', cue: 'What must stay true' },
+  { id: 'ready', position: 1, title: 'Ready', cue: 'Ready to shape into UI' },
+  { id: 'build', position: 2, title: 'Build next', cue: 'Storyboard the product' },
+  { id: 'govern', position: 3, title: 'Governance', cue: 'Keep agentic risk visible' },
+  { id: 'research', position: 4, title: 'Research / data', cue: 'Evidence before advice' },
+  { id: 'decide', position: 5, title: 'Needs decision', cue: 'Choose before building' },
+  { id: 'done', position: 6, title: 'Done', cue: 'Accepted direction' },
+];
+
 const DEFAULT_CARDS = [
   ['north-star', 'doctrine', 'V3 north star', '0-1', 'Doctrine', 'Read a job ad as a work-system signal, not only a vacancy.', 'Every panel returns to apply, prepare, compare, redesign, agent candidate, or withhold.'],
   ['ethos', 'doctrine', 'Ethos as product test', '3', 'Values', 'Curiosity, collaboration, customer focus, first principles, breadth, systems, judgment.', 'Each new feature must name which ethos it serves and what it protects.'],
@@ -107,6 +117,17 @@ async function ensureTables() {
   )`;
   await sql`CREATE INDEX IF NOT EXISTS planning_cards_board_lane ON planning_cards (board_key, lane, position, updated_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS planning_cards_deleted ON planning_cards (board_key, deleted_at DESC)`;
+  await sql`CREATE TABLE IF NOT EXISTS planning_lanes (
+    id TEXT NOT NULL,
+    board_key TEXT NOT NULL REFERENCES planning_boards(board_key) ON DELETE CASCADE,
+    position INT NOT NULL DEFAULT 0,
+    title TEXT NOT NULL,
+    cue TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (board_key, id)
+  )`;
+  await sql`CREATE INDEX IF NOT EXISTS planning_lanes_board ON planning_lanes (board_key, position)`;
   await sql`CREATE TABLE IF NOT EXISTS planning_card_events (
     id BIGSERIAL PRIMARY KEY,
     board_key TEXT NOT NULL,
@@ -130,6 +151,12 @@ async function ensureSeed() {
   await sql`INSERT INTO planning_boards (board_key, title)
     VALUES (${BOARD_KEY}, ${'V3 Skillset Storyboard'})
     ON CONFLICT (board_key) DO NOTHING`;
+
+  for (const lane of DEFAULT_LANES) {
+    await sql`INSERT INTO planning_lanes (id, board_key, position, title, cue)
+      VALUES (${lane.id}, ${BOARD_KEY}, ${lane.position}, ${lane.title}, ${lane.cue})
+      ON CONFLICT (board_key, id) DO NOTHING`;
+  }
 
   const { rows } = await sql`SELECT COUNT(*)::int AS n FROM planning_cards WHERE board_key=${BOARD_KEY}`;
   if ((rows[0] && rows[0].n) > 0) return;
@@ -157,16 +184,38 @@ function rowToCard(row) {
   };
 }
 
+function rowToLane(row) {
+  return {
+    id: row.id,
+    position: row.position,
+    title: row.title,
+    cue: row.cue || '',
+    updatedAt: row.updated_at || null,
+  };
+}
+
+function laneInput(item, fallback) {
+  return {
+    id: fallback.id,
+    position: item && Number.isFinite(Number(item.position)) ? positionOf(item.position) : fallback.position,
+    title: str(item && item.title, 80) || fallback.title,
+    cue: str(item && item.cue, 140) || fallback.cue,
+  };
+}
+
 async function listBoard() {
   await ensureTables();
   await ensureSeed();
+  const lanes = await sql`SELECT id, position, title, cue, updated_at
+    FROM planning_lanes WHERE board_key=${BOARD_KEY}
+    ORDER BY position ASC, id ASC`;
   const active = await sql`SELECT id, lane, position, title, source, kind, body, acceptance, deleted_at, updated_at
     FROM planning_cards WHERE board_key=${BOARD_KEY} AND deleted_at IS NULL
     ORDER BY lane ASC, position ASC, updated_at ASC`;
   const deleted = await sql`SELECT id, lane, position, title, source, kind, body, acceptance, deleted_at, updated_at
     FROM planning_cards WHERE board_key=${BOARD_KEY} AND deleted_at IS NOT NULL
     ORDER BY deleted_at DESC LIMIT 40`;
-  return { cards: active.rows.map(rowToCard), deletedCards: deleted.rows.map(rowToCard) };
+  return { lanes: lanes.rows.map(rowToLane), cards: active.rows.map(rowToCard), deletedCards: deleted.rows.map(rowToCard) };
 }
 
 async function saveCard(input) {
@@ -204,6 +253,22 @@ async function saveOrder(cards) {
       WHERE board_key=${BOARD_KEY} AND id=${id} AND deleted_at IS NULL`;
   }
   await logEvent(null, 'move', { count: cards.length });
+}
+
+async function saveLanes(lanes) {
+  if (!Array.isArray(lanes)) return;
+  const byId = new Map(lanes.filter(item => item && LANES.has(String(item.id))).map(item => [String(item.id), item]));
+  for (const fallback of DEFAULT_LANES) {
+    const lane = laneInput(byId.get(fallback.id), fallback);
+    await sql`INSERT INTO planning_lanes (id, board_key, position, title, cue, updated_at)
+      VALUES (${lane.id}, ${BOARD_KEY}, ${lane.position}, ${lane.title}, ${lane.cue}, now())
+      ON CONFLICT (board_key, id) DO UPDATE SET
+        position=EXCLUDED.position,
+        title=EXCLUDED.title,
+        cue=EXCLUDED.cue,
+        updated_at=now()`;
+  }
+  await logEvent(null, 'lanes:update', { count: DEFAULT_LANES.length });
 }
 
 async function softDelete(id) {
@@ -252,6 +317,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, storage: 'database', ...board });
     }
 
+    if (action === 'saveLanes') {
+      await saveLanes(body.lanes || []);
+      const board = await listBoard();
+      return res.status(200).json({ ok: true, storage: 'database', ...board });
+    }
+
     if (action === 'deleteCard') {
       await softDelete(body.id);
       const board = await listBoard();
@@ -271,6 +342,7 @@ export default async function handler(req, res) {
       ok: false,
       storage: 'unavailable',
       error: 'planning database unavailable',
+      lanes: DEFAULT_LANES,
       cards: DEFAULT_CARDS,
       deletedCards: [],
     });
