@@ -1,7 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import skillsetText from '../skillset.md?raw'
+import goalText from '../goal/readme.md?raw'
+import skillsText from '../skills/README.md?raw'
+import reinventionText from '../script/v3-reinvention-implementation-spec.md?raw'
 
 const STORAGE_KEY = 'v3.strategyKanban.fallback.v3'
+const WORKSPACE_KEY = 'v3.strategyKanban.workspace.v1'
+
+const workFiles = [
+  { id: 'skillset', label: 'skillset.md', path: 'v3/skillset.md', text: skillsetText },
+  { id: 'goal', label: 'goal/readme.md', path: 'v3/goal/readme.md', text: goalText },
+  { id: 'skills', label: 'skills/README.md', path: 'v3/skills/README.md', text: skillsText },
+  { id: 'reinvention', label: 'reinvention spec', path: 'v3/script/v3-reinvention-implementation-spec.md', text: reinventionText },
+]
+
+const defaultBoards = [
+  { id: 'board-1', label: '1', name: 'Storyboard 1' },
+  { id: 'board-2', label: '2', name: 'Storyboard 2' },
+  { id: 'board-3', label: '3', name: 'Storyboard 3' },
+]
 
 const defaultLanes = [
   { id: 'doctrine', position: 0, title: 'Doctrine', cue: 'What must stay true' },
@@ -92,6 +109,37 @@ function saveFallback(cards, deletedCards, lanes = defaultLanes) {
   } catch (_) {}
 }
 
+function loadWorkspace() {
+  try {
+    const raw = window.localStorage.getItem(WORKSPACE_KEY)
+    if (!raw) throw new Error('empty')
+    const parsed = JSON.parse(raw)
+    return {
+      workOpen: parsed.workOpen !== false,
+      inspectorOpen: parsed.inspectorOpen !== false,
+      activeFileId: workFiles.some(file => file.id === parsed.activeFileId) ? parsed.activeFileId : 'skillset',
+      activeBoardId: parsed.activeBoardId || 'board-1',
+      boards: Array.isArray(parsed.boards) && parsed.boards.length ? parsed.boards : defaultBoards,
+      laneWidths: parsed.laneWidths && typeof parsed.laneWidths === 'object' ? parsed.laneWidths : {},
+    }
+  } catch (_) {
+    return {
+      workOpen: true,
+      inspectorOpen: true,
+      activeFileId: 'skillset',
+      activeBoardId: 'board-1',
+      boards: defaultBoards,
+      laneWidths: {},
+    }
+  }
+}
+
+function saveWorkspace(state) {
+  try {
+    window.localStorage.setItem(WORKSPACE_KEY, JSON.stringify(state))
+  } catch (_) {}
+}
+
 async function planningApi(payload) {
   const res = await fetch('/api/planning', {
     method: 'POST',
@@ -116,9 +164,17 @@ function makeCardId() {
 
 export default function StrategyKanban() {
   const fallback = useMemo(loadFallback, [])
+  const workspace = useMemo(loadWorkspace, [])
   const [lanes, setLanes] = useState(fallback.lanes)
   const [cards, setCards] = useState(fallback.cards)
   const [deletedCards, setDeletedCards] = useState(fallback.deletedCards)
+  const [workOpen, setWorkOpen] = useState(workspace.workOpen)
+  const [inspectorOpen, setInspectorOpen] = useState(workspace.inspectorOpen)
+  const [activeFileId, setActiveFileId] = useState(workspace.activeFileId)
+  const [boards, setBoards] = useState(workspace.boards)
+  const [activeBoardId, setActiveBoardId] = useState(workspace.activeBoardId)
+  const [boardMenu, setBoardMenu] = useState(null)
+  const [laneWidths, setLaneWidths] = useState(workspace.laneWidths)
   const [storage, setStorage] = useState('loading')
   const [message, setMessage] = useState('Opening planning board...')
   const [draggingId, setDraggingId] = useState(null)
@@ -135,6 +191,10 @@ export default function StrategyKanban() {
   const selectedCard = useMemo(
     () => cards.find(card => card.id === selectedId) || null,
     [cards, selectedId],
+  )
+  const activeFile = useMemo(
+    () => workFiles.find(file => file.id === activeFileId) || workFiles[0],
+    [activeFileId],
   )
 
   useEffect(() => {
@@ -165,6 +225,7 @@ export default function StrategyKanban() {
     function closeMenu(event) {
       if (event.type === 'keydown' && event.key !== 'Escape') return
       setShortcutMenu(null)
+      setBoardMenu(null)
     }
     window.addEventListener('click', closeMenu)
     window.addEventListener('keydown', closeMenu)
@@ -174,6 +235,10 @@ export default function StrategyKanban() {
       window.removeEventListener('keydown', closeMenu)
     }
   }, [])
+
+  useEffect(() => {
+    saveWorkspace({ workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths })
+  }, [workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths])
 
   async function syncBoard(nextCards, note) {
     const ordered = normaliseCards(nextCards)
@@ -357,6 +422,56 @@ export default function StrategyKanban() {
     })
   }
 
+  function openBoardMenu(event, boardId) {
+    event.preventDefault()
+    event.stopPropagation()
+    setActiveBoardId(boardId)
+    setBoardMenu({
+      boardId,
+      x: Math.min(event.clientX || 0, window.innerWidth - 236),
+      y: Math.min(event.clientY || 0, window.innerHeight - 220),
+    })
+  }
+
+  function createBoard() {
+    const nextNumber = boards.length + 1
+    const board = { id: `board-${Date.now()}`, label: String(nextNumber), name: `Storyboard ${nextNumber}` }
+    setBoards([...boards, board])
+    setActiveBoardId(board.id)
+    setBoardMenu(null)
+    setMessage('Board icon created.')
+  }
+
+  function duplicateBoard(boardId) {
+    const board = boards.find(item => item.id === boardId)
+    if (!board) return
+    const copy = { id: `board-${Date.now()}`, label: `${board.label}'`, name: `${board.name} copy` }
+    setBoards([...boards, copy])
+    setActiveBoardId(copy.id)
+    setBoardMenu(null)
+    setMessage('Board icon duplicated.')
+  }
+
+  function deleteBoard(boardId) {
+    if (boards.length <= 1) {
+      setMessage('Keep at least one board icon.')
+      setBoardMenu(null)
+      return
+    }
+    const nextBoards = boards.filter(board => board.id !== boardId)
+    setBoards(nextBoards)
+    if (activeBoardId === boardId) setActiveBoardId(nextBoards[0].id)
+    setBoardMenu(null)
+    setMessage('Board icon deleted.')
+  }
+
+  function resizeLane(laneId, delta) {
+    setLaneWidths(current => {
+      const width = Math.max(220, Math.min(680, Number(current[laneId] || 312) + delta))
+      return { ...current, [laneId]: width }
+    })
+  }
+
   function openNewCard(lane = 'build') {
     setDraft({ ...blankDraft, lane })
     setSelectedId(null)
@@ -370,7 +485,7 @@ export default function StrategyKanban() {
       ...blankDraft,
       lane: selectedCard?.lane || 'build',
       title: excerptTitle(cleanText),
-      source: 'skillset.md',
+      source: activeFile.label,
       kind: 'Excerpt',
       body: cleanText,
       acceptance: 'Review this excerpt and decide whether it becomes doctrine, build work, governance, research, or an open decision.',
@@ -576,7 +691,7 @@ export default function StrategyKanban() {
     selectionTimerRef.current = window.setTimeout(() => {
       setExcerpt(selected.slice(0, 1800))
       setExcerptToolsOpen(true)
-      setMessage('Skillset excerpt selected. Choose Copy, New card, or Append.')
+      setMessage(`${activeFile.label} excerpt selected. Choose Copy, New card, or Append.`)
     }, 2000)
   }
 
@@ -608,13 +723,35 @@ export default function StrategyKanban() {
       </section>
 
       <section className="planner-shell">
-        <aside className="skillset-reader" aria-label="skillset.md reader">
+        <nav className="workspace-rail" aria-label="Workspace panels and boards">
+          <button type="button" className={`rail-icon ${workOpen ? 'active' : ''}`} title="Working file" aria-label="Toggle working file drawer" onClick={() => setWorkOpen(!workOpen)}>W</button>
+          <button type="button" className={`rail-icon ${inspectorOpen ? 'active' : ''}`} title="Selected card" aria-label="Toggle selected card drawer" onClick={() => setInspectorOpen(!inspectorOpen)}>C</button>
+          <span className="rail-divider" aria-hidden="true" />
+          <div className="board-icons" aria-label="Boards">
+            {boards.map(board => (
+              <button
+                key={board.id}
+                type="button"
+                className={`board-icon ${activeBoardId === board.id ? 'active' : ''}`}
+                title={board.name}
+                aria-label={board.name}
+                onClick={() => setActiveBoardId(board.id)}
+                onContextMenu={event => openBoardMenu(event, board.id)}
+              >
+                {board.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {workOpen ? (
+        <aside className="skillset-reader floating-drawer work-drawer" aria-label="Working file reader">
           <header className="reader-head">
             <div>
               <p className="eyebrow">Source file</p>
-              <h2>skillset.md</h2>
+              <h2>{activeFile.label}</h2>
             </div>
-            <span>{skillsetText.split('\n').length} lines</span>
+            <button type="button" className="drawer-close" onClick={() => setWorkOpen(false)} aria-label="Close working file drawer">x</button>
           </header>
           <p className="reader-hint">Highlight text and pause for 2 seconds.</p>
           {excerptToolsOpen ? (
@@ -630,9 +767,18 @@ export default function StrategyKanban() {
             </div>
           ) : null}
           <pre className="skillset-text" onMouseUp={captureSkillsetSelection} onTouchEnd={captureSkillsetSelection}>
-            {skillsetText}
+            {activeFile.text}
           </pre>
+          <footer className="reader-footer">
+            <label>File
+              <select value={activeFileId} onChange={event => setActiveFileId(event.target.value)}>
+                {workFiles.map(file => <option key={file.id} value={file.id}>{file.label}</option>)}
+              </select>
+            </label>
+            <span>{activeFile.path}</span>
+          </footer>
         </aside>
+        ) : null}
 
         <section className="board" aria-label="V3 strategy kanban board">
           {lanes.map(lane => {
@@ -642,6 +788,7 @@ export default function StrategyKanban() {
               <article
                 key={lane.id}
                 className={`lane ${isTarget ? 'lane-target' : ''}`}
+                style={{ width: laneWidths[lane.id] ? `${laneWidths[lane.id]}px` : undefined }}
                 onDragOver={event => event.preventDefault()}
                 onDrop={event => onDropLane(event, lane.id)}
               >
@@ -671,6 +818,8 @@ export default function StrategyKanban() {
                 <div className="lane-actions">
                   {isTarget ? <button className="move-here" type="button" onClick={() => moveCard(selectedCard.id, lane.id)}>Move here</button> : null}
                   <button className="add-small" type="button" onClick={() => openNewCard(lane.id)}>Add</button>
+                  <button className="lane-size-button" type="button" aria-label={`Shrink ${lane.title}`} onClick={() => resizeLane(lane.id, -36)}>-</button>
+                  <button className="lane-size-button" type="button" aria-label={`Expand ${lane.title}`} onClick={() => resizeLane(lane.id, 36)}>+</button>
                 </div>
                 <div className="cards">
                   {laneCards.map(card => (
@@ -712,7 +861,7 @@ export default function StrategyKanban() {
                         </button>
                       </span>
                       <strong>{card.title}</strong>
-                      <span className="source">skillset.md {card.source || '-'}</span>
+                      <span className="source">{card.source || activeFile.label}</span>
                       <span className="body">{card.body}</span>
                       <span className="acceptance">{card.acceptance}</span>
                     </article>
@@ -757,10 +906,32 @@ export default function StrategyKanban() {
           )
         })() : null}
 
-        <aside className="inspector" aria-label="Card editor">
+        {boardMenu ? (() => {
+          const board = boards.find(item => item.id === boardMenu.boardId)
+          if (!board) return null
+          return (
+            <div
+              className="shortcut-menu board-menu"
+              style={{ left: boardMenu.x, top: boardMenu.y }}
+              role="menu"
+              aria-label={`Board shortcuts for ${board.name}`}
+              onClick={event => event.stopPropagation()}
+            >
+              <button type="button" role="menuitem" onClick={createBoard}>Create new board</button>
+              <button type="button" role="menuitem" onClick={() => duplicateBoard(board.id)}>Duplicate board</button>
+              <button type="button" role="menuitem" onClick={() => deleteBoard(board.id)}>Delete board</button>
+            </div>
+          )
+        })() : null}
+
+        {inspectorOpen ? (
+        <aside className={`inspector floating-drawer inspector-drawer ${workOpen ? '' : 'alone'}`} aria-label="Card editor">
           {selectedCard && !editorOpen ? (
             <>
-              <p className="eyebrow">Selected card</p>
+              <div className="drawer-title-row">
+                <p className="eyebrow">Selected card</p>
+                <button type="button" className="drawer-close" onClick={() => setInspectorOpen(false)} aria-label="Close selected card drawer">x</button>
+              </div>
               <h2>{selectedCard.title}</h2>
               <p>{selectedCard.body}</p>
               <dl>
@@ -775,7 +946,10 @@ export default function StrategyKanban() {
             </>
           ) : (
             <>
-              <p className="eyebrow">{draft.id ? 'Amend card' : 'Create card'}</p>
+              <div className="drawer-title-row">
+                <p className="eyebrow">{draft.id ? 'Amend card' : 'Create card'}</p>
+                <button type="button" className="drawer-close" onClick={() => setInspectorOpen(false)} aria-label="Close selected card drawer">x</button>
+              </div>
               <form onSubmit={saveCard} className="card-form">
                 <label>Title<input value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} /></label>
                 <label>Lane
@@ -805,6 +979,7 @@ export default function StrategyKanban() {
             )) : <p>No deleted cards.</p>}
           </section>
         </aside>
+        ) : null}
       </section>
     </main>
   )
@@ -812,18 +987,59 @@ export default function StrategyKanban() {
 
 const styles = `
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   --ink: #162033;
   --muted: #667085;
   --line: #cfd7e6;
   --paper: #f4f7fb;
   --panel: #ffffff;
+  --panel-strong: #ffffff;
   --blue: #245fd6;
   --deep-blue: #153f9f;
   --orange: #c87422;
   --amber: #f2b84b;
   --teal: #1b8b95;
   --shadow: 0 16px 38px rgba(22, 32, 51, 0.12);
+  --rail-bg: rgba(255, 255, 255, 0.9);
+  --lane-bg: #ffffff;
+  --lane-head: rgba(255, 255, 255, 0.94);
+  --lane-line: #d7deeb;
+  --lane-text: #162033;
+  --lane-muted: #667085;
+  --card-bg: #ffffff;
+  --card-border: #d7deeb;
+  --card-text: #162033;
+  --card-muted: #667085;
+  --menu-bg: #ffffff;
+  --menu-text: #162033;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #f4f7fb;
+    --muted: #aab4c3;
+    --line: #2d3542;
+    --paper: #080a0d;
+    --panel: #11151c;
+    --panel-strong: #171c25;
+    --blue: #77a7ff;
+    --deep-blue: #a9c4ff;
+    --orange: #f2b84b;
+    --amber: #f2b84b;
+    --teal: #5fd0da;
+    --shadow: 0 18px 42px rgba(0, 0, 0, 0.36);
+    --rail-bg: rgba(14, 18, 24, 0.92);
+    --lane-bg: #050607;
+    --lane-head: rgba(5, 6, 7, 0.96);
+    --lane-line: #242832;
+    --lane-text: #eceff4;
+    --lane-muted: #a5adba;
+    --card-bg: #070809;
+    --card-border: #252a33;
+    --card-text: #f2f4f8;
+    --card-muted: #cbd5e1;
+    --menu-bg: #242424;
+    --menu-text: #f4f4f5;
+  }
 }
 * { box-sizing: border-box; }
 body {
@@ -837,7 +1053,7 @@ body {
 }
 .strategy-kanban {
   min-height: 100vh;
-  padding: 24px;
+  padding: 24px 24px 24px 76px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 .kanban-hero, .story-strip, .kanban-note, .planner-shell {
@@ -954,21 +1170,75 @@ button, .ghost-link {
 }
 .storage-pill.local, .storage-pill.unavailable { background: #fff3dc; color: #8c5418; }
 .planner-shell {
+  position: relative;
+  display: block;
+  min-height: 64vh;
+}
+.workspace-rail {
+  position: fixed;
+  z-index: 25;
+  left: 14px;
+  top: 86px;
+  width: 46px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--rail-bg);
+  box-shadow: var(--shadow);
+  padding: 8px 6px;
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr) 340px;
-  gap: 14px;
-  align-items: start;
+  gap: 8px;
+  justify-items: center;
+  backdrop-filter: blur(12px);
+}
+.rail-icon,
+.board-icon {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 8px;
+  padding: 0;
+  border-color: var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  font: 850 13px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.rail-icon.active,
+.board-icon.active {
+  background: var(--ink);
+  color: var(--panel);
+  border-color: var(--ink);
+}
+.rail-divider {
+  width: 24px;
+  height: 8px;
+  border-bottom: 1px solid var(--muted);
+  opacity: 0.7;
+}
+.board-icons {
+  display: grid;
+  gap: 7px;
+}
+.floating-drawer {
+  position: fixed;
+  z-index: 20;
+  left: 72px;
+  top: 86px;
+  max-height: calc(100vh - 108px);
+  resize: horizontal;
+  min-width: 280px;
+  max-width: min(72vw, 760px);
 }
 .skillset-reader {
-  position: sticky;
-  top: 16px;
-  max-height: calc(100vh - 32px);
+  width: 360px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.88);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+.work-drawer {
+  resize: horizontal;
 }
 .reader-head {
   display: flex;
@@ -977,7 +1247,7 @@ button, .ghost-link {
   gap: 12px;
   padding: 14px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--panel-strong);
 }
 .reader-head h2 {
   margin: 0;
@@ -998,7 +1268,7 @@ button, .ghost-link {
 .reader-hint {
   margin: 0;
   padding: 10px 14px;
-  border-bottom: 1px solid #edf1f7;
+  border-bottom: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
 }
@@ -1010,9 +1280,51 @@ button, .ghost-link {
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: #26354f;
+  color: var(--ink);
   font: 13px/1.48 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   user-select: text;
+}
+.reader-footer {
+  display: grid;
+  gap: 7px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--panel-strong);
+}
+.reader-footer label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.reader-footer select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--ink);
+  background: var(--panel);
+  font: inherit;
+}
+.reader-footer span {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.drawer-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.drawer-close {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 8px;
+  padding: 0;
+  background: var(--panel);
+  color: var(--ink);
 }
 .skillset-text::selection {
   background: rgba(242, 184, 75, 0.45);
@@ -1021,7 +1333,7 @@ button, .ghost-link {
   margin: 10px 12px 0;
   border: 1px solid rgba(36, 95, 214, 0.26);
   border-radius: 8px;
-  background: #fff;
+  background: var(--panel-strong);
   box-shadow: 0 14px 28px rgba(22, 32, 51, 0.14);
   padding: 12px;
 }
@@ -1050,9 +1362,7 @@ button, .ghost-link {
   cursor: not-allowed;
 }
 .board {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(292px, 1fr);
+  display: flex;
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 18px;
@@ -1060,18 +1370,24 @@ button, .ghost-link {
 }
 .inspector {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.84);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   box-shadow: var(--shadow);
 }
 .lane {
-  border: 1px solid #242832;
-  background: #050607;
+  flex: 0 0 auto;
+  width: 312px;
+  min-width: 220px;
+  max-width: 680px;
+  resize: horizontal;
+  overflow: auto;
+  border: 1px solid var(--lane-line);
+  background: var(--lane-bg);
   box-shadow: 0 18px 38px rgba(5, 6, 7, 0.24);
   min-height: 62vh;
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
-  color: #eceff4;
+  color: var(--lane-text);
 }
 .lane-target {
   outline: 2px solid rgba(242, 184, 75, 0.42);
@@ -1086,8 +1402,8 @@ button, .ghost-link {
   align-items: flex-start;
   gap: 12px;
   padding: 14px;
-  border-bottom: 1px solid #242832;
-  background: rgba(5, 6, 7, 0.96);
+  border-bottom: 1px solid var(--lane-line);
+  background: var(--lane-head);
   backdrop-filter: blur(10px);
 }
 .lane-title {
@@ -1098,11 +1414,11 @@ button, .ghost-link {
   font: 800 15px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0;
   overflow-wrap: anywhere;
-  color: #f5f7fb;
+  color: var(--lane-text);
 }
 .lane-head p {
   margin: 5px 0 0;
-  color: #a5adba;
+  color: var(--lane-muted);
   font: 12px/1.32 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   line-height: 1.32;
   overflow-wrap: anywhere;
@@ -1120,8 +1436,8 @@ button, .ghost-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #313743;
-  background: #11151c;
+  border: 1px solid var(--lane-line);
+  background: color-mix(in srgb, var(--lane-bg) 85%, var(--amber));
   color: #f2b84b;
   font: 850 13px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-weight: 850;
@@ -1130,9 +1446,9 @@ button, .ghost-link {
   min-height: 28px;
   padding: 0 8px;
   border-radius: 7px;
-  border-color: #313743;
-  background: #11151c;
-  color: #cbd5e1;
+  border-color: var(--lane-line);
+  background: var(--lane-bg);
+  color: var(--lane-text);
   font-size: 11px;
 }
 .lane-edit {
@@ -1174,7 +1490,6 @@ button, .ghost-link {
 }
 .lane-actions button {
   min-height: 34px;
-  flex: 1;
   font-size: 13px;
 }
 .move-here {
@@ -1183,9 +1498,17 @@ button, .ghost-link {
   border-color: rgba(83, 139, 245, 0.42);
 }
 .add-small {
-  border-color: #242832;
-  background: #0b0d10;
-  color: #cbd5e1;
+  border-color: var(--lane-line);
+  background: var(--lane-bg);
+  color: var(--lane-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.lane-size-button {
+  min-width: 34px;
+  padding: 0;
+  border-color: var(--lane-line);
+  background: var(--lane-bg);
+  color: var(--lane-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 .cards {
@@ -1197,12 +1520,12 @@ button, .ghost-link {
 .card {
   width: 100%;
   min-height: auto;
-  border: 1px solid #252a33;
+  border: 1px solid var(--card-border);
   border-radius: 8px;
-  background: #070809;
+  background: var(--card-bg);
   padding: 11px 12px;
   text-align: left;
-  color: #f2f4f8;
+  color: var(--card-text);
   font: 14px/1.42 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   box-shadow: none;
   cursor: grab;
@@ -1210,8 +1533,8 @@ button, .ghost-link {
 }
 .card:active { cursor: grabbing; }
 .card:hover {
-  border-color: #3a4250;
-  background: #0b0d10;
+  border-color: var(--amber);
+  background: color-mix(in srgb, var(--card-bg) 90%, var(--amber));
 }
 .card.selected {
   border-color: #7b61ff;
@@ -1241,7 +1564,7 @@ button, .ghost-link {
   font-weight: 850;
   white-space: nowrap;
 }
-.kind { background: #151b24; color: #f2b84b; border: 1px solid #313743; }
+.kind { background: color-mix(in srgb, var(--card-bg) 84%, var(--amber)); color: var(--amber); border: 1px solid var(--card-border); }
 .card-dots {
   margin-left: auto;
   min-height: 26px;
@@ -1260,7 +1583,7 @@ button, .ghost-link {
 .source {
   display: block;
   margin-top: 8px;
-  color: #8f98a7;
+  color: var(--card-muted);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -1274,7 +1597,7 @@ button, .ghost-link {
 .body, .acceptance {
   display: block;
   margin-top: 8px;
-  color: #cbd5e1;
+  color: var(--card-muted);
   font-size: 13px;
   line-height: 1.36;
   overflow-wrap: anywhere;
@@ -1290,10 +1613,10 @@ button, .ghost-link {
   width: 252px;
   border: 1px solid #3b414d;
   border-radius: 8px;
-  background: #242424;
+  background: var(--menu-bg);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.42);
   padding: 8px;
-  color: #f4f4f5;
+  color: var(--menu-text);
 }
 .shortcut-menu button {
   width: 100%;
@@ -1302,13 +1625,13 @@ button, .ghost-link {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #f4f4f5;
+  color: var(--menu-text);
   padding: 0 10px;
   font-size: 14px;
   font-weight: 650;
 }
 .shortcut-menu button:hover {
-  background: #343434;
+  background: color-mix(in srgb, var(--menu-bg) 82%, var(--amber));
 }
 .shortcut-menu hr {
   height: 1px;
@@ -1327,9 +1650,16 @@ button, .ghost-link {
   overflow: auto;
 }
 .inspector {
-  position: sticky;
-  top: 16px;
+  width: 340px;
+  resize: horizontal;
+  overflow: auto;
   padding: 16px;
+}
+.inspector-drawer {
+  left: 448px;
+}
+.inspector-drawer.alone {
+  left: 72px;
 }
 .inspector h2 {
   margin: 0 0 10px;
@@ -1371,7 +1701,7 @@ dd { margin: 0; font-size: 13px; font-weight: 750; }
   padding: 10px;
   font: inherit;
   color: var(--ink);
-  background: #fff;
+  background: var(--panel);
 }
 .card-form textarea {
   min-height: 84px;
@@ -1410,11 +1740,16 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
 }
 @media (max-width: 920px) {
   .planner-shell {
-    grid-template-columns: 1fr;
+    min-height: 58vh;
   }
-  .skillset-reader,
-  .inspector {
-    position: static;
+  .floating-drawer {
+    left: 66px;
+    width: min(360px, calc(100vw - 84px));
+    max-width: calc(100vw - 84px);
+  }
+  .inspector-drawer {
+    top: 124px;
+    left: 66px;
   }
   .skillset-reader {
     max-height: 54vh;
@@ -1422,7 +1757,11 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
 }
 @media (max-width: 760px) {
   .strategy-kanban {
-    padding: 16px;
+    padding: 16px 16px 16px 64px;
+  }
+  .workspace-rail {
+    left: 10px;
+    top: 72px;
   }
   .kanban-hero {
     align-items: stretch;
@@ -1442,9 +1781,10 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
     border-bottom: 0;
   }
   .board {
-    grid-auto-columns: minmax(84vw, 1fr);
+    gap: 10px;
   }
   .lane {
+    width: 84vw;
     min-height: 58vh;
   }
 }
