@@ -3,13 +3,16 @@
   "outputDirectory": "dist",
   "regions": ["sin1", "hnd1"],
   "functions": {
-    "api/claude.js":  { "maxDuration": 300 },
-    "api/esco.js":    { "maxDuration": 60  },
-    "api/mcf.js":     { "maxDuration": 60  },
-    "api/careers.js": { "maxDuration": 30  },
-    "api/datagov.js": { "maxDuration": 30  },
-    "api/anatomy.js": { "maxDuration": 15  },
-    "api/engine.js":  { "maxDuration": 15  }
+    "api/claude.js":        { "maxDuration": 300 },
+    "api/esco.js":          { "maxDuration": 60  },
+    "api/mcf.js":           { "maxDuration": 60  },
+    "api/careers.js":       { "maxDuration": 30  },
+    "api/datagov.js":       { "maxDuration": 30  },
+    "api/anatomy.js":       { "maxDuration": 15  },
+    "api/engine.js":        { "maxDuration": 15  },
+    "api/auth.js":          { "maxDuration": 10  },
+    "api/logout.js":        { "maxDuration": 5   },
+    "api/login-config.js":  { "maxDuration": 8   }
   },
   "fluid": true,
   "headers": [
@@ -40,6 +43,15 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
+    },
+    {
+      "source": "/login(\\.html)?",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://t.me https://*.telegram.org; frame-src https://oauth.telegram.org; object-src 'none'; base-uri 'self'; form-action 'self';" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
     }
   ],
   "rewrites": [
@@ -48,7 +60,11 @@
       "destination": "/demo.html"
     },
     {
-      "source": "/((?!api/|_vercel/).*)",
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/((?!api/|_vercel/|login\\.html|login$).*)",
       "destination": "/index.html"
     }
   ]
