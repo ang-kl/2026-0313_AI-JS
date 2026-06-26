@@ -747,9 +747,14 @@ export default function StrategyKanban() {
         {workOpen ? (
         <aside className="skillset-reader floating-drawer work-drawer" aria-label="Working file reader">
           <header className="reader-head">
-            <div>
+            <div className="reader-title">
               <p className="eyebrow">Source file</p>
               <h2>{activeFile.label}</h2>
+              <label className="source-picker">Change source file
+                <select value={activeFileId} onChange={event => setActiveFileId(event.target.value)}>
+                  {workFiles.map(file => <option key={file.id} value={file.id}>{file.label}</option>)}
+                </select>
+              </label>
             </div>
             <button type="button" className="drawer-close" onClick={() => setWorkOpen(false)} aria-label="Close working file drawer">x</button>
           </header>
@@ -770,11 +775,13 @@ export default function StrategyKanban() {
             {activeFile.text}
           </pre>
           <footer className="reader-footer">
-            <label>File
-              <select value={activeFileId} onChange={event => setActiveFileId(event.target.value)}>
-                {workFiles.map(file => <option key={file.id} value={file.id}>{file.label}</option>)}
-              </select>
-            </label>
+            <div className="source-shortcuts" aria-label="Source file shortcuts">
+              {workFiles.map(file => (
+                <button key={file.id} type="button" className={activeFileId === file.id ? 'active' : ''} onClick={() => setActiveFileId(file.id)}>
+                  {file.label}
+                </button>
+              ))}
+            </div>
             <span>{activeFile.path}</span>
           </footer>
         </aside>
@@ -925,7 +932,7 @@ export default function StrategyKanban() {
         })() : null}
 
         {inspectorOpen ? (
-        <aside className={`inspector floating-drawer inspector-drawer ${workOpen ? '' : 'alone'}`} aria-label="Card editor">
+        <aside className="inspector docked-inspector" aria-label="Card editor">
           {selectedCard && !editorOpen ? (
             <>
               <div className="drawer-title-row">
@@ -1171,7 +1178,10 @@ button, .ghost-link {
 .storage-pill.local, .storage-pill.unavailable { background: #fff3dc; color: #8c5418; }
 .planner-shell {
   position: relative;
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
   min-height: 64vh;
 }
 .workspace-rail {
@@ -1253,6 +1263,27 @@ button, .ghost-link {
   margin: 0;
   font-size: 18px;
 }
+.reader-title {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+.source-picker {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.source-picker select {
+  width: min(260px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  color: var(--ink);
+  background: var(--panel);
+  font: inherit;
+}
 .reader-head span {
   min-height: 26px;
   border-radius: 999px;
@@ -1291,26 +1322,28 @@ button, .ghost-link {
   border-top: 1px solid var(--line);
   background: var(--panel-strong);
 }
-.reader-footer label {
-  display: grid;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-.reader-footer select {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px;
-  color: var(--ink);
-  background: var(--panel);
-  font: inherit;
-}
 .reader-footer span {
   color: var(--muted);
   font-size: 11px;
   overflow-wrap: anywhere;
+}
+.source-shortcuts {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.source-shortcuts button {
+  min-height: 30px;
+  flex: 0 0 auto;
+  padding: 0 9px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 11px;
+}
+.source-shortcuts button.active {
+  background: var(--ink);
+  color: var(--panel);
 }
 .drawer-title-row {
   display: flex;
@@ -1362,6 +1395,8 @@ button, .ghost-link {
   cursor: not-allowed;
 }
 .board {
+  grid-column: 1;
+  min-width: 0;
   display: flex;
   gap: 14px;
   overflow-x: auto;
@@ -1369,6 +1404,7 @@ button, .ghost-link {
   scroll-snap-type: x proximity;
 }
 .inspector {
+  grid-column: 2;
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   box-shadow: var(--shadow);
@@ -1655,11 +1691,13 @@ button, .ghost-link {
   overflow: auto;
   padding: 16px;
 }
-.inspector-drawer {
-  left: 448px;
-}
-.inspector-drawer.alone {
-  left: 72px;
+.docked-inspector {
+  position: sticky;
+  top: 16px;
+  z-index: 12;
+  max-height: calc(100vh - 32px);
+  min-width: 280px;
+  max-width: min(44vw, 520px);
 }
 .inspector h2 {
   margin: 0 0 10px;
@@ -1740,6 +1778,7 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
 }
 @media (max-width: 920px) {
   .planner-shell {
+    grid-template-columns: 1fr;
     min-height: 58vh;
   }
   .floating-drawer {
@@ -1747,9 +1786,12 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
     width: min(360px, calc(100vw - 84px));
     max-width: calc(100vw - 84px);
   }
-  .inspector-drawer {
-    top: 124px;
-    left: 66px;
+  .docked-inspector {
+    grid-column: 1;
+    position: static;
+    width: min(100%, 520px);
+    max-width: 100%;
+    max-height: none;
   }
   .skillset-reader {
     max-height: 54vh;
