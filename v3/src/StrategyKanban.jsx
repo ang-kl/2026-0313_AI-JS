@@ -4,8 +4,9 @@ import goalText from '../goal/readme.md?raw'
 import skillsText from '../skills/README.md?raw'
 import reinventionText from '../script/v3-reinvention-implementation-spec.md?raw'
 
-const STORAGE_KEY = 'v3.strategyKanban.fallback.v3'
+const STORAGE_KEY_PREFIX = 'v3.strategyKanban.fallback.v4.'
 const WORKSPACE_KEY = 'v3.strategyKanban.workspace.v1'
+const PRIMARY_BOARD_KEY = 'v3-skillset-storyboard'
 
 const workFiles = [
   { id: 'skillset', label: 'skillset.md', path: 'v3/skillset.md', text: skillsetText },
@@ -15,9 +16,9 @@ const workFiles = [
 ]
 
 const defaultBoards = [
-  { id: 'board-1', label: '1', name: 'Storyboard 1' },
-  { id: 'board-2', label: '2', name: 'Storyboard 2' },
-  { id: 'board-3', label: '3', name: 'Storyboard 3' },
+  { id: 'board-1', key: PRIMARY_BOARD_KEY, label: '1', name: 'V3 Storyboard Board' },
+  { id: 'board-2', key: 'v3-storyboard-board-2', label: '2', name: 'Storyboard Board 2' },
+  { id: 'board-3', key: 'v3-storyboard-board-3', label: '3', name: 'Storyboard Board 3' },
 ]
 
 const defaultLanes = [
@@ -71,27 +72,52 @@ function normaliseCards(list) {
 
 function normaliseLanes(list) {
   const incoming = Array.isArray(list) ? list : []
-  const byId = new Map(incoming.filter(lane => lane && lane.id).map(lane => [lane.id, lane]))
-  return defaultLanes
-    .map((base, index) => {
-      const lane = byId.get(base.id) || {}
-      return {
-        ...base,
-        ...lane,
-        id: base.id,
-        position: Number.isFinite(Number(lane.position)) ? Number(lane.position) : index,
-        title: String(lane.title || base.title).trim().slice(0, 80),
-        cue: String(lane.cue || base.cue).trim().slice(0, 140),
-      }
-    })
+  const source = incoming.length ? incoming : defaultLanes
+  return source
+    .filter(lane => lane && lane.id)
+    .map((lane, index) => ({
+      id: String(lane.id).replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || `lane-${index}`,
+      position: Number.isFinite(Number(lane.position)) ? Number(lane.position) : index,
+      title: String(lane.title || 'New lane').trim().slice(0, 80),
+      cue: String(lane.cue || 'Shape this lane').trim().slice(0, 140),
+    }))
     .sort((a, b) => a.position - b.position)
     .map((lane, index) => ({ ...lane, position: index }))
 }
 
-function loadFallback() {
+function fallbackStorageKey(boardKey) {
+  return `${STORAGE_KEY_PREFIX}${boardKey || PRIMARY_BOARD_KEY}`
+}
+
+function normaliseBoards(list) {
+  const incoming = Array.isArray(list) ? list : []
+  const byId = new Map(incoming.filter(board => board && board.id).map(board => [board.id, board]))
+  const mergedDefaults = defaultBoards.map(base => ({
+    ...base,
+    ...(byId.get(base.id) || {}),
+    key: base.key,
+    label: base.label,
+    name: base.name,
+  }))
+  const extras = incoming
+    .filter(board => board && board.id && !defaultBoards.some(base => base.id === board.id))
+    .map((board, index) => ({
+      id: String(board.id),
+      key: String(board.key || `v3-storyboard-${board.id}`).replace(/[^a-z0-9-]/gi, '-').slice(0, 80),
+      label: String(board.label || index + defaultBoards.length + 1).slice(0, 4),
+      name: String(board.name || `Storyboard Board ${index + defaultBoards.length + 1}`).slice(0, 80),
+    }))
+  return [...mergedDefaults, ...extras]
+}
+
+function emptyBoard() {
+  return { cards: [], deletedCards: [], lanes: defaultLanes }
+}
+
+function loadFallback(boardKey = PRIMARY_BOARD_KEY) {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { cards: seedCards, deletedCards: [], lanes: defaultLanes }
+    const raw = window.localStorage.getItem(fallbackStorageKey(boardKey))
+    if (!raw) return boardKey === PRIMARY_BOARD_KEY ? { cards: seedCards, deletedCards: [], lanes: defaultLanes } : emptyBoard()
     const parsed = JSON.parse(raw)
     return {
       cards: Array.isArray(parsed.cards) ? parsed.cards : seedCards,
@@ -99,13 +125,13 @@ function loadFallback() {
       lanes: normaliseLanes(parsed.lanes),
     }
   } catch (_) {
-    return { cards: seedCards, deletedCards: [], lanes: defaultLanes }
+    return boardKey === PRIMARY_BOARD_KEY ? { cards: seedCards, deletedCards: [], lanes: defaultLanes } : emptyBoard()
   }
 }
 
-function saveFallback(cards, deletedCards, lanes = defaultLanes) {
+function saveFallback(boardKey, cards, deletedCards, lanes = defaultLanes) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, deletedCards, lanes }))
+    window.localStorage.setItem(fallbackStorageKey(boardKey), JSON.stringify({ cards, deletedCards, lanes }))
   } catch (_) {}
 }
 
@@ -119,7 +145,7 @@ function loadWorkspace() {
       inspectorOpen: parsed.inspectorOpen !== false,
       activeFileId: workFiles.some(file => file.id === parsed.activeFileId) ? parsed.activeFileId : 'skillset',
       activeBoardId: parsed.activeBoardId || 'board-1',
-      boards: Array.isArray(parsed.boards) && parsed.boards.length ? parsed.boards : defaultBoards,
+      boards: normaliseBoards(parsed.boards),
       laneWidths: parsed.laneWidths && typeof parsed.laneWidths === 'object' ? parsed.laneWidths : {},
     }
   } catch (_) {
@@ -128,7 +154,7 @@ function loadWorkspace() {
       inspectorOpen: true,
       activeFileId: 'skillset',
       activeBoardId: 'board-1',
-      boards: defaultBoards,
+      boards: normaliseBoards(defaultBoards),
       laneWidths: {},
     }
   }
@@ -163,15 +189,16 @@ function makeCardId() {
 }
 
 export default function StrategyKanban() {
-  const fallback = useMemo(loadFallback, [])
   const workspace = useMemo(loadWorkspace, [])
+  const activeInitialBoard = normaliseBoards(workspace.boards).find(board => board.id === workspace.activeBoardId) || defaultBoards[0]
+  const fallback = useMemo(() => loadFallback(activeInitialBoard.key), [activeInitialBoard.key])
   const [lanes, setLanes] = useState(fallback.lanes)
   const [cards, setCards] = useState(fallback.cards)
   const [deletedCards, setDeletedCards] = useState(fallback.deletedCards)
   const [workOpen, setWorkOpen] = useState(workspace.workOpen)
   const [inspectorOpen, setInspectorOpen] = useState(workspace.inspectorOpen)
   const [activeFileId, setActiveFileId] = useState(workspace.activeFileId)
-  const [boards, setBoards] = useState(workspace.boards)
+  const [boards, setBoards] = useState(normaliseBoards(workspace.boards))
   const [activeBoardId, setActiveBoardId] = useState(workspace.activeBoardId)
   const [boardMenu, setBoardMenu] = useState(null)
   const [laneWidths, setLaneWidths] = useState(workspace.laneWidths)
@@ -196,10 +223,26 @@ export default function StrategyKanban() {
     () => workFiles.find(file => file.id === activeFileId) || workFiles[0],
     [activeFileId],
   )
+  const activeBoard = useMemo(
+    () => boards.find(board => board.id === activeBoardId) || boards[0] || defaultBoards[0],
+    [boards, activeBoardId],
+  )
+
+  function boardApi(payload) {
+    return planningApi({ ...payload, boardKey: activeBoard.key, boardTitle: activeBoard.name })
+  }
 
   useEffect(() => {
     let alive = true
-    planningApi({ action: 'list' })
+    setSelectedId(null)
+    setEditorOpen(false)
+    setStorage('loading')
+    const local = loadFallback(activeBoard.key)
+    setCards(normaliseCards(local.cards || []))
+    setDeletedCards(local.deletedCards || [])
+    setLanes(normaliseLanes(local.lanes || []))
+    setMessage(`Opening ${activeBoard.name}...`)
+    planningApi({ action: 'list', boardKey: activeBoard.key, boardTitle: activeBoard.name })
       .then(data => {
         if (!alive) return
         if (data && data.ok) {
@@ -207,19 +250,19 @@ export default function StrategyKanban() {
           setDeletedCards(data.deletedCards || [])
           setLanes(normaliseLanes(data.lanes || []))
           setStorage(data.storage || 'database')
-          setMessage('Saved to planning database.')
+          setMessage(`${activeBoard.name} saved to planning database.`)
         } else {
           setStorage('local')
-          setMessage('Planning database unavailable. Using local draft until DB env is connected.')
+          setMessage(`${activeBoard.name} is using local draft until DB is available.`)
         }
       })
       .catch(() => {
         if (!alive) return
         setStorage('local')
-        setMessage('Planning database unavailable. Using local draft until DB env is connected.')
+        setMessage(`${activeBoard.name} is using local draft until DB is available.`)
       })
     return () => { alive = false }
-  }, [])
+  }, [activeBoard.key, activeBoard.name])
 
   useEffect(() => {
     function closeMenu(event) {
@@ -245,7 +288,7 @@ export default function StrategyKanban() {
     setCards(ordered)
     if (storage === 'database') {
       try {
-        const data = await planningApi({
+        const data = await boardApi({
           action: 'saveOrder',
           cards: ordered.map(({ id, lane, position }) => ({ id, lane, position })),
         })
@@ -259,7 +302,7 @@ export default function StrategyKanban() {
       setMessage('Move kept on screen, but database save failed.')
       return
     }
-    saveFallback(ordered, deletedCards, lanes)
+    saveFallback(activeBoard.key, ordered, deletedCards, lanes)
     setMessage(note || 'Saved locally.')
   }
 
@@ -288,10 +331,10 @@ export default function StrategyKanban() {
     setSelectedId(card.id)
     if (storage === 'database') {
       try {
-        const saved = await planningApi({ action: 'saveCard', card: { ...card, position: ordered.find(item => item.id === card.id)?.position ?? card.position } })
+        const saved = await boardApi({ action: 'saveCard', card: { ...card, position: ordered.find(item => item.id === card.id)?.position ?? card.position } })
         if (saved && saved.ok) {
           const orderedAfterSave = normaliseCards(ordered)
-          const moved = await planningApi({
+            const moved = await boardApi({
             action: 'saveOrder',
             cards: orderedAfterSave.map(({ id, lane, position }) => ({ id, lane, position })),
           })
@@ -304,10 +347,10 @@ export default function StrategyKanban() {
         }
       } catch (_) {}
       setMessage('Card created on screen, but database save failed.')
-      saveFallback(ordered, deletedCards, lanes)
+      saveFallback(activeBoard.key, ordered, deletedCards, lanes)
       return
     }
-    saveFallback(ordered, deletedCards, lanes)
+    saveFallback(activeBoard.key, ordered, deletedCards, lanes)
     setMessage(note)
   }
 
@@ -435,7 +478,8 @@ export default function StrategyKanban() {
 
   function createBoard() {
     const nextNumber = boards.length + 1
-    const board = { id: `board-${Date.now()}`, label: String(nextNumber), name: `Storyboard ${nextNumber}` }
+    const id = `board-${Date.now()}`
+    const board = { id, key: `v3-storyboard-${id}`, label: String(nextNumber), name: `Storyboard Board ${nextNumber}` }
     setBoards([...boards, board])
     setActiveBoardId(board.id)
     setBoardMenu(null)
@@ -445,7 +489,8 @@ export default function StrategyKanban() {
   function duplicateBoard(boardId) {
     const board = boards.find(item => item.id === boardId)
     if (!board) return
-    const copy = { id: `board-${Date.now()}`, label: `${board.label}'`, name: `${board.name} copy` }
+    const id = `board-${Date.now()}`
+    const copy = { id, key: `v3-storyboard-${id}`, label: `${board.label}'`, name: `${board.name} copy` }
     setBoards([...boards, copy])
     setActiveBoardId(copy.id)
     setBoardMenu(null)
@@ -512,7 +557,7 @@ export default function StrategyKanban() {
     }
     if (storage === 'database') {
       try {
-        const data = await planningApi({ action: 'saveCard', card })
+        const data = await boardApi({ action: 'saveCard', card })
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
@@ -526,7 +571,7 @@ export default function StrategyKanban() {
     }
     const next = normaliseCards([...cards.filter(item => item.id !== id), card])
     setCards(next)
-    saveFallback(next, deletedCards, lanes)
+    saveFallback(activeBoard.key, next, deletedCards, lanes)
     setSelectedId(id)
     setEditorOpen(false)
   }
@@ -534,7 +579,7 @@ export default function StrategyKanban() {
   async function saveCardRecord(card, successMessage = 'Card saved to planning database.') {
     if (storage === 'database') {
       try {
-        const data = await planningApi({ action: 'saveCard', card })
+        const data = await boardApi({ action: 'saveCard', card })
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
@@ -547,7 +592,7 @@ export default function StrategyKanban() {
     }
     const next = normaliseCards([...cards.filter(item => item.id !== card.id), card])
     setCards(next)
-    saveFallback(next, deletedCards, lanes)
+    saveFallback(activeBoard.key, next, deletedCards, lanes)
     setSelectedId(card.id)
     setMessage('Saved locally.')
   }
@@ -578,7 +623,7 @@ export default function StrategyKanban() {
     if (!card) return
     if (storage === 'database') {
       try {
-        const data = await planningApi({ action: 'deleteCard', id: cardId })
+        const data = await boardApi({ action: 'deleteCard', id: cardId })
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
@@ -593,7 +638,7 @@ export default function StrategyKanban() {
     const deleted = [{ ...card, deletedAt: new Date().toISOString() }, ...deletedCards]
     setCards(next)
     setDeletedCards(deleted)
-    saveFallback(next, deleted, lanes)
+    saveFallback(activeBoard.key, next, deleted, lanes)
     setSelectedId(null)
     setEditorOpen(false)
   }
@@ -603,7 +648,7 @@ export default function StrategyKanban() {
     if (!card) return
     if (storage === 'database') {
       try {
-        const data = await planningApi({ action: 'restoreCard', id: cardId, lane: card.lane || 'decide' })
+        const data = await boardApi({ action: 'restoreCard', id: cardId, lane: card.lane || 'decide' })
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
@@ -617,7 +662,7 @@ export default function StrategyKanban() {
     const deleted = deletedCards.filter(item => item.id !== cardId)
     setCards(next)
     setDeletedCards(deleted)
-    saveFallback(next, deleted, lanes)
+    saveFallback(activeBoard.key, next, deleted, lanes)
     setSelectedId(cardId)
   }
 
@@ -625,8 +670,10 @@ export default function StrategyKanban() {
     setCards(seedCards)
     setDeletedCards([])
     setLanes(defaultLanes)
-    saveFallback(seedCards, [], defaultLanes)
-    setMessage('Local draft reset. Database cards are untouched.')
+    const nextCards = activeBoard.key === PRIMARY_BOARD_KEY ? seedCards : []
+    setCards(nextCards)
+    saveFallback(activeBoard.key, nextCards, [], defaultLanes)
+    setMessage(`${activeBoard.name} local draft reset. Database cards are untouched.`)
   }
 
   function openLaneEdit(lane) {
@@ -651,7 +698,7 @@ export default function StrategyKanban() {
     setLaneDraft({ title: '', cue: '' })
     if (storage === 'database') {
       try {
-        const data = await planningApi({ action: 'saveLanes', lanes: nextLanes })
+        const data = await boardApi({ action: 'saveLanes', lanes: nextLanes })
         if (data && data.ok) {
           setLanes(normaliseLanes(data.lanes || nextLanes))
           setMessage('Lane header saved to planning database.')
@@ -659,11 +706,92 @@ export default function StrategyKanban() {
         }
       } catch (_) {}
       setMessage('Lane header kept on screen, but database save failed.')
-      saveFallback(cards, deletedCards, nextLanes)
+      saveFallback(activeBoard.key, cards, deletedCards, nextLanes)
       return
     }
-    saveFallback(cards, deletedCards, nextLanes)
+    saveFallback(activeBoard.key, cards, deletedCards, nextLanes)
     setMessage('Lane header saved locally.')
+  }
+
+  async function persistLanes(nextLanes, nextCards = cards, note = 'Lane layout saved.') {
+    const ordered = normaliseLanes(nextLanes)
+    setLanes(ordered)
+    setCards(normaliseCards(nextCards))
+    if (storage === 'database') {
+      try {
+        const data = await boardApi({ action: 'saveLanes', lanes: ordered })
+        if (data && data.ok) {
+          const afterLaneSave = normaliseLanes(data.lanes || ordered)
+          if (nextCards !== cards) {
+            const moved = await boardApi({
+              action: 'saveOrder',
+              cards: normaliseCards(nextCards).map(({ id, lane, position }) => ({ id, lane, position })),
+            })
+            if (moved && moved.ok) {
+              setLanes(normaliseLanes(moved.lanes || afterLaneSave))
+              setCards(normaliseCards(moved.cards || nextCards))
+              setDeletedCards(moved.deletedCards || deletedCards)
+              setMessage(note)
+              return
+            }
+          }
+          setLanes(afterLaneSave)
+          setCards(normaliseCards(data.cards || nextCards))
+          setDeletedCards(data.deletedCards || deletedCards)
+          setMessage(note)
+          return
+        }
+      } catch (_) {}
+      setMessage('Lane change kept on screen, but database save failed.')
+      saveFallback(activeBoard.key, nextCards, deletedCards, ordered)
+      return
+    }
+    saveFallback(activeBoard.key, nextCards, deletedCards, ordered)
+    setMessage(note)
+  }
+
+  function createLane(afterId = '') {
+    const index = afterId ? lanes.findIndex(lane => lane.id === afterId) + 1 : lanes.length
+    const id = `lane-${Date.now()}`
+    const lane = { id, position: index, title: 'New lane', cue: 'Shape this lane' }
+    const next = [...lanes]
+    next.splice(Math.max(0, index), 0, lane)
+    persistLanes(next, cards, 'Lane created.')
+  }
+
+  function duplicateLane(laneId) {
+    const lane = lanes.find(item => item.id === laneId)
+    if (!lane) return
+    const index = lanes.findIndex(item => item.id === laneId) + 1
+    const id = `lane-${Date.now()}`
+    const copy = { ...lane, id, title: `${lane.title} copy`.slice(0, 80), cue: lane.cue || 'Copied lane' }
+    const nextLanes = [...lanes]
+    nextLanes.splice(index, 0, copy)
+    persistLanes(nextLanes, cards, 'Lane duplicated.')
+  }
+
+  function deleteLane(laneId) {
+    if (lanes.length <= 1) {
+      setMessage('Keep at least one lane.')
+      return
+    }
+    const targetIndex = lanes.findIndex(lane => lane.id === laneId)
+    if (targetIndex < 0) return
+    const fallbackLane = lanes[targetIndex + 1] || lanes[targetIndex - 1]
+    const nextLanes = lanes.filter(lane => lane.id !== laneId)
+    const nextCards = cards.map(card => card.lane === laneId ? { ...card, lane: fallbackLane.id } : card)
+    if (editingLaneId === laneId) setEditingLaneId('')
+    persistLanes(nextLanes, nextCards, `Lane deleted. Cards moved to ${fallbackLane.title}.`)
+  }
+
+  function moveLane(laneId, direction) {
+    const index = lanes.findIndex(lane => lane.id === laneId)
+    const nextIndex = index + direction
+    if (index < 0 || nextIndex < 0 || nextIndex >= lanes.length) return
+    const next = [...lanes]
+    const [lane] = next.splice(index, 1)
+    next.splice(nextIndex, 0, lane)
+    persistLanes(next, cards, 'Lane moved.')
   }
 
   function onDropLane(event, laneId) {
@@ -701,7 +829,7 @@ export default function StrategyKanban() {
       <header className="kanban-hero">
         <div>
           <p className="eyebrow">/plan/kanban</p>
-          <h1>V3 Storyboard Board</h1>
+          <h1>{activeBoard.name}</h1>
           <p className="hero-copy">Move doctrine into product work. Save the board as planning data, not just browser memory.</p>
         </div>
         <div className="hero-actions">
@@ -788,6 +916,9 @@ export default function StrategyKanban() {
         ) : null}
 
         <section className="board" aria-label="V3 strategy kanban board">
+          <div className="lane-create-cell">
+            <button type="button" onClick={() => createLane()}>+ Add lane</button>
+          </div>
           {lanes.map(lane => {
             const laneCards = cards.filter(card => card.lane === lane.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
             const isTarget = selectedCard && selectedCard.lane !== lane.id
@@ -817,6 +948,8 @@ export default function StrategyKanban() {
                       </div>
                       <div className="lane-meta">
                         <span className="count">{cardCount(cards, lane.id)}</span>
+                        <button type="button" className="rename-lane" onClick={() => moveLane(lane.id, -1)} aria-label={`Move ${lane.title} left`}>Left</button>
+                        <button type="button" className="rename-lane" onClick={() => moveLane(lane.id, 1)} aria-label={`Move ${lane.title} right`}>Right</button>
                         <button type="button" className="rename-lane" onClick={() => openLaneEdit(lane)}>Rename</button>
                       </div>
                     </>
@@ -825,6 +958,9 @@ export default function StrategyKanban() {
                 <div className="lane-actions">
                   {isTarget ? <button className="move-here" type="button" onClick={() => moveCard(selectedCard.id, lane.id)}>Move here</button> : null}
                   <button className="add-small" type="button" onClick={() => openNewCard(lane.id)}>Add</button>
+                  <button className="lane-size-button" type="button" aria-label={`Create lane after ${lane.title}`} onClick={() => createLane(lane.id)}>+</button>
+                  <button className="lane-size-button" type="button" aria-label={`Duplicate ${lane.title}`} onClick={() => duplicateLane(lane.id)}>D</button>
+                  <button className="lane-size-button" type="button" aria-label={`Delete ${lane.title}`} onClick={() => deleteLane(lane.id)}>x</button>
                   <button className="lane-size-button" type="button" aria-label={`Shrink ${lane.title}`} onClick={() => resizeLane(lane.id, -36)}>-</button>
                   <button className="lane-size-button" type="button" aria-label={`Expand ${lane.title}`} onClick={() => resizeLane(lane.id, 36)}>+</button>
                 </div>
@@ -1402,6 +1538,22 @@ button, .ghost-link {
   overflow-x: auto;
   padding-bottom: 18px;
   scroll-snap-type: x proximity;
+}
+.lane-create-cell {
+  flex: 0 0 132px;
+  min-height: 62vh;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+.lane-create-cell button {
+  width: 100%;
+  min-height: 42px;
+  border-style: dashed;
+  border-color: var(--lane-line);
+  background: var(--lane-bg);
+  color: var(--lane-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 .inspector {
   grid-column: 2;

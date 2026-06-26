@@ -9,8 +9,7 @@ import { sql } from '@vercel/postgres';
 
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
-const BOARD_KEY = 'v3-skillset-storyboard';
-const LANES = new Set(['doctrine', 'ready', 'build', 'govern', 'research', 'decide', 'done']);
+const PRIMARY_BOARD_KEY = 'v3-skillset-storyboard';
 const SESSION_COOKIE = 'tara_sess';
 
 const DEFAULT_LANES = [
@@ -42,12 +41,19 @@ const DEFAULT_CARDS = [
   ['withhold-floor', 'decide', 'Minimum evidence threshold', '10.3, 15.1, 19', 'Decision', 'Decide when visible postings are enough to show organisation-level claims.', 'Thin demand produces withheld or caveated cards, not confident advice.'],
   ['bpr-threshold', 'decide', 'When to recommend BPR', '4.4, 9.6, 15.6, 19', 'Decision', 'A BPR recommendation is strong; it needs enough evidence of friction or role mash-up.', 'Define the trigger from repeated duties, unclear ownership, handoff failure, or governance gap.'],
 ].map(([id, lane, title, source, kind, body, acceptance], position) => ({
-  id, boardKey: BOARD_KEY, lane, position, title, source, kind, body, acceptance,
+  id, boardKey: PRIMARY_BOARD_KEY, lane, position, title, source, kind, body, acceptance,
 }));
 
 const str = (x, max = 500) => String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, max);
-const laneOf = x => LANES.has(String(x || '')) ? String(x) : 'decide';
 const positionOf = x => Math.max(0, Math.min(10000, Number.isFinite(Number(x)) ? Number(x) : 0));
+const safeId = (x, fallback = 'decide') => {
+  const cleaned = String(x || '').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+  return cleaned || fallback;
+};
+const laneOf = x => safeId(x, 'decide');
+const boardKeyOf = x => {
+  return safeId(x || PRIMARY_BOARD_KEY, PRIMARY_BOARD_KEY);
+};
 
 function parseCookies(req) {
   const header = req.headers.cookie || '';
@@ -140,33 +146,38 @@ async function ensureTables() {
   ensured = true;
 }
 
-async function logEvent(cardId, eventType, payload) {
+async function logEvent(boardKey, cardId, eventType, payload) {
   try {
     await sql`INSERT INTO planning_card_events (board_key, card_id, event_type, payload)
-      VALUES (${BOARD_KEY}, ${cardId || null}, ${eventType}, ${JSON.stringify(payload || {})})`;
+      VALUES (${boardKey}, ${cardId || null}, ${eventType}, ${JSON.stringify(payload || {})})`;
   } catch (_) {}
 }
 
-async function ensureSeed() {
+async function ensureSeed(boardKey = PRIMARY_BOARD_KEY, boardTitle = 'V3 Storyboard Board') {
   await sql`INSERT INTO planning_boards (board_key, title)
-    VALUES (${BOARD_KEY}, ${'V3 Skillset Storyboard'})
-    ON CONFLICT (board_key) DO NOTHING`;
+    VALUES (${boardKey}, ${str(boardTitle, 120) || 'V3 Storyboard Board'})
+    ON CONFLICT (board_key) DO UPDATE SET title=EXCLUDED.title, updated_at=now()`;
 
-  for (const lane of DEFAULT_LANES) {
-    await sql`INSERT INTO planning_lanes (id, board_key, position, title, cue)
-      VALUES (${lane.id}, ${BOARD_KEY}, ${lane.position}, ${lane.title}, ${lane.cue})
-      ON CONFLICT (board_key, id) DO NOTHING`;
+  const laneCount = await sql`SELECT COUNT(*)::int AS n FROM planning_lanes WHERE board_key=${boardKey}`;
+  if (!((laneCount.rows[0] && laneCount.rows[0].n) > 0)) {
+    for (const lane of DEFAULT_LANES) {
+      await sql`INSERT INTO planning_lanes (id, board_key, position, title, cue)
+        VALUES (${lane.id}, ${boardKey}, ${lane.position}, ${lane.title}, ${lane.cue})
+        ON CONFLICT (board_key, id) DO NOTHING`;
+    }
   }
 
-  const { rows } = await sql`SELECT COUNT(*)::int AS n FROM planning_cards WHERE board_key=${BOARD_KEY}`;
+  if (boardKey !== PRIMARY_BOARD_KEY) return;
+
+  const { rows } = await sql`SELECT COUNT(*)::int AS n FROM planning_cards WHERE board_key=${boardKey}`;
   if ((rows[0] && rows[0].n) > 0) return;
 
   for (const card of DEFAULT_CARDS) {
     await sql`INSERT INTO planning_cards (id, board_key, lane, position, title, source, kind, body, acceptance)
-      VALUES (${card.id}, ${BOARD_KEY}, ${card.lane}, ${card.position}, ${card.title}, ${card.source}, ${card.kind}, ${card.body}, ${card.acceptance})
+      VALUES (${card.id}, ${boardKey}, ${card.lane}, ${card.position}, ${card.title}, ${card.source}, ${card.kind}, ${card.body}, ${card.acceptance})
       ON CONFLICT (id) DO NOTHING`;
   }
-  await logEvent(null, 'seed', { count: DEFAULT_CARDS.length });
+  await logEvent(boardKey, null, 'seed', { count: DEFAULT_CARDS.length });
 }
 
 function rowToCard(row) {
@@ -196,29 +207,29 @@ function rowToLane(row) {
 
 function laneInput(item, fallback) {
   return {
-    id: fallback.id,
+    id: safeId(item && item.id, fallback.id),
     position: item && Number.isFinite(Number(item.position)) ? positionOf(item.position) : fallback.position,
     title: str(item && item.title, 80) || fallback.title,
     cue: str(item && item.cue, 140) || fallback.cue,
   };
 }
 
-async function listBoard() {
+async function listBoard(boardKey) {
   await ensureTables();
-  await ensureSeed();
+  await ensureSeed(boardKey);
   const lanes = await sql`SELECT id, position, title, cue, updated_at
-    FROM planning_lanes WHERE board_key=${BOARD_KEY}
+    FROM planning_lanes WHERE board_key=${boardKey}
     ORDER BY position ASC, id ASC`;
   const active = await sql`SELECT id, lane, position, title, source, kind, body, acceptance, deleted_at, updated_at
-    FROM planning_cards WHERE board_key=${BOARD_KEY} AND deleted_at IS NULL
+    FROM planning_cards WHERE board_key=${boardKey} AND deleted_at IS NULL
     ORDER BY lane ASC, position ASC, updated_at ASC`;
   const deleted = await sql`SELECT id, lane, position, title, source, kind, body, acceptance, deleted_at, updated_at
-    FROM planning_cards WHERE board_key=${BOARD_KEY} AND deleted_at IS NOT NULL
+    FROM planning_cards WHERE board_key=${boardKey} AND deleted_at IS NOT NULL
     ORDER BY deleted_at DESC LIMIT 40`;
   return { lanes: lanes.rows.map(rowToLane), cards: active.rows.map(rowToCard), deletedCards: deleted.rows.map(rowToCard) };
 }
 
-async function saveCard(input) {
+async function saveCard(boardKey, input) {
   const id = str(input.id, 80) || crypto.randomUUID();
   const lane = laneOf(input.lane);
   const position = positionOf(input.position);
@@ -228,8 +239,9 @@ async function saveCard(input) {
   const body = str(input.body, 600);
   const acceptance = str(input.acceptance, 700);
   await sql`INSERT INTO planning_cards (id, board_key, lane, position, title, source, kind, body, acceptance, deleted_at, updated_at)
-    VALUES (${id}, ${BOARD_KEY}, ${lane}, ${position}, ${title}, ${source}, ${kind}, ${body}, ${acceptance}, NULL, now())
+    VALUES (${id}, ${boardKey}, ${lane}, ${position}, ${title}, ${source}, ${kind}, ${body}, ${acceptance}, NULL, now())
     ON CONFLICT (id) DO UPDATE SET
+      board_key=EXCLUDED.board_key,
       lane=EXCLUDED.lane,
       position=EXCLUDED.position,
       title=EXCLUDED.title,
@@ -239,52 +251,70 @@ async function saveCard(input) {
       acceptance=EXCLUDED.acceptance,
       deleted_at=NULL,
       updated_at=now()`;
-  await logEvent(id, input.id ? 'update' : 'create', { lane, position, title });
+  await logEvent(boardKey, id, input.id ? 'update' : 'create', { lane, position, title });
   return { id, lane, position, title, source, kind, body, acceptance };
 }
 
-async function saveOrder(cards) {
+async function saveOrder(boardKey, cards) {
   if (!Array.isArray(cards)) return;
   for (const item of cards.slice(0, 200)) {
     const id = str(item && item.id, 80);
     if (!id) continue;
     await sql`UPDATE planning_cards
       SET lane=${laneOf(item.lane)}, position=${positionOf(item.position)}, updated_at=now()
-      WHERE board_key=${BOARD_KEY} AND id=${id} AND deleted_at IS NULL`;
+      WHERE board_key=${boardKey} AND id=${id} AND deleted_at IS NULL`;
   }
-  await logEvent(null, 'move', { count: cards.length });
+  await logEvent(boardKey, null, 'move', { count: cards.length });
 }
 
-async function saveLanes(lanes) {
+async function saveLanes(boardKey, lanes) {
   if (!Array.isArray(lanes)) return;
-  const byId = new Map(lanes.filter(item => item && LANES.has(String(item.id))).map(item => [String(item.id), item]));
-  for (const fallback of DEFAULT_LANES) {
-    const lane = laneInput(byId.get(fallback.id), fallback);
+  const clean = lanes
+    .filter(item => item && safeId(item.id, '') !== '')
+    .slice(0, 40)
+    .map((item, index) => laneInput(item, {
+      id: `lane-${index}`,
+      position: index,
+      title: 'New lane',
+      cue: 'Shape this lane',
+    }));
+  const safeLanes = clean.length ? clean : DEFAULT_LANES;
+
+  for (const lane of safeLanes) {
     await sql`INSERT INTO planning_lanes (id, board_key, position, title, cue, updated_at)
-      VALUES (${lane.id}, ${BOARD_KEY}, ${lane.position}, ${lane.title}, ${lane.cue}, now())
+      VALUES (${lane.id}, ${boardKey}, ${lane.position}, ${lane.title}, ${lane.cue}, now())
       ON CONFLICT (board_key, id) DO UPDATE SET
         position=EXCLUDED.position,
         title=EXCLUDED.title,
         cue=EXCLUDED.cue,
         updated_at=now()`;
   }
-  await logEvent(null, 'lanes:update', { count: DEFAULT_LANES.length });
+  const existing = await sql`SELECT id FROM planning_lanes WHERE board_key=${boardKey}`;
+  const keep = new Set(safeLanes.map(lane => lane.id));
+  const fallbackLane = safeLanes[0].id;
+  for (const row of existing.rows) {
+    if (keep.has(row.id)) continue;
+    await sql`UPDATE planning_cards SET lane=${fallbackLane}, updated_at=now()
+      WHERE board_key=${boardKey} AND lane=${row.id} AND deleted_at IS NULL`;
+    await sql`DELETE FROM planning_lanes WHERE board_key=${boardKey} AND id=${row.id}`;
+  }
+  await logEvent(boardKey, null, 'lanes:update', { count: safeLanes.length });
 }
 
-async function softDelete(id) {
+async function softDelete(boardKey, id) {
   const cleanId = str(id, 80);
   if (!cleanId) return;
   await sql`UPDATE planning_cards SET deleted_at=now(), updated_at=now()
-    WHERE board_key=${BOARD_KEY} AND id=${cleanId} AND deleted_at IS NULL`;
-  await logEvent(cleanId, 'delete', {});
+    WHERE board_key=${boardKey} AND id=${cleanId} AND deleted_at IS NULL`;
+  await logEvent(boardKey, cleanId, 'delete', {});
 }
 
-async function restoreCard(id, lane) {
+async function restoreCard(boardKey, id, lane) {
   const cleanId = str(id, 80);
   if (!cleanId) return;
   await sql`UPDATE planning_cards SET deleted_at=NULL, lane=${laneOf(lane)}, updated_at=now()
-    WHERE board_key=${BOARD_KEY} AND id=${cleanId}`;
-  await logEvent(cleanId, 'restore', { lane: laneOf(lane) });
+    WHERE board_key=${boardKey} AND id=${cleanId}`;
+  await logEvent(boardKey, cleanId, 'restore', { lane: laneOf(lane) });
 }
 
 export default async function handler(req, res) {
@@ -295,43 +325,45 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
   const action = body.action || 'list';
+  const boardKey = boardKeyOf(body.boardKey);
+  const boardTitle = str(body.boardTitle, 120) || (boardKey === PRIMARY_BOARD_KEY ? 'V3 Storyboard Board' : boardKey.replace(/^v3-/, '').replace(/-/g, ' '));
 
   try {
     await ensureTables();
-    await ensureSeed();
+    await ensureSeed(boardKey, boardTitle);
 
     if (action === 'list') {
-      const board = await listBoard();
-      return res.status(200).json({ ok: true, storage: 'database', boardKey: BOARD_KEY, ...board });
+      const board = await listBoard(boardKey);
+      return res.status(200).json({ ok: true, storage: 'database', boardKey, ...board });
     }
 
     if (action === 'saveCard') {
-      const card = await saveCard(body.card || {});
-      const board = await listBoard();
+      const card = await saveCard(boardKey, body.card || {});
+      const board = await listBoard(boardKey);
       return res.status(200).json({ ok: true, storage: 'database', card, ...board });
     }
 
     if (action === 'saveOrder') {
-      await saveOrder(body.cards || []);
-      const board = await listBoard();
+      await saveOrder(boardKey, body.cards || []);
+      const board = await listBoard(boardKey);
       return res.status(200).json({ ok: true, storage: 'database', ...board });
     }
 
     if (action === 'saveLanes') {
-      await saveLanes(body.lanes || []);
-      const board = await listBoard();
+      await saveLanes(boardKey, body.lanes || []);
+      const board = await listBoard(boardKey);
       return res.status(200).json({ ok: true, storage: 'database', ...board });
     }
 
     if (action === 'deleteCard') {
-      await softDelete(body.id);
-      const board = await listBoard();
+      await softDelete(boardKey, body.id);
+      const board = await listBoard(boardKey);
       return res.status(200).json({ ok: true, storage: 'database', ...board });
     }
 
     if (action === 'restoreCard') {
-      await restoreCard(body.id, body.lane || 'decide');
-      const board = await listBoard();
+      await restoreCard(boardKey, body.id, body.lane || 'decide');
+      const board = await listBoard(boardKey);
       return res.status(200).json({ ok: true, storage: 'database', ...board });
     }
 
