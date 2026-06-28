@@ -15,6 +15,8 @@ const ESCO_VERSION = 'v1.2.0';
 const HYBRID_THRESHOLD = 8;
 const ESCO_TIMEOUT_MS = 15000;
 
+import { requireTelegramSession } from '../server/telegram-session.js';
+
 async function fetchWithTimeout(url, timeoutMs) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -374,6 +376,7 @@ async function candidateFingerprint(skillPhrases) {
 }
 
 export default async function handler(req, res) {
+  if (!requireTelegramSession(req, res)) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

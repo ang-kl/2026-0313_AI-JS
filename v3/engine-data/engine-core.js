@@ -16,6 +16,7 @@
 
 import AIOE from './aioe.js';
 import SSOC_ISCO from './ssoc-isco.js';
+import SSOC2024_ISCO from './ssoc2024-isco.js';
 import ISCO_SOC from './isco-soc.js';
 import PROV from './provenance.js';
 
@@ -27,7 +28,7 @@ const N = AIOE_SORTED.length;
 // ISCO-08 unit-group titles, harvested from the SingStat correspondence rows (first title
 // seen per code wins - the table repeats the official ISCO title on every row). Offline.
 const ISCO_TITLE = new Map();
-for (const rows of Object.values(SSOC_ISCO)) {
+for (const rows of [...Object.values(SSOC2024_ISCO), ...Object.values(SSOC_ISCO)]) {
   for (const m of rows) {
     if (m && m.isco && !ISCO_TITLE.has(m.isco)) ISCO_TITLE.set(m.isco, m.title);
   }
@@ -44,7 +45,8 @@ const bandOf = (pct) => (pct >= 80 ? 'high' : pct >= 50 ? 'moderate' : 'low');
 const round3 = (x) => Math.round(x * 1000) / 1000;
 
 export function ssocToIsco(ssoc) {
-  return SSOC_ISCO[String(ssoc || '').trim()] || null; // [{isco,title,partial}] | null
+  const key = String(ssoc || '').trim();
+  return SSOC2024_ISCO[key] || SSOC_ISCO[key] || null; // [{isco,title,partial}] | null
 }
 export function iscoToSocs(isco) {
   return ISCO_SOC[String(isco || '').trim()] || []; // [{soc,title,part}]

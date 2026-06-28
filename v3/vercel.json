@@ -10,6 +10,7 @@
     "api/datagov.js":       { "maxDuration": 30  },
     "api/anatomy.js":       { "maxDuration": 15  },
     "api/engine.js":        { "maxDuration": 15  },
+    "api/ssoc.js":          { "maxDuration": 300 },
     "api/planning.js":      { "maxDuration": 15  },
     "api/auth.js":          { "maxDuration": 10  },
     "api/logout.js":        { "maxDuration": 5   },
@@ -22,7 +23,7 @@
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://api.mycareersfuture.gov.sg https://api-production.data.gov.sg https://vitals.vercel-insights.com https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; frame-src 'none'; img-src 'self' data:;" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://api.openai.com https://api.mycareersfuture.gov.sg https://api-production.data.gov.sg https://vitals.vercel-insights.com https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; frame-src 'none'; img-src 'self' data:;" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
