@@ -3,10 +3,12 @@ import skillsetText from '../skillset.md?raw'
 import goalText from '../goal/readme.md?raw'
 import skillsText from '../skills/README.md?raw'
 import reinventionText from '../script/v3-reinvention-implementation-spec.md?raw'
+import pkg from '../package.json'
 
 const STORAGE_KEY_PREFIX = 'v3.strategyKanban.fallback.v4.'
 const WORKSPACE_KEY = 'v3.strategyKanban.workspace.v1'
 const PRIMARY_BOARD_KEY = 'v3-skillset-storyboard'
+const APP_VERSION = pkg.version || '3.0.000'
 
 const workFiles = [
   { id: 'skillset', label: 'skillset.md', path: 'v3/skillset.md', text: skillsetText },
@@ -110,6 +112,19 @@ function normaliseBoards(list) {
   return [...mergedDefaults, ...extras]
 }
 
+function normaliseSourceFiles(list) {
+  const incoming = Array.isArray(list) ? list : []
+  const extras = incoming
+    .filter(file => file && file.id && !workFiles.some(base => base.id === file.id))
+    .map((file, index) => ({
+      id: String(file.id || `source-${Date.now()}-${index}`),
+      label: String(file.label || 'Imported source').slice(0, 80),
+      path: String(file.path || file.label || 'imported source').slice(0, 180),
+      text: String(file.text || ''),
+    }))
+  return [...workFiles, ...extras]
+}
+
 function emptyBoard() {
   return { cards: [], deletedCards: [], lanes: defaultLanes }
 }
@@ -140,13 +155,15 @@ function loadWorkspace() {
     const raw = window.localStorage.getItem(WORKSPACE_KEY)
     if (!raw) throw new Error('empty')
     const parsed = JSON.parse(raw)
+    const sourceFiles = normaliseSourceFiles(parsed.sourceFiles)
     return {
       workOpen: parsed.workOpen !== false,
       inspectorOpen: parsed.inspectorOpen !== false,
-      activeFileId: workFiles.some(file => file.id === parsed.activeFileId) ? parsed.activeFileId : 'skillset',
+      activeFileId: sourceFiles.some(file => file.id === parsed.activeFileId) ? parsed.activeFileId : 'skillset',
       activeBoardId: parsed.activeBoardId || 'board-1',
       boards: normaliseBoards(parsed.boards),
       laneWidths: parsed.laneWidths && typeof parsed.laneWidths === 'object' ? parsed.laneWidths : {},
+      sourceFiles,
     }
   } catch (_) {
     return {
@@ -156,6 +173,7 @@ function loadWorkspace() {
       activeBoardId: 'board-1',
       boards: normaliseBoards(defaultBoards),
       laneWidths: {},
+      sourceFiles: workFiles,
     }
   }
 }
@@ -188,6 +206,250 @@ function makeCardId() {
   return window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `card-${Date.now()}`
 }
 
+function laneCode(title = '') {
+  return String(title || 'Lane')
+    .replace(/[^a-z0-9 ]/gi, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(word => word.slice(0, 3).toUpperCase())
+    .join('') || 'LAN'
+}
+
+function markerForCard(card, lanes, cards) {
+  return markerMetaForCard(card, lanes, cards).label
+}
+
+function markerMetaForCard(card, lanes, cards) {
+  const laneIndex = Math.max(0, lanes.findIndex(lane => lane.id === card.lane)) + 1
+  const lane = lanes[laneIndex - 1] || { title: card.lane }
+  const laneCards = cards.filter(item => item.lane === card.lane).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  const cardIndex = Math.max(0, laneCards.findIndex(item => item.id === card.id)) + 1
+  const code = laneCode(lane.title)
+  return {
+    cardId: card.id,
+    laneId: card.lane,
+    laneCode: code,
+    laneNumber: laneIndex,
+    cardNumber: cardIndex,
+    tone: (laneIndex - 1) % 8,
+    label: `${code} №${laneIndex}.${String(cardIndex).padStart(2, '0')}`,
+  }
+}
+
+function markerForLane(lane, lanes) {
+  const laneIndex = Math.max(0, lanes.findIndex(item => item.id === lane.id)) + 1
+  return {
+    laneId: lane.id,
+    laneCode: laneCode(lane.title),
+    laneNumber: laneIndex,
+    tone: (laneIndex - 1) % 8,
+    label: `${laneCode(lane.title)} №${laneIndex}`,
+  }
+}
+
+function slugFileName(value = 'v3-kanban') {
+  return String(value || 'v3-kanban')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80) || 'v3-kanban'
+}
+
+function downloadTextFile(filename, text, type = 'text/plain') {
+  const blob = new Blob([text], { type })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 500)
+}
+
+function boardToMarkdown({ board, lanes, cards, activeFile, version }) {
+  const orderedLanes = normaliseLanes(lanes)
+  const orderedCards = normaliseCards(cards)
+  const lines = [
+    '# V3 Storyboard Kanban',
+    '',
+    `Board: ${board.name}`,
+    `Board key: ${board.key}`,
+    `Version: ${version}`,
+    `Source: ${activeFile.path}`,
+    `Saved at: ${new Date().toISOString()}`,
+    '',
+    'This file is intentionally readable. Upload it back into /plan/kanban with "Open board" to restore the board.',
+    '',
+  ]
+
+  orderedLanes.forEach((lane) => {
+    const laneCards = orderedCards.filter(card => card.lane === lane.id)
+    lines.push(`## Lane: ${lane.title}`)
+    lines.push(`Lane id: ${lane.id}`)
+    lines.push(`Cue: ${lane.cue}`)
+    lines.push('')
+    if (!laneCards.length) {
+      lines.push('_No cards in this lane._')
+      lines.push('')
+      return
+    }
+    laneCards.forEach((card) => {
+      lines.push(`### Card: ${card.title}`)
+      lines.push(`Card id: ${card.id}`)
+      lines.push(`Kind: ${card.kind || ''}`)
+      lines.push(`Source: ${card.source || ''}`)
+      lines.push('Body:')
+      lines.push(card.body || '')
+      lines.push('')
+      lines.push('Acceptance:')
+      lines.push(card.acceptance || '')
+      lines.push('')
+    })
+  })
+  return `${lines.join('\n').replace(/\n{4,}/g, '\n\n\n')}\n`
+}
+
+function parseReadableBoardMarkdown(text) {
+  const lines = String(text || '').split(/\r?\n/)
+  const lanes = []
+  const cards = []
+  let currentLane = null
+  let currentCard = null
+  let field = ''
+
+  function finishCard() {
+    if (!currentCard || !currentLane) return
+    const card = {
+      ...currentCard,
+      lane: currentLane.id,
+      title: String(currentCard.title || 'Untitled card').trim(),
+      body: String(currentCard.body || '').trim(),
+      acceptance: String(currentCard.acceptance || '').trim(),
+      position: cards.filter(item => item.lane === currentLane.id).length,
+    }
+    cards.push(card)
+    currentCard = null
+    field = ''
+  }
+
+  for (const raw of lines) {
+    const line = raw.trimEnd()
+    const laneMatch = line.match(/^## Lane:\s*(.+)$/)
+    if (laneMatch) {
+      finishCard()
+      currentLane = {
+        id: `lane-${lanes.length + 1}-${slugFileName(laneMatch[1])}`,
+        position: lanes.length,
+        title: laneMatch[1].trim() || `Lane ${lanes.length + 1}`,
+        cue: 'Imported from readable storyboard file',
+      }
+      lanes.push(currentLane)
+      continue
+    }
+    if (!currentLane) continue
+
+    const laneIdMatch = line.match(/^Lane id:\s*(.+)$/)
+    if (laneIdMatch && !currentCard) {
+      currentLane.id = slugFileName(laneIdMatch[1]) || currentLane.id
+      continue
+    }
+    const cueMatch = line.match(/^Cue:\s*(.*)$/)
+    if (cueMatch && !currentCard) {
+      currentLane.cue = cueMatch[1].trim() || currentLane.cue
+      continue
+    }
+
+    const cardMatch = line.match(/^### Card:\s*(.+)$/)
+    if (cardMatch) {
+      finishCard()
+      currentCard = {
+        id: makeCardId(),
+        title: cardMatch[1].trim() || 'Untitled card',
+        source: '',
+        kind: 'Imported',
+        body: '',
+        acceptance: '',
+      }
+      field = ''
+      continue
+    }
+    if (!currentCard) continue
+
+    const cardIdMatch = line.match(/^Card id:\s*(.+)$/)
+    if (cardIdMatch) {
+      currentCard.id = cardIdMatch[1].trim() || currentCard.id
+      field = ''
+      continue
+    }
+    const kindMatch = line.match(/^Kind:\s*(.*)$/)
+    if (kindMatch) {
+      currentCard.kind = kindMatch[1].trim() || 'Imported'
+      field = ''
+      continue
+    }
+    const sourceMatch = line.match(/^Source:\s*(.*)$/)
+    if (sourceMatch) {
+      currentCard.source = sourceMatch[1].trim()
+      field = ''
+      continue
+    }
+    if (line === 'Body:') {
+      field = 'body'
+      continue
+    }
+    if (line === 'Acceptance:') {
+      field = 'acceptance'
+      continue
+    }
+    if (field === 'body') currentCard.body += `${currentCard.body ? '\n' : ''}${line}`
+    if (field === 'acceptance') currentCard.acceptance += `${currentCard.acceptance ? '\n' : ''}${line}`
+  }
+  finishCard()
+  return {
+    lanes: lanes.length ? normaliseLanes(lanes) : defaultLanes,
+    cards: normaliseCards(cards),
+  }
+}
+
+function scoreBlockAgainstCard(text, card) {
+  const haystack = `${card.title || ''} ${card.body || ''} ${card.acceptance || ''} ${card.kind || ''}`.toLowerCase()
+  const tokens = String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter(token => token.length > 4)
+    .slice(0, 20)
+  if (!tokens.length) return 0
+  return tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 1 : 0), 0)
+}
+
+function annotatedSourceBlocks(text, cards, lanes) {
+  const orderedCards = normaliseCards(cards)
+  return String(text || '').split('\n').map((line, index) => {
+    const trimmed = line.trim()
+    if (!trimmed) return { id: `line-${index}`, text: line, marker: '' }
+    let best = orderedCards[0] || null
+    let bestScore = 0
+    for (const card of orderedCards) {
+      const score = scoreBlockAgainstCard(trimmed, card)
+      if (score > bestScore) {
+        best = card
+        bestScore = score
+      }
+    }
+    if (!best && orderedCards.length) best = orderedCards[index % orderedCards.length]
+    if (bestScore === 0 && orderedCards.length) best = orderedCards[index % orderedCards.length]
+    return {
+      id: `line-${index}`,
+      text: line,
+      marker: best ? markerMetaForCard(best, lanes, orderedCards) : null,
+    }
+  })
+}
+
 export default function StrategyKanban() {
   const workspace = useMemo(loadWorkspace, [])
   const activeInitialBoard = normaliseBoards(workspace.boards).find(board => board.id === workspace.activeBoardId) || defaultBoards[0]
@@ -198,6 +460,7 @@ export default function StrategyKanban() {
   const [workOpen, setWorkOpen] = useState(workspace.workOpen)
   const [inspectorOpen, setInspectorOpen] = useState(workspace.inspectorOpen)
   const [activeFileId, setActiveFileId] = useState(workspace.activeFileId)
+  const [sourceFiles, setSourceFiles] = useState(normaliseSourceFiles(workspace.sourceFiles))
   const [boards, setBoards] = useState(normaliseBoards(workspace.boards))
   const [activeBoardId, setActiveBoardId] = useState(workspace.activeBoardId)
   const [boardMenu, setBoardMenu] = useState(null)
@@ -213,20 +476,36 @@ export default function StrategyKanban() {
   const [editingLaneId, setEditingLaneId] = useState('')
   const [laneDraft, setLaneDraft] = useState({ title: '', cue: '' })
   const [shortcutMenu, setShortcutMenu] = useState(null)
+  const [laneMenu, setLaneMenu] = useState(null)
+  const [selectedLaneId, setSelectedLaneId] = useState('')
+  const [textScale, setTextScale] = useState(1)
+  const [lastSavedAt, setLastSavedAt] = useState(null)
+  const [printMode, setPrintMode] = useState(false)
   const selectionTimerRef = useRef(null)
+  const sourceFileInputRef = useRef(null)
+  const boardFileInputRef = useRef(null)
 
   const selectedCard = useMemo(
     () => cards.find(card => card.id === selectedId) || null,
     [cards, selectedId],
   )
   const activeFile = useMemo(
-    () => workFiles.find(file => file.id === activeFileId) || workFiles[0],
-    [activeFileId],
+    () => sourceFiles.find(file => file.id === activeFileId) || sourceFiles[0] || workFiles[0],
+    [sourceFiles, activeFileId],
   )
   const activeBoard = useMemo(
     () => boards.find(board => board.id === activeBoardId) || boards[0] || defaultBoards[0],
     [boards, activeBoardId],
   )
+  const sourceBlocks = useMemo(
+    () => annotatedSourceBlocks(activeFile.text, cards, lanes),
+    [activeFile.text, cards, lanes],
+  )
+  const saveLocation = storage === 'database'
+    ? `/api/planning -> ${activeBoard.key}`
+    : `localStorage:${fallbackStorageKey(activeBoard.key)}`
+  const totalCards = cards.length
+  const statusTime = lastSavedAt ? new Date(lastSavedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'not saved this session'
 
   function boardApi(payload) {
     return planningApi({ ...payload, boardKey: activeBoard.key, boardTitle: activeBoard.name })
@@ -250,15 +529,18 @@ export default function StrategyKanban() {
           setDeletedCards(data.deletedCards || [])
           setLanes(normaliseLanes(data.lanes || []))
           setStorage(data.storage || 'database')
+          setLastSavedAt(Date.now())
           setMessage(`${activeBoard.name} saved to planning database.`)
         } else {
           setStorage('local')
+          setLastSavedAt(null)
           setMessage(`${activeBoard.name} is using local draft until DB is available.`)
         }
       })
       .catch(() => {
         if (!alive) return
         setStorage('local')
+        setLastSavedAt(null)
         setMessage(`${activeBoard.name} is using local draft until DB is available.`)
       })
     return () => { alive = false }
@@ -269,6 +551,7 @@ export default function StrategyKanban() {
       if (event.type === 'keydown' && event.key !== 'Escape') return
       setShortcutMenu(null)
       setBoardMenu(null)
+      setLaneMenu(null)
     }
     window.addEventListener('click', closeMenu)
     window.addEventListener('keydown', closeMenu)
@@ -280,8 +563,8 @@ export default function StrategyKanban() {
   }, [])
 
   useEffect(() => {
-    saveWorkspace({ workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths })
-  }, [workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths])
+    saveWorkspace({ workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths, sourceFiles })
+  }, [workOpen, inspectorOpen, activeFileId, boards, activeBoardId, laneWidths, sourceFiles])
 
   async function syncBoard(nextCards, note) {
     const ordered = normaliseCards(nextCards)
@@ -295,6 +578,7 @@ export default function StrategyKanban() {
         if (data && data.ok) {
           setCards(normaliseCards(data.cards || ordered))
           setDeletedCards(data.deletedCards || deletedCards)
+          setLastSavedAt(Date.now())
           setMessage(note || 'Board saved to database.')
           return
         }
@@ -303,6 +587,7 @@ export default function StrategyKanban() {
       return
     }
     saveFallback(activeBoard.key, ordered, deletedCards, lanes)
+    setLastSavedAt(Date.now())
     setMessage(note || 'Saved locally.')
   }
 
@@ -341,6 +626,7 @@ export default function StrategyKanban() {
           if (moved && moved.ok) {
             setCards(normaliseCards(moved.cards || orderedAfterSave))
             setDeletedCards(moved.deletedCards || deletedCards)
+            setLastSavedAt(Date.now())
             setMessage(note)
             return
           }
@@ -348,9 +634,11 @@ export default function StrategyKanban() {
       } catch (_) {}
       setMessage('Card created on screen, but database save failed.')
       saveFallback(activeBoard.key, ordered, deletedCards, lanes)
+      setLastSavedAt(Date.now())
       return
     }
     saveFallback(activeBoard.key, ordered, deletedCards, lanes)
+    setLastSavedAt(Date.now())
     setMessage(note)
   }
 
@@ -476,6 +764,40 @@ export default function StrategyKanban() {
     })
   }
 
+  function openLaneMenu(event, laneId) {
+    event.preventDefault()
+    event.stopPropagation()
+    setSelectedLaneId(laneId)
+    setSelectedId(null)
+    setLaneMenu({
+      laneId,
+      x: Math.min(event.clientX || 0, window.innerWidth - 260),
+      y: Math.min(event.clientY || 0, window.innerHeight - 330),
+    })
+  }
+
+  function openLaneMenuFromButton(event, laneId) {
+    event.preventDefault()
+    event.stopPropagation()
+    const rect = event.currentTarget.getBoundingClientRect()
+    setSelectedLaneId(laneId)
+    setSelectedId(null)
+    setLaneMenu({
+      laneId,
+      x: Math.min(rect.left, window.innerWidth - 260),
+      y: Math.min(rect.bottom + 6, window.innerHeight - 330),
+    })
+  }
+
+  function selectLane(laneId) {
+    setSelectedLaneId(selectedLaneId === laneId ? '' : laneId)
+    setSelectedId(null)
+  }
+
+  function changeTextScale(delta) {
+    setTextScale(current => Math.max(0.86, Math.min(1.18, Number((current + delta).toFixed(2)))))
+  }
+
   function createBoard() {
     const nextNumber = boards.length + 1
     const id = `board-${Date.now()}`
@@ -563,6 +885,7 @@ export default function StrategyKanban() {
           setDeletedCards(data.deletedCards || [])
           setSelectedId(data.card && data.card.id ? data.card.id : id)
           setEditorOpen(false)
+          setLastSavedAt(Date.now())
           setMessage('Card saved to planning database.')
           return
         }
@@ -572,6 +895,7 @@ export default function StrategyKanban() {
     const next = normaliseCards([...cards.filter(item => item.id !== id), card])
     setCards(next)
     saveFallback(activeBoard.key, next, deletedCards, lanes)
+    setLastSavedAt(Date.now())
     setSelectedId(id)
     setEditorOpen(false)
   }
@@ -584,6 +908,7 @@ export default function StrategyKanban() {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
           setSelectedId(card.id)
+          setLastSavedAt(Date.now())
           setMessage(successMessage)
           return
         }
@@ -593,6 +918,7 @@ export default function StrategyKanban() {
     const next = normaliseCards([...cards.filter(item => item.id !== card.id), card])
     setCards(next)
     saveFallback(activeBoard.key, next, deletedCards, lanes)
+    setLastSavedAt(Date.now())
     setSelectedId(card.id)
     setMessage('Saved locally.')
   }
@@ -618,6 +944,134 @@ export default function StrategyKanban() {
     setMessage('Excerpt ready to copy or add to a card.')
   }
 
+  function copySourcePath() {
+    const path = activeFile.path
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(path).catch(() => {})
+    }
+    setMessage(`${activeFile.label} path copied.`)
+  }
+
+  function focusCardFromSource(cardId) {
+    const card = cards.find(item => item.id === cardId)
+    if (!card) return
+    setSelectedId(cardId)
+    setSelectedLaneId(card.lane)
+    setInspectorOpen(true)
+    window.setTimeout(() => {
+      document.getElementById(`card-${cardId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+    }, 40)
+    setMessage(`Source reference opened ${markerForCard(card, lanes, cards)}.`)
+  }
+
+  function focusSourceFromCard(cardId) {
+    setWorkOpen(true)
+    setSelectedId(cardId)
+    window.setTimeout(() => {
+      const target = Array.from(document.querySelectorAll('[data-source-card-id]'))
+        .find(node => node.getAttribute('data-source-card-id') === cardId)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' })
+        target.classList.add('source-linked-flash')
+        window.setTimeout(() => target.classList.remove('source-linked-flash'), 1400)
+        setMessage('Card reference opened its source marker.')
+      } else {
+        setMessage('No source marker found for this card in the current source file.')
+      }
+    }, 80)
+  }
+
+  async function importSourceFile(event) {
+    const file = event.target.files && event.target.files[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      const id = `source-${Date.now()}`
+      const imported = {
+        id,
+        label: file.name,
+        path: file.webkitRelativePath || file.name,
+        text,
+      }
+      setSourceFiles(current => normaliseSourceFiles([...current, imported]))
+      setActiveFileId(id)
+      setMessage(`${file.name} opened in the working drawer.`)
+    } catch (_) {
+      setMessage('Could not read that source file.')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
+  function resetSourceFile() {
+    setSourceFiles(workFiles)
+    setActiveFileId('skillset')
+    setMessage('Source files reset to bundled V3 files.')
+  }
+
+  function exportBoardMarkdown() {
+    const markdown = boardToMarkdown({ board: activeBoard, lanes, cards, activeFile, version: APP_VERSION })
+    downloadTextFile(`${slugFileName(activeBoard.name)}-storyboard.md`, markdown, 'text/markdown')
+    setMessage('Readable storyboard Markdown downloaded.')
+  }
+
+  function exportBoardJson() {
+    const payload = {
+      format: 'v3.strategyKanban.board',
+      version: APP_VERSION,
+      savedAt: new Date().toISOString(),
+      board: activeBoard,
+      lanes: normaliseLanes(lanes),
+      cards: normaliseCards(cards),
+      deletedCards,
+      sourceFiles,
+      activeFileId,
+    }
+    downloadTextFile(`${slugFileName(activeBoard.name)}-board.json`, JSON.stringify(payload, null, 2), 'application/json')
+    setMessage('Board JSON backup downloaded.')
+  }
+
+  function exportSourceMarkdown() {
+    const extension = activeFile.label.toLowerCase().endsWith('.txt') ? 'txt' : 'md'
+    downloadTextFile(`${slugFileName(activeFile.label)}.${extension}`, activeFile.text || '', extension === 'md' ? 'text/markdown' : 'text/plain')
+    setMessage(`${activeFile.label} downloaded.`)
+  }
+
+  async function importBoardFile(event) {
+    const file = event.target.files && event.target.files[0]
+    if (!file) return
+    try {
+      const text = await file.text()
+      let nextLanes = []
+      let nextCards = []
+      let nextDeletedCards = []
+      if (file.name.toLowerCase().endsWith('.json')) {
+        const parsed = JSON.parse(text)
+        nextLanes = normaliseLanes(parsed.lanes || [])
+        nextCards = normaliseCards(parsed.cards || [])
+        nextDeletedCards = Array.isArray(parsed.deletedCards) ? parsed.deletedCards : []
+        if (Array.isArray(parsed.sourceFiles)) setSourceFiles(normaliseSourceFiles(parsed.sourceFiles))
+        if (parsed.activeFileId) setActiveFileId(parsed.activeFileId)
+      } else {
+        const parsed = parseReadableBoardMarkdown(text)
+        nextLanes = parsed.lanes
+        nextCards = parsed.cards
+      }
+      setLanes(nextLanes)
+      setCards(nextCards)
+      setDeletedCards(nextDeletedCards)
+      saveFallback(activeBoard.key, nextCards, nextDeletedCards, nextLanes)
+      setLastSavedAt(Date.now())
+      setSelectedId(null)
+      setSelectedLaneId('')
+      setMessage(`${file.name} loaded into this board. Save/export again when ready.`)
+    } catch (_) {
+      setMessage('Could not load that board file. Use the exported storyboard .md or board .json format.')
+    } finally {
+      event.target.value = ''
+    }
+  }
+
   async function deleteCard(cardId) {
     const card = cards.find(item => item.id === cardId)
     if (!card) return
@@ -629,6 +1083,7 @@ export default function StrategyKanban() {
           setDeletedCards(data.deletedCards || [])
           setSelectedId(null)
           setEditorOpen(false)
+          setLastSavedAt(Date.now())
           setMessage('Card deleted. It can be restored from Deleted.')
           return
         }
@@ -639,6 +1094,7 @@ export default function StrategyKanban() {
     setCards(next)
     setDeletedCards(deleted)
     saveFallback(activeBoard.key, next, deleted, lanes)
+    setLastSavedAt(Date.now())
     setSelectedId(null)
     setEditorOpen(false)
   }
@@ -653,6 +1109,7 @@ export default function StrategyKanban() {
           setCards(normaliseCards(data.cards || []))
           setDeletedCards(data.deletedCards || [])
           setSelectedId(cardId)
+          setLastSavedAt(Date.now())
           setMessage('Card restored from Deleted.')
           return
         }
@@ -663,6 +1120,7 @@ export default function StrategyKanban() {
     setCards(next)
     setDeletedCards(deleted)
     saveFallback(activeBoard.key, next, deleted, lanes)
+    setLastSavedAt(Date.now())
     setSelectedId(cardId)
   }
 
@@ -673,6 +1131,7 @@ export default function StrategyKanban() {
     const nextCards = activeBoard.key === PRIMARY_BOARD_KEY ? seedCards : []
     setCards(nextCards)
     saveFallback(activeBoard.key, nextCards, [], defaultLanes)
+    setLastSavedAt(Date.now())
     setMessage(`${activeBoard.name} local draft reset. Database cards are untouched.`)
   }
 
@@ -701,15 +1160,18 @@ export default function StrategyKanban() {
         const data = await boardApi({ action: 'saveLanes', lanes: nextLanes })
         if (data && data.ok) {
           setLanes(normaliseLanes(data.lanes || nextLanes))
+          setLastSavedAt(Date.now())
           setMessage('Lane header saved to planning database.')
           return
         }
       } catch (_) {}
       setMessage('Lane header kept on screen, but database save failed.')
       saveFallback(activeBoard.key, cards, deletedCards, nextLanes)
+      setLastSavedAt(Date.now())
       return
     }
     saveFallback(activeBoard.key, cards, deletedCards, nextLanes)
+    setLastSavedAt(Date.now())
     setMessage('Lane header saved locally.')
   }
 
@@ -731,6 +1193,7 @@ export default function StrategyKanban() {
               setLanes(normaliseLanes(moved.lanes || afterLaneSave))
               setCards(normaliseCards(moved.cards || nextCards))
               setDeletedCards(moved.deletedCards || deletedCards)
+              setLastSavedAt(Date.now())
               setMessage(note)
               return
             }
@@ -738,15 +1201,18 @@ export default function StrategyKanban() {
           setLanes(afterLaneSave)
           setCards(normaliseCards(data.cards || nextCards))
           setDeletedCards(data.deletedCards || deletedCards)
+          setLastSavedAt(Date.now())
           setMessage(note)
           return
         }
       } catch (_) {}
       setMessage('Lane change kept on screen, but database save failed.')
       saveFallback(activeBoard.key, nextCards, deletedCards, ordered)
+      setLastSavedAt(Date.now())
       return
     }
     saveFallback(activeBoard.key, nextCards, deletedCards, ordered)
+    setLastSavedAt(Date.now())
     setMessage(note)
   }
 
@@ -823,19 +1289,39 @@ export default function StrategyKanban() {
     }, 2000)
   }
 
+  function openPrintPreview() {
+    setPrintMode(true)
+  }
+
+  function printStoryboard() {
+    setPrintMode(true)
+    window.setTimeout(() => window.print(), 80)
+  }
+
   return (
-    <main className="strategy-kanban">
+    <main className="strategy-kanban" style={{ '--kanban-text-scale': textScale }}>
       <style>{styles}</style>
       <header className="kanban-hero">
-        <div>
+        <div className="board-title-group">
           <p className="eyebrow">/plan/kanban</p>
           <h1>{activeBoard.name}</h1>
-          <p className="hero-copy">Move doctrine into product work. Save the board as planning data, not just browser memory.</p>
+          <div className="board-quick-status" aria-label="Board quick status">
+            <span>{lanes.length} lanes</span>
+            <span>{totalCards} cards</span>
+            <span>v{APP_VERSION}</span>
+          </div>
         </div>
         <div className="hero-actions">
           <a href="/" className="ghost-link">Back to V3</a>
           <button type="button" onClick={() => openNewCard('build')}>New card</button>
+          <button type="button" className="light-button" onClick={openPrintPreview}>Preview</button>
+          <button type="button" className="light-button" onClick={printStoryboard}>Print/PDF</button>
           <button type="button" className="light-button" onClick={resetLocalDraft}>Reset local</button>
+          <span className="text-tools" aria-label="Text size controls">
+            <button type="button" className="icon-button" onClick={() => changeTextScale(-0.04)} aria-label="Decrease text size">-</button>
+            <button type="button" className="icon-button" onClick={() => setTextScale(1)} aria-label="Reset text size">R</button>
+            <button type="button" className="icon-button" onClick={() => changeTextScale(0.04)} aria-label="Increase text size">+</button>
+          </span>
         </div>
       </header>
 
@@ -845,12 +1331,23 @@ export default function StrategyKanban() {
         <div><span>Decision</span><strong>Human-owned action</strong></div>
       </section>
 
-      <section className="kanban-note" aria-live="polite">
-        <span className={`storage-pill ${storage}`}>{storage === 'database' ? 'Database' : storage === 'loading' ? 'Loading' : 'Local draft'}</span>
-        <span>{message}</span>
-      </section>
-
       <section className="planner-shell">
+        <input
+          ref={sourceFileInputRef}
+          className="visually-hidden"
+          type="file"
+          accept=".md,.markdown,.txt,text/markdown,text/plain"
+          onChange={importSourceFile}
+          aria-label="Open source file"
+        />
+        <input
+          ref={boardFileInputRef}
+          className="visually-hidden"
+          type="file"
+          accept=".md,.markdown,.json,text/markdown,application/json"
+          onChange={importBoardFile}
+          aria-label="Open board file"
+        />
         <nav className="workspace-rail" aria-label="Workspace panels and boards">
           <button type="button" className={`rail-icon ${workOpen ? 'active' : ''}`} title="Working file" aria-label="Toggle working file drawer" onClick={() => setWorkOpen(!workOpen)}>W</button>
           <button type="button" className={`rail-icon ${inspectorOpen ? 'active' : ''}`} title="Selected card" aria-label="Toggle selected card drawer" onClick={() => setInspectorOpen(!inspectorOpen)}>C</button>
@@ -880,7 +1377,7 @@ export default function StrategyKanban() {
               <h2>{activeFile.label}</h2>
               <label className="source-picker">Change source file
                 <select value={activeFileId} onChange={event => setActiveFileId(event.target.value)}>
-                  {workFiles.map(file => <option key={file.id} value={file.id}>{file.label}</option>)}
+                  {sourceFiles.map(file => <option key={file.id} value={file.id}>{file.label}</option>)}
                 </select>
               </label>
             </div>
@@ -899,12 +1396,41 @@ export default function StrategyKanban() {
               </div>
             </div>
           ) : null}
-          <pre className="skillset-text" onMouseUp={captureSkillsetSelection} onTouchEnd={captureSkillsetSelection}>
-            {activeFile.text}
-          </pre>
+          <div className="skillset-text" onMouseUp={captureSkillsetSelection} onTouchEnd={captureSkillsetSelection}>
+            {sourceBlocks.map(block => block.text.trim() ? (
+              <p
+                key={block.id}
+                className={block.text.trim().startsWith('#') ? 'source-line source-heading' : 'source-line'}
+                data-source-card-id={block.marker?.cardId || undefined}
+              >
+                <span>{block.text}</span>
+                {block.marker ? (
+                  <button
+                    type="button"
+                    className={`source-marker source-marker-button tone-${block.marker.tone}`}
+                    onClick={() => focusCardFromSource(block.marker.cardId)}
+                    aria-label={`Open card ${block.marker.label}`}
+                  >
+                    {block.marker.label}
+                  </button>
+                ) : null}
+              </p>
+            ) : <span key={block.id} className="source-break" aria-hidden="true" />)}
+          </div>
           <footer className="reader-footer">
+            <div className="reader-file-actions" aria-label="Source file functions">
+              <span>File functions</span>
+              <button type="button" onClick={() => boardFileInputRef.current?.click()}>Open board</button>
+              <button type="button" onClick={exportBoardMarkdown}>Save board .md</button>
+              <button type="button" onClick={exportBoardJson}>Backup .json</button>
+              <button type="button" onClick={() => sourceFileInputRef.current?.click()}>Open source</button>
+              <button type="button" onClick={exportSourceMarkdown}>Save source</button>
+              <button type="button" onClick={copySourcePath}>Copy path</button>
+              <button type="button" onClick={resetSourceFile}>Reset source</button>
+              <button type="button" onClick={printStoryboard}>Print/PDF</button>
+            </div>
             <div className="source-shortcuts" aria-label="Source file shortcuts">
-              {workFiles.map(file => (
+              {sourceFiles.map(file => (
                 <button key={file.id} type="button" className={activeFileId === file.id ? 'active' : ''} onClick={() => setActiveFileId(file.id)}>
                   {file.label}
                 </button>
@@ -920,12 +1446,13 @@ export default function StrategyKanban() {
             <button type="button" onClick={() => createLane()}>+ Add lane</button>
           </div>
           {lanes.map(lane => {
+            const laneMarker = markerForLane(lane, lanes)
             const laneCards = cards.filter(card => card.lane === lane.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
             const isTarget = selectedCard && selectedCard.lane !== lane.id
             return (
               <article
                 key={lane.id}
-                className={`lane ${isTarget ? 'lane-target' : ''}`}
+                className={`lane ${isTarget ? 'lane-target' : ''} ${selectedLaneId === lane.id ? 'lane-selected' : ''}`}
                 style={{ width: laneWidths[lane.id] ? `${laneWidths[lane.id]}px` : undefined }}
                 onDragOver={event => event.preventDefault()}
                 onDrop={event => onDropLane(event, lane.id)}
@@ -942,73 +1469,88 @@ export default function StrategyKanban() {
                     </form>
                   ) : (
                     <>
-                      <div className="lane-title">
+                      <button
+                        type="button"
+                        className="lane-title lane-title-button"
+                        onClick={() => selectLane(lane.id)}
+                        onContextMenu={event => openLaneMenu(event, lane.id)}
+                        aria-label={`Select lane ${lane.title}`}
+                        aria-pressed={selectedLaneId === lane.id}
+                      >
+                        <span className={`lane-code-pill tone-${laneMarker.tone}`}>{laneMarker.label}</span>
                         <h2>{lane.title}</h2>
                         <p>{lane.cue}</p>
-                      </div>
+                      </button>
                       <div className="lane-meta">
                         <span className="count">{cardCount(cards, lane.id)}</span>
-                        <button type="button" className="rename-lane" onClick={() => moveLane(lane.id, -1)} aria-label={`Move ${lane.title} left`}>Left</button>
-                        <button type="button" className="rename-lane" onClick={() => moveLane(lane.id, 1)} aria-label={`Move ${lane.title} right`}>Right</button>
-                        <button type="button" className="rename-lane" onClick={() => openLaneEdit(lane)}>Rename</button>
                       </div>
                     </>
                   )}
                 </header>
                 <div className="lane-actions">
                   {isTarget ? <button className="move-here" type="button" onClick={() => moveCard(selectedCard.id, lane.id)}>Move here</button> : null}
-                  <button className="add-small" type="button" onClick={() => openNewCard(lane.id)}>Add</button>
-                  <button className="lane-size-button" type="button" aria-label={`Create lane after ${lane.title}`} onClick={() => createLane(lane.id)}>+</button>
-                  <button className="lane-size-button" type="button" aria-label={`Duplicate ${lane.title}`} onClick={() => duplicateLane(lane.id)}>D</button>
-                  <button className="lane-size-button" type="button" aria-label={`Delete ${lane.title}`} onClick={() => deleteLane(lane.id)}>x</button>
-                  <button className="lane-size-button" type="button" aria-label={`Shrink ${lane.title}`} onClick={() => resizeLane(lane.id, -36)}>-</button>
-                  <button className="lane-size-button" type="button" aria-label={`Expand ${lane.title}`} onClick={() => resizeLane(lane.id, 36)}>+</button>
+                  <button className="add-small" type="button" onClick={() => openNewCard(lane.id)}>+ Card</button>
+                  <button className="lane-menu-button" type="button" aria-label={`Open lane menu for ${lane.title}`} onClick={event => openLaneMenuFromButton(event, lane.id)}>...</button>
                 </div>
                 <div className="cards">
-                  {laneCards.map(card => (
-                    <article
-                      key={card.id}
-                      id={`card-${card.id}`}
-                      className={`card ${selectedId === card.id ? 'selected' : ''}`}
-                      draggable
-                      tabIndex={0}
-                      role="button"
-                      onClick={() => setSelectedId(selectedId === card.id ? null : card.id)}
-                      onKeyDown={event => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
-                          setSelectedId(selectedId === card.id ? null : card.id)
-                        }
-                      }}
-                      onDoubleClick={() => openEdit(card)}
-                      onContextMenu={event => openShortcutMenu(event, card.id)}
-                      onDragStart={event => {
-                        event.dataTransfer.effectAllowed = 'move'
-                        event.dataTransfer.setData('text/plain', card.id)
-                        setDraggingId(card.id)
-                      }}
-                      onDragOver={event => event.preventDefault()}
-                      onDrop={event => onDropCard(event, lane.id, card.id)}
-                      onDragEnd={() => setDraggingId(null)}
-                    >
-                      <span className="card-topline">
-                        <span className="checkmark" aria-hidden="true" />
-                        <span className="kind">{card.kind}</span>
-                        <button
-                          type="button"
-                          className="card-dots"
-                          aria-label={`Open shortcuts for ${card.title}`}
-                          onClick={event => openShortcutMenu(event, card.id)}
-                        >
-                          ...
-                        </button>
-                      </span>
-                      <strong>{card.title}</strong>
-                      <span className="source">{card.source || activeFile.label}</span>
-                      <span className="body">{card.body}</span>
-                      <span className="acceptance">{card.acceptance}</span>
-                    </article>
-                  ))}
+                  {laneCards.map(card => {
+                    const cardMarker = markerMetaForCard(card, lanes, cards)
+                    return (
+                      <article
+                        key={card.id}
+                        id={`card-${card.id}`}
+                        className={`card tone-card-${cardMarker.tone} ${selectedId === card.id ? 'selected' : ''}`}
+                        draggable
+                        tabIndex={0}
+                        role="button"
+                        onClick={() => setSelectedId(selectedId === card.id ? null : card.id)}
+                        onKeyDown={event => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            setSelectedId(selectedId === card.id ? null : card.id)
+                          }
+                        }}
+                        onDoubleClick={() => openEdit(card)}
+                        onContextMenu={event => openShortcutMenu(event, card.id)}
+                        onDragStart={event => {
+                          event.dataTransfer.effectAllowed = 'move'
+                          event.dataTransfer.setData('text/plain', card.id)
+                          setDraggingId(card.id)
+                        }}
+                        onDragOver={event => event.preventDefault()}
+                        onDrop={event => onDropCard(event, lane.id, card.id)}
+                        onDragEnd={() => setDraggingId(null)}
+                      >
+                        <span className="card-topline">
+                          <span className="checkmark" aria-hidden="true" />
+                          <button
+                            type="button"
+                            className={`ref-pill tone-${cardMarker.tone}`}
+                            onClick={event => {
+                              event.stopPropagation()
+                              focusSourceFromCard(card.id)
+                            }}
+                            aria-label={`Open source reference ${cardMarker.label}`}
+                          >
+                            {cardMarker.label}
+                          </button>
+                          <span className="kind">{card.kind}</span>
+                          <button
+                            type="button"
+                            className="card-dots"
+                            aria-label={`Open shortcuts for ${card.title}`}
+                            onClick={event => openShortcutMenu(event, card.id)}
+                          >
+                            ...
+                          </button>
+                        </span>
+                        <strong>{card.title}</strong>
+                        <span className="source">{card.source || activeFile.label}</span>
+                        <span className="body">{card.body}</span>
+                        <span className="acceptance">{card.acceptance}</span>
+                      </article>
+                    )
+                  })}
                 </div>
               </article>
             )
@@ -1045,6 +1587,32 @@ export default function StrategyKanban() {
                   </button>
                 ))}
               </div>
+            </div>
+          )
+        })() : null}
+
+        {laneMenu ? (() => {
+          const lane = lanes.find(item => item.id === laneMenu.laneId)
+          if (!lane) return null
+          return (
+            <div
+              className="shortcut-menu lane-menu"
+              style={{ left: laneMenu.x, top: laneMenu.y }}
+              role="menu"
+              aria-label={`Lane shortcuts for ${lane.title}`}
+              onClick={event => event.stopPropagation()}
+            >
+              <button type="button" role="menuitem" onClick={() => { openLaneEdit(lane); setLaneMenu(null) }}>Rename lane</button>
+              <button type="button" role="menuitem" onClick={() => { createLane(lane.id); setLaneMenu(null) }}>Insert lane after</button>
+              <button type="button" role="menuitem" onClick={() => { duplicateLane(lane.id); setLaneMenu(null) }}>Duplicate lane</button>
+              <hr />
+              <button type="button" role="menuitem" onClick={() => { moveLane(lane.id, -1); setLaneMenu(null) }}>Move lane left</button>
+              <button type="button" role="menuitem" onClick={() => { moveLane(lane.id, 1); setLaneMenu(null) }}>Move lane right</button>
+              <hr />
+              <button type="button" role="menuitem" onClick={() => { openNewCard(lane.id); setLaneMenu(null) }}>Add card</button>
+              <button type="button" role="menuitem" onClick={() => { resizeLane(lane.id, -36); setLaneMenu(null) }}>Shrink lane</button>
+              <button type="button" role="menuitem" onClick={() => { resizeLane(lane.id, 36); setLaneMenu(null) }}>Expand lane</button>
+              <button type="button" role="menuitem" onClick={() => { deleteLane(lane.id); setLaneMenu(null) }}>Delete lane</button>
             </div>
           )
         })() : null}
@@ -1124,6 +1692,55 @@ export default function StrategyKanban() {
         </aside>
         ) : null}
       </section>
+
+      <footer className="board-status-footer" aria-label="Board status">
+        <span className={`storage-pill ${storage}`}>{storage === 'database' ? 'Database' : storage === 'loading' ? 'Loading' : 'Local draft'}</span>
+        <span>Last save: {statusTime}</span>
+        <span>Save location: {saveLocation}</span>
+        <span>Source: {activeFile.path}</span>
+        <span>Version: {APP_VERSION}</span>
+        <span>{message}</span>
+      </footer>
+
+      {printMode ? (
+        <section className="print-preview" role="dialog" aria-modal="true" aria-label="Storyboard print preview">
+          <header className="print-preview-bar">
+            <div>
+              <p className="eyebrow">Storyboard Preview</p>
+              <h2>{activeBoard.name}</h2>
+            </div>
+            <div className="hero-actions">
+              <button type="button" onClick={printStoryboard}>Print/PDF</button>
+              <button type="button" className="light-button" onClick={() => setPrintMode(false)}>Close</button>
+            </div>
+          </header>
+          <div className="print-sheet">
+            <header className="print-title">
+              <span>v{APP_VERSION}</span>
+              <h1>{activeBoard.name}</h1>
+              <p>{lanes.length} lanes / {totalCards} cards / {activeFile.path}</p>
+            </header>
+            <div className="print-board">
+              {lanes.map((lane, laneIndex) => {
+                const laneCards = cards.filter(card => card.lane === lane.id).sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+                return (
+                  <section key={lane.id} className="print-lane">
+                    <h2>{laneCode(lane.title)} №{laneIndex + 1} {lane.title}</h2>
+                    <p>{lane.cue}</p>
+                    {laneCards.map(card => (
+                      <article key={card.id} className="print-card">
+                        <span>{markerForCard(card, lanes, cards)}</span>
+                        <strong>{card.title}</strong>
+                        <p>{card.body}</p>
+                      </article>
+                    ))}
+                  </section>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   )
 }
@@ -1185,6 +1802,17 @@ const styles = `
   }
 }
 * { box-sizing: border-box; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 body {
   margin: 0;
   background:
@@ -1196,34 +1824,73 @@ body {
 }
 .strategy-kanban {
   min-height: 100vh;
-  padding: 24px 24px 24px 76px;
+  padding: 58px 18px 34px 68px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: calc(14px * var(--kanban-text-scale, 1));
 }
-.kanban-hero, .story-strip, .kanban-note, .planner-shell {
+.kanban-hero, .story-strip, .planner-shell, .board-status-footer {
   max-width: 1840px;
   margin-left: auto;
   margin-right: auto;
 }
 .kanban-hero {
+  position: fixed;
+  z-index: 22;
+  top: 8px;
+  left: 68px;
+  right: 18px;
+  max-width: none;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 16px;
+  gap: 12px;
+  min-height: 34px;
+  max-height: 4.8vh;
+  overflow: hidden;
+  margin-bottom: 0;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  box-shadow: 0 8px 22px rgba(22, 32, 51, 0.08);
+  padding: 4px 7px;
+  backdrop-filter: blur(12px);
 }
 .eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 2px;
   color: var(--deep-blue);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 h1 {
   margin: 0;
-  font-size: clamp(30px, 5vw, 58px);
-  line-height: 0.96;
+  font-size: calc(17px * var(--kanban-text-scale, 1));
+  line-height: 1.05;
   letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.board-title-group {
+  min-width: 0;
+}
+.board-quick-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.board-quick-status span {
+  min-height: 17px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 6px;
+  color: var(--muted);
+  background: var(--panel-strong);
+  font-size: 10px;
+  font-weight: 750;
 }
 .hero-copy {
   max-width: 680px;
@@ -1234,24 +1901,40 @@ h1 {
 }
 .hero-actions, .inspector-actions, .lane-actions {
   display: flex;
-  gap: 10px;
+  gap: 5px;
   flex-wrap: wrap;
 }
-.hero-actions { justify-content: flex-end; }
+.hero-actions {
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: nowrap;
+}
 button, .ghost-link {
-  min-height: 42px;
+  min-height: 26px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--ink);
   color: #fff;
-  padding: 0 14px;
+  padding: 0 8px;
   font: inherit;
+  font-size: 12px;
   font-weight: 750;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+.text-tools {
+  display: inline-flex;
+  gap: 3px;
+  padding-left: 3px;
+  border-left: 1px solid var(--line);
+}
+.icon-button {
+  min-width: 26px;
+  padding: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 .ghost-link, .light-button, .add-small {
   background: var(--panel);
@@ -1263,7 +1946,7 @@ button, .ghost-link {
   border-color: #efc99b;
 }
 .story-strip {
-  margin-bottom: 14px;
+  margin-bottom: 6px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--line);
@@ -1271,22 +1954,22 @@ button, .ghost-link {
   box-shadow: var(--shadow);
 }
 .story-strip div {
-  min-height: 76px;
-  padding: 14px 16px;
+  min-height: 32px;
+  padding: 5px 9px;
   border-right: 1px solid var(--line);
 }
 .story-strip div:last-child { border-right: 0; }
 .story-strip span {
   display: block;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
 }
 .story-strip strong {
   display: block;
-  margin-top: 8px;
-  font-size: 18px;
+  margin-top: 2px;
+  font-size: calc(12px * var(--kanban-text-scale, 1));
 }
 .kanban-note {
   margin-bottom: 14px;
@@ -1318,13 +2001,13 @@ button, .ghost-link {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: start;
-  min-height: 64vh;
+  min-height: calc(100vh - 116px);
 }
 .workspace-rail {
   position: fixed;
   z-index: 25;
   left: 14px;
-  top: 86px;
+  top: 54px;
   width: 46px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1368,8 +2051,8 @@ button, .ghost-link {
   position: fixed;
   z-index: 20;
   left: 72px;
-  top: 86px;
-  max-height: calc(100vh - 108px);
+  top: 70px;
+  max-height: calc(100vh - 130px);
   resize: horizontal;
   min-width: 280px;
   max-width: min(72vw, 760px);
@@ -1391,13 +2074,13 @@ button, .ghost-link {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
   background: var(--panel-strong);
 }
 .reader-head h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px;
 }
 .reader-title {
   min-width: 0;
@@ -1434,7 +2117,7 @@ button, .ghost-link {
 }
 .reader-hint {
   margin: 0;
-  padding: 10px 14px;
+  padding: 7px 12px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
   font-size: 13px;
@@ -1443,14 +2126,63 @@ button, .ghost-link {
   flex: 1;
   min-height: 300px;
   margin: 0;
-  padding: 14px;
+  padding: 10px 12px;
   overflow: auto;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: var(--ink);
-  font: 13px/1.48 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   user-select: text;
 }
+.source-line {
+  margin: 0;
+  min-height: 19px;
+  white-space: pre-wrap;
+  display: block;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 46%, transparent);
+  padding: 2px 0 3px;
+}
+.source-line.source-linked-flash {
+  background: color-mix(in srgb, var(--panel) 68%, var(--amber));
+}
+.source-heading {
+  margin-top: 5px;
+  color: var(--ink);
+  font-weight: 850;
+}
+.source-break {
+  display: block;
+  height: 8px;
+}
+.source-marker {
+  float: right;
+  margin-left: 8px;
+  border-radius: 999px;
+  min-height: 18px;
+  border: 1px solid var(--ref-border, color-mix(in srgb, var(--amber) 45%, var(--line)));
+  padding: 0 6px;
+  color: var(--ref-text, var(--orange));
+  background: var(--ref-bg, color-mix(in srgb, var(--panel) 84%, var(--amber)));
+  font: 850 9px/1.55 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.source-marker-button {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+.source-marker-button:hover,
+.ref-pill:hover,
+.lane-code-pill:hover {
+  filter: saturate(1.15);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ref-border) 32%, transparent);
+}
+.tone-0 { --ref-bg: #eaf1ff; --ref-border: #85a9f8; --ref-text: #153f9f; }
+.tone-1 { --ref-bg: #fff2df; --ref-border: #e0a45b; --ref-text: #8c4a12; }
+.tone-2 { --ref-bg: #e7f8f5; --ref-border: #75c7bd; --ref-text: #0f6d67; }
+.tone-3 { --ref-bg: #f2ecff; --ref-border: #b7a0f4; --ref-text: #6240a7; }
+.tone-4 { --ref-bg: #eef7df; --ref-border: #9ac66d; --ref-text: #4f741f; }
+.tone-5 { --ref-bg: #ffeaf0; --ref-border: #e89ab1; --ref-text: #9a3656; }
+.tone-6 { --ref-bg: #eaf6ff; --ref-border: #7bbde6; --ref-text: #1f638c; }
+.tone-7 { --ref-bg: #f5f1e8; --ref-border: #c7aa72; --ref-text: #73551e; }
 .reader-footer {
   display: grid;
   gap: 7px;
@@ -1462,6 +2194,23 @@ button, .ghost-link {
   color: var(--muted);
   font-size: 11px;
   overflow-wrap: anywhere;
+}
+.reader-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.reader-file-actions span {
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.reader-file-actions button {
+  min-height: 24px;
+  padding: 0 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 10.5px;
 }
 .source-shortcuts {
   display: flex;
@@ -1534,14 +2283,14 @@ button, .ghost-link {
   grid-column: 1;
   min-width: 0;
   display: flex;
-  gap: 14px;
+  gap: 10px;
   overflow-x: auto;
   padding-bottom: 18px;
   scroll-snap-type: x proximity;
 }
 .lane-create-cell {
   flex: 0 0 132px;
-  min-height: 62vh;
+  min-height: calc(100vh - 142px);
   display: flex;
   align-items: flex-start;
   padding-top: 2px;
@@ -1563,15 +2312,15 @@ button, .ghost-link {
 }
 .lane {
   flex: 0 0 auto;
-  width: 312px;
-  min-width: 220px;
+  width: 336px;
+  min-width: 260px;
   max-width: 680px;
   resize: horizontal;
   overflow: auto;
   border: 1px solid var(--lane-line);
   background: var(--lane-bg);
   box-shadow: 0 18px 38px rgba(5, 6, 7, 0.24);
-  min-height: 62vh;
+  min-height: calc(100vh - 142px);
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -1581,6 +2330,10 @@ button, .ghost-link {
   outline: 2px solid rgba(242, 184, 75, 0.42);
   outline-offset: 2px;
 }
+.lane-selected {
+  outline: 2px solid rgba(36, 95, 214, 0.36);
+  outline-offset: 2px;
+}
 .lane-head {
   position: sticky;
   top: 0;
@@ -1588,56 +2341,94 @@ button, .ghost-link {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
+  gap: 8px;
+  padding: 7px 8px;
   border-bottom: 1px solid var(--lane-line);
   background: var(--lane-head);
   backdrop-filter: blur(10px);
 }
 .lane-title {
   min-width: 0;
+  flex: 1;
+}
+.lane-title-button {
+  width: 100%;
+  min-height: auto;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  padding: 3px 4px;
+  text-align: left;
+  display: block;
+  cursor: pointer;
+}
+.lane-title-button:hover {
+  background: color-mix(in srgb, var(--lane-bg) 84%, var(--amber));
+}
+.lane-title-button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--lane-bg) 84%, var(--blue));
 }
 .lane-head h2 {
-  margin: 0;
-  font: 800 15px/1.2 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  margin: 4px 0 0;
+  font: 850 calc(13px * var(--kanban-text-scale, 1))/1.18 Inter, ui-sans-serif, system-ui, sans-serif;
   letter-spacing: 0;
   overflow-wrap: anywhere;
   color: var(--lane-text);
 }
+.lane-code-pill,
+.ref-pill {
+  min-height: 20px;
+  border: 1px solid var(--ref-border);
+  border-radius: 999px;
+  background: var(--ref-bg);
+  color: var(--ref-text);
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  font: 850 10px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  white-space: nowrap;
+}
+.ref-pill {
+  min-height: 23px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.tone-card-0 { border-left: 4px solid #85a9f8; }
+.tone-card-1 { border-left: 4px solid #e0a45b; }
+.tone-card-2 { border-left: 4px solid #75c7bd; }
+.tone-card-3 { border-left: 4px solid #b7a0f4; }
+.tone-card-4 { border-left: 4px solid #9ac66d; }
+.tone-card-5 { border-left: 4px solid #e89ab1; }
+.tone-card-6 { border-left: 4px solid #7bbde6; }
+.tone-card-7 { border-left: 4px solid #c7aa72; }
 .lane-head p {
-  margin: 5px 0 0;
+  margin: 3px 0 0;
   color: var(--lane-muted);
-  font: 12px/1.32 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: calc(10.5px * var(--kanban-text-scale, 1))/1.28 Inter, ui-sans-serif, system-ui, sans-serif;
   line-height: 1.32;
   overflow-wrap: anywhere;
 }
 .lane-meta {
-  display: grid;
-  gap: 7px;
-  justify-items: end;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
   flex: 0 0 auto;
 }
 .count {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--lane-line);
   background: color-mix(in srgb, var(--lane-bg) 85%, var(--amber));
   color: #f2b84b;
-  font: 850 13px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: 850 11px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-weight: 850;
-}
-.rename-lane {
-  min-height: 28px;
-  padding: 0 8px;
-  border-radius: 7px;
-  border-color: var(--lane-line);
-  background: var(--lane-bg);
-  color: var(--lane-text);
-  font-size: 11px;
 }
 .lane-edit {
   width: 100%;
@@ -1674,11 +2465,11 @@ button, .ghost-link {
   font-size: 12px;
 }
 .lane-actions {
-  padding: 10px 12px 0;
+  padding: 5px 8px 0;
 }
 .lane-actions button {
-  min-height: 34px;
-  font-size: 13px;
+  min-height: 24px;
+  font-size: 11px;
 }
 .move-here {
   background: #13223f;
@@ -1691,8 +2482,8 @@ button, .ghost-link {
   color: var(--lane-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
-.lane-size-button {
-  min-width: 34px;
+.lane-menu-button {
+  min-width: 26px;
   padding: 0;
   border-color: var(--lane-line);
   background: var(--lane-bg);
@@ -1702,8 +2493,8 @@ button, .ghost-link {
 .cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 7px;
+  padding: 7px;
 }
 .card {
   width: 100%;
@@ -1711,10 +2502,10 @@ button, .ghost-link {
   border: 1px solid var(--card-border);
   border-radius: 8px;
   background: var(--card-bg);
-  padding: 11px 12px;
+  padding: 8px 9px;
   text-align: left;
   color: var(--card-text);
-  font: 14px/1.42 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: calc(12.5px * var(--kanban-text-scale, 1))/1.38 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   box-shadow: none;
   cursor: grab;
   display: block;
@@ -1733,7 +2524,7 @@ button, .ghost-link {
   justify-content: flex-start;
   gap: 8px;
   align-items: center;
-  margin-bottom: 9px;
+  margin-bottom: 7px;
 }
 .checkmark {
   width: 18px;
@@ -1777,16 +2568,18 @@ button, .ghost-link {
 }
 .card strong {
   display: block;
-  padding-left: 26px;
-  font-size: 15px;
-  line-height: 1.28;
+  padding-left: 0;
+  color: var(--card-text);
+  font-size: calc(13px * var(--kanban-text-scale, 1));
+  line-height: 1.25;
+  font-weight: 820;
   overflow-wrap: anywhere;
 }
 .body, .acceptance {
   display: block;
-  margin-top: 8px;
+  margin-top: 7px;
   color: var(--card-muted);
-  font-size: 13px;
+  font-size: calc(11.5px * var(--kanban-text-scale, 1));
   line-height: 1.36;
   overflow-wrap: anywhere;
 }
@@ -1808,14 +2601,14 @@ button, .ghost-link {
 }
 .shortcut-menu button {
   width: 100%;
-  min-height: 31px;
+  min-height: 28px;
   justify-content: flex-start;
   border: 0;
   border-radius: 6px;
   background: transparent;
   color: var(--menu-text);
   padding: 0 10px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
 }
 .shortcut-menu button:hover {
@@ -1845,9 +2638,9 @@ button, .ghost-link {
 }
 .docked-inspector {
   position: sticky;
-  top: 16px;
+  top: 58px;
   z-index: 12;
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 94px);
   min-width: 280px;
   max-width: min(44vw, 520px);
 }
@@ -1924,6 +2717,128 @@ dd { margin: 0; font-size: 13px; font-weight: 750; }
   background: #eef4ff;
   color: var(--deep-blue);
 }
+.board-status-footer {
+  position: fixed;
+  z-index: 18;
+  left: 68px;
+  right: 18px;
+  bottom: 6px;
+  min-height: 24px;
+  max-height: 3.4vh;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  box-shadow: 0 12px 28px rgba(22, 32, 51, 0.14);
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding: 3px 6px;
+  color: var(--muted);
+  font-size: 10px;
+  backdrop-filter: blur(10px);
+}
+.board-status-footer span:not(.storage-pill) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.print-preview {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  overflow: auto;
+  background: #4b5563;
+  padding: 18px;
+}
+.print-preview-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #d5dae4;
+  background: #f8fafc;
+  color: #111827;
+  padding: 10px 12px;
+  max-width: 1280px;
+  margin: 0 auto 14px;
+}
+.print-preview-bar h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.print-sheet {
+  max-width: 1280px;
+  min-height: calc(100vh - 90px);
+  margin: 0 auto;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  padding: 24px;
+}
+.print-title {
+  border-bottom: 2px solid #111827;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.print-title span {
+  font-size: 12px;
+  font-weight: 850;
+  color: #475569;
+}
+.print-title h1 {
+  margin-top: 4px;
+  font-size: 28px;
+}
+.print-title p {
+  margin: 6px 0 0;
+  color: #475569;
+}
+.print-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+.print-lane {
+  break-inside: avoid;
+  border: 1px solid #cbd5e1;
+  padding: 10px;
+}
+.print-lane h2 {
+  margin: 0;
+  font-size: 14px;
+}
+.print-lane > p {
+  margin: 5px 0 10px;
+  color: #64748b;
+  font-size: 11px;
+}
+.print-card {
+  break-inside: avoid;
+  border-top: 1px solid #e2e8f0;
+  padding: 8px 0;
+}
+.print-card span {
+  color: #c87422;
+  font-size: 10px;
+  font-weight: 850;
+}
+.print-card strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
+.print-card p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.35;
+}
 button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .card:focus-visible {
   outline: 3px solid var(--amber);
   outline-offset: 2px;
@@ -1951,18 +2866,21 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
 }
 @media (max-width: 760px) {
   .strategy-kanban {
-    padding: 16px 16px 16px 64px;
+    padding: 58px 10px 34px 58px;
   }
   .workspace-rail {
     left: 10px;
-    top: 72px;
+    top: 54px;
   }
   .kanban-hero {
-    align-items: stretch;
-    flex-direction: column;
+    left: 58px;
+    right: 10px;
+    align-items: center;
+    flex-direction: row;
   }
   .hero-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    overflow-x: auto;
   }
   .story-strip {
     grid-template-columns: 1fr;
@@ -1980,6 +2898,43 @@ button:focus-visible, .ghost-link:focus-visible, input:focus-visible, textarea:f
   .lane {
     width: 84vw;
     min-height: 58vh;
+  }
+  .board-status-footer {
+    left: 58px;
+    right: 10px;
+  }
+}
+@media print {
+  body {
+    background: #fff;
+  }
+  .kanban-hero,
+  .story-strip,
+  .planner-shell,
+  .workspace-rail,
+  .floating-drawer,
+  .board-status-footer,
+  .print-preview-bar {
+    display: none !important;
+  }
+  .strategy-kanban {
+    padding: 0;
+  }
+  .print-preview {
+    position: static;
+    inset: auto;
+    overflow: visible;
+    background: #fff;
+    padding: 0;
+  }
+  .print-sheet {
+    max-width: none;
+    min-height: auto;
+    box-shadow: none;
+    padding: 0;
+  }
+  .print-board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 `

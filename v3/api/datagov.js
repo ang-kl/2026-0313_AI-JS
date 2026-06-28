@@ -15,6 +15,8 @@ export const config = {
   maxDuration: 30,
 };
 
+import { requireTelegramSession } from '../server/telegram-session.js';
+
 // Dataset *downloads* go through api-open.data.gov.sg/v1 (the initiate +
 // poll flow). Note: api-production.data.gov.sg/v2 is metadata-only and 404s
 // these paths.
@@ -259,6 +261,7 @@ function buildSeries(rows, momGroupLabel) {
 }
 
 export default async function handler(req, res) {
+  if (!requireTelegramSession(req, res)) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

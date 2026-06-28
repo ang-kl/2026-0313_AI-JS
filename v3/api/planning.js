@@ -10,7 +10,8 @@ import { sql } from '@vercel/postgres';
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
 const PRIMARY_BOARD_KEY = 'v3-skillset-storyboard';
-const SESSION_COOKIE = 'tara_sess';
+const SESSION_COOKIE = 'v3_tg_session';
+const LEGACY_SESSION_COOKIE = 'tara_sess';
 
 const DEFAULT_LANES = [
   { id: 'doctrine', position: 0, title: 'Doctrine', cue: 'What must stay true' },
@@ -79,7 +80,8 @@ function readOwnerSession(req) {
   const ownerId = String(process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_OWNER_CHAT_ID || '').trim();
   if (!token || !ownerId) return null;
 
-  const value = parseCookies(req)[SESSION_COOKIE];
+  const cookies = parseCookies(req);
+  const value = cookies[SESSION_COOKIE] || cookies[LEGACY_SESSION_COOKIE];
   if (!value) return null;
   const [payloadB64, sigB64] = value.split('.');
   if (!payloadB64 || !sigB64) return null;
@@ -90,7 +92,8 @@ function readOwnerSession(req) {
   try {
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
     if (!payload || payload.exp < Math.floor(Date.now() / 1000)) return null;
-    if (String(payload.uid) !== ownerId) return null;
+    const sessionOwner = payload.id || payload.uid;
+    if (String(sessionOwner) !== ownerId) return null;
     return payload;
   } catch (_) {
     return null;

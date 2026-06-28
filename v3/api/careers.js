@@ -13,6 +13,8 @@ export const config = {
   maxDuration: 30,
 };
 
+import { requireTelegramSession } from '../server/telegram-session.js';
+
 const CSG_DUMP_URL =
   "https://raw.githubusercontent.com/opengovsg/careersgovsg-jobs-data/main/data/job-listings.json";
 const CACHE_TTL_MS   = 6 * 60 * 60 * 1000; // 6 hours
@@ -230,6 +232,7 @@ function agencyMatchScore(agency, queryTokens, queryRaw) {
 
 // ---- Handler -----------------------------------------------------------------
 export default async function handler(req, res) {
+  if (!requireTelegramSession(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

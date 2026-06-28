@@ -1,9 +1,9 @@
 # V3 Skillset Doctrine
 
-Status: production source file
+Status: recipes and skillset replacement
 Scope: v3 only
 Purpose: centralise the methodology, ethos, deterministic ideals, agentic governance, and panel logic behind V3.
-Source: derived from `v3/goal/recipes and skillset.md` and used by the V3 planning Kanban source drawer.
+Source: replaces the earlier first segmentation with the `v3/goal/recipes and skillset.md` doctrine.
 
 ## 0. How To Read This File
 
@@ -15,22 +15,23 @@ It is the V3 doctrine layer:
 - what V3 must protect
 - how V3 reads a job advertisement
 - how V3 separates deterministic evidence from AI explanation
-- how V3 uses human and agent roles without creating confusion
-- how V3 remains pro-worker instead of becoming an ATS gaming tool
+- how V3 should use human and agent roles without creating confusion
+- how V3 should remain pro-worker instead of becoming an ATS gaming tool
 
-Read this together with:
+The file should be read together with:
 
 - `v3/goal/readme.md`
-- `v3/goal/recipes and skillset.md`
+- `v3/goal/AI_Stewardship_Research_Paper.html`
+- `v3/goal/AI_Stewardship_research Mind Map.png`
 - `v3/goal/w34854.pdf`
 - `v3/skills/README.md`
 - `v3/skills/careerview-panel/SKILL.md`
 - `v3/skills/agent-skeptic/SKILL.md`
 - `v3/AIOE/readme.md`
 
-## 1. Thesis
+## 1. V3 Thesis
 
-V3 treats a job advertisement as a work-system signal, not merely as a vacancy.
+V3 treats a job advertisement as a signal of organisational need, not merely as a vacancy.
 
 A role may reveal:
 
@@ -50,7 +51,14 @@ The better V3 question is:
 
 > What human stewardship, system redesign, and agentic control are needed for this work to create value?
 
-V3 should preserve the V2 clarity people liked while adding organisation perspective, BPR perspective, agentic governance, and live evidence.
+The V3 north star is:
+
+- keep the V2 clarity people liked
+- keep RoleGraph as a readable edge
+- add organisation perspective
+- add BPR perspective
+- add agentic governance
+- keep every recommendation decision-oriented
 
 Every output should help a human decide one of:
 
@@ -61,11 +69,461 @@ Every output should help a human decide one of:
 - build an agent candidate
 - withhold because evidence is too thin
 
-Automation is not forbidden, but automation is not assumed to be the highest-value path.
+## 2. Canon Sources
 
-## 2. Ethos
+### 2.1 V3 Goal Folder
 
-### 2.1 Curiosity
+The goal folder is the philosophical and methodological root of V3.
+
+It introduces:
+
+- vacancy as systemic deficit
+- job advertisement as strategy interface
+- human-in-the-loop as accountability architecture
+- Boundary, Dependency, Feedback as the operating lens
+- forensic reversal as a way to read job ads backwards into system needs
+- sentinel telemetry as governance for autonomous systems
+
+### 2.2 w34854.pdf
+
+`w34854.pdf` anchors V3 in pro-worker AI.
+
+The paper's useful distinction for V3 is that not all AI use is equally pro-worker.
+
+V3 should classify AI impact through five technology categories:
+
+- labor-augmenting: helps workers perform current tasks better
+- capital-augmenting: improves tools, infrastructure, or organisational capital
+- automating: substitutes human tasks
+- expertise-leveling: lets less expert workers perform higher-skill tasks
+- new-task creating: creates new forms of human work and human value
+
+V3 should prefer the last category where possible.
+
+Automation is not forbidden.
+
+But automation is not assumed to be the highest-value path.
+
+### 2.3 V3 Skills Folder
+
+The skills folder is the agentic operating layer.
+
+It frames V3 as a multi-seat evidence review, not a single chatbot answer.
+
+Current implemented skill files:
+
+- `careerview-panel`
+- `agent-skeptic`
+
+Intended panel seats listed in `v3/skills/README.md`:
+
+- agent-client
+- agent-director
+- agent-hiring-manager
+- agent-hr
+- agent-recruiter
+- agent-platform-ceo
+- agent-platform-engineer
+- agent-ats
+- agent-jobseeker
+- agent-academic
+- agent-skeptic
+
+Only implemented seats should be called executable.
+
+Unimplemented seats should be treated as intended design, not live capability.
+
+### 2.4 V3 AIOE Folder
+
+The AIOE folder is the deterministic exposure backbone.
+
+It maps Singapore job evidence into AI Occupational Exposure through a traceable crosswalk:
+
+```text
+SSOC -> ISCO-08 -> SOC 2010 -> AIOE scores
+```
+
+The important V3 principle is:
+
+AI-readiness numbers must come from a data chain, not from LLM judgement.
+
+AIOE provides three layers:
+
+- `lm2023`: Language Modeling AIOE, the primary generative-era exposure layer.
+- `ig2023`: Image Generation AIOE, useful where visual work is central.
+- `agg2021`: Aggregate AIOE, the pre-ChatGPT baseline across AI applications.
+
+V3 should preserve the distinction between:
+
+- primary exposure now
+- older baseline exposure
+- generative-era delta
+- confidence in the crosswalk
+
+The delta is:
+
+```text
+lm2023 raw - agg2021 raw
+```
+
+A positive delta means language-model AI increases exposure relative to the older aggregate baseline.
+
+This is not a replacement score.
+
+It is a signal for where the role, skill bundle, or occupation may be more exposed to generative language systems than older AI measures suggested.
+
+## Version 2
+
+Version 2 is the role-first foundation that V3 must not lose.
+
+V2 asks:
+
+> For this role, which skills matter, how does AI affect them, where can the person go next, and what action can they take?
+
+V3 expands that question into organisation, BPR, governance, and agentic systems.
+
+But V3 should preserve the V2 edge:
+
+- fast role entry
+- clear ESCO-based skill read
+- visible AI-readiness segmentation
+- practical prompts
+- progression and crossover paths
+- compare view
+- outcome-oriented career reflection
+
+### V2 Methodology
+
+V2 methodology is role-centred.
+
+The flow is:
+
+1. Resolve the role.
+
+Match the user's job title to an occupation, using ESCO and local title handling where needed.
+
+2. Extract essential skills.
+
+Use ESCO v1.2 skills where available.
+
+Fall back only when the canonical source cannot supply enough skill evidence.
+
+3. Rate AI impact skill by skill.
+
+Classify each skill by how AI changes the work.
+
+4. Convert AI impact into action.
+
+For each non-human-led skill, generate a practical prompt, technique, preparation note, and next phase.
+
+5. Map career movement.
+
+Show promotion, lateral, specialist, and crossover options.
+
+6. Compare roles.
+
+Let the user see shared strengths, unique skills, AI exposure, development gaps, and reflective next steps across up to three roles.
+
+7. Produce an outcome.
+
+The outcome is not only information.
+
+The outcome is a clearer human decision about where to build proof, where to apply, and where to be cautious.
+
+### V2 AI Readiness Analysis
+
+V2's AI-readiness lens is skill-level segmentation.
+
+It reads a role through four main levels:
+
+- Full Automation: AI can perform the skill with minimal human input.
+- AI-Augmented: AI improves speed or quality while the human directs.
+- AI-Assisted: AI supports the work, but human judgment leads.
+- Human-Led: presence, empathy, physical action, accountability, or judgment remains central.
+
+V2 also introduces practical readiness labels:
+
+- ready
+- prepare
+- quick prep first
+- prep needed
+
+The V3 lesson is important:
+
+AI readiness is not a single score.
+
+It is a map of which parts of the work can be delegated, assisted, strengthened, protected, or kept human-owned.
+
+V3 extends this with AIOE.
+
+The V2 lens asks:
+
+> How does AI affect each skill?
+
+The V3 AIOE lens adds:
+
+> What is the occupation-level exposure signal, and how confident is the SSOC-to-AIOE chain?
+
+Together they should produce two views:
+
+- skill-level readiness: human-led, assisted, augmented, automatable
+- occupation-level exposure: AIOE layer, baseline, delta, and confidence
+
+When the two disagree, V3 should show the disagreement instead of hiding it.
+
+For example:
+
+- a role may have high occupation-level language exposure but still contain human-led accountability duties
+- a role may have moderate aggregate exposure but a high generative-language delta
+- a role may lack a complete crosswalk, so the number must be withheld
+
+### V2 Techniques
+
+V2 turns AI-readiness into a prompt and action system.
+
+Techniques include:
+
+- ReAct
+- RAG
+- prompt chaining
+- reflexion
+- self-critique loop
+- tree of thoughts
+- decomposition scaffold
+- generate knowledge
+- output contract
+- self-consistency
+- persona injection
+- few-shot anchor
+
+These techniques are assigned according to automation level and skill type.
+
+V3 should keep this discipline.
+
+Prompts should not be generic.
+
+They should be attached to a skill, a role, an AI-impact level, and a real task.
+
+### V2 Comparisons
+
+V2 comparison helps users compare up to three roles.
+
+It looks for:
+
+- transferable strengths shared across all roles
+- pairwise shared skills
+- Human-Led skills
+- role-unique skills
+- skills that exist only in other roles
+- development gaps
+- AI exposure differences
+- reflective summary
+
+The V3 lesson is that comparison is not only ranking.
+
+Comparison is a way to see:
+
+- what travels with the person
+- what is role-specific
+- what AI changes
+- what must be developed
+- what decision the user should reflect on
+
+### V2 Outcomes
+
+V2 outcomes are practical and human-facing.
+
+A user should leave with:
+
+- a role skill map
+- AI-readiness by skill
+- promptable work opportunities
+- Human-Led edge
+- progression paths
+- crossover paths
+- foundation skills where persona applies
+- comparison insight
+- next action
+
+V3 should inherit this outcome discipline.
+
+Every deeper organisation, BPR, or agentic layer should still return to the user's decision.
+
+## Workflow
+
+The Workflow layer adapts the attached "10 Questions about the Role" method.
+
+It is a human role-reading ritual.
+
+It should sit before, during, and after the AI analysis.
+
+The purpose is to make the user own the role, not merely consume a generated result.
+
+### Workflow Method: The Ten C Questions
+
+1. CALL
+
+Ask:
+
+- What would you call this advertised role?
+- Can you give it your own descriptive title?
+
+V3 use:
+
+- compare user title, MCF title, ESCO title, and inferred role shape
+- reveal when the advertised title hides a different work system
+
+2. COMPACT
+
+Ask:
+
+- Can you summarise the whole advertised role?
+- What is the role story in plain language?
+
+V3 use:
+
+- produce a compact role read
+- separate duties, outcomes, requirements, and organisation signals
+
+3. CRYPTIC
+
+Ask:
+
+- What is confusing about the advertised role?
+- What is unclear, missing, inflated, or contradictory?
+
+V3 use:
+
+- flag role mash-up
+- flag vague ownership
+- flag unsupported claims
+- flag thin evidence
+
+4. CROSS-REFERENCES
+
+Ask:
+
+- What other roles in the organisation help explain this role?
+- What competitor roles help explain it?
+
+V3 use:
+
+- compare same-employer postings
+- compare adjacent MCF postings
+- feed RoleGraph and OrgGraph
+- identify common capabilities
+
+5. CONSIDERABLE PEOPLE
+
+Ask:
+
+- Who are the people implied by this role?
+- Who is served, managed, coordinated, reported to, or governed?
+
+V3 use:
+
+- map stakeholders
+- identify accountable owner
+- identify handoffs
+- identify customer or citizen value
+
+6. COMPELLING WORDS
+
+Ask:
+
+- Which words repeat?
+- Which phrases reveal the real work?
+
+V3 use:
+
+- extract repeated duty phrases
+- detect function keywords
+- detect transformation language
+- detect governance and compliance signals
+
+7. CRITICAL SENTENCE
+
+Ask:
+
+- Which sentence best reveals the role?
+- Which line carries the highest signal?
+
+V3 use:
+
+- highlight the strongest evidence sentence
+- attach provenance
+- use it as the anchor for role diagnosis
+
+8. COMMAND CHAIN
+
+Ask:
+
+- Who is mentioned above, below, or around the role?
+- Is there a supervisor, department head, organisation head, brand, value proposition, or customer promise?
+
+V3 use:
+
+- map reporting and governance context where evidence exists
+- avoid inventing department structure
+- connect role to organisation purpose only when supported
+
+9. CENTRAL LESSON
+
+Ask:
+
+- What is the main point of this advertised role?
+- What idea weaves the advertisement together?
+
+V3 use:
+
+- produce the role thesis
+- connect role, organisation need, AI readiness, and human edge
+
+10. CREATE OUTCOME
+
+Ask:
+
+- What is your response to the knowledge gained?
+- What real-work application follows?
+
+V3 use:
+
+- decide apply, prepare, compare, redesign, build agent candidate, or withhold
+- connect the read to proof artifacts and next action
+
+### Workflow Contract
+
+The workflow must stay evidence-bound.
+
+It should not turn the 10 questions into free invention.
+
+Each answer should be labelled as:
+
+- from posting
+- computed
+- derived
+- AI estimate
+- unverified
+- withheld
+
+The workflow should support both:
+
+- role perspective
+- organisation perspective
+
+For role perspective, the workflow asks:
+
+> What does this advertised role really mean?
+
+For organisation perspective, the workflow asks:
+
+> What pattern do these advertised roles reveal about the organisation?
+
+## 3. Ethos
+
+V3 must carry these values into product, engine, prompts, and UI.
+
+### 3.1 Curiosity
 
 V3 explores alternative system routes.
 
@@ -76,7 +534,7 @@ It should ask:
 - Is the role covering a governance weakness?
 - Is the organisation buying labour because it has not redesigned work?
 
-### 2.2 Collaborativeness
+### 3.2 Collaborativeness
 
 V3 assumes work now crosses human and agent boundaries.
 
@@ -88,19 +546,34 @@ It should make visible:
 - what the LLM merely interpreted
 - what must be escalated
 
-### 2.3 Customer Focus
+### 3.3 Customer Focus
 
 V3 must ground analysis in end-user value.
 
-The end user may be a jobseeker, worker, hiring manager, HR lead, organisation designer, training planner, or policy actor.
+The end user may be:
+
+- jobseeker
+- worker
+- hiring manager
+- HR lead
+- organisation designer
+- training planner
+- public-sector policy actor
 
 The product should not optimise only for clicks, applications, or keyword matching.
 
-### 2.4 First Principles Understanding
+### 3.4 First Principles Understanding
 
 V3 should teach the foundational why.
 
-It should expose:
+It should avoid superficial syntax such as:
+
+- add these keywords
+- take this course
+- use this prompt
+- apply to this role because the title matches
+
+Instead, it should expose:
 
 - why the role exists
 - why the skill matters
@@ -108,9 +581,11 @@ It should expose:
 - why the organisation may be hiring
 - why the candidate should or should not spend effort
 
-### 2.5 Domain Breadth
+### 3.5 Domain Breadth
 
-V3 should connect roles to adjacent business functions:
+V3 should understand adjacent business functions.
+
+A role graph should connect to:
 
 - operations
 - finance
@@ -121,7 +596,7 @@ V3 should connect roles to adjacent business functions:
 - market demand
 - governance
 
-### 2.6 Systemic Thinking
+### 3.6 Systemic Thinking
 
 V3 should map complex interactions across:
 
@@ -138,7 +613,7 @@ The goal is not a list of skills.
 
 The goal is a working map of the system.
 
-### 2.7 Judgment And Discernment
+### 3.7 Judgment And Discernment
 
 V3 must know when to overrule autonomous output.
 
@@ -151,9 +626,9 @@ It should withhold, warn, or escalate when:
 - the system may create false hope
 - automation would remove accountability
 
-## 3. Methodology
+## 4. Methodology
 
-### 3.1 Vacancy Teleology
+### 4.1 Vacancy Teleology
 
 Treat a job advertisement as a signal.
 
@@ -165,7 +640,7 @@ Ask:
 - What system friction is hidden in the role description?
 - What does the role say about the organisation's operating model?
 
-### 3.2 Boundary, Dependency, Feedback
+### 4.2 Boundary, Dependency, Feedback
 
 Use BDF as the primary V3 analysis method.
 
@@ -195,7 +670,7 @@ For AI-readiness, AIOE adds a deterministic feedback signal:
 - Is the crosswalk confidence exact, aggregated, partial, or none?
 - Should V3 show, caveat, or withhold the exposure number?
 
-### 3.3 Forensic Reversal
+### 4.3 Forensic Reversal
 
 Read the job ad backwards.
 
@@ -208,19 +683,19 @@ Process:
 - infer the system bottleneck
 - classify whether the role is bridge, firewall, patch, or transformation signal
 
-### 3.4 Business Process Re-engineering Lens
+### 4.4 BPR Lens
 
 From the organisation perspective, V3 should ask whether the role should exist in its current shape.
 
-BPR questions:
+Business Process Re-engineering questions:
 
 - Can the workflow be redesigned before hiring?
 - Is the organisation using a role to compensate for broken process?
-- Is a mash-up role hiding unclear ownership?
+- Is a "mash-up" role hiding unclear ownership?
 - Can common capabilities be shared across departments?
 - Should an agent support a function rather than replace a role?
 
-### 3.5 Rumelt Strategy Kernel
+### 4.5 Rumelt Strategy Kernel
 
 Use Rumelt's strategy kernel as a discipline for organisational reading.
 
@@ -238,7 +713,7 @@ Coherent action:
 
 - What should the person, organisation, or agentic system actually do next?
 
-### 3.6 Ecotone Lens
+### 4.6 Ecotone Lens
 
 An ecotone is the edge between systems.
 
@@ -252,7 +727,7 @@ In V3, high human value often appears at boundaries such as:
 
 V3 should look for these edges because they often reveal future-proof roles.
 
-### 3.7 Flow Lens
+### 4.7 Flow Lens
 
 Use flow to read work as value movement.
 
@@ -265,7 +740,7 @@ Ask:
 - Which activities only move confusion around?
 - Which role exists because flow is broken?
 
-### 3.8 Falsification
+### 4.8 Falsification
 
 V3 should include a critic move.
 
@@ -282,7 +757,7 @@ The critic is not negativity.
 
 It is worker protection.
 
-## 4. O-I-A Posting Lens
+### 4.9 O-I-A Posting Lens
 
 O-I-A means Observation, Interpretation, Application.
 
@@ -298,11 +773,17 @@ The three stages run in fixed order and are bound by an evidence contract:
 - nothing is emitted that was not first interpreted
 - every code and score traces back through a claim to a verbatim span
 
-### 4.1 Evidence Contract
+This adapts the inductive observation-interpretation-application reading method. Its carried-over discipline is:
+
+> draw findings out of the source, never read them in.
+
+#### 4.9.1 Evidence Contract
 
 Observation emits spans.
 
 Spans are verbatim fragments of the posting, each with an ID.
+
+Observation emits nothing else.
 
 Interpretation emits claims.
 
@@ -328,7 +809,26 @@ Where a required field cannot be grounded, emit `ABSENT`.
 
 Absence is a valid output, not a gap to be filled by guessing.
 
-### 4.2 Stage O: Observation
+#### 4.9.2 Inputs, Lenses, Output
+
+Input:
+
+- one posting
+- title
+- description
+- structured fields such as company, salary, employment type, posting date, and posting history
+
+Lenses:
+
+- ROLE: occupation, tasks, skills, and SSOC-2010
+- ORG: sector, firm signals, SSIC, and context
+- AI: AI content of the role, task-level AI exposure, AIOE, and the firm's AI-adoption posture
+
+Output:
+
+- one structured record
+
+#### 4.9.3 Stage O: Observation
 
 Observation asks:
 
@@ -344,13 +844,48 @@ No labelling.
 
 No cross-posting comparison.
 
-ROLE spans include exact title, stated tasks, stated requirements, seniority words, reporting line, team size, location, salary, employment type, and repeated terms.
+ROLE spans include:
 
-ORG spans include the firm's own words about itself, mission, market, culture, named functions, adjacent teams, and stated reason for the hire.
+- exact title
+- stated tasks or duties
+- stated requirements such as years, credentials, and skills
+- stated seniority words
+- stated reporting line and team size
+- location
+- salary
+- employment type
+- repeated terms, with count
 
-AI spans include verbatim mentions of AI, ML, generative AI, LLMs, data science, automation, named AI tools, AI-related skills, and AI strategy.
+ORG spans include:
 
-### 4.3 Stage I: Interpretation
+- the firm's own words about itself
+- size
+- mission
+- market
+- culture
+- named functions and adjacent teams
+- any stated reason for the hire
+
+AI spans include:
+
+- verbatim mentions of AI, ML, generative AI, LLMs, data science, or automation
+- named AI tools, frameworks, or platforms
+- AI-related skills or credentials
+- any firm statement about AI use, AI strategy, or AI products
+
+Output is a list of:
+
+```yaml
+- span_id: o1
+  lens: ROLE | ORG | AI
+  text: <verbatim>
+```
+
+Stop here.
+
+Do not interpret.
+
+#### 4.9.4 Stage I: Interpretation
 
 Interpretation asks:
 
@@ -360,13 +895,29 @@ Decode the spans.
 
 Every claim cites the span IDs it rests on.
 
-ROLE claims include occupation mapping, task inventory, seniority read, requirement split, and emphasis.
+ROLE claims:
 
-ORG claims include sector mapping, operational signal, cultural tell, coherence, and external corroboration as confirmation only.
+- occupation mapping: candidate SSOC-2010 codes from title and task spans
+- task inventory: normalise duty spans into discrete tasks
+- seniority read: stated versus real seniority
+- requirement split: hard must-have versus nice-to-have
+- emphasis: repeated or first-stated terms read as priority weight
 
-AI claims include AI-role read, task AI-exposure, and firm AI-adoption.
+ORG claims:
 
-### 4.4 Stage A: Application
+- sector mapping: candidate SSIC from the firm's self-description spans
+- operational signal: churn or expansion only if posting-history fields are present
+- cultural tell: euphemism or buzzword spans imply workload or maturity, with confidence
+- coherence: whether the self-description matches the actual role task spans
+- external corroboration: last, and only as confirmation, never as the source of a claim
+
+AI claims:
+
+- AI-role read: `ai_core`, `ai_adjacent`, or `non_ai`
+- task AI-exposure: map the ROLE task inventory to AIOE exposure
+- firm AI-adoption: whether the employer is building AI, using AI, or neither
+
+#### 4.9.5 Stage A: Application
 
 Application asks:
 
@@ -378,12 +929,12 @@ The action is classification and routing.
 
 Application must:
 
-- emit SSOC, SSIC, task inventory, AI-role, AIOE exposure, AI-adoption, seniority, claim chain, and confidence
+- emit the record: SSOC, SSIC, task inventory, AI-role, AIOE exposure, AI-adoption, seniority, claim chain, and confidence
 - score AIOE exposure from the task inventory
 - route to review if any required field is `ABSENT` or below threshold
 - flag anomalies such as incoherent self-description, title-task mismatch, one posting scoping several roles, or AI claims unsupported by any AI span
 
-### 4.5 Output Schema
+#### 4.9.6 Output Schema
 
 ```yaml
 posting_id: <id>
@@ -404,21 +955,42 @@ interpretation:
       confidence: <0-1 | null>
 application:
   role:
-    ssoc: { value: <code | ABSENT>, claims: [i1], confidence: <0-1> }
-    tasks: [ { task: <text>, claims: [i2] } ]
-    seniority: { value: <text | ABSENT>, claims: [i3] }
+    ssoc:
+      value: <code | ABSENT>
+      claims: [i1]
+      confidence: <0-1>
+    tasks:
+      - task: <text>
+        claims: [i2]
+    seniority:
+      value: <text | ABSENT>
+      claims: [i3]
   org:
-    ssic: { value: <code | ABSENT>, claims: [i4], confidence: <0-1> }
-    signals: [ { statement: <text>, claims: [i5] } ]
+    ssic:
+      value: <code | ABSENT>
+      claims: [i4]
+      confidence: <0-1>
+    signals:
+      - statement: <text>
+        claims: [i5]
   ai:
-    ai_role: { value: ai_core | ai_adjacent | non_ai | ABSENT, claims: [i6], confidence: <0-1> }
-    aioe_exposure: { value: <score | ABSENT>, basis: "LM-2023 primary; 2021 baseline", claims: [i7] }
-    ai_adoption: { value: building | using | none | ABSENT, claims: [i8], confidence: <0-1> }
+    ai_role:
+      value: ai_core | ai_adjacent | non_ai | ABSENT
+      claims: [i6]
+      confidence: <0-1>
+    aioe_exposure:
+      value: <score | ABSENT>
+      basis: "LM-2023 primary; 2021 baseline"
+      claims: [i7]
+    ai_adoption:
+      value: building | using | none | ABSENT
+      claims: [i8]
+      confidence: <0-1>
   routing: accept | route_to_review
   flags: []
 ```
 
-### 4.6 Guardrails
+#### 4.9.7 Guardrails
 
 Fixed order:
 
@@ -440,6 +1012,12 @@ Deterministic spine:
 - judgement derivations carry confidence
 - judgement derivations abstain below threshold
 
+Reproducible:
+
+- same posting
+- same prompt
+- same record
+
 Bindings to confirm:
 
 - Role maps to SSOC-2010
@@ -448,121 +1026,22 @@ Bindings to confirm:
 - LM-2023 is primary
 - 2021 aggregate is baseline
 
-## 5. Version 2 Foundation
+### 4.10 Pro-Worker AI Test
 
-Version 2 is the role-first foundation that V3 must not lose.
+Every AI recommendation should pass this test:
 
-V2 asks:
+- Does it increase human expertise value?
+- Does it create better human work?
+- Does it preserve accountability?
+- Does it reduce false hope?
+- Does it expose hidden organisational friction?
+- Does it avoid turning workers into disposable interfaces?
 
-> For this role, which skills matter, how does AI affect them, where can the person go next, and what action can they take?
+## 5. Deterministic Ideals
 
-V3 expands that question into organisation, BPR, governance, and agentic systems.
+V3 separates computation from narration.
 
-But V3 should preserve the V2 edge:
-
-- fast role entry
-- clear ESCO-based skill read
-- visible AI-readiness segmentation
-- practical prompts
-- progression and crossover paths
-- compare view
-- outcome-oriented career reflection
-
-### 5.1 V2 AI Readiness Analysis
-
-V2's AI-readiness lens is skill-level segmentation:
-
-- Full Automation: AI can perform the skill with minimal human input.
-- AI-Augmented: AI improves speed or quality while the human directs.
-- AI-Assisted: AI supports the work, but human judgment leads.
-- Human-Led: presence, empathy, physical action, accountability, or judgment remains central.
-
-V3 extends this with AIOE.
-
-The V2 lens asks:
-
-> How does AI affect each skill?
-
-The V3 AIOE lens adds:
-
-> What is the occupation-level exposure signal, and how confident is the SSOC-to-AIOE chain?
-
-Together they should produce:
-
-- skill-level readiness: human-led, assisted, augmented, automatable
-- occupation-level exposure: AIOE layer, baseline, delta, and confidence
-
-When the two disagree, V3 should show the disagreement instead of hiding it.
-
-### 5.2 V2 Techniques
-
-V2 turns AI-readiness into a prompt and action system.
-
-Techniques include:
-
-- ReAct
-- RAG
-- prompt chaining
-- reflexion
-- self-critique loop
-- tree of thoughts
-- decomposition scaffold
-- generate knowledge
-- output contract
-- self-consistency
-- persona injection
-- few-shot anchor
-
-Prompts should be attached to a skill, a role, an AI-impact level, and a real task.
-
-### 5.3 V2 Comparisons
-
-V2 comparison helps users compare up to three roles.
-
-It looks for:
-
-- transferable strengths shared across all roles
-- pairwise shared skills
-- Human-Led skills
-- role-unique skills
-- skills that exist only in other roles
-- development gaps
-- AI exposure differences
-- reflective summary
-
-Comparison is a way to see what travels with the person, what is role-specific, what AI changes, what must be developed, and what decision the user should reflect on.
-
-## 6. AIOE And Deterministic Ideals
-
-The AIOE folder is the deterministic exposure backbone.
-
-It maps Singapore job evidence into AI Occupational Exposure through a traceable crosswalk:
-
-```text
-SSOC -> ISCO-08 -> SOC 2010 -> AIOE scores
-```
-
-AI-readiness numbers must come from a data chain, not from LLM judgement.
-
-AIOE provides three layers:
-
-- `lm2023`: Language Modeling AIOE, the primary generative-era exposure layer
-- `ig2023`: Image Generation AIOE, useful where visual work is central
-- `agg2021`: Aggregate AIOE, the pre-ChatGPT baseline across AI applications
-
-The delta is:
-
-```text
-lm2023 raw - agg2021 raw
-```
-
-A positive delta means language-model AI increases exposure relative to the older aggregate baseline.
-
-This is not a replacement score.
-
-It is a signal for deeper reading.
-
-### 6.1 Computed Before Explained
+### 5.1 Computed Before Explained
 
 Numbers must be computed by deterministic code or verified data.
 
@@ -570,7 +1049,7 @@ LLMs may explain numbers.
 
 LLMs must not invent numbers.
 
-### 6.2 Provenance Labels
+### 5.2 Provenance Labels
 
 Every surfaced claim should be labelled as one of:
 
@@ -581,13 +1060,13 @@ Every surfaced claim should be labelled as one of:
 - unverified
 - withheld
 
-### 6.3 Repeatability
+### 5.3 Repeatability
 
 Same input and same data should produce the same deterministic result.
 
 Non-deterministic outputs must be labelled as such.
 
-### 6.4 Withholding Is A Feature
+### 5.4 Withholding Is A Feature
 
 V3 should withhold conclusions when evidence is weak.
 
@@ -595,9 +1074,31 @@ This is not failure.
 
 It is honesty.
 
-### 6.5 AIOE Numeric Contract
+### 5.5 No False Hope
 
-AIOE numbers must:
+V3 must not say that a user should spend time, money, or emotional effort unless demand is demonstrably real enough.
+
+The skeptic seat is important because it protects the worker from self-serving narratives.
+
+### 5.6 No-Hype Agent Language
+
+V3 must distinguish:
+
+- agent idea
+- agent candidate
+- agent workflow
+- deployable agent
+- autonomous action
+
+"Agent candidate" does not mean "deploy agent".
+
+No agent should be treated as deployable until risk, owner, scope, identity, and audit are present.
+
+### 5.7 AIOE Numeric Contract
+
+AIOE numbers are deterministic engine evidence.
+
+They must follow this contract:
 
 - compute through `SSOC -> ISCO-08 -> SOC 2010 -> AIOE`
 - keep all layers visible in the data model
@@ -615,15 +1116,19 @@ Confidence flags:
 - partial: some SOC codes had no AIOE entry
 - none: the chain is incomplete and all layer scores are null
 
+If confidence is `partial`, V3 may explain the limitation.
+
+If confidence is `none`, V3 should withhold the numeric exposure and say why.
+
 LLMs may narrate what the AIOE signal means.
 
 LLMs must not author the AIOE score, delta, or confidence.
 
-## 7. Agentic Governance
+## 6. Agentic Governance
 
 V3 should align with the IMDA-style agentic governance principles already discussed for this project.
 
-### 7.1 Risk Assessment
+### 6.1 Risk Assessment
 
 Before deployment or autonomous action, V3 should identify:
 
@@ -634,13 +1139,13 @@ Before deployment or autonomous action, V3 should identify:
 - reversibility
 - escalation route
 
-### 7.2 Human Accountability Chain
+### 6.2 Human Accountability Chain
 
 Every autonomous action must map to a named human owner.
 
 If no owner exists, the action should remain analysis only.
 
-### 7.3 Agent Identity Management
+### 6.3 Agent Identity Management
 
 Every agentic output should disclose:
 
@@ -655,7 +1160,7 @@ Every agentic output should disclose:
 - whether it used an LLM
 - whether it used deterministic code
 
-### 7.4 Technical Guardrails
+### 6.4 Technical Guardrails
 
 Guardrails should exist across the software lifecycle:
 
@@ -669,7 +1174,7 @@ Guardrails should exist across the software lifecycle:
 - prompt-output validation
 - human override
 
-### 7.5 End-User Transparency
+### 6.5 End-User Transparency
 
 Users should know when they are interacting with:
 
@@ -680,7 +1185,7 @@ Users should know when they are interacting with:
 - cached data
 - unavailable or withheld data
 
-### 7.6 Multi-Agent Coordination Risk
+### 6.6 Multi-Agent Coordination Risk
 
 Multi-agent systems can produce escalation, bias stacking, and false consensus.
 
@@ -694,7 +1199,7 @@ V3 should track:
 - unsupported consensus
 - emergent recommendations with no accountable owner
 
-### 7.7 Governance Ledger
+### 6.7 Governance Ledger
 
 The Decide panel should become the governance ledger.
 
@@ -715,7 +1220,76 @@ It should record:
 
 If the ledger cannot be filled, V3 should keep the output as analysis only.
 
+## 7. Strategy Layer
+
+V3 strategy should be explicit.
+
+### 7.1 Preserve
+
+Preserve V2's fast role read and clear graph edge.
+
+Users liked the ability to see a role quickly.
+
+V3 should not bury that clarity under too many abstractions.
+
+### 7.2 Expand
+
+Move from role graph to organisation graph.
+
+The role remains the entry point.
+
+The organisation becomes the deeper map.
+
+### 7.3 Commonise
+
+Cluster repeated duties and capabilities across postings.
+
+But protect role-specific edges.
+
+Commonising should reveal reusable capability, not erase meaningful difference.
+
+### 7.4 Question
+
+Use BPR to question the role itself.
+
+Some roles are mashed up because:
+
+- ownership is unclear
+- process is broken
+- governance is missing
+- handoffs are failing
+- management wants one person to absorb system friction
+
+### 7.5 Segment
+
+Split live job evidence into:
+
+- title match
+- duty match
+- segment match
+- adjacent-role match
+- employer-context match
+
+This is especially important for searches such as "transformation".
+
+### 7.6 Criticise
+
+Expose:
+
+- ghost risk
+- template stuffing
+- platform distortion
+- ATS distortion
+- role mash-up
+- fake seniority
+- unrealistic skill bundles
+- weak demand
+
 ## 8. Runtime Contract
+
+V3 should treat runtime behaviour as part of governance.
+
+### 8.1 Provider Order
 
 Primary LLM:
 
@@ -726,7 +1300,18 @@ Fallback LLM:
 - Google Gemini via `GEMINI_API_KEY`
 - model selected by `GEMINI_MODEL`
 
-The UI and logs should disclose provider, model, fallback status, and whether the result was deterministic or generated.
+### 8.2 Provider Honesty
+
+The UI and logs should never pretend all AI output came from one provider if fallback was used.
+
+Where relevant, output should disclose:
+
+- provider
+- model
+- fallback status
+- whether the result was deterministic or generated
+
+### 8.3 Vercel Deployment Context
 
 V3 is deployed as a Vercel surface.
 
@@ -738,7 +1323,9 @@ Runtime guidance:
 - keep deployment logs useful for debugging
 - keep user-facing output separate from debug output
 
-Debug mode is a governance tool.
+### 8.4 Debug And DMM
+
+Debug mode is a governance tool, not a toy.
 
 `dmm` should help trace:
 
@@ -750,108 +1337,79 @@ Debug mode is a governance tool.
 - errors
 - withheld decisions
 
-## 9. Product Panel Mapping
+## 9. Framework Map
 
-### 9.1 Ask
+### 9.1 Placement Read
 
-Ask should collect the user's intent and live market query.
+The placement read turns a job into:
 
-It should avoid pretending that a title alone defines the role.
+- AI exposure
+- anatomy
+- demand
+- proof gap
+- fairness risk
+- action brief
 
-### 9.2 Map
+It is the practical candidate-facing read.
 
-Map should be the centre of V3.
+### 9.2 WikiGraph
 
-It should contain:
+WikiGraph treats the role as an ecosystem.
 
-- RoleGraph
-- Organisation WikiGraph
-- job evidence drawer
-- collapsible side panels
-- movable analysis windows where useful
+It supports both:
 
-Map should help users see role, organisation, and system relationships at once.
+- candidate lens
+- organisation lens
 
-### 9.3 Decide
+Both should read from the same evidence, but answer different questions.
 
-Decide should make the human owner explicit.
+### 9.3 RIN
 
-It should support decisions such as:
+RIN is the reinvention navigation system.
 
-- apply
-- compare
-- prepare
-- redesign
-- reject weak target
-- escalate for human review
+It keeps the UI understandable through:
 
-It should not execute autonomous actions without owner, risk, scope, and audit trail.
+- Context
+- Map
+- Decision
 
-### 9.4 Understand
+This maps to the visible three-panel shell:
 
-Understand explains what the role means:
+- Ask
+- Map
+- Decide
 
-- work meaning
-- role mix
-- system signal
-- hidden boundary
-- possible organisational wound
+### 9.4 Agent Panel
 
-### 9.5 Position
+Agent Panel is the 11-seat stakeholder review.
 
-Position compares the role against live demand.
+It is used to pressure-test:
 
-It should rank:
+- candidate-role match
+- job description distortion
+- market demand
+- organisation logic
+- platform incentive
+- fairness and ATS risk
 
-- exact title matches
-- responsibility matches
-- segment matches
-- adjacent roles
-- secondary transformation signals
+### 9.5 Governance Ledger
 
-### 9.6 Become
+Governance Ledger is the agentic AI control plane.
 
-Become should show how the user becomes a better steward:
+It belongs primarily in Decide.
 
-- evidence building
-- judgement building
-- system understanding
-- agent collaboration
-- proof artifacts
+It should prevent ownerless or unscoped autonomous recommendations.
 
-### 9.7 AI Readiness
+### 9.6 BPR Loop
 
-AI Readiness should classify:
+BPR Loop reads:
 
-- human-led work
-- AI-assisted work
-- automatable work
-- expertise-leveling work
-- new-task creating opportunity
-
-It should also show the AIOE backbone where available:
-
-- primary language-model exposure
-- aggregate baseline exposure
-- generative-era delta
-- image-generation exposure where relevant
-- crosswalk confidence
-- withhold reason if unavailable
-
-The user-facing message should be:
-
-> This is an exposure signal, not a verdict on your value.
-
-### 9.8 Arm
-
-Arm should prepare the user for action:
-
-- interview evidence
-- portfolio evidence
-- question prompts
-- comparison strategy
-- agent-use strategy
-- governance questions to ask the employer
+- AS-IS process
+- friction
+- TO-BE process
+- role redesign
+- agent candidate
+- governance requirement
 
 ## 10. Techniques Library
 
@@ -902,7 +1460,14 @@ It should not overclaim legal conclusions.
 
 The job drawer should preserve verbatim evidence.
 
-It should be floating, movable where useful, close to the analysis, and easy to reopen.
+It should be:
+
+- floating
+- movable where useful
+- close to the analysis
+- easy to reopen
+
+The drawer protects the user from losing the source text.
 
 ### 10.6 Debug Trace
 
@@ -922,53 +1487,278 @@ It is not a group of fictional personas.
 
 Each seat exists because it represents a real incentive or evidence boundary.
 
-Candidate side seats:
+### 11.1 Candidate Side
+
+Seats:
 
 - jobseeker
 - academic
 - ATS
 - recruiter
 
-Employer side seats:
+Purpose:
+
+- protect the candidate from weak advice
+- identify proof artifacts
+- expose keyword gaps without reducing the person to keywords
+- distinguish learning value from employability signal
+
+### 11.2 Employer Side
+
+Seats:
 
 - hiring manager
 - HR
 - director
 - client
 
-Platform side seats:
+Purpose:
+
+- reveal the organisational reason for hiring
+- detect JD distortion
+- connect role to budget, risk, delivery, and customer value
+- identify whether the vacancy is a bridge, firewall, patch, or redesign signal
+
+### 11.3 Platform Side
+
+Seats:
 
 - platform CEO
 - platform engineer
 
-Reality-check side seat:
+Purpose:
+
+- examine marketplace incentives
+- test ranking and matching logic
+- detect whether the platform amplifies distortion
+- separate real market demand from visible posting volume
+
+### 11.4 Reality-Check Side
+
+Seat:
 
 - skeptic
 
-Synthesis seat:
+Purpose:
+
+- falsify demand
+- challenge upskilling narratives
+- protect the worker from wasted effort
+- ask who profits from the advice
+- require live evidence before recommending spend
+
+### 11.5 Synthesis Layer
+
+Seat:
 
 - careerview-panel
 
-Only implemented seats should be called executable.
+Purpose:
 
-Unimplemented seats should be treated as intended design, not live capability.
+- combine stakeholder views
+- identify distortion chain
+- separate candidate-side and employer-side truth
+- produce verdict and actions
+- mark unsupported claims
 
 ## 12. User Personas
 
-V3 must support more than one type of user:
+V3 must support more than one type of user.
 
-- Candidate: decide whether to apply and what evidence to prepare.
-- Career switcher: identify transferable skills, adjacent roles, proof path, and realistic demand.
-- Senior worker: preserve dignity, translate hidden value, and avoid shallow reskill advice.
-- Recruiter: understand roles, candidate evidence, keyword gaps, and live market comparison.
-- Hiring manager: clarify role, decision rights, capability gap, and whether one JD is several roles.
-- HR and organisation designer: inspect role architecture, common capabilities, fairness risk, process redesign, and governance boundaries.
-- BPR practitioner: map AS-IS signal, friction, TO-BE redesign, agent boundaries, and governance ledger.
-- Policy or regulator: inspect labour market distortion, automation risk, pro-worker AI category, transparency, and accountability evidence.
+### 12.1 Candidate
 
-## 13. Role Graph And Organisation Graph
+The candidate wants to know:
 
-### 13.1 Role Graph
+- whether to apply
+- what evidence to prepare
+- what role really demands
+- whether AI changes the work
+
+### 12.2 Career Switcher
+
+The switcher needs:
+
+- transferable skills
+- adjacent roles
+- proof path
+- realistic demand check
+- no false hope
+
+### 12.3 Senior Worker
+
+The senior worker needs:
+
+- dignity
+- role translation
+- hidden value recognition
+- pathway into stewardship
+- protection from shallow "just reskill" advice
+
+### 12.4 Recruiter
+
+The recruiter needs:
+
+- cleaner role understanding
+- candidate evidence
+- keyword gap without keyword worship
+- live market comparison
+
+### 12.5 Hiring Manager
+
+The hiring manager needs:
+
+- role clarity
+- decision rights
+- real capability gap
+- whether the JD is asking for one role or several
+
+### 12.6 HR And Organisation Designer
+
+HR and organisation design need:
+
+- role architecture
+- common capabilities
+- fairness risk
+- process redesign signal
+- governance boundary
+
+### 12.7 BPR Practitioner
+
+The BPR user needs:
+
+- AS-IS process signal
+- friction map
+- TO-BE redesign route
+- agent candidate boundary
+- governance ledger
+
+### 12.8 Policy Or Regulator
+
+The policy user needs:
+
+- labour market distortion signals
+- automation risk
+- pro-worker AI category
+- transparency and accountability evidence
+
+## 13. Product Panel Mapping
+
+### 13.1 Ask
+
+Ask should collect the user's intent and the live market query.
+
+It should avoid pretending that a title alone defines the role.
+
+### 13.2 Map
+
+Map should be the centre of V3.
+
+It should contain:
+
+- RoleGraph
+- Organisation WikiGraph
+- job evidence drawer
+- collapsible side panels
+- movable analysis windows where useful
+
+Map should help users see role, organisation, and system relationships at once.
+
+### 13.3 Decide
+
+Decide should make the human owner explicit.
+
+It should support decisions such as:
+
+- apply
+- compare
+- prepare
+- redesign
+- reject weak target
+- escalate for human review
+
+It should not execute autonomous actions without owner, risk, scope, and audit trail.
+
+### 13.4 Understand
+
+Understand explains what the role means.
+
+It should include:
+
+- work meaning
+- role mix
+- system signal
+- hidden boundary
+- possible organisational wound
+
+### 13.5 Position
+
+Position compares the role against live demand.
+
+It should rank:
+
+- exact title matches
+- responsibility matches
+- segment matches
+- adjacent roles
+- secondary transformation signals
+
+### 13.6 Become
+
+Become should move beyond courses.
+
+It should show how the user becomes a better steward:
+
+- evidence building
+- judgement building
+- system understanding
+- agent collaboration
+- proof artifacts
+
+### 13.7 AI Readiness
+
+AI Readiness should not mean AI replacement score only.
+
+It should classify:
+
+- human-led work
+- AI-assisted work
+- automatable work
+- expertise-leveling work
+- new-task creating opportunity
+
+It should also show the AIOE backbone where available:
+
+- primary language-model exposure
+- aggregate baseline exposure
+- generative-era delta
+- image-generation exposure where relevant
+- crosswalk confidence
+- withhold reason if unavailable
+
+The user-facing message should be:
+
+> This is an exposure signal, not a verdict on your value.
+
+High AIOE should trigger deeper role reading, not fatalism.
+
+Low AIOE should not imply safety if the live job duties show workflow change.
+
+### 13.8 Arm
+
+Arm should prepare the user for action.
+
+It should provide:
+
+- interview evidence
+- portfolio evidence
+- question prompts
+- comparison strategy
+- agent-use strategy
+- governance questions to ask the employer
+
+## 14. Role Graph And Organisation Graph
+
+### 14.1 Role Graph
 
 RoleGraph dissects the advertised role.
 
@@ -985,7 +1775,7 @@ It should show:
 - AI impact type
 - AIOE layer and confidence where available
 
-### 13.2 Organisation WikiGraph
+### 14.2 Organisation WikiGraph
 
 Organisation WikiGraph should look beyond the role.
 
@@ -1000,7 +1790,7 @@ It should map:
 - common capabilities across roles
 - exposure pattern across repeated SSOC or role clusters
 
-### 13.3 Commonising Roles
+### 14.3 Commonising Roles
 
 From the organisation perspective, V3 should ask:
 
@@ -1010,7 +1800,15 @@ From the organisation perspective, V3 should ask:
 - Which roles exist only because process ownership is unclear?
 - Which skills are reusable across departments?
 
-AIOE should support organisation reading by showing whether repeated hiring patterns cluster around high language-model exposure, image-generation exposure, baseline exposure, generative-era delta, or weak crosswalk confidence.
+This is where BPR belongs.
+
+AIOE should support organisation reading by showing whether repeated hiring patterns cluster around:
+
+- high language-model exposure
+- high image-generation exposure
+- high baseline exposure
+- large positive generative-era delta
+- missing or weak crosswalk confidence
 
 This helps distinguish:
 
@@ -1019,9 +1817,9 @@ This helps distinguish:
 - a governance issue
 - a weak-data issue that must be withheld
 
-## 14. Organisation Perspective: Company Query
+## 15. Organisation Perspective: Company Query
 
-When the user types an organisation name such as `DBS`, V3 should switch from role perspective to organisation perspective.
+When the user types an organisation name such as "DBS", V3 should switch from role perspective to organisation perspective.
 
 The input should be read as:
 
@@ -1029,7 +1827,7 @@ The input should be read as:
 
 This is not the same as typing a job title.
 
-### 14.1 Methodology
+### 15.1 Methodology
 
 Organisation query methodology:
 
@@ -1052,7 +1850,7 @@ The organisation read should use:
 - Falsification
 - Pro-Worker AI test
 
-### 14.2 Deterministic Ideals
+### 15.2 Deterministic Ideals
 
 For a company query, deterministic code must own:
 
@@ -1082,9 +1880,39 @@ If DBS has no live MCF posting match, V3 should say that.
 
 It should not fabricate an organisation profile.
 
-### 14.3 Strategy
+### 15.3 Ethos And Values
 
-For `DBS` as organisation input, V3 should:
+Curiosity:
+
+- ask what the organisation is becoming, not only what it is hiring.
+
+Collaborativeness:
+
+- show how humans, teams, and agents may share work.
+
+Customer focus:
+
+- connect postings back to customer, operational, or governance value.
+
+First principles:
+
+- ask why the work exists before recommending roles or tools.
+
+Domain breadth:
+
+- connect technology, risk, operations, compliance, service, data, and product work where evidence supports it.
+
+Systemic thinking:
+
+- map repeated hiring signals as an organisation system, not isolated vacancies.
+
+Judgment:
+
+- block conclusions when the sample is too small or ambiguous.
+
+### 15.4 Strategy
+
+For "DBS" as organisation input, V3 should:
 
 - preserve the clear job-card list
 - expand into organisation map
@@ -1103,7 +1931,7 @@ The user should be able to decide:
 - whether the organisation signal is strong enough
 - whether BPR or agent design is a better lens
 
-### 14.4 Techniques
+### 15.5 Techniques
 
 Company query techniques:
 
@@ -1119,39 +1947,34 @@ Company query techniques:
 - BPR Map: detect AS-IS friction and TO-BE redesign hypotheses.
 - Governance Ledger: record owner, risk, scope, and allowed action.
 
-### 14.5 Framework
+### 15.6 Framework
 
 The organisation-query framework should be:
 
 1. Resolve
+
+Confirm the employer name and live postings.
+
 2. Segment
+
+Split postings by title, function, duty, capability, and source.
+
 3. Commonise
+
+Find repeated work across roles.
+
 4. Diagnose
+
+Use BDF, Rumelt, and Flow to infer the system pressure.
+
 5. Redesign
+
+Use BPR to ask whether a role, process, shared capability, or agent candidate is needed.
+
 6. Govern
+
+Use the governance ledger before suggesting any agentic action.
+
 7. Decide
 
 Help the human choose apply, compare, prepare, redesign, or withhold.
-
-## 15. What V3 Must Not Become
-
-V3 must not become:
-
-- an ATS gaming tool
-- a keyword stuffing assistant
-- a course-selling funnel
-- a kitchen drawer of unrelated tools
-- a fake certainty machine
-- a blind automation recommender
-- a dashboard that confuses users with too many tags
-- a product that hides whether a claim is computed, sourced, or generated
-
-## 16. Working Principle
-
-V3 should help the user see the work system.
-
-It should not merely help the user chase the job ad.
-
-The desired outcome is not more applications.
-
-The desired outcome is better judgement about work, capability, AI, and organisational change.

@@ -14,6 +14,8 @@ export const config = {
   maxDuration: 60,
 };
 
+import { requireTelegramSession } from '../server/telegram-session.js';
+
 const MCF_BASE = 'https://api.mycareersfuture.gov.sg/v2/jobs';
 const MCF_TIMEOUT_MS = 8000;
 const MCF_DETAIL_TIMEOUT_MS = 6000;
@@ -426,6 +428,7 @@ async function resolveCompany(companyQuery, limitCap) {
 }
 
 export default async function handler(req, res) {
+  if (!requireTelegramSession(req, res)) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
