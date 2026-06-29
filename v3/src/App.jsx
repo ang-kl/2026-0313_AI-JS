@@ -1449,6 +1449,79 @@
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
+import { computeEngine } from "../engine-data/engine-core.js";
+
+// ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
+// Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
+const STEP2_BANDS = {
+  human:     { key: "human",     label: "Human-led",       dot: "#1d4ed8", bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
+  assisted:  { key: "assisted",  label: "AI-assisted",     dot: "#0e7490", bg: "#e3f5fb", ink: "#0b5e74", border: "#bce6f0" },
+  augmented: { key: "augmented", label: "AI-augmented",    dot: "#b45309", bg: "#fdf0dd", ink: "#92450a", border: "#f5d8a8" },
+  auto:      { key: "auto",      label: "Full automation", dot: "#c2410c", bg: "#fde6da", ink: "#9a3412", border: "#f6c6ac" },
+};
+const STEP2_BAND_ORDER = ["human", "assisted", "augmented", "auto"];
+
+// Deterministic AIOE exposure index (0-100) -> 4-level band.
+function aioeToBand(index) {
+  if (index == null) return null;
+  if (index >= 75) return "auto";
+  if (index >= 50) return "augmented";
+  if (index >= 25) return "assisted";
+  return "human";
+}
+
+function step2JobId(job, i) {
+  return String(job.uuid || job.id || `${job.title || "job"}-${i}`).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function salaryMidOf(job) {
+  const lo = job.salaryMin ?? job.minSalary ?? null;
+  const hi = job.salaryMax ?? job.maxSalary ?? null;
+  if (lo != null && hi != null) return Math.round((Number(lo) + Number(hi)) / 2);
+  if (lo != null) return Number(lo);
+  if (hi != null) return Number(hi);
+  return null;
+}
+
+// classifyPostings: ONE batch SSOC classify for the whole result set, then a deterministic
+// per-posting AIOE band via computeEngine. No LLM. Returns id -> {ssoc, sector, sectorCode,
+// band, salaryMid, confidence}. Postings that don't resolve withhold the band (null).
+async function classifyPostings(jobs) {
+  const list = (Array.isArray(jobs) ? jobs : []).slice(0, 80);
+  const out = {};
+  list.forEach((j, i) => { out[step2JobId(j, i)] = { ssoc: null, sector: null, sectorCode: null, band: null, salaryMid: salaryMidOf(j), confidence: null }; });
+  let classifications = [];
+  try {
+    const res = await fetch("/api/ssoc", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "classifyTitles", jobs: list.map((j, i) => ({
+        id: step2JobId(j, i), title: j.title,
+        skills: Array.isArray(j.skills) ? j.skills : [],
+        categories: Array.isArray(j.categories) ? j.categories : [],
+        description: j.description || j.responsibilitiesText || "",
+      })) }),
+    });
+    const data = await res.json();
+    classifications = Array.isArray(data.classifications) ? data.classifications : [];
+  } catch (_) { /* best-effort; cards withhold the band */ }
+  classifications.forEach((cl) => {
+    if (!cl || !out[cl.id]) return;
+    const node = cl.status === "classified" ? cl.node : null;
+    const ssoc = node ? node.code : null;
+    const fam = (cl.hierarchy && (cl.hierarchy.sub_major_group || cl.hierarchy.major_group || cl.hierarchy.minor_group)) || null;
+    let band = null;
+    if (ssoc) { try { const eng = computeEngine({ ssoc, title: cl.title }); if (eng && eng.ok && eng.exposure) band = aioeToBand(eng.exposure.index); } catch (_) {} }
+    out[cl.id] = {
+      ssoc,
+      sector: fam ? fam.title : (node ? "Uncategorised" : null),
+      sectorCode: fam ? fam.code : (ssoc || ""),
+      band,
+      salaryMid: out[cl.id].salaryMid,
+      confidence: cl.confidence || null,
+    };
+  });
+  return out;
+}
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
@@ -11247,6 +11320,333 @@ function JobMatchBreak({ bucket, id }) {
   );
 }
 
+function stripHtml(s) {
+  return String(s || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+}
+function slugify(s) {
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "x";
+}
+
+// ── Step 2: Posting Evidence Picker (Work Intelligence Studio handoff) ───────────
+// Centred page: intro panel + sticky Contents rail (filter / sort / exposure / TOC / OKF)
+// + results grid of band-previewed cards + an OKF concept-document modal. Live MCF +
+// careers.gov.sg postings, deterministically classified per posting (SSOC -> AIOE band).
+function step2Short(title) {
+  let t = String(title || "").replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const parts = t.split(/,|—|–| - /);
+  if (parts.length > 1 && parts[0].trim().length >= 8) t = parts[0].trim();
+  return t.length > 46 ? t.slice(0, 44).trim() + String.fromCharCode(0x2026) : t;
+}
+function step2Days(iso) {
+  if (!iso) return "";
+  const d = new Date(iso); if (isNaN(d)) return "";
+  const days = Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  if (days === 0) return "today"; if (days === 1) return "yesterday";
+  if (days < 7) return days + " days ago";
+  if (days < 30) return Math.floor(days / 7) + " week" + (days < 14 ? "" : "s") + " ago";
+  return Math.floor(days / 30) + " month" + (days < 60 ? "" : "s") + " ago";
+}
+function step2Salary(lo, hi) {
+  const s = (n) => "S$" + Number(n).toLocaleString();
+  if (lo != null && hi != null) return s(lo) + " - " + s(hi) + " / month";
+  if (lo != null || hi != null) return s(lo ?? hi) + " / month";
+  return "Salary on application";
+}
+function step2SalK(mid) { return mid != null ? "S$" + (Math.round(mid / 100) / 10) + "k" : ""; }
+function step2IsFresh(j) { return j && j.minimumYearsExperience != null && Number(j.minimumYearsExperience) < 4; }
+
+// buildOkf: render one posting as an OKF v0.1 document (YAML frontmatter + markdown body).
+function step2BuildOkf(job, cl) {
+  const band = cl && cl.band ? STEP2_BANDS[cl.band] : null;
+  const desc = (stripHtml(job.description || job.responsibilitiesText || "") || "").slice(0, 160);
+  const front = [
+    { k: "type", v: "job-posting" },
+    { k: "title", v: job.title || "" },
+    { k: "description", v: desc || "Live posting evidence." },
+    { k: "resource", v: job.mcfUrl || job.url || "(source posting)" },
+    { k: "tags", v: "[" + [(cl && cl.sector ? slugify(cl.sector) : "uncategorised"), cl && cl.band ? cl.band : "withheld", "mcf"].join(", ") + "]" },
+    { k: "timestamp", v: job.postedDate || "(posting date)" },
+    { k: "ssoc", v: (cl && cl.ssoc) || "(withheld)" },
+    { k: "exposure_band", v: band ? band.label : "withheld" },
+  ];
+  const body = [];
+  const push = (type, prefix, text) => body.push({ type, prefix, text });
+  push("h", "# ", "Role");
+  push("p", "", "Employer: " + (job.employer || "Unknown"));
+  if (cl && cl.ssoc) push("p", "- ", "SSOC " + cl.ssoc + (cl.sector ? " - " + cl.sector : ""));
+  push("p", "- ", "Exposure: " + (band ? band.label : "withheld (no SSOC match)"));
+  push("h", "# ", "Evidence");
+  (Array.isArray(job.skills) ? job.skills.slice(0, 8) : []).forEach((s) => push("p", "- ", String(s)));
+  push("h", "# ", "Provenance");
+  push("p", "- ", "Posting text and skills: from MyCareersFuture (verbatim).");
+  push("p", "- ", "SSOC and exposure: computed deterministically (SingStat SSOC -> ISCO -> AIOE). No LLM.");
+  if (job.mcfUrl) push("l", "", job.mcfUrl);
+  return { front, body };
+}
+
+function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
+  const [state, setState] = useState({ loading: true, jobs: [], error: null });
+  const [cls, setCls] = useState({});
+  const [selectedId, setSelectedId] = useState(null);
+  const [sort, setSort] = useState("sector");
+  const [bandFilter, setBandFilter] = useState([]);
+  const [findText, setFindText] = useState("");
+  const [okfId, setOkfId] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ loading: true, jobs: [], error: null });
+    async function doFetch() {
+      const title = String(query || "");
+      const mcfFetch = fetch("/api/mcf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "jobs", title, limit: 50 }) }).then((r) => r.json());
+      const [mcfSettled, csgSettled] = await Promise.allSettled([mcfFetch, fetchCsgJobs(title, 50)]);
+      if (cancelled) return;
+      const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [] };
+      const csg = csgSettled.status === "fulfilled" ? csgSettled.value : [];
+      const mcfList = (Array.isArray(data.jobs) ? data.jobs : []).map((j) => ({ ...j, source: j.source || "MyCareersFuture" }));
+      const csgList = (Array.isArray(csg) ? csg : []).map((j) => ({ ...j, source: j.source || "careers.gov.sg" }));
+      const merged = sortAndTagJobSearchMatches([...mcfList, ...csgList], title);
+      setState({ loading: false, jobs: merged, error: null });
+    }
+    doFetch().catch((err) => { if (!cancelled) setState({ loading: false, jobs: [], error: err.message }); });
+    return () => { cancelled = true; };
+  }, [query]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!state.jobs.length) { setCls({}); return undefined; }
+    classifyPostings(state.jobs).then((m) => { if (!cancelled) setCls(m); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [state.jobs]);
+
+  useEffect(() => {
+    if (okfId == null) return undefined;
+    const onKey = (e) => { if (e.key === "Escape") setOkfId(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [okfId]);
+
+  const baseJobs = useMemo(() => (freshGrad ? state.jobs.filter(step2IsFresh) : state.jobs), [state.jobs, freshGrad]);
+
+  // decorate each job with its classification + display fields (stable id by index)
+  const cards = useMemo(() => baseJobs.map((j, i) => {
+    const id = step2JobId(j, i);
+    const c = cls[id] || {};
+    return {
+      id, job: j, cl: c,
+      band: c.band ? STEP2_BANDS[c.band] : null,
+      bandKey: c.band || null,
+      short: step2Short(j.title),
+      ssoc: c.ssoc || null,
+      sector: c.sector || "Unclassified",
+      salaryMid: c.salaryMid,
+      meta: [step2Salary(j.salaryMin, j.salaryMax), j.employmentType, j.minimumYearsExperience != null && Number(j.minimumYearsExperience) > 0 ? Number(j.minimumYearsExperience) + "+ yrs exp" : null].filter(Boolean),
+      tags: Array.isArray(j.skills) ? j.skills.filter(Boolean).slice(0, 5) : [],
+      age: step2Days(j.postedDate),
+    };
+  }), [baseJobs, cls]);
+
+  const filtered = useMemo(() => {
+    const q = findText.trim().toLowerCase();
+    return cards.filter((c) => {
+      if (bandFilter.length && (!c.bandKey || !bandFilter.includes(c.bandKey))) return false;
+      if (!q) return true;
+      const hay = [c.job.title, c.job.employer, c.sector, c.ssoc, (c.tags || []).join(" ")].join(" ").toLowerCase();
+      return hay.includes(q);
+    });
+  }, [cards, findText, bandFilter]);
+
+  const sorted = useMemo(() => {
+    const w = filtered.slice();
+    if (sort === "title") w.sort((a, b) => a.short.localeCompare(b.short));
+    else if (sort === "salary") w.sort((a, b) => (b.salaryMid || 0) - (a.salaryMid || 0));
+    else w.sort((a, b) => (a.sector || "").localeCompare(b.sector || "") || a.short.localeCompare(b.short));
+    return w;
+  }, [filtered, sort]);
+
+  const tocGroups = useMemo(() => {
+    if (sort !== "sector") return sorted.length ? [{ header: null, ssoc: null, items: sorted }] : [];
+    const by = {};
+    sorted.forEach((c) => { (by[c.sector] = by[c.sector] || []).push(c); });
+    return Object.keys(by).sort().map((sec) => ({ header: sec, ssoc: by[sec][0].ssoc || "-", items: by[sec] }));
+  }, [sorted, sort]);
+
+  const hasFilters = bandFilter.length > 0 || findText.trim().length > 0;
+  const clearFilters = () => { setBandFilter([]); setFindText(""); };
+  const toggleBand = (k) => setBandFilter((b) => (b.includes(k) ? b.filter((x) => x !== k) : b.concat(k)));
+  const okfCard = okfId != null ? (cards.find((c) => c.id === okfId) || cards[0]) : null;
+  const okfDoc = okfCard ? step2BuildOkf(okfCard.job, okfCard.cl) : null;
+  const okfTree = useMemo(() => {
+    const T = String.fromCharCode(0x251c, 0x2500, 0x2500) + " ";
+    const L = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
+    const out = [{ tree: "", t: query ? slugify(query) + ".okf/" : "results.okf/", color: "#142a8e" }];
+    out.push({ tree: T, t: "index.md", color: "#52607a" });
+    out.push({ tree: T, t: "postings/", color: "#142a8e" });
+    sorted.slice(0, 3).forEach((c) => out.push({ tree: String.fromCharCode(0x2502) + "   " + T, t: c.id + ".md", color: "#52607a" }));
+    if (sorted.length > 3) out.push({ tree: String.fromCharCode(0x2502) + "   " + L, t: String.fromCharCode(0x2026) + " " + (sorted.length - 3) + " more", color: "#a8a193" });
+    out.push({ tree: L, t: "log.md", color: "#52607a" });
+    return out;
+  }, [sorted, query]);
+
+  const KICK = { fontFamily: "'Spline Sans Mono',monospace", fontWeight: 600, color: "#a8a193" };
+  const PAPER = { background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14 };
+
+  return (
+    <div style={{ maxWidth: 1140, margin: "0 auto", padding: "4px 0 60px" }}>
+      <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", padding: "0 0 16px", display: "flex", alignItems: "center", gap: 6 }}>
+        <span aria-hidden="true">&#8592;</span> New search
+      </button>
+
+      <div style={{ ...PAPER, padding: "22px 24px", marginBottom: 18 }}>
+        <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".16em", color: "#8a8274", marginBottom: 7 }}>STEP 2 {String.fromCharCode(0x00b7)} SELECT EVIDENCE</div>
+        <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.85rem", color: "#16202e", margin: "0 0 7px" }}>Select the right posting evidence</h2>
+        <p style={{ fontSize: "0.95rem", color: "#64748b", margin: "0 0 14px", maxWidth: 680 }}>Choose one live result for <strong style={{ color: "#3a4456" }}>{String.fromCharCode(0x201c)}{query}{String.fromCharCode(0x201d)}</strong>. The review workspace opens only after you tap <strong style={{ color: "#3a4456" }}>Analyse this posting</strong>. Each card previews its dominant AI-exposure read before you commit.</p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#2f7d4f", background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 6, padding: "4px 9px" }}>MyCareersFuture + careers.gov.sg</span>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{baseJobs.length} live results</span>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#475569", background: "#eef2f7", border: "1px solid #dbe2ea", borderRadius: 6, padding: "4px 9px" }}>ranked by match</span>
+        </div>
+      </div>
+
+      {state.loading && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>Loading live postings for {String.fromCharCode(0x201c)}{query}{String.fromCharCode(0x201d)}{String.fromCharCode(0x2026)}</p>}
+      {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
+      {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {String.fromCharCode(0x201c)}{query}{String.fromCharCode(0x201d)}{freshGrad ? " under 4 years' experience" : ""}.</p>}
+
+      {!state.loading && baseJobs.length > 0 && (
+        <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+          <aside style={{ flex: "none", width: 248, position: "sticky", top: 14, alignSelf: "flex-start", ...PAPER, padding: "16px 15px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".14em", color: "#8a8274", marginBottom: 9 }}>CONTENTS</div>
+              <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Filter results..." aria-label="Filter results" style={{ width: "100%", boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff" }} />
+            </div>
+
+            <div>
+              <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 7 }}>SORT BY</div>
+              <div style={{ display: "flex", gap: 5 }}>
+                {[["title", "Title"], ["salary", "Salary"], ["sector", "Sector"]].map(([k, lbl]) => (
+                  <button key={k} onClick={() => setSort(k)} aria-pressed={sort === k} style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, cursor: "pointer", minHeight: 32, background: sort === k ? "#142a8e" : "#fff", color: sort === k ? "#fff" : "#52607a", border: "1px solid " + (sort === k ? "#142a8e" : "#e2e0d8"), borderRadius: 7, padding: "6px 4px" }}>{lbl}</button>
+                ))}
+              </div>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#b3ab9c", marginTop: 5 }}>Sector groups by SSOC family</div>
+            </div>
+
+            <div>
+              <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 7 }}>FILTER {String.fromCharCode(0x00b7)} AI EXPOSURE</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {STEP2_BAND_ORDER.map((k) => { const b = STEP2_BANDS[k]; const on = bandFilter.includes(k); return (
+                  <button key={k} onClick={() => toggleBand(k)} aria-pressed={on} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", textAlign: "left", minHeight: 32, background: on ? b.bg : "#fff", color: on ? b.ink : "#8a8274", border: "1px solid " + (on ? b.border : "#e8e5dd"), borderRadius: 7, padding: "6px 9px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 500 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: b.dot, flex: "none" }} />{b.label}
+                  </button>
+                ); })}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em" }}>INDEX {String.fromCharCode(0x00b7)} {sorted.length} OF {baseJobs.length}</div>
+                {hasFilters && <button onClick={clearFilters} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.625rem", padding: 0 }}>clear</button>}
+              </div>
+              <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 9, maxHeight: 300, overflowY: "auto" }}>
+                {tocGroups.map((g, gi) => (
+                  <div key={gi}>
+                    {g.header && (
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 5, paddingBottom: 3, borderBottom: "1px solid #ece9e1" }}>
+                        <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#16202e" }}>{g.header}</span>
+                        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>SSOC {g.ssoc}</span>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {g.items.map((t) => { const sel = selectedId === t.id; return (
+                        <button key={t.id} onClick={() => setSelectedId(t.id)} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", textAlign: "left", background: sel ? "#eef2ff" : "transparent", border: "1px solid " + (sel ? "#cdd9ff" : "transparent"), borderRadius: 7, padding: "6px 8px", width: "100%" }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none" }} />
+                          <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: sel ? "#142a8e" : "#3a4456", lineHeight: 1.25, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
+                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193", flex: "none" }}>{step2SalK(t.salaryMid)}</span>
+                        </button>
+                      ); })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ borderTop: "1px solid #ece9e1", paddingTop: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 6px" }}>OKF v0.1</span>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>Open Knowledge Format</span>
+              </div>
+              <p style={{ fontSize: "0.6875rem", color: "#64748b", lineHeight: 1.5, margin: "0 0 9px" }}>This result set is an OKF bundle {String.fromCharCode(0x2014)} vendor-neutral markdown + YAML frontmatter, readable by humans and agents.</p>
+              <div style={{ background: "#fff", border: "1px solid #ece9e1", borderRadius: 8, padding: "10px 11px", marginBottom: 9 }}>
+                {okfTree.map((n, i) => (<div key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", lineHeight: 1.65, whiteSpace: "pre", color: n.color }}>{n.tree}{n.t}</div>))}
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={() => setOkfId((sorted[0] || {}).id || null)} style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 500, cursor: "pointer", minHeight: 36, color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 7, padding: 7 }}>View concept</button>
+              </div>
+            </div>
+          </aside>
+
+          <div style={{ flex: 1, minWidth: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))", gap: 14, alignContent: "start" }}>
+            {sorted.map((c) => { const sel = selectedId === c.id; const band = c.band; return (
+              <div key={c.id} onClick={() => setSelectedId(c.id)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 13, overflow: "hidden", boxShadow: sel ? "0 6px 22px rgba(26,86,219,.16)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 15px", background: band ? band.bg : "#f4f6fa", borderBottom: "1px solid " + (band ? band.border : "#e6e3db") }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: band ? band.dot : "#94a3b8", flex: "none" }} />
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".03em", color: band ? band.ink : "#64748b" }}>{band ? band.label : "Exposure withheld"}</span>
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: band ? band.ink : "#94a3b8", opacity: 0.7, marginLeft: "auto" }}>{band ? "dominant read" : "no SSOC match"}</span>
+                </div>
+                <div style={{ padding: "14px 15px 15px", display: "flex", flexDirection: "column", flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                    <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", lineHeight: 1.22, color: "#16202e", margin: 0 }}>{c.job.title}</h3>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#94a0b0", whiteSpace: "nowrap", flex: "none", paddingTop: 3 }}>{c.age}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0 11px", flexWrap: "wrap" }}>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", letterSpacing: ".04em", color: "#8a8274" }}>{c.job.employer}</span>
+                    {c.ssoc && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px" }}>SSOC {c.ssoc} {String.fromCharCode(0x00b7)} {c.sector}</span>}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 11 }}>
+                    {c.meta.map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "3px 8px" }}>{m}</span>))}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                    {c.tags.map((t, i) => (<span key={i} style={{ fontSize: "0.75rem", color: "#52607a", background: "#fbfaf8", border: "1px solid #ece9e1", borderRadius: 14, padding: "3px 10px" }}>{t}</span>))}
+                  </div>
+                  <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 10, paddingTop: 11, borderTop: "1px solid #f0eee7" }}>
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "9px 15px", cursor: "pointer", minHeight: 44 }}>Analyse this posting</button>
+                    {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.8125rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
+                    <button onClick={(e) => { e.stopPropagation(); setOkfId(c.id); }} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 8px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
+                  </div>
+                </div>
+              </div>
+            ); })}
+          </div>
+        </div>
+      )}
+
+      {okfCard && okfDoc && (
+        <div role="dialog" aria-modal="true" aria-label="OKF concept document" onClick={() => setOkfId(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 540, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
+            <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #e2e0d8", background: "#fff" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 7px" }}>OKF v0.1</span>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>postings/{okfCard.id}.md</span>
+              </div>
+              <button onClick={() => setOkfId(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
+            </div>
+            <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
+                <div style={{ color: "#b3ab9c" }}>---</div>
+                {okfDoc.front.map((f, i) => (<div key={i}><span style={{ color: "#5b4bbd" }}>{f.k}</span><span style={{ color: "#b3ab9c" }}>: </span><span style={{ color: "#16202e" }}>{f.v}</span></div>))}
+                <div style={{ color: "#b3ab9c", marginBottom: 10 }}>---</div>
+                {okfDoc.body.map((l, i) => (<div key={i} style={{ margin: l.type === "h" ? "12px 0 3px" : "0", color: l.type === "h" ? "#142a8e" : l.type === "l" ? "#1a56db" : "#3a4456", fontWeight: l.type === "h" ? 700 : 400 }}>{l.prefix}{l.text}</div>))}
+              </div>
+            </div>
+            <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 9, padding: "12px 20px", borderTop: "1px solid #e2e0d8", background: "#fff" }}>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {String.fromCharCode(0x00b7)} just files {String.fromCharCode(0x00b7)} just YAML frontmatter</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // v3: McfJobsPanel - live job postings from MyCareersFuture for the analysed
 // role. Cascading match (canonical title -> ESCO essential skills -> weighted
 // keyword fallback) is handled server-side by /api/mcf. Numbered client-side
@@ -14657,20 +15057,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
         {step === "mcf_browse" && (
           <div>
-            <button onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
-              style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize: "0.8125rem", fontWeight:700, color:C.accent, cursor:"pointer" }}>
-              ← New search
-            </button>
-            <McfJobsPanel
-              sel={{ title: query.trim() }}
-              skills={[]}
-              escoOccupation={null}
-              onAnalysePosting={handleAnalysePosting}
-              onQueuePosting={handleQueuePosting}
-              onAnalyseCorpus={handleAnalyseCorpus}
-              queueCount={comparisons.length}
+            <PostingEvidencePicker
+              query={query.trim()}
               freshGrad={freshGrad}
-              standalone
+              onAnalysePosting={handleAnalysePosting}
+              onNewSearch={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
             />
             {comparisons.length > 0 && (
               <p style={{ marginTop:12, fontSize: "0.75rem", color:C.accent, textAlign:"center" }}>
