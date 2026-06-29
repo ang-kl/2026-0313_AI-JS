@@ -278,19 +278,41 @@ async function buildLiveGraphData(posting) {
     }
   } catch (_) { /* fingerprint is optional evidence */ }
 
-  // 2. SSOC 2024 occupation code + title by title (verbatim from the SSOC service).
+  // 2. SSOC 2024 via the SMART classifier (token-overlap on title + skills + duties +
+  //    categories), NOT the weak ILIKE search - so novel titles still resolve. Returns the
+  //    best occupation + a confidence band + the full hierarchy (major -> ... -> occupation).
+  //    Deterministic: classifySsocJobs reads the compiled SSOC tree in memory (no DB).
   let ssoc = posting.ssoc || posting.ssocCode || null;
-  let ssocTitle = null;
-  if (!ssoc) {
+  let ssocTitle = null, ssocConfidence = null, ssocHierarchy = null;
+  try {
+    const c = await postJsonRG("/api/ssoc", { action: "classifyTitles", jobs: [{
+      id: "role", title,
+      skills: skillTags,
+      categories: Array.isArray(posting.categories) ? posting.categories : [],
+      description: postingText,
+    }] });
+    const cl = c && Array.isArray(c.classifications) ? c.classifications[0] : null;
+    if (cl && cl.status === "classified" && cl.node) {
+      ssoc = ssoc || cl.node.code;
+      ssocTitle = cl.node.title || null;
+      ssocConfidence = cl.confidence || null;
+      ssocHierarchy = cl.hierarchy || null;
+    }
+  } catch (_) { /* SSOC optional; engine can still run on the ESCO fingerprint */ }
+
+  // 2b. OFFICIAL SSOC 2024 -> ISCO-08 (ILO) crosswalk for accurate ISCO codes + titles,
+  //     instead of the noisy ESCO-fingerprint guesses. Deterministic (compiled JSON fallback).
+  let iscoOfficial = [];
+  if (ssoc) {
     try {
-      const s = await postJsonRG("/api/ssoc", { action: "search", query: title, limit: 8 });
-      const results = Array.isArray(s.results) ? s.results : [];
-      const lower = title.toLowerCase();
-      const occ = results.find((r) => r.kind === "occupation" && String(r.title || "").toLowerCase() === lower)
-        || results.find((r) => r.kind === "occupation" && (String(r.title || "").toLowerCase().includes(lower) || lower.includes(String(r.title || "").toLowerCase())))
-        || results.find((r) => r.kind === "occupation") || null;
-      if (occ) { ssoc = occ.code; ssocTitle = occ.title || null; }
-    } catch (_) { /* SSOC optional; engine can still run on fingerprint */ }
+      const corr = await postJsonRG("/api/ssoc", { action: "correspondence", code: ssoc, type: "ssoc2024_isco08" });
+      const rows = corr && Array.isArray(corr.rows) ? corr.rows : [];
+      const seen = new Set();
+      rows.forEach((r) => {
+        const code = String(r.target_code || "");
+        if (code && !seen.has(code)) { seen.add(code); iscoOfficial.push({ code, title: r.target_title || ("ISCO " + code) }); }
+      });
+    } catch (_) { /* crosswalk optional */ }
   }
 
   // 3. Engine: occupation + AIOE exposure, deterministic. Withheld honestly on no evidence.
@@ -317,8 +339,11 @@ async function buildLiveGraphData(posting) {
 
   return {
     role, engine, nodes: [...skills, ...resps], resps, skills,
-    ssoc: { code: ssoc || null, title: ssocTitle },
+    ssoc: { code: ssoc || null, title: ssocTitle, confidence: ssocConfidence },
+    ssocHierarchy,
+    iscoOfficial,
     esco: { candidates: escoCandidates },
+    mcfSkills: skillTags,
     sourceUrl: posting.mcfUrl || posting.source_url || null,
   };
 }
@@ -437,24 +462,34 @@ function chainColumns(data) {
   const exp = eng && eng.ok ? eng.exposure : null;
   const occ = eng && eng.ok ? eng.occupation : null;
   const mirror = eng && Array.isArray(eng.mirrorRoles) ? eng.mirrorRoles : null;
+  const official = Array.isArray(data.iscoOfficial) ? data.iscoOfficial : [];
 
   const respNodes = (data.resps || []).slice(0, 8).map((r, i) => ({ id: "c-resp" + i, label: r.label }));
   const roleNode = { id: "c-role", label: data.role.label, sub: data.role.meta.employer || null };
   const ssocCode = (data.ssoc && data.ssoc.code) || (occ && occ.ssoc) || null;
-  const ssocNode = ssocCode ? { id: "c-ssoc", label: "SSOC " + ssocCode, sub: (data.ssoc && data.ssoc.title) || (occ && occ.label) || "SSOC 2024" } : null;
-  const iscoNodes = (mirror && mirror.length)
-    ? mirror.slice(0, 5).map((m, i) => ({ id: "c-isco" + i, label: m.title || ("ISCO " + m.isco), sub: "ISCO " + m.isco + (m.sharePct != null ? " - " + m.sharePct + "%" : "") }))
-    : (occ ? occ.isco.slice(0, 5).map((c, i) => ({ id: "c-isco" + i, label: occ.label || ("ISCO " + c), sub: "ISCO " + c })) : []);
+  const ssocConf = data.ssoc && data.ssoc.confidence;
+  const ssocNode = ssocCode ? { id: "c-ssoc", label: "SSOC " + ssocCode, sub: ((data.ssoc && data.ssoc.title) || (occ && occ.label) || "SSOC 2024") + (ssocConf ? " - " + ssocConf + " confidence" : "") } : null;
+  // ISCO/ILO: OFFICIAL SSOC->ISCO crosswalk first (accurate titles), then engine, then fingerprint.
+  const iscoNodes = official.length
+    ? official.slice(0, 5).map((m, i) => ({ id: "c-isco" + i, label: m.title, sub: "ISCO " + m.code }))
+    : (occ && occ.isco && occ.isco.length)
+      ? occ.isco.slice(0, 5).map((c, i) => ({ id: "c-isco" + i, label: occ.label || ("ISCO " + c), sub: "ISCO " + c }))
+      : (mirror ? mirror.slice(0, 5).map((m, i) => ({ id: "c-isco" + i, label: m.title || ("ISCO " + m.isco), sub: "ISCO " + m.isco + (m.sharePct != null ? " - " + m.sharePct + "%" : "") })) : []);
+  // ESCO skills layer: ESCO essential-skill matches first, then the posting's own MCF skill tags.
   const escoSeen = new Set(); const escoList = [];
-  ((data.esco && data.esco.candidates) || []).forEach((c) => (c.matchedSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (!escoSeen.has(k)) { escoSeen.add(k); escoList.push(String(s)); } }));
-  const escoNodes = escoList.slice(0, 12).map((s, i) => ({ id: "c-esco" + i, label: s }));
+  ((data.esco && data.esco.candidates) || []).forEach((c) => (c.matchedSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (k && !escoSeen.has(k)) { escoSeen.add(k); escoList.push({ label: String(s), src: "esco" }); } }));
+  (data.mcfSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (k && !escoSeen.has(k)) { escoSeen.add(k); escoList.push({ label: String(s), src: "mcf" }); } });
+  const escoNodes = escoList.slice(0, 16).map((s, i) => ({ id: "c-esco" + i, label: s.label, sub: s.src === "mcf" ? "from posting" : null }));
   const aioeNode = exp ? { id: "c-aioe", label: exp.index + "/100", sub: exp.band + " AI-exposure", band: exp.band } : null;
+
+  // Coherence between the SSOC occupation and the ESCO skill evidence (engine reconcile).
+  const coherence = eng && eng.coherence ? eng.coherence.status : null;
 
   const cols = [
     { key: "resp", title: "Job ad - responsibilities", prov: "mcf", nodes: respNodes },
     { key: "role", title: "Role", prov: "mcf", nodes: [roleNode] },
     { key: "ssoc", title: "SSOC 2024", prov: "computed", nodes: ssocNode ? [ssocNode] : [] },
-    { key: "isco", title: "ISCO-08 (ILO)", prov: "computed", nodes: iscoNodes },
+    { key: "isco", title: official.length ? "ISCO-08 (ILO) - official crosswalk" : "ISCO-08 (ILO)", prov: "computed", nodes: iscoNodes },
     { key: "esco", title: "ESCO skills", prov: "computed", nodes: escoNodes },
     { key: "aioe", title: "AI-exposure (AIOE)", prov: "computed", nodes: aioeNode ? [aioeNode] : [] },
   ].filter((c) => c.nodes.length);
@@ -468,12 +503,12 @@ function chainColumns(data) {
   escoNodes.forEach((n) => edges.push([iscoAnchor, n.id]));
   if (aioeNode) edges.push([iscoAnchor, "c-aioe"]);
 
-  return { cols, edges };
+  return { cols, edges, coherence };
 }
 
 function ChainGraph({ data }) {
   const built = useMemo(() => chainColumns(data), [data]);
-  const cols = built.cols, edges = built.edges;
+  const cols = built.cols, edges = built.edges, coherence = built.coherence;
   const [traced, setTraced] = useState(null);
   const [lines, setLines] = useState([]);
   const [box, setBox] = useState({ w: 0, h: 0 });
@@ -525,6 +560,13 @@ function ChainGraph({ data }) {
       <div style={{ fontSize: 12.5, color: P.textSub, marginBottom: 12, lineHeight: 1.5 }}>
         Deterministic chain - <b>job ad</b> {String.fromCharCode(0x2192)} <b>role</b> {String.fromCharCode(0x2192)} <b>SSOC</b> {String.fromCharCode(0x2192)} <b>ISCO-08 (ILO)</b> {String.fromCharCode(0x2192)} <b>ESCO skills</b> {String.fromCharCode(0x2192)} <b>AI-exposure (AIOE)</b>. Tap a node to trace its links. No LLM.
       </div>
+      {coherence && (
+        <div style={{ marginBottom: 12 }}>
+          <span style={chip(coherence === "agree" ? SIDE.left : "#b45309", coherence === "agree" ? "#ecfeff" : "#fff7ed")}>
+            {coherence === "agree" ? String.fromCharCode(0x2713) + " SSOC and ESCO agree on the occupation" : String.fromCharCode(0x26a0) + " SSOC title and ESCO skills point to different occupations - skill evidence weighted, confidence lowered"}
+          </span>
+        </div>
+      )}
       <div ref={stageRef} style={{ position: "relative", display: "flex", gap: "clamp(28px,5vw,72px)", alignItems: "flex-start", overflowX: "auto", paddingBottom: 8 }}>
         <svg width={box.w} height={box.h} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "visible" }} aria-hidden="true">
           {lines.map((l) => {
