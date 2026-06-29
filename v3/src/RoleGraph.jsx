@@ -70,6 +70,8 @@ function readKgPayload() {
 }
 
 export default function RoleGraph() {
+  const live = readLivePosting();
+  if (live) return <LiveGraph posting={live} />;
   const kgPayload = readKgPayload();
   if (kgPayload) return <KGGraph kg={kgPayload} />;
   return <BakedGraph />;
@@ -205,6 +207,341 @@ function BakedGraph() {
 
         {!eng?.ok && <Withheld eng={eng} />}
         <BakedFooter eng={eng} />
+      </div>
+    </div>
+  );
+}
+
+// ── Live mode (LIVE1): deterministic role graph from a handed-off posting ────
+// The slim App stores the posting picked in step 2 under LIVE_GRAPH_KEY, then opens
+// ?view=graph. LiveGraph reads it and runs the DETERMINISTIC ingest pipeline
+// (ESCO occupation fingerprint -> SSOC 5-digit -> computeEngine occupation + AIOE).
+// No LLM: same posting -> same graph. Renders the SAME 4-column mindmap grammar as
+// BakedGraph (reusing Header/GroupCard/ExposureBody/Withheld) plus window controls
+// (expand / float / close-to-puck). BakedGraph stays byte-frozen and untouched.
+const LIVE_GRAPH_KEY = "tara_graph_role";
+
+function readLivePosting() {
+  try {
+    const raw = sessionStorage.getItem(LIVE_GRAPH_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    return obj && obj.title ? obj : null;
+  } catch (_) { return null; }
+}
+
+async function postJsonRG(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) { const e = new Error("HTTP " + res.status); e.status = res.status; throw e; }
+  return res.json();
+}
+
+function stripHtmlRG(s) {
+  const raw = String(s || "");
+  if (!raw) return "";
+  if (typeof DOMParser !== "undefined" && /<[^>]+>/.test(raw)) {
+    try { return String(new DOMParser().parseFromString(raw, "text/html").body.textContent || raw).replace(/\s+/g, " ").trim(); } catch (_) {}
+  }
+  return raw.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+}
+
+// Deterministic responsibility lines from posting text: split on bullets / newlines /
+// sentence ends, keep substantive lines. No invention, no reordering of meaning.
+function splitRespRG(text) {
+  const raw = String(text || "");
+  if (!raw) return [];
+  const parts = raw
+    .split(/\r?\n|•|·|‣|◦|•|;|(?<=[.!?])\s+(?=[A-Z0-9])/)
+    .map((s) => s.replace(/^[\s\-–—*]+/, "").trim())
+    .filter((s) => s.length >= 12 && s.length <= 240);
+  const seen = new Set();
+  const out = [];
+  for (const p of parts) { const k = p.toLowerCase(); if (seen.has(k)) continue; seen.add(k); out.push(p); }
+  return out;
+}
+
+// Run the deterministic pipeline and assemble the DATA-shaped object the mindmap renders.
+async function buildLiveGraphData(posting) {
+  const title = String(posting.title || "").trim();
+  const postingText = stripHtmlRG(posting.responsibilitiesText || posting.description || "");
+  const skillTags = Array.isArray(posting.skills) ? posting.skills.filter(Boolean) : [];
+
+  // 1. ESCO occupation fingerprint -> ISCO candidates (feeds the engine's reconcile).
+  let fingerprintIscos = null;
+  try {
+    const esco = await postJsonRG("/api/esco", { action: "occupationFingerprint", title, skillPhrases: skillTags });
+    if (esco && Array.isArray(esco.candidates) && esco.candidates.length) {
+      fingerprintIscos = esco.candidates.map((c) => ({ code: c.code, ratio: c.ratio })).filter((c) => c.code);
+    }
+  } catch (_) { /* fingerprint is optional evidence */ }
+
+  // 2. SSOC 2024 occupation code by title (verbatim from the SSOC service).
+  let ssoc = posting.ssoc || posting.ssocCode || null;
+  if (!ssoc) {
+    try {
+      const s = await postJsonRG("/api/ssoc", { action: "search", query: title, limit: 8 });
+      const results = Array.isArray(s.results) ? s.results : [];
+      const lower = title.toLowerCase();
+      const occ = results.find((r) => r.kind === "occupation" && String(r.title || "").toLowerCase() === lower)
+        || results.find((r) => r.kind === "occupation" && (String(r.title || "").toLowerCase().includes(lower) || lower.includes(String(r.title || "").toLowerCase())))
+        || results.find((r) => r.kind === "occupation") || null;
+      if (occ) ssoc = occ.code;
+    } catch (_) { /* SSOC optional; engine can still run on fingerprint */ }
+  }
+
+  // 3. Engine: occupation + AIOE exposure, deterministic. Withheld honestly on no evidence.
+  let engine = { ok: false, reason: "No SSOC code or ESCO evidence resolved for this posting." };
+  try {
+    engine = await postJsonRG("/api/engine", { ssoc, title, skills: skillTags, fingerprintIscos });
+  } catch (e) {
+    engine = { ok: false, reason: e && e.status === 401 ? "login-required" : "engine unavailable", error: e && e.message };
+  }
+
+  const role = {
+    id: "role", col: "role", label: title, status: "stated", prov: "mcf",
+    meta: {
+      employer: posting.employer || posting.hiringCompanyName || posting.postedCompanyName || "",
+      salary: [posting.salaryMin ?? null, posting.salaryMax ?? null],
+      seniority: (Array.isArray(posting.seniority) && posting.seniority[0]) || (Array.isArray(posting.positionLevels) && posting.positionLevels[0]) || posting.employmentType || null,
+      ssoc: (engine.ok && engine.occupation && engine.occupation.ssoc) || ssoc || null,
+      vacancies: posting.numberOfVacancies ?? null,
+      categories: Array.isArray(posting.categories) ? posting.categories : [],
+    },
+  };
+  const skills = skillTags.slice(0, 24).map((s, i) => ({ id: "sk" + i, col: "skill", label: String(s), status: "stated", prov: "mcf" }));
+  const resps = splitRespRG(postingText).slice(0, 18).map((r, i) => ({ id: "re" + i, col: "responsibility", label: r, status: "stated", prov: "mcf" }));
+
+  return { role, engine, nodes: [...skills, ...resps], sourceUrl: posting.mcfUrl || posting.source_url || null };
+}
+
+// Window-control bar: Expand (fullscreen) / Float (draggable) / Close (collapse to puck).
+function LiveControls({ mode, onExpand, onFloat, onClose }) {
+  const btn = { cursor: "pointer", minWidth: 36, minHeight: 36, border: `1px solid ${P.border}`, background: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 800, color: P.textSub, lineHeight: 1 };
+  const on = { ...btn, background: P.accentSoft, borderColor: P.accent, color: P.accent };
+  return (
+    <div style={{ display: "inline-flex", gap: 6 }}>
+      <button type="button" style={mode === "expanded" ? on : btn} aria-pressed={mode === "expanded"} aria-label="Expand graph to fullscreen" title="Expand" onClick={onExpand}>{String.fromCharCode(0x2922)}</button>
+      <button type="button" style={mode === "float" ? on : btn} aria-pressed={mode === "float"} aria-label="Float graph as a movable panel" title="Float" onClick={onFloat}>{String.fromCharCode(0x25a2)}</button>
+      <button type="button" style={btn} aria-label="Close graph to a small panel" title="Close" onClick={onClose}>{String.fromCharCode(0x00d7)}</button>
+    </div>
+  );
+}
+
+function LiveGraph({ posting }) {
+  const [state, setState] = useState({ status: "loading", data: null, message: "Analysing posting: occupation, SSOC and AI-exposure..." });
+  // mode: 'normal' (inline) | 'expanded' (fullscreen overlay) | 'float' (draggable) | 'min' (puck)
+  const [mode, setMode] = useState("normal");
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const dragRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState({ status: "loading", data: null, message: "Analysing posting: occupation, SSOC and AI-exposure..." });
+    buildLiveGraphData(posting)
+      .then((data) => { if (!cancelled) setState({ status: "ready", data, message: "" }); })
+      .catch((e) => { if (!cancelled) setState({ status: "error", data: null, message: (e && e.message) || "Could not build the graph." }); });
+    return () => { cancelled = true; };
+  }, [posting]);
+
+  function onDragStart(e) {
+    if (mode !== "float") return;
+    const start = { mx: e.clientX, my: e.clientY, x: pos.x, y: pos.y };
+    dragRef.current = start;
+    const move = (ev) => { const d = dragRef.current; if (!d) return; setPos({ x: d.x + (ev.clientX - d.mx), y: d.y + (ev.clientY - d.my) }); };
+    const up = () => { dragRef.current = null; window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  function backToSearch() {
+    try { sessionStorage.removeItem(LIVE_GRAPH_KEY); } catch (_) {}
+    window.location.href = "/";
+  }
+
+  // Minimised puck: a small fixed control top-right that restores the graph.
+  if (mode === "min") {
+    return (
+      <button type="button" onClick={() => setMode("normal")} aria-label="Reopen role graph"
+        style={{ position: "fixed", top: 14, right: 14, zIndex: 1200, cursor: "pointer", border: `1px solid ${P.accent}`, background: "#fff", color: P.accent, borderRadius: 12, padding: "10px 14px", minHeight: 44, fontWeight: 800, boxShadow: "0 6px 20px rgba(26,86,219,.20)" }}>
+        {String.fromCharCode(0x25c8)} Role graph
+      </button>
+    );
+  }
+
+  const floatStyle = mode === "float"
+    ? { position: "fixed", top: 70, right: 18, width: "min(460px, 92vw)", maxHeight: "78vh", overflow: "auto", zIndex: 1100, transform: `translate(${pos.x}px, ${pos.y}px)`, background: P.bg, border: `1px solid ${P.border}`, borderRadius: 14, boxShadow: "0 12px 40px rgba(16,24,40,.22)" }
+    : mode === "expanded"
+    ? { position: "fixed", inset: 0, overflow: "auto", zIndex: 1100, background: P.bg }
+    : { minHeight: "100vh", background: P.bg };
+
+  const barStyle = {
+    position: mode === "float" ? "sticky" : "sticky", top: 0, zIndex: 5,
+    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+    padding: "10px 14px", background: "rgba(255,255,255,.92)", borderBottom: `1px solid ${P.border}`,
+    cursor: mode === "float" ? "grab" : "default", backdropFilter: "saturate(1.2) blur(4px)",
+  };
+
+  return (
+    <div style={floatStyle}>
+      <div style={barStyle} onPointerDown={onDragStart}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <button type="button" onClick={backToSearch} aria-label="Back to search" title="Back to search"
+            style={{ cursor: "pointer", minHeight: 36, border: `1px solid ${P.border}`, background: "#fff", color: P.textSub, borderRadius: 8, padding: "0 10px", fontWeight: 700, fontSize: 12.5 }}>
+            {String.fromCharCode(0x2190)} Search
+          </button>
+          <span style={{ fontWeight: 800, fontSize: 13, color: P.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{posting.title}</span>
+        </div>
+        <LiveControls mode={mode} onExpand={() => setMode(mode === "expanded" ? "normal" : "expanded")} onFloat={() => { setMode(mode === "float" ? "normal" : "float"); setPos({ x: 0, y: 0 }); }} onClose={() => setMode("min")} />
+      </div>
+
+      {state.status === "loading" && (
+        <div style={{ padding: "28px 18px", color: P.muted, fontSize: 14 }} role="status">{state.message}</div>
+      )}
+      {state.status === "error" && (
+        <div style={{ padding: "28px 18px", color: P.textSub, fontSize: 14 }} role="status">
+          Could not build the role graph: {state.message}. The posting evidence may be thin, or the engine is unavailable.
+        </div>
+      )}
+      {state.status === "ready" && state.data && <LiveMindmap data={state.data} compact={mode === "float"} />}
+    </div>
+  );
+}
+
+// The 4-column mindmap stage for live data. Mirrors BakedGraph's grammar (which stays
+// frozen) but reads a passed-in `data` object instead of the baked DATA import, and
+// reuses the shared leaf components (Header, GroupCard, Withheld).
+function LiveMindmap({ data, compact }) {
+  const role = data.role;
+  const eng = data.engine;
+  const exp = eng && eng.ok ? eng.exposure : null;
+  const occ = eng && eng.ok ? eng.occupation : null;
+  const skills = data.nodes.filter((n) => n.col === "skill");
+  const resps = data.nodes.filter((n) => n.col === "responsibility");
+
+  const branches = [
+    { id: "b-skills", side: "left", prov: "mcf", title: "Skills", sub: "as advertised", items: skills, expandable: true },
+    { id: "b-resp", side: "left", prov: "mcf", title: "Responsibilities", sub: "as advertised", items: resps, expandable: true },
+    { id: "b-exposure", side: "right", prov: "computed", title: "AI-Exposure", sub: exp ? `${exp.index}/100 - ${exp.band}` : "--", kind: "exposure", needsEng: true },
+    { id: "b-occ", side: "right", prov: "computed", title: "Occupation", sub: occ ? `ISCO ${occ.isco.join("/")}` : "--", kind: "occupation", needsEng: true },
+    { id: "b-chain", side: "right", prov: "computed", title: "How it's computed", sub: "SSOC->ISCO->SOC->AIOE", kind: "chain", needsEng: true },
+    { id: "b-aiable", side: "right", prov: "none", title: "AI-able vs human", sub: "occupation-level only*", kind: "aiable" },
+  ].filter((b) => (b.needsEng ? eng && eng.ok : true));
+
+  const [active, setActive] = useState(null);
+  const [hover, setHover] = useState(null);
+  const [open, setOpen] = useState({});
+  const [wide, setWide] = useState(true);
+  const [lines, setLines] = useState([]);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+
+  const stageRef = useRef(null);
+  const hubRef = useRef(null);
+  const cardEls = useRef({});
+  const setCard = useCallback((id) => (el) => { if (el) cardEls.current[id] = el; else delete cardEls.current[id]; }, []);
+
+  const focus = hover || active;
+  const wideBreak = compact ? 100000 : 820; // float panel always stacks vertically
+
+  useLayoutEffect(() => {
+    const cont = stageRef.current, hub = hubRef.current;
+    if (!cont || !hub) return;
+    const cr = cont.getBoundingClientRect();
+    setBox({ w: cont.clientWidth, h: cont.clientHeight });
+    const hr = hub.getBoundingClientRect();
+    const out = [];
+    for (const b of branches) {
+      const el = cardEls.current[b.id];
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      let x1, y1, x2, y2;
+      if (wide) {
+        if (b.side === "left") { x1 = hr.left - cr.left; y1 = hr.top + hr.height / 2 - cr.top; x2 = r.right - cr.left; y2 = r.top + r.height / 2 - cr.top; }
+        else { x1 = hr.right - cr.left; y1 = hr.top + hr.height / 2 - cr.top; x2 = r.left - cr.left; y2 = r.top + r.height / 2 - cr.top; }
+      } else {
+        x1 = hr.left + hr.width / 2 - cr.left; x2 = r.left + r.width / 2 - cr.left;
+        if (b.side === "left") { y1 = hr.top - cr.top; y2 = r.bottom - cr.top; }
+        else { y1 = hr.bottom - cr.top; y2 = r.top - cr.top; }
+      }
+      out.push({ id: b.id, side: b.side, x1, y1, x2, y2 });
+    }
+    setLines(out);
+  }, [wide, open, focus, eng]);
+
+  useEffect(() => {
+    const onResize = () => { setWide(window.innerWidth >= wideBreak); setOpen((o) => ({ ...o })); };
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [wideBreak]);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") { setActive(null); setHover(null); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const leftBr = branches.filter((b) => b.side === "left");
+  const rightBr = branches.filter((b) => b.side === "right");
+  const dimmed = (id) => focus && focus !== id && id !== "role";
+
+  return (
+    <div style={{ color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: compact ? "10px 14px 18px" : "clamp(12px,3vw,28px)" }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+        <Header role={role} />
+
+        <div style={{ display: "flex", justifyContent: "space-between", margin: "6px 2px 10px", gap: 8, flexWrap: "wrap" }}>
+          <span style={chip(SIDE.left, "#ecfeff")}>Published job ad - from the posting</span>
+          <span style={chip(SIDE.right, "#eef2ff")}>AI filter - computed</span>
+        </div>
+
+        <div ref={stageRef} style={{ position: "relative", display: wide ? "grid" : "flex", flexDirection: wide ? undefined : "column",
+          gridTemplateColumns: wide ? "1fr minmax(180px, 220px) 1fr" : undefined, gap: wide ? "clamp(10px,2vw,26px)" : 12, alignItems: wide ? "center" : "stretch" }}>
+
+          <svg width={box.w} height={box.h} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 1, overflow: "visible" }} aria-hidden="true">
+            {lines.map((l) => {
+              const onLine = focus === l.id || focus === "role" || !focus;
+              const lit = focus === l.id;
+              const col = lit ? SIDE[l.side] : "#cfd8e6";
+              let d;
+              if (wide) { const dx = (l.x2 - l.x1) * 0.45; d = `M ${l.x1} ${l.y1} C ${l.x1 + dx} ${l.y1}, ${l.x2 - dx} ${l.y2}, ${l.x2} ${l.y2}`; }
+              else { const dy = (l.y2 - l.y1) * 0.45; d = `M ${l.x1} ${l.y1} C ${l.x1} ${l.y1 + dy}, ${l.x2} ${l.y2 - dy}, ${l.x2} ${l.y2}`; }
+              return <path key={l.id} d={d} fill="none" stroke={col} strokeWidth={lit ? 3 : 2} opacity={onLine ? 0.9 : 0.25} />;
+            })}
+          </svg>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: wide ? "flex-end" : "stretch", zIndex: 2 }}>
+            {leftBr.map((b) => (
+              <GroupCard key={b.id} b={b} setEl={setCard(b.id)} side="left" dim={dimmed(b.id)} selected={active === b.id}
+                openItems={!!open[b.id]} onToggle={() => setOpen((o) => ({ ...o, [b.id]: !o[b.id] }))}
+                onSelect={() => setActive((a) => (a === b.id ? null : b.id))} onHover={(v) => setHover(v ? b.id : null)} />
+            ))}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", zIndex: 2 }}>
+            <button ref={hubRef} onClick={() => { setActive(null); }} onMouseEnter={() => setHover("role")} onMouseLeave={() => setHover(null)}
+              aria-label={`${role.label}. Central role. ${role.meta.employer}.`}
+              style={{ cursor: "pointer", textAlign: "center", border: `2px solid ${P.accent}`, background: "#fff",
+                borderRadius: 16, padding: "14px 16px", minWidth: 160, maxWidth: 260, boxShadow: "0 4px 16px rgba(26,86,219,.16)" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#0f766e" }}>Live role</div>
+              <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.2, margin: "4px 0" }}>{role.label}</div>
+              <div style={{ fontSize: 11.5, color: P.muted }}>{role.meta.employer}</div>
+              {exp && <div style={{ marginTop: 8 }}><span style={chip(BAND[exp.band].color, BAND[exp.band].bg)}>AI-exposure {exp.index}/100 - {exp.band}</span></div>}
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, alignItems: wide ? "flex-start" : "stretch", zIndex: 2 }}>
+            {rightBr.map((b) => (
+              <GroupCard key={b.id} b={b} setEl={setCard(b.id)} side="right" dim={dimmed(b.id)} selected={active === b.id}
+                eng={eng} openItems={!!open[b.id]} onToggle={() => setOpen((o) => ({ ...o, [b.id]: !o[b.id] }))}
+                onSelect={() => setActive((a) => (a === b.id ? null : b.id))} onHover={(v) => setHover(v ? b.id : null)} />
+            ))}
+          </div>
+        </div>
+
+        {!(eng && eng.ok) && <Withheld eng={eng} />}
+        <footer style={{ marginTop: 22, paddingTop: 14, borderTop: `1px solid ${P.border}`, fontSize: 11.5, color: P.muted, lineHeight: 1.6 }}>
+          <div><b>Computed (deterministic):</b> AIOE - Felten, Raj and Seamans 2021; SSOC/ISCO - SingStat; ISCO/SOC - U.S. BLS. No LLM: same posting, same numbers. AI-assisted; human decides.</div>
+          {data.sourceUrl && <div style={{ marginTop: 4 }}><a href={data.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: P.accent }}>View the source posting</a></div>}
+        </footer>
       </div>
     </div>
   );

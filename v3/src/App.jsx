@@ -485,6 +485,31 @@ async function analysePostingToKg(job) {
   return getKnowledgeGraph(result, title);
 }
 
+// Hand the selected step-2 posting to the full-page deterministic RoleGraph (?view=graph).
+// RoleGraph reads this key, runs the ESCO -> SSOC -> engine pipeline, and renders the graph.
+function openRoleGraph(job) {
+  try {
+    const payload = {
+      title: job.title,
+      employer: job.employer,
+      skills: Array.isArray(job.skills) ? job.skills : [],
+      categories: Array.isArray(job.categories) ? job.categories : [],
+      responsibilitiesText: job.responsibilitiesText || job.description || '',
+      description: job.description || '',
+      salaryMin: job.salaryMin ?? null,
+      salaryMax: job.salaryMax ?? null,
+      seniority: job.seniority || job.positionLevels || null,
+      employmentType: job.employmentType || null,
+      numberOfVacancies: job.numberOfVacancies ?? null,
+      ssoc: job.ssoc || job.ssocCode || null,
+      mcfUrl: job.mcfUrl || null,
+      source_url: job.sourceUrl || job.source_url || null,
+    };
+    sessionStorage.setItem('tara_graph_role', JSON.stringify(payload));
+  } catch (_) { /* sessionStorage may be unavailable; navigate anyway */ }
+  window.location.href = '/?view=graph';
+}
+
 function buildOrgSummary(jobs, query, ssocClassifications = []) {
   const postings = Array.isArray(jobs) ? jobs : [];
   const ssocMap = new Map((Array.isArray(ssocClassifications) ? ssocClassifications : []).map((item) => [safeText(item.id).toLowerCase(), item]));
@@ -1125,6 +1150,9 @@ function resetToStart() {
                       >
                         Analyse this posting
                       </button>
+                      <button type="button" className="view-role-graph" onClick={() => openRoleGraph(job)}>
+                        View role graph
+                      </button>
                       {job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noreferrer">Open posting</a>}
                     </div>
                   )}
@@ -1380,6 +1408,9 @@ function V2StepTwo({ query, lens, visibleJobs, jobs, freshGrad, setFreshGrad, se
               <div className="v2-result-actions">
                 <button type="button" onClick={() => { setSelectedId(job.uuid); setReviewId(job.uuid); setReviewStates({}); }}>
                   Analyse this posting
+                </button>
+                <button type="button" onClick={() => openRoleGraph(job)}>
+                  View role graph
                 </button>
                 {job.mcfUrl && <a href={job.mcfUrl} target="_blank" rel="noreferrer">Open posting</a>}
               </div>
@@ -2147,6 +2178,7 @@ button:hover, button:focus-visible { border-color: var(--accent); outline: 2px s
 .job-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .job-actions a { color: var(--accent); font-size: 0.7rem; font-weight: 800; text-decoration: none; }
 .analyse-posting { align-self: flex-start; min-height: 32px; padding: 0 9px; border-color: color-mix(in srgb, var(--assist) 45%, var(--line)); color: var(--assist); background: color-mix(in srgb, var(--assist) 8%, transparent); font-size: 0.68rem; font-weight: 800; }
+.view-role-graph { align-self: flex-start; min-height: 32px; padding: 0 9px; border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); font-size: 0.68rem; font-weight: 800; }
 .match-reason { color: var(--label); font: 700 0.62rem "Spline Sans Mono", monospace; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .manuscript { padding: clamp(16px, 3vw, 32px); }
