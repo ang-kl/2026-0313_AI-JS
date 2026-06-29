@@ -11434,6 +11434,56 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
   );
 }
 
+// Deterministic, non-inventive synopsis: the posting's own opening words (verbatim).
+function step2Synopsis(job) {
+  const raw = stripHtml(job.description || job.responsibilitiesText || job.summary || "");
+  if (!raw) return "";
+  let s = raw.slice(0, 240);
+  const dot = s.lastIndexOf(". ");
+  if (dot > 90) return s.slice(0, dot + 1).trim();
+  if (raw.length > 190) { s = s.slice(0, 186); const w = s.lastIndexOf(" "); if (w > 100) s = s.slice(0, w); return s.trim() + String.fromCharCode(0x2026); }
+  return s.trim();
+}
+// OKF index.md: lists every posting in the bundle (the bundle indices).
+function step2BuildOkfIndex(cards, query) {
+  const front = [
+    { k: "type", v: "okf-index" },
+    { k: "title", v: (query || "Postings") + " - evidence bundle" },
+    { k: "description", v: "Index of live posting evidence, classified by SSOC and AI-exposure." },
+    { k: "count", v: String(cards.length) },
+    { k: "timestamp", v: "(generated at view time)" },
+  ];
+  const body = [{ type: "h", prefix: "# ", text: "Postings (" + cards.length + ")" }];
+  cards.forEach((c) => body.push({ type: "p", prefix: "- ", text: "postings/" + c.id + ".md " + String.fromCharCode(0x2014) + " " + c.job.title + " (" + (c.cl && c.cl.band ? STEP2_BANDS[c.cl.band].label : "withheld") + (c.ssoc ? ", SSOC " + c.ssoc : "") + ")" }));
+  return { front, body };
+}
+// OKF sectors/<slug>.md: postings grouped under one SSOC family.
+function step2BuildOkfSector(name, cards) {
+  const items = cards.filter((c) => c.sector === name);
+  const front = [
+    { k: "type", v: "okf-index" },
+    { k: "title", v: name },
+    { k: "description", v: "Postings in the " + name + " SSOC family." },
+    { k: "count", v: String(items.length) },
+  ];
+  const body = [{ type: "h", prefix: "# ", text: name }];
+  items.forEach((c) => body.push({ type: "p", prefix: "- ", text: "../postings/" + c.id + ".md " + String.fromCharCode(0x2014) + " " + c.job.title }));
+  return { front, body };
+}
+// OKF log.md: how the bundle was assembled (provenance, deterministic).
+function step2BuildOkfLog(query, counts) {
+  const front = [{ k: "type", v: "okf-log" }, { k: "title", v: "Build log" }, { k: "description", v: "How this evidence bundle was assembled." }];
+  const body = [
+    { type: "h", prefix: "# ", text: "Provenance" },
+    { type: "p", prefix: "- ", text: "Query: " + (query || "(none)") },
+    { type: "p", prefix: "- ", text: "Sources: MyCareersFuture (" + counts.mcf + ") + careers.gov.sg (" + counts.csg + ")." },
+    { type: "p", prefix: "- ", text: "Posting text and skills: from the source postings, verbatim." },
+    { type: "p", prefix: "- ", text: "SSOC and exposure: computed deterministically (SingStat SSOC -> ISCO -> AIOE). No LLM." },
+    { type: "p", prefix: "- ", text: "Bands withheld where no SSOC occupation matched (non-inventive)." },
+  ];
+  return { front, body };
+}
+
 function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null });
   const [cls, setCls] = useState({});
@@ -11442,7 +11492,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [facets, setFacets] = useState({ sector: [], company: [], department: [], func: [], exp: [], type: [], exposure: [] });
   const [openFacet, setOpenFacet] = useState(null);
   const [findText, setFindText] = useState("");
-  const [okfId, setOkfId] = useState(null);
+  const [okf, setOkf] = useState(null);
   const barRef = useRef(null);
 
   useEffect(() => {
@@ -11472,7 +11522,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   }, [state.jobs]);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { setOkfId(null); setOpenFacet(null); } };
+    const onKey = (e) => { if (e.key === "Escape") { setOkf(null); setOpenFacet(null); } };
     const onDown = (e) => { if (openFacet && barRef.current && !barRef.current.contains(e.target)) setOpenFacet(null); };
     window.addEventListener("keydown", onKey);
     window.addEventListener("mousedown", onDown);
@@ -11538,100 +11588,181 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const hasFilters = activeFacetCount > 0 || findText.trim().length > 0;
   const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [], exposure: [] }); setFindText(""); };
   const toggleFacet = (key, val) => setFacets((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : f[key].concat(val) }));
-  const okfCard = okfId != null ? (cards.find((c) => c.id === okfId) || cards[0]) : null;
-  const okfDoc = okfCard ? step2BuildOkf(okfCard.job, okfCard.cl) : null;
-  const okfTree = useMemo(() => {
-    const T = String.fromCharCode(0x251c, 0x2500, 0x2500) + " ";
-    const L = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
-    const out = [{ tree: "", t: query ? slugify(query) + ".okf/" : "results.okf/", color: "#142a8e" }];
-    out.push({ tree: T, t: "index.md", color: "#52607a" });
-    out.push({ tree: T, t: "postings/", color: "#142a8e" });
-    sorted.slice(0, 3).forEach((c) => out.push({ tree: String.fromCharCode(0x2502) + "   " + T, t: c.id + ".md", color: "#52607a" }));
-    if (sorted.length > 3) out.push({ tree: String.fromCharCode(0x2502) + "   " + L, t: String.fromCharCode(0x2026) + " " + (sorted.length - 3) + " more", color: "#a8a193" });
-    out.push({ tree: L, t: "log.md", color: "#52607a" });
-    return out;
-  }, [sorted, query]);
+  const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
+  const mcfCards = sorted.filter((c) => !isCsg(c.job));
+  const csgCards = sorted.filter((c) => isCsg(c.job));
+  const sectorsPresent = [...new Set(sorted.map((c) => c.sector).filter(Boolean))].sort();
+  const tocGroups = useMemo(() => {
+    const by = {}; sorted.forEach((c) => { (by[c.sector || "Unclassified"] = by[c.sector || "Unclassified"] || []).push(c); });
+    return Object.keys(by).sort().map((s) => ({ sector: s, items: by[s] }));
+  }, [sorted]);
 
   const KICK = { fontFamily: "'Spline Sans Mono',monospace", fontWeight: 600, color: "#a8a193" };
-  const Q1 = String.fromCharCode(0x201c), Q2 = String.fromCharCode(0x201d), DOT = String.fromCharCode(0x00b7);
+  const Q1 = String.fromCharCode(0x201c), Q2 = String.fromCharCode(0x201d), DOT = String.fromCharCode(0x00b7), ELL = String.fromCharCode(0x2026);
   const SORT_OPTS = [["match", "Best match"], ["recent", "Most recent"], ["salary", "Salary high-low"], ["title", "Title A-Z"]];
   const sortLabel = (SORT_OPTS.find((o) => o[0] === sort) || SORT_OPTS[0])[1];
+
+  const okfDoc = useMemo(() => {
+    if (!okf) return null;
+    if (okf.kind === "posting") { const c = cards.find((x) => x.id === okf.id) || cards[0]; return c ? { path: "postings/" + c.id + ".md", ...step2BuildOkf(c.job, c.cl) } : null; }
+    if (okf.kind === "index") return { path: "index.md", ...step2BuildOkfIndex(sorted, query) };
+    if (okf.kind === "sector") return { path: "sectors/" + slugify(okf.name) + ".md", ...step2BuildOkfSector(okf.name, sorted) };
+    if (okf.kind === "log") return { path: "log.md", ...step2BuildOkfLog(query, { mcf: mcfCards.length, csg: csgCards.length }) };
+    return null;
+  }, [okf, cards, sorted, query, mcfCards.length, csgCards.length]);
+
+  // Rich posting card: + deterministic synopsis + skillsets.
+  const renderCard = (c) => {
+    const sel = selectedId === c.id; const band = c.band;
+    const synopsis = step2Synopsis(c.job);
+    const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
+    return (
+      <div key={c.id} onClick={() => setSelectedId(c.id)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 11px", background: band ? band.bg : "#f4f6fa", borderBottom: "1px solid " + (band ? band.border : "#e6e3db") }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: band ? band.dot : "#94a3b8", flex: "none" }} />
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".02em", color: band ? band.ink : "#64748b" }}>{band ? band.label : "Exposure withheld"}</span>
+        </div>
+        <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
+          <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
+          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: "#8a8274", margin: "5px 0 7px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}{c.age ? "  " + DOT + "  " + c.age : ""}</div>
+          {c.ssoc && <div style={{ marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span></div>}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
+            {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
+          </div>
+          {synopsis && <p style={{ margin: "0 0 9px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
+          {skills.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ ...KICK, fontSize: "0.5rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 4 }}>SKILLSETS</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                {skills.map((t, i) => (<span key={i} style={{ fontSize: "0.6875rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "2px 9px" }}>{t}</span>))}
+              </div>
+            </div>
+          )}
+          <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
+            <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 36 }}>Analyse</button>
+            {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
+            <button onClick={(e) => { e.stopPropagation(); setOkf({ kind: "posting", id: c.id }); }} title="View OKF concept document" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 7px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const okfRow = (indent, label, color, onClick, bold) => (
+    <button key={label} type="button" onClick={onClick} disabled={!onClick} style={{ display: "block", width: "100%", textAlign: "left", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", lineHeight: 1.7, whiteSpace: "pre", color, background: "none", border: "none", padding: 0, cursor: onClick ? "pointer" : "default", fontWeight: bold ? 700 : 400 }}>{indent}{label}</button>
+  );
+  const TR = String.fromCharCode(0x251c, 0x2500, 0x2500) + " ";
+  const TL = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
+  const TI = String.fromCharCode(0x2502) + "   ";
+
+  const sourcePanel = (name, srcCards, tone) => (
+    <section style={{ flex: "1 1 380px", minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
+        <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: tone.ink, background: tone.bg, border: "1px solid " + tone.border, borderRadius: 6, padding: "2px 7px" }}>{srcCards.length}</span>
+      </div>
+      {srcCards.length === 0
+        ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
+        : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 12, alignContent: "start" }}>{srcCards.map(renderCard)}</div>}
+    </section>
+  );
+
   return (
-    <div style={{ position: "relative", width: "min(96vw, 1640px)", left: "50%", transform: "translateX(-50%)", padding: "0 0 60px" }}>
+    <div style={{ position: "relative", width: "min(96vw, 1720px)", left: "50%", transform: "translateX(-50%)", padding: "0 0 60px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
-        <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}>
-          <span aria-hidden="true">&#8592;</span> New search
-        </button>
+        <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
           <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".16em", color: "#8a8274" }}>STEP 2 {DOT} SELECT EVIDENCE</div>
           <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.3rem", color: "#16202e", margin: "1px 0 0", lineHeight: 1.2 }}>Posting evidence for {Q1}{query}{Q2}</h2>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{sorted.length} of {baseJobs.length}</span>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#2f7d4f", background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 6, padding: "4px 9px" }}>MyCareersFuture + careers.gov.sg</span>
+          <button type="button" onClick={() => setOkf({ kind: "index" })} style={{ cursor: "pointer", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
       </div>
 
       <div ref={barRef} style={{ position: "sticky", top: 6, zIndex: 30, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "rgba(251,250,248,.97)", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, backdropFilter: "saturate(1.3) blur(6px)" }}>
-        <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" style={{ flex: "1 1 220px", minWidth: 150, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 36 }} />
+        <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 36 }} />
         <div style={{ position: "relative", flex: "none" }}>
-          <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-            Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span>
-          </button>
+          <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
           {openFacet === "sort" && (
             <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
-              {SORT_OPTS.map(([k, lbl]) => (
-                <button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>
-              ))}
+              {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
             </div>
           )}
         </div>
-        {STEP2_FACETS.map((f) => (
-          <Step2Facet key={f.key} label={f.label} options={facetOptions[f.key]} selected={facets[f.key]} onToggle={(v) => toggleFacet(f.key, v)} open={openFacet === f.key} onOpen={() => setOpenFacet(openFacet === f.key ? null : f.key)} />
-        ))}
+        {STEP2_FACETS.map((f) => (<Step2Facet key={f.key} label={f.label} options={facetOptions[f.key]} selected={facets[f.key]} onToggle={(v) => toggleFacet(f.key, v)} open={openFacet === f.key} onOpen={() => setOpenFacet(openFacet === f.key ? null : f.key)} />))}
         {hasFilters && <button type="button" onClick={clearFilters} style={{ flex: "none", minHeight: 36, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
       </div>
 
-      {state.loading && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>Loading live postings for {Q1}{query}{Q2}{String.fromCharCode(0x2026)}</p>}
+      {state.loading && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>Loading live postings for {Q1}{query}{Q2}{ELL}</p>}
       {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
       {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
       {!state.loading && baseJobs.length > 0 && sorted.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No postings match the current filters. <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#1a56db", cursor: "pointer", fontWeight: 600, padding: 0 }}>Clear all</button></p>}
 
       {!state.loading && sorted.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12, alignContent: "start" }}>
-          {sorted.map((c) => { const sel = selectedId === c.id; const band = c.band; return (
-            <div key={c.id} onClick={() => setSelectedId(c.id)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 11px", background: band ? band.bg : "#f4f6fa", borderBottom: "1px solid " + (band ? band.border : "#e6e3db") }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: band ? band.dot : "#94a3b8", flex: "none" }} />
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".02em", color: band ? band.ink : "#64748b" }}>{band ? band.label : "Exposure withheld"}</span>
-              </div>
-              <div style={{ padding: "10px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
-                <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "0.9rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
-                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: "#8a8274", margin: "5px 0 7px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}{c.age ? "  " + DOT + "  " + c.age : ""}</div>
-                {c.ssoc && <div style={{ marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span></div>}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
-                  {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
-                </div>
-                <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
-                  <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 36 }}>Analyse</button>
-                  {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
-                  <button onClick={(e) => { e.stopPropagation(); setOkfId(c.id); }} title="View OKF concept document" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 7px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
-                </div>
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <aside style={{ flex: "none", width: 248, position: "sticky", top: 58, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 70px)", overflowY: "auto" }} className="wis-scroll">
+            <div>
+              <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 8 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
+              <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+                {tocGroups.map((g, gi) => (
+                  <div key={gi}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4, paddingBottom: 3, borderBottom: "1px solid #ece9e1" }}>
+                      <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.sector}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", color: "#a8a193", flex: "none" }}>{g.items.length}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {g.items.map((t) => { const s = selectedId === t.id; return (
+                        <button key={t.id} onClick={() => setSelectedId(t.id)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "5px 7px", width: "100%" }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none" }} />
+                          <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: s ? "#142a8e" : "#3a4456", lineHeight: 1.2, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
+                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", color: "#a8a193", flex: "none" }}>{step2SalK(t.salaryMid)}</span>
+                        </button>
+                      ); })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          ); })}
+
+            <div style={{ borderTop: "1px solid #ece9e1", paddingTop: 13 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 6px" }}>OKF v0.1</span>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>Open Knowledge Format</span>
+              </div>
+              <p style={{ fontSize: "0.6875rem", color: "#64748b", lineHeight: 1.5, margin: "0 0 9px" }}>A vendor-neutral markdown bundle - tap a file to read it.</p>
+              <div style={{ background: "#fff", border: "1px solid #ece9e1", borderRadius: 8, padding: "9px 11px", marginBottom: 9 }}>
+                {okfRow("", (query ? slugify(query) : "results") + ".okf/", "#142a8e", null, true)}
+                {okfRow(TR, "index.md", "#5b4bbd", () => setOkf({ kind: "index" }))}
+                {okfRow(TR, "postings/  (" + sorted.length + ")", "#142a8e", null)}
+                {okfRow(TR, "sectors/", "#142a8e", null)}
+                {sectorsPresent.map((s, i) => okfRow(TI + (i === sectorsPresent.length - 1 ? TL : TR), slugify(s) + ".md", "#52607a", () => setOkf({ kind: "sector", name: s })))}
+                {okfRow(TL, "log.md", "#5b4bbd", () => setOkf({ kind: "log" }))}
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={() => setOkf({ kind: "index" })} style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 500, cursor: "pointer", minHeight: 34, color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 7, padding: 7 }}>Open index</button>
+              </div>
+            </div>
+          </aside>
+
+          <div style={{ flex: 1, minWidth: 0, display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+            {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" })}
+            {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" })}
+          </div>
         </div>
       )}
 
-      {okfCard && okfDoc && (
-        <div role="dialog" aria-modal="true" aria-label="OKF concept document" onClick={() => setOkfId(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 540, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
+      {okf && okfDoc && (
+        <div role="dialog" aria-modal="true" aria-label="OKF document" onClick={() => setOkf(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 560, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
             <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #e2e0d8", background: "#fff" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 7px" }}>OKF v0.1</span>
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>postings/{okfCard.id}.md</span>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>{okfDoc.path}</span>
               </div>
-              <button onClick={() => setOkfId(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
+              <button onClick={() => setOkf(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
             </div>
             <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
@@ -11642,7 +11773,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               </div>
             </div>
             <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 9, padding: "12px 20px", borderTop: "1px solid #e2e0d8", background: "#fff" }}>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {String.fromCharCode(0x00b7)} just files {String.fromCharCode(0x00b7)} just YAML frontmatter</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {DOT} just files {DOT} just YAML frontmatter</span>
             </div>
           </div>
         </div>
