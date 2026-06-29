@@ -266,17 +266,21 @@ async function buildLiveGraphData(posting) {
   const postingText = stripHtmlRG(posting.responsibilitiesText || posting.description || "");
   const skillTags = Array.isArray(posting.skills) ? posting.skills.filter(Boolean) : [];
 
-  // 1. ESCO occupation fingerprint -> ISCO candidates (feeds the engine's reconcile).
+  // 1. ESCO occupation fingerprint -> ISCO candidates (feeds the engine's reconcile)
+  //    AND the ESCO essential-skill layer for the deep chain.
   let fingerprintIscos = null;
+  let escoCandidates = [];
   try {
     const esco = await postJsonRG("/api/esco", { action: "occupationFingerprint", title, skillPhrases: skillTags });
     if (esco && Array.isArray(esco.candidates) && esco.candidates.length) {
+      escoCandidates = esco.candidates;
       fingerprintIscos = esco.candidates.map((c) => ({ code: c.code, ratio: c.ratio })).filter((c) => c.code);
     }
   } catch (_) { /* fingerprint is optional evidence */ }
 
-  // 2. SSOC 2024 occupation code by title (verbatim from the SSOC service).
+  // 2. SSOC 2024 occupation code + title by title (verbatim from the SSOC service).
   let ssoc = posting.ssoc || posting.ssocCode || null;
+  let ssocTitle = null;
   if (!ssoc) {
     try {
       const s = await postJsonRG("/api/ssoc", { action: "search", query: title, limit: 8 });
@@ -285,7 +289,7 @@ async function buildLiveGraphData(posting) {
       const occ = results.find((r) => r.kind === "occupation" && String(r.title || "").toLowerCase() === lower)
         || results.find((r) => r.kind === "occupation" && (String(r.title || "").toLowerCase().includes(lower) || lower.includes(String(r.title || "").toLowerCase())))
         || results.find((r) => r.kind === "occupation") || null;
-      if (occ) ssoc = occ.code;
+      if (occ) { ssoc = occ.code; ssocTitle = occ.title || null; }
     } catch (_) { /* SSOC optional; engine can still run on fingerprint */ }
   }
 
@@ -311,7 +315,12 @@ async function buildLiveGraphData(posting) {
   const skills = skillTags.slice(0, 24).map((s, i) => ({ id: "sk" + i, col: "skill", label: String(s), status: "stated", prov: "mcf" }));
   const resps = splitRespRG(postingText).slice(0, 18).map((r, i) => ({ id: "re" + i, col: "responsibility", label: r, status: "stated", prov: "mcf" }));
 
-  return { role, engine, nodes: [...skills, ...resps], sourceUrl: posting.mcfUrl || posting.source_url || null };
+  return {
+    role, engine, nodes: [...skills, ...resps], resps, skills,
+    ssoc: { code: ssoc || null, title: ssocTitle },
+    esco: { candidates: escoCandidates },
+    sourceUrl: posting.mcfUrl || posting.source_url || null,
+  };
 }
 
 // Window-control bar: Expand (fullscreen) / Float (draggable) / Close (collapse to puck).
@@ -331,6 +340,7 @@ function LiveGraph({ posting }) {
   const [state, setState] = useState({ status: "loading", data: null, message: "Analysing posting: occupation, SSOC and AI-exposure..." });
   // mode: 'normal' (inline) | 'expanded' (fullscreen overlay) | 'float' (draggable) | 'min' (puck)
   const [mode, setMode] = useState("normal");
+  const [view, setView] = useState("chain"); // 'chain' (deep MCF->SSOC->ISCO->ESCO->AIOE) | 'map' (hub mindmap)
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragRef = useRef(null);
 
@@ -391,7 +401,17 @@ function LiveGraph({ posting }) {
           </button>
           <span style={{ fontWeight: 800, fontSize: 13, color: P.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{posting.title}</span>
         </div>
-        <LiveControls mode={mode} onExpand={() => setMode(mode === "expanded" ? "normal" : "expanded")} onFloat={() => { setMode(mode === "float" ? "normal" : "float"); setPos({ x: 0, y: 0 }); }} onClose={() => setMode("min")} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div role="group" aria-label="Graph view" style={{ display: "inline-flex", border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+            {[["chain", "Chain"], ["map", "Map"]].map(([k, lbl]) => (
+              <button key={k} type="button" aria-pressed={view === k} onClick={() => setView(k)}
+                style={{ cursor: "pointer", minHeight: 36, padding: "0 12px", border: "none", borderRight: k === "chain" ? `1px solid ${P.border}` : "none", background: view === k ? P.accent : "#fff", color: view === k ? "#fff" : P.textSub, fontWeight: 800, fontSize: 12.5 }}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+          <LiveControls mode={mode} onExpand={() => setMode(mode === "expanded" ? "normal" : "expanded")} onFloat={() => { setMode(mode === "float" ? "normal" : "float"); setPos({ x: 0, y: 0 }); }} onClose={() => setMode("min")} />
+        </div>
       </div>
 
       {state.status === "loading" && (
@@ -402,7 +422,153 @@ function LiveGraph({ posting }) {
           Could not build the role graph: {state.message}. The posting evidence may be thin, or the engine is unavailable.
         </div>
       )}
-      {state.status === "ready" && state.data && <LiveMindmap data={state.data} compact={mode === "float"} />}
+      {state.status === "ready" && state.data && (view === "chain"
+        ? <ChainGraph data={state.data} />
+        : <LiveMindmap data={state.data} compact={mode === "float"} />)}
+    </div>
+  );
+}
+
+// chainColumns: assemble the deterministic deep chain (the PR #23 structure) from the
+// pipeline output. Columns: Responsibilities -> Role -> SSOC 2024 -> ISCO-08 (ILO) ->
+// ESCO skills -> AI-exposure (AIOE). Every node is sourced; no LLM, no invented edges.
+function chainColumns(data) {
+  const eng = data.engine;
+  const exp = eng && eng.ok ? eng.exposure : null;
+  const occ = eng && eng.ok ? eng.occupation : null;
+  const mirror = eng && Array.isArray(eng.mirrorRoles) ? eng.mirrorRoles : null;
+
+  const respNodes = (data.resps || []).slice(0, 8).map((r, i) => ({ id: "c-resp" + i, label: r.label }));
+  const roleNode = { id: "c-role", label: data.role.label, sub: data.role.meta.employer || null };
+  const ssocCode = (data.ssoc && data.ssoc.code) || (occ && occ.ssoc) || null;
+  const ssocNode = ssocCode ? { id: "c-ssoc", label: "SSOC " + ssocCode, sub: (data.ssoc && data.ssoc.title) || (occ && occ.label) || "SSOC 2024" } : null;
+  const iscoNodes = (mirror && mirror.length)
+    ? mirror.slice(0, 5).map((m, i) => ({ id: "c-isco" + i, label: m.title || ("ISCO " + m.isco), sub: "ISCO " + m.isco + (m.sharePct != null ? " - " + m.sharePct + "%" : "") }))
+    : (occ ? occ.isco.slice(0, 5).map((c, i) => ({ id: "c-isco" + i, label: occ.label || ("ISCO " + c), sub: "ISCO " + c })) : []);
+  const escoSeen = new Set(); const escoList = [];
+  ((data.esco && data.esco.candidates) || []).forEach((c) => (c.matchedSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (!escoSeen.has(k)) { escoSeen.add(k); escoList.push(String(s)); } }));
+  const escoNodes = escoList.slice(0, 12).map((s, i) => ({ id: "c-esco" + i, label: s }));
+  const aioeNode = exp ? { id: "c-aioe", label: exp.index + "/100", sub: exp.band + " AI-exposure", band: exp.band } : null;
+
+  const cols = [
+    { key: "resp", title: "Job ad - responsibilities", prov: "mcf", nodes: respNodes },
+    { key: "role", title: "Role", prov: "mcf", nodes: [roleNode] },
+    { key: "ssoc", title: "SSOC 2024", prov: "computed", nodes: ssocNode ? [ssocNode] : [] },
+    { key: "isco", title: "ISCO-08 (ILO)", prov: "computed", nodes: iscoNodes },
+    { key: "esco", title: "ESCO skills", prov: "computed", nodes: escoNodes },
+    { key: "aioe", title: "AI-exposure (AIOE)", prov: "computed", nodes: aioeNode ? [aioeNode] : [] },
+  ].filter((c) => c.nodes.length);
+
+  const edges = [];
+  const afterRole = ssocNode ? "c-ssoc" : "c-role";
+  const iscoAnchor = iscoNodes.length ? iscoNodes[0].id : afterRole;
+  respNodes.forEach((n) => edges.push([n.id, "c-role"]));
+  if (ssocNode) edges.push(["c-role", "c-ssoc"]);
+  iscoNodes.forEach((n) => edges.push([afterRole, n.id]));
+  escoNodes.forEach((n) => edges.push([iscoAnchor, n.id]));
+  if (aioeNode) edges.push([iscoAnchor, "c-aioe"]);
+
+  return { cols, edges };
+}
+
+function ChainGraph({ data }) {
+  const built = useMemo(() => chainColumns(data), [data]);
+  const cols = built.cols, edges = built.edges;
+  const [traced, setTraced] = useState(null);
+  const [lines, setLines] = useState([]);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [tick, setTick] = useState(0);
+  const stageRef = useRef(null);
+  const els = useRef({});
+  const setEl = useCallback((id) => (el) => { if (el) els.current[id] = el; else delete els.current[id]; }, []);
+
+  // adjacency for tap-to-trace
+  const adj = useMemo(() => {
+    const m = {};
+    edges.forEach(([a, b]) => { (m[a] = m[a] || new Set()).add(b); (m[b] = m[b] || new Set()).add(a); });
+    return m;
+  }, [edges]);
+  const lit = (id) => !traced || id === traced || (adj[traced] && adj[traced].has(id));
+
+  useLayoutEffect(() => {
+    const cont = stageRef.current; if (!cont) return;
+    const cr = cont.getBoundingClientRect();
+    setBox({ w: cont.scrollWidth, h: cont.scrollHeight });
+    const out = [];
+    edges.forEach(([a, b]) => {
+      const ea = els.current[a], eb = els.current[b];
+      if (!ea || !eb) return;
+      const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
+      out.push({
+        id: a + ">" + b, a, b,
+        x1: ra.right - cr.left + cont.scrollLeft, y1: ra.top + ra.height / 2 - cr.top + cont.scrollTop,
+        x2: rb.left - cr.left + cont.scrollLeft, y2: rb.top + rb.height / 2 - cr.top + cont.scrollTop,
+      });
+    });
+    setLines(out);
+  }, [cols, edges, traced, tick]);
+
+  useEffect(() => {
+    const onResize = () => setTick((t) => t + 1);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") setTraced(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const COLOR = { mcf: SIDE.left, computed: SIDE.right };
+  return (
+    <div style={{ color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: "clamp(12px,3vw,26px)" }}>
+      <div style={{ fontSize: 12.5, color: P.textSub, marginBottom: 12, lineHeight: 1.5 }}>
+        Deterministic chain - <b>job ad</b> {String.fromCharCode(0x2192)} <b>role</b> {String.fromCharCode(0x2192)} <b>SSOC</b> {String.fromCharCode(0x2192)} <b>ISCO-08 (ILO)</b> {String.fromCharCode(0x2192)} <b>ESCO skills</b> {String.fromCharCode(0x2192)} <b>AI-exposure (AIOE)</b>. Tap a node to trace its links. No LLM.
+      </div>
+      <div ref={stageRef} style={{ position: "relative", display: "flex", gap: "clamp(28px,5vw,72px)", alignItems: "flex-start", overflowX: "auto", paddingBottom: 8 }}>
+        <svg width={box.w} height={box.h} style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "visible" }} aria-hidden="true">
+          {lines.map((l) => {
+            const on = !traced || l.a === traced || l.b === traced;
+            const dx = (l.x2 - l.x1) * 0.45;
+            const d = `M ${l.x1} ${l.y1} C ${l.x1 + dx} ${l.y1}, ${l.x2 - dx} ${l.y2}, ${l.x2} ${l.y2}`;
+            return <path key={l.id} d={d} fill="none" stroke={on && traced ? P.accent : "#cfd8e6"} strokeWidth={on && traced ? 2.4 : 1.6} opacity={on ? 0.85 : 0.18} />;
+          })}
+        </svg>
+        {cols.map((col) => (
+          <div key={col.key} style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 10, minWidth: 150, maxWidth: 210 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+              <span aria-hidden="true" style={{ color: (PROV[col.prov] || PROV.none).color, fontWeight: 800, fontSize: 11 }}>{(PROV[col.prov] || PROV.none).icon}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: P.muted }}>{col.title}</span>
+            </div>
+            {col.nodes.map((n) => {
+              const isAioe = col.key === "aioe";
+              const bd = isAioe && n.band ? (BAND[n.band] || BAND.moderate) : null;
+              const litNode = lit(n.id);
+              return (
+                <button key={n.id} ref={setEl(n.id)} type="button"
+                  onClick={() => setTraced((t) => (t === n.id ? null : n.id))}
+                  aria-pressed={traced === n.id}
+                  aria-label={`${col.title}: ${n.label}${n.sub ? ". " + n.sub : ""}. Tap to trace links.`}
+                  style={{
+                    textAlign: "left", cursor: "pointer", borderRadius: 10, padding: "9px 11px", minHeight: 44,
+                    border: `${traced === n.id ? 2 : 1}px solid ${traced === n.id ? COLOR[col.prov] : (bd ? bd.color : P.border)}`,
+                    background: bd ? bd.bg : (col.key === "role" ? "#fff" : P.surface),
+                    opacity: litNode ? 1 : P.dim, transition: "opacity .15s, border-color .15s",
+                    boxShadow: traced === n.id ? `0 3px 12px ${COLOR[col.prov]}22` : "0 1px 2px rgba(16,24,40,.05)",
+                  }}>
+                  <span style={{ display: "block", fontWeight: isAioe ? 900 : 700, fontSize: isAioe ? 17 : 13, lineHeight: 1.25, color: bd ? bd.color : P.text }}>{n.label}</span>
+                  {n.sub && <span style={{ display: "block", fontSize: 11, color: P.muted, marginTop: 3, lineHeight: 1.35 }}>{n.sub}</span>}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {!(data.engine && data.engine.ok) && <Withheld eng={data.engine} />}
+      <footer style={{ marginTop: 20, paddingTop: 14, borderTop: `1px solid ${P.border}`, fontSize: 11.5, color: P.muted, lineHeight: 1.6 }}>
+        <div><b>Computed (deterministic):</b> SSOC/ISCO - SingStat &amp; ILO; ESCO skills - EU ESCO occupationFingerprint; AIOE - Felten, Raj and Seamans 2021. No LLM: same posting, same chain. AI-assisted; human decides.</div>
+        {data.sourceUrl && <div style={{ marginTop: 4 }}><a href={data.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ color: P.accent }}>View the source posting</a></div>}
+      </footer>
     </div>
   );
 }
