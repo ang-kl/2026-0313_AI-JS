@@ -64,7 +64,9 @@ export default async function middleware(req) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   // Fail-open if the gate isn't configured - avoids locking the owner out of a
   // half-provisioned deploy. The login flow itself also checks this and 503s.
-  if (!token) return;
+  // Kill-switch: TELEGRAM_GATE_ENABLED=0 opens the site without removing the bot
+  // token, so login can be flipped back on by setting the flag to 1 (token stays).
+  if (!token || process.env.TELEGRAM_GATE_ENABLED === "0") return;
 
   const cookies = req.headers.get("cookie") || "";
   const m = cookies.match(/(?:^|;\s*)tara_sess=([^;]+)/);
