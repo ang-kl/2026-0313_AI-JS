@@ -3,8 +3,6 @@ export const config = {
   maxDuration: 300,
 };
 
-import { requireTelegramSession } from '../server/telegram-session.js';
-
 function textFromSystem(system) {
   if (!system) return "";
   if (typeof system === "string") return system;
@@ -162,7 +160,6 @@ const WARM_ERRORS = {
 };
 
 export default async function handler(req, res) {
-  if (!requireTelegramSession(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

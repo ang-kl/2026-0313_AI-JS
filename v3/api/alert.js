@@ -16,15 +16,12 @@ export const config = {
   maxDuration: 10,
 };
 
-import { requireTelegramSession } from '../server/telegram-session.js';
-
 // Best-effort throttle within a warm lambda instance (does NOT persist across cold starts;
 // the client's 10-min debounce is the primary guard). Dampens bursts from one outage.
 let _lastForward = 0;
 const THROTTLE_MS = 5 * 60 * 1000;
 
 export default async function handler(req, res) {
-  if (!requireTelegramSession(req, res)) return;
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const url = process.env.ALERT_WEBHOOK_URL;

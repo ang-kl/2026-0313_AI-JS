@@ -7,7 +7,6 @@ const SphericalGallery = lazy(() => import('./SphericalGallery.jsx'))
 import LeapView from './LeapView.jsx'
 import RoleGraph from './RoleGraph.jsx'
 import DebugPanel from './DebugPanel.jsx'
-import StrategyKanban from './StrategyKanban.jsx'
 import { initDebug } from './debug.js'
 import { inject, track } from '@vercel/analytics'
 import { SpeedInsights } from '@vercel/speed-insights/react'
@@ -34,7 +33,6 @@ const debugPanel = dmm === 'panel'
 const leap = params.get('view') === 'leap'
 const graph = params.get('view') === 'graph'
 const spherical = window.location.pathname.replace(/\/+$/, '') === '/spherical' || params.get('view') === 'spherical'
-const kanban = window.location.pathname.replace(/\/+$/, '') === '/plan/kanban' || params.get('view') === 'kanban'
 // WIKI1 (PR1): ?view=wiki routes to the main App with wiki mode pre-selected.
 // The App handles step="wiki_view" via the fourth mode card and startWikiGraph().
 // A bare ?view=wiki with no query just opens the App landing with the wiki card active.
@@ -46,7 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Suspense fallback={<div style={{ position: 'fixed', inset: 0, background: '#0b1220', color: '#9aa5b4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif', fontSize: 14 }}>Entering the sphere...</div>}>
         <SphericalGallery />
       </Suspense>
-    ) : kanban ? <StrategyKanban /> : graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App initialSearchMode={wikiView ? "wiki" : undefined} />}
+    ) : graph ? <RoleGraph /> : leap ? <LeapView /> : debugPanel ? <DebugPanel /> : debugLogs ? <PipelineLogsView /> : <App initialSearchMode={wikiView ? "wiki" : undefined} />}
     <SpeedInsights />
   </React.StrictMode>,
 )
