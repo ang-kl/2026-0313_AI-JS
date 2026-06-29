@@ -3,18 +3,13 @@
   "outputDirectory": "dist",
   "regions": ["sin1", "hnd1"],
   "functions": {
-    "api/claude.js":        { "maxDuration": 300 },
-    "api/esco.js":          { "maxDuration": 60  },
-    "api/mcf.js":           { "maxDuration": 60  },
-    "api/careers.js":       { "maxDuration": 30  },
-    "api/datagov.js":       { "maxDuration": 30  },
-    "api/anatomy.js":       { "maxDuration": 15  },
-    "api/engine.js":        { "maxDuration": 15  },
-    "api/ssoc.js":          { "maxDuration": 300 },
-    "api/planning.js":      { "maxDuration": 15  },
-    "api/auth.js":          { "maxDuration": 10  },
-    "api/logout.js":        { "maxDuration": 5   },
-    "api/login-config.js":  { "maxDuration": 8   }
+    "api/claude.js":  { "maxDuration": 300 },
+    "api/esco.js":    { "maxDuration": 60  },
+    "api/mcf.js":     { "maxDuration": 60  },
+    "api/careers.js": { "maxDuration": 30  },
+    "api/datagov.js": { "maxDuration": 30  },
+    "api/anatomy.js": { "maxDuration": 15  },
+    "api/engine.js":  { "maxDuration": 15  }
   },
   "fluid": true,
   "headers": [
@@ -23,7 +18,7 @@
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://api.openai.com https://api.mycareersfuture.gov.sg https://api-production.data.gov.sg https://vitals.vercel-insights.com https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; frame-src 'none'; img-src 'self' data:;" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://api.mycareersfuture.gov.sg https://api-production.data.gov.sg https://vitals.vercel-insights.com https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; frame-src 'none'; img-src 'self' data:;" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
@@ -45,15 +40,6 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
-    },
-    {
-      "source": "/login(\\.html)?",
-      "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://telegram.org; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: https://t.me https://*.telegram.org; frame-src https://oauth.telegram.org; object-src 'none'; base-uri 'self'; form-action 'self';" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-      ]
     }
   ],
   "rewrites": [
@@ -62,11 +48,7 @@
       "destination": "/demo.html"
     },
     {
-      "source": "/login",
-      "destination": "/login.html"
-    },
-    {
-      "source": "/((?!api/|_vercel/|login\\.html|login$).*)",
+      "source": "/((?!api/|_vercel/).*)",
       "destination": "/index.html"
     }
   ]

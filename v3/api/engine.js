@@ -9,11 +9,9 @@
 // reconcile + coherence + mirror-roles path. No new external calls here (CSP unchanged).
 
 import { computeEngine } from '../engine-data/engine-core.js';
-import { requireTelegramSession } from '../server/telegram-session.js';
 
 // maxDuration is set in vercel.json (repo convention).
 export default async function handler(req, res) {
-  if (!requireTelegramSession(req, res)) return;
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed. POST { ssoc, title, skills?, fingerprintIscos? }.' });
   }

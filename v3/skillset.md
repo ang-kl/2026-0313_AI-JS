@@ -1,9 +1,8 @@
-# V3 Skillset Doctrine
+# V3 Skillset Doctrine: First Segmentation
 
-Status: recipes and skillset replacement
+Status: first segmentation draft
 Scope: v3 only
 Purpose: centralise the methodology, ethos, deterministic ideals, agentic governance, and panel logic behind V3.
-Source: replaces the earlier first segmentation with the `v3/goal/recipes and skillset.md` doctrine.
 
 ## 0. How To Read This File
 
@@ -757,274 +756,25 @@ The critic is not negativity.
 
 It is worker protection.
 
-### 4.9 O-I-A Posting Lens
+### 4.9 O-I-A Responsibility Read
 
-O-I-A means Observation, Interpretation, Application.
+O-I-A means Outcome, Interaction, Agency.
 
-It is a deterministic instrument for reading one MyCareersFuture posting into the V3 occupation-taxonomy and AIOE pipeline through three lenses:
+Use it to dissect job responsibilities.
 
-- Role: the occupation advertised
-- Organisation: the employer the posting reveals
-- AI: how artificial intelligence bears on the role and the firm
+Outcome:
 
-The three stages run in fixed order and are bound by an evidence contract:
+- What result is the work meant to produce?
 
-- nothing is interpreted that was not first observed
-- nothing is emitted that was not first interpreted
-- every code and score traces back through a claim to a verbatim span
+Interaction:
 
-This adapts the inductive observation-interpretation-application reading method. Its carried-over discipline is:
+- Who or what must the worker coordinate with?
 
-> draw findings out of the source, never read them in.
+Agency:
 
-#### 4.9.1 Evidence Contract
-
-Observation emits spans.
-
-Spans are verbatim fragments of the posting, each with an ID.
-
-Observation emits nothing else.
-
-Interpretation emits claims.
-
-Every claim must cite one or more Observation span IDs.
-
-A claim with no span is invalid and is dropped.
-
-Application emits the record:
-
-- codes
-- scores
-- routing
-- flags
-
-Application acts only on Interpretation claims, never on raw text.
-
-Each derivation declares its method:
-
-- rule: deterministic lookup such as lexicon, regex, or taxonomy table; bit-identical on re-run
-- judgement: model inference; carries confidence from 0 to 1; reproducible by fixed prompt, not bit-identical
-
-Where a required field cannot be grounded, emit `ABSENT`.
-
-Absence is a valid output, not a gap to be filled by guessing.
-
-#### 4.9.2 Inputs, Lenses, Output
-
-Input:
-
-- one posting
-- title
-- description
-- structured fields such as company, salary, employment type, posting date, and posting history
-
-Lenses:
-
-- ROLE: occupation, tasks, skills, and SSOC-2010
-- ORG: sector, firm signals, SSIC, and context
-- AI: AI content of the role, task-level AI exposure, AIOE, and the firm's AI-adoption posture
-
-Output:
-
-- one structured record
-
-#### 4.9.3 Stage O: Observation
-
-Observation asks:
-
-> What does it say?
-
-Literal only.
-
-Record verbatim, including the obvious.
-
-No inference.
-
-No labelling.
-
-No cross-posting comparison.
-
-ROLE spans include:
-
-- exact title
-- stated tasks or duties
-- stated requirements such as years, credentials, and skills
-- stated seniority words
-- stated reporting line and team size
-- location
-- salary
-- employment type
-- repeated terms, with count
-
-ORG spans include:
-
-- the firm's own words about itself
-- size
-- mission
-- market
-- culture
-- named functions and adjacent teams
-- any stated reason for the hire
-
-AI spans include:
-
-- verbatim mentions of AI, ML, generative AI, LLMs, data science, or automation
-- named AI tools, frameworks, or platforms
-- AI-related skills or credentials
-- any firm statement about AI use, AI strategy, or AI products
-
-Output is a list of:
-
-```yaml
-- span_id: o1
-  lens: ROLE | ORG | AI
-  text: <verbatim>
-```
-
-Stop here.
-
-Do not interpret.
-
-#### 4.9.4 Stage I: Interpretation
-
-Interpretation asks:
-
-> What does it mean?
-
-Decode the spans.
-
-Every claim cites the span IDs it rests on.
-
-ROLE claims:
-
-- occupation mapping: candidate SSOC-2010 codes from title and task spans
-- task inventory: normalise duty spans into discrete tasks
-- seniority read: stated versus real seniority
-- requirement split: hard must-have versus nice-to-have
-- emphasis: repeated or first-stated terms read as priority weight
-
-ORG claims:
-
-- sector mapping: candidate SSIC from the firm's self-description spans
-- operational signal: churn or expansion only if posting-history fields are present
-- cultural tell: euphemism or buzzword spans imply workload or maturity, with confidence
-- coherence: whether the self-description matches the actual role task spans
-- external corroboration: last, and only as confirmation, never as the source of a claim
-
-AI claims:
-
-- AI-role read: `ai_core`, `ai_adjacent`, or `non_ai`
-- task AI-exposure: map the ROLE task inventory to AIOE exposure
-- firm AI-adoption: whether the employer is building AI, using AI, or neither
-
-#### 4.9.5 Stage A: Application
-
-Application asks:
-
-> What does it ask the engine to do?
-
-This is not a hiring decision.
-
-The action is classification and routing.
-
-Application must:
-
-- emit the record: SSOC, SSIC, task inventory, AI-role, AIOE exposure, AI-adoption, seniority, claim chain, and confidence
-- score AIOE exposure from the task inventory
-- route to review if any required field is `ABSENT` or below threshold
-- flag anomalies such as incoherent self-description, title-task mismatch, one posting scoping several roles, or AI claims unsupported by any AI span
-
-#### 4.9.6 Output Schema
-
-```yaml
-posting_id: <id>
-source: mycareerfuture
-analysed_at: <iso8601>
-observation:
-  spans:
-    - span_id: o1
-      lens: ROLE | ORG | AI
-      text: <verbatim>
-interpretation:
-  claims:
-    - claim_id: i1
-      lens: ROLE | ORG | AI
-      statement: <text>
-      spans: [o1, o2]
-      method: rule | judgement
-      confidence: <0-1 | null>
-application:
-  role:
-    ssoc:
-      value: <code | ABSENT>
-      claims: [i1]
-      confidence: <0-1>
-    tasks:
-      - task: <text>
-        claims: [i2]
-    seniority:
-      value: <text | ABSENT>
-      claims: [i3]
-  org:
-    ssic:
-      value: <code | ABSENT>
-      claims: [i4]
-      confidence: <0-1>
-    signals:
-      - statement: <text>
-        claims: [i5]
-  ai:
-    ai_role:
-      value: ai_core | ai_adjacent | non_ai | ABSENT
-      claims: [i6]
-      confidence: <0-1>
-    aioe_exposure:
-      value: <score | ABSENT>
-      basis: "LM-2023 primary; 2021 baseline"
-      claims: [i7]
-    ai_adoption:
-      value: building | using | none | ABSENT
-      claims: [i8]
-      confidence: <0-1>
-  routing: accept | route_to_review
-  flags: []
-```
-
-#### 4.9.7 Guardrails
-
-Fixed order:
-
-- O, then I, then A
-- no stage reads ahead
-
-Traceable:
-
-- every claim cites spans
-- every emitted value cites claims
-
-ABSENT over invention:
-
-- unanswerable fields are recorded, not guessed
-
-Deterministic spine:
-
-- rule derivations are bit-identical
-- judgement derivations carry confidence
-- judgement derivations abstain below threshold
-
-Reproducible:
-
-- same posting
-- same prompt
-- same record
-
-Bindings to confirm:
-
-- Role maps to SSOC-2010
-- Organisation maps to SSIC
-- AI exposure maps to AIOE
-- LM-2023 is primary
-- 2021 aggregate is baseline
+- What decision rights does the person actually have?
+- Is the person accountable without power?
+- Is the role asking for ownership or only execution?
 
 ### 4.10 Pro-Worker AI Test
 
@@ -1943,7 +1693,7 @@ Company query techniques:
 - Capability Cluster: find repeated skill or system needs.
 - Demand-Proof: distinguish visible posting volume from real opportunity.
 - Fairness Scan: check wording risk without legal overclaim.
-- O-I-A: observe spans, interpret claims, and apply taxonomy, exposure, routing, and flags.
+- O-I-A: read responsibilities for outcome, interaction, and agency.
 - BPR Map: detect AS-IS friction and TO-BE redesign hypotheses.
 - Governance Ledger: record owner, risk, scope, and allowed action.
 
@@ -1978,3 +1728,144 @@ Use the governance ledger before suggesting any agentic action.
 7. Decide
 
 Help the human choose apply, compare, prepare, redesign, or withhold.
+
+### 15.7 What The DBS View Must Not Do
+
+The DBS view must not:
+
+- treat "DBS" as one stable organisation shape
+- assume a department exists unless evidence shows it
+- infer strategy from branding
+- invent internal transformation programmes
+- rank roles using employer prestige
+- over-merge distinct DBS-related entities
+- hide ambiguous employer-name matches
+- turn organisation analysis into ATS gaming
+
+### 15.8 UI Shape
+
+Organisation mode should keep the three-panel shell.
+
+Ask:
+
+- company name
+- confirmed employer
+- source state
+- ambiguity state
+
+Map:
+
+- organisation graph
+- posting clusters
+- function lanes
+- reusable capability clusters
+- selected job drawer
+
+Decide:
+
+- apply to selected posting
+- compare postings
+- prepare evidence
+- redesign process hypothesis
+- build agent candidate
+- withhold
+
+The centre Map should get the most space.
+
+Left should work as floating navigation or drawer.
+
+Right should collapse into a decision rail.
+
+## 16. Recent PR Evidence Trail
+
+This section connects doctrine to implemented product direction.
+
+### 16.1 PR #207
+
+Created the RIN shell.
+
+Made RoleGraph-first Map visible.
+
+Established Ask, Map, Decide on phone.
+
+### 16.2 PR #208
+
+Shifted UI centre-first.
+
+Added floating left drawer direction.
+
+Collapsed right decision rail.
+
+Supported movable RoleGraph direction.
+
+### 16.3 PR #214
+
+Improved SG Jobs ranking.
+
+Segmented live evidence by:
+
+- title
+- duty
+- segment
+
+This matters for broad searches such as "transformation".
+
+### 16.4 PR #215
+
+Polished the job drawer.
+
+Added `/dmm=1` path alias behaviour.
+
+Improved traceability for debug review.
+
+## 17. What V3 Must Not Become
+
+V3 must not become:
+
+- an ATS gaming tool
+- a keyword stuffing assistant
+- a course-selling funnel
+- a kitchen drawer of unrelated tools
+- a fake certainty machine
+- a blind automation recommender
+- a dashboard that confuses users with too many tags
+- a product that hides whether a claim is computed, sourced, or generated
+
+## 18. First Implementation Status
+
+Current known state:
+
+- `v3/goal` exists and contains the philosophical canon.
+- `v3/skills/README.md` defines the 11-seat panel.
+- `careerview-panel` skill exists.
+- `agent-skeptic` skill exists.
+- Other listed agent seats are design intent unless implemented later.
+- V3 runtime uses OpenAI as primary LLM and Gemini as fallback.
+- V3 has DMM/debug routes for traceability.
+- V3 UI direction is centre-first, with floating drawers and collapsible side panels.
+
+## 19. Open Questions For The Next Draft
+
+- Should the 11 seats remain separate skills, or should some become deterministic sub-checks?
+- Which seats are essential for first release, and which are analysis-only?
+- What exact metric decides whether demand is real enough?
+- How should V3 display disagreement between agents without overwhelming the user?
+- How should the UI show pro-worker AI categories without adding tag clutter?
+- Which organisation graph signals are computed now, and which require future data?
+- What should be withheld by default?
+- What should trigger human override?
+- Which personas should appear directly in the UI, and which should remain analysis modes?
+- How much of the PR evidence trail should be visible to users versus kept in documentation?
+- When does an OrgGraph insight become strong enough to recommend BPR?
+- What minimum company-posting sample is needed before showing organisation-level clusters?
+- How should V3 distinguish DBS parent, subsidiary, vendor, and related entities?
+
+## 20. Working Principle
+
+V3 should help the user see the work system.
+
+It should not merely help the user chase the job ad.
+
+The desired outcome is not more applications.
+
+The desired outcome is better judgement about work, capability, AI, and organisational change.

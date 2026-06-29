@@ -24,7 +24,6 @@ if (!process.env.POSTGRES_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
 }
 import { sql } from '@vercel/postgres';
-import { requireTelegramSession } from '../server/telegram-session.js';
 
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
@@ -183,7 +182,6 @@ async function ensureTables() {
 }
 
 export default async function handler(req, res) {
-  if (!requireTelegramSession(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const body = req.body || {};
   const action = body.action;
