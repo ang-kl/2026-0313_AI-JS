@@ -10342,6 +10342,10 @@ function RoleGraphPanel({ result, title }) {
     };
   }
   function startRoleGraphDrag(e) {
+    // Don't start a drag (or capture the pointer) when the press is on a control like
+    // Close - pointer capture would otherwise swallow the button's click. (Fixes: float
+    // window could not be closed.)
+    if (e.target && e.target.closest && e.target.closest("button")) return;
     roleGraphDragRef.current = {
       x: e.clientX,
       y: e.clientY,
@@ -10367,7 +10371,7 @@ function RoleGraphPanel({ result, title }) {
       <div style={{ background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-            <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", fontWeight: 800, color: "#3730a3", textTransform: "uppercase", letterSpacing: "0.06em" }}>Map panel - RoleGraph</p>
+            <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", fontWeight: 800, color: "#3730a3", textTransform: "uppercase", letterSpacing: "0.06em" }}>Role Graph</p>
             <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: C.text, lineHeight: 1.35 }}>{toTitleCase(title || "this role")} as work, skills, and occupation evidence</h3>
             <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>The graph keeps the V2 fast read, now grounded in live duties, ESCO skills, and ISCO-08 occupation evidence.</p>
           </div>
@@ -10520,8 +10524,10 @@ function RoleGraphPanel({ result, title }) {
               {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
               {roleGraphFloat && (
                 <div role="dialog" aria-modal="true" aria-label="Floating role graph"
+                  onClick={() => setRoleGraphFloat(false)}
                   style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
                   <div
+                    onClick={(e) => e.stopPropagation()}
                     style={{
                       position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
                       width:"min(1120px, calc(100vw - 32px))", maxHeight:"calc(100vh - 96px)",
@@ -10536,7 +10542,7 @@ function RoleGraphPanel({ result, title }) {
                       onPointerCancel={stopRoleGraphDrag}
                       style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
                     >
-                      <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>RoleGraph floating window</h3>
+                      <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>Role Graph</h3>
                       <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
                       <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
                         style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
