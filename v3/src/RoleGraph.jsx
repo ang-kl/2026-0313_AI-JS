@@ -365,7 +365,7 @@ function LiveGraph({ posting }) {
   const [state, setState] = useState({ status: "loading", data: null, message: "Analysing posting: occupation, SSOC and AI-exposure..." });
   // mode: 'normal' (inline) | 'expanded' (fullscreen overlay) | 'float' (draggable) | 'min' (puck)
   const [mode, setMode] = useState("normal");
-  const [view, setView] = useState("chain"); // 'chain' (deep MCF->SSOC->ISCO->ESCO->AIOE) | 'map' (hub mindmap)
+  const [view, setView] = useState("tree"); // 'tree' (mindmap) | 'chain' (column flow) | 'map' (hub)
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const dragRef = useRef(null);
 
@@ -428,9 +428,9 @@ function LiveGraph({ posting }) {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div role="group" aria-label="Graph view" style={{ display: "inline-flex", border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
-            {[["chain", "Chain"], ["map", "Map"]].map(([k, lbl]) => (
+            {[["tree", "Mind map"], ["chain", "Chain"], ["map", "Cards"]].map(([k, lbl]) => (
               <button key={k} type="button" aria-pressed={view === k} onClick={() => setView(k)}
-                style={{ cursor: "pointer", minHeight: 36, padding: "0 12px", border: "none", borderRight: k === "chain" ? `1px solid ${P.border}` : "none", background: view === k ? P.accent : "#fff", color: view === k ? "#fff" : P.textSub, fontWeight: 800, fontSize: 12.5 }}>
+                style={{ cursor: "pointer", minHeight: 36, padding: "0 12px", border: "none", borderRight: k === "map" ? "none" : `1px solid ${P.border}`, background: view === k ? P.accent : "#fff", color: view === k ? "#fff" : P.textSub, fontWeight: 800, fontSize: 12.5 }}>
                 {lbl}
               </button>
             ))}
@@ -447,9 +447,129 @@ function LiveGraph({ posting }) {
           Could not build the role graph: {state.message}. The posting evidence may be thin, or the engine is unavailable.
         </div>
       )}
-      {state.status === "ready" && state.data && (view === "chain"
-        ? <ChainGraph data={state.data} />
-        : <LiveMindmap data={state.data} compact={mode === "float"} />)}
+      {state.status === "ready" && state.data && (
+        view === "tree" ? <MindmapTree data={state.data} />
+        : view === "chain" ? <ChainGraph data={state.data} />
+        : <LiveMindmap data={state.data} compact={mode === "float"} />
+      )}
+    </div>
+  );
+}
+
+function clampLabel(s, n) {
+  s = String(s || "");
+  const lim = n || 64;
+  return s.length > lim ? s.slice(0, lim - 2).trim() + String.fromCharCode(0x2026) : s;
+}
+
+// buildMindmapTree: the role graph as a hierarchical mindmap. Root = Role; branches =
+// Responsibilities, Occupation (-> SSOC -> ISCO-08 -> AIOE), Skills. Same deterministic
+// data as the chain - just shaped as a tree for the markmap-style view.
+function buildMindmapTree(data) {
+  const eng = data.engine;
+  const exp = eng && eng.ok ? eng.exposure : null;
+  const occ = eng && eng.ok ? eng.occupation : null;
+  const official = Array.isArray(data.iscoOfficial) ? data.iscoOfficial : [];
+  const ssocCode = (data.ssoc && data.ssoc.code) || (occ && occ.ssoc) || null;
+
+  const resps = (data.resps || []).slice(0, 12).map((r, i) => ({ id: "t-resp" + i, label: r.label, kind: "leaf" }));
+
+  const seen = new Set(); const skills = [];
+  ((data.esco && data.esco.candidates) || []).forEach((c) => (c.matchedSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (k && !seen.has(k)) { seen.add(k); skills.push(String(s)); } }));
+  (data.mcfSkills || []).forEach((s) => { const k = String(s).toLowerCase(); if (k && !seen.has(k)) { seen.add(k); skills.push(String(s)); } });
+  const skillNodes = skills.slice(0, 16).map((s, i) => ({ id: "t-sk" + i, label: s, kind: "leaf" }));
+
+  const occChildren = [];
+  if (ssocCode) occChildren.push({ id: "t-ssoc", label: "SSOC " + ssocCode, sub: (data.ssoc && data.ssoc.title) || (occ && occ.label) || null, kind: "leaf" });
+  const iscoList = official.length
+    ? official.slice(0, 5).map((m, i) => ({ id: "t-isco" + i, label: m.title, sub: "ISCO " + m.code, kind: "leaf" }))
+    : (occ && occ.isco ? occ.isco.slice(0, 5).map((c, i) => ({ id: "t-isco" + i, label: occ.label || ("ISCO " + c), sub: "ISCO " + c, kind: "leaf" })) : []);
+  if (iscoList.length) occChildren.push({ id: "t-isco-b", label: "ISCO-08 (ILO)", kind: "branch", children: iscoList });
+  if (exp) occChildren.push({ id: "t-aioe", label: "AIOE " + exp.index + "/100", sub: exp.band + " AI-exposure", kind: "leaf" });
+
+  const branches = [];
+  if (resps.length) branches.push({ id: "t-resp-b", label: "Responsibilities (" + resps.length + ")", kind: "branch", children: resps });
+  if (occChildren.length) branches.push({ id: "t-occ-b", label: "Occupation", kind: "branch", children: occChildren });
+  if (skillNodes.length) branches.push({ id: "t-sk-b", label: "Skills (" + skillNodes.length + ")", kind: "branch", children: skillNodes });
+
+  return { id: "t-root", label: data.role.label, sub: data.role.meta.employer || null, kind: "root", children: branches };
+}
+
+// layoutTree: deterministic left->right tidy-tree. x by depth, y by leaf order (parents
+// centred on their children). Collapsed nodes are treated as leaves.
+function layoutTree(root, collapsed) {
+  const COL = 250, ROWH = 60, PADX = 16, PADY = 18, NODEW = 200;
+  let leaf = 0, maxDepth = 0;
+  const all = [];
+  function visit(node, depth) {
+    maxDepth = Math.max(maxDepth, depth);
+    const isCol = collapsed.has(node.id);
+    const kids = (!isCol && node.children) ? node.children : [];
+    const x = PADX + depth * COL;
+    let y;
+    if (!kids.length) { y = PADY + leaf * ROWH + ROWH / 2; leaf += 1; }
+    else { const ys = kids.map((k) => visit(k, depth + 1)); y = (ys[0] + ys[ys.length - 1]) / 2; }
+    all.push({ node, x, y, depth, hasChildren: !!(node.children && node.children.length), collapsed: isCol });
+    return y;
+  }
+  visit(root, 0);
+  const pos = {}; all.forEach((n) => { pos[n.node.id] = n; });
+  const edges = [];
+  all.forEach((n) => { if (!n.collapsed && n.node.children) n.node.children.forEach((c) => { if (pos[c.id]) edges.push({ a: n, b: pos[c.id] }); }); });
+  return { nodes: all, edges, width: PADX * 2 + (maxDepth + 1) * COL, height: Math.max(PADY * 2 + leaf * ROWH, 240), NODEW };
+}
+
+const TREE_TINT = {
+  root:   { bg: "#dbeafe", bc: "#93c5fd", fg: "#1e3a8a" },
+  branch: { bg: "#e0e7ff", bc: "#a5b4fc", fg: "#3730a3" },
+  leaf:   { bg: "#d1fae5", bc: "#6ee7b7", fg: "#065f46" },
+};
+
+function MindmapTree({ data }) {
+  const tree = useMemo(() => buildMindmapTree(data), [data]);
+  const [collapsed, setCollapsed] = useState(() => new Set());
+  const layout = useMemo(() => layoutTree(tree, collapsed), [tree, collapsed]);
+  const toggle = (id) => setCollapsed((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const NODEW = layout.NODEW;
+
+  return (
+    <div style={{ color: P.text, fontFamily: "system-ui,-apple-system,Segoe UI,Roboto,sans-serif", padding: "clamp(12px,3vw,24px)" }}>
+      <div style={{ fontSize: 12.5, color: P.textSub, marginBottom: 10, lineHeight: 1.5 }}>
+        Mind map - <b>{tree.label}</b> at the root; <b>Occupation</b> expands to <b>SSOC</b> {String.fromCharCode(0x2192)} <b>ISCO-08 (ILO)</b> {String.fromCharCode(0x2192)} <b>AIOE</b>. Tap a branch to collapse or expand. Deterministic, no LLM.
+      </div>
+      <div style={{ position: "relative", overflow: "auto", width: "100%" }}>
+        <div style={{ position: "relative", width: layout.width, height: layout.height, minWidth: "100%" }}>
+          <svg width={layout.width} height={layout.height} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+            {layout.edges.map((e, i) => {
+              const x1 = e.a.x + NODEW, y1 = e.a.y, x2 = e.b.x, y2 = e.b.y;
+              const dx = (x2 - x1) * 0.5;
+              return <path key={i} d={`M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`} fill="none" stroke="#bcd0e8" strokeWidth={1.7} />;
+            })}
+          </svg>
+          {layout.nodes.map((n) => {
+            const t = TREE_TINT[n.node.kind] || TREE_TINT.leaf;
+            return (
+              <div key={n.node.id} style={{ position: "absolute", left: n.x, top: n.y - 22, width: NODEW }}>
+                <button type="button" onClick={() => n.hasChildren && toggle(n.node.id)}
+                  aria-expanded={n.hasChildren ? !n.collapsed : undefined}
+                  aria-label={n.node.label + (n.node.sub ? ". " + n.node.sub : "") + (n.hasChildren ? (n.collapsed ? ". Collapsed, tap to expand." : ". Tap to collapse.") : "")}
+                  title={n.node.label}
+                  style={{ textAlign: "left", cursor: n.hasChildren ? "pointer" : "default", width: "100%", minHeight: 44, borderRadius: 10, padding: "8px 10px", border: `1px solid ${t.bc}`, background: t.bg, color: t.fg, boxShadow: "0 1px 2px rgba(16,24,40,.06)", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                  {n.hasChildren && <span aria-hidden="true" style={{ fontWeight: 900, fontSize: 12, marginTop: 1, transform: n.collapsed ? "rotate(0deg)" : "rotate(90deg)", transition: "transform .12s" }}>{String.fromCharCode(0x203a)}</span>}
+                  <span style={{ display: "block", minWidth: 0 }}>
+                    <span style={{ display: "block", fontWeight: n.node.kind === "leaf" ? 600 : 800, fontSize: n.node.kind === "root" ? 14 : 12.5, lineHeight: 1.25 }}>{clampLabel(n.node.label)}</span>
+                    {n.node.sub && <span style={{ display: "block", fontSize: 10.5, opacity: 0.8, marginTop: 2 }}>{clampLabel(n.node.sub, 40)}</span>}
+                  </span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {!(data.engine && data.engine.ok) && <Withheld eng={data.engine} />}
+      <footer style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${P.border}`, fontSize: 11.5, color: P.muted, lineHeight: 1.6 }}>
+        <div><b>Deterministic:</b> SSOC/ISCO - SingStat &amp; ILO crosswalk; ESCO skills - EU ESCO; AIOE - Felten, Raj and Seamans 2021. No LLM. AI-assisted; human decides.</div>
+      </footer>
     </div>
   );
 }
