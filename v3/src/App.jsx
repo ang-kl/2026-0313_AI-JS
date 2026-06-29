@@ -11408,7 +11408,6 @@ const STEP2_FACETS = [
   { key: "func", label: "Function" },
   { key: "exp", label: "Experience" },
   { key: "type", label: "Type of work" },
-  { key: "exposure", label: "AI exposure" },
 ];
 
 // LinkedIn-style multi-select facet dropdown.
@@ -11422,10 +11421,11 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
       {open && (
         <div className="wis-scroll" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 230, maxWidth: 320, maxHeight: 320, overflowY: "auto", background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
           {options.length === 0 && <div style={{ padding: "8px 10px", color: "#94a0b0", fontSize: "0.75rem" }}>No options yet</div>}
-          {options.map((o) => { const on = selected.includes(o); return (
-            <button key={o} type="button" onClick={() => onToggle(o)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
+          {options.map((o) => { const on = selected.includes(o.v); return (
+            <button key={o.v} type="button" onClick={() => onToggle(o.v)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
               <span aria-hidden="true" style={{ width: 15, height: 15, borderRadius: 4, border: "1.5px solid " + (on ? "#1a56db" : "#cbd5e1"), background: on ? "#1a56db" : "#fff", color: "#fff", fontSize: 11, lineHeight: "13px", textAlign: "center", flex: "none" }}>{on ? String.fromCharCode(0x2713) : ""}</span>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o}</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{o.v}</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", flex: "none" }}>{o.n}</span>
             </button>
           ); })}
         </div>
@@ -11434,15 +11434,26 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
   );
 }
 
-// Deterministic, non-inventive synopsis: the posting's own opening words (verbatim).
+// Deterministic, non-inventive synopsis: the posting's own first substantive sentence(s),
+// verbatim. Prefers the role responsibilities over the description (which often opens with a
+// company blurb). Strips section headers, bullets and boilerplate; never invents text.
+const STEP2_BOILER = /^(job description|roles?\s*(and|&|\/)?\s*responsibilit(y|ies)|responsibilit(y|ies)|key responsibilit(y|ies)|about (the|us|the role|the company|this role)|the role|role overview|overview|position summary|job summary|summary|what you('| wi)ll do|description)\s*[:.\-]?\s*/i;
 function step2Synopsis(job) {
-  const raw = stripHtml(job.description || job.responsibilitiesText || job.summary || "");
+  let raw = stripHtml(job.responsibilitiesText || job.description || job.summary || "");
   if (!raw) return "";
-  let s = raw.slice(0, 240);
-  const dot = s.lastIndexOf(". ");
-  if (dot > 90) return s.slice(0, dot + 1).trim();
-  if (raw.length > 190) { s = s.slice(0, 186); const w = s.lastIndexOf(" "); if (w > 100) s = s.slice(0, w); return s.trim() + String.fromCharCode(0x2026); }
-  return s.trim();
+  raw = raw.replace(/[•·●▪‣⁃|]/g, " ").replace(/\s+/g, " ").replace(STEP2_BOILER, "").trim();
+  const sentences = raw.split(/(?<=[.!?])\s+(?=[A-Z0-9])/);
+  let out = "";
+  for (const p of sentences) {
+    const t = p.trim();
+    if (t.length < 24) continue;            // skip stray fragments/headers
+    if (!/[a-z]/.test(t)) continue;         // skip ALL-CAPS header lines
+    out = out ? out + " " + t : t;
+    if (out.length >= 100) break;
+  }
+  if (!out) out = raw;
+  if (out.length > 210) { out = out.slice(0, 200); const w = out.lastIndexOf(" "); if (w > 120) out = out.slice(0, w); out += String.fromCharCode(0x2026); }
+  return out.trim();
 }
 // OKF index.md: lists every posting in the bundle (the bundle indices).
 function step2BuildOkfIndex(cards, query) {
@@ -11493,6 +11504,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [openFacet, setOpenFacet] = useState(null);
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
+  const [fullAd, setFullAd] = useState(null);
   const barRef = useRef(null);
 
   useEffect(() => {
@@ -11522,7 +11534,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   }, [state.jobs]);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { setOkf(null); setOpenFacet(null); } };
+    const onKey = (e) => { if (e.key === "Escape") { setOkf(null); setOpenFacet(null); setFullAd(null); } };
     const onDown = (e) => { if (openFacet && barRef.current && !barRef.current.contains(e.target)) setOpenFacet(null); };
     window.addEventListener("keydown", onKey);
     window.addEventListener("mousedown", onDown);
@@ -11555,12 +11567,13 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     };
   }), [baseJobs, cls]);
 
+  // Facet options with per-value counts; "Unclassified" is excluded (not a useful filter).
   const facetOptions = useMemo(() => {
     const o = {};
     STEP2_FACETS.forEach((f) => {
-      const set = new Set();
-      cards.forEach((c) => { if (c[f.key]) set.add(c[f.key]); });
-      o[f.key] = [...set].sort((a, b) => a.localeCompare(b));
+      const counts = {};
+      cards.forEach((c) => { const v = c[f.key]; if (v && v !== "Unclassified") counts[v] = (counts[v] || 0) + 1; });
+      o[f.key] = Object.keys(counts).sort((a, b) => (counts[b] - counts[a]) || a.localeCompare(b)).map((v) => ({ v, n: counts[v] }));
     });
     return o;
   }, [cards]);
@@ -11591,7 +11604,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
   const csgCards = sorted.filter((c) => isCsg(c.job));
-  const sectorsPresent = [...new Set(sorted.map((c) => c.sector).filter(Boolean))].sort();
+  const sectorsPresent = [...new Set(sorted.map((c) => c.sector).filter((s) => s && s !== "Unclassified"))].sort();
   const tocGroups = useMemo(() => {
     const by = {}; sorted.forEach((c) => { (by[c.sector || "Unclassified"] = by[c.sector || "Unclassified"] || []).push(c); });
     return Object.keys(by).sort().map((s) => ({ sector: s, items: by[s] }));
@@ -11617,14 +11630,15 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     const synopsis = step2Synopsis(c.job);
     const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
     return (
-      <div key={c.id} onClick={() => setSelectedId(c.id)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 11px", background: band ? band.bg : "#f4f6fa", borderBottom: "1px solid " + (band ? band.border : "#e6e3db") }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: band ? band.dot : "#94a3b8", flex: "none" }} />
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".02em", color: band ? band.ink : "#64748b" }}>{band ? band.label : "Exposure withheld"}</span>
+      <div key={c.id} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 11px", background: "#f4f6fa", borderBottom: "1px solid #e6e3db" }}>
+          <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 4, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 9, lineHeight: "16px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
+          <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
+          {band && <span title={"AI exposure: " + band.label} style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
         </div>
         <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
           <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
-          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: "#8a8274", margin: "5px 0 7px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}{c.age ? "  " + DOT + "  " + c.age : ""}</div>
+          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: "#8a8274", margin: "5px 0 7px" }}>{c.age || ""}</div>
           {c.ssoc && <div style={{ marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span></div>}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
             {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
@@ -11682,7 +11696,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       </div>
 
-      <div ref={barRef} style={{ position: "sticky", top: 6, zIndex: 30, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "rgba(251,250,248,.97)", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, backdropFilter: "saturate(1.3) blur(6px)" }}>
+      <div ref={barRef} style={{ position: "sticky", top: 0, zIndex: 35, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
         <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 36 }} />
         <div style={{ position: "relative", flex: "none" }}>
           <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
@@ -11703,7 +11717,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
       {!state.loading && sorted.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <aside style={{ flex: "none", width: 248, position: "sticky", top: 58, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 70px)", overflowY: "auto" }} className="wis-scroll">
+          <aside style={{ flex: "none", width: 248, position: "sticky", top: 66, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 80px)", overflowY: "auto" }} className="wis-scroll">
             <div>
               <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 8 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
@@ -11778,6 +11792,47 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           </div>
         </div>
       )}
+
+      {fullAd && (() => {
+        const j = fullAd.job;
+        let h = String(j.description || j.responsibilitiesText || "");
+        h = h.replace(/<\s*(br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*>/gi, "\n").replace(/<\s*li[^>]*>/gi, "\n" + String.fromCharCode(0x2022) + " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+        const lines = h.split(/\n+/).map((s) => s.replace(/\s+/g, " ").trim()).filter((s) => s.length > 0);
+        const skills = Array.isArray(j.skills) ? j.skills.filter(Boolean) : [];
+        return (
+          <div role="dialog" aria-modal="true" aria-label="Full job posting" onClick={() => setFullAd(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.36)", display: "flex", alignItems: "center", justifyContent: "center", padding: 28 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: 660, maxWidth: "100%", maxHeight: "88vh", overflow: "hidden", background: "#fff", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
+              <div style={{ flex: "none", padding: "16px 20px", borderBottom: "1px solid #eceae2", display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#8a8274", letterSpacing: ".03em" }}>{fullAd.company}{fullAd.age ? "  " + DOT + "  " + fullAd.age : ""}</div>
+                  <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.25rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.2 }}>{j.title}</h3>
+                </div>
+                <button onClick={() => setFullAd(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
+              </div>
+              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                  {fullAd.meta.map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "3px 9px" }}>{m}</span>))}
+                  {fullAd.ssoc && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "3px 9px" }}>SSOC {fullAd.ssoc} {DOT} {fullAd.sector}</span>}
+                  {fullAd.band && <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: fullAd.band.ink, background: fullAd.band.bg, border: "1px solid " + fullAd.band.border, borderRadius: 6, padding: "3px 9px" }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: fullAd.band.dot }} />{fullAd.band.label}</span>}
+                </div>
+                {skills.length > 0 && (
+                  <div style={{ marginBottom: 14 }}>
+                    <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>SKILLSETS</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.map((s, i) => (<span key={i} style={{ fontSize: "0.75rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "3px 10px" }}>{s}</span>))}</div>
+                  </div>
+                )}
+                <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
+                {lines.length ? lines.map((ln, i) => (<p key={i} style={{ margin: ln.charAt(0) === String.fromCharCode(0x2022) ? "0 0 3px 6px" : "0 0 9px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.55 }}>{ln}</p>)) : <p style={{ color: "#94a0b0", fontSize: "0.85rem" }}>No description text in this posting.</p>}
+              </div>
+              <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "12px 20px", borderTop: "1px solid #eceae2", background: "#fbfaf8" }}>
+                <button onClick={() => { onAnalysePosting(j); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer" }}>Analyse this posting</button>
+                {j.mcfUrl && <a href={j.mcfUrl} target="_blank" rel="noreferrer" style={{ fontSize: "0.8125rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open on source</a>}
+                <button onClick={() => { setOkf({ kind: "posting", id: fullAd.id }); setFullAd(null); }} style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "6px 9px", cursor: "pointer" }}>{"{ } OKF"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
