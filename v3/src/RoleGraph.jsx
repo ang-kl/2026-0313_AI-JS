@@ -999,7 +999,7 @@ function KGFooter({ kg }) {
 function Header({ role }) {
   return (
     <header style={{ marginBottom: 10 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f766e" }}>Role x AI-exposure mindmap</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#0f766e" }}>Role Graph</div>
       <h1 style={{ fontSize: "clamp(19px,3.6vw,26px)", margin: "3px 0 2px", lineHeight: 1.15 }}>{role.label}</h1>
       <div style={{ color: P.textSub, fontSize: 13.5 }}>
         {role.meta.employer}
