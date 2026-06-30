@@ -4877,6 +4877,183 @@ function Tag({ level, small }) {
 // on the rail is shape+label (filled+check / outlined+pulse / muted), never
 // colour alone. role=status announces label changes; prefers-reduced-motion
 // disables every animation via the scoped .ldx rule.
+// AI-building theatre during the loading interstitial. Three short cycling scenes
+// preview what Step 3 (ReviewStudio) will assemble: (1) a job-ad manuscript with
+// duties getting highlighted by AI-involvement band, (2) the Role Graph being
+// drawn node-by-node, (3) two persona reviewer comments typing in. All cosmetic -
+// the real pipeline label + stage rail above stay authoritative.
+const SCENE_BANDS = {
+  auto:      { ink: "#7c3aed", bg: "#f3e8ff", label: "Full Automation" },
+  augmented: { ink: "#1a56db", bg: "#e8f0fe", label: "AI-Augmented" },
+  assisted:  { ink: "#0e7490", bg: "#ecfeff", label: "AI-Assisted" },
+  human:     { ink: "#b45309", bg: "#fffbeb", label: "Human-Led" },
+};
+const SCENE_MANUSCRIPT_DUTIES = [
+  { text: "Analyse customer transaction data using SQL",       band: "augmented" },
+  { text: "Generate weekly performance summaries automatically", band: "auto" },
+  { text: "Design dashboards for executive review",            band: "assisted" },
+  { text: "Mentor junior analysts and run training",           band: "human" },
+  { text: "Coordinate quarterly planning with stakeholders",   band: "human" },
+];
+function SceneManuscript() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((x) => (x + 1) % SCENE_MANUSCRIPT_DUTIES.length), 620);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div style={{ padding: "14px 18px" }}>
+      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
+        ★ Highlighting duties by AI involvement
+      </div>
+      <div style={{ fontFamily: "'Newsreader',serif", fontSize: "0.875rem", color: C.text, lineHeight: 1.5 }}>
+        <span style={{ fontWeight: 700 }}>Data Analyst, Singapore</span> {String.fromCharCode(0x2014)} the role will:
+        <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
+          {SCENE_MANUSCRIPT_DUTIES.map((d, k) => {
+            const active = k === i;
+            const band = SCENE_BANDS[d.band];
+            return (
+              <li key={k} style={{
+                padding: "4px 9px",
+                margin: "0 0 2px",
+                borderRadius: 6,
+                background: active ? band.bg : "transparent",
+                color: active ? band.ink : C.text,
+                opacity: active ? 1 : (k < i ? 0.7 : 0.42),
+                borderLeft: "3px solid " + (active ? band.ink : "transparent"),
+                transition: "all 0.3s ease",
+                fontWeight: active ? 600 : 400,
+                fontSize: "0.8125rem",
+              }}>
+                {d.text}
+                {active && <span style={{ marginLeft: 8, fontSize: "0.6875rem", fontWeight: 700, opacity: 0.8 }}>{String.fromCharCode(0x00b7)} {band.label}</span>}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+const SCENE_GRAPH_NODES = [
+  { x: 280, y: 50,  label: "SQL" },
+  { x: 330, y: 110, label: "Dashboards" },
+  { x: 320, y: 180, label: "Reporting" },
+  { x: 260, y: 225, label: "Mentoring" },
+  { x: 150, y: 225, label: "Stakeholders" },
+  { x: 80,  y: 180, label: "Planning" },
+  { x: 70,  y: 110, label: "Python" },
+  { x: 130, y: 50,  label: "Modelling" },
+];
+function SceneRoleGraph() {
+  return (
+    <div style={{ padding: "10px 18px 14px", textAlign: "center" }}>
+      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 8 }}>
+        {String.fromCharCode(0x25C9)} Drawing the Role Graph
+      </div>
+      <style>{`
+        @keyframes scNodePop{0%{opacity:0;transform:scale(.45)}65%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+        @keyframes scEdgeDraw{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
+        @keyframes scCenterPulse{0%,100%{r:22}50%{r:26}}
+        .sc-node{transform-origin:center;transform-box:fill-box;animation:scNodePop .55s ease both}
+        .sc-edge{stroke-dasharray:200;stroke-dashoffset:200;animation:scEdgeDraw .8s ease both}
+        .sc-center{animation:scCenterPulse 1.6s ease-in-out infinite}
+        @media (prefers-reduced-motion: reduce){.sc-node,.sc-edge,.sc-center{animation:none !important}}
+      `}</style>
+      <svg viewBox="0 0 400 270" style={{ width: "100%", maxWidth: 400, height: 210 }} aria-hidden="true">
+        {SCENE_GRAPH_NODES.map((n, k) => (
+          <line key={"e" + k} className="sc-edge" x1={200} y1={135} x2={n.x} y2={n.y} stroke="#cdd9ff" strokeWidth={1.5} style={{ animationDelay: (0.45 + k * 0.09) + "s" }} />
+        ))}
+        <circle className="sc-center" cx={200} cy={135} r={22} fill={C.accent} />
+        <text x={200} y={139} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={800}>Role</text>
+        {SCENE_GRAPH_NODES.map((n, k) => (
+          <g key={"n" + k} className="sc-node" style={{ animationDelay: (0.12 + k * 0.09) + "s" }}>
+            <circle cx={n.x} cy={n.y} r={9} fill={C.accentSoft} stroke={C.accent} strokeWidth={1.5} />
+            <text x={n.x} y={n.y - 14} textAnchor="middle" fontSize={10} fill={C.text} fontWeight={600}>{n.label}</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+const SCENE_REVIEWERS = [
+  { glyph: "AI", name: "AI Exposure Reviewer",  ink: "#7c3aed", bg: "#f3e8ff", text: "This duty is dominated by AI - consider where the human edge actually sits." },
+  { glyph: "EA", name: "Evidence Auditor",      ink: "#b45309", bg: "#fffbeb", text: '"Familiar with" is weak - ask the employer to specify a measurable threshold.' },
+];
+function SceneReviewers() {
+  const [typed, setTyped] = useState(["", ""]);
+  const [showActions, setShowActions] = useState([false, false]);
+  useEffect(() => {
+    setTyped(["", ""]); setShowActions([false, false]);
+    const handles = [];
+    SCENE_REVIEWERS.forEach((r, idx) => {
+      let i = 0;
+      const start = setTimeout(function step() {
+        i += 1;
+        setTyped((prev) => { const nx = prev.slice(); nx[idx] = r.text.slice(0, i); return nx; });
+        if (i < r.text.length) handles.push(setTimeout(step, 22));
+        else handles.push(setTimeout(() => setShowActions((p) => { const n = p.slice(); n[idx] = true; return n; }), 220));
+      }, idx * 700 + 150);
+      handles.push(start);
+    });
+    return () => handles.forEach(clearTimeout);
+  }, []);
+  return (
+    <div style={{ padding: "10px 18px 14px" }}>
+      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
+        {String.fromCharCode(0x270D)} Drafting reviewer comments
+      </div>
+      {SCENE_REVIEWERS.map((r, idx) => (
+        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: idx === SCENE_REVIEWERS.length - 1 ? 0 : 10 }}>
+          <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: r.bg, color: r.ink, fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800, fontSize: "0.6875rem", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid " + r.ink + "33" }}>{r.glyph}</div>
+          <div style={{ flex: 1, minWidth: 0, background: "#fff", border: "1px solid " + C.border, borderRadius: 8, padding: "8px 11px" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: r.ink, marginBottom: 3 }}>{r.name}</div>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.text, lineHeight: 1.5, minHeight: "1.5em" }}>
+              {typed[idx]}
+              {typed[idx].length < r.text.length && <span style={{ display: "inline-block", width: 6, height: 12, background: r.ink, marginLeft: 2, verticalAlign: "middle", animation: "ldxBreathe 0.7s ease-in-out infinite" }} />}
+            </p>
+            {showActions[idx] && (
+              <div style={{ marginTop: 6, display: "flex", gap: 5, animation: "fadeInUp 0.3s ease both" }}>
+                {["Accept", "Reject", "Ask why"].map((a) => (
+                  <span key={a} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: C.muted, background: C.accentSoft, border: "1px solid " + C.border, borderRadius: 5, padding: "2px 6px" }}>{a}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const SCENE_LIST = [
+  { key: "manuscript", title: "Manuscript", render: () => <SceneManuscript /> },
+  { key: "graph",      title: "Role Graph", render: () => <SceneRoleGraph /> },
+  { key: "reviewers",  title: "Reviewers",  render: () => <SceneReviewers /> },
+];
+function SceneRotator() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((x) => (x + 1) % SCENE_LIST.length), 4200);
+    return () => clearInterval(t);
+  }, []);
+  const Current = SCENE_LIST[i].render;
+  return (
+    <div style={{ marginTop: 16, background: "rgba(255,255,255,0.94)", border: "1px solid " + C.border, borderRadius: 12, boxShadow: "0 1px 3px rgba(15,40,105,0.06)", overflow: "hidden", minHeight: 290 }}>
+      <div key={SCENE_LIST[i].key} style={{ animation: "fadeInUp 0.4s ease both" }}>
+        <Current />
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 0 12px" }}>
+        {SCENE_LIST.map((s, k) => (
+          <span key={s.key} title={s.title} style={{ width: k === i ? 18 : 6, height: 6, borderRadius: 3, background: k === i ? C.accent : C.border, transition: "all 0.3s ease" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Spinner({ label, step, total, firstTime, skills }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
@@ -4966,26 +5143,11 @@ function Spinner({ label, step, total, firstTime, skills }) {
           </div>
         </div>
       )}
-      {firstTime && (
-        <div className="ldx ldx-info" style={{ marginTop:24, animation:"fadeInUp 0.5s ease both" }}>
-          <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", marginBottom:10, boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
-            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>What will be shown</p>
-            <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
-              This is a <strong>real Singapore role</strong> - not a generic or made-up one. We match your search to <strong>live 🇸🇬 job postings (MyCareersFuture + careers.gov.sg)</strong> (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement - <strong>Full Automation</strong> (AI, including AI agents, does it end-to-end), <strong>AI-Augmented</strong>, <strong>AI-Assisted</strong>, and <strong>Human-Led</strong> - with a visual overview up top.
-            </p>
-          </div>
-          <div style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderRadius:12, padding: "14px 16px", boxShadow:"0 1px 3px rgba(15,40,105,0.05)" }}>
-            <p style={{ margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.accent }}>What each section enables</p>
-            <ul style={{ margin:"4px 0 0", paddingLeft:18, fontSize: "0.75rem", color:C.textSub, lineHeight:1.6 }}>
-              <li style={{ marginBottom:3 }}><strong>Skill Analysis</strong> — each skill with a ready-to-use AI prompt and a 3-step “what to do next”.</li>
-              <li style={{ marginBottom:3 }}><strong>Career Progression</strong> — realistic next roles and the skill gaps to close.</li>
-              <li style={{ marginBottom:3 }}><strong>Role Crossover</strong> — transferable skills that open doors to nearby roles.</li>
-              <li style={{ marginBottom:3 }}><strong>Skill Categories</strong> — skills grouped into themes for easier learning.</li>
-              <li><strong>Role Context</strong> — how the role plays out across sectors in Singapore and ASEAN.</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* AI-building theatre: three cycling scenes that preview Step 3's assembly.
+          Replaces the prior static intro card so every analysis (not just the first)
+          gets the entertaining wait. The real stage label + ring above stay
+          authoritative; the scenes are cosmetic. */}
+      <SceneRotator />
       </div>
     </div>
   );
