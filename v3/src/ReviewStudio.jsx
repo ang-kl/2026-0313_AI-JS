@@ -4,7 +4,7 @@
 // Visual Intelligence stack (the Role Graph + doctrine visuals). Phase 1: shell +
 // manuscript (Read clean) + Role Graph. Dissection (O-I-A), comment margin and the
 // extra visuals land in later phases. Doctrine tokens only; "AI-assisted; human decides".
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 const BANDS = {
@@ -18,6 +18,21 @@ const PROV = {
   "from MCF":     { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
   computed:       { bg: "#eef7f0", ink: "#2f7d4f", border: "#cce6d4" },
   derived:        { bg: "#f1eefc", ink: "#5b4bbd", border: "#ddd5f6" },
+  "AI estimate":  { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
+  unverified:     { bg: "#fbeaea", ink: "#a13a3a", border: "#f1cdcd" },
+};
+// O-I-A lens colours (S7) and reviewer persona colours (S5.5).
+const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
+const PERSONA = {
+  "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
+  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#2f7d4f", "Evidence Auditor": "#64748b",
+};
+// Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
+const SPAN_STYLE = {
+  augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
+  auto:      { bg: "#fde6da", under: "#c2410c", color: "#7a2c08" },
+  human:     { bg: "#eaf0ff", under: "#1d4ed8", color: "#1b3aa0" },
+  assisted:  { bg: "#e3f5fb", under: "#0e7490", color: "#0b4f60" },
 };
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"]] },
@@ -48,6 +63,47 @@ function rsDominantBand(duties) {
   const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
   const keys = Object.keys(c); return keys.length ? keys.sort((a, b) => c[b] - c[a])[0] : null;
 }
+// ── O-I-A dissection (deterministic, non-inventive; S7) ──────────────────────
+// Observation = the posting's own duty spans (verbatim). Interpretation = work-mode +
+// exposure band (engine, else a leading-verb rule), with confidence. Application = the
+// AIOE read + routing. Reviewer personas fire from RULES, each citing a span. No LLM.
+function rsLens(text) {
+  const t = String(text || "").toLowerCase();
+  if (/\b(ai|automat|machine learning|gen ?ai|chatbot|model|algorithm|data analy|analytic|digital transformation)\b/.test(t)) return "AI";
+  if (/\b(stakeholder|cross-functional|business unit|department|govern|complian|accountab|relationship|liais|partner)\b/.test(t)) return "ORG";
+  return "ROLE";
+}
+function rsGuessBand(text) {
+  const lead = String(text || "").toLowerCase().trim().split(/\s+/)[0] || "";
+  if (/^(liais|advis|engage|represent|negoti|lead|own|ensure|govern|approve|accountab|mentor|coach)/.test(lead)) return "human";
+  if (/^(develop|build|design|automat|generat|implement|deploy|create|configur|program|code)/.test(lead)) return "augmented";
+  if (/^(analy|assess|evaluat|review|investigat|interpret|monitor|prepar|coordinat|process|compil)/.test(lead)) return "assisted";
+  return "assisted";
+}
+function buildDissection(result) {
+  const ja = result && result.jobAnatomy, rd = result && result.responsibilitiesData;
+  const raw = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
+  const spans = raw.slice(0, 14).map((d, i) => {
+    const text = typeof d === "string" ? d : d.text; if (!text) return null;
+    const expo = (d && d.exposureNow) || null;
+    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || rsGuessBand(text), lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo };
+  }).filter(Boolean);
+  return { spans, comments: rsComments(spans) };
+}
+function rsComments(spans) {
+  const out = [], used = new Set();
+  const ai = spans.find((s) => (s.band === "augmented" || s.band === "auto") && s.lens === "AI") || spans.find((s) => s.band === "augmented" || s.band === "auto");
+  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "medium", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
+  const vague = spans.find((s) => !used.has(s.id) && /\b(ad-?hoc|various|support various|other duties|as (assigned|required|needed)|miscellaneous)\b/i.test(s.text));
+  if (vague) { used.add(vague.id); out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: "derived", conf: "medium", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested: "own a named " + (rsLens(vague.text) === "ORG" ? "transformation" : "delivery") + " backlog with measurable cycle-time targets" }); }
+  const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
+  if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
+  const human = spans.find((s) => !used.has(s.id) && s.band === "human");
+  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
+  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "none", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
+  return out.slice(0, 6);
+}
 
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
@@ -55,10 +111,19 @@ function Chip({ kind, children }) {
 }
 
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack }) {
-  const [markup, setMarkup] = useState("clean");
+  const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
   const [railOpen, setRailOpen] = useState(true); // icon rail expanded (labels) vs collapsed
+  const [activeSpan, setActiveSpan] = useState(null);
+  const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
+
+  const dissection = useMemo(() => buildDissection(result), [result]);
+  const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
+  const showClean = markup === "clean";
+  const showDissect = markup === "dissect";
+  const showMargin = markup === "suggestions" || markup === "comments";
+  const marginComments = markup === "comments" ? dissection.comments.filter((c) => c.type === "comment" || c.type === "withhold claim") : dissection.comments;
 
   const ja = result && result.jobAnatomy;
   const rd = result && result.responsibilitiesData;
@@ -140,30 +205,122 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           </aside>
         )}
 
-        {/* Left: the job ad as a manuscript (~34%) */}
-        <div className="wis-scroll" style={{ flex: "0 0 clamp(330px, 34%, 600px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
-          <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "28px 30px 34px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-            <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
-            <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-              <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} verbatim</Chip>
-              {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
+        {/* Left: manuscript (spans) or O-I-A dissection */}
+        <div className="wis-scroll" style={{ flex: showDissect ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
+          {showDissect ? (
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
+              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
+              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
+              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; return (
+                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
+                    {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+                      <div style={oiaKick}>OBSERVATION</div>
+                      <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
+                      <Chip kind="from posting">from posting</Chip>
+                    </div>
+                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+                      <div style={oiaKick}>INTERPRETATION</div>
+                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}exposure reads <strong style={{ color: b ? b.ink : "#16202e" }}>{b ? b.label : "-"}</strong>.</p>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "rule"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "medium"}</span>
+                    </div>
+                    <div style={{ padding: "12px 13px" }}>
+                      <div style={oiaKick}>APPLICATION</div>
+                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>AIOE: {b ? b.label : "-"} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</p>
+                      <Chip kind="computed">computed</Chip>
+                    </div>
+                  </div>
+                </div>
+              ); })}
+              {!dissection.spans.length && <p style={manuP}>No duty spans to dissect yet.</p>}
             </div>
-            {overview && <>
-              <h2 style={manuH2}>Role overview</h2>
-              <p style={manuP}>{overview}</p>
-            </>}
-            {duties.length > 0 && <>
-              <h2 style={manuH2}>Responsibilities</h2>
-              <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>{duties.map((d, i) => <li key={i} style={{ ...manuP, marginBottom: 7 }}>{d}</li>)}</ul>
-            </>}
-            {skills.length > 0 && <>
-              <h2 style={manuH2}>Skills the posting asks for</h2>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
-            </>}
-            {!overview && !duties.length && <p style={manuP}>The analysed posting did not yield responsibilities text to render as a manuscript.</p>}
-          </div>
+          ) : (
+            <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "28px 30px 34px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
+              <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+                <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} verbatim</Chip>
+                {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
+              </div>
+              {overview && <>
+                <h2 style={manuH2}>Role overview</h2>
+                <p style={manuP}>{overview}</p>
+              </>}
+              {dissection.spans.length > 0 && <>
+                <h2 style={manuH2}>Responsibilities</h2>
+                <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                  {dissection.spans.map((s) => {
+                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
+                    const st = SPAN_STYLE[s.band] || SPAN_STYLE.assisted; const on = activeSpan === s.id;
+                    return (
+                      <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
+                        <span role="button" tabIndex={0} aria-pressed={on}
+                          onClick={() => setActiveSpan(on ? null : s.id)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
+                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px solid " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>}
+              {skills.length > 0 && <>
+                <h2 style={manuH2}>Skills the posting asks for</h2>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
+              </>}
+              {!overview && !dissection.spans.length && <p style={manuP}>The analysed posting did not yield responsibilities text to render as a manuscript.</p>}
+            </div>
+          )}
         </div>
+
+        {/* Comment margin (Suggestions / Comments modes) */}
+        {showMargin && (
+          <aside className="wis-scroll" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
+            </div>
+            {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
+            {marginComments.map((c) => {
+              const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
+              const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
+              return (
+                <div key={c.id} onClick={() => setActiveSpan(c.anchor)} style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+                    <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
+                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }}>{c.type}</span>
+                  </div>
+                  {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
+                  {anchorText && <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#52607a", borderLeft: "2px solid #d9d6cd", paddingLeft: 9, margin: "0 0 8px", lineHeight: 1.4 }}>{String.fromCharCode(0x201c)}{anchorText}{String.fromCharCode(0x201d)}</p>}
+                  <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
+                  {c.type === "suggested rewrite" && (
+                    <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>
+                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a13a3a", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
+                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
+                    </div>
+                  )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
+                    <Chip kind={c.prov}>{c.prov}</Chip>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
+                  </div>
+                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#2f7d4f" : "#a13a3a" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
+                  : (
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Accept</button>
+                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "rejected" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#3a4456", background: "#fff", border: "1px solid #d9d6cd", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Reject</button>
+                      <button onClick={(e) => { e.stopPropagation(); setActiveSpan(c.anchor); setRail("advisory"); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#1a56db", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Ask why</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </aside>
+        )}
 
         {/* Right: Role Graph + analysis (~66%, the dominant pane) */}
         <div className="wis-scroll" style={{ flex: 1, minWidth: 0, background: "#fbfaf8", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 18px 50px" }}>
@@ -198,3 +355,4 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
 const manuH2 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#16202e", margin: "0 0 9px" };
 const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 18px" };
+const oiaKick = { fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 600, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 };
