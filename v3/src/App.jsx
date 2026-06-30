@@ -15582,28 +15582,55 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   {ssocPickerLoading && ssocOccs.length === 0 && (
                     <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"4px 0" }}>Finding SSOC occupations...</p>
                   )}
-                  {ssocOccs.length > 0 && (
-                    <div>
-                      <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"0 0 5px" }}>
-                        {ssocOccs.length} SSOC occupation{ssocOccs.length!==1?"s":""} match{ssocOccs.length===1?"es":""} "{(searchMode === "jobs" ? query : ssocQuery).trim()}" - {searchMode === "jobs"
-                          ? "select one to continue (required)."
-                          : "select one to filter the employer's postings, or clear this field to skip the SSOC filter."}
-                      </p>
-                      {ssocOccs.map((o) => (
-                        <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode }); pickSsoc(o); }}
-                          style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px", marginBottom:4, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, transition:"all 0.12s" }}
-                          onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
-                          onMouseLeave={e=>{ e.currentTarget.style.background=C.surface; e.currentTarget.style.borderColor=C.border; }}>
-                          <div style={{ flex:1, minWidth:0 }}>
-                            <p style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.title}</p>
-                            <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, fontFamily:"'Spline Sans Mono',monospace" }}>
-                              SSOC {o.code}{o.kind ? " " + String.fromCharCode(0x00b7) + " " + String(o.kind).replace(/_/g," ") : ""}
-                            </p>
+                  {ssocOccs.length > 0 && (() => {
+                    // SSOC hierarchy from most specific to broadest. Group the suggestions
+                    // by kind so the user can see "specific occupation" matches separately
+                    // from broader cluster matches, and pick the right level of granularity.
+                    const SSOC_KINDS = [
+                      { key:"occupation",      label:"Specific occupations", help:"A single named job role - what an individual actually does day-to-day." },
+                      { key:"unit_group",      label:"Unit groups",          help:"A small cluster of closely related occupations (4-digit SSOC code)." },
+                      { key:"minor_group",     label:"Minor groups",         help:"A broader family containing several unit groups (3-digit SSOC code)." },
+                      { key:"sub_major_group", label:"Sub-major groups",     help:"A wide grouping of related minor groups (2-digit SSOC code)." },
+                      { key:"major_group",     label:"Major groups",         help:"The widest occupational families (1-digit SSOC code)." },
+                    ];
+                    const buckets = SSOC_KINDS.map((k) => ({ ...k, items: ssocOccs.filter((o) => (o.kind || "") === k.key).sort((a, b) => a.title.localeCompare(b.title)) })).filter((g) => g.items.length > 0);
+                    // Anything with an unrecognised kind drops into a tail bucket so we
+                    // never silently lose results.
+                    const knownCodes = new Set(SSOC_KINDS.map((k) => k.key));
+                    const tail = ssocOccs.filter((o) => !knownCodes.has(o.kind || ""));
+                    if (tail.length) buckets.push({ key:"other", label:"Other matches", help:"Items whose SSOC level is not classified.", items: tail });
+                    const cardStyle = { background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px", cursor:"pointer", transition:"all 0.12s", minWidth:0 };
+                    return (
+                      <div>
+                        <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"0 0 8px" }}>
+                          {ssocOccs.length} SSOC match{ssocOccs.length===1?"":"es"} for "{(searchMode === "jobs" ? query : ssocQuery).trim()}" - {searchMode === "jobs"
+                            ? "select one to continue (required)."
+                            : "select one to filter the employer's postings, or clear this field to skip the SSOC filter."}
+                        </p>
+                        {buckets.map((g) => (
+                          <div key={g.key} style={{ marginBottom:10 }}>
+                            <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, margin:"0 0 4px" }}>
+                              <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.accent, letterSpacing:".04em", textTransform:"uppercase" }}>{g.label} <span style={{ color:C.mutedLight, fontWeight:600 }}>({g.items.length})</span></p>
+                              <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, lineHeight:1.4, textAlign:"right", maxWidth:"68%" }}>{g.help}</p>
+                            </div>
+                            <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0, 1fr))", gap:6 }}>
+                              {g.items.map((o) => (
+                                <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode }); pickSsoc(o); }}
+                                  style={cardStyle}
+                                  onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
+                                  onMouseLeave={e=>{ e.currentTarget.style.background=C.surface; e.currentTarget.style.borderColor=C.border; }}>
+                                  <p title={o.title} style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.title}</p>
+                                  <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, fontFamily:"'Spline Sans Mono',monospace" }}>
+                                    SSOC {o.code}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
               {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
