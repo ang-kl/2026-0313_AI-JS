@@ -15350,14 +15350,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
         {step === "results" && sel && result && (() => {
           // Step 3 = Review Studio (v3-ui-blueprint S4). Replaces the legacy tabbed result page.
-          let _kg = null; try { _kg = getKnowledgeGraph(result, sel?.title || ""); } catch (_) {}
+          // Right pane = the ORIGINAL Role Graph (RoleGraphPanel: layered role graph + ISCO
+          // ranking + skill-analysis) - the "role graph and other analysis", unchanged.
           return (
             <ReviewStudio
               result={result}
               title={toTitleCase(sel?.title || "")}
               employer={result?.employer || ""}
               source="from MCF"
-              kgPayload={_kg}
+              rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} />}
               band={null}
               onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
             />
