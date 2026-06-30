@@ -5,7 +5,6 @@
 // manuscript (Read clean) + Role Graph. Dissection (O-I-A), comment margin and the
 // extra visuals land in later phases. Doctrine tokens only; "AI-assisted; human decides".
 import { useState } from "react";
-import { KGGraph } from "./RoleGraph.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 const BANDS = {
@@ -55,7 +54,7 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
-export default function ReviewStudio({ result, title, employer, source, kgPayload, band, onBack }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack }) {
   const [markup, setMarkup] = useState("clean");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
@@ -177,12 +176,7 @@ export default function ReviewStudio({ result, title, employer, source, kgPayloa
             </div>
           </div>
           <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, minHeight: "64vh" }}>
-            {visual === "jobgraph" && (kgPayload && kgPayload.nodes && kgPayload.nodes.length > 1
-              ? <>
-                  <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.9375rem", color: "#3a4456", margin: "0 0 12px" }}>What shape is this role - duties, skills, adjacency?</p>
-                  <KGGraph kg={kgPayload} layout="force" embedded />
-                </>
-              : <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
+            {visual === "jobgraph" && (rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
             {visual !== "jobgraph" && (
               <p style={{ fontSize: "0.875rem", color: "#64748b", lineHeight: 1.6, maxWidth: 560 }}>
                 <strong style={{ color: "#16202e" }}>{(RIBBON[1].items.find((i) => i[0] === visual) || [])[1]}</strong> renders in the next build phase, wired to the deterministic engine output (per blueprint S10.3). The <strong style={{ color: "#16202e" }}>Job graph</strong> is live now - switch back to it.
