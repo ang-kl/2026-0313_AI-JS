@@ -11650,15 +11650,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
             {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
           </div>
-          {synopsis && <p style={{ margin: "0 0 9px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
-          {skills.length > 0 && (
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ ...KICK, fontSize: "0.5rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 4 }}>SKILLSETS</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                {skills.map((t, i) => (<span key={i} style={{ fontSize: "0.6875rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "2px 9px" }}>{t}</span>))}
-              </div>
-            </div>
-          )}
+          {synopsis && <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
+          {c.func && <div style={{ marginBottom: 10 }}><span title={c.func} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "2px 7px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>{String.fromCharCode(0x2192)} {c.func}</span></div>}
           <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
             <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 36 }}>Analyse</button>
             {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
@@ -11690,7 +11683,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   );
 
   return (
-    <div style={{ position: "relative", width: "min(96vw, 1720px)", left: "50%", transform: "translateX(-50%)", padding: "0 0 60px" }}>
+    <div style={{ position: "relative", width: "96vw", maxWidth: 1720, left: "50%", marginLeft: "min(-48vw, -860px)", padding: "0 0 60px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
@@ -11703,7 +11696,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       </div>
 
-      <div ref={barRef} style={{ position: "sticky", top: 0, zIndex: 35, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
+      <div ref={barRef} style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
         <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 36 }} />
         <div style={{ position: "relative", flex: "none" }}>
           <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
@@ -11724,7 +11717,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
       {!state.loading && sorted.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <aside style={{ flex: "none", width: 248, position: "sticky", top: 66, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 80px)", overflowY: "auto" }} className="wis-scroll">
+          <aside style={{ flex: "none", width: 248, position: "sticky", top: 120, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 134px)", overflowY: "auto" }} className="wis-scroll">
             <div>
               <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 8 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
