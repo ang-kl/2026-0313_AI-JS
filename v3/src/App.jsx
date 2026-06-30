@@ -11527,7 +11527,7 @@ function step2BuildOkfLog(query, counts) {
   return { front, body };
 }
 
-function PostingEvidencePicker({ query, freshGrad, ssocFilter, onAnalysePosting, onNewSearch }) {
+function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null });
   const [cls, setCls] = useState({});
   const [selectedId, setSelectedId] = useState(null);
@@ -11647,7 +11647,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onAnalysePosting,
 
   const activeFacetCount = STEP2_FACETS.reduce((n, f) => n + facets[f.key].length, 0);
   const hasFilters = activeFacetCount > 0 || findText.trim().length > 0;
-  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); };
+  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); if (onClearSsocFilter) onClearSsocFilter(); };
   const toggleFacet = (key, val) => setFacets((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : f[key].concat(val) }));
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
@@ -11742,7 +11742,12 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onAnalysePosting,
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{sorted.length} of {baseJobs.length}</span>
-          {ssocFilter && <span title={"Step 1 SSOC filter: " + ssocFilter.code + " " + (ssocFilter.title || "")} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#142a8e", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 6, padding: "4px 9px" }}>SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}</span>}
+          {ssocFilter && (
+            <span title={"Step 1 SSOC filter: " + ssocFilter.code + " " + (ssocFilter.title || "")} style={{ display:"inline-flex", alignItems:"center", gap:6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#142a8e", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 6, padding: "4px 9px" }}>
+              SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}
+              {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} aria-label="Clear SSOC filter" style={{ background:"none", border:"none", color:"#142a8e", cursor:"pointer", padding:0, fontSize: "0.75rem", lineHeight:1 }}>{String.fromCharCode(0x2715)}</button>}
+            </span>
+          )}
           {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and sector withheld. Use the Sector filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} style={{ cursor: "pointer", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
@@ -13047,7 +13052,7 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 // Deterministic: no LLM, no invented number. Counts and names are verbatim
 // pass-through from MyCareersFuture via /api/mcf action:"company".
 // R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
-function CompanyPanel({ companyQuery, ssocFilter, onAnalysePosting, onQueuePosting, queueCount }) {
+function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePosting, onQueuePosting, queueCount }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
@@ -13450,7 +13455,11 @@ function CompanyPanel({ companyQuery, ssocFilter, onAnalysePosting, onQueuePosti
                   )}
                   {visible.length === 0 && ssocCode ? (
                     <div style={{ background: C.surface, border: "1px dashed " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-                      <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>None of this employer's MyCareersFuture postings classified under SSOC {ssocFilter.code}. Try a broader SSOC level (e.g. just the major group) or clear the filter.</p>
+                      <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
+                        None of this employer's MyCareersFuture postings classified under SSOC {ssocFilter.code}. Try a broader SSOC level (e.g. just the major group){onClearSsocFilter ? " or " : " or clear the filter."}
+                        {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} style={{ background: "none", border: "none", padding: 0, color: C.accent, cursor: "pointer", fontWeight: 700, fontSize: "0.8125rem", textDecoration: "underline" }}>clear the SSOC filter</button>}
+                        {onClearSsocFilter && "."}
+                      </p>
                     </div>
                   ) : (
                     <div className="mcf-grid">
@@ -15511,6 +15520,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               query={query.trim()}
               freshGrad={freshGrad}
               ssocFilter={ssocFilter}
+              onClearSsocFilter={clearSsocFilter}
               onAnalysePosting={handleAnalysePosting}
               onNewSearch={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
             />
@@ -15534,6 +15544,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <CompanyPanel
               companyQuery={query.trim()}
               ssocFilter={ssocFilter}
+              onClearSsocFilter={clearSsocFilter}
               onAnalysePosting={handleAnalysePosting}
               onQueuePosting={handleQueuePosting}
               queueCount={comparisons.length}
