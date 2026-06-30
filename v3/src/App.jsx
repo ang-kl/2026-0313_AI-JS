@@ -11456,10 +11456,10 @@ function step2Synopsis(job) {
     if (t.length < 24) continue;            // skip stray fragments/headers
     if (!/[a-z]/.test(t)) continue;         // skip ALL-CAPS header lines
     out = out ? out + " " + t : t;
-    if (out.length >= 100) break;
+    if (out.length >= 280) break;
   }
   if (!out) out = raw;
-  if (out.length > 210) { out = out.slice(0, 200); const w = out.lastIndexOf(" "); if (w > 120) out = out.slice(0, w); out += String.fromCharCode(0x2026); }
+  if (out.length > 480) { out = out.slice(0, 460); const w = out.lastIndexOf(" "); if (w > 320) out = out.slice(0, w); out += String.fromCharCode(0x2026); }
   return out.trim();
 }
 // OKF index.md: lists every posting in the bundle (the bundle indices).
@@ -11507,7 +11507,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [cls, setCls] = useState({});
   const [selectedId, setSelectedId] = useState(null);
   const [sort, setSort] = useState("match");
-  const [facets, setFacets] = useState({ sector: [], company: [], department: [], func: [], exp: [], type: [], exposure: [] });
+  const [facets, setFacets] = useState({ sector: [], company: [], department: [], func: [], exp: [], type: [] });
   const [openFacet, setOpenFacet] = useState(null);
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
@@ -11568,19 +11568,27 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       type: step2TypeOf(j),
       exposure: band ? band.label : null,
       salaryMid: c.salaryMid,
+      level: Array.isArray(j.positionLevels) && j.positionLevels[0] ? String(j.positionLevels[0]) : null,
+      schemes: Array.isArray(j.schemes) ? j.schemes.filter(Boolean).slice(0, 2) : [],
+      confidence: c.confidence || null,
       meta: [step2Salary(j.salaryMin, j.salaryMax), step2TypeOf(j), j.minimumYearsExperience != null && Number(j.minimumYearsExperience) > 0 ? Number(j.minimumYearsExperience) + "+ yrs" : null].filter(Boolean),
       tags: Array.isArray(j.skills) ? j.skills.filter(Boolean).slice(0, 3) : [],
       age: step2Days(j.postedDate),
     };
   }), [baseJobs, cls]);
 
-  // Facet options with per-value counts; "Unclassified" is excluded (not a useful filter).
+  // Facet options with per-value counts. "Unclassified" is kept so the user can see
+  // (and filter on) the SSOC-withheld portion of the result set; it's sorted last.
   const facetOptions = useMemo(() => {
     const o = {};
     STEP2_FACETS.forEach((f) => {
       const counts = {};
-      cards.forEach((c) => { const v = c[f.key]; if (v && v !== "Unclassified") counts[v] = (counts[v] || 0) + 1; });
-      o[f.key] = Object.keys(counts).sort((a, b) => (counts[b] - counts[a]) || a.localeCompare(b)).map((v) => ({ v, n: counts[v] }));
+      cards.forEach((c) => { const v = c[f.key]; if (v) counts[v] = (counts[v] || 0) + 1; });
+      o[f.key] = Object.keys(counts).sort((a, b) => {
+        if (a === "Unclassified" && b !== "Unclassified") return 1;
+        if (b === "Unclassified" && a !== "Unclassified") return -1;
+        return (counts[b] - counts[a]) || a.localeCompare(b);
+      }).map((v) => ({ v, n: counts[v] }));
     });
     return o;
   }, [cards]);
@@ -11606,7 +11614,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
   const activeFacetCount = STEP2_FACETS.reduce((n, f) => n + facets[f.key].length, 0);
   const hasFilters = activeFacetCount > 0 || findText.trim().length > 0;
-  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [], exposure: [] }); setFindText(""); };
+  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); };
   const toggleFacet = (key, val) => setFacets((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : f[key].concat(val) }));
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
@@ -11645,13 +11653,22 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
         <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
           <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
-          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: "#8a8274", margin: "5px 0 7px" }}>{c.age || ""}</div>
-          {c.ssoc && <div style={{ marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span></div>}
+          <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "5px 0 7px" }}>
+            {(c.age === "today" || c.age === "yesterday") && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".06em", fontWeight: 700, color: "#fff", background: "#1a56db", borderRadius: 3, padding: "1px 4px" }}>NEW</span>}
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: (c.age === "today" || c.age === "yesterday") ? "#1a56db" : "#8a8274", fontWeight: (c.age === "today" || c.age === "yesterday") ? 600 : 400 }}>{c.age || ""}</span>
+          </div>
+          {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}</div>}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
             {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
           </div>
-          {synopsis && <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
-          {c.func && <div style={{ marginBottom: 10 }}><span title={c.func} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "2px 7px", display: "inline-block", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>{String.fromCharCode(0x2192)} {c.func}</span></div>}
+          {synopsis && <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
+          {(c.func || c.level || c.schemes.length > 0) && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+              {c.func && <span title={c.func} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "2px 7px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>{String.fromCharCode(0x2192)} {c.func}</span>}
+              {c.level && <span title={"Position level: " + c.level} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{c.level}</span>}
+              {c.schemes.map((s, i) => (<span key={i} title={"Scheme: " + s} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{s}</span>))}
+            </div>
+          )}
           <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
             <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 36 }}>Analyse</button>
             {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
@@ -11692,6 +11709,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{sorted.length} of {baseJobs.length}</span>
+          {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and sector withheld. Use the Sector filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} style={{ cursor: "pointer", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
       </div>
