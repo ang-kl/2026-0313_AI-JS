@@ -4895,23 +4895,56 @@ const SCENE_MANUSCRIPT_DUTIES = [
   { text: "Mentor junior analysts and run training",           band: "human" },
   { text: "Coordinate quarterly planning with stakeholders",   band: "human" },
 ];
-function SceneManuscript() {
+// Pull up to 5 short duty lines from a real posting's responsibilities text.
+// Strips HTML/bullet glyphs; favours sentence-like fragments. Falls back to the
+// generic Data Analyst mockup when no posting is in flight (role-mode analyses).
+function sceneDutiesFromPosting(posting) {
+  if (!posting || !posting.text) return null;
+  const raw = String(posting.text || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&amp;|&quot;|&#39;/g, " ")
+    .replace(/[•·●▪‣⁃|]/g, "\n")
+    .replace(/\r/g, "");
+  const candidates = raw.split(/[\n.;]+/)
+    .map((s) => s.replace(/\s+/g, " ").trim())
+    .filter((s) => s.length >= 18 && s.length <= 130 && /[a-z]/.test(s) && /\s/.test(s));
+  const seen = new Set();
+  const out = [];
+  // The 4 SSOC-derived involvement bands cycled over real lines - the bands
+  // shown are illustrative until classifyDuties returns, so they rotate evenly
+  // rather than misrepresent a specific classification.
+  const bands = ["augmented", "auto", "assisted", "human"];
+  for (const line of candidates) {
+    const key = line.toLowerCase().slice(0, 60);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ text: line, band: bands[out.length % bands.length] });
+    if (out.length >= 5) break;
+  }
+  return out.length ? out : null;
+}
+function SceneManuscript({ posting }) {
   const [i, setI] = useState(0);
+  const realDuties = sceneDutiesFromPosting(posting);
+  const duties = realDuties || SCENE_MANUSCRIPT_DUTIES;
+  const heading = posting && posting.title ? posting.title : "Data Analyst, Singapore";
+  const subheading = posting && posting.employer ? posting.employer : "the role will:";
   useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % SCENE_MANUSCRIPT_DUTIES.length), 620);
+    setI(0);
+    const t = setInterval(() => setI((x) => (x + 1) % duties.length), 620);
     return () => clearInterval(t);
-  }, []);
+  }, [duties.length]);
   return (
     <div style={{ padding: "14px 18px" }}>
       <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
-        ★ Highlighting duties by AI involvement
+        ★ Highlighting duties by AI involvement {realDuties && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>live posting</span>}
       </div>
       <div style={{ fontFamily: "'Newsreader',serif", fontSize: "0.875rem", color: C.text, lineHeight: 1.5 }}>
-        <span style={{ fontWeight: 700 }}>Data Analyst, Singapore</span> {String.fromCharCode(0x2014)} the role will:
+        <span style={{ fontWeight: 700 }}>{heading}</span>{posting && posting.employer ? <span style={{ color: C.muted, fontWeight: 400 }}> {String.fromCharCode(0x2014)} {subheading}</span> : <> {String.fromCharCode(0x2014)} {subheading}</>}
         <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
-          {SCENE_MANUSCRIPT_DUTIES.map((d, k) => {
+          {duties.map((d, k) => {
             const active = k === i;
-            const band = SCENE_BANDS[d.band];
+            const band = SCENE_BANDS[d.band] || SCENE_BANDS.assisted;
             return (
               <li key={k} style={{
                 padding: "4px 9px",
@@ -4924,6 +4957,9 @@ function SceneManuscript() {
                 transition: "all 0.3s ease",
                 fontWeight: active ? 600 : 400,
                 fontSize: "0.8125rem",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}>
                 {d.text}
                 {active && <span style={{ marginLeft: 8, fontSize: "0.6875rem", fontWeight: 700, opacity: 0.8 }}>{String.fromCharCode(0x00b7)} {band.label}</span>}
@@ -4946,11 +4982,23 @@ const SCENE_GRAPH_NODES = [
   { x: 70,  y: 110, label: "Python" },
   { x: 130, y: 50,  label: "Modelling" },
 ];
-function SceneRoleGraph() {
+function SceneRoleGraph({ posting }) {
+  // Use the posting's actual skills (capped at the geometry's 8 satellite slots)
+  // and shorten long labels to keep the graph readable.
+  const realSkills = posting && Array.isArray(posting.skills) ? posting.skills.filter(Boolean).slice(0, SCENE_GRAPH_NODES.length) : [];
+  const nodes = SCENE_GRAPH_NODES.map((n, k) => {
+    const label = realSkills[k] != null ? String(realSkills[k]) : n.label;
+    const short = label.length > 16 ? label.slice(0, 14) + String.fromCharCode(0x2026) : label;
+    return { ...n, label: short, fullLabel: label };
+  });
+  const centreLabel = (() => {
+    const t = posting && posting.title ? String(posting.title) : "Role";
+    return t.length > 14 ? t.slice(0, 12) + String.fromCharCode(0x2026) : t;
+  })();
   return (
     <div style={{ padding: "10px 18px 14px", textAlign: "center" }}>
       <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 8 }}>
-        {String.fromCharCode(0x25C9)} Drawing the Role Graph
+        {String.fromCharCode(0x25C9)} Drawing the Role Graph {realSkills.length > 0 && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>posting skills</span>}
       </div>
       <style>{`
         @keyframes scNodePop{0%{opacity:0;transform:scale(.45)}65%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
@@ -4962,12 +5010,12 @@ function SceneRoleGraph() {
         @media (prefers-reduced-motion: reduce){.sc-node,.sc-edge,.sc-center{animation:none !important}}
       `}</style>
       <svg viewBox="0 0 400 270" style={{ width: "100%", maxWidth: 400, height: 210 }} aria-hidden="true">
-        {SCENE_GRAPH_NODES.map((n, k) => (
+        {nodes.map((n, k) => (
           <line key={"e" + k} className="sc-edge" x1={200} y1={135} x2={n.x} y2={n.y} stroke="#cdd9ff" strokeWidth={1.5} style={{ animationDelay: (0.45 + k * 0.09) + "s" }} />
         ))}
         <circle className="sc-center" cx={200} cy={135} r={22} fill={C.accent} />
-        <text x={200} y={139} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={800}>Role</text>
-        {SCENE_GRAPH_NODES.map((n, k) => (
+        <text x={200} y={139} textAnchor="middle" fill="#fff" fontSize={10} fontWeight={800}>{centreLabel}</text>
+        {nodes.map((n, k) => (
           <g key={"n" + k} className="sc-node" style={{ animationDelay: (0.12 + k * 0.09) + "s" }}>
             <circle cx={n.x} cy={n.y} r={9} fill={C.accentSoft} stroke={C.accent} strokeWidth={1.5} />
             <text x={n.x} y={n.y - 14} textAnchor="middle" fontSize={10} fill={C.text} fontWeight={600}>{n.label}</text>
@@ -4982,13 +5030,26 @@ const SCENE_REVIEWERS = [
   { glyph: "AI", name: "AI Exposure Reviewer",  ink: "#7c3aed", bg: "#f3e8ff", text: "This duty is dominated by AI - consider where the human edge actually sits." },
   { glyph: "EA", name: "Evidence Auditor",      ink: "#b45309", bg: "#fffbeb", text: '"Familiar with" is weak - ask the employer to specify a measurable threshold.' },
 ];
-function SceneReviewers() {
+function SceneReviewers({ posting }) {
+  // Build the persona comments from real duties when a posting is in flight, so
+  // the user sees the reviewer text reference what was in their actual ad.
+  const realDuties = sceneDutiesFromPosting(posting);
+  const reviewers = (() => {
+    if (!realDuties || !realDuties.length) return SCENE_REVIEWERS;
+    const dutyAi = realDuties.find((d) => d.band === "auto" || d.band === "augmented") || realDuties[0];
+    const dutyHuman = realDuties.find((d) => d.band === "human") || realDuties[realDuties.length - 1];
+    const trim = (s) => { const t = String(s || "").trim(); return t.length > 80 ? t.slice(0, 78) + String.fromCharCode(0x2026) : t; };
+    return [
+      { glyph: "AI", name: "AI Exposure Reviewer", ink: SCENE_BANDS.auto.ink,  bg: SCENE_BANDS.auto.bg,  text: '"' + trim(dutyAi.text) + '" - this is dominated by AI. Where will the human edge sit?' },
+      { glyph: "EA", name: "Evidence Auditor",     ink: SCENE_BANDS.human.ink, bg: SCENE_BANDS.human.bg, text: '"' + trim(dutyHuman.text) + '" - human-led. Make the accountability + decision rights explicit.' },
+    ];
+  })();
   const [typed, setTyped] = useState(["", ""]);
   const [showActions, setShowActions] = useState([false, false]);
   useEffect(() => {
     setTyped(["", ""]); setShowActions([false, false]);
     const handles = [];
-    SCENE_REVIEWERS.forEach((r, idx) => {
+    reviewers.forEach((r, idx) => {
       let i = 0;
       const start = setTimeout(function step() {
         i += 1;
@@ -4999,14 +5060,14 @@ function SceneReviewers() {
       handles.push(start);
     });
     return () => handles.forEach(clearTimeout);
-  }, []);
+  }, [reviewers]);
   return (
     <div style={{ padding: "10px 18px 14px" }}>
       <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
-        {String.fromCharCode(0x270D)} Drafting reviewer comments
+        {String.fromCharCode(0x270D)} Drafting reviewer comments {realDuties && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>citing the live posting</span>}
       </div>
-      {SCENE_REVIEWERS.map((r, idx) => (
-        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: idx === SCENE_REVIEWERS.length - 1 ? 0 : 10 }}>
+      {reviewers.map((r, idx) => (
+        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: idx === reviewers.length - 1 ? 0 : 10 }}>
           <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: r.bg, color: r.ink, fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800, fontSize: "0.6875rem", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid " + r.ink + "33" }}>{r.glyph}</div>
           <div style={{ flex: 1, minWidth: 0, background: "#fff", border: "1px solid " + C.border, borderRadius: 8, padding: "8px 11px" }}>
             <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: r.ink, marginBottom: 3 }}>{r.name}</div>
@@ -5029,21 +5090,21 @@ function SceneReviewers() {
 }
 
 const SCENE_LIST = [
-  { key: "manuscript", title: "Manuscript", render: () => <SceneManuscript /> },
-  { key: "graph",      title: "Role Graph", render: () => <SceneRoleGraph /> },
-  { key: "reviewers",  title: "Reviewers",  render: () => <SceneReviewers /> },
+  { key: "manuscript", title: "Manuscript", render: (posting) => <SceneManuscript posting={posting} /> },
+  { key: "graph",      title: "Role Graph", render: (posting) => <SceneRoleGraph posting={posting} /> },
+  { key: "reviewers",  title: "Reviewers",  render: (posting) => <SceneReviewers posting={posting} /> },
 ];
-function SceneRotator() {
+function SceneRotator({ posting }) {
   const [i, setI] = useState(0);
   useEffect(() => {
     const t = setInterval(() => setI((x) => (x + 1) % SCENE_LIST.length), 4200);
     return () => clearInterval(t);
   }, []);
-  const Current = SCENE_LIST[i].render;
+  const render = SCENE_LIST[i].render;
   return (
     <div style={{ marginTop: 16, background: "rgba(255,255,255,0.94)", border: "1px solid " + C.border, borderRadius: 12, boxShadow: "0 1px 3px rgba(15,40,105,0.06)", overflow: "hidden", minHeight: 290 }}>
       <div key={SCENE_LIST[i].key} style={{ animation: "fadeInUp 0.4s ease both" }}>
-        <Current />
+        {render(posting)}
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 0 12px" }}>
         {SCENE_LIST.map((s, k) => (
@@ -5054,7 +5115,7 @@ function SceneRotator() {
   );
 }
 
-function Spinner({ label, step, total, firstTime, skills }) {
+function Spinner({ label, step, total, firstTime, skills, posting }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
@@ -5145,9 +5206,10 @@ function Spinner({ label, step, total, firstTime, skills }) {
       )}
       {/* AI-building theatre: three cycling scenes that preview Step 3's assembly.
           Replaces the prior static intro card so every analysis (not just the first)
-          gets the entertaining wait. The real stage label + ring above stay
-          authoritative; the scenes are cosmetic. */}
-      <SceneRotator />
+          gets the entertaining wait. When `posting` is set (Step 2 -> Step 3 path),
+          the scenes pull live data straight from it - real duties, real skills,
+          real employer - so the user can see the system reading their actual ad. */}
+      <SceneRotator posting={posting} />
       </div>
     </div>
   );
@@ -11692,6 +11754,16 @@ function step2BuildOkfLog(query, counts) {
 function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null });
   const [cls, setCls] = useState({});
+  // Real-time progress for the Step 1 -> Step 2 banner. Each fetch updates its
+  // own status independently so the banner reflects what actually happened (and
+  // the user sees fast paths first). Non-blocking - cards render below as soon
+  // as state.jobs arrives; the banner just narrates classification underneath.
+  const [progress, setProgress] = useState({
+    mcfStatus: "idle", mcfCount: null,
+    csgStatus: "idle", csgCount: null,
+    classifyStatus: "idle", classifyTotal: 0, classifyDone: 0,
+    startedAt: 0, classifyFinishedAt: 0,
+  });
   const [selectedId, setSelectedId] = useState(null);
   const [sort, setSort] = useState("match");
   const [facets, setFacets] = useState({ sector: [], company: [], department: [], func: [], exp: [], type: [] });
@@ -11704,10 +11776,19 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
   useEffect(() => {
     let cancelled = false;
     setState({ loading: true, jobs: [], error: null });
+    setProgress({ mcfStatus: "loading", mcfCount: null, csgStatus: "loading", csgCount: null, classifyStatus: "idle", classifyTotal: 0, classifyDone: 0, startedAt: Date.now(), classifyFinishedAt: 0 });
     async function doFetch() {
       const title = String(query || "");
-      const mcfFetch = fetch("/api/mcf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "jobs", title, limit: 50 }) }).then((r) => r.json());
-      const [mcfSettled, csgSettled] = await Promise.allSettled([mcfFetch, fetchCsgJobs(title, 50)]);
+      // Wrap each fetch so its independent status lands the moment it settles -
+      // MCF and careers.gov.sg often finish at different speeds.
+      const mcfFetch = fetch("/api/mcf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "jobs", title, limit: 50 }) })
+        .then((r) => r.json())
+        .then((d) => { if (!cancelled) setProgress((p) => ({ ...p, mcfStatus: "done", mcfCount: Array.isArray(d.jobs) ? d.jobs.length : 0 })); return d; })
+        .catch((e) => { if (!cancelled) setProgress((p) => ({ ...p, mcfStatus: "error", mcfCount: 0 })); throw e; });
+      const csgPromise = Promise.resolve(fetchCsgJobs(title, 50))
+        .then((d) => { if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "done", csgCount: Array.isArray(d) ? d.length : 0 })); return d; })
+        .catch((e) => { if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "error", csgCount: 0 })); throw e; });
+      const [mcfSettled, csgSettled] = await Promise.allSettled([mcfFetch, csgPromise]);
       if (cancelled) return;
       const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [] };
       const csg = csgSettled.status === "fulfilled" ? csgSettled.value : [];
@@ -11723,7 +11804,15 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
   useEffect(() => {
     let cancelled = false;
     if (!state.jobs.length) { setCls({}); return undefined; }
-    classifyPostings(state.jobs).then((m) => { if (!cancelled) setCls(m); }).catch(() => {});
+    setProgress((p) => ({ ...p, classifyStatus: "loading", classifyTotal: state.jobs.length, classifyDone: 0 }));
+    classifyPostings(state.jobs).then((m) => {
+      if (cancelled) return;
+      setCls(m);
+      const done = Object.keys(m || {}).length;
+      setProgress((p) => ({ ...p, classifyStatus: "done", classifyDone: done, classifyFinishedAt: Date.now() }));
+    }).catch(() => {
+      if (!cancelled) setProgress((p) => ({ ...p, classifyStatus: "error" }));
+    });
     return () => { cancelled = true; };
   }, [state.jobs]);
 
@@ -11929,7 +12018,53 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
         {hasFilters && <button type="button" onClick={clearFilters} style={{ flex: "none", minHeight: 36, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
       </div>
 
-      {state.loading && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>Loading live postings for {Q1}{query}{Q2}{ELL}</p>}
+      {/* Step 1 -> Step 2 progress banner. Real, deterministic stages:
+            MCF fetch -> careers.gov.sg fetch -> SSOC classification.
+          Each row updates the moment its underlying call settles. Non-blocking -
+          the card grid renders below as soon as state.jobs lands; this banner
+          narrates classification underneath and fades out when it's done. */}
+      {(state.loading || progress.classifyStatus === "loading") && (() => {
+        const rows = [
+          { key: "mcf", icon: "MCF",  label: "MyCareersFuture",  status: progress.mcfStatus,  count: progress.mcfCount,  countLabel: "postings" },
+          { key: "csg", icon: "CSG",  label: "careers.gov.sg",   status: progress.csgStatus,  count: progress.csgCount,  countLabel: "postings" },
+          { key: "cls", icon: "SSOC", label: "SSOC 2024 classify", status: progress.classifyStatus, count: progress.classifyTotal, countLabel: "classified" },
+        ];
+        return (
+          <div role="status" aria-live="polite" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, padding: "12px 14px", margin: "0 0 14px", boxShadow: "0 1px 3px rgba(20,32,46,.06)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+              <p style={{ margin: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e" }}>
+                Curating evidence for {Q1}{query}{Q2}{ssocFilter ? <> {String.fromCharCode(0x00b7)} <span style={{ color: "#142a8e" }}>SSOC {ssocFilter.code}</span></> : null}
+              </p>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {rows.map((r) => {
+                const idle = r.status === "idle";
+                const loading = r.status === "loading";
+                const done = r.status === "done";
+                const error = r.status === "error";
+                const dotColor = error ? "#a13a3a" : done ? "#15603a" : loading ? "#1a56db" : "#c4c0b3";
+                const dotPulse = loading;
+                return (
+                  <div key={r.key} style={{ background: "#fff", border: "1px solid " + (loading ? "#cdd9ff" : "#e6e3db"), borderRadius: 9, padding: "9px 11px", transition: "border-color .2s" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <span aria-hidden="true" className={dotPulse ? "ldx" : undefined} style={{ width: 9, height: 9, borderRadius: "50%", background: dotColor, animation: dotPulse ? "ldxBreathe 1.1s ease-in-out infinite" : "none" }} />
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b6878", fontWeight: 700, letterSpacing: ".04em" }}>{r.icon}</span>
+                      <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: "#16202e", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
+                    </div>
+                    <div style={{ marginTop: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456" }}>
+                      {idle && <span style={{ color: "#8a8274" }}>queued{ELL}</span>}
+                      {loading && <span>{r.key === "cls" && r.count > 0 ? <>classifying <strong>{r.count}</strong>{ELL}</> : <>fetching{ELL}</>}</span>}
+                      {done && <span><strong style={{ color: "#15603a" }}>{Number(r.count || 0)}</strong> {r.countLabel}</span>}
+                      {error && <span style={{ color: "#a13a3a" }}>could not reach</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
       {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
       {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
       {!state.loading && baseJobs.length > 0 && sorted.length === 0 && (
@@ -11943,6 +12078,86 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           )}
         </div>
       )}
+
+      {/* Curation overview: a small, deterministic graph view of the current result
+          set. AI-exposure-band donut + the 5 most common SSOC families. Computed
+          straight from cards + cls. Hidden during the initial load to avoid
+          stuttering as classifications stream in. */}
+      {!state.loading && sorted.length > 0 && (() => {
+        const total = sorted.length;
+        const bandCounts = { human: 0, assisted: 0, augmented: 0, auto: 0, withheld: 0 };
+        sorted.forEach((c) => { bandCounts[c.bandKey || "withheld"] = (bandCounts[c.bandKey || "withheld"] || 0) + 1; });
+        const bandSegs = [
+          { key: "auto",      label: "Full automation", count: bandCounts.auto,      color: STEP2_BANDS.auto.dot },
+          { key: "augmented", label: "AI-augmented",    count: bandCounts.augmented, color: STEP2_BANDS.augmented.dot },
+          { key: "assisted",  label: "AI-assisted",     count: bandCounts.assisted,  color: STEP2_BANDS.assisted.dot },
+          { key: "human",     label: "Human-led",       count: bandCounts.human,     color: STEP2_BANDS.human.dot },
+          { key: "withheld",  label: "Withheld",        count: bandCounts.withheld,  color: "#cbd5e1" },
+        ].filter((s) => s.count > 0);
+        // SSOC family bar: top 5 sectors by posting count.
+        const sectorCounts = {};
+        sorted.forEach((c) => { const s = c.sector || "Unclassified"; sectorCounts[s] = (sectorCounts[s] || 0) + 1; });
+        const topSectors = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const topMax = topSectors.length ? topSectors[0][1] : 1;
+        // Donut maths: ring circumference and segment fractions.
+        const R = 38, CIRC = 2 * Math.PI * R;
+        let accFrac = 0;
+        return (
+          <div style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#8a8274", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>computed from SSOC classifications</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(180px, 240px) 1fr", gap: 18, alignItems: "center" }}>
+              {/* AI-exposure donut */}
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flex: "none" }} aria-hidden="true">
+                  <circle cx={55} cy={55} r={R} fill="none" stroke="#eceae2" strokeWidth={12} />
+                  {bandSegs.map((s) => {
+                    const frac = s.count / total;
+                    const dash = `${frac * CIRC} ${CIRC}`;
+                    const offset = -accFrac * CIRC;
+                    accFrac += frac;
+                    return (<circle key={s.key} cx={55} cy={55} r={R} fill="none" stroke={s.color} strokeWidth={12} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90 55 55)" style={{ transition: "stroke-dasharray .4s ease, stroke-dashoffset .4s ease" }} />);
+                  })}
+                  <text x={55} y={56} textAnchor="middle" dominantBaseline="middle" fontFamily="'Spline Sans',sans-serif" fontWeight={800} fontSize={18} fill="#16202e">{total}</text>
+                  <text x={55} y={72} textAnchor="middle" fontFamily="'Spline Sans Mono',monospace" fontSize={7} fill="#8a8274" letterSpacing=".06em">POSTINGS</text>
+                </svg>
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                  {bandSegs.map((s) => (
+                    <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flex: "none" }} />
+                      <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#3a4456", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.label}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#16202e", fontWeight: 700 }}>{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Top SSOC families bar */}
+              <div>
+                <p style={{ margin: "0 0 8px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".08em", color: "#8a8274", fontWeight: 700 }}>TOP SSOC FAMILIES</p>
+                {topSectors.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#8a8274" }}>SSOC families not yet classified.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {topSectors.map(([name, n]) => (
+                      <div key={name} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 30px", gap: 8, alignItems: "center" }}>
+                        <div title={name} style={{ minWidth: 0 }}>
+                          <p style={{ margin: "0 0 2px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+                          <div style={{ position: "relative", height: 5, background: "#eceae2", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{ position: "absolute", inset: 0, width: ((n / topMax) * 100) + "%", background: name === "Unclassified" ? "#cbd5e1" : "#1a56db", transition: "width .35s ease" }} />
+                          </div>
+                        </div>
+                        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#16202e", fontWeight: 700, textAlign: "right" }}>{n}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {!state.loading && sorted.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -13754,6 +13969,11 @@ export default function App({ initialSearchMode } = {}) {
   // the step transition fires. Retained as-is; candidate for simplification if the
   // sub-second visual is confirmed unnecessary in a future UX review.
   const [showExpect, setShowExpect] = useState(false);
+  // The currently-being-analysed live posting (set by handleAnalysePosting). Used
+  // by the loading interstitial's cycling scenes so the Manuscript / Role Graph /
+  // Reviewer panels can reference the REAL posting text, employer, and skills
+  // instead of the generic Data Analyst mockup. Cleared on reset.
+  const [analysingPosting, setAnalysingPosting] = useState(null);
   const [skillInputQuery, setSkillInputQuery] = useState("");
   const [skillInputResult, setSkillInputResult] = useState(null);
   const [compareStatus, setCompareStatus] = useState(""); // v6: live step narrative
@@ -13999,7 +14219,7 @@ export default function App({ initialSearchMode } = {}) {
   };
   const clearSsocFilter = () => { setSsocFilter(null); setSsocQuery(""); setSsocOccs([]); };
 
-  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setSsocOccs([]); setSsocFilter(null); setSsocQuery(""); };
+  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setSsocOccs([]); setSsocFilter(null); setSsocQuery(""); setAnalysingPosting(null); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -14602,6 +14822,14 @@ export default function App({ initialSearchMode } = {}) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       setResult(null); setOccs([]); setErr("");
       setActiveTab("skills");
+      // Surface the live posting to the loading interstitial so its scenes
+      // narrate THIS posting, not a generic mockup.
+      setAnalysingPosting({
+        title: tidy,
+        employer: job.employer || "",
+        skills: Array.isArray(job.skills) ? job.skills.filter(Boolean) : [],
+        text: job.responsibilitiesText || job.description || "",
+      });
       track("mcf_posting_analyse", { uuid: job.uuid });
       doAnalyse({ title: tidy, iscoCode: "", iscoGroup: "", description: "" }, {
         posting: { uuid: job.uuid, title: tidy, employer: job.employer || "", mcfUrl: job.mcfUrl || "", skills: job.skills || [], text: job.responsibilitiesText || job.description || "" },
@@ -15786,7 +16014,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} posting={analysingPosting} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
