@@ -1449,6 +1449,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
+import ReviewStudio from "./ReviewStudio.jsx";
 import { computeEngine } from "../engine-data/engine-core.js";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
@@ -15355,6 +15356,20 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         )}
 
         {step === "results" && sel && result && (() => {
+          // Step 3 = Review Studio (v3-ui-blueprint S4). Replaces the legacy tabbed result page.
+          let _kg = null; try { _kg = getKnowledgeGraph(result, sel?.title || ""); } catch (_) {}
+          return (
+            <ReviewStudio
+              result={result}
+              title={toTitleCase(sel?.title || "")}
+              employer={result?.employer || ""}
+              source="from MCF"
+              kgPayload={_kg}
+              band={null}
+              onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            />
+          );
+          // eslint-disable-next-line no-unreachable
           const tabs = buildTabs(result);
           // PL8: uiHero removed - EngineHeadline/ExposureBar/SkillSegments/AgenticShift moved
           // to ai-hero renderSection (AI Readiness pillar); AlsoAdvertisedAs moved to
