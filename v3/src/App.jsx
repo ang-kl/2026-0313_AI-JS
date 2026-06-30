@@ -13865,26 +13865,51 @@ export default function App({ initialSearchMode } = {}) {
   // v3.2: "Browse MyCareersFuture jobs" mode - skip ESCO resolution; go straight
   // to the standalone job list for the typed term. Each card can still "Analyse
   // this posting" (-> full results screen) or "+ Compare".
+  // SSOC parity with Mode 1 (doSearch): when SSOC suggestions are present, the user
+  // must pick one before MCF fires - exactly-1 auto-picks; multiple blocks until the
+  // user clicks one (or clears the suggestions by editing the query).
   const startJobsBrowse = useCallback(() => {
     if (!query.trim()) return;
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }
+    if (!ssocFilter && ssocPickerLoading) return; // mid-load, ignore submit
+    if (!ssocFilter && ssocOccs.length === 1) {
+      // exactly one SSOC match - auto-pick it (Mode 1 parity for single result)
+      track("ssoc_picked", { code: ssocOccs[0].code, mode: "jobs", auto: true });
+      pickSsoc(ssocOccs[0]);
+    } else if (!ssocFilter && ssocOccs.length > 1) {
+      // multiple SSOC matches - require the user to choose from the dropdown
+      setErr("Pick one of the SSOC occupations above to continue (or edit the search to clear the suggestions for a raw text search).");
+      setStep("error");
+      return;
+    }
     setErr(""); setSel(null); setResult(null); setOccs([]);
-    track("jobs_browse_started", { q: query.trim().slice(0, 60) });
+    track("jobs_browse_started", { q: query.trim().slice(0, 60), ssoc: (ssocFilter && ssocFilter.code) || null });
     setStep("mcf_browse");
-  }, [query]);
+  }, [query, ssocFilter, ssocOccs, ssocPickerLoading]);
 
   // CO1: company-name search mode. Mirrors startJobsBrowse; transitions to
   // mcf_company step where CompanyPanel does the fetch + resolution + render.
+  // Mode 3's SSOC field is OPTIONAL - we only enforce pick/parity when the user
+  // typed something into it AND suggestions are showing without a pick.
   const startCompanySearch = useCallback(() => {
     if (!query.trim()) return;
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }
+    if (ssocQuery.trim() && !ssocFilter && ssocPickerLoading) return;
+    if (ssocQuery.trim() && !ssocFilter && ssocOccs.length === 1) {
+      track("ssoc_picked", { code: ssocOccs[0].code, mode: "company", auto: true });
+      pickSsoc(ssocOccs[0]);
+    } else if (ssocQuery.trim() && !ssocFilter && ssocOccs.length > 1) {
+      setErr("Pick one of the SSOC occupations above to filter by - or clear that field to search the employer's full posting list.");
+      setStep("error");
+      return;
+    }
     setErr(""); setSel(null); setResult(null); setOccs([]);
     setCompanyResult(null);
-    track("company_search_started", { q: query.trim().slice(0, 60) });
+    track("company_search_started", { q: query.trim().slice(0, 60), ssoc: (ssocFilter && ssocFilter.code) || null });
     setStep("mcf_company");
-  }, [query]);
+  }, [query, ssocQuery, ssocFilter, ssocOccs, ssocPickerLoading]);
 
   // WIKI1: Career WikiGraph mode. A wiki-mode search runs the SAME resolve +
   // analyse pipeline as Analyse role; a destination ref (survives the async ESCO
@@ -15389,7 +15414,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   {ssocOccs.length > 0 && (
                     <div>
                       <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"0 0 5px" }}>
-                        {ssocOccs.length} SSOC suggestion{ssocOccs.length!==1?"s":""} - pick one to {searchMode === "jobs" ? "narrow your Browse to that occupation" : "filter the employer's postings"}, or ignore and press {searchMode === "company" ? "Find company" : "Browse"}.
+                        {ssocOccs.length} SSOC occupation{ssocOccs.length!==1?"s":""} match{ssocOccs.length===1?"es":""} "{(searchMode === "jobs" ? query : ssocQuery).trim()}" - {searchMode === "jobs"
+                          ? "select one to continue (required)."
+                          : "select one to filter the employer's postings, or clear this field to skip the SSOC filter."}
                       </p>
                       {ssocOccs.map((o) => (
                         <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode }); pickSsoc(o); }}
