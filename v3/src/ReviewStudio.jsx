@@ -36,6 +36,20 @@ const RAIL = [
   { key: "saved", icon: String.fromCharCode(0x2913), label: "Saved" },
 ];
 
+function rsStrip(s) { return String(s || "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim(); }
+function rsFirstSentence(s) {
+  const t = String(s || "").trim(); if (!t) return "";
+  const m = t.match(/^.{40,220}?[.!?](\s|$)/);
+  let out = m ? m[0].trim() : t.slice(0, 200);
+  if (out.length < t.length && !/[.!?]$/.test(out)) out = out.replace(/\s+\S*$/, "") + String.fromCharCode(0x2026);
+  return out;
+}
+const RS_EXP_BAND = { HIGH: "auto", MEDIUM: "augmented", LOW: "assisted", HUMAN: "human" };
+function rsDominantBand(duties) {
+  const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
+  const keys = Object.keys(c); return keys.length ? keys.sort((a, b) => c[b] - c[a])[0] : null;
+}
+
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
@@ -47,11 +61,19 @@ export default function ReviewStudio({ result, title, employer, source, kgPayloa
   const [rail, setRail] = useState(null);      // open drawer key or null
   const [railOpen, setRailOpen] = useState(true); // icon rail expanded (labels) vs collapsed
 
+  const ja = result && result.jobAnatomy;
   const rd = result && result.responsibilitiesData;
-  const overview = (rd && rd.summary) || "";
-  const duties = (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []).map((r) => r.text || r).filter(Boolean);
+  // Verbatim duties from the engine's Job Anatomy first (each carries layer + exposure),
+  // else the responsibilities extract. Non-inventive: the posting's own duty text.
+  const dutyObjs = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties
+    : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
+  const duties = dutyObjs.map((d) => (typeof d === "string" ? d : d.text)).filter(Boolean);
+  const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
+  const overview = (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
   const skills = (Array.isArray(result && result.skills) ? result.skills : []).map((s) => s.skill || s).filter(Boolean);
-  const bandTok = band && BANDS[band] ? BANDS[band] : null;
+  const derivedBand = rsDominantBand(dutyObjs);
+  const bandKey = (band && BANDS[band]) ? band : derivedBand;
+  const bandTok = bandKey && BANDS[bandKey] ? BANDS[bandKey] : null;
 
   const ribbonActive = (groupKey, k) => (groupKey === "markup" && markup === k) || (groupKey === "visual" && visual === k);
   function ribbonClick(groupKey, k) {
@@ -119,9 +141,9 @@ export default function ReviewStudio({ result, title, employer, source, kgPayloa
           </aside>
         )}
 
-        {/* Centre manuscript */}
-        <div className="wis-scroll" style={{ flex: 1, minWidth: 0, overflowY: "auto", padding: "26px 30px 60px", background: "#e9edf3" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "34px 38px 40px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
+        {/* Left: the job ad as a manuscript (~34%) */}
+        <div className="wis-scroll" style={{ flex: "0 0 clamp(330px, 34%, 600px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
+          <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "28px 30px 34px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
             <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
             <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -144,29 +166,31 @@ export default function ReviewStudio({ result, title, employer, source, kgPayloa
           </div>
         </div>
 
-        {/* Right Visual Intelligence */}
-        <aside className="wis-scroll" style={{ flex: "none", width: 360, background: "#fbfaf8", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 16px 50px" }}>
-          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274", marginBottom: 10 }}>VISUAL INTELLIGENCE</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-            {RIBBON[1].items.map(([k, lbl]) => (
-              <button key={k} type="button" aria-pressed={visual === k} onClick={() => setVisual(k)} style={pillStyle(visual === k)}>{lbl}</button>
-            ))}
+        {/* Right: Role Graph + analysis (~66%, the dominant pane) */}
+        <div className="wis-scroll" style={{ flex: 1, minWidth: 0, background: "#fbfaf8", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 18px 50px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274" }}>VISUAL INTELLIGENCE</span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {RIBBON[1].items.map(([k, lbl]) => (
+                <button key={k} type="button" aria-pressed={visual === k} onClick={() => setVisual(k)} style={pillStyle(visual === k)}>{lbl}</button>
+              ))}
+            </div>
           </div>
-          <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 11, padding: 13 }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, minHeight: "64vh" }}>
             {visual === "jobgraph" && (kgPayload && kgPayload.nodes && kgPayload.nodes.length > 1
               ? <>
-                  <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.875rem", color: "#3a4456", margin: "0 0 10px" }}>What shape is this role - duties, skills, adjacency?</p>
+                  <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.9375rem", color: "#3a4456", margin: "0 0 12px" }}>What shape is this role - duties, skills, adjacency?</p>
                   <KGGraph kg={kgPayload} layout="force" embedded />
                 </>
-              : <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
+              : <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
             {visual !== "jobgraph" && (
-              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>
-                <strong style={{ color: "#16202e" }}>{(RIBBON[1].items.find((i) => i[0] === visual) || [])[1]}</strong> renders in the next build phase, wired to the deterministic engine output (per blueprint S10.3). The Job graph is live now.
+              <p style={{ fontSize: "0.875rem", color: "#64748b", lineHeight: 1.6, maxWidth: 560 }}>
+                <strong style={{ color: "#16202e" }}>{(RIBBON[1].items.find((i) => i[0] === visual) || [])[1]}</strong> renders in the next build phase, wired to the deterministic engine output (per blueprint S10.3). The <strong style={{ color: "#16202e" }}>Job graph</strong> is live now - switch back to it.
               </p>
             )}
           </div>
           <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", marginTop: 8 }}>every node {String.fromCharCode(0x2190)} source span</div>
-        </aside>
+        </div>
       </div>
 
       {/* Footer */}
