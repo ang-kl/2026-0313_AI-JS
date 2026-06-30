@@ -11932,7 +11932,17 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       {state.loading && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>Loading live postings for {Q1}{query}{Q2}{ELL}</p>}
       {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
       {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
-      {!state.loading && baseJobs.length > 0 && sorted.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No postings match the current filters. <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#1a56db", cursor: "pointer", fontWeight: 600, padding: 0 }}>Clear all</button></p>}
+      {!state.loading && baseJobs.length > 0 && sorted.length === 0 && (
+        <div style={{ background: "#fbfaf8", border: "1px dashed #e4e2da", borderRadius: 10, padding: "16px 18px", margin: "10px 0" }}>
+          {ssocFilter ? (
+            <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>
+              None of the {baseJobs.length} live posting{baseJobs.length === 1 ? "" : "s"} matching {Q1}{query}{Q2} classified under <strong>SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}</strong>. {onClearSsocFilter && <>The SSOC family is a narrow filter - try{" "}<button type="button" onClick={onClearSsocFilter} style={{ background: "none", border: "none", padding: 0, color: "#1a56db", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem", textDecoration: "underline" }}>clearing the SSOC filter</button> to see all {baseJobs.length} posting{baseJobs.length === 1 ? "" : "s"}, or </>}<button type="button" onClick={clearFilters} style={{ background: "none", border: "none", padding: 0, color: "#1a56db", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem", textDecoration: "underline" }}>clear all filters</button>.
+            </p>
+          ) : (
+            <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456" }}>No postings match the current filters. <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#1a56db", cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline" }}>Clear all</button></p>
+          )}
+        </div>
+      )}
 
       {!state.loading && sorted.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -13954,11 +13964,11 @@ export default function App({ initialSearchMode } = {}) {
   useEffect(() => {
     if (step !== "idle" && step !== "error") return;
     if (searchMode !== "jobs" && searchMode !== "company") { setSsocOccs([]); setSsocPickerLoading(false); return; }
+    // If an SSOC pick is already locked in, the dropdown is gated off (`!ssocFilter`)
+    // so calling /api/ssoc would be wasted work - skip until the user clears the pill.
+    if (ssocFilter) { setSsocOccs([]); setSsocPickerLoading(false); return; }
     const raw = searchMode === "jobs" ? query : ssocQuery;
     const q = String(raw || "").trim();
-    // If the typed text equals the currently-picked SSOC title, suppress suggestions
-    // (the user just chose; don't re-open the dropdown over their pick).
-    if (ssocFilter && q.toLowerCase() === String(ssocFilter.title || "").toLowerCase()) { setSsocOccs([]); setSsocPickerLoading(false); return; }
     if (q.length < 2) { setSsocOccs([]); setSsocPickerLoading(false); return; }
     setSsocPickerLoading(true);
     clearTimeout(ssocDebounceRef.current);
@@ -13974,14 +13984,18 @@ export default function App({ initialSearchMode } = {}) {
   }, [query, ssocQuery, step, searchMode, ssocFilter]);
 
   // Picking an SSOC: stash the node so Step 2 / CompanyPanel can pre-filter on it.
-  // Mode 2 also drops the SSOC title back into `query` so the MCF call uses a real
-  // occupation label, not whatever fragment the user typed.
+  // Mode 2 leaves `query` ALONE - we used to overwrite it with the SSOC title, but
+  // MCF doesn't index taxonomy labels like "Database Designers, Administrators and
+  // Data Engineers" so the verbatim search returned ~0 postings. Keeping the user's
+  // typed keyword (e.g. "data") in the MCF call, then filtering the classified
+  // results by the picked SSOC code, gives the user a real result set to choose from.
+  // Mode 3's SSOC field is separate from the company name, so setting ssocQuery to
+  // the picked title there is still the right thing.
   const pickSsoc = (node) => {
     if (!node) return;
     setSsocFilter({ code: node.code, title: node.title, level: node.level });
     setSsocOccs([]);
-    if (searchMode === "jobs") setQuery(node.title);
-    else if (searchMode === "company") setSsocQuery(node.title);
+    if (searchMode === "company") setSsocQuery(node.title);
   };
   const clearSsocFilter = () => { setSsocFilter(null); setSsocQuery(""); setSsocOccs([]); };
 
