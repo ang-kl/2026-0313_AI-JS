@@ -34,6 +34,8 @@ const SPAN_STYLE = {
   human:     { bg: "#eaf0ff", under: "#1d4ed8", color: "#1b3aa0" },
   assisted:  { bg: "#e3f5fb", under: "#0e7490", color: "#0b4f60" },
 };
+// Withheld span (engine did not classify): a neutral dashed "general note", no band claim.
+const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"]] },
   { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"], ["aioe", "AI trace"], ["workflow", "Workflow"], ["value", "Value stream"], ["org", "Org map"]] },
@@ -73,35 +75,43 @@ function rsLens(text) {
   if (/\b(stakeholder|cross-functional|business unit|department|govern|complian|accountab|relationship|liais|partner)\b/.test(t)) return "ORG";
   return "ROLE";
 }
-function rsGuessBand(text) {
-  const lead = String(text || "").toLowerCase().trim().split(/\s+/)[0] || "";
-  if (/^(liais|advis|engage|represent|negoti|lead|own|ensure|govern|approve|accountab|mentor|coach)/.test(lead)) return "human";
-  if (/^(develop|build|design|automat|generat|implement|deploy|create|configur|program|code)/.test(lead)) return "augmented";
-  if (/^(analy|assess|evaluat|review|investigat|interpret|monitor|prepar|coordinat|process|compil)/.test(lead)) return "assisted";
-  return "assisted";
-}
+// Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
+// engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
 function buildDissection(result) {
   const ja = result && result.jobAnatomy, rd = result && result.responsibilitiesData;
   const raw = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const spans = raw.slice(0, 14).map((d, i) => {
     const text = typeof d === "string" ? d : d.text; if (!text) return null;
     const expo = (d && d.exposureNow) || null;
-    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || rsGuessBand(text), lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo };
+    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo };
   }).filter(Boolean);
   return { spans, comments: rsComments(spans) };
+}
+const RS_STOP = new Set(["the", "and", "for", "with", "into", "across", "various", "adhoc", "other", "duties", "support", "manage", "ensure", "provide", "drive", "deliver", "implement", "coordinate", "handle", "perform", "assist", "their", "this", "that", "from", "your", "our", "initiatives", "tasks", "work"]);
+const RS_VERB = /^(develop|build|design|support|manage|ensure|provide|drive|lead|own|deliver|implement|coordinat|handle|perform|assist|analy|prepar|maintain|monitor|review|conduct|execut|create|generat|configur|process|compil|liais|advis|engage)/;
+// Extract a salient noun-ish term from a duty so a suggested rewrite is genuinely derived from it.
+function rsKeyword(text) {
+  const words = String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w) && !RS_VERB.test(w));
+  return words[0] || null;
 }
 function rsComments(spans) {
   const out = [], used = new Set();
   const ai = spans.find((s) => (s.band === "augmented" || s.band === "auto") && s.lens === "AI") || spans.find((s) => s.band === "augmented" || s.band === "auto");
-  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "medium", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
+  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
   const vague = spans.find((s) => !used.has(s.id) && /\b(ad-?hoc|various|support various|other duties|as (assigned|required|needed)|miscellaneous)\b/i.test(s.text));
-  if (vague) { used.add(vague.id); out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: "derived", conf: "medium", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested: "own a named " + (rsLens(vague.text) === "ORG" ? "transformation" : "delivery") + " backlog with measurable cycle-time targets" }); }
+  if (vague) {
+    used.add(vague.id);
+    // Derive a salient term from THIS duty so the rewrite is genuinely about it (honest "derived").
+    const key = rsKeyword(vague.text);
+    const suggested = key ? "own a named " + key + " workstream with measurable cycle-time targets" : "name the specific workflow this owns and set measurable cycle-time targets";
+    out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
+  }
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
   if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
   if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
-  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "none", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
+  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
   return out.slice(0, 6);
 }
 
@@ -120,6 +130,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
   const dissection = useMemo(() => buildDissection(result), [result]);
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
+  // Honest overall confidence: high when every duty was engine-classified, withheld when none,
+  // else "N of M classified" - never a flat confident number over unclassified spans.
+  const _classified = dissection.spans.filter((s) => s.band).length;
+  const footerConf = dissection.spans.length === 0 ? "withheld" : _classified === dissection.spans.length ? "high (engine-classified)" : _classified === 0 ? "withheld" : _classified + " of " + dissection.spans.length + " duties classified";
   const showClean = markup === "clean";
   const showDissect = markup === "dissect";
   const showMargin = markup === "suggestions" || markup === "comments";
@@ -146,7 +160,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     else if (k === "cover") { setRail("cover"); }
   }
 
-  const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 30, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
+  const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
@@ -184,9 +198,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {/* Left icon rail (docked, collapsible; does not move) */}
         <nav style={{ flex: "none", width: railOpen ? 150 : 54, background: "#f4f6fa", borderRight: "1px solid #e2e0d8", padding: "12px 9px", display: "flex", flexDirection: "column", gap: 3, transition: "width .15s" }}>
-          <button onClick={() => setRailOpen((o) => !o)} aria-label={railOpen ? "Collapse rail" : "Expand rail"} style={{ alignSelf: railOpen ? "flex-end" : "center", minHeight: 36, minWidth: 36, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 8, cursor: "pointer", color: "#64748b", marginBottom: 4 }}>{railOpen ? String.fromCharCode(0x00ab) : String.fromCharCode(0x00bb)}</button>
+          <button onClick={() => setRailOpen((o) => !o)} aria-label={railOpen ? "Collapse rail" : "Expand rail"} style={{ alignSelf: railOpen ? "flex-end" : "center", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 8, cursor: "pointer", color: "#64748b", marginBottom: 4 }}>{railOpen ? String.fromCharCode(0x00ab) : String.fromCharCode(0x00bb)}</button>
           {RAIL.map((r) => { const on = rail === r.key; return (
-            <button key={r.key} onClick={() => setRail(on ? null : r.key)} title={r.label} aria-pressed={on} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: railOpen ? "flex-start" : "center", cursor: "pointer", textAlign: "left", background: on ? "#eef2ff" : "transparent", color: on ? "#142a8e" : "#5b6b7f", border: "1px solid " + (on ? "#cdd9ff" : "transparent"), borderRadius: 8, padding: "8px 10px", minHeight: 40, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 500 }}>
+            <button key={r.key} onClick={() => setRail(on ? null : r.key)} title={r.label} aria-pressed={on} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: railOpen ? "flex-start" : "center", cursor: "pointer", textAlign: "left", background: on ? "#eef2ff" : "transparent", color: on ? "#142a8e" : "#5b6b7f", border: "1px solid " + (on ? "#cdd9ff" : "transparent"), borderRadius: 8, padding: "8px 10px", minHeight: 44, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 500 }}>
               <span aria-hidden="true" style={{ fontSize: 15, width: 16, textAlign: "center", flex: "none" }}>{r.icon}</span>{railOpen && r.label}
             </button>
           ); })}
@@ -198,7 +212,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           <aside className="wis-scroll" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>{(RAIL.find((r) => r.key === rail) || {}).label?.toUpperCase()}</div>
-              <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 28, minWidth: 28, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+              <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
             </div>
             <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>This drawer fills in the next build phase. Each note will cite the manuscript line that triggered it - it helps you decide, it never decides for you.</p>
             <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
@@ -226,13 +240,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     </div>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>INTERPRETATION</div>
-                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}exposure reads <strong style={{ color: b ? b.ink : "#16202e" }}>{b ? b.label : "-"}</strong>.</p>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "rule"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "medium"}</span>
+                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>exposure <strong style={{ color: "#9a6113" }}>withheld</strong> - the engine did not classify this duty.</>}</p>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "none"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "withheld"}</span>
                     </div>
                     <div style={{ padding: "12px 13px" }}>
                       <div style={oiaKick}>APPLICATION</div>
-                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>AIOE: {b ? b.label : "-"} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</p>
-                      <Chip kind="computed">computed</Chip>
+                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{b ? <>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</> : <>AIOE withheld {String.fromCharCode(0x00b7)} no route emitted</>}</p>
+                      <Chip kind={b ? "computed" : "unverified"}>{b ? "computed" : "unverified"}</Chip>
                     </div>
                   </div>
                 </div>
@@ -256,13 +270,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                   {dissection.spans.map((s) => {
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
-                    const st = SPAN_STYLE[s.band] || SPAN_STYLE.assisted; const on = activeSpan === s.id;
+                    const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     return (
                       <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
                         <span role="button" tabIndex={0} aria-pressed={on}
+                          title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
                           onClick={() => setActiveSpan(on ? null : s.id)}
                           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px solid " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
+                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
                       </li>
                     );
                   })}
@@ -311,9 +326,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#2f7d4f" : "#a13a3a" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
                   : (
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Accept</button>
-                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "rejected" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#3a4456", background: "#fff", border: "1px solid #d9d6cd", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Reject</button>
-                      <button onClick={(e) => { e.stopPropagation(); setActiveSpan(c.anchor); setRail("advisory"); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#1a56db", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 32 }}>Ask why</button>
+                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Accept</button>
+                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "rejected" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#3a4456", background: "#fff", border: "1px solid #d9d6cd", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Reject</button>
+                      <button onClick={(e) => { e.stopPropagation(); setActiveSpan(c.anchor); setRail("advisory"); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#1a56db", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Ask why</button>
                     </div>
                   )}
                 </div>
@@ -346,7 +361,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a9b6ee" }}>Review Studio {String.fromCharCode(0x00b7)} local + cloud</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a9b6ee" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
       </div>
     </div>
