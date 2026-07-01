@@ -1,0 +1,726 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: ★
+        - strong [ref=e8]: AI Readiness across Skills and Competences
+      - generic [ref=e9]:
+        - generic [ref=e60]: wired
+        - button "New Search" [ref=e61] [cursor=pointer]
+        - button "Dark" [ref=e10] [cursor=pointer]
+    - main "V2-style Step 2 role selection" [ref=e62]:
+      - button "← New search" [ref=e63] [cursor=pointer]
+      - generic [ref=e64]:
+        - paragraph [ref=e65]: Step 2
+        - heading "Select the right role" [level=1] [ref=e66]
+        - paragraph [ref=e67]: Choose one live result for "Data Analyst". The V3 review workspace opens only after you tap Analyse this posting.
+        - generic [ref=e68]:
+          - generic [ref=e69]: MyCareersFuture + careers.gov.sg
+          - generic [ref=e70]: 36 live results
+      - generic [ref=e71]:
+        - article [ref=e72]:
+          - button "Data Analyst 3 weeks ago INFRASOFT TECHNOLOGIES PTE LTD S$7,500 - S$10,500 / month Contract 3+ yrs exp from MCF Tableau Dashboards Validation large datasets Data Pipeline Healthcare exact title" [ref=e73] [cursor=pointer]:
+            - generic [ref=e74]:
+              - strong [ref=e75]: Data Analyst
+              - emphasis [ref=e76]: 3 weeks ago
+            - generic [ref=e77]: INFRASOFT TECHNOLOGIES PTE LTD
+            - generic [ref=e78]:
+              - generic [ref=e79]: S$7,500 - S$10,500 / month
+              - generic [ref=e80]: Contract
+              - generic [ref=e81]: 3+ yrs exp
+              - generic [ref=e82]: from MCF
+            - generic [ref=e83]:
+              - generic [ref=e84]: Tableau
+              - generic [ref=e85]: Dashboards
+              - generic [ref=e86]: Validation
+              - generic [ref=e87]: large datasets
+              - generic [ref=e88]: Data Pipeline
+              - generic [ref=e89]: Healthcare
+            - emphasis [ref=e90]: exact title
+          - generic [ref=e91]:
+            - button "Analyse this posting" [ref=e92] [cursor=pointer]
+            - button "View role graph" [ref=e93] [cursor=pointer]
+            - link "Open posting" [ref=e94] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-infrasoft-technologies-a4db80330f2621452262b58ffa68b179
+        - article [ref=e95]:
+          - button "Data Analyst 6 days ago YARA ASIA PTE. LTD. S$5,000 - S$7,000 / month Full Time 3+ yrs exp from MCF Customer Segmentation Data Storytelling Analytical Capability Reporting Tools Business Insights Product Planning exact title" [ref=e96] [cursor=pointer]:
+            - generic [ref=e97]:
+              - strong [ref=e98]: Data Analyst
+              - emphasis [ref=e99]: 6 days ago
+            - generic [ref=e100]: YARA ASIA PTE. LTD.
+            - generic [ref=e101]:
+              - generic [ref=e102]: S$5,000 - S$7,000 / month
+              - generic [ref=e103]: Full Time
+              - generic [ref=e104]: 3+ yrs exp
+              - generic [ref=e105]: from MCF
+            - generic [ref=e106]:
+              - generic [ref=e107]: Customer Segmentation
+              - generic [ref=e108]: Data Storytelling
+              - generic [ref=e109]: Analytical Capability
+              - generic [ref=e110]: Reporting Tools
+              - generic [ref=e111]: Business Insights
+              - generic [ref=e112]: Product Planning
+            - emphasis [ref=e113]: exact title
+          - generic [ref=e114]:
+            - button "Analyse this posting" [ref=e115] [cursor=pointer]
+            - button "View role graph" [ref=e116] [cursor=pointer]
+            - link "Open posting" [ref=e117] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/design/data-analyst-yara-asia-fece1d85ceefd022a1ba51b12e40f236
+        - article [ref=e118]:
+          - button "Data Analyst 3 weeks ago DUOTECH PTE. LTD. S$6,000 - S$8,000 / month Full Time 3+ yrs exp from MCF Detail Oriented Data Analysis Automation of reports Mandarin Chinese English Auditing exact title" [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]:
+              - strong [ref=e121]: Data Analyst
+              - emphasis [ref=e122]: 3 weeks ago
+            - generic [ref=e123]: DUOTECH PTE. LTD.
+            - generic [ref=e124]:
+              - generic [ref=e125]: S$6,000 - S$8,000 / month
+              - generic [ref=e126]: Full Time
+              - generic [ref=e127]: 3+ yrs exp
+              - generic [ref=e128]: from MCF
+            - generic [ref=e129]:
+              - generic [ref=e130]: Detail Oriented
+              - generic [ref=e131]: Data Analysis
+              - generic [ref=e132]: Automation of reports
+              - generic [ref=e133]: Mandarin Chinese
+              - generic [ref=e134]: English
+              - generic [ref=e135]: Auditing
+            - emphasis [ref=e136]: exact title
+          - generic [ref=e137]:
+            - button "Analyse this posting" [ref=e138] [cursor=pointer]
+            - button "View role graph" [ref=e139] [cursor=pointer]
+            - link "Open posting" [ref=e140] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-duotech-9c371d5d54cb5dba4e1aa3bdc0daa37e
+        - article [ref=e141]:
+          - button "Data Analyst 3 weeks ago ASPIRE GLOBAL NETWORK PTE. LTD. S$7,100 - S$8,100 / month Permanent, Full Time 5+ yrs exp from MCF Dashboards Process Improvement maintaining quality documentation synthesis design Data Management Production exact title" [ref=e142] [cursor=pointer]:
+            - generic [ref=e143]:
+              - strong [ref=e144]: Data Analyst
+              - emphasis [ref=e145]: 3 weeks ago
+            - generic [ref=e146]: ASPIRE GLOBAL NETWORK PTE. LTD.
+            - generic [ref=e147]:
+              - generic [ref=e148]: S$7,100 - S$8,100 / month
+              - generic [ref=e149]: Permanent, Full Time
+              - generic [ref=e150]: 5+ yrs exp
+              - generic [ref=e151]: from MCF
+            - generic [ref=e152]:
+              - generic [ref=e153]: Dashboards
+              - generic [ref=e154]: Process Improvement
+              - generic [ref=e155]: maintaining quality documentation
+              - generic [ref=e156]: synthesis design
+              - generic [ref=e157]: Data Management
+              - generic [ref=e158]: Production
+            - emphasis [ref=e159]: exact title
+          - generic [ref=e160]:
+            - button "Analyse this posting" [ref=e161] [cursor=pointer]
+            - button "View role graph" [ref=e162] [cursor=pointer]
+            - link "Open posting" [ref=e163] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-aspire-global-network-2ddf4ffc9c0e9ac08ed323827d7b00aa
+        - article [ref=e164]:
+          - 'button "6 Months Associate, Data Analyst (Financial Institution) ($5-6K) #BYR 1 week ago RECRUIT EXPRESS PTE LTD S$4,500 - S$6,000 / month Contract 3+ yrs exp from MCF Snowflake Cloud Data Warehouse Liaising with cross functional teams Validation Regulatory Compliance Data Set Data Mining title contains signal" [ref=e165] [cursor=pointer]':
+            - generic [ref=e166]:
+              - strong [ref=e167]: "6 Months Associate, Data Analyst (Financial Institution) ($5-6K) #BYR"
+              - emphasis [ref=e168]: 1 week ago
+            - generic [ref=e169]: RECRUIT EXPRESS PTE LTD
+            - generic [ref=e170]:
+              - generic [ref=e171]: S$4,500 - S$6,000 / month
+              - generic [ref=e172]: Contract
+              - generic [ref=e173]: 3+ yrs exp
+              - generic [ref=e174]: from MCF
+            - generic [ref=e175]:
+              - generic [ref=e176]: Snowflake Cloud Data Warehouse
+              - generic [ref=e177]: Liaising with cross functional teams
+              - generic [ref=e178]: Validation
+              - generic [ref=e179]: Regulatory Compliance
+              - generic [ref=e180]: Data Set
+              - generic [ref=e181]: Data Mining
+            - emphasis [ref=e182]: title contains signal
+          - generic [ref=e183]:
+            - button "Analyse this posting" [ref=e184] [cursor=pointer]
+            - button "View role graph" [ref=e185] [cursor=pointer]
+            - link "Open posting" [ref=e186] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/6-months-associate-data-analyst-byr-recruit-express-c83fb537a1613da1be43db42c5b39b99
+        - article [ref=e187]:
+          - button "BI Data Analyst 1 week ago GUNVOR SINGAPORE PTE. LTD. S$5,500 - S$11,000 / month Permanent 5+ yrs exp from MCF Business Intelligence Systems Derivatives Business Insights Gas Translate Into Technical Requirements requirements from stakeholders title contains signal" [ref=e188] [cursor=pointer]:
+            - generic [ref=e189]:
+              - strong [ref=e190]: BI Data Analyst
+              - emphasis [ref=e191]: 1 week ago
+            - generic [ref=e192]: GUNVOR SINGAPORE PTE. LTD.
+            - generic [ref=e193]:
+              - generic [ref=e194]: S$5,500 - S$11,000 / month
+              - generic [ref=e195]: Permanent
+              - generic [ref=e196]: 5+ yrs exp
+              - generic [ref=e197]: from MCF
+            - generic [ref=e198]:
+              - generic [ref=e199]: Business Intelligence Systems
+              - generic [ref=e200]: Derivatives
+              - generic [ref=e201]: Business Insights
+              - generic [ref=e202]: Gas
+              - generic [ref=e203]: Translate Into Technical Requirements
+              - generic [ref=e204]: requirements from stakeholders
+            - emphasis [ref=e205]: title contains signal
+          - generic [ref=e206]:
+            - button "Analyse this posting" [ref=e207] [cursor=pointer]
+            - button "View role graph" [ref=e208] [cursor=pointer]
+            - link "Open posting" [ref=e209] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/bi-data-analyst-gunvor-singapore-41899b22b905f393a34d9fc7db52d2b2
+        - article [ref=e210]:
+          - button "Budget Manager & Data Analyst (Contract) 1 week ago National Parks Board Fixed Terms 1+ yrs exp from careers.gov.sg title contains signal" [ref=e211] [cursor=pointer]:
+            - generic [ref=e212]:
+              - strong [ref=e213]: Budget Manager & Data Analyst (Contract)
+              - emphasis [ref=e214]: 1 week ago
+            - generic [ref=e215]: National Parks Board
+            - generic [ref=e216]:
+              - generic [ref=e217]: Fixed Terms
+              - generic [ref=e218]: 1+ yrs exp
+              - generic [ref=e219]: from careers.gov.sg
+            - emphasis [ref=e220]: title contains signal
+          - generic [ref=e221]:
+            - button "Analyse this posting" [ref=e222] [cursor=pointer]
+            - button "View role graph" [ref=e223] [cursor=pointer]
+            - link "Open posting" [ref=e224] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17702215/005056a3-53e2-1fd1-9a9f-004792f573fd
+        - article [ref=e225]:
+          - button "Data Analyst - Healthcare (Contract) 1 week ago GMP TECHNOLOGIES (S) PTE LTD S$4,500 - S$6,800 / month Contract, Full Time 5+ yrs exp from MCF Tableau Machine Learning Cloud Administration Pipelines Healthcare Analytics AWS title contains signal" [ref=e226] [cursor=pointer]:
+            - generic [ref=e227]:
+              - strong [ref=e228]: Data Analyst - Healthcare (Contract)
+              - emphasis [ref=e229]: 1 week ago
+            - generic [ref=e230]: GMP TECHNOLOGIES (S) PTE LTD
+            - generic [ref=e231]:
+              - generic [ref=e232]: S$4,500 - S$6,800 / month
+              - generic [ref=e233]: Contract, Full Time
+              - generic [ref=e234]: 5+ yrs exp
+              - generic [ref=e235]: from MCF
+            - generic [ref=e236]:
+              - generic [ref=e237]: Tableau
+              - generic [ref=e238]: Machine Learning
+              - generic [ref=e239]: Cloud Administration
+              - generic [ref=e240]: Pipelines
+              - generic [ref=e241]: Healthcare Analytics
+              - generic [ref=e242]: AWS
+            - emphasis [ref=e243]: title contains signal
+          - generic [ref=e244]:
+            - button "Analyse this posting" [ref=e245] [cursor=pointer]
+            - button "View role graph" [ref=e246] [cursor=pointer]
+            - link "Open posting" [ref=e247] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-healthcare-gmp-technologies-36b95cd3f5892dac0cc4e8bb1e88b57d
+        - article [ref=e248]:
+          - button "Data Analyst (Bank |Up to $8k) 3 weeks ago ADECCO PERSONNEL PTE LTD S$5,000 - S$8,000 / month Contract 3+ yrs exp from MCF Data Analysis Solutioning Data Management Upstream ETL Translation title contains signal" [ref=e249] [cursor=pointer]:
+            - generic [ref=e250]:
+              - strong [ref=e251]: Data Analyst (Bank |Up to $8k)
+              - emphasis [ref=e252]: 3 weeks ago
+            - generic [ref=e253]: ADECCO PERSONNEL PTE LTD
+            - generic [ref=e254]:
+              - generic [ref=e255]: S$5,000 - S$8,000 / month
+              - generic [ref=e256]: Contract
+              - generic [ref=e257]: 3+ yrs exp
+              - generic [ref=e258]: from MCF
+            - generic [ref=e259]:
+              - generic [ref=e260]: Data Analysis
+              - generic [ref=e261]: Solutioning
+              - generic [ref=e262]: Data Management
+              - generic [ref=e263]: Upstream
+              - generic [ref=e264]: ETL
+              - generic [ref=e265]: Translation
+            - emphasis [ref=e266]: title contains signal
+          - generic [ref=e267]:
+            - button "Analyse this posting" [ref=e268] [cursor=pointer]
+            - button "View role graph" [ref=e269] [cursor=pointer]
+            - link "Open posting" [ref=e270] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-adecco-personnel-47c5787238164956545ec8af455ed758
+        - article [ref=e271]:
+          - button "Data Analyst (Contract) 3 weeks ago GMP TECHNOLOGIES (S) PTE LTD S$4,500 - S$6,800 / month Contract, Full Time 5+ yrs exp from MCF Tableau Machine Learning Pipelines ETL Data Governance Data Mining title contains signal" [ref=e272] [cursor=pointer]:
+            - generic [ref=e273]:
+              - strong [ref=e274]: Data Analyst (Contract)
+              - emphasis [ref=e275]: 3 weeks ago
+            - generic [ref=e276]: GMP TECHNOLOGIES (S) PTE LTD
+            - generic [ref=e277]:
+              - generic [ref=e278]: S$4,500 - S$6,800 / month
+              - generic [ref=e279]: Contract, Full Time
+              - generic [ref=e280]: 5+ yrs exp
+              - generic [ref=e281]: from MCF
+            - generic [ref=e282]:
+              - generic [ref=e283]: Tableau
+              - generic [ref=e284]: Machine Learning
+              - generic [ref=e285]: Pipelines
+              - generic [ref=e286]: ETL
+              - generic [ref=e287]: Data Governance
+              - generic [ref=e288]: Data Mining
+            - emphasis [ref=e289]: title contains signal
+          - generic [ref=e290]:
+            - button "Analyse this posting" [ref=e291] [cursor=pointer]
+            - button "View role graph" [ref=e292] [cursor=pointer]
+            - link "Open posting" [ref=e293] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-gmp-technologies-745711febd576e165c4eefb44f2d7a92
+        - article [ref=e294]:
+          - button "Data Analyst (Healthcare | Contract) 2 weeks ago GMP TECHNOLOGIES (S) PTE LTD S$4,500 - S$6,800 / month Contract, Full Time 5+ yrs exp from MCF Tableau Machine Learning Pipelines ETL Data Governance Data Mining title contains signal" [ref=e295] [cursor=pointer]:
+            - generic [ref=e296]:
+              - strong [ref=e297]: Data Analyst (Healthcare | Contract)
+              - emphasis [ref=e298]: 2 weeks ago
+            - generic [ref=e299]: GMP TECHNOLOGIES (S) PTE LTD
+            - generic [ref=e300]:
+              - generic [ref=e301]: S$4,500 - S$6,800 / month
+              - generic [ref=e302]: Contract, Full Time
+              - generic [ref=e303]: 5+ yrs exp
+              - generic [ref=e304]: from MCF
+            - generic [ref=e305]:
+              - generic [ref=e306]: Tableau
+              - generic [ref=e307]: Machine Learning
+              - generic [ref=e308]: Pipelines
+              - generic [ref=e309]: ETL
+              - generic [ref=e310]: Data Governance
+              - generic [ref=e311]: Data Mining
+            - emphasis [ref=e312]: title contains signal
+          - generic [ref=e313]:
+            - button "Analyse this posting" [ref=e314] [cursor=pointer]
+            - button "View role graph" [ref=e315] [cursor=pointer]
+            - link "Open posting" [ref=e316] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-gmp-technologies-ee171709208660fa7fb537e1425a383e
+        - article [ref=e317]:
+          - button "Data Analyst, AI and Data Products and Model Assurance, AIDO 1 month ago Ministry of Manpower Permanent/Contract 2+ yrs exp from careers.gov.sg title contains signal" [ref=e318] [cursor=pointer]:
+            - generic [ref=e319]:
+              - strong [ref=e320]: Data Analyst, AI and Data Products and Model Assurance, AIDO
+              - emphasis [ref=e321]: 1 month ago
+            - generic [ref=e322]: Ministry of Manpower
+            - generic [ref=e323]:
+              - generic [ref=e324]: Permanent/Contract
+              - generic [ref=e325]: 2+ yrs exp
+              - generic [ref=e326]: from careers.gov.sg
+            - emphasis [ref=e327]: title contains signal
+          - generic [ref=e328]:
+            - button "Analyse this posting" [ref=e329] [cursor=pointer]
+            - button "View role graph" [ref=e330] [cursor=pointer]
+            - link "Open posting" [ref=e331] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17379892/005056a3-53e2-1fd1-9ac1-4ccd7ab173fe
+        - article [ref=e332]:
+          - button "Data Analyst, Data Unit, Manpower Planning and Policy Division 2 months ago Ministry of Manpower Permanent/Contract 2+ yrs exp from careers.gov.sg title contains signal" [ref=e333] [cursor=pointer]:
+            - generic [ref=e334]:
+              - strong [ref=e335]: Data Analyst, Data Unit, Manpower Planning and Policy Division
+              - emphasis [ref=e336]: 2 months ago
+            - generic [ref=e337]: Ministry of Manpower
+            - generic [ref=e338]:
+              - generic [ref=e339]: Permanent/Contract
+              - generic [ref=e340]: 2+ yrs exp
+              - generic [ref=e341]: from careers.gov.sg
+            - emphasis [ref=e342]: title contains signal
+          - generic [ref=e343]:
+            - button "Analyse this posting" [ref=e344] [cursor=pointer]
+            - button "View role graph" [ref=e345] [cursor=pointer]
+            - link "Open posting" [ref=e346] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17285189/005056a3-53e2-1fd1-9ac1-3b1a51b793fe
+        - article [ref=e347]:
+          - button "Data Analyst, ECDA/SP [GRIT@Gov] 2 months ago Ministry Of Social And Family Development Traineeship from careers.gov.sg title contains signal" [ref=e348] [cursor=pointer]:
+            - generic [ref=e349]:
+              - strong [ref=e350]: Data Analyst, ECDA/SP [GRIT@Gov]
+              - emphasis [ref=e351]: 2 months ago
+            - generic [ref=e352]: Ministry Of Social And Family Development
+            - generic [ref=e353]:
+              - generic [ref=e354]: Traineeship
+              - generic [ref=e355]: from careers.gov.sg
+            - emphasis [ref=e356]: title contains signal
+          - generic [ref=e357]:
+            - button "Analyse this posting" [ref=e358] [cursor=pointer]
+            - button "View role graph" [ref=e359] [cursor=pointer]
+            - link "Open posting" [ref=e360] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17504233/005056a3-53e2-1fd1-9c8c-4f53ba2e13ff
+        - article [ref=e361]:
+          - button "Data Analyst, Economics Department, Ministry of Manpower 1 month ago Ministry of Manpower Permanent/Contract 2+ yrs exp from careers.gov.sg title contains signal" [ref=e362] [cursor=pointer]:
+            - generic [ref=e363]:
+              - strong [ref=e364]: Data Analyst, Economics Department, Ministry of Manpower
+              - emphasis [ref=e365]: 1 month ago
+            - generic [ref=e366]: Ministry of Manpower
+            - generic [ref=e367]:
+              - generic [ref=e368]: Permanent/Contract
+              - generic [ref=e369]: 2+ yrs exp
+              - generic [ref=e370]: from careers.gov.sg
+            - emphasis [ref=e371]: title contains signal
+          - generic [ref=e372]:
+            - button "Analyse this posting" [ref=e373] [cursor=pointer]
+            - button "View role graph" [ref=e374] [cursor=pointer]
+            - link "Open posting" [ref=e375] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17555096/005056a3-53e2-1fd1-9ac1-4a3b3dedb3fe
+        - article [ref=e376]:
+          - button "Deputy/Assistant Director, Data Analyst, Banking Department (Contract) 6 days ago Monetary Authority of Singapore Fixed Terms 3+ yrs exp from careers.gov.sg title contains signal" [ref=e377] [cursor=pointer]:
+            - generic [ref=e378]:
+              - strong [ref=e379]: Deputy/Assistant Director, Data Analyst, Banking Department (Contract)
+              - emphasis [ref=e380]: 6 days ago
+            - generic [ref=e381]: Monetary Authority of Singapore
+            - generic [ref=e382]:
+              - generic [ref=e383]: Fixed Terms
+              - generic [ref=e384]: 3+ yrs exp
+              - generic [ref=e385]: from careers.gov.sg
+            - emphasis [ref=e386]: title contains signal
+          - generic [ref=e387]:
+            - button "Analyse this posting" [ref=e388] [cursor=pointer]
+            - button "View role graph" [ref=e389] [cursor=pointer]
+            - link "Open posting" [ref=e390] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17038309/005056a3-d347-1fe1-9bce-fb871c7e62ad
+        - article [ref=e391]:
+          - button "Financial Data Analyst (Data Reporting & SQL), contract role 2 weeks ago OPTIMUM SOLUTIONS (SINGAPORE) PTE LTD S$6,500 - S$7,500 / month Contract 6+ yrs exp from MCF Liaising with cross functional teams Market Trend Analysis optimized SQL queries large datasets Data Analysis Microsoft SQL Server title contains signal" [ref=e392] [cursor=pointer]:
+            - generic [ref=e393]:
+              - strong [ref=e394]: Financial Data Analyst (Data Reporting & SQL), contract role
+              - emphasis [ref=e395]: 2 weeks ago
+            - generic [ref=e396]: OPTIMUM SOLUTIONS (SINGAPORE) PTE LTD
+            - generic [ref=e397]:
+              - generic [ref=e398]: S$6,500 - S$7,500 / month
+              - generic [ref=e399]: Contract
+              - generic [ref=e400]: 6+ yrs exp
+              - generic [ref=e401]: from MCF
+            - generic [ref=e402]:
+              - generic [ref=e403]: Liaising with cross functional teams
+              - generic [ref=e404]: Market Trend Analysis
+              - generic [ref=e405]: optimized SQL queries
+              - generic [ref=e406]: large datasets
+              - generic [ref=e407]: Data Analysis
+              - generic [ref=e408]: Microsoft SQL Server
+            - emphasis [ref=e409]: title contains signal
+          - generic [ref=e410]:
+            - button "Analyse this posting" [ref=e411] [cursor=pointer]
+            - button "View role graph" [ref=e412] [cursor=pointer]
+            - link "Open posting" [ref=e413] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/financial-data-analyst-contract-role-optimum-solutions-f92b995a23a9f8fcb7b5d037128bbee3
+        - article [ref=e414]:
+          - button "Principal/Senior Manager (Data Analyst), Compliance Strategy & Analytics, WPD 2 months ago Ministry of Manpower Permanent from careers.gov.sg title contains signal" [ref=e415] [cursor=pointer]:
+            - generic [ref=e416]:
+              - strong [ref=e417]: Principal/Senior Manager (Data Analyst), Compliance Strategy & Analytics, WPD
+              - emphasis [ref=e418]: 2 months ago
+            - generic [ref=e419]: Ministry of Manpower
+            - generic [ref=e420]:
+              - generic [ref=e421]: Permanent
+              - generic [ref=e422]: from careers.gov.sg
+            - emphasis [ref=e423]: title contains signal
+          - generic [ref=e424]:
+            - button "Analyse this posting" [ref=e425] [cursor=pointer]
+            - button "View role graph" [ref=e426] [cursor=pointer]
+            - link "Open posting" [ref=e427] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/14842980/67c5b17f-30f4-1eef-b39d-6d382ab9e20e
+        - article [ref=e428]:
+          - button "Risk & Data Analyst 3 days ago 8HEXA FINANCIAL PTE. LTD. S$3,000 - S$6,000 / month Full Time from MCF Graduate Recruitment Report Writing Dashboard Construction Analyticalandresearch Skills Strong Attention To Detail month end reports title contains signal" [ref=e429] [cursor=pointer]:
+            - generic [ref=e430]:
+              - strong [ref=e431]: Risk & Data Analyst
+              - emphasis [ref=e432]: 3 days ago
+            - generic [ref=e433]: 8HEXA FINANCIAL PTE. LTD.
+            - generic [ref=e434]:
+              - generic [ref=e435]: S$3,000 - S$6,000 / month
+              - generic [ref=e436]: Full Time
+              - generic [ref=e437]: from MCF
+            - generic [ref=e438]:
+              - generic [ref=e439]: Graduate Recruitment
+              - generic [ref=e440]: Report Writing
+              - generic [ref=e441]: Dashboard Construction
+              - generic [ref=e442]: Analyticalandresearch Skills
+              - generic [ref=e443]: Strong Attention To Detail
+              - generic [ref=e444]: month end reports
+            - emphasis [ref=e445]: title contains signal
+          - generic [ref=e446]:
+            - button "Analyse this posting" [ref=e447] [cursor=pointer]
+            - button "View role graph" [ref=e448] [cursor=pointer]
+            - link "Open posting" [ref=e449] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/risk-data-analyst-8hexa-financial-97149826cd1a8e8b3faee5316eed631c
+        - article [ref=e450]:
+          - button "Salesforce Data Analyst 2 weeks ago Capgemini Singapore PTE. LTD. S$4,500 - S$6,000 / month Permanent, Full Time 2+ yrs exp from MCF JSON Data Mapping Data Modelling Salesforce MuleSoft API title contains signal" [ref=e451] [cursor=pointer]:
+            - generic [ref=e452]:
+              - strong [ref=e453]: Salesforce Data Analyst
+              - emphasis [ref=e454]: 2 weeks ago
+            - generic [ref=e455]: Capgemini Singapore PTE. LTD.
+            - generic [ref=e456]:
+              - generic [ref=e457]: S$4,500 - S$6,000 / month
+              - generic [ref=e458]: Permanent, Full Time
+              - generic [ref=e459]: 2+ yrs exp
+              - generic [ref=e460]: from MCF
+            - generic [ref=e461]:
+              - generic [ref=e462]: JSON
+              - generic [ref=e463]: Data Mapping
+              - generic [ref=e464]: Data Modelling
+              - generic [ref=e465]: Salesforce
+              - generic [ref=e466]: MuleSoft
+              - generic [ref=e467]: API
+            - emphasis [ref=e468]: title contains signal
+          - generic [ref=e469]:
+            - button "Analyse this posting" [ref=e470] [cursor=pointer]
+            - button "View role graph" [ref=e471] [cursor=pointer]
+            - link "Open posting" [ref=e472] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-0e934c4d7e1d9b51dfea965bb8ab4404
+        - article [ref=e473]:
+          - button "Salesforce Data Analyst Today Capgemini Singapore PTE. LTD. S$5,500 - S$7,500 / month Contract, Permanent 4+ yrs exp from MCF UAT Integration Management Data Orchestration Data Structures Data Integration Field Operations title contains signal" [ref=e474] [cursor=pointer]:
+            - generic [ref=e475]:
+              - strong [ref=e476]: Salesforce Data Analyst
+              - emphasis [ref=e477]: Today
+            - generic [ref=e478]: Capgemini Singapore PTE. LTD.
+            - generic [ref=e479]:
+              - generic [ref=e480]: S$5,500 - S$7,500 / month
+              - generic [ref=e481]: Contract, Permanent
+              - generic [ref=e482]: 4+ yrs exp
+              - generic [ref=e483]: from MCF
+            - generic [ref=e484]:
+              - generic [ref=e485]: UAT
+              - generic [ref=e486]: Integration Management
+              - generic [ref=e487]: Data Orchestration
+              - generic [ref=e488]: Data Structures
+              - generic [ref=e489]: Data Integration
+              - generic [ref=e490]: Field Operations
+            - emphasis [ref=e491]: title contains signal
+          - generic [ref=e492]:
+            - button "Analyse this posting" [ref=e493] [cursor=pointer]
+            - button "View role graph" [ref=e494] [cursor=pointer]
+            - link "Open posting" [ref=e495] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-fcd2ebf459bb867bc073a67c96c74679
+        - article [ref=e496]:
+          - button "Salesforce Data Analyst (Graduate Program) 3 weeks ago Capgemini Singapore PTE. LTD. S$4,000 - S$4,400 / month Permanent, Full Time from MCF JSON Data Mapping Data Modelling Salesforce MuleSoft API title contains signal" [ref=e497] [cursor=pointer]:
+            - generic [ref=e498]:
+              - strong [ref=e499]: Salesforce Data Analyst (Graduate Program)
+              - emphasis [ref=e500]: 3 weeks ago
+            - generic [ref=e501]: Capgemini Singapore PTE. LTD.
+            - generic [ref=e502]:
+              - generic [ref=e503]: S$4,000 - S$4,400 / month
+              - generic [ref=e504]: Permanent, Full Time
+              - generic [ref=e505]: from MCF
+            - generic [ref=e506]:
+              - generic [ref=e507]: JSON
+              - generic [ref=e508]: Data Mapping
+              - generic [ref=e509]: Data Modelling
+              - generic [ref=e510]: Salesforce
+              - generic [ref=e511]: MuleSoft
+              - generic [ref=e512]: API
+            - emphasis [ref=e513]: title contains signal
+          - generic [ref=e514]:
+            - button "Analyse this posting" [ref=e515] [cursor=pointer]
+            - button "View role graph" [ref=e516] [cursor=pointer]
+            - link "Open posting" [ref=e517] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-a359c3692d4b5f03869071eff58fd47f
+        - article [ref=e518]:
+          - button "Senior Data Analyst (Data Engineering Role) 2 weeks ago PERSOL SINGAPORE PTE. LTD. S$5,500 - S$7,500 / month Permanent 6+ yrs exp from MCF Tableau Microsoft Excel Data Pipeline Information Systems Data Management Azure Data Factory title contains signal" [ref=e519] [cursor=pointer]:
+            - generic [ref=e520]:
+              - strong [ref=e521]: Senior Data Analyst (Data Engineering Role)
+              - emphasis [ref=e522]: 2 weeks ago
+            - generic [ref=e523]: PERSOL SINGAPORE PTE. LTD.
+            - generic [ref=e524]:
+              - generic [ref=e525]: S$5,500 - S$7,500 / month
+              - generic [ref=e526]: Permanent
+              - generic [ref=e527]: 6+ yrs exp
+              - generic [ref=e528]: from MCF
+            - generic [ref=e529]:
+              - generic [ref=e530]: Tableau
+              - generic [ref=e531]: Microsoft Excel
+              - generic [ref=e532]: Data Pipeline
+              - generic [ref=e533]: Information Systems
+              - generic [ref=e534]: Data Management
+              - generic [ref=e535]: Azure Data Factory
+            - emphasis [ref=e536]: title contains signal
+          - generic [ref=e537]:
+            - button "Analyse this posting" [ref=e538] [cursor=pointer]
+            - button "View role graph" [ref=e539] [cursor=pointer]
+            - link "Open posting" [ref=e540] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-analyst-persol-singapore-0f0a2792bfc08d9929ca3a4347bcdae5
+        - article [ref=e541]:
+          - button "Senior Data Analyst, Market Insights 3 weeks ago GRABTAXI HOLDINGS PTE. LTD. S$9,000 - S$13,500 / month Permanent 5+ yrs exp from MCF Tableau Data Storytelling Scalability Technical Translation Mathematics Market Analysis title contains signal" [ref=e542] [cursor=pointer]:
+            - generic [ref=e543]:
+              - strong [ref=e544]: Senior Data Analyst, Market Insights
+              - emphasis [ref=e545]: 3 weeks ago
+            - generic [ref=e546]: GRABTAXI HOLDINGS PTE. LTD.
+            - generic [ref=e547]:
+              - generic [ref=e548]: S$9,000 - S$13,500 / month
+              - generic [ref=e549]: Permanent
+              - generic [ref=e550]: 5+ yrs exp
+              - generic [ref=e551]: from MCF
+            - generic [ref=e552]:
+              - generic [ref=e553]: Tableau
+              - generic [ref=e554]: Data Storytelling
+              - generic [ref=e555]: Scalability
+              - generic [ref=e556]: Technical Translation
+              - generic [ref=e557]: Mathematics
+              - generic [ref=e558]: Market Analysis
+            - emphasis [ref=e559]: title contains signal
+          - generic [ref=e560]:
+            - button "Analyse this posting" [ref=e561] [cursor=pointer]
+            - button "View role graph" [ref=e562] [cursor=pointer]
+            - link "Open posting" [ref=e563] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-analyst-market-insights-grabtaxi-holdings-abd2b946f7fe8bede85c0d603761cdf3
+        - article [ref=e564]:
+          - button "Senior Regulatory Reporting Data Analyst (Banking Domain) – 12 Months Contract 1 week ago TEAMLEASE DIGITAL SINGAPORE PTE. LTD. S$7,500 - S$12,000 / month Full Time 8+ yrs exp from MCF Financial Management Banking Analytics Mathematics Automation of reports Information Technology Computer Science title contains signal" [ref=e565] [cursor=pointer]:
+            - generic [ref=e566]:
+              - strong [ref=e567]: Senior Regulatory Reporting Data Analyst (Banking Domain) – 12 Months Contract
+              - emphasis [ref=e568]: 1 week ago
+            - generic [ref=e569]: TEAMLEASE DIGITAL SINGAPORE PTE. LTD.
+            - generic [ref=e570]:
+              - generic [ref=e571]: S$7,500 - S$12,000 / month
+              - generic [ref=e572]: Full Time
+              - generic [ref=e573]: 8+ yrs exp
+              - generic [ref=e574]: from MCF
+            - generic [ref=e575]:
+              - generic [ref=e576]: Financial Management
+              - generic [ref=e577]: Banking Analytics
+              - generic [ref=e578]: Mathematics
+              - generic [ref=e579]: Automation of reports
+              - generic [ref=e580]: Information Technology
+              - generic [ref=e581]: Computer Science
+            - emphasis [ref=e582]: title contains signal
+          - generic [ref=e583]:
+            - button "Analyse this posting" [ref=e584] [cursor=pointer]
+            - button "View role graph" [ref=e585] [cursor=pointer]
+            - link "Open posting" [ref=e586] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-regulatory-reporting-data-analyst-%E2%80%93-12-months-contract-teamlease-digital-singapore-cf6e584847a32b52fb543f6c2afd0820
+        - article [ref=e587]:
+          - button "Senior/Data Analyst (Data & AI Office), Economics Division 2 months ago Ministry of Trade and Industry Permanent/Contract 3+ yrs exp from careers.gov.sg title contains signal" [ref=e588] [cursor=pointer]:
+            - generic [ref=e589]:
+              - strong [ref=e590]: Senior/Data Analyst (Data & AI Office), Economics Division
+              - emphasis [ref=e591]: 2 months ago
+            - generic [ref=e592]: Ministry of Trade and Industry
+            - generic [ref=e593]:
+              - generic [ref=e594]: Permanent/Contract
+              - generic [ref=e595]: 3+ yrs exp
+              - generic [ref=e596]: from careers.gov.sg
+            - emphasis [ref=e597]: title contains signal
+          - generic [ref=e598]:
+            - button "Analyse this posting" [ref=e599] [cursor=pointer]
+            - button "View role graph" [ref=e600] [cursor=pointer]
+            - link "Open posting" [ref=e601] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/16731233/005056a3-d347-1fe0-adad-16cee26c2281
+        - article [ref=e602]:
+          - button "Research Analyst, Economics Department, MOM 1 month ago Ministry of Manpower Permanent/Contract 2+ yrs exp from careers.gov.sg responsibility contains signal" [ref=e603] [cursor=pointer]:
+            - generic [ref=e604]:
+              - strong [ref=e605]: Research Analyst, Economics Department, MOM
+              - emphasis [ref=e606]: 1 month ago
+            - generic [ref=e607]: Ministry of Manpower
+            - generic [ref=e608]:
+              - generic [ref=e609]: Permanent/Contract
+              - generic [ref=e610]: 2+ yrs exp
+              - generic [ref=e611]: from careers.gov.sg
+            - emphasis [ref=e612]: responsibility contains signal
+          - generic [ref=e613]:
+            - button "Analyse this posting" [ref=e614] [cursor=pointer]
+            - button "View role graph" [ref=e615] [cursor=pointer]
+            - link "Open posting" [ref=e616] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17626724/005056a3-53e2-1fd1-9ac1-7d7fb436d3fe
+        - article [ref=e617]:
+          - button "Senior / Data Engineer (AGC) 1 month ago Government Technology Agency from careers.gov.sg responsibility contains signal" [ref=e618] [cursor=pointer]:
+            - generic [ref=e619]:
+              - strong [ref=e620]: Senior / Data Engineer (AGC)
+              - emphasis [ref=e621]: 1 month ago
+            - generic [ref=e622]: Government Technology Agency
+            - generic [ref=e624]: from careers.gov.sg
+            - emphasis [ref=e625]: responsibility contains signal
+          - generic [ref=e626]:
+            - button "Analyse this posting" [ref=e627] [cursor=pointer]
+            - button "View role graph" [ref=e628] [cursor=pointer]
+            - link "Open posting" [ref=e629] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004030201?gh_jid=4004030201
+        - article [ref=e630]:
+          - button "[LTA-IDE] ASST MANAGER, LAND (GIS ANALYST / SPATIAL DATA SPECIALIST) 1 month ago Land Transport Authority Fixed Terms from careers.gov.sg adjacent role" [ref=e631] [cursor=pointer]:
+            - generic [ref=e632]:
+              - strong [ref=e633]: "[LTA-IDE] ASST MANAGER, LAND (GIS ANALYST / SPATIAL DATA SPECIALIST)"
+              - emphasis [ref=e634]: 1 month ago
+            - generic [ref=e635]: Land Transport Authority
+            - generic [ref=e636]:
+              - generic [ref=e637]: Fixed Terms
+              - generic [ref=e638]: from careers.gov.sg
+            - emphasis [ref=e639]: adjacent role
+          - generic [ref=e640]:
+            - button "Analyse this posting" [ref=e641] [cursor=pointer]
+            - button "View role graph" [ref=e642] [cursor=pointer]
+            - link "Open posting" [ref=e643] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17565348/005056a3-53e2-1fd1-988a-630eb11b93fb
+        - article [ref=e644]:
+          - button "Assistant Director (Data Analysis) 5 days ago MINDEF Permanent 6+ yrs exp from careers.gov.sg adjacent role" [ref=e645] [cursor=pointer]:
+            - generic [ref=e646]:
+              - strong [ref=e647]: Assistant Director (Data Analysis)
+              - emphasis [ref=e648]: 5 days ago
+            - generic [ref=e649]: MINDEF
+            - generic [ref=e650]:
+              - generic [ref=e651]: Permanent
+              - generic [ref=e652]: 6+ yrs exp
+              - generic [ref=e653]: from careers.gov.sg
+            - emphasis [ref=e654]: adjacent role
+          - generic [ref=e655]:
+            - button "Analyse this posting" [ref=e656] [cursor=pointer]
+            - button "View role graph" [ref=e657] [cursor=pointer]
+            - link "Open posting" [ref=e658] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/13736769/005056a3-d347-1fe1-9bf2-7673548902ad
+        - article [ref=e659]:
+          - button "Contract Senior Analyst Data Pilots, Data Exploration and Partnerships 1 month ago Singapore Tourism Board Fixed Terms 3+ yrs exp from careers.gov.sg adjacent role" [ref=e660] [cursor=pointer]:
+            - generic [ref=e661]:
+              - strong [ref=e662]: Contract Senior Analyst Data Pilots, Data Exploration and Partnerships
+              - emphasis [ref=e663]: 1 month ago
+            - generic [ref=e664]: Singapore Tourism Board
+            - generic [ref=e665]:
+              - generic [ref=e666]: Fixed Terms
+              - generic [ref=e667]: 3+ yrs exp
+              - generic [ref=e668]: from careers.gov.sg
+            - emphasis [ref=e669]: adjacent role
+          - generic [ref=e670]:
+            - button "Analyse this posting" [ref=e671] [cursor=pointer]
+            - button "View role graph" [ref=e672] [cursor=pointer]
+            - link "Open posting" [ref=e673] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17631272/005056a3-53e2-1fd1-9c9a-6d26321a33ff
+        - article [ref=e674]:
+          - button "Curriculum Development Analyst - Eng Svcs [ITE Headquarters] – 2 Year Contract 1 month ago Institute of Technical Education Fixed Terms 3+ yrs exp from careers.gov.sg adjacent role" [ref=e675] [cursor=pointer]:
+            - generic [ref=e676]:
+              - strong [ref=e677]: Curriculum Development Analyst - Eng Svcs [ITE Headquarters] – 2 Year Contract
+              - emphasis [ref=e678]: 1 month ago
+            - generic [ref=e679]: Institute of Technical Education
+            - generic [ref=e680]:
+              - generic [ref=e681]: Fixed Terms
+              - generic [ref=e682]: 3+ yrs exp
+              - generic [ref=e683]: from careers.gov.sg
+            - emphasis [ref=e684]: adjacent role
+          - generic [ref=e685]:
+            - button "Analyse this posting" [ref=e686] [cursor=pointer]
+            - button "View role graph" [ref=e687] [cursor=pointer]
+            - link "Open posting" [ref=e688] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17623245/005056a3-53e2-1fd1-97d8-17753a1fd3fa
+        - article [ref=e689]:
+          - button "Data Engineer (CSC) 1 week ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e690] [cursor=pointer]:
+            - generic [ref=e691]:
+              - strong [ref=e692]: Data Engineer (CSC)
+              - emphasis [ref=e693]: 1 week ago
+            - generic [ref=e694]: Government Technology Agency
+            - generic [ref=e696]: from careers.gov.sg
+            - emphasis [ref=e697]: adjacent role
+          - generic [ref=e698]:
+            - button "Analyse this posting" [ref=e699] [cursor=pointer]
+            - button "View role graph" [ref=e700] [cursor=pointer]
+            - link "Open posting" [ref=e701] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004340201?gh_jid=4004340201
+        - article [ref=e702]:
+          - button "Data Engineer, Data and AI Office (DAO) - 2 Two-Year Contract 3 weeks ago Civil Service College Contract from careers.gov.sg adjacent role" [ref=e703] [cursor=pointer]:
+            - generic [ref=e704]:
+              - strong [ref=e705]: Data Engineer, Data and AI Office (DAO) - 2 Two-Year Contract
+              - emphasis [ref=e706]: 3 weeks ago
+            - generic [ref=e707]: Civil Service College
+            - generic [ref=e708]:
+              - generic [ref=e709]: Contract
+              - generic [ref=e710]: from careers.gov.sg
+            - emphasis [ref=e711]: adjacent role
+          - generic [ref=e712]:
+            - button "Analyse this posting" [ref=e713] [cursor=pointer]
+            - button "View role graph" [ref=e714] [cursor=pointer]
+            - link "Open posting" [ref=e715] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17390896/005056a3-53e2-1fd1-93bb-53b8e358f3f3
+        - article [ref=e716]:
+          - button "Product Manager, Data Programme 1 month ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e717] [cursor=pointer]:
+            - generic [ref=e718]:
+              - strong [ref=e719]: Product Manager, Data Programme
+              - emphasis [ref=e720]: 1 month ago
+            - generic [ref=e721]: Government Technology Agency
+            - generic [ref=e723]: from careers.gov.sg
+            - emphasis [ref=e724]: adjacent role
+          - generic [ref=e725]:
+            - button "Analyse this posting" [ref=e726] [cursor=pointer]
+            - button "View role graph" [ref=e727] [cursor=pointer]
+            - link "Open posting" [ref=e728] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003948201?gh_jid=4003948201
+        - article [ref=e729]:
+          - button "Threat Intel Analyst 1 week ago Government Technology Agency 4+ yrs exp from careers.gov.sg adjacent role" [ref=e730] [cursor=pointer]:
+            - generic [ref=e731]:
+              - strong [ref=e732]: Threat Intel Analyst
+              - emphasis [ref=e733]: 1 week ago
+            - generic [ref=e734]: Government Technology Agency
+            - generic [ref=e735]:
+              - generic [ref=e736]: 4+ yrs exp
+              - generic [ref=e737]: from careers.gov.sg
+            - emphasis [ref=e738]: adjacent role
+          - generic [ref=e739]:
+            - button "Analyse this posting" [ref=e740] [cursor=pointer]
+            - button "View role graph" [ref=e741] [cursor=pointer]
+            - link "Open posting" [ref=e742] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004352201?gh_jid=4004352201

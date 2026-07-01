@@ -1,0 +1,1027 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - button "New search" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: ←
+            - text: New search
+          - generic [ref=e112]:
+            - generic [ref=e113]: STEP 2 · SELECT EVIDENCE
+            - heading "Posting evidence for “Accountant”" [level=2] [ref=e114]
+          - generic [ref=e115]:
+            - generic [ref=e116]: 33 of 33
+            - 'button "{ } OKF index" [ref=e117] [cursor=pointer]'
+        - generic [ref=e118]:
+          - textbox "Search postings" [ref=e119]:
+            - /placeholder: Search postings...
+          - 'button "Sort: Best match" [ref=e121] [cursor=pointer]':
+            - text: "Sort: Best match"
+            - generic [ref=e122]: ▼
+          - button "Sector" [ref=e124] [cursor=pointer]:
+            - text: Sector
+            - generic [ref=e125]: ▼
+          - button "Company" [ref=e127] [cursor=pointer]:
+            - text: Company
+            - generic [ref=e128]: ▼
+          - button "Department" [ref=e130] [cursor=pointer]:
+            - text: Department
+            - generic [ref=e131]: ▼
+          - button "Function" [ref=e133] [cursor=pointer]:
+            - text: Function
+            - generic [ref=e134]: ▼
+          - button "Experience" [ref=e136] [cursor=pointer]:
+            - text: Experience
+            - generic [ref=e137]: ▼
+          - button "Type of work" [ref=e139] [cursor=pointer]:
+            - text: Type of work
+            - generic [ref=e140]: ▼
+        - generic [ref=e141]:
+          - complementary [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]: INDEX · 33 OF 33
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]:
+                    - generic [ref=e148]: BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e149]: "5"
+                  - generic [ref=e150]:
+                    - button "Accountant S$4k" [ref=e1009] [cursor=pointer]:
+                      - generic [ref=e153]: Accountant
+                      - generic [ref=e1010]: S$4k
+                    - button "Accountant S$3.8k" [ref=e1011] [cursor=pointer]:
+                      - generic [ref=e156]: Accountant
+                      - generic [ref=e1012]: S$3.8k
+                    - button "Accountant S$4.4k" [ref=e1013] [cursor=pointer]:
+                      - generic [ref=e189]: Accountant
+                      - generic [ref=e1014]: S$4.4k
+                    - button "Accountant S$5k" [ref=e1015] [cursor=pointer]:
+                      - generic [ref=e219]: Accountant
+                      - generic [ref=e1016]: S$5k
+                    - button "Accountant S$4.3k" [ref=e1017] [cursor=pointer]:
+                      - generic [ref=e231]: Accountant
+                      - generic [ref=e1018]: S$4.3k
+                - generic [ref=e1019]:
+                  - generic [ref=e1020]:
+                    - generic [ref=e1021]: BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e1022]: "26"
+                  - generic [ref=e1023]:
+                    - button "Senior Accountant / Accountant S$5.3k" [ref=e1024] [cursor=pointer]:
+                      - generic [ref=e1026]: Senior Accountant / Accountant
+                      - generic [ref=e1027]: S$5.3k
+                    - button "ACCOUNTANT CUM HR S$4.8k" [ref=e1028] [cursor=pointer]:
+                      - generic [ref=e1030]: ACCOUNTANT CUM HR
+                      - generic [ref=e1031]: S$4.8k
+                    - button "Accountant Up $5.5K S$5.3k" [ref=e1032] [cursor=pointer]:
+                      - generic [ref=e1034]: Accountant Up $5.5K
+                      - generic [ref=e1035]: S$5.3k
+                    - button "Accountant（FS/TECH） S$8k" [ref=e1036] [cursor=pointer]:
+                      - generic [ref=e1038]: Accountant（FS/TECH）
+                      - generic [ref=e1039]: S$8k
+                    - button "Accountant/Office Admin S$4.8k" [ref=e1040] [cursor=pointer]:
+                      - generic [ref=e1042]: Accountant/Office Admin
+                      - generic [ref=e1043]: S$4.8k
+                    - button "Senior Accountant / Accountant S$4.8k" [ref=e1044] [cursor=pointer]:
+                      - generic [ref=e1046]: Senior Accountant / Accountant
+                      - generic [ref=e1047]: S$4.8k
+                    - button "Junior Fund Accountant S$3.5k" [ref=e1048] [cursor=pointer]:
+                      - generic [ref=e1050]: Junior Fund Accountant
+                      - generic [ref=e1051]: S$3.5k
+                    - button "Accountant S$5.4k" [ref=e1052] [cursor=pointer]:
+                      - generic [ref=e1054]: Accountant
+                      - generic [ref=e1055]: S$5.4k
+                    - button "Designer" [ref=e1056] [cursor=pointer]:
+                      - generic [ref=e1058]: Designer
+                    - button "Senior Accountant S$7.3k" [ref=e1059] [cursor=pointer]:
+                      - generic [ref=e1061]: Senior Accountant
+                      - generic [ref=e1062]: S$7.3k
+                    - button "Accountant / Senior Accountant S$4.2k" [ref=e1063] [cursor=pointer]:
+                      - generic [ref=e1065]: Accountant / Senior Accountant
+                      - generic [ref=e1066]: S$4.2k
+                    - button "Senior Accountant S$4.8k" [ref=e1067] [cursor=pointer]:
+                      - generic [ref=e1069]: Senior Accountant
+                      - generic [ref=e1070]: S$4.8k
+                    - button "Junior Fund Accountant S$3.5k" [ref=e1071] [cursor=pointer]:
+                      - generic [ref=e1073]: Junior Fund Accountant
+                      - generic [ref=e1074]: S$3.5k
+                    - button "Full Set Accountant | Up to $6.8K | MNC Comp… S$6.7k" [ref=e1075] [cursor=pointer]:
+                      - generic [ref=e1077]: Full Set Accountant | Up to $6.8K | MNC Comp…
+                      - generic [ref=e1078]: S$6.7k
+                    - button "Full-Time Remote Assistant Accountant S$2.5k" [ref=e1079] [cursor=pointer]:
+                      - generic [ref=e1081]: Full-Time Remote Assistant Accountant
+                      - generic [ref=e1082]: S$2.5k
+                    - button "Group Finance Manager/ Senior Accountant S$6.5k" [ref=e1083] [cursor=pointer]:
+                      - generic [ref=e1085]: Group Finance Manager/ Senior Accountant
+                      - generic [ref=e1086]: S$6.5k
+                    - button "Accountant / Senior Accountant S$5.3k" [ref=e1087] [cursor=pointer]:
+                      - generic [ref=e1089]: Accountant / Senior Accountant
+                      - generic [ref=e1090]: S$5.3k
+                    - button "Freelance Chartered Accountant S$0.4k" [ref=e1091] [cursor=pointer]:
+                      - generic [ref=e1093]: Freelance Chartered Accountant
+                      - generic [ref=e1094]: S$0.4k
+                    - button "Junior Accountant S$3.8k" [ref=e1095] [cursor=pointer]:
+                      - generic [ref=e1097]: Junior Accountant
+                      - generic [ref=e1098]: S$3.8k
+                    - button "ACCOUNTANT CUM HR S$4.8k" [ref=e1099] [cursor=pointer]:
+                      - generic [ref=e1101]: ACCOUNTANT CUM HR
+                      - generic [ref=e1102]: S$4.8k
+                    - button "Accountant / Senior Accountant S$7.5k" [ref=e1103] [cursor=pointer]:
+                      - generic [ref=e1105]: Accountant / Senior Accountant
+                      - generic [ref=e1106]: S$7.5k
+                    - button "Senior Accountant S$4.5k" [ref=e1107] [cursor=pointer]:
+                      - generic [ref=e1109]: Senior Accountant
+                      - generic [ref=e1110]: S$4.5k
+                    - button "Fund Accountant S$4.8k" [ref=e1111] [cursor=pointer]:
+                      - generic [ref=e1113]: Fund Accountant
+                      - generic [ref=e1114]: S$4.8k
+                    - button "Accountant S$5k" [ref=e1115] [cursor=pointer]:
+                      - generic [ref=e1117]: Accountant
+                      - generic [ref=e1118]: S$5k
+                    - button "Assistant Accountant S$2.5k" [ref=e1119] [cursor=pointer]:
+                      - generic [ref=e1121]: Assistant Accountant
+                      - generic [ref=e1122]: S$2.5k
+                    - button "Accountant/Senior Accountant S$4.8k" [ref=e1123] [cursor=pointer]:
+                      - generic [ref=e1125]: Accountant/Senior Accountant
+                      - generic [ref=e1126]: S$4.8k
+                - generic [ref=e1127]:
+                  - generic [ref=e1128]:
+                    - generic [ref=e1129]: LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1130]: "2"
+                  - generic [ref=e1131]:
+                    - button "Deputy Director" [ref=e1132] [cursor=pointer]:
+                      - generic [ref=e1134]: Deputy Director
+                    - button "Assistant Director" [ref=e1135] [cursor=pointer]:
+                      - generic [ref=e1137]: Assistant Director
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - generic [ref=e252]: OKF v0.1
+                - generic [ref=e253]: Open Knowledge Format
+              - paragraph [ref=e254]: A vendor-neutral markdown bundle - tap a file to read it.
+              - generic [ref=e255]:
+                - button "accountant.okf/" [disabled] [ref=e256]
+                - button "├── index.md" [ref=e257] [cursor=pointer]
+                - button "├── postings/ (33)" [disabled] [ref=e258]
+                - button "├── sectors/" [disabled] [ref=e259]
+                - button "│ ├── business-and-administration-associate-professionals.md" [ref=e1138] [cursor=pointer]
+                - button "│ ├── business-and-administration-professionals.md" [ref=e1139] [cursor=pointer]
+                - button "│ └── legal-social-religious-and-cultural-professionals.md" [ref=e1140] [cursor=pointer]
+                - button "└── log.md" [ref=e260] [cursor=pointer]
+              - button "Open index" [ref=e262] [cursor=pointer]
+          - generic [ref=e263]:
+            - generic [ref=e264]:
+              - generic [ref=e265]:
+                - generic [ref=e267]: MyCareersFuture
+                - generic [ref=e268]: "30"
+              - generic [ref=e269]:
+                - generic [ref=e270] [cursor=pointer]:
+                  - generic [ref=e271]:
+                    - generic [ref=e272]: G
+                    - generic "GREAT PEONY GROUP PTE. LTD." [ref=e273]
+                    - 'generic "AI exposure: Full automation" [ref=e1141]'
+                  - generic [ref=e274]:
+                    - heading "Accountant" [level=3] [ref=e275]
+                    - generic [ref=e276]: yesterday
+                    - generic "BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS" [ref=e1143]: SSOC 33131 · BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e277]:
+                      - generic [ref=e278]: S$4,000 - S$4,000 / month
+                      - generic [ref=e279]: Full Time
+                    - paragraph [ref=e280]: Portfolio Financial Oversight &ROI Tracking Maintain absolute, independent financial control and bookkeeping over private holding entities, trusts, and special purpose vehicles (SPVs) holding our…
+                    - generic [ref=e281]:
+                      - generic [ref=e282]: SKILLSETS
+                      - generic [ref=e283]:
+                        - generic [ref=e284]: Ethical Conduct and Professional Integrity
+                        - generic [ref=e285]: Net Asset Valuation
+                        - generic [ref=e286]: Languages
+                        - generic [ref=e287]: Real Estate Investment Trust - Reit
+                        - generic [ref=e288]: Capital Management
+                    - generic [ref=e289]:
+                      - button "Analyse" [ref=e290]
+                      - link "Open" [ref=e291]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-great-peony-group-e66685f56355351d65d8078f01f1a9d0
+                      - 'button "{ } OKF" [ref=e292]'
+                - generic [ref=e293] [cursor=pointer]:
+                  - generic [ref=e294]:
+                    - generic [ref=e295]: Q
+                    - generic "QUALITY MEAT PTE. LTD." [ref=e296]
+                    - 'generic "AI exposure: Full automation" [ref=e1144]'
+                  - generic [ref=e297]:
+                    - heading "Accountant" [level=3] [ref=e298]
+                    - generic [ref=e299]: yesterday
+                    - generic "BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS" [ref=e1146]: SSOC 33131 · BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e300]:
+                      - generic [ref=e301]: S$3,300 - S$4,200 / month
+                      - generic [ref=e302]: Permanent, Full Time
+                    - paragraph [ref=e303]: We're seeking a motivated and detail-oriented Accountant to support our growing business. This is an exciting opportunity for an accounting professional who enjoys taking ownership of the full…
+                    - generic [ref=e304]:
+                      - generic [ref=e305]: SKILLSETS
+                      - generic [ref=e306]:
+                        - generic [ref=e307]: Liaising with cross functional teams
+                        - generic [ref=e308]: Account Management
+                        - generic [ref=e309]: Liaising With External Auditors
+                        - generic [ref=e310]: Quarterly reports
+                        - generic [ref=e311]: Chartered accounting
+                    - generic [ref=e312]:
+                      - button "Analyse" [ref=e313]
+                      - link "Open" [ref=e314]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-quality-meat-156b444d28adf0cd59b1e911536f6664
+                      - 'button "{ } OKF" [ref=e315]'
+                - generic [ref=e316] [cursor=pointer]:
+                  - generic [ref=e317]:
+                    - generic [ref=e318]: H
+                    - generic "HR EASILY PTE. LTD." [ref=e319]
+                    - 'generic "AI exposure: Full automation" [ref=e1147]'
+                  - generic [ref=e320]:
+                    - heading "Senior Accountant / Accountant" [level=3] [ref=e321]
+                    - generic [ref=e322]: 5 days ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1149]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: S$4,500 - S$6,000 / month
+                      - generic [ref=e325]: Permanent, Full Time
+                    - paragraph [ref=e326]: Accounting & Monthly Close Own the end-to-end monthly close process across group entities, ensuring accounts are closed accurately and on time.
+                    - generic [ref=e327]:
+                      - generic [ref=e328]: SKILLSETS
+                      - generic [ref=e329]:
+                        - generic [ref=e330]: Monthly Closing
+                        - generic [ref=e331]: Account Management procedures
+                        - generic [ref=e332]: Identify Gaps
+                        - generic [ref=e333]: large datasets
+                        - generic [ref=e334]: Tech Savy
+                    - generic [ref=e335]:
+                      - button "Analyse" [ref=e336]
+                      - link "Open" [ref=e337]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/senior-accountant-accountant-hr-easily-00f627950c2dedbdd236e3407273eeb8
+                      - 'button "{ } OKF" [ref=e338]'
+                - generic [ref=e339] [cursor=pointer]:
+                  - generic [ref=e340]:
+                    - generic [ref=e341]: X
+                    - generic "XIN CHENG CONSULTING PTE. LTD." [ref=e342]
+                    - 'generic "AI exposure: Full automation" [ref=e1150]'
+                  - generic [ref=e343]:
+                    - heading "ACCOUNTANT CUM HR" [level=3] [ref=e344]
+                    - generic [ref=e345]: 5 days ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1152]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e346]:
+                      - generic [ref=e347]: S$4,000 - S$5,500 / month
+                      - generic [ref=e348]: Full Time
+                    - paragraph [ref=e349]: "– Accountant cum HR Position Title: Accountant cum HR Location: One Raffles Place, Tower 2, Singapore 048616 Employment Type: Full-time Reports to: Managing Director / Finance Manager Job Summary We…"
+                    - generic [ref=e350]:
+                      - generic [ref=e351]: SKILLSETS
+                      - generic [ref=e352]:
+                        - generic [ref=e353]: Cash Flow Statements
+                        - generic [ref=e354]: Tax
+                        - generic [ref=e355]: QuickBooks
+                        - generic [ref=e356]: Accounting
+                        - generic [ref=e357]: Attention to Detail
+                    - generic [ref=e358]:
+                      - button "Analyse" [ref=e359]
+                      - link "Open" [ref=e360]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-cum-hr-xin-cheng-consulting-38cfac79a335a2c62916048bd493741a
+                      - 'button "{ } OKF" [ref=e361]'
+                - generic [ref=e362] [cursor=pointer]:
+                  - generic [ref=e363]:
+                    - generic [ref=e364]: P
+                    - generic "PERSOL SINGAPORE PTE. LTD." [ref=e365]
+                    - 'generic "AI exposure: Full automation" [ref=e1153]'
+                  - generic [ref=e366]:
+                    - heading "Accountant Up $5.5K" [level=3] [ref=e367]
+                    - generic [ref=e368]: 6 days ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1155]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e369]:
+                      - generic [ref=e370]: S$5,000 - S$5,500 / month
+                      - generic [ref=e371]: Full Time
+                    - paragraph [ref=e372]: Manage day-to-day accounting transactions,including entries in accounts payable, account receivable and general ledger aswell as cashflow management.
+                    - generic [ref=e373]:
+                      - generic [ref=e374]: SKILLSETS
+                      - generic [ref=e375]:
+                        - generic [ref=e376]: Liaising With External Auditors
+                        - generic [ref=e377]: Teamwork
+                        - generic [ref=e378]: Procurement Project Management
+                        - generic [ref=e379]: Accounting Procedures
+                        - generic [ref=e380]: Month End Close
+                    - generic [ref=e381]:
+                      - button "Analyse" [ref=e382]
+                      - link "Open" [ref=e383]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-55k-persol-singapore-e8bd970689767168b5e7b4233a4ae94c
+                      - 'button "{ } OKF" [ref=e384]'
+                - generic [ref=e385] [cursor=pointer]:
+                  - generic [ref=e386]:
+                    - generic [ref=e387]: D
+                    - generic "DADACONSULTANTS PTE. LTD." [ref=e388]
+                    - 'generic "AI exposure: Full automation" [ref=e1156]'
+                  - generic [ref=e389]:
+                    - heading "Accountant（FS/TECH）" [level=3] [ref=e390]
+                    - generic [ref=e391]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1158]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e392]:
+                      - generic [ref=e393]: S$6,000 - S$10,000 / month
+                      - generic [ref=e394]: Full Time
+                    - paragraph [ref=e395]: Manage daily accounting activities for overseas computing infrastructure entities, including journal entry preparation and review, month-end closing, and financial reporting.
+                    - generic [ref=e396]:
+                      - generic [ref=e397]: SKILLSETS
+                      - generic [ref=e398]:
+                        - generic [ref=e399]: Liaising With External Auditors
+                        - generic [ref=e400]: Accounting Procedures
+                        - generic [ref=e401]: Technology Infrastructure
+                        - generic [ref=e402]: Regulatory Compliance
+                        - generic [ref=e403]: Financial Management
+                    - generic [ref=e404]:
+                      - button "Analyse" [ref=e405]
+                      - link "Open" [ref=e406]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant%EF%BC%88fstech%EF%BC%89-dadaconsultants-968c8c0b13dbe73cbd0a9ffc91451134
+                      - 'button "{ } OKF" [ref=e407]'
+                - generic [ref=e408] [cursor=pointer]:
+                  - generic [ref=e409]:
+                    - generic [ref=e410]: S
+                    - generic "SYSTEMSGO (SINGAPORE) PTE. LTD." [ref=e411]
+                    - 'generic "AI exposure: Full automation" [ref=e1159]'
+                  - generic [ref=e412]:
+                    - heading "Accountant/Office Admin" [level=3] [ref=e413]
+                    - generic [ref=e414]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1161]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e415]:
+                      - generic [ref=e416]: S$4,500 - S$5,000 / month
+                      - generic [ref=e417]: Permanent
+                    - paragraph [ref=e418]: Role description Accountant/Office Admin Overview The role of the Accountant for systemsGo Singapore is the accounting representative for the Singapore entity.
+                    - generic [ref=e419]:
+                      - generic [ref=e420]: SKILLSETS
+                      - generic [ref=e421]:
+                        - generic [ref=e422]: Cash Collection
+                        - generic [ref=e423]: Account Reconciliation
+                        - generic [ref=e424]: Chartered accounting
+                        - generic [ref=e425]: Accruals Prepayments
+                        - generic [ref=e426]: Month End Close
+                    - generic [ref=e427]:
+                      - button "Analyse" [ref=e428]
+                      - link "Open" [ref=e429]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountantoffice-admin-systemsgo-891e7314e15197f37f40cdb6bc2eff19
+                      - 'button "{ } OKF" [ref=e430]'
+                - generic [ref=e431] [cursor=pointer]:
+                  - generic [ref=e432]:
+                    - generic [ref=e433]: P
+                    - generic "PEACEBIRD MANAGEMENT PTE. LTD." [ref=e434]
+                    - 'generic "AI exposure: Full automation" [ref=e1162]'
+                  - generic [ref=e435]:
+                    - heading "Senior Accountant / Accountant (Full Set & Mandarin Speaking)" [level=3] [ref=e436]
+                    - generic [ref=e437]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1164]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e438]:
+                      - generic [ref=e439]: S$3,500 - S$6,000 / month
+                      - generic [ref=e440]: Full Time
+                    - paragraph [ref=e441]: "Full Set of Accounts: Maintain and manage the full spectrum of financial accounting functions, including General Ledger (GL), Accounts Payable (AP), Accounts Receivable (AR), fixed assets, and cash…"
+                    - generic [ref=e442]:
+                      - generic [ref=e443]: SKILLSETS
+                      - generic [ref=e444]:
+                        - generic [ref=e445]: Accounts Payable
+                        - generic [ref=e446]: Microsoft Excel
+                        - generic [ref=e447]: Oracle
+                        - generic [ref=e448]: Tax
+                        - generic [ref=e449]: Mandarin Chinese
+                    - generic [ref=e450]:
+                      - button "Analyse" [ref=e451]
+                      - link "Open" [ref=e452]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/senior-accountant-accountant-peacebird-management-f270d7aca7c5c720e71d8b90d55e1ee4
+                      - 'button "{ } OKF" [ref=e453]'
+                - generic [ref=e454] [cursor=pointer]:
+                  - generic [ref=e455]:
+                    - generic [ref=e456]: P
+                    - generic "PROTEGE FUND SERVICES PTE. LTD." [ref=e457]
+                    - 'generic "AI exposure: Full automation" [ref=e1165]'
+                  - generic [ref=e458]:
+                    - heading "Junior Fund Accountant" [level=3] [ref=e459]
+                    - generic [ref=e460]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1167]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e461]:
+                      - generic [ref=e462]: S$3,000 - S$4,000 / month
+                      - generic [ref=e463]: Full Time
+                    - paragraph [ref=e464]: Role Description This is a full-time on-site role for a Junior Fund Accountant located in Singapore.
+                    - generic [ref=e465]:
+                      - generic [ref=e466]: SKILLSETS
+                      - generic [ref=e467]:
+                        - generic [ref=e468]: Asset Based Finance
+                        - generic [ref=e469]: Fund Administration
+                        - generic [ref=e470]: Accounting
+                        - generic [ref=e471]: Analytical and Problem-Solving Skills
+                        - generic [ref=e472]: Fund Accounting
+                    - generic [ref=e473]:
+                      - button "Analyse" [ref=e474]
+                      - link "Open" [ref=e475]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/junior-fund-accountant-protege-fund-services-8bd82248190d1a28d6e80e2f86d1a1b8
+                      - 'button "{ } OKF" [ref=e476]'
+                - generic [ref=e477] [cursor=pointer]:
+                  - generic [ref=e478]:
+                    - generic [ref=e479]: A
+                    - generic "ASCENSION ADVISORY PTE. LTD." [ref=e480]
+                    - 'generic "AI exposure: Full automation" [ref=e1168]'
+                  - generic [ref=e481]:
+                    - heading "Accountant - 9 months contract (MNC, 5 Days, Pasir Panjang, Up to $5,800 Basic Salary + Contract Completion Bonus)" [level=3] [ref=e482]
+                    - generic [ref=e483]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1170]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e484]:
+                      - generic [ref=e485]: S$5,000 - S$5,800 / month
+                      - generic [ref=e486]: Contract
+                    - paragraph [ref=e487]: "Position: Accountant - 9 months contract Well Established Oleochemicals Supplier MNC Working Hours: Monday - Friday (9am - 6pm) Salary (commensurate with experience): Up to $5,800 Basic Salary +…"
+                    - generic [ref=e488]:
+                      - generic [ref=e489]: SKILLSETS
+                      - generic [ref=e490]:
+                        - generic [ref=e491]: IFRS
+                        - generic [ref=e492]: Account Reconciliation
+                        - generic [ref=e493]: Balance sheet reporting
+                        - generic [ref=e494]: Microsoft Office
+                        - generic [ref=e495]: ACCA
+                    - generic [ref=e496]:
+                      - button "Analyse" [ref=e497]
+                      - link "Open" [ref=e498]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-9-months-contract-ascension-advisory-9d082a3764e93c08d809899bbc0440f2
+                      - 'button "{ } OKF" [ref=e499]'
+                - generic [ref=e500] [cursor=pointer]:
+                  - generic [ref=e501]:
+                    - generic [ref=e502]: T
+                    - generic "TRI-CAP CONSULTING PTE. LTD." [ref=e503]
+                    - 'generic "AI exposure: Full automation" [ref=e1171]'
+                  - generic [ref=e504]:
+                    - heading "Senior Accountant" [level=3] [ref=e505]
+                    - generic [ref=e506]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1173]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e507]:
+                      - generic [ref=e508]: S$6,500 - S$8,000 / month
+                      - generic [ref=e509]: Permanent, Full Time
+                    - paragraph [ref=e510]: Prepare monthly, quarterly, and annual financial statements in accordance with IFRS, SFRS, or relevant accounting standards.
+                    - generic [ref=e511]:
+                      - generic [ref=e512]: SKILLSETS
+                      - generic [ref=e513]:
+                        - generic [ref=e514]: Ledger-keeping
+                        - generic [ref=e515]: Liaising With External Auditors
+                        - generic [ref=e516]: Asset Management
+                        - generic [ref=e517]: Automation Technology
+                        - generic [ref=e518]: Disposal
+                    - generic [ref=e519]:
+                      - button "Analyse" [ref=e520]
+                      - link "Open" [ref=e521]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/senior-accountant-tri-cap-consulting-d53a1a4e51aaea2070f9a9dfe3853543
+                      - 'button "{ } OKF" [ref=e522]'
+                - generic [ref=e523] [cursor=pointer]:
+                  - generic [ref=e524]:
+                    - generic [ref=e525]: L
+                    - generic "LAM SENG HANG COMPANY PRIVATE LIMITED" [ref=e526]
+                    - 'generic "AI exposure: Full automation" [ref=e1174]'
+                  - generic [ref=e527]:
+                    - heading "Accountant (6- months maternity cover)" [level=3] [ref=e528]
+                    - generic [ref=e529]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS" [ref=e1176]: SSOC 33131 · BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e530]:
+                      - generic [ref=e531]: S$3,800 - S$5,000 / month
+                      - generic [ref=e532]: Contract
+                    - paragraph [ref=e533]: The Accountant (Singapore) is responsible for managing the day-to-day accounting operations and ensuring accurate financial reporting for the company’s Singapore entity.
+                    - generic [ref=e534]:
+                      - generic [ref=e535]: SKILLSETS
+                      - generic [ref=e536]:
+                        - generic [ref=e537]: Ledger-keeping
+                        - generic [ref=e538]: IFRS
+                        - generic [ref=e539]: Account Reconciliation
+                        - generic [ref=e540]: Microsoft Excel
+                        - generic [ref=e541]: Analytical Skills
+                    - generic [ref=e542]:
+                      - button "Analyse" [ref=e543]
+                      - link "Open" [ref=e544]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-lam-seng-hang-company-c457a241b993aca78821c3b292bbdac9
+                      - 'button "{ } OKF" [ref=e545]'
+                - generic [ref=e546] [cursor=pointer]:
+                  - generic [ref=e547]:
+                    - generic [ref=e548]: R
+                    - generic "RAFFLES SENTOSA SINGAPORE" [ref=e549]
+                    - 'generic "AI exposure: Full automation" [ref=e1177]'
+                  - generic [ref=e550]:
+                    - heading "Accountant / Senior Accountant (General Ledger)" [level=3] [ref=e551]
+                    - generic [ref=e552]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1179]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e553]:
+                      - generic [ref=e554]: S$3,800 - S$4,500 / month
+                      - generic [ref=e555]: Full Time
+                    - paragraph [ref=e556]: Reporting to the Assistant Director /Director of Finance, the Accountant / Senior Accountant (General Ledger) isresponsible managing the month-end closing of the Hotel, reconciling balancesheets, and…
+                    - generic [ref=e557]:
+                      - generic [ref=e558]: SKILLSETS
+                      - generic [ref=e559]:
+                        - generic [ref=e560]: Accounts Payable
+                        - generic [ref=e561]: Microsoft Office
+                        - generic [ref=e562]: Microsoft Excel
+                        - generic [ref=e563]: Tax
+                        - generic [ref=e564]: Prepayment
+                    - generic [ref=e565]:
+                      - button "Analyse" [ref=e566]
+                      - link "Open" [ref=e567]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-senior-accountant-raffles-sentosa-singapore-3233d75ddca80cf670c453db19fb6b5a
+                      - 'button "{ } OKF" [ref=e568]'
+                - generic [ref=e569] [cursor=pointer]:
+                  - generic [ref=e570]:
+                    - generic [ref=e571]: S
+                    - generic "STORHUB MANAGEMENT PTE. LTD." [ref=e572]
+                    - 'generic "AI exposure: Full automation" [ref=e1180]'
+                  - generic [ref=e573]:
+                    - heading "Senior Accountant" [level=3] [ref=e574]
+                    - generic [ref=e575]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1182]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e576]:
+                      - generic [ref=e577]: S$4,000 - S$5,500 / month
+                      - generic [ref=e578]: Full Time
+                    - paragraph [ref=e579]: Financial Reporting, Control& Compliance Oversee outsourced finance service providers and ensure SLA compliance Develop and maintain robust financial controls and ensure reporting integrity Prepare,…
+                    - generic [ref=e580]:
+                      - generic [ref=e581]: SKILLSETS
+                      - generic [ref=e582]:
+                        - generic [ref=e583]: Financial and Investment Planning
+                        - generic [ref=e584]: Operational Efficiency
+                        - generic [ref=e585]: Variance Analysis
+                        - generic [ref=e586]: Financial Forecasting
+                        - generic [ref=e587]: Preparation
+                    - generic [ref=e588]:
+                      - button "Analyse" [ref=e589]
+                      - link "Open" [ref=e590]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/senior-accountant-storhub-management-550016d54c8e03ab8e9d124f49b1241f
+                      - 'button "{ } OKF" [ref=e591]'
+                - generic [ref=e592] [cursor=pointer]:
+                  - generic [ref=e593]:
+                    - generic [ref=e594]: P
+                    - generic "PROTEGE FUND SERVICES PTE. LTD." [ref=e595]
+                    - 'generic "AI exposure: Full automation" [ref=e1183]'
+                  - generic [ref=e596]:
+                    - heading "Junior Fund Accountant" [level=3] [ref=e597]
+                    - generic [ref=e598]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1185]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e599]:
+                      - generic [ref=e600]: S$3,000 - S$4,000 / month
+                      - generic [ref=e601]: Full Time
+                    - paragraph [ref=e602]: Role Description This is a full-time on-site role for a Junior Fund Accountant located in Singapore.
+                    - generic [ref=e603]:
+                      - generic [ref=e604]: SKILLSETS
+                      - generic [ref=e605]:
+                        - generic [ref=e606]: Asset Based Finance
+                        - generic [ref=e607]: Fund Administration
+                        - generic [ref=e608]: Accounting
+                        - generic [ref=e609]: Analytical and Problem-Solving Skills
+                        - generic [ref=e610]: Fund Accounting
+                    - generic [ref=e611]:
+                      - button "Analyse" [ref=e612]
+                      - link "Open" [ref=e613]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/junior-fund-accountant-protege-fund-services-b40dea8b6b125b701bc7a7c014cccf00
+                      - 'button "{ } OKF" [ref=e614]'
+                - generic [ref=e615] [cursor=pointer]:
+                  - generic [ref=e616]:
+                    - generic [ref=e617]: T
+                    - generic "THE SUPREME HR ADVISORY PTE. LTD." [ref=e618]
+                    - 'generic "AI exposure: Full automation" [ref=e1186]'
+                  - generic [ref=e619]:
+                    - heading "Full Set Accountant | Up to $6.8K | MNC Company - 0310" [level=3] [ref=e620]
+                    - generic [ref=e621]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1188]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e622]:
+                      - generic [ref=e623]: S$6,500 - S$6,800 / month
+                      - generic [ref=e624]: Full Time
+                    - paragraph [ref=e625]: "Primary Responsibilities: Financial Accounting & Reporting Maintain accurate and timely accounting records in accordance with company policies and accounting standards."
+                    - generic [ref=e626]:
+                      - generic [ref=e627]: SKILLSETS
+                      - generic [ref=e628]:
+                        - generic [ref=e629]: Account Reconciliation
+                        - generic [ref=e630]: Account Management
+                        - generic [ref=e631]: Quarterly reports
+                        - generic [ref=e632]: Accounts Payable
+                        - generic [ref=e633]: Microsoft Excel
+                    - generic [ref=e634]:
+                      - button "Analyse" [ref=e635]
+                      - link "Open" [ref=e636]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/full-set-accountant-68k-mnc-company-0310-supreme-hr-advisory-07f27a7733da5b34d0e3471be94d3c31
+                      - 'button "{ } OKF" [ref=e637]'
+                - generic [ref=e638] [cursor=pointer]:
+                  - generic [ref=e639]:
+                    - generic [ref=e640]: "N"
+                    - generic "NETWORK MEDIA PTE. LTD." [ref=e641]
+                    - 'generic "AI exposure: Full automation" [ref=e1189]'
+                  - generic [ref=e642]:
+                    - heading "Full-Time Remote Assistant Accountant" [level=3] [ref=e643]
+                    - generic [ref=e644]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1191]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e645]:
+                      - generic [ref=e646]: S$2,000 - S$3,000 / month
+                      - generic [ref=e647]: Full Time
+                    - paragraph [ref=e648]: "This is a focused, hands-on finance role. You will run the routine money operations of the business: invoicing, bookkeeping, and filing."
+                    - generic [ref=e649]:
+                      - generic [ref=e650]: SKILLSETS
+                      - generic [ref=e651]:
+                        - generic [ref=e652]: Account Management
+                        - generic [ref=e653]: Year End Accounts
+                        - generic [ref=e654]: Organisational Skills
+                        - generic [ref=e655]: Monthly Closing Reports
+                        - generic [ref=e656]: Invoicing
+                    - generic [ref=e657]:
+                      - button "Analyse" [ref=e658]
+                      - link "Open" [ref=e659]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/full-time-remote-assistant-accountant-network-media-fc17ae0d1106e68d19ee24c079c344e6
+                      - 'button "{ } OKF" [ref=e660]'
+                - generic [ref=e661] [cursor=pointer]:
+                  - generic [ref=e662]:
+                    - generic [ref=e663]: I
+                    - generic "ICON CONSULTING-GROUP PTE. LTD." [ref=e664]
+                    - 'generic "AI exposure: Full automation" [ref=e1192]'
+                  - generic [ref=e665]:
+                    - heading "Group Finance Manager/ Senior Accountant" [level=3] [ref=e666]
+                    - generic [ref=e667]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1194]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e668]:
+                      - generic [ref=e669]: S$6,000 - S$7,000 / month
+                      - generic [ref=e670]: Permanent, Full Time
+                    - paragraph [ref=e671]: Group Finance Management & Coordination Act as a Group Finance Manager / Senior Accountant , supporting finance matters across the group, including Singapore, Japan, Australia, and Vietnam , ensuring…
+                    - generic [ref=e672]:
+                      - generic [ref=e673]: SKILLSETS
+                      - generic [ref=e674]:
+                        - generic [ref=e675]: ACT Therapy Facilitation
+                        - generic [ref=e676]: International Financial Reporting Standards
+                        - generic [ref=e677]: Audit Compliance
+                        - generic [ref=e678]: Accounting
+                        - generic [ref=e679]: Attention to Detail
+                    - generic [ref=e680]:
+                      - button "Analyse" [ref=e681]
+                      - link "Open" [ref=e682]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/group-finance-manager-senior-accountant-icon-consulting-group-964cd7ab1cf0138223edb325ba130c73
+                      - 'button "{ } OKF" [ref=e683]'
+                - generic [ref=e684] [cursor=pointer]:
+                  - generic [ref=e685]:
+                    - generic [ref=e686]: G
+                    - generic "GREEN ENERGY INVESTMENT HOLDING PRIVATE LIMITED" [ref=e687]
+                    - 'generic "AI exposure: Full automation" [ref=e1195]'
+                  - generic [ref=e688]:
+                    - heading "Accountant / Senior Accountant" [level=3] [ref=e689]
+                    - generic [ref=e690]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1197]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e691]:
+                      - generic [ref=e692]: S$4,000 - S$6,500 / month
+                      - generic [ref=e693]: Full Time
+                    - paragraph [ref=e694]: Prepare full set of accounts (AP, AR and GL) for operating entities Prepare supporting schedules, including month-end and year-end closing Prepare consolidation of a sub-group Prepare statutory…
+                    - generic [ref=e695]:
+                      - generic [ref=e696]: SKILLSETS
+                      - generic [ref=e697]:
+                        - generic [ref=e698]: Microsoft Office
+                        - generic [ref=e699]: Microsoft Excel
+                        - generic [ref=e700]: Interpersonal Skills
+                        - generic [ref=e701]: Tax
+                        - generic [ref=e702]: ACCA
+                    - generic [ref=e703]:
+                      - button "Analyse" [ref=e704]
+                      - link "Open" [ref=e705]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-senior-accountant-green-energy-investment-holding-2c9e73a8ca8ebd21b8ff9b02fb17f311
+                      - 'button "{ } OKF" [ref=e706]'
+                - generic [ref=e707] [cursor=pointer]:
+                  - generic [ref=e708]:
+                    - generic [ref=e709]: K
+                    - generic "KINRY FOOD INGREDIENTS PTE. LTD." [ref=e710]
+                    - 'generic "AI exposure: Full automation" [ref=e1198]'
+                  - generic [ref=e711]:
+                    - heading "Freelance Chartered Accountant" [level=3] [ref=e712]
+                    - generic [ref=e713]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1200]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e714]:
+                      - generic [ref=e715]: S$300 - S$500 / month
+                      - generic [ref=e716]: Freelance
+                    - paragraph [ref=e717]: We seek a seasoned Chartered Accountant based in Johor Bahru for a unique ultra-part-time role managing Singapore corporate tax compliance and statutory filings with monthly on-site collaboration.
+                    - generic [ref=e718]:
+                      - generic [ref=e719]: SKILLSETS
+                      - generic [ref=e720]:
+                        - generic [ref=e721]: Chartered accounting
+                        - generic [ref=e722]: Tax Advisory
+                        - generic [ref=e723]: Corporate Tax
+                        - generic [ref=e724]: Tax Compliance
+                        - generic [ref=e725]: Bookkeeping
+                    - generic [ref=e726]:
+                      - button "Analyse" [ref=e727]
+                      - link "Open" [ref=e728]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/freelance-chartered-accountant-kinry-food-ingredients-c6a21418e4539b798799e7f4495df935
+                      - 'button "{ } OKF" [ref=e729]'
+                - generic [ref=e730] [cursor=pointer]:
+                  - generic [ref=e731]:
+                    - generic [ref=e732]: F
+                    - generic "FIVE STAR RECRUITMENT" [ref=e733]
+                    - 'generic "AI exposure: Full automation" [ref=e1201]'
+                  - generic [ref=e734]:
+                    - heading "Junior Accountant" [level=3] [ref=e735]
+                    - generic [ref=e736]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1203]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e737]:
+                      - generic [ref=e738]: S$3,500 - S$4,000 / month
+                      - generic [ref=e739]: Full Time
+                    - paragraph [ref=e740]: "Hiring: Accounts Executive / Junior Accountant (Full-Time) Location: Jalan Besar Working Hours: Monday – Friday, 8:30am – 5:30pm, Weekends & Public Holidays Off Salary: S$3,500+ (Negotiable based on…"
+                    - generic [ref=e741]:
+                      - generic [ref=e742]: SKILLSETS
+                      - generic [ref=e743]:
+                        - generic [ref=e744]: Cash Flow Forecasting
+                        - generic [ref=e745]: Strong Attention To Detail
+                        - generic [ref=e746]: Coordination
+                        - generic [ref=e747]: scientific discipline
+                        - generic [ref=e748]: bank liaisons
+                    - generic [ref=e749]:
+                      - button "Analyse" [ref=e750]
+                      - link "Open" [ref=e751]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/junior-accountant-five-star-recruitment-70172250b7bcad5063aa1cc97944bfae
+                      - 'button "{ } OKF" [ref=e752]'
+                - generic [ref=e753] [cursor=pointer]:
+                  - generic [ref=e754]:
+                    - generic [ref=e755]: S
+                    - generic "SMIT SINGAPORE PTE LTD" [ref=e756]
+                    - 'generic "AI exposure: Full automation" [ref=e1204]'
+                  - generic [ref=e757]:
+                    - heading "Accountant" [level=3] [ref=e758]
+                    - generic [ref=e759]: 2 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS" [ref=e1206]: SSOC 33131 · BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e760]:
+                      - generic [ref=e761]: S$4,500 - S$5,500 / month
+                      - generic [ref=e762]: Permanent, Full Time
+                    - paragraph [ref=e763]: Accountant Company Description Working at Boskalis is about creating new horizons and sustainable solutions.
+                    - generic [ref=e764]:
+                      - generic [ref=e765]: SKILLSETS
+                      - generic [ref=e766]:
+                        - generic [ref=e767]: Taxation
+                        - generic [ref=e768]: Microsoft Excel
+                        - generic [ref=e769]: Demonstrate resilience
+                        - generic [ref=e770]: Problem Solving
+                        - generic [ref=e771]: English
+                    - generic [ref=e772]:
+                      - button "Analyse" [ref=e773]
+                      - link "Open" [ref=e774]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-smit-singapore-7bb83aafe7c7b2f824656f885efc7390
+                      - 'button "{ } OKF" [ref=e775]'
+                - generic [ref=e776] [cursor=pointer]:
+                  - generic [ref=e777]:
+                    - generic [ref=e778]: X
+                    - generic "XIN CHENG CONSULTING PTE. LTD." [ref=e779]
+                    - 'generic "AI exposure: Full automation" [ref=e1207]'
+                  - generic [ref=e780]:
+                    - heading "ACCOUNTANT CUM HR" [level=3] [ref=e781]
+                    - generic [ref=e782]: 4 weeks ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1209]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e783]:
+                      - generic [ref=e784]: S$4,000 - S$5,500 / month
+                      - generic [ref=e785]: Full Time
+                    - paragraph [ref=e786]: "– Accountant cum HR Position Title: Accountant cum HR Location: One Raffles Place, Tower 2, Singapore 048616 Employment Type: Full-time Reports to: Managing Director / Finance Manager Job Summary We…"
+                    - generic [ref=e787]:
+                      - generic [ref=e788]: SKILLSETS
+                      - generic [ref=e789]:
+                        - generic [ref=e790]: Cash Flow Statements
+                        - generic [ref=e791]: Tax
+                        - generic [ref=e792]: QuickBooks
+                        - generic [ref=e793]: Accounting
+                        - generic [ref=e794]: Attention to Detail
+                    - generic [ref=e795]:
+                      - button "Analyse" [ref=e796]
+                      - link "Open" [ref=e797]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-cum-hr-xin-cheng-consulting-e04355adec9196d0bcb5b238e3f835e4
+                      - 'button "{ } OKF" [ref=e798]'
+                - generic [ref=e799] [cursor=pointer]:
+                  - generic [ref=e800]:
+                    - generic [ref=e801]: P
+                    - generic "PCS PTE. LTD." [ref=e802]
+                    - 'generic "AI exposure: Full automation" [ref=e1210]'
+                  - generic [ref=e803]:
+                    - heading "Accountant / Senior Accountant (Tax & Compliance)" [level=3] [ref=e804]
+                    - generic [ref=e805]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1212]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e806]:
+                      - generic [ref=e807]: S$5,000 - S$10,000 / month
+                      - generic [ref=e808]: Full Time
+                    - paragraph [ref=e809]: Taxation & Statutory Filings Manage corporate tax computations, annual filings, and related documentation.
+                    - generic [ref=e810]:
+                      - generic [ref=e811]: SKILLSETS
+                      - generic [ref=e812]:
+                        - generic [ref=e813]: Analytical Skills
+                        - generic [ref=e814]: Tax
+                        - generic [ref=e815]: Audit Compliance
+                        - generic [ref=e816]: Internal Controls
+                        - generic [ref=e817]: Accounting and Tax Systems
+                    - generic [ref=e818]:
+                      - button "Analyse" [ref=e819]
+                      - link "Open" [ref=e820]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-senior-accountant-pcs-1d1e663a42e517483e0ee74d6ad00977
+                      - 'button "{ } OKF" [ref=e821]'
+                - generic [ref=e822] [cursor=pointer]:
+                  - generic [ref=e823]:
+                    - generic [ref=e824]: T
+                    - generic "TAI HUA FOOD INDUSTRIES PRIVATE LIMITED" [ref=e825]
+                    - 'generic "AI exposure: Full automation" [ref=e1213]'
+                  - generic [ref=e826]:
+                    - heading "Senior Accountant" [level=3] [ref=e827]
+                    - generic [ref=e828]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1215]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e829]:
+                      - generic [ref=e830]: S$3,500 - S$5,500 / month
+                      - generic [ref=e831]: Contract
+                    - paragraph [ref=e832]: We are seeking a hands-on and detail-oriented Senior Accountant to manage the full spectrum of accounting and finance functions for our SME business.
+                    - generic [ref=e833]:
+                      - generic [ref=e834]: SKILLSETS
+                      - generic [ref=e835]:
+                        - generic [ref=e836]: Microsoft Office
+                        - generic [ref=e837]: Microsoft Excel
+                        - generic [ref=e838]: Organisational Skills
+                        - generic [ref=e839]: Tax
+                        - generic [ref=e840]: ACCA
+                    - generic [ref=e841]:
+                      - button "Analyse" [ref=e842]
+                      - link "Open" [ref=e843]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/senior-accountant-tai-hua-food-industries-f96b530c4623cce292acb46e78c1cadf
+                      - 'button "{ } OKF" [ref=e844]'
+                - generic [ref=e845] [cursor=pointer]:
+                  - generic [ref=e846]:
+                    - generic [ref=e847]: G
+                    - generic "GRAND TEAM TECHNOLOGIES PTE. LTD." [ref=e848]
+                    - 'generic "AI exposure: Full automation" [ref=e1216]'
+                  - generic [ref=e849]:
+                    - heading "Accountant" [level=3] [ref=e850]
+                    - generic [ref=e851]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS" [ref=e1218]: SSOC 33131 · BUSINESS AND ADMINISTRATION ASSOCIATE PROFESSIONALS
+                    - generic [ref=e852]:
+                      - generic [ref=e853]: S$3,500 - S$5,000 / month
+                      - generic [ref=e854]: Full Time
+                    - paragraph [ref=e855]: Accountant all aspects of accounting and in-charge of full set of accounts for Group and subsidiary accounts.
+                    - generic [ref=e856]:
+                      - generic [ref=e857]: SKILLSETS
+                      - generic [ref=e858]:
+                        - generic [ref=e859]: Accounts Payable
+                        - generic [ref=e860]: Well Organised
+                        - generic [ref=e861]: Tax
+                        - generic [ref=e862]: Journal Entries
+                        - generic [ref=e863]: Financial Transactions
+                    - generic [ref=e864]:
+                      - button "Analyse" [ref=e865]
+                      - link "Open" [ref=e866]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-grand-team-technologies-a5ea35726035d7e98a132c30f5f83473
+                      - 'button "{ } OKF" [ref=e867]'
+                - generic [ref=e868] [cursor=pointer]:
+                  - generic [ref=e869]:
+                    - generic [ref=e870]: P
+                    - generic "PORTCULLIS TRUST (SINGAPORE) LTD" [ref=e871]
+                    - 'generic "AI exposure: Full automation" [ref=e1219]'
+                  - generic [ref=e872]:
+                    - heading "Fund Accountant" [level=3] [ref=e873]
+                    - generic [ref=e874]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1221]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e875]:
+                      - generic [ref=e876]: S$4,000 - S$5,500 / month
+                      - generic [ref=e877]: Permanent, Full Time
+                    - paragraph [ref=e878]: Calculate the Net Asset Value (NAV) for a portfolio of investment funds, including hedge funds, private equity funds, and unit trusts.
+                    - generic [ref=e879]:
+                      - generic [ref=e880]: SKILLSETS
+                      - generic [ref=e881]:
+                        - generic [ref=e882]: Microsoft Excel
+                        - generic [ref=e883]: Net Asset Valuation
+                        - generic [ref=e884]: Private Equity
+                        - generic [ref=e885]: Fund Administration
+                        - generic [ref=e886]: Accounting
+                    - generic [ref=e887]:
+                      - button "Analyse" [ref=e888]
+                      - link "Open" [ref=e889]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/fund-accountant-portcullis-trust-8b1572f9b586be5b70508caf1e04a40c
+                      - 'button "{ } OKF" [ref=e890]'
+                - generic [ref=e891] [cursor=pointer]:
+                  - generic [ref=e892]:
+                    - generic [ref=e893]: "N"
+                    - generic "NAVIX SOLUTIONS PTE. LTD." [ref=e894]
+                    - 'generic "AI exposure: Full automation" [ref=e1222]'
+                  - generic [ref=e895]:
+                    - heading "Accountant – Operational Finance" [level=3] [ref=e896]
+                    - generic [ref=e897]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1224]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e898]:
+                      - generic [ref=e899]: S$4,500 - S$5,500 / month
+                      - generic [ref=e900]: Full Time
+                    - paragraph [ref=e901]: The Accountant in Operational Finance manages daily financial activities, ensures accurate reporting, maintains internal controls, and supports operational teams with financial insights to enhance…
+                    - generic [ref=e902]:
+                      - generic [ref=e903]: SKILLSETS
+                      - generic [ref=e904]:
+                        - generic [ref=e905]: Ledger-keeping
+                        - generic [ref=e906]: IFRS
+                        - generic [ref=e907]: Account Reconciliation
+                        - generic [ref=e908]: Quarterly reports
+                        - generic [ref=e909]: Accounts Payable
+                    - generic [ref=e910]:
+                      - button "Analyse" [ref=e911]
+                      - link "Open" [ref=e912]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountant-%E2%80%93-operational-finance-navix-solutions-00fc842d320e743db1d416e1de68a558
+                      - 'button "{ } OKF" [ref=e913]'
+                - generic [ref=e914] [cursor=pointer]:
+                  - generic [ref=e915]:
+                    - generic [ref=e916]: I
+                    - generic "IK ESTATE MANAGEMENT PTE. LTD." [ref=e917]
+                    - 'generic "AI exposure: Full automation" [ref=e1225]'
+                  - generic [ref=e918]:
+                    - heading "Assistant Accountant" [level=3] [ref=e919]
+                    - generic [ref=e920]: 3 months ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1227]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e921]:
+                      - generic [ref=e922]: S$2,000 - S$3,000 / month
+                      - generic [ref=e923]: Full Time
+                    - paragraph [ref=e924]: Accounts Payable & Receivable Process supplier invoices, contractor claims, and staff reimbursements.
+                    - generic [ref=e925]:
+                      - generic [ref=e926]: SKILLSETS
+                      - generic [ref=e927]:
+                        - generic [ref=e928]: Property Management Systems
+                        - generic [ref=e929]: MYOB
+                        - generic [ref=e930]: ACCA
+                        - generic [ref=e931]: CPA
+                        - generic [ref=e932]: QuickBooks
+                    - generic [ref=e933]:
+                      - button "Analyse" [ref=e934]
+                      - link "Open" [ref=e935]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/assistant-accountant-ik-estate-management-43b2137385dfad3ea935db72d671075c
+                      - 'button "{ } OKF" [ref=e936]'
+                - generic [ref=e937] [cursor=pointer]:
+                  - generic [ref=e938]:
+                    - generic [ref=e939]: K
+                    - generic "KST MARITIME PTE. LTD." [ref=e940]
+                    - 'generic "AI exposure: Full automation" [ref=e1228]'
+                  - generic [ref=e941]:
+                    - heading "Accountant/Senior Accountant" [level=3] [ref=e942]
+                    - generic [ref=e943]: 3 months ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1230]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e944]:
+                      - generic [ref=e945]: S$4,000 - S$5,500 / month
+                      - generic [ref=e946]: Full Time
+                    - paragraph [ref=e947]: Leadership & Supervision Supervise and guide the Accountant, and Senior Finance Executive, providing coaching, training, and feedback.
+                    - generic [ref=e948]:
+                      - generic [ref=e949]: SKILLSETS
+                      - generic [ref=e950]:
+                        - generic [ref=e951]: Analytical Approach
+                        - generic [ref=e952]: IFRS
+                        - generic [ref=e953]: Regulatory Compliance
+                        - generic [ref=e954]: Strong Attention To Detail
+                        - generic [ref=e955]: Tax
+                    - generic [ref=e956]:
+                      - button "Analyse" [ref=e957]
+                      - link "Open" [ref=e958]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/accounting/accountantsenior-accountant-kst-maritime-49d3dc43d919c65e3e828c60540d946c
+                      - 'button "{ } OKF" [ref=e959]'
+            - generic [ref=e960]:
+              - generic [ref=e961]:
+                - generic [ref=e963]: careers.gov.sg
+                - generic [ref=e964]: "3"
+              - generic [ref=e965]:
+                - generic [ref=e966] [cursor=pointer]:
+                  - generic [ref=e967]:
+                    - generic [ref=e968]: G
+                    - generic "Government Technology Agency" [ref=e969]
+                    - 'generic "AI exposure: Full automation" [ref=e1231]'
+                  - generic [ref=e970]:
+                    - heading "Designer, Accountant General's Department (AGD)" [level=3] [ref=e971]
+                    - generic [ref=e972]: 1 week ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e1233]: SSOC 24111 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e974]: Salary on application
+                    - paragraph [ref=e975]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e976]:
+                      - button "Analyse" [ref=e977]
+                      - link "Open" [ref=e978]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004199201?gh_jid=4004199201
+                      - 'button "{ } OKF" [ref=e979]'
+                - generic [ref=e980] [cursor=pointer]:
+                  - generic [ref=e981]:
+                    - generic [ref=e982]: G
+                    - generic "Government Technology Agency" [ref=e983]
+                    - 'generic "AI exposure: AI-augmented" [ref=e1234]'
+                  - generic [ref=e984]:
+                    - heading "Deputy Director, Programme Management, Accounting and Corporate Regulatory Authority (ACRA)" [level=3] [ref=e985]
+                    - generic [ref=e986]: 1 week ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e1236]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e988]: Salary on application
+                    - paragraph [ref=e989]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e990]:
+                      - button "Analyse" [ref=e991]
+                      - link "Open" [ref=e992]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004383201?gh_jid=4004383201
+                      - 'button "{ } OKF" [ref=e993]'
+                - generic [ref=e994] [cursor=pointer]:
+                  - generic [ref=e995]:
+                    - generic [ref=e996]: A
+                    - generic "Accountant-General's Department" [ref=e997]
+                    - 'generic "AI exposure: AI-augmented" [ref=e1237]'
+                  - generic [ref=e998]:
+                    - heading "Assistant Director (Finance)" [level=3] [ref=e999]
+                    - generic [ref=e1000]: 4 weeks ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e1239]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1001]:
+                      - generic [ref=e1002]: Salary on application
+                      - generic [ref=e1003]: Contract
+                    - paragraph [ref=e1004]: Prime Minister’s Office (PMO) Finance Group was formed with a strong One Public Service mindset to provide finance services across PMO agencies under its care, managing the respective agencies’…
+                    - generic [ref=e1005]:
+                      - button "Analyse" [ref=e1006]
+                      - link "Open" [ref=e1007]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/15458300/005056a3-d347-1fe1-9af6-ca82222602ac
+                      - 'button "{ } OKF" [ref=e1008]'

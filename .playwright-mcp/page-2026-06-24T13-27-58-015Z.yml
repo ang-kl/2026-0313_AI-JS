@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e107] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e108]:
+        - button "← New search" [ref=e109] [cursor=pointer]
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - heading "🇸🇬 SG Job Postings" [level=2] [ref=e112]
+            - paragraph [ref=e113]:
+              - text: Current openings from
+              - link "MyCareersFuture" [ref=e114] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/
+              - text: and
+              - link "careers.gov.sg" [ref=e115] [cursor=pointer]:
+                - /url: https://careers.gov.sg/
+              - text: matching this role. Tap
+              - strong [ref=e116]: Analyse this posting
+              - text: on any job to run a skill analysis grounded in that listing - or analyse all of them as one role. Postings refresh daily.
+          - generic [ref=e117]:
+            - paragraph [ref=e118]: No live postings matched this role today. Postings refresh daily on MyCareersFuture - check back tomorrow.
+            - paragraph [ref=e119]:
+              - link "Search MyCareersFuture directly →" [ref=e120] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/search?search=transformation

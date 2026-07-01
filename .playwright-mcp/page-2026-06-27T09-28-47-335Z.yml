@@ -1,0 +1,185 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: V3
+        - generic [ref=e8]:
+          - strong [ref=e9]: Reviewable Work Intelligence
+          - generic [ref=e10]: AI-assisted; human decides.
+      - generic [ref=e11]:
+        - generic [ref=e12]: sample
+        - generic [ref=e13]: v3/goal/v3-blueprint.md
+        - button "Dark" [ref=e14] [cursor=pointer]
+    - navigation "V3 command ribbon" [ref=e15]:
+      - generic [ref=e16]:
+        - strong [ref=e17]: Start
+        - generic [ref=e18]:
+          - button "Review a role Job ad as manuscript" [ref=e19] [cursor=pointer]:
+            - text: Review a role
+            - generic [ref=e20]: Job ad as manuscript
+          - button "Read an organisation Capability and BPR lens" [ref=e21] [cursor=pointer]:
+            - text: Read an organisation
+            - generic [ref=e22]: Capability and BPR lens
+          - button "Plan my edge Proof, interview, output" [ref=e23] [cursor=pointer]:
+            - text: Plan my edge
+            - generic [ref=e24]: Proof, interview, output
+      - generic [ref=e25]:
+        - strong [ref=e26]: Review
+        - generic [ref=e27]:
+          - button "markup" [ref=e28] [cursor=pointer]
+          - button "clean" [ref=e29] [cursor=pointer]
+          - button "trace" [ref=e30] [cursor=pointer]
+      - generic [ref=e31]:
+        - strong [ref=e32]: Visuals
+        - generic [ref=e33]:
+          - button "Graph What shape is this role?" [ref=e34] [cursor=pointer]:
+            - text: Graph
+            - generic [ref=e35]: What shape is this role?
+          - button "Org What reports up to what?" [ref=e36] [cursor=pointer]:
+            - text: Org
+            - generic [ref=e37]: What reports up to what?
+          - button "Workflow Who acts when?" [ref=e38] [cursor=pointer]:
+            - text: Workflow
+            - generic [ref=e39]: Who acts when?
+          - button "Value stream Where does time go?" [ref=e40] [cursor=pointer]:
+            - text: Value stream
+            - generic [ref=e41]: Where does time go?
+      - generic [ref=e42]:
+        - strong [ref=e43]: Output
+        - generic [ref=e44]:
+          - button "Cover letter" [ref=e45] [cursor=pointer]
+          - button "Print view" [ref=e46] [cursor=pointer]
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e49]: Role or signal
+        - textbox "Role or signal" [ref=e50]:
+          - /placeholder: transformation, data engineer, compliance
+          - text: transformation
+        - button "Search SG jobs" [ref=e51] [cursor=pointer]
+      - paragraph [ref=e52]: Sample manuscript loaded. Search uses live V3 APIs when authorised.
+    - generic [ref=e53]:
+      - complementary "Working drawers" [ref=e54]:
+        - button "Source" [ref=e55] [cursor=pointer]
+        - button "Blueprint" [ref=e56] [cursor=pointer]
+        - button "Advisory" [ref=e57] [cursor=pointer]
+        - button "Letter" [ref=e58] [cursor=pointer]
+        - button "001" [ref=e60] [cursor=pointer]
+        - button "002" [ref=e61] [cursor=pointer]
+        - button "003" [ref=e62] [cursor=pointer]
+        - button "006" [ref=e63] [cursor=pointer]
+        - button "008" [ref=e64] [cursor=pointer]
+      - region "Review manuscript canvas" [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - strong [ref=e68]: Role evidence
+            - generic [ref=e69]: 1 item
+          - button "Data Engineer THE EDGE CONTRACTING SERVICES PTE. LTD. sample" [ref=e70] [cursor=pointer]:
+            - strong [ref=e71]: Data Engineer
+            - generic [ref=e72]: THE EDGE CONTRACTING SERVICES PTE. LTD.
+            - emphasis [ref=e73]: sample
+        - article [ref=e74]:
+          - generic:
+            - generic [ref=e75]:
+              - paragraph [ref=e76]: sample review manuscript
+              - heading "Data Engineer" [level=1] [ref=e77]
+              - paragraph [ref=e78]: THE EDGE CONTRACTING SERVICES PTE. LTD.
+            - generic [ref=e79]:
+              - generic [ref=e80]: 4 O-I-A claims
+              - generic [ref=e81]: 4 reviewer notes
+          - generic:
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: Role summary
+              - generic [ref=e84]: We are looking for a Data Engineer to lead digital transformation initiatives across business units and build scalable data pipelines for analytics and reporting.
+              - generic [ref=e85]: The role will partner with product, operations, and compliance teams to improve data quality and platform reliability.
+            - generic [ref=e86]:
+              - paragraph [ref=e87]: Responsibilities
+              - list [ref=e88]:
+                - listitem [ref=e89]:
+                  - generic [ref=e90]: Responsibilities include designing, building, and maintaining data pipelines across cloud and on-premise environments.
+                - listitem [ref=e91]:
+                  - generic [ref=e92]:
+                    - text: Own stakeholder engagement and communication with senior leaders while delivering dashboards and data models for business users.
+                    - generic [ref=e93]: replace
+                - listitem [ref=e94]:
+                  - generic [ref=e95]:
+                    - text: Support governance, lineage, validation, and monitoring practices so the role is accountable for data trust, not only data movement.
+                    - generic [ref=e96]: proof
+                - listitem [ref=e97]:
+                  - generic [ref=e98]: Use automation and AI-assisted tools to improve pipeline quality, but final data decisions remain human-owned.
+                - listitem [ref=e99]:
+                  - generic [ref=e100]: Bachelor degree in Computer Science, Information Technology, or related field.
+            - generic [ref=e101]:
+              - paragraph [ref=e102]: Requirements
+              - paragraph [ref=e103]: Responsibilities include designing, building, and maintaining data pipelines across cloud and on-premise environments.
+            - generic [ref=e104]:
+              - paragraph [ref=e105]: Evidence chain
+              - paragraph [ref=e106]: Observation identifies the title, duties, AI terms, organisation handoffs, and governance language. Interpretation turns those signals into reviewable claims. Application routes claims to proof, interview questions, cover letter rationale, or withholding.
+      - complementary "Visual intelligence" [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - paragraph [ref=e110]: Visual intelligence
+            - heading "Graph" [level=2] [ref=e111]
+          - generic [ref=e112]: doctrine rule
+        - generic [ref=e113]:
+          - img "Concept graph" [ref=e114]:
+            - generic [ref=e124]: Data Engine.
+            - generic [ref=e127]: data
+            - generic [ref=e130]: pipelines
+            - generic [ref=e133]: analytics
+            - generic [ref=e136]: automati.
+            - generic [ref=e139]: business
+            - generic [ref=e142]: cloud
+            - generic [ref=e145]: communic.
+            - generic [ref=e148]: engineer
+          - paragraph [ref=e149]: InfraNodus-style concept maps are used only for text, themes, clusters, gaps, and bridge concepts.
+        - generic [ref=e150]:
+          - generic [ref=e152]:
+            - paragraph [ref=e153]: Reviewer notes
+            - heading "Accept, reject, ask why" [level=2] [ref=e154]
+          - article [ref=e155]:
+            - generic [ref=e156]:
+              - strong [ref=e157]: Process Redesign Reviewer
+              - generic [ref=e158]: split
+            - paragraph [ref=e159]: "This may be two jobs: pipeline engineering plus transformation/change ownership."
+            - blockquote [ref=e160]: Split into delivery system work and organisation-change work before applying.
+            - generic [ref=e161]:
+              - button "Accept" [ref=e162] [cursor=pointer]
+              - button "Reject" [ref=e163] [cursor=pointer]
+              - button "Ask why" [ref=e164] [cursor=pointer]
+          - article [ref=e165]:
+            - generic [ref=e166]:
+              - strong [ref=e167]: Hiring Manager
+              - generic [ref=e168]: replace
+            - paragraph [ref=e169]: The hiring signal is not only data skill. It asks whether the candidate can reduce reporting friction across teams.
+            - blockquote [ref=e170]: Prepare one story where a data improvement changed a business decision.
+            - generic [ref=e171]:
+              - button "Accept" [ref=e172] [cursor=pointer]
+              - button "Reject" [ref=e173] [cursor=pointer]
+              - button "Ask why" [ref=e174] [cursor=pointer]
+          - article [ref=e175]:
+            - generic [ref=e176]:
+              - strong [ref=e177]: AI Exposure Reviewer
+              - generic [ref=e178]: trace
+            - paragraph [ref=e179]: AI exposure is an occupational signal, not a verdict. Automation may assist quality checks, not own data decisions.
+            - blockquote [ref=e180]: Keep the phrase "final decisions remain human-owned" visible in the evidence chain.
+            - generic [ref=e181]:
+              - button "Accept" [ref=e182] [cursor=pointer]
+              - button "Reject" [ref=e183] [cursor=pointer]
+              - button "Ask why" [ref=e184] [cursor=pointer]
+          - article [ref=e185]:
+            - generic [ref=e186]:
+              - strong [ref=e187]: Candidate Advocate
+              - generic [ref=e188]: proof
+            - paragraph [ref=e189]: The strongest candidate edge is proof of reliability, governance, and recovery, not a longer tools list.
+            - blockquote [ref=e190]: Bring one incident/recovery example, one lineage/governance example, and one stakeholder decision path.
+            - generic [ref=e191]:
+              - button "Accept" [ref=e192] [cursor=pointer]
+              - button "Reject" [ref=e193] [cursor=pointer]
+              - button "Ask why" [ref=e194] [cursor=pointer]
+    - generic [ref=e195]:
+      - generic [ref=e196]: "Canon: v3/goal/v3-blueprint.md + v3/goal/v3-ui-blueprint.md"
+      - generic [ref=e197]: "Ledger: v3/goal/v3-rebuild-ledger.md"
+      - generic [ref=e198]: Accepted 0 / rejected 0
+      - generic [ref=e199]: v3 rebuild pass 2026-06-27 16:59 SGT

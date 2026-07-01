@@ -1,0 +1,700 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: ★
+        - strong [ref=e8]: AI Readiness across Skills and Competences
+      - generic [ref=e9]:
+        - generic [ref=e60]: wired
+        - button "New Search" [ref=e61] [cursor=pointer]
+        - button "Dark" [ref=e10] [cursor=pointer]
+    - main "V2-style Step 2 role selection" [ref=e62]:
+      - button "← New search" [ref=e63] [cursor=pointer]
+      - generic [ref=e64]:
+        - paragraph [ref=e65]: Step 2
+        - heading "Select the right role" [level=1] [ref=e66]
+        - paragraph [ref=e67]: Choose one live result for "Software Developer". The V3 review workspace opens only after you tap Analyse this posting.
+        - generic [ref=e68]:
+          - generic [ref=e69]: MyCareersFuture + careers.gov.sg
+          - generic [ref=e70]: 36 live results
+      - generic [ref=e71]:
+        - article [ref=e72]:
+          - button "Software Developer 3 weeks ago VINOVA PTE. LTD. S$7,000 - S$14,000 / month Full Time 3+ yrs exp from MCF CSS Analytical Skills Hardware Agile JavaScript Information Technology exact title" [ref=e73] [cursor=pointer]:
+            - generic [ref=e74]:
+              - strong [ref=e75]: Software Developer
+              - emphasis [ref=e76]: 3 weeks ago
+            - generic [ref=e77]: VINOVA PTE. LTD.
+            - generic [ref=e78]:
+              - generic [ref=e79]: S$7,000 - S$14,000 / month
+              - generic [ref=e80]: Full Time
+              - generic [ref=e81]: 3+ yrs exp
+              - generic [ref=e82]: from MCF
+            - generic [ref=e83]:
+              - generic [ref=e84]: CSS
+              - generic [ref=e85]: Analytical Skills
+              - generic [ref=e86]: Hardware
+              - generic [ref=e87]: Agile
+              - generic [ref=e88]: JavaScript
+              - generic [ref=e89]: Information Technology
+            - emphasis [ref=e90]: exact title
+          - generic [ref=e91]:
+            - button "Analyse this posting" [ref=e92] [cursor=pointer]
+            - button "View role graph" [ref=e93] [cursor=pointer]
+            - link "Open posting" [ref=e94] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-vinova-9d744de81ea6b9ced4b80057fad79011
+        - article [ref=e95]:
+          - button "Software Developer 3 weeks ago TITANSOFT PTE. LTD. S$5,600 - S$7,800 / month Full Time 1+ yrs exp from MCF CSS Web Programming .NET MySQL Agile JavaScript exact title" [ref=e96] [cursor=pointer]:
+            - generic [ref=e97]:
+              - strong [ref=e98]: Software Developer
+              - emphasis [ref=e99]: 3 weeks ago
+            - generic [ref=e100]: TITANSOFT PTE. LTD.
+            - generic [ref=e101]:
+              - generic [ref=e102]: S$5,600 - S$7,800 / month
+              - generic [ref=e103]: Full Time
+              - generic [ref=e104]: 1+ yrs exp
+              - generic [ref=e105]: from MCF
+            - generic [ref=e106]:
+              - generic [ref=e107]: CSS
+              - generic [ref=e108]: Web Programming
+              - generic [ref=e109]: .NET
+              - generic [ref=e110]: MySQL
+              - generic [ref=e111]: Agile
+              - generic [ref=e112]: JavaScript
+            - emphasis [ref=e113]: exact title
+          - generic [ref=e114]:
+            - button "Analyse this posting" [ref=e115] [cursor=pointer]
+            - button "View role graph" [ref=e116] [cursor=pointer]
+            - link "Open posting" [ref=e117] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-titansoft-7fb0d610330f76651a91b5a7c6d5cde9
+        - article [ref=e118]:
+          - button "Software Developer 2 weeks ago Toppan Next Tech PTE. LTD. S$4,000 - S$7,000 / month Permanent, Full Time 3+ yrs exp from MCF Kubernetes .NET Design Patterns Agile JavaScript HTML5 exact title" [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]:
+              - strong [ref=e121]: Software Developer
+              - emphasis [ref=e122]: 2 weeks ago
+            - generic [ref=e123]: Toppan Next Tech PTE. LTD.
+            - generic [ref=e124]:
+              - generic [ref=e125]: S$4,000 - S$7,000 / month
+              - generic [ref=e126]: Permanent, Full Time
+              - generic [ref=e127]: 3+ yrs exp
+              - generic [ref=e128]: from MCF
+            - generic [ref=e129]:
+              - generic [ref=e130]: Kubernetes
+              - generic [ref=e131]: .NET
+              - generic [ref=e132]: Design Patterns
+              - generic [ref=e133]: Agile
+              - generic [ref=e134]: JavaScript
+              - generic [ref=e135]: HTML5
+            - emphasis [ref=e136]: exact title
+          - generic [ref=e137]:
+            - button "Analyse this posting" [ref=e138] [cursor=pointer]
+            - button "View role graph" [ref=e139] [cursor=pointer]
+            - link "Open posting" [ref=e140] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-toppan-next-tech-513112f584e781074dac07c1e13b0d9b
+        - article [ref=e141]:
+          - button "Software Developer 2 weeks ago ECICS LIMITED S$4,000 - S$6,000 / month Contract from MCF Liaising with cross functional teams Analytical Skills Software Engineering Agile JavaScript Full Stack Development exact title" [ref=e142] [cursor=pointer]:
+            - generic [ref=e143]:
+              - strong [ref=e144]: Software Developer
+              - emphasis [ref=e145]: 2 weeks ago
+            - generic [ref=e146]: ECICS LIMITED
+            - generic [ref=e147]:
+              - generic [ref=e148]: S$4,000 - S$6,000 / month
+              - generic [ref=e149]: Contract
+              - generic [ref=e150]: from MCF
+            - generic [ref=e151]:
+              - generic [ref=e152]: Liaising with cross functional teams
+              - generic [ref=e153]: Analytical Skills
+              - generic [ref=e154]: Software Engineering
+              - generic [ref=e155]: Agile
+              - generic [ref=e156]: JavaScript
+              - generic [ref=e157]: Full Stack Development
+            - emphasis [ref=e158]: exact title
+          - generic [ref=e159]:
+            - button "Analyse this posting" [ref=e160] [cursor=pointer]
+            - button "View role graph" [ref=e161] [cursor=pointer]
+            - link "Open posting" [ref=e162] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-ecics-6b021c92e1d274d86cb58fe37a0577ed
+        - article [ref=e163]:
+          - button "Software Developer 1 week ago AVENSYS CONSULTING PTE. LTD. S$3,000 - S$6,000 / month Contract 1+ yrs exp from MCF Computer Engineering Foundation Design Object-Oriented Analysis, Design and Programming Software Engineering Application Development JBoss exact title" [ref=e164] [cursor=pointer]:
+            - generic [ref=e165]:
+              - strong [ref=e166]: Software Developer
+              - emphasis [ref=e167]: 1 week ago
+            - generic [ref=e168]: AVENSYS CONSULTING PTE. LTD.
+            - generic [ref=e169]:
+              - generic [ref=e170]: S$3,000 - S$6,000 / month
+              - generic [ref=e171]: Contract
+              - generic [ref=e172]: 1+ yrs exp
+              - generic [ref=e173]: from MCF
+            - generic [ref=e174]:
+              - generic [ref=e175]: Computer Engineering
+              - generic [ref=e176]: Foundation Design
+              - generic [ref=e177]: Object-Oriented Analysis, Design and Programming
+              - generic [ref=e178]: Software Engineering
+              - generic [ref=e179]: Application Development
+              - generic [ref=e180]: JBoss
+            - emphasis [ref=e181]: exact title
+          - generic [ref=e182]:
+            - button "Analyse this posting" [ref=e183] [cursor=pointer]
+            - button "View role graph" [ref=e184] [cursor=pointer]
+            - link "Open posting" [ref=e185] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-avensys-consulting-86d4433ba78e9cdc1e0b3a24fa3b0a58
+        - article [ref=e186]:
+          - button "Software Developer 6 days ago SAKSOFT PTE LIMITED S$7,500 - S$8,500 / month Permanent 6+ yrs exp from MCF Git Sonarqube Jenkins .NET Technical Skills Bitbucket exact title" [ref=e187] [cursor=pointer]:
+            - generic [ref=e188]:
+              - strong [ref=e189]: Software Developer
+              - emphasis [ref=e190]: 6 days ago
+            - generic [ref=e191]: SAKSOFT PTE LIMITED
+            - generic [ref=e192]:
+              - generic [ref=e193]: S$7,500 - S$8,500 / month
+              - generic [ref=e194]: Permanent
+              - generic [ref=e195]: 6+ yrs exp
+              - generic [ref=e196]: from MCF
+            - generic [ref=e197]:
+              - generic [ref=e198]: Git
+              - generic [ref=e199]: Sonarqube
+              - generic [ref=e200]: Jenkins
+              - generic [ref=e201]: .NET
+              - generic [ref=e202]: Technical Skills
+              - generic [ref=e203]: Bitbucket
+            - emphasis [ref=e204]: exact title
+          - generic [ref=e205]:
+            - button "Analyse this posting" [ref=e206] [cursor=pointer]
+            - button "View role graph" [ref=e207] [cursor=pointer]
+            - link "Open posting" [ref=e208] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-saksoft-0caaa143ffb49161a94ad51344dcf135
+        - article [ref=e209]:
+          - button "Software Developer 4 days ago TECH GRID ASIA PTE. LTD. S$5,000 - S$7,000 / month Contract 3+ yrs exp from MCF Functional Requirements Analysis Computer Engineering Mobile Software Software Engineering JavaScript Computer Science exact title" [ref=e210] [cursor=pointer]:
+            - generic [ref=e211]:
+              - strong [ref=e212]: Software Developer
+              - emphasis [ref=e213]: 4 days ago
+            - generic [ref=e214]: TECH GRID ASIA PTE. LTD.
+            - generic [ref=e215]:
+              - generic [ref=e216]: S$5,000 - S$7,000 / month
+              - generic [ref=e217]: Contract
+              - generic [ref=e218]: 3+ yrs exp
+              - generic [ref=e219]: from MCF
+            - generic [ref=e220]:
+              - generic [ref=e221]: Functional Requirements Analysis
+              - generic [ref=e222]: Computer Engineering
+              - generic [ref=e223]: Mobile Software
+              - generic [ref=e224]: Software Engineering
+              - generic [ref=e225]: JavaScript
+              - generic [ref=e226]: Computer Science
+            - emphasis [ref=e227]: exact title
+          - generic [ref=e228]:
+            - button "Analyse this posting" [ref=e229] [cursor=pointer]
+            - button "View role graph" [ref=e230] [cursor=pointer]
+            - link "Open posting" [ref=e231] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-tech-grid-asia-0643d2cc268035cad3f233c4346278bd
+        - article [ref=e232]:
+          - button "Software Developer 2 weeks ago INFRASOFT TECHNOLOGIES PTE LTD S$8,000 - S$11,000 / month Contract 5+ yrs exp from MCF Liaising with cross functional teams Applications Training Needs Analysis Documentation Consultation Software Quality Management exact title" [ref=e233] [cursor=pointer]:
+            - generic [ref=e234]:
+              - strong [ref=e235]: Software Developer
+              - emphasis [ref=e236]: 2 weeks ago
+            - generic [ref=e237]: INFRASOFT TECHNOLOGIES PTE LTD
+            - generic [ref=e238]:
+              - generic [ref=e239]: S$8,000 - S$11,000 / month
+              - generic [ref=e240]: Contract
+              - generic [ref=e241]: 5+ yrs exp
+              - generic [ref=e242]: from MCF
+            - generic [ref=e243]:
+              - generic [ref=e244]: Liaising with cross functional teams
+              - generic [ref=e245]: Applications
+              - generic [ref=e246]: Training Needs Analysis
+              - generic [ref=e247]: Documentation
+              - generic [ref=e248]: Consultation
+              - generic [ref=e249]: Software Quality Management
+            - emphasis [ref=e250]: exact title
+          - generic [ref=e251]:
+            - button "Analyse this posting" [ref=e252] [cursor=pointer]
+            - button "View role graph" [ref=e253] [cursor=pointer]
+            - link "Open posting" [ref=e254] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-infrasoft-technologies-c493aab6909d5cfc7c33829a052baf5a
+        - article [ref=e255]:
+          - button "SOFTWARE DEVELOPER 2 months ago RMR INTERNATIONAL PRIVATE LIMITED S$7,500 - S$13,500 / month Full Time 5+ yrs exp from MCF Full Stack Development Desktops PC Design Development Web C# Debugging exact title" [ref=e256] [cursor=pointer]:
+            - generic [ref=e257]:
+              - strong [ref=e258]: SOFTWARE DEVELOPER
+              - emphasis [ref=e259]: 2 months ago
+            - generic [ref=e260]: RMR INTERNATIONAL PRIVATE LIMITED
+            - generic [ref=e261]:
+              - generic [ref=e262]: S$7,500 - S$13,500 / month
+              - generic [ref=e263]: Full Time
+              - generic [ref=e264]: 5+ yrs exp
+              - generic [ref=e265]: from MCF
+            - generic [ref=e266]:
+              - generic [ref=e267]: Full Stack Development
+              - generic [ref=e268]: Desktops PC
+              - generic [ref=e269]: Design Development
+              - generic [ref=e270]: Web
+              - generic [ref=e271]: C#
+              - generic [ref=e272]: Debugging
+            - emphasis [ref=e273]: exact title
+          - generic [ref=e274]:
+            - button "Analyse this posting" [ref=e275] [cursor=pointer]
+            - button "View role graph" [ref=e276] [cursor=pointer]
+            - link "Open posting" [ref=e277] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-rmr-information-technology-services-116ae5d73ca930f097c669d9e09a320a
+        - article [ref=e278]:
+          - button "Cloud Software Developer 1 month ago BIOTRONIK APM II PTE. LTD. S$5,000 - S$7,000 / month Permanent 5+ yrs exp from MCF Liaising with cross functional teams Design Scalability Regulatory Compliance Pipelines Continuous Integration and Continuous Deployment title contains signal" [ref=e279] [cursor=pointer]:
+            - generic [ref=e280]:
+              - strong [ref=e281]: Cloud Software Developer
+              - emphasis [ref=e282]: 1 month ago
+            - generic [ref=e283]: BIOTRONIK APM II PTE. LTD.
+            - generic [ref=e284]:
+              - generic [ref=e285]: S$5,000 - S$7,000 / month
+              - generic [ref=e286]: Permanent
+              - generic [ref=e287]: 5+ yrs exp
+              - generic [ref=e288]: from MCF
+            - generic [ref=e289]:
+              - generic [ref=e290]: Liaising with cross functional teams
+              - generic [ref=e291]: Design
+              - generic [ref=e292]: Scalability
+              - generic [ref=e293]: Regulatory Compliance
+              - generic [ref=e294]: Pipelines
+              - generic [ref=e295]: Continuous Integration and Continuous Deployment
+            - emphasis [ref=e296]: title contains signal
+          - generic [ref=e297]:
+            - button "Analyse this posting" [ref=e298] [cursor=pointer]
+            - button "View role graph" [ref=e299] [cursor=pointer]
+            - link "Open posting" [ref=e300] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/manufacturing/cloud-software-developer-biotronik-apm-ii-a604a0b6a5deff85b6cb865fd8c5387c
+        - article [ref=e301]:
+          - button "Full Stack Software Developer (Polytechnic Graduates) 1 week ago SIMPLIFYNEXT PTE. LTD. S$3,500 - S$4,200 / month Full Time from MCF Git CSS Architect TypeScript Agile JavaScript title contains signal" [ref=e302] [cursor=pointer]:
+            - generic [ref=e303]:
+              - strong [ref=e304]: Full Stack Software Developer (Polytechnic Graduates)
+              - emphasis [ref=e305]: 1 week ago
+            - generic [ref=e306]: SIMPLIFYNEXT PTE. LTD.
+            - generic [ref=e307]:
+              - generic [ref=e308]: S$3,500 - S$4,200 / month
+              - generic [ref=e309]: Full Time
+              - generic [ref=e310]: from MCF
+            - generic [ref=e311]:
+              - generic [ref=e312]: Git
+              - generic [ref=e313]: CSS
+              - generic [ref=e314]: Architect
+              - generic [ref=e315]: TypeScript
+              - generic [ref=e316]: Agile
+              - generic [ref=e317]: JavaScript
+            - emphasis [ref=e318]: title contains signal
+          - generic [ref=e319]:
+            - button "Analyse this posting" [ref=e320] [cursor=pointer]
+            - button "View role graph" [ref=e321] [cursor=pointer]
+            - link "Open posting" [ref=e322] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/consulting/full-stack-software-developer-simplifynext-306d06f0563529e2e5de6ecc9e932a0c
+        - article [ref=e323]:
+          - button "Junior Software Developer 1 week ago CONSUMER CLOUD TECHNOLOGY SERVICES PTE. LTD. S$2,000 - S$3,500 / month Full Time 1+ yrs exp from MCF Machine Learning Liaising with cross functional teams Pandas Data Pipeline Data Structures Source Code Reviews title contains signal" [ref=e324] [cursor=pointer]:
+            - generic [ref=e325]:
+              - strong [ref=e326]: Junior Software Developer
+              - emphasis [ref=e327]: 1 week ago
+            - generic [ref=e328]: CONSUMER CLOUD TECHNOLOGY SERVICES PTE. LTD.
+            - generic [ref=e329]:
+              - generic [ref=e330]: S$2,000 - S$3,500 / month
+              - generic [ref=e331]: Full Time
+              - generic [ref=e332]: 1+ yrs exp
+              - generic [ref=e333]: from MCF
+            - generic [ref=e334]:
+              - generic [ref=e335]: Machine Learning
+              - generic [ref=e336]: Liaising with cross functional teams
+              - generic [ref=e337]: Pandas
+              - generic [ref=e338]: Data Pipeline
+              - generic [ref=e339]: Data Structures
+              - generic [ref=e340]: Source Code Reviews
+            - emphasis [ref=e341]: title contains signal
+          - generic [ref=e342]:
+            - button "Analyse this posting" [ref=e343] [cursor=pointer]
+            - button "View role graph" [ref=e344] [cursor=pointer]
+            - link "Open posting" [ref=e345] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/professional-services/junior-software-developer-consumer-cloud-technology-services-3c12feabf1563544100fad048c0f1817
+        - article [ref=e346]:
+          - button "Lead unity 3D developer (Software developer) 5 days ago RANDSTAD PTE. LIMITED S$8,000 - S$10,000 / month Contract 5+ yrs exp from MCF 3D Visualization Optimization Medical Degree Unity 3D Software Engineering Technology Leadership title contains signal" [ref=e347] [cursor=pointer]:
+            - generic [ref=e348]:
+              - strong [ref=e349]: Lead unity 3D developer (Software developer)
+              - emphasis [ref=e350]: 5 days ago
+            - generic [ref=e351]: RANDSTAD PTE. LIMITED
+            - generic [ref=e352]:
+              - generic [ref=e353]: S$8,000 - S$10,000 / month
+              - generic [ref=e354]: Contract
+              - generic [ref=e355]: 5+ yrs exp
+              - generic [ref=e356]: from MCF
+            - generic [ref=e357]:
+              - generic [ref=e358]: 3D Visualization
+              - generic [ref=e359]: Optimization
+              - generic [ref=e360]: Medical Degree
+              - generic [ref=e361]: Unity 3D
+              - generic [ref=e362]: Software Engineering
+              - generic [ref=e363]: Technology Leadership
+            - emphasis [ref=e364]: title contains signal
+          - generic [ref=e365]:
+            - button "Analyse this posting" [ref=e366] [cursor=pointer]
+            - button "View role graph" [ref=e367] [cursor=pointer]
+            - link "Open posting" [ref=e368] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/lead-unity-3d-developer-randstad-478f141ac6e7b17e01cdf6cc9d1edc8a
+        - article [ref=e369]:
+          - button "Security Software Developer 5 months ago Centre for Strategic Infocomm Technologies Permanent from careers.gov.sg title contains signal" [ref=e370] [cursor=pointer]:
+            - generic [ref=e371]:
+              - strong [ref=e372]: Security Software Developer
+              - emphasis [ref=e373]: 5 months ago
+            - generic [ref=e374]: Centre for Strategic Infocomm Technologies
+            - generic [ref=e375]:
+              - generic [ref=e376]: Permanent
+              - generic [ref=e377]: from careers.gov.sg
+            - emphasis [ref=e378]: title contains signal
+          - generic [ref=e379]:
+            - button "Analyse this posting" [ref=e380] [cursor=pointer]
+            - button "View role graph" [ref=e381] [cursor=pointer]
+            - link "Open posting" [ref=e382] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/16967317/005056a3-d347-1fe0-bb84-c29a3fad8284
+        - article [ref=e383]:
+          - button "Senior software developer 3 weeks ago WEB SYNERGIES (S) PTE LTD S$6,000 - S$7,300 / month Contract 7+ yrs exp from MCF Liaising with cross functional teams Design Process Improvement Design Patterns MySQL Technological Proficiency title contains signal" [ref=e384] [cursor=pointer]:
+            - generic [ref=e385]:
+              - strong [ref=e386]: Senior software developer
+              - emphasis [ref=e387]: 3 weeks ago
+            - generic [ref=e388]: WEB SYNERGIES (S) PTE LTD
+            - generic [ref=e389]:
+              - generic [ref=e390]: S$6,000 - S$7,300 / month
+              - generic [ref=e391]: Contract
+              - generic [ref=e392]: 7+ yrs exp
+              - generic [ref=e393]: from MCF
+            - generic [ref=e394]:
+              - generic [ref=e395]: Liaising with cross functional teams
+              - generic [ref=e396]: Design
+              - generic [ref=e397]: Process Improvement
+              - generic [ref=e398]: Design Patterns
+              - generic [ref=e399]: MySQL
+              - generic [ref=e400]: Technological Proficiency
+            - emphasis [ref=e401]: title contains signal
+          - generic [ref=e402]:
+            - button "Analyse this posting" [ref=e403] [cursor=pointer]
+            - button "View role graph" [ref=e404] [cursor=pointer]
+            - link "Open posting" [ref=e405] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-web-synergies-63ae29fd2ce3a294587eb2f9bcf19524
+        - article [ref=e406]:
+          - button "Senior Software Developer 1 week ago TITANSOFT PTE. LTD. S$7,000 - S$11,000 / month Full Time 3+ yrs exp from MCF .NET Design Patterns Test Driven Development Agile JavaScript HTML5 title contains signal" [ref=e407] [cursor=pointer]:
+            - generic [ref=e408]:
+              - strong [ref=e409]: Senior Software Developer
+              - emphasis [ref=e410]: 1 week ago
+            - generic [ref=e411]: TITANSOFT PTE. LTD.
+            - generic [ref=e412]:
+              - generic [ref=e413]: S$7,000 - S$11,000 / month
+              - generic [ref=e414]: Full Time
+              - generic [ref=e415]: 3+ yrs exp
+              - generic [ref=e416]: from MCF
+            - generic [ref=e417]:
+              - generic [ref=e418]: .NET
+              - generic [ref=e419]: Design Patterns
+              - generic [ref=e420]: Test Driven Development
+              - generic [ref=e421]: Agile
+              - generic [ref=e422]: JavaScript
+              - generic [ref=e423]: HTML5
+            - emphasis [ref=e424]: title contains signal
+          - generic [ref=e425]:
+            - button "Analyse this posting" [ref=e426] [cursor=pointer]
+            - button "View role graph" [ref=e427] [cursor=pointer]
+            - link "Open posting" [ref=e428] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-titansoft-c44098e5ae35917a922b59cbc4c5d4ad
+        - article [ref=e429]:
+          - button "Senior Software Developer (.Net) - Tech Lead 3 days ago THE EDGE CONTRACTING SERVICES PTE. LTD. S$7,000 - S$11,000 / month Contract 5+ yrs exp from MCF Code Review .NET Development Azure DevOps Software Engineering Agile title contains signal" [ref=e430] [cursor=pointer]:
+            - generic [ref=e431]:
+              - strong [ref=e432]: Senior Software Developer (.Net) - Tech Lead
+              - emphasis [ref=e433]: 3 days ago
+            - generic [ref=e434]: THE EDGE CONTRACTING SERVICES PTE. LTD.
+            - generic [ref=e435]:
+              - generic [ref=e436]: S$7,000 - S$11,000 / month
+              - generic [ref=e437]: Contract
+              - generic [ref=e438]: 5+ yrs exp
+              - generic [ref=e439]: from MCF
+            - generic [ref=e440]:
+              - generic [ref=e441]: Code Review
+              - generic [ref=e442]: .NET
+              - generic [ref=e443]: Development
+              - generic [ref=e444]: Azure DevOps
+              - generic [ref=e445]: Software Engineering
+              - generic [ref=e446]: Agile
+            - emphasis [ref=e447]: title contains signal
+          - generic [ref=e448]:
+            - button "Analyse this posting" [ref=e449] [cursor=pointer]
+            - button "View role graph" [ref=e450] [cursor=pointer]
+            - link "Open posting" [ref=e451] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-tech-lead-edge-contracting-services-b4fd8cdd50bd6567e9ac11bce91efd7a
+        - article [ref=e452]:
+          - button "Senior Software Developer (Android) 1 week ago RAPSODO PTE. LTD. S$7,000 - S$10,000 / month Full Time 5+ yrs exp from MCF consistent customer experience Sports Development systems reliability Collaboration Impact Assessment Unity title contains signal" [ref=e453] [cursor=pointer]:
+            - generic [ref=e454]:
+              - strong [ref=e455]: Senior Software Developer (Android)
+              - emphasis [ref=e456]: 1 week ago
+            - generic [ref=e457]: RAPSODO PTE. LTD.
+            - generic [ref=e458]:
+              - generic [ref=e459]: S$7,000 - S$10,000 / month
+              - generic [ref=e460]: Full Time
+              - generic [ref=e461]: 5+ yrs exp
+              - generic [ref=e462]: from MCF
+            - generic [ref=e463]:
+              - generic [ref=e464]: consistent customer experience
+              - generic [ref=e465]: Sports Development
+              - generic [ref=e466]: systems reliability
+              - generic [ref=e467]: Collaboration
+              - generic [ref=e468]: Impact Assessment
+              - generic [ref=e469]: Unity
+            - emphasis [ref=e470]: title contains signal
+          - generic [ref=e471]:
+            - button "Analyse this posting" [ref=e472] [cursor=pointer]
+            - button "View role graph" [ref=e473] [cursor=pointer]
+            - link "Open posting" [ref=e474] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-software-developer-rapsodo-a7531763813ca8a3c60a2144e7cebcaf
+        - article [ref=e475]:
+          - button "Sr Software Developer 2 weeks ago INFRASOFT TECHNOLOGIES PTE LTD S$11,200 - S$14,500 / month Contract 8+ yrs exp from MCF Liaising with cross functional teams Applications Training Needs Analysis Documentation Consultation Software Quality Management title contains signal" [ref=e476] [cursor=pointer]:
+            - generic [ref=e477]:
+              - strong [ref=e478]: Sr Software Developer
+              - emphasis [ref=e479]: 2 weeks ago
+            - generic [ref=e480]: INFRASOFT TECHNOLOGIES PTE LTD
+            - generic [ref=e481]:
+              - generic [ref=e482]: S$11,200 - S$14,500 / month
+              - generic [ref=e483]: Contract
+              - generic [ref=e484]: 8+ yrs exp
+              - generic [ref=e485]: from MCF
+            - generic [ref=e486]:
+              - generic [ref=e487]: Liaising with cross functional teams
+              - generic [ref=e488]: Applications
+              - generic [ref=e489]: Training Needs Analysis
+              - generic [ref=e490]: Documentation
+              - generic [ref=e491]: Consultation
+              - generic [ref=e492]: Software Quality Management
+            - emphasis [ref=e493]: title contains signal
+          - generic [ref=e494]:
+            - button "Analyse this posting" [ref=e495] [cursor=pointer]
+            - button "View role graph" [ref=e496] [cursor=pointer]
+            - link "Open posting" [ref=e497] [cursor=pointer]:
+              - /url: https://www.mycareersfuture.gov.sg/job/information-technology/sr-software-developer-infrasoft-technologies-c5e997c925067cc33144546458580621
+        - article [ref=e498]:
+          - button "[LTA-ITCD] PRP / SENIOR / EXECUTIVE SOFTWARE/OUTSYSTEMS DEVELOPER 2 weeks ago Land Transport Authority Fixed Terms 4+ yrs exp from careers.gov.sg responsibility contains signal" [ref=e499] [cursor=pointer]:
+            - generic [ref=e500]:
+              - strong [ref=e501]: "[LTA-ITCD] PRP / SENIOR / EXECUTIVE SOFTWARE/OUTSYSTEMS DEVELOPER"
+              - emphasis [ref=e502]: 2 weeks ago
+            - generic [ref=e503]: Land Transport Authority
+            - generic [ref=e504]:
+              - generic [ref=e505]: Fixed Terms
+              - generic [ref=e506]: 4+ yrs exp
+              - generic [ref=e507]: from careers.gov.sg
+            - emphasis [ref=e508]: responsibility contains signal
+          - generic [ref=e509]:
+            - button "Analyse this posting" [ref=e510] [cursor=pointer]
+            - button "View role graph" [ref=e511] [cursor=pointer]
+            - link "Open posting" [ref=e512] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17691853/005056a3-d347-1fe1-99d3-8a6f549982a9
+        - article [ref=e513]:
+          - button "Deputy Director, AI Software Engineering, AI Products 3 days ago Home Team Science and Technology Agency (HTX) Permanent/Contract 10+ yrs exp from careers.gov.sg adjacent role" [ref=e514] [cursor=pointer]:
+            - generic [ref=e515]:
+              - strong [ref=e516]: Deputy Director, AI Software Engineering, AI Products
+              - emphasis [ref=e517]: 3 days ago
+            - generic [ref=e518]: Home Team Science and Technology Agency (HTX)
+            - generic [ref=e519]:
+              - generic [ref=e520]: Permanent/Contract
+              - generic [ref=e521]: 10+ yrs exp
+              - generic [ref=e522]: from careers.gov.sg
+            - emphasis [ref=e523]: adjacent role
+          - generic [ref=e524]:
+            - button "Analyse this posting" [ref=e525] [cursor=pointer]
+            - button "View role graph" [ref=e526] [cursor=pointer]
+            - link "Open posting" [ref=e527] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17753430/005056a3-53e2-1fd1-9ca2-860cecea13ff
+        - article [ref=e528]:
+          - button "Deputy Director, Engineering Management, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e529] [cursor=pointer]:
+            - generic [ref=e530]:
+              - strong [ref=e531]: Deputy Director, Engineering Management, Developer Productivity & Services Programme
+              - emphasis [ref=e532]: 5 days ago
+            - generic [ref=e533]: Government Technology Agency
+            - generic [ref=e535]: from careers.gov.sg
+            - emphasis [ref=e536]: adjacent role
+          - generic [ref=e537]:
+            - button "Analyse this posting" [ref=e538] [cursor=pointer]
+            - button "View role graph" [ref=e539] [cursor=pointer]
+            - link "Open posting" [ref=e540] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004426201?gh_jid=4004426201
+        - article [ref=e541]:
+          - button "Engineer / Senior Software Engineer, AI Products & Platform, Ministry of Education 4 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e542] [cursor=pointer]:
+            - generic [ref=e543]:
+              - strong [ref=e544]: Engineer / Senior Software Engineer, AI Products & Platform, Ministry of Education
+              - emphasis [ref=e545]: 4 days ago
+            - generic [ref=e546]: Government Technology Agency
+            - generic [ref=e548]: from careers.gov.sg
+            - emphasis [ref=e549]: adjacent role
+          - generic [ref=e550]:
+            - button "Analyse this posting" [ref=e551] [cursor=pointer]
+            - button "View role graph" [ref=e552] [cursor=pointer]
+            - link "Open posting" [ref=e553] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004456201?gh_jid=4004456201
+        - article [ref=e554]:
+          - button "Enterprise Software Specialist (Salesforce), Infocomm Media Development Authority 3 days ago Government Technology Agency 7+ yrs exp from careers.gov.sg adjacent role" [ref=e555] [cursor=pointer]:
+            - generic [ref=e556]:
+              - strong [ref=e557]: Enterprise Software Specialist (Salesforce), Infocomm Media Development Authority
+              - emphasis [ref=e558]: 3 days ago
+            - generic [ref=e559]: Government Technology Agency
+            - generic [ref=e560]:
+              - generic [ref=e561]: 7+ yrs exp
+              - generic [ref=e562]: from careers.gov.sg
+            - emphasis [ref=e563]: adjacent role
+          - generic [ref=e564]:
+            - button "Analyse this posting" [ref=e565] [cursor=pointer]
+            - button "View role graph" [ref=e566] [cursor=pointer]
+            - link "Open posting" [ref=e567] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004343201?gh_jid=4004343201
+        - article [ref=e568]:
+          - button "Modelling & Simulation Software Engineer 3 weeks ago Defence Science and Technology Agency Permanent from careers.gov.sg adjacent role" [ref=e569] [cursor=pointer]:
+            - generic [ref=e570]:
+              - strong [ref=e571]: Modelling & Simulation Software Engineer
+              - emphasis [ref=e572]: 3 weeks ago
+            - generic [ref=e573]: Defence Science and Technology Agency
+            - generic [ref=e574]:
+              - generic [ref=e575]: Permanent
+              - generic [ref=e576]: from careers.gov.sg
+            - emphasis [ref=e577]: adjacent role
+          - generic [ref=e578]:
+            - button "Analyse this posting" [ref=e579] [cursor=pointer]
+            - button "View role graph" [ref=e580] [cursor=pointer]
+            - link "Open posting" [ref=e581] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17655340/005056a3-d347-1fe1-97f8-5f82b3c442a7
+        - article [ref=e582]:
+          - button "Principal / Software Engineer, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e583] [cursor=pointer]:
+            - generic [ref=e584]:
+              - strong [ref=e585]: Principal / Software Engineer, Developer Productivity & Services Programme
+              - emphasis [ref=e586]: 5 days ago
+            - generic [ref=e587]: Government Technology Agency
+            - generic [ref=e589]: from careers.gov.sg
+            - emphasis [ref=e590]: adjacent role
+          - generic [ref=e591]:
+            - button "Analyse this posting" [ref=e592] [cursor=pointer]
+            - button "View role graph" [ref=e593] [cursor=pointer]
+            - link "Open posting" [ref=e594] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004429201?gh_jid=4004429201
+        - article [ref=e595]:
+          - button "Senior / Software Engineer (Developer Productivity Platforms), Core Engineering Products 2 months ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e596] [cursor=pointer]:
+            - generic [ref=e597]:
+              - strong [ref=e598]: Senior / Software Engineer (Developer Productivity Platforms), Core Engineering Products
+              - emphasis [ref=e599]: 2 months ago
+            - generic [ref=e600]: Government Technology Agency
+            - generic [ref=e602]: from careers.gov.sg
+            - emphasis [ref=e603]: adjacent role
+          - generic [ref=e604]:
+            - button "Analyse this posting" [ref=e605] [cursor=pointer]
+            - button "View role graph" [ref=e606] [cursor=pointer]
+            - link "Open posting" [ref=e607] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001881201?gh_jid=4001881201
+        - article [ref=e608]:
+          - button "Senior / Software Engineer, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e609] [cursor=pointer]:
+            - generic [ref=e610]:
+              - strong [ref=e611]: Senior / Software Engineer, Developer Productivity & Services Programme
+              - emphasis [ref=e612]: 5 days ago
+            - generic [ref=e613]: Government Technology Agency
+            - generic [ref=e615]: from careers.gov.sg
+            - emphasis [ref=e616]: adjacent role
+          - generic [ref=e617]:
+            - button "Analyse this posting" [ref=e618] [cursor=pointer]
+            - button "View role graph" [ref=e619] [cursor=pointer]
+            - link "Open posting" [ref=e620] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004423201?gh_jid=4004423201
+        - article [ref=e621]:
+          - button "Senior Enterprise Software Specialist(GeBIZ X) 1 month ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e622] [cursor=pointer]:
+            - generic [ref=e623]:
+              - strong [ref=e624]: Senior Enterprise Software Specialist(GeBIZ X)
+              - emphasis [ref=e625]: 1 month ago
+            - generic [ref=e626]: Government Technology Agency
+            - generic [ref=e628]: from careers.gov.sg
+            - emphasis [ref=e629]: adjacent role
+          - generic [ref=e630]:
+            - button "Analyse this posting" [ref=e631] [cursor=pointer]
+            - button "View role graph" [ref=e632] [cursor=pointer]
+            - link "Open posting" [ref=e633] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004032201?gh_jid=4004032201
+        - article [ref=e634]:
+          - button "Senior Software Engineer (Reimagine Engineering), Software Engineering Practice 3 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e635] [cursor=pointer]:
+            - generic [ref=e636]:
+              - strong [ref=e637]: Senior Software Engineer (Reimagine Engineering), Software Engineering Practice
+              - emphasis [ref=e638]: 3 weeks ago
+            - generic [ref=e639]: Government Technology Agency
+            - generic [ref=e641]: from careers.gov.sg
+            - emphasis [ref=e642]: adjacent role
+          - generic [ref=e643]:
+            - button "Analyse this posting" [ref=e644] [cursor=pointer]
+            - button "View role graph" [ref=e645] [cursor=pointer]
+            - link "Open posting" [ref=e646] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004091201?gh_jid=4004091201
+        - article [ref=e647]:
+          - button "Senior Software Engineer, AI Infrastructure & Operations, AI Practice 2 months ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e648] [cursor=pointer]:
+            - generic [ref=e649]:
+              - strong [ref=e650]: Senior Software Engineer, AI Infrastructure & Operations, AI Practice
+              - emphasis [ref=e651]: 2 months ago
+            - generic [ref=e652]: Government Technology Agency
+            - generic [ref=e654]: from careers.gov.sg
+            - emphasis [ref=e655]: adjacent role
+          - generic [ref=e656]:
+            - button "Analyse this posting" [ref=e657] [cursor=pointer]
+            - button "View role graph" [ref=e658] [cursor=pointer]
+            - link "Open posting" [ref=e659] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003193201?gh_jid=4003193201
+        - article [ref=e660]:
+          - button "Software Engineer (Developer Platform) 3 months ago Centre for Strategic Infocomm Technologies Permanent from careers.gov.sg adjacent role" [ref=e661] [cursor=pointer]:
+            - generic [ref=e662]:
+              - strong [ref=e663]: Software Engineer (Developer Platform)
+              - emphasis [ref=e664]: 3 months ago
+            - generic [ref=e665]: Centre for Strategic Infocomm Technologies
+            - generic [ref=e666]:
+              - generic [ref=e667]: Permanent
+              - generic [ref=e668]: from careers.gov.sg
+            - emphasis [ref=e669]: adjacent role
+          - generic [ref=e670]:
+            - button "Analyse this posting" [ref=e671] [cursor=pointer]
+            - button "View role graph" [ref=e672] [cursor=pointer]
+            - link "Open posting" [ref=e673] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/hrp/17347518/005056a3-d347-1fe1-8afa-b3870438c28d
+        - article [ref=e674]:
+          - button "Software Engineer, DevOps, Salesforce CoE 2 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e675] [cursor=pointer]:
+            - generic [ref=e676]:
+              - strong [ref=e677]: Software Engineer, DevOps, Salesforce CoE
+              - emphasis [ref=e678]: 2 weeks ago
+            - generic [ref=e679]: Government Technology Agency
+            - generic [ref=e681]: from careers.gov.sg
+            - emphasis [ref=e682]: adjacent role
+          - generic [ref=e683]:
+            - button "Analyse this posting" [ref=e684] [cursor=pointer]
+            - button "View role graph" [ref=e685] [cursor=pointer]
+            - link "Open posting" [ref=e686] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004155201?gh_jid=4004155201
+        - article [ref=e687]:
+          - button "Software Engineer, Digital Products & Platforms (STB) 1 week ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e688] [cursor=pointer]:
+            - generic [ref=e689]:
+              - strong [ref=e690]: Software Engineer, Digital Products & Platforms (STB)
+              - emphasis [ref=e691]: 1 week ago
+            - generic [ref=e692]: Government Technology Agency
+            - generic [ref=e694]: from careers.gov.sg
+            - emphasis [ref=e695]: adjacent role
+          - generic [ref=e696]:
+            - button "Analyse this posting" [ref=e697] [cursor=pointer]
+            - button "View role graph" [ref=e698] [cursor=pointer]
+            - link "Open posting" [ref=e699] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004385201?gh_jid=4004385201
+        - article [ref=e700]:
+          - button "Software Engineer, GovTech Innovation Office 2 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e701] [cursor=pointer]:
+            - generic [ref=e702]:
+              - strong [ref=e703]: Software Engineer, GovTech Innovation Office
+              - emphasis [ref=e704]: 2 weeks ago
+            - generic [ref=e705]: Government Technology Agency
+            - generic [ref=e707]: from careers.gov.sg
+            - emphasis [ref=e708]: adjacent role
+          - generic [ref=e709]:
+            - button "Analyse this posting" [ref=e710] [cursor=pointer]
+            - button "View role graph" [ref=e711] [cursor=pointer]
+            - link "Open posting" [ref=e712] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004219201?gh_jid=4004219201
+        - article [ref=e713]:
+          - button "Software Engineer, IPOS 1 week ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e714] [cursor=pointer]:
+            - generic [ref=e715]:
+              - strong [ref=e716]: Software Engineer, IPOS
+              - emphasis [ref=e717]: 1 week ago
+            - generic [ref=e718]: Government Technology Agency
+            - generic [ref=e720]: from careers.gov.sg
+            - emphasis [ref=e721]: adjacent role
+          - generic [ref=e722]:
+            - button "Analyse this posting" [ref=e723] [cursor=pointer]
+            - button "View role graph" [ref=e724] [cursor=pointer]
+            - link "Open posting" [ref=e725] [cursor=pointer]:
+              - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004356201?gh_jid=4004356201

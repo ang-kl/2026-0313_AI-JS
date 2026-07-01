@@ -1,0 +1,25 @@
+[      -2ms] [ERROR] Failed to load resource: net::ERR_FILE_NOT_FOUND @ file:///Users/akla/Downloads/design_handoff_step3_review_studio/support.js:0
+[    2066ms] ReferenceError: closeCover is not defined
+    at HTMLButtonElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:685:183)
+[    2067ms] ReferenceError: stopProp is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:679:248)
+[    2067ms] ReferenceError: closeCover is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:678:180)
+[    3300ms] ReferenceError: closeCover is not defined
+    at HTMLButtonElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:685:183)
+[    3300ms] ReferenceError: stopProp is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:679:248)
+[    3300ms] ReferenceError: closeCover is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:678:180)
+[   10172ms] ReferenceError: closeCover is not defined
+    at HTMLButtonElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:685:183)
+[   10173ms] ReferenceError: stopProp is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:679:248)
+[   10173ms] ReferenceError: closeCover is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:678:180)
+[   11462ms] ReferenceError: closeCover is not defined
+    at HTMLButtonElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:685:183)
+[   11462ms] ReferenceError: stopProp is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:679:248)
+[   11463ms] ReferenceError: closeCover is not defined
+    at HTMLDivElement.onclick (file:///Users/akla/Downloads/design_handoff_step3_review_studio/Work%20Intelligence%20Studio.dc.html:678:180)

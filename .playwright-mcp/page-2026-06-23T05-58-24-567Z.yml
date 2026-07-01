@@ -1,0 +1,577 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e108] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e109]:
+        - button "Back to new search" [ref=e110] [cursor=pointer]: ← New search
+        - generic [ref=e112]:
+          - generic [ref=e114]:
+            - generic [ref=e115]: 🇸🇬 MyCareersFuture
+            - generic [ref=e116]: (30 postings)
+          - generic [ref=e117]:
+            - 'heading "Found: DBS BANK LTD. - 30 live postings on MyCareersFuture" [level=2] [ref=e118]'
+            - paragraph [ref=e119]:
+              - generic [ref=e120]: ● from MCF
+              - text: Company name and posting count are verbatim from MyCareersFuture.
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - generic [ref=e123]: AI moments at DBS BANK LTD.
+              - generic [ref=e124]: See which recurring duties across their roles could become agent candidates - deterministic, no LLM.
+            - button "Find AI moments at DBS BANK LTD." [ref=e125] [cursor=pointer]: Find AI moments
+          - generic [ref=e126]:
+            - generic [ref=e127]:
+              - generic [ref=e128]:
+                - link "SVP, Wealth Solutions Platform Lead North Asia, Consumer Banking Group (WD85679)" [ref=e129] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/svp-wealth-solutions-platform-lead-north-asia-consumer-banking-group-dbs-bank-fa84e51073260e3fc2fb90f278b9e231
+                - generic [ref=e130]: 1 week ago
+              - paragraph [ref=e131]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e133]':
+                - generic [ref=e134]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e135]:
+                - generic [ref=e136]: S$15,000 - S$27,000 / month
+                - generic [ref=e137]: Permanent, Full Time
+                - generic [ref=e138]: Senior Management
+                - generic [ref=e139]: 10+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e140] [cursor=pointer]
+              - generic [ref=e141]:
+                - button "📊 Analyse this posting" [ref=e142] [cursor=pointer]
+                - button "＋ Compare" [ref=e143] [cursor=pointer]
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - link "Analyst, Branch Customer Service Executive, Consumer Banking Group (2500004G)" [ref=e146] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/analyst-branch-customer-service-executive-consumer-banking-group-dbs-bank-e09cc29a1bafe2b101a333fc69812e3f
+                - generic [ref=e147]: 1 month ago
+              - paragraph [ref=e148]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e150]':
+                - generic [ref=e151]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e152]:
+                - generic [ref=e153]: S$3,300 - S$4,000 / month
+                - generic [ref=e154]: Permanent
+                - generic [ref=e155]: Junior Executive
+                - generic [ref=e156]: 2+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e157] [cursor=pointer]
+              - generic [ref=e158]:
+                - button "📊 Analyse this posting" [ref=e159] [cursor=pointer]
+                - button "＋ Compare" [ref=e160] [cursor=pointer]
+            - generic [ref=e161]:
+              - generic [ref=e162]:
+                - link "AVP, Corporate Sales & Solutioning Manager, Global Transaction Services, Institutional Banking Group (WD84100)" [ref=e163] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/avp-corporate-sales-solutioning-manager-global-transaction-services-institutional-banking-group-dbs-bank-4080f9f84bf18dd62e4f3dc0849928f8
+                - generic [ref=e164]: 4 days ago
+              - paragraph [ref=e165]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e167]':
+                - generic [ref=e168]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e169]:
+                - generic [ref=e170]: S$6,500 - S$11,700 / month
+                - generic [ref=e171]: Permanent, Full Time
+                - generic [ref=e172]: Senior Management
+                - generic [ref=e173]: 6+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e174] [cursor=pointer]
+              - generic [ref=e175]:
+                - button "📊 Analyse this posting" [ref=e176] [cursor=pointer]
+                - button "＋ Compare" [ref=e177] [cursor=pointer]
+            - generic [ref=e178]:
+              - generic [ref=e179]:
+                - link "VP, Corporate Sales & Solutioning Manager, Global Transaction Services, Institutional Banking Group (WD84100)" [ref=e180] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/vp-corporate-sales-solutioning-manager-global-transaction-services-institutional-banking-group-dbs-bank-a18062c7ea6f1cd5216c483b3548ef0a
+                - generic [ref=e181]: 5 days ago
+              - paragraph [ref=e182]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e184]':
+                - generic [ref=e185]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e186]:
+                - generic [ref=e187]: S$10,400 - S$18,700 / month
+                - generic [ref=e188]: Permanent, Full Time
+                - generic [ref=e189]: Senior Management
+                - generic [ref=e190]: 7+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e191] [cursor=pointer]
+              - generic [ref=e192]:
+                - button "📊 Analyse this posting" [ref=e193] [cursor=pointer]
+                - button "＋ Compare" [ref=e194] [cursor=pointer]
+            - generic [ref=e195]:
+              - generic [ref=e196]:
+                - link "Senior Vice President, Strategic Planning, Sustainability, Corporate Banking (WD82406)" [ref=e197] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-vice-president-strategic-planning-sustainability-corporate-banking-dbs-bank-158515f124f3ad916727eef4a60c3de8
+                - generic [ref=e198]: 2 months ago
+              - paragraph [ref=e199]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e201]':
+                - generic [ref=e202]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e203]:
+                - generic [ref=e204]: S$15,000 - S$27,000 / month
+                - generic [ref=e205]: Permanent, Full Time
+                - generic [ref=e206]: Senior Management
+                - generic [ref=e207]: 15+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e208] [cursor=pointer]
+              - generic [ref=e209]:
+                - button "📊 Analyse this posting" [ref=e210] [cursor=pointer]
+                - button "＋ Compare" [ref=e211] [cursor=pointer]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - link "Associate, GenAI Business Analyst, Group Operations Capability Centre (GOCC), Group COO (WD84996)" [ref=e214] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-genai-business-analyst-group-operations-capability-centre-group-coo-dbs-bank-eb637552414186595f867c412e78fcc3
+                - generic [ref=e215]: 3 weeks ago
+              - paragraph [ref=e216]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e218]':
+                - generic [ref=e219]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e220]:
+                - generic [ref=e221]: S$4,000 - S$7,200 / month
+                - generic [ref=e222]: Permanent
+                - generic [ref=e223]: Executive
+                - generic [ref=e224]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e225] [cursor=pointer]
+              - generic [ref=e226]:
+                - button "📊 Analyse this posting" [ref=e227] [cursor=pointer]
+                - button "＋ Compare" [ref=e228] [cursor=pointer]
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - link "Senior Associate, GenAI Business Analyst, Group Operations Capability Centre (GOCC), Group COO (WD84996)" [ref=e231] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-genai-business-analyst-group-operations-capability-centre-group-coo-dbs-bank-453838695f42f4aae5bcaea4e2c3c8fe
+                - generic [ref=e232]: 3 weeks ago
+              - paragraph [ref=e233]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e235]':
+                - generic [ref=e236]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e237]:
+                - generic [ref=e238]: S$5,000 - S$9,000 / month
+                - generic [ref=e239]: Permanent
+                - generic [ref=e240]: Senior Executive
+                - generic [ref=e241]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e242] [cursor=pointer]
+              - generic [ref=e243]:
+                - button "📊 Analyse this posting" [ref=e244] [cursor=pointer]
+                - button "＋ Compare" [ref=e245] [cursor=pointer]
+            - generic [ref=e246]:
+              - generic [ref=e247]:
+                - link "Associate, Trade Finance Operations Specialist, IBG Operations (IBGO), Group COO (WD84764 )" [ref=e248] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-trade-finance-operations-specialist-ibg-operations-group-coo-dbs-bank-cf77a7b0da09095bd4c049ec602c82c4
+                - generic [ref=e249]: 3 weeks ago
+              - paragraph [ref=e250]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e252]':
+                - generic [ref=e253]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e254]:
+                - generic [ref=e255]: S$4,000 - S$7,200 / month
+                - generic [ref=e256]: Permanent, Full Time
+                - generic [ref=e257]: Executive
+                - generic [ref=e258]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e259] [cursor=pointer]
+              - generic [ref=e260]:
+                - button "📊 Analyse this posting" [ref=e261] [cursor=pointer]
+                - button "＋ Compare" [ref=e262] [cursor=pointer]
+            - generic [ref=e263]:
+              - generic [ref=e264]:
+                - link "Analyst, Syndicated & Commercial Lending Operations Specialist, IBG Operations (IBGO), Group COO (WD85077)" [ref=e265] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/analyst-syndicated-commercial-lending-operations-specialist-ibg-operations-group-coo-dbs-bank-46991b625e1dc4d28ed1e00506c0990b
+                - generic [ref=e266]: Yesterday
+              - paragraph [ref=e267]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e269]':
+                - generic [ref=e270]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e271]:
+                - generic [ref=e272]: S$3,000 - S$5,400 / month
+                - generic [ref=e273]: Permanent, Full Time
+                - generic [ref=e274]: Executive
+                - generic [ref=e275]: 2+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e276] [cursor=pointer]
+              - generic [ref=e277]:
+                - button "📊 Analyse this posting" [ref=e278] [cursor=pointer]
+                - button "＋ Compare" [ref=e279] [cursor=pointer]
+            - generic [ref=e280]:
+              - generic [ref=e281]:
+                - link "Senior Associate, Fund Accountant, Securities & Fiduciary Services Operations (SFSO), IBG Operations (IBGO), Group COO (WD85388)" [ref=e282] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-fund-accountant-securities-fiduciary-services-operations-ibg-operations-group-coo-dbs-bank-90c8cca83ad61741983044b620f58d20
+                - generic [ref=e283]: Yesterday
+              - paragraph [ref=e284]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e286]':
+                - generic [ref=e287]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e288]:
+                - generic [ref=e289]: S$5,000 - S$9,000 / month
+                - generic [ref=e290]: Permanent
+                - generic [ref=e291]: Senior Executive
+                - generic [ref=e292]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e293] [cursor=pointer]
+              - generic [ref=e294]:
+                - button "📊 Analyse this posting" [ref=e295] [cursor=pointer]
+                - button "＋ Compare" [ref=e296] [cursor=pointer]
+            - generic [ref=e297]:
+              - generic [ref=e298]:
+                - link "Associate, Fund Accountant, Securities & Fiduciary Services Operations (SFSO), IBG Operations (IBGO), Group COO (WD85388)" [ref=e299] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-fund-accountant-securities-fiduciary-services-operations-ibg-operations-group-coo-dbs-bank-407f252bf4b938c79e35dcd55aad336a
+                - generic [ref=e300]: Yesterday
+              - paragraph [ref=e301]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e303]':
+                - generic [ref=e304]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e305]:
+                - generic [ref=e306]: S$4,000 - S$7,200 / month
+                - generic [ref=e307]: Permanent
+                - generic [ref=e308]: Executive
+                - generic [ref=e309]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e310] [cursor=pointer]
+              - generic [ref=e311]:
+                - button "📊 Analyse this posting" [ref=e312] [cursor=pointer]
+                - button "＋ Compare" [ref=e313] [cursor=pointer]
+            - generic [ref=e314]:
+              - generic [ref=e315]:
+                - link "Senior Associate, Investment Operations Specialist (Settlement & Reconciliation), Global Financial Markets Operations (GFMO), Group COO (WD85336)" [ref=e316] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-investment-operations-specialist-global-financial-markets-operations-group-coo-dbs-bank-a8cec0ca1f482163b42012d81b61cc72
+                - generic [ref=e317]: 5 days ago
+              - paragraph [ref=e318]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e320]':
+                - generic [ref=e321]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e322]:
+                - generic [ref=e323]: S$5,000 - S$9,000 / month
+                - generic [ref=e324]: Permanent, Full Time
+                - generic [ref=e325]: Senior Executive
+                - generic [ref=e326]: 5+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e327] [cursor=pointer]
+              - generic [ref=e328]:
+                - button "📊 Analyse this posting" [ref=e329] [cursor=pointer]
+                - button "＋ Compare" [ref=e330] [cursor=pointer]
+            - generic [ref=e331]:
+              - generic [ref=e332]:
+                - link "AVP, Investment Operations Specialist (Settlement & Reconciliation), Global Financial Markets Operations (GFMO), Group COO (WD85336)" [ref=e333] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/avp-investment-operations-specialist-global-financial-markets-operations-group-coo-dbs-bank-9c71fcc30b3580bb45369058411c051f
+                - generic [ref=e334]: 5 days ago
+              - paragraph [ref=e335]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e337]':
+                - generic [ref=e338]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e339]:
+                - generic [ref=e340]: S$6,500 - S$11,700 / month
+                - generic [ref=e341]: Permanent, Full Time
+                - generic [ref=e342]: Senior Management
+                - generic [ref=e343]: 6+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e344] [cursor=pointer]
+              - generic [ref=e345]:
+                - button "📊 Analyse this posting" [ref=e346] [cursor=pointer]
+                - button "＋ Compare" [ref=e347] [cursor=pointer]
+            - generic [ref=e348]:
+              - generic [ref=e349]:
+                - link "VP, Senior Network Engineer (WD82596)" [ref=e350] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/information-technology/vp-senior-network-engineer-dbs-bank-f8d879d89c4fa38a4de2b241e59792d7
+                - generic [ref=e351]: 5 days ago
+              - paragraph [ref=e352]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e354]':
+                - generic [ref=e355]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e356]:
+                - generic [ref=e357]: S$12,000 - S$17,000 / month
+                - generic [ref=e358]: Permanent
+                - generic [ref=e359]: Manager
+                - generic [ref=e360]: 10+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e361] [cursor=pointer]
+              - generic [ref=e362]:
+                - button "📊 Analyse this posting" [ref=e363] [cursor=pointer]
+                - button "＋ Compare" [ref=e364] [cursor=pointer]
+            - generic [ref=e365]:
+              - generic [ref=e366]:
+                - link "Associate, QA Analyst, Regional Cash Operations, IBG Operations, Group COO (WD85308)" [ref=e367] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-qa-analyst-regional-cash-operations-ibg-operations-group-coo-dbs-bank-7988da7826f0471e34a625f75c5126bb
+                - generic [ref=e368]: 1 week ago
+              - paragraph [ref=e369]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e371]':
+                - generic [ref=e372]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e373]:
+                - generic [ref=e374]: S$4,000 - S$7,200 / month
+                - generic [ref=e375]: Permanent
+                - generic [ref=e376]: Executive
+                - generic [ref=e377]: 2+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e378] [cursor=pointer]
+              - generic [ref=e379]:
+                - button "📊 Analyse this posting" [ref=e380] [cursor=pointer]
+                - button "＋ Compare" [ref=e381] [cursor=pointer]
+            - generic [ref=e382]:
+              - generic [ref=e383]:
+                - link "Analyst, QA Analyst, Regional Cash Operations, IBG Operations, Group COO (WD85308)" [ref=e384] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/analyst-qa-analyst-regional-cash-operations-ibg-operations-group-coo-dbs-bank-3d75df441a01441e6a120039be8ad5c8
+                - generic [ref=e385]: 1 week ago
+              - paragraph [ref=e386]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e388]':
+                - generic [ref=e389]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e390]:
+                - generic [ref=e391]: S$3,000 - S$5,400 / month
+                - generic [ref=e392]: Permanent
+                - generic [ref=e393]: Executive
+                - generic [ref=e394]: 2+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e395] [cursor=pointer]
+              - generic [ref=e396]:
+                - button "📊 Analyse this posting" [ref=e397] [cursor=pointer]
+                - button "＋ Compare" [ref=e398] [cursor=pointer]
+            - generic [ref=e399]:
+              - generic [ref=e400]:
+                - link "VP, Team Lead - Structured Trade Operations, Institutional Banking Group Operations (IBGO), Group COO (WD83150)" [ref=e401] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/vp-team-lead-structured-trade-operations-institutional-banking-group-operations-group-coo-dbs-bank-a4b54aca1dc27e9dbe2e01ef8ae7628e
+                - generic [ref=e402]: 2 months ago
+              - paragraph [ref=e403]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e405]':
+                - generic [ref=e406]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e407]:
+                - generic [ref=e408]: S$10,400 - S$18,700 / month
+                - generic [ref=e409]: Permanent, Full Time
+                - generic [ref=e410]: Senior Management
+                - generic [ref=e411]: 10+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e412] [cursor=pointer]
+              - generic [ref=e413]:
+                - button "📊 Analyse this posting" [ref=e414] [cursor=pointer]
+                - button "＋ Compare" [ref=e415] [cursor=pointer]
+            - generic [ref=e416]:
+              - generic [ref=e417]:
+                - link "AVP, Network Infrastructure Specialist (WD85484 )" [ref=e418] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/avp-network-infrastructure-specialist-dbs-bank-4d68e025b4648921b6a74598571bd5bb
+                - generic [ref=e419]: 1 week ago
+              - paragraph [ref=e420]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e422]':
+                - generic [ref=e423]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e424]:
+                - generic [ref=e425]: S$6,500 - S$11,700 / month
+                - generic [ref=e426]: Permanent
+                - generic [ref=e427]: Senior Management
+                - generic [ref=e428]: 6+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e429] [cursor=pointer]
+              - generic [ref=e430]:
+                - button "📊 Analyse this posting" [ref=e431] [cursor=pointer]
+                - button "＋ Compare" [ref=e432] [cursor=pointer]
+            - generic [ref=e433]:
+              - generic [ref=e434]:
+                - link "Wealth Planning Manager, Consumer Banking Group (26000002)" [ref=e435] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/wealth-planning-manager-consumer-banking-group-dbs-bank-c642ff2c81d744b0ad182c73d48b91cf
+                - generic [ref=e436]: 2 months ago
+              - paragraph [ref=e437]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e439]':
+                - generic [ref=e440]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e441]:
+                - generic [ref=e442]: S$3,000 - S$5,400 / month
+                - generic [ref=e443]: Permanent, Full Time
+                - generic [ref=e444]: Junior Executive
+              - button "▼ Show responsibilities & skills" [ref=e445] [cursor=pointer]
+              - generic [ref=e446]:
+                - button "📊 Analyse this posting" [ref=e447] [cursor=pointer]
+                - button "＋ Compare" [ref=e448] [cursor=pointer]
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - link "VP, Operational Risk Management, IBG Operations, Group COO (WD84826)" [ref=e451] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/vp-operational-risk-management-ibg-operations-group-coo-dbs-bank-5473c21f5acecadc8bb0cf350064ac6b
+                - generic [ref=e452]: 2 weeks ago
+              - paragraph [ref=e453]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e455]':
+                - generic [ref=e456]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e457]:
+                - generic [ref=e458]: S$10,400 - S$18,700 / month
+                - generic [ref=e459]: Permanent
+                - generic [ref=e460]: Senior Management
+                - generic [ref=e461]: 8+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e462] [cursor=pointer]
+              - generic [ref=e463]:
+                - button "📊 Analyse this posting" [ref=e464] [cursor=pointer]
+                - button "＋ Compare" [ref=e465] [cursor=pointer]
+            - generic [ref=e466]:
+              - generic [ref=e467]:
+                - link "AVP, Operational Risk Management, IBG Operations, Group COO (WD84826)" [ref=e468] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/avp-operational-risk-management-ibg-operations-group-coo-dbs-bank-7f1c9b5abfe0a75ff73899f3521e87d5
+                - generic [ref=e469]: 2 weeks ago
+              - paragraph [ref=e470]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e472]':
+                - generic [ref=e473]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e474]:
+                - generic [ref=e475]: S$6,500 - S$11,700 / month
+                - generic [ref=e476]: Permanent
+                - generic [ref=e477]: Senior Management
+                - generic [ref=e478]: 8+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e479] [cursor=pointer]
+              - generic [ref=e480]:
+                - button "📊 Analyse this posting" [ref=e481] [cursor=pointer]
+                - button "＋ Compare" [ref=e482] [cursor=pointer]
+            - generic [ref=e483]:
+              - generic [ref=e484]:
+                - link "VP/AVP, Technical Business Analyst (Avaloq), Wealth Management Technology, Group Technology" [ref=e485] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/information-technology/vpavp-technical-business-analyst-wealth-management-technology-group-technology-dbs-bank-39a4a1d2cc5ea9e16e642e14b99c99ca
+                - generic [ref=e486]: 3 months ago
+              - paragraph [ref=e487]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e489]':
+                - generic [ref=e490]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e491]:
+                - generic [ref=e492]: S$10,000 - S$20,000 / month
+                - generic [ref=e493]: Permanent
+                - generic [ref=e494]: Manager
+                - generic [ref=e495]: 5+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e496] [cursor=pointer]
+              - generic [ref=e497]:
+                - button "📊 Analyse this posting" [ref=e498] [cursor=pointer]
+                - button "＋ Compare" [ref=e499] [cursor=pointer]
+            - generic [ref=e500]:
+              - generic [ref=e501]:
+                - link "Associate, Digital Transformation (GenAI) Specialist, Group Operations Capability Centre (GOCC), Group COO (WD84939)" [ref=e502] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-digital-transformation-specialist-group-operations-capability-centre-group-coo-dbs-bank-c71bcefacc19db6a02b191c2859ee5db
+                - generic [ref=e503]: 3 weeks ago
+              - paragraph [ref=e504]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e506]':
+                - generic [ref=e507]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e508]:
+                - generic [ref=e509]: S$4,000 - S$7,200 / month
+                - generic [ref=e510]: Permanent
+                - generic [ref=e511]: Executive
+                - generic [ref=e512]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e513] [cursor=pointer]
+              - generic [ref=e514]:
+                - button "📊 Analyse this posting" [ref=e515] [cursor=pointer]
+                - button "＋ Compare" [ref=e516] [cursor=pointer]
+            - generic [ref=e517]:
+              - generic [ref=e518]:
+                - link "Senior Associate, Digital Transformation (GenAI) Specialist, Group Operations Capability Centre (GOCC), Group COO (WD84939)" [ref=e519] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-digital-transformation-specialist-group-operations-capability-centre-group-coo-dbs-bank-282fbbc683d919ca45afbc1b12c8714c
+                - generic [ref=e520]: 3 weeks ago
+              - paragraph [ref=e521]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e523]':
+                - generic [ref=e524]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e525]:
+                - generic [ref=e526]: S$5,000 - S$9,000 / month
+                - generic [ref=e527]: Permanent
+                - generic [ref=e528]: Senior Executive
+                - generic [ref=e529]: 5+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e530] [cursor=pointer]
+              - generic [ref=e531]:
+                - button "📊 Analyse this posting" [ref=e532] [cursor=pointer]
+                - button "＋ Compare" [ref=e533] [cursor=pointer]
+            - generic [ref=e534]:
+              - generic [ref=e535]:
+                - link "Associate, Strategic Initiatives Business Analyst, Group Operations Capability Centre (GOCC), Group COO (WD84916)" [ref=e536] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-strategic-initiatives-business-analyst-group-operations-capability-centre-group-coo-dbs-bank-aa2fa70780896527b115b5c4c17edb00
+                - generic [ref=e537]: 3 weeks ago
+              - paragraph [ref=e538]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e540]':
+                - generic [ref=e541]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e542]:
+                - generic [ref=e543]: S$4,000 - S$7,200 / month
+                - generic [ref=e544]: Permanent
+                - generic [ref=e545]: Executive
+                - generic [ref=e546]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e547] [cursor=pointer]
+              - generic [ref=e548]:
+                - button "📊 Analyse this posting" [ref=e549] [cursor=pointer]
+                - button "＋ Compare" [ref=e550] [cursor=pointer]
+            - generic [ref=e551]:
+              - generic [ref=e552]:
+                - link "Senior Associate, Strategic Initiatives Business Analyst, Group Operations Capability Centre (GOCC), Group COO (WD84916)" [ref=e553] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-strategic-initiatives-business-analyst-group-operations-capability-centre-group-coo-dbs-bank-8072a3574ed3f6b5f40f5b34f8269c83
+                - generic [ref=e554]: 3 weeks ago
+              - paragraph [ref=e555]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e557]':
+                - generic [ref=e558]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e559]:
+                - generic [ref=e560]: S$5,000 - S$9,000 / month
+                - generic [ref=e561]: Permanent
+                - generic [ref=e562]: Senior Executive
+                - generic [ref=e563]: 5+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e564] [cursor=pointer]
+              - generic [ref=e565]:
+                - button "📊 Analyse this posting" [ref=e566] [cursor=pointer]
+                - button "＋ Compare" [ref=e567] [cursor=pointer]
+            - generic [ref=e568]:
+              - generic [ref=e569]:
+                - link "Associate, Digital Transformation (IVR) Specialist, Group Operations Capability Centre (GOCC), Group COO (WD84767)" [ref=e570] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-digital-transformation-specialist-group-operations-capability-centre-group-coo-dbs-bank-47cb4c86396b56af685d98fedd3406e9
+                - generic [ref=e571]: 3 weeks ago
+              - paragraph [ref=e572]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e574]':
+                - generic [ref=e575]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e576]:
+                - generic [ref=e577]: S$4,000 - S$7,200 / month
+                - generic [ref=e578]: Permanent, Full Time
+                - generic [ref=e579]: Executive
+                - generic [ref=e580]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e581] [cursor=pointer]
+              - generic [ref=e582]:
+                - button "📊 Analyse this posting" [ref=e583] [cursor=pointer]
+                - button "＋ Compare" [ref=e584] [cursor=pointer]
+            - generic [ref=e585]:
+              - generic [ref=e586]:
+                - link "Senior Associate, Digital Transformation (IVR) Specialist, Group Operations Capability Centre (GOCC), Group COO (WD84767)" [ref=e587] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-associate-digital-transformation-specialist-group-operations-capability-centre-group-coo-dbs-bank-4afced835a705883abf58eaf3e38faf0
+                - generic [ref=e588]: 3 weeks ago
+              - paragraph [ref=e589]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e591]':
+                - generic [ref=e592]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e593]:
+                - generic [ref=e594]: S$5,000 - S$9,000 / month
+                - generic [ref=e595]: Permanent, Full Time
+                - generic [ref=e596]: Senior Executive
+                - generic [ref=e597]: 5+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e598] [cursor=pointer]
+              - generic [ref=e599]:
+                - button "📊 Analyse this posting" [ref=e600] [cursor=pointer]
+                - button "＋ Compare" [ref=e601] [cursor=pointer]
+            - generic [ref=e602]:
+              - generic [ref=e603]:
+                - link "VP, Release Manager, Core Banking Technology, Group Technology" [ref=e604] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/vp-release-manager-core-banking-technology-group-technology-dbs-bank-abdf220e6db7b71bcf6dd9104514cdad
+                - generic [ref=e605]: 3 months ago
+              - paragraph [ref=e606]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e608]':
+                - generic [ref=e609]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e610]:
+                - generic [ref=e611]: S$12,000 - S$17,000 / month
+                - generic [ref=e612]: Permanent
+                - generic [ref=e613]: Professional
+                - generic [ref=e614]: 12+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e615] [cursor=pointer]
+              - generic [ref=e616]:
+                - button "📊 Analyse this posting" [ref=e617] [cursor=pointer]
+                - button "＋ Compare" [ref=e618] [cursor=pointer]
+            - generic [ref=e619]:
+              - generic [ref=e620]:
+                - link "Associate, Custody Services (Digital Assets Settlement) Specialist, IBG Operations (IBGO), Group COO (WD84509)" [ref=e621] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/associate-custody-services-specialist-ibg-operations-group-coo-dbs-bank-ac44d7d4ceeff331520cea2ff1a9aa97
+                - generic [ref=e622]: 3 weeks ago
+              - paragraph [ref=e623]: DBS BANK LTD.
+              - 'generic "Source: MyCareersFuture" [ref=e625]':
+                - generic [ref=e626]: 🇸🇬
+                - text: MyCareersFuture
+              - generic [ref=e627]:
+                - generic [ref=e628]: S$4,000 - S$7,200 / month
+                - generic [ref=e629]: Permanent
+                - generic [ref=e630]: Executive
+                - generic [ref=e631]: 3+ yrs exp
+              - button "▼ Show responsibilities & skills" [ref=e632] [cursor=pointer]
+              - generic [ref=e633]:
+                - button "📊 Analyse this posting" [ref=e634] [cursor=pointer]
+                - button "＋ Compare" [ref=e635] [cursor=pointer]
+          - paragraph [ref=e636]: Company names and posting counts are verbatim from MyCareersFuture (polled 3 page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.

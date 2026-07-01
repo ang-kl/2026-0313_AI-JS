@@ -1,0 +1,92 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "Back to search" [ref=e7] [cursor=pointer]: ← Search
+        - generic [ref=e8]: Software Developer
+      - generic [ref=e9]:
+        - group "Graph view" [ref=e10]:
+          - button "Mind map" [pressed] [ref=e11] [cursor=pointer]
+          - button "Chain" [ref=e12] [cursor=pointer]
+          - button "Cards" [ref=e13] [cursor=pointer]
+        - generic [ref=e14]:
+          - button "Expand graph to fullscreen" [ref=e15] [cursor=pointer]: ⤢
+          - button "Float graph as a movable panel" [ref=e16] [cursor=pointer]: ▢
+          - button "Close graph to a small panel" [ref=e17] [cursor=pointer]: ×
+    - generic [ref=e19]:
+      - generic [ref=e20]: Mind map - Software Developer at the root; Occupation expands to SSOC → ISCO-08 (ILO) → AIOE. Tap a branch to collapse or expand. Deterministic, no LLM.
+      - generic [ref=e22]:
+        - img
+        - button "Key Responsibilities:" [ref=e24]:
+          - generic [ref=e26]: "Key Responsibilities:"
+        - button "Research, design, and develop computer software and applications to meet business and technical requirements." [ref=e28]:
+          - generic [ref=e30]: Research, design, and develop computer software and applicatio…
+        - button "Analyze user needs and translate them into software solutions using computer science, engineering, and mathematical principles." [ref=e32]:
+          - generic [ref=e34]: Analyze user needs and translate them into software solutions…
+        - button "Update, enhance, and optimize existing software to improve performance and functionality." [ref=e36]:
+          - generic [ref=e38]: Update, enhance, and optimize existing software to improve per…
+        - button "Develop and direct software testing and validation procedures to ensure quality and security." [ref=e40]:
+          - generic [ref=e42]: Develop and direct software testing and validation procedures…
+        - button "Collaborate to integrate hardware and software systems for seamless operation." [ref=e44]:
+          - generic [ref=e46]: Collaborate to integrate hardware and software systems for sea…
+        - button "Define software specifications and performance requirements for new and existing applications." [ref=e48]:
+          - generic [ref=e50]: Define software specifications and performance requirements fo…
+        - button "Stay updated with emerging technologies to continuously improve software development processes." [ref=e52]:
+          - generic [ref=e54]: Stay updated with emerging technologies to continuously improv…
+        - button "Responsibilities (8). Tap to collapse." [expanded] [ref=e56] [cursor=pointer]:
+          - generic [ref=e57]: ›
+          - generic [ref=e59]: Responsibilities (8)
+        - button "SSOC 25121. Software developer" [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: SSOC 25121
+            - generic [ref=e64]: Software developer
+        - button "Software developers. ISCO 2512" [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]: Software developers
+            - generic [ref=e69]: ISCO 2512
+        - button "ISCO-08 (ILO). Tap to collapse." [expanded] [ref=e71] [cursor=pointer]:
+          - generic [ref=e72]: ›
+          - generic [ref=e74]: ISCO-08 (ILO)
+        - button "AIOE 84/100. high AI-exposure" [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]: AIOE 84/100
+            - generic [ref=e79]: high AI-exposure
+        - button "Occupation. Tap to collapse." [expanded] [ref=e81] [cursor=pointer]:
+          - generic [ref=e82]: ›
+          - generic [ref=e84]: Occupation
+        - button "CSS" [ref=e86]:
+          - generic [ref=e88]: CSS
+        - button "Analytical Skills" [ref=e90]:
+          - generic [ref=e92]: Analytical Skills
+        - button "Hardware" [ref=e94]:
+          - generic [ref=e96]: Hardware
+        - button "Agile" [ref=e98]:
+          - generic [ref=e100]: Agile
+        - button "JavaScript" [ref=e102]:
+          - generic [ref=e104]: JavaScript
+        - button "Information Technology" [ref=e106]:
+          - generic [ref=e108]: Information Technology
+        - button "Systems Analysis" [ref=e110]:
+          - generic [ref=e112]: Systems Analysis
+        - button "SQL" [ref=e114]:
+          - generic [ref=e116]: SQL
+        - button "Python" [ref=e118]:
+          - generic [ref=e120]: Python
+        - button "Software Testing" [ref=e122]:
+          - generic [ref=e124]: Software Testing
+        - button "Java" [ref=e126]:
+          - generic [ref=e128]: Java
+        - button "C#" [ref=e130]:
+          - generic [ref=e132]: C#
+        - button "Skills (12). Tap to collapse." [expanded] [ref=e134] [cursor=pointer]:
+          - generic [ref=e135]: ›
+          - generic [ref=e137]: Skills (12)
+        - button "Software Developer. VINOVA PTE. LTD.. Tap to collapse." [expanded] [ref=e139] [cursor=pointer]:
+          - generic [ref=e140]: ›
+          - generic [ref=e141]:
+            - generic [ref=e142]: Software Developer
+            - generic [ref=e143]: VINOVA PTE. LTD.
+      - contentinfo [ref=e144]:
+        - generic [ref=e145]: "Deterministic: SSOC/ISCO - SingStat & ILO crosswalk; ESCO skills - EU ESCO; AIOE - Felten, Raj and Seamans 2021. No LLM. AI-assisted; human decides."

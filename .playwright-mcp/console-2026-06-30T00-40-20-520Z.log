@@ -1,0 +1,98 @@
+[    1661ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v3.takearoundabout.com/_vercel/insights/script.js:0
+[    1661ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/:0
+[    1662ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:805
+[  339710ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339745ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339758ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339776ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339794ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339811ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  339851ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  341648ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v3.takearoundabout.com/_vercel/insights/script.js:0
+[  341648ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/:0
+[  341648ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:805
+[  471928ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  471996ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472013ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472076ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472114ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472140ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472163ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  472186ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473006ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473006ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473023ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473047ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473064ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473081ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473098ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473126ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473144ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473160ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473178ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473199ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473216ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473793ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473806ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473867ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473891ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473908ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473948ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473966ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473982ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  473998ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474015ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474032ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474048ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474065ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474081ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474099ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474115ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474131ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474148ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474165ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474198ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  474999ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475010ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475047ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475062ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475088ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475105ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  475122ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478027ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478032ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478062ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478078ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478095ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478112ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478128ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478145ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478161ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478178ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478195ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478212ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478228ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478675ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478695ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478720ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  478758ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536825ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536871ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536886ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536904ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536943ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536961ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536977ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  536993ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537010ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537027ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537044ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537061ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537077ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537093ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537110ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537127ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  537144ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:36
+[  654131ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v3.takearoundabout.com/_vercel/insights/script.js:0
+[  654132ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/:0
+[  654136ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-B_j3eWK9.js:805

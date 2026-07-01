@@ -1,0 +1,87 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - textbox [active] [ref=e90]: Compliance Officer
+          - button "Search" [ref=e91] [cursor=pointer]
+        - generic [ref=e92]:
+          - paragraph [ref=e93]:
+            - text: 5 roles similar to
+            - generic [ref=e94]: "\"Compliance Officer\""
+          - paragraph [ref=e95]: "\"Compliance Officer\" is an alternative title - the preferred ESCO term is shown below."
+          - paragraph [ref=e96]: Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
+        - generic [ref=e97]:
+          - generic [ref=e98] [cursor=pointer]:
+            - paragraph [ref=e100]: Compliance Officer
+            - paragraph [ref=e101]:
+              - generic [ref=e102]: "ISCO-08: 3359 ·"
+              - text: Ensures an organization meets legal requirements, regulations, and internal policies across financial operatio...
+          - generic [ref=e103] [cursor=pointer]:
+            - generic [ref=e104]:
+              - paragraph [ref=e105]: Legal Compliance Officer
+              - generic [ref=e106]: alt label
+            - paragraph [ref=e107]:
+              - generic [ref=e108]: "ISCO-08: 3359 ·"
+              - text: Monitors and enforces adherence to laws, regulations, and corporate governance standards within a legal framew...
+          - generic [ref=e109] [cursor=pointer]:
+            - paragraph [ref=e111]: Quality Assurance Officer
+            - paragraph [ref=e112]:
+              - generic [ref=e113]: "ISCO-08: 3159 ·"
+              - text: Ensures products and processes meet established quality standards and regulatory compliance requirements.
+          - generic [ref=e114] [cursor=pointer]:
+            - paragraph [ref=e116]: Health and Safety Officer
+            - paragraph [ref=e117]:
+              - generic [ref=e118]: "ISCO-08: 3359 ·"
+              - text: Ensures workplace compliance with health, safety, and environmental regulations to protect workers and public.
+          - generic [ref=e119] [cursor=pointer]:
+            - paragraph [ref=e121]: Data Protection Officer
+            - paragraph [ref=e122]:
+              - generic [ref=e123]: "ISCO-08: 3359 ·"
+              - text: Oversees data privacy compliance, manages personal information protection, and ensures adherence to data prote...
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - paragraph [ref=e126]: Browse all roles
+            - button "Expand all" [ref=e127] [cursor=pointer]
+          - button "Finance and Banking 1 ▼" [ref=e129] [cursor=pointer]:
+            - generic [ref=e130]:
+              - generic [ref=e131]: Finance and Banking
+              - generic [ref=e132]: "1"
+            - generic [ref=e133]: ▼
+          - button "Legal and Compliance 1 ▼" [ref=e135] [cursor=pointer]:
+            - generic [ref=e136]:
+              - generic [ref=e137]: Legal and Compliance
+              - generic [ref=e138]: "1"
+            - generic [ref=e139]: ▼
+          - button "Manufacturing 1 ▼" [ref=e141] [cursor=pointer]:
+            - generic [ref=e142]:
+              - generic [ref=e143]: Manufacturing
+              - generic [ref=e144]: "1"
+            - generic [ref=e145]: ▼
+          - button "Occupational Health and Safety 1 ▼" [ref=e147] [cursor=pointer]:
+            - generic [ref=e148]:
+              - generic [ref=e149]: Occupational Health and Safety
+              - generic [ref=e150]: "1"
+            - generic [ref=e151]: ▼
+          - button "Technology 1 ▼" [ref=e153] [cursor=pointer]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: Technology
+              - generic [ref=e156]: "1"
+            - generic [ref=e157]: ▼

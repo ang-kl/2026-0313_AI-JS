@@ -1,0 +1,1027 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e163]:
+        - generic [ref=e164]:
+          - generic [ref=e166]:
+            - paragraph [ref=e167]: Navigation
+            - tree "Section navigation" [ref=e168]:
+              - treeitem "Understand - active" [expanded] [ref=e169]:
+                - button "Understand - active" [ref=e170] [cursor=pointer]:
+                  - generic [ref=e171]: "1"
+                  - generic [ref=e172]: Understand
+                  - generic [ref=e173]: "- active"
+                  - generic [ref=e174]: ▼
+                - group [ref=e175]:
+                  - treeitem "Why this role exists" [ref=e176] [cursor=pointer]:
+                    - generic [ref=e177]: Why this role exists
+                  - treeitem "Same job, other names" [ref=e178] [cursor=pointer]:
+                    - generic [ref=e179]: Same job, other names
+                  - treeitem "🕸 Role Graph" [ref=e180] [cursor=pointer]:
+                    - generic [ref=e181]: 🕸 Role Graph
+                  - treeitem "🌐 Career WikiGraph" [ref=e182] [cursor=pointer]:
+                    - generic [ref=e183]: 🌐 Career WikiGraph
+                  - treeitem "📝 Responsibilities" [ref=e536] [cursor=pointer]:
+                    - generic [ref=e537]: 📝 Responsibilities
+                  - treeitem "🧬 Job Anatomy" [ref=e981] [cursor=pointer]:
+                    - generic [ref=e982]: 🧬 Job Anatomy
+              - treeitem "Position" [ref=e184]:
+                - button "Position" [ref=e185] [cursor=pointer]:
+                  - generic [ref=e186]: "2"
+                  - generic [ref=e187]: Position
+                  - generic [ref=e188]: ▼
+              - treeitem "Become" [ref=e189]:
+                - button "Become" [ref=e190] [cursor=pointer]:
+                  - generic [ref=e191]: "3"
+                  - generic [ref=e192]: Become
+                  - generic [ref=e193]: ▼
+              - treeitem "AI Readiness" [ref=e194]:
+                - button "AI Readiness" [ref=e195] [cursor=pointer]:
+                  - generic [ref=e196]: "4"
+                  - generic [ref=e197]: AI Readiness
+                  - generic [ref=e198]: ▼
+              - treeitem "Arm" [ref=e199]:
+                - button "Arm" [ref=e200] [cursor=pointer]:
+                  - generic [ref=e201]: "5"
+                  - generic [ref=e202]: Arm
+                  - generic [ref=e203]: ▼
+            - button "New here? How to read this analysis" [ref=e205] [cursor=pointer]:
+              - generic [ref=e206]: 💡 New here? How to read this analysis
+              - generic [ref=e207]: ▼
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - heading "Compliance Officer" [level=2] [ref=e210]
+              - paragraph [ref=e211]: A professional who ensures an organisation adheres to laws, regulations, and internal policies across all operations.
+              - paragraph [ref=e212]:
+                - text: ESCO v1.2.1 · Professionals not elsewhere classified
+                - generic [ref=e213]:
+                  - text: ·
+                  - 'link "ISCO-08: 3359" [ref=e214] [cursor=pointer]':
+                    - /url: https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08
+              - button "＋ Start comparison with this role" [ref=e217] [cursor=pointer]
+            - generic "What this means for you - plain-language summary" [ref=e218]:
+              - generic [ref=e219]:
+                - paragraph [ref=e220]: What this means for you
+                - generic [ref=e221]: assembled from the reads on this page
+              - paragraph [ref=e983]:
+                - text: AI mainly assists here; your judgment leads on every decision.
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e984]:
+                  - generic [ref=e985]: ~
+                  - text: AI estimate
+                - generic [ref=e986]: (15 of 24 duties classified as AI-assisted)
+              - paragraph [ref=e222]:
+                - text: Your edge is the
+                - strong [ref=e223]: 2 human-led skills
+                - text: AI cannot hold
+                - generic [ref=e224]:
+                  - text: ":"
+                  - emphasis [ref=e226]: Collect Tax
+                  - generic [ref=e227]:
+                    - text: ","
+                    - emphasis [ref=e228]: Law Enforcement
+                - text: .
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e229]:
+                  - generic [ref=e230]: ~
+                  - text: AI estimate
+              - note [ref=e231]: AI-assisted; human decides. Assembled from the reads on this page - no new number. Per-clause provenance shown inline above.
+            - generic [ref=e232]:
+              - heading "What is this role and why does it exist?" [level=2] [ref=e233]
+              - generic [ref=e235]:
+                - generic [ref=e236]:
+                  - generic [ref=e237]:
+                    - paragraph [ref=e238]: Organisational placement
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e239]:
+                      - generic [ref=e240]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e241]: typically sits within Legal and Compliance, or Risk and Regulatory Affairs
+                  - paragraph [ref=e242]: Typical department placement - illustrative, not derived from this specific posting.
+                - generic [ref=e538]:
+                  - generic [ref=e539]:
+                    - paragraph [ref=e540]: Why the organisation wants this role
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e541]:
+                      - generic [ref=e542]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e543]: Loading...
+                  - paragraph [ref=e544]: "AI-assisted; human decides. Source: this role's duty statements + department context. Confidence: indicative. Time-window: current posting only."
+                - button "🔎 Forensic Reversal - why this role exists ▼" [ref=e546] [cursor=pointer]:
+                  - generic [ref=e547]:
+                    - generic [ref=e548]: 🔎
+                    - generic [ref=e549]: Forensic Reversal - why this role exists
+                  - generic [ref=e550]: ▼
+                - paragraph [ref=e249]: "AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting."
+              - button "Same job, other names 12 sibling titles" [ref=e551] [cursor=pointer]:
+                - generic [ref=e253]:
+                  - generic [ref=e254]: 🏷️
+                  - generic [ref=e255]: Same job, other names
+                  - generic [ref=e256]: 12 sibling titles
+                - generic [ref=e257]: ▼
+              - generic [ref=e259]:
+                - generic [ref=e260]:
+                  - paragraph [ref=e261]: Role Graph - what Compliance Officer actually is, mapped end-to-end
+                  - paragraph [ref=e262]:
+                    - text: Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to
+                    - strong [ref=e263]: ESCO
+                    - text: skills - reverse-maps those to the
+                    - strong [ref=e264]: ISCO-08
+                    - text: occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready
+                    - strong [ref=e265]: role - occupation - skill - responsibility
+                    - text: graph and a skill-analysis card.
+                  - generic [ref=e266]:
+                    - generic [ref=e267]: 1. Source role
+                    - generic [ref=e268]: 2. Itemise statements
+                    - generic [ref=e269]: 3. Infer activities/skills
+                    - generic [ref=e270]: 4. Map → ESCO skills
+                    - generic [ref=e271]: 5. Reverse-map → ISCO-08
+                    - generic [ref=e272]: 6. Trading-score & rank
+                    - generic [ref=e273]: 7. Build graph + card
+                - group "Graph view" [ref=e274]:
+                  - button "Layered" [pressed] [ref=e275] [cursor=pointer]
+                  - button "Knowledge graph" [ref=e276] [cursor=pointer]
+                - paragraph [ref=e554]: Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…
+              - generic [ref=e281]:
+                - generic [ref=e282]:
+                  - generic [ref=e283]:
+                    - generic [ref=e284]:
+                      - paragraph [ref=e285]: Career WikiGraph
+                      - heading "Compliance Officer" [level=2] [ref=e286]
+                    - generic [ref=e287]:
+                      - generic [ref=e288]: ✓ computed
+                      - generic [ref=e289]: ◐ derived
+                  - paragraph [ref=e290]: One centre, tap a bubble to dive in - the path shrinks into a trail at the top. Tap the trail to go back.
+                - tablist "Switch view lens" [ref=e291]:
+                  - tab "Candidate view - Seven-step career journey wired to engine output" [selected] [ref=e292] [cursor=pointer]: Candidate view
+                  - 'tab "Organisation view - Value-stream perspective: value stream, capability map, future state" [ref=e293] [cursor=pointer]': Organisation view
+                - generic [ref=e294]:
+                  - button "Hide Candidate Brief" [expanded] [ref=e296] [cursor=pointer]
+                  - generic "Candidate Brief - printable one-pager" [ref=e298]:
+                    - generic [ref=e299]:
+                      - generic [ref=e300]:
+                        - paragraph [ref=e301]: Candidate Brief
+                        - heading "Compliance Officer" [level=3] [ref=e302]
+                      - button "Print or save Candidate Brief as PDF" [ref=e303] [cursor=pointer]: Print / save as PDF
+                    - generic [ref=e304]:
+                      - generic [ref=e305]: AI-readiness
+                      - generic [ref=e306]:
+                        - text: Resilience
+                        - strong [ref=e987]: 61/100
+                        - text: (higher = more human-led) - automatability now
+                        - strong [ref=e988]: 38/100
+                        - generic [ref=e989]:
+                          - generic [ref=e990]: ✓
+                          - text: computed
+                    - generic [ref=e308]:
+                      - generic [ref=e309]: Your edge
+                      - generic [ref=e310]:
+                        - text: Collect Tax, Law Enforcement - the Human-Led core AI cannot own
+                        - generic [ref=e311]:
+                          - generic [ref=e312]: ◐
+                          - text: derived
+                    - generic [ref=e313]:
+                      - generic [ref=e314]: Build next
+                      - generic [ref=e316]: not enough evidence (Foundation plan not loaded (select a persona on the result page))
+                    - generic [ref=e317]:
+                      - generic [ref=e318]: Next move
+                      - generic [ref=e319]:
+                        - strong [ref=e320]: Compliance Manager
+                        - text: "- Lead compliance team, set policies, report to board committees"
+                        - generic [ref=e321]:
+                          - generic [ref=e322]: ~
+                          - text: AI estimate
+                    - generic [ref=e323]:
+                      - generic [ref=e324]: Crossover
+                      - generic [ref=e325]:
+                        - strong [ref=e326]: Risk & Compliance Analyst
+                        - text: via Financial transaction monitoring and regulatory assessment
+                        - generic [ref=e327]:
+                          - generic [ref=e328]: ~
+                          - text: AI estimate
+                    - generic [ref=e555]:
+                      - generic [ref=e556]: Demand sample
+                      - generic [ref=e557]:
+                        - text: 12 live SG postings sampled
+                        - generic [ref=e558]:
+                          - generic [ref=e559]: ◐
+                          - text: derived
+                    - generic [ref=e329]:
+                      - strong [ref=e330]: AI-assisted; human decides.
+                      - text: "Source: computed from live SG role data (ESCO / ISCO / MCF) - Confidence: varies per row (see badge) - Time-window: current session. Build your proof, then re-read."
+                  - generic [ref=e331]:
+                    - paragraph [ref=e332]: Candidate guidance
+                    - paragraph [ref=e333]: A guided read chained from your v3 result panels - every step pulls live engine output
+                  - generic [ref=e334]:
+                    - generic [ref=e335]:
+                      - generic [ref=e336]: "1"
+                      - heading "What this role really is (Job Anatomy)" [level=4] [ref=e337]
+                    - generic [ref=e991]:
+                      - generic [ref=e992]:
+                        - generic [ref=e993]: Work-layer mix
+                        - generic [ref=e994]:
+                          - generic [ref=e995]: ✓
+                          - text: computed
+                      - generic [ref=e996]:
+                        - generic "Activity 55%" [ref=e997]
+                        - generic "Coordination 3%" [ref=e998]
+                        - generic "Accountability 24%" [ref=e999]
+                        - generic "Relational 13%" [ref=e1000]
+                        - generic "Judgment 6%" [ref=e1001]
+                      - generic [ref=e1002]:
+                        - generic [ref=e1003]: Activity 55%
+                        - generic [ref=e1004]: Coordination 3%
+                        - generic [ref=e1005]: Accountability 24%
+                        - generic [ref=e1006]: Relational 13%
+                        - generic [ref=e1007]: Judgment 6%
+                      - generic [ref=e1008]:
+                        - generic [ref=e1009]: 61/100
+                        - generic [ref=e1010]: AI-resilience score (higher = more human-led)
+                        - generic [ref=e1011]:
+                          - generic [ref=e1012]: ✓
+                          - text: computed
+                  - generic [ref=e342]:
+                    - generic [ref=e343]:
+                      - generic [ref=e344]: "2"
+                      - heading "What it asks for, by AI level (Skill Analysis)" [level=4] [ref=e345]
+                    - generic [ref=e347]:
+                      - generic [ref=e348]:
+                        - generic [ref=e349]: 17 skills classified
+                        - generic [ref=e350]:
+                          - generic [ref=e351]: ✓
+                          - text: computed
+                      - generic [ref=e352]:
+                        - generic [ref=e353]:
+                          - generic [ref=e354]: Human-Led
+                          - generic [ref=e355]: (2)
+                        - generic [ref=e356]:
+                          - generic [ref=e357]: Collect Tax
+                          - generic [ref=e358]: Law Enforcement
+                      - generic [ref=e359]:
+                        - generic [ref=e360]:
+                          - generic [ref=e361]: AI-Assisted
+                          - generic [ref=e362]: (4)
+                        - generic [ref=e363]:
+                          - generic [ref=e364]: Insolvency Law
+                          - generic [ref=e365]: Handle Financial Disputes
+                          - generic [ref=e366]: Tax Legislation
+                          - generic [ref=e367]: Advise on Tax Policy
+                      - generic [ref=e368]:
+                        - generic [ref=e369]:
+                          - generic [ref=e370]: AI-Augmented
+                          - generic [ref=e371]: (7)
+                        - generic [ref=e372]:
+                          - generic [ref=e373]: Handle Financial Transactions
+                          - generic [ref=e374]: Debt Collection Techniques
+                          - generic [ref=e375]: Inform on Fiscal Duties
+                          - generic [ref=e376]: Assess Seizable Goods
+                          - generic [ref=e377]: Respond to Enquiries
+                          - generic [ref=e378]: Assess Debtor's Financial Situation
+                          - generic [ref=e379]: Debt Classification
+                      - generic [ref=e380]:
+                        - generic [ref=e381]:
+                          - generic [ref=e382]: Full Automation
+                          - generic [ref=e383]: (4)
+                        - generic [ref=e384]:
+                          - generic [ref=e385]: Inspect Tax Returns
+                          - generic [ref=e386]: Calculate Tax
+                          - generic [ref=e387]: Perform Debt Investigation
+                          - generic [ref=e388]: Inspect Taxation Documents
+                      - paragraph [ref=e389]: Build proof on the Human-Led skills first - they are your edge and the least automatable.
+                  - generic [ref=e390]:
+                    - generic [ref=e391]:
+                      - generic [ref=e392]: "3"
+                      - heading "Is the demand real (Demand Proof)" [level=4] [ref=e393]
+                    - generic [ref=e560]:
+                      - generic [ref=e561]:
+                        - generic [ref=e562]:
+                          - generic [ref=e563]: ◐
+                          - text: derived
+                        - generic [ref=e564]: 12 live SG postings sampled (MCF only; single-ad caveat applies under 2 ads)
+                      - generic [ref=e565]:
+                        - generic [ref=e566]:
+                          - generic [ref=e567]: "12"
+                          - text: Postings
+                        - generic [ref=e568]:
+                          - generic [ref=e569]: "4"
+                          - text: Within 9 days
+                        - generic [ref=e570]:
+                          - generic [ref=e571]: "9"
+                          - text: Within 30 days
+                      - generic [ref=e572]:
+                        - generic [ref=e573]:
+                          - generic [ref=e574]: $6,000
+                          - generic [ref=e575]:
+                            - text: P25 salary
+                            - generic [ref=e576]:
+                              - generic [ref=e577]: ◐
+                              - text: derived
+                        - generic [ref=e578]:
+                          - generic [ref=e579]: $6,300
+                          - generic [ref=e580]:
+                            - text: P50 salary
+                            - generic [ref=e581]:
+                              - generic [ref=e582]: ◐
+                              - text: derived
+                        - generic [ref=e583]:
+                          - generic [ref=e584]: $8,000
+                          - generic [ref=e585]:
+                            - text: P75 salary
+                            - generic [ref=e586]:
+                              - generic [ref=e587]: ◐
+                              - text: derived
+                      - generic [ref=e588]:
+                        - generic [ref=e589]: Active demand
+                        - generic [ref=e590]: (higher confidence)
+                        - generic [ref=e591]:
+                          - generic [ref=e592]: ◐
+                          - text: derived
+                  - generic [ref=e398]:
+                    - generic [ref=e399]:
+                      - generic [ref=e400]: "4"
+                      - heading "Your gaps and build plan (Foundation)" [level=4] [ref=e401]
+                    - generic [ref=e403]:
+                      - text: "Not enough evidence: Foundation plan not loaded - select a persona (Employees / Fresh Grad / Crossover) on the result page to generate it - withheld rather than invented."
+                      - generic [ref=e404]:
+                        - generic [ref=e405]: "?"
+                        - text: unverified
+                  - generic [ref=e406]:
+                    - generic [ref=e407]:
+                      - generic [ref=e408]: "5"
+                      - heading "The edge to aim for (stand where work is Human-Led)" [level=4] [ref=e409]
+                    - generic [ref=e411]:
+                      - paragraph [ref=e412]:
+                        - text: "Stand at the edge - these Human-Led skills are where AI cannot replace you:"
+                        - generic [ref=e413]:
+                          - generic [ref=e414]: ◐
+                          - text: derived
+                      - paragraph [ref=e415]: "Derivation rule: Human-Led skills (level = HUMAN) from the engine skill classification are the candidate's edge. This is a deterministic filter over computed skill levels, not LLM prose."
+                      - generic [ref=e416]:
+                        - generic [ref=e417]: Collect Tax
+                        - generic [ref=e418]: Law Enforcement
+                  - generic [ref=e419]:
+                    - generic [ref=e420]:
+                      - generic [ref=e421]: "6"
+                      - heading "Where you can go (Progression + Crossover)" [level=4] [ref=e422]
+                    - generic [ref=e424]:
+                      - generic [ref=e425]:
+                        - generic [ref=e426]:
+                          - generic [ref=e427]: Progression
+                          - generic [ref=e428]:
+                            - generic [ref=e429]: ~
+                            - text: AI estimate
+                        - generic [ref=e430]:
+                          - generic [ref=e431]: Compliance Manager
+                          - generic [ref=e432]: Head of Compliance
+                          - generic [ref=e433]: Risk and Compliance Manager
+                          - generic [ref=e434]: Regulatory Affairs Manager
+                      - generic [ref=e435]:
+                        - generic [ref=e436]:
+                          - generic [ref=e437]: Crossover
+                          - generic [ref=e438]:
+                            - generic [ref=e439]: ~
+                            - text: AI estimate
+                        - generic [ref=e440]:
+                          - generic [ref=e441]: Risk & Compliance Analyst
+                          - generic [ref=e442]: Credit Risk Analyst
+                          - generic [ref=e443]: Audit Associate
+                  - generic [ref=e444]:
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: "7"
+                      - heading "Your positioning + next move" [level=4] [ref=e447]
+                    - generic [ref=e449]:
+                      - generic [ref=e450]:
+                        - generic [ref=e451]: Next move (up)
+                        - generic [ref=e452]:
+                          - generic [ref=e453]: ~
+                          - text: AI estimate
+                      - generic [ref=e454]:
+                        - paragraph [ref=e455]: Compliance Manager
+                        - paragraph [ref=e456]: Lead compliance team, set policies, report to board committees
+                        - paragraph [ref=e457]: "Build: Team Leadership and Performance Management, Strategic Compliance Programme Design, Stakeholder Communication with C-Suite, Change Management in Regulated Environments"
+                      - paragraph [ref=e458]:
+                        - text: "Position yourself as: strong on Collect Tax + Law Enforcement - the human-led core that survives the AI shift."
+                        - generic [ref=e459]:
+                          - generic [ref=e460]: ◐
+                          - text: derived
+                  - paragraph [ref=e461]:
+                    - strong [ref=e462]: AI-assisted; human decides.
+                    - text: "Source: role data (ESCO / ISCO / MCF). Confidence: shown per chip. Time-window: current session."
+                - generic [ref=e463]:
+                  - paragraph [ref=e464]: Role ecosystem graph
+                  - tablist "Graph view mode" [ref=e465]:
+                    - tab "Focus view - Radial - one centre, tap to dive in" [ref=e466] [cursor=pointer]: Focus
+                    - tab "Neural view - Force-directed - the whole web at once" [selected] [ref=e467] [cursor=pointer]: Neural
+                  - button "Ecotone overlay - tint nodes by realm internal, edge, external - currently off" [ref=e468] [cursor=pointer]: Ecotone overlay off
+                - generic [ref=e593]:
+                  - generic [ref=e594]:
+                    - generic [ref=e595]: The whole ecosystem at once - drag a node, scroll to zoom, hover to trace its links
+                    - button "Zoom in" [ref=e596] [cursor=pointer]: +
+                    - button "Zoom out" [ref=e597] [cursor=pointer]: "-"
+                    - button "Reset graph view" [ref=e598] [cursor=pointer]: Reset
+                  - img "Career WikiGraph - neural view - the whole role ecosystem as a force-directed web; drag, zoom and hover to explore" [ref=e600]:
+                    - generic [ref=e601]:
+                      - button "Compliance Officer - role (hub) - press Enter to select" [pressed] [ref=e647] [cursor=pointer]:
+                        - generic: Compliance Officer
+                      - button "Liaison with MAS on regulatory matters, inspections, and compliance correspondence as primary contact. - skill / duty / detail - press Enter to select" [ref=e649] [cursor=pointer]
+                      - button "Lead fraud prevention, detection, and response processes including disputes and chargebacks. - skill / duty / detail - press Enter to select" [ref=e651] [cursor=pointer]
+                      - button "Oversee ACRA and statutory filings including incorporations, annual returns, and company profile updates. - skill / duty / detail - press Enter to select" [ref=e653] [cursor=pointer]
+                      - button "Perform periodic reviews of business activities, client files, and internal controls for compliance gaps. - skill / duty / detail - press Enter to select" [ref=e655] [cursor=pointer]
+                      - button "Maintain regulatory registers, statutory records, and board resolutions in accordance with company legislation. - skill / duty / detail - press Enter to select" [ref=e657] [cursor=pointer]
+                      - button "Deliver compliance training to management and staff to promote a culture of compliance and ethics. - skill / duty / detail - press Enter to select" [ref=e659] [cursor=pointer]
+                      - button "Coordinate with external auditors and regulators for independent reviews of compliance areas. - skill / duty / detail - press Enter to select" [ref=e661] [cursor=pointer]
+                      - button "Advise senior management and Board on emerging regulatory risks and risk-mitigating measures. - skill / duty / detail - press Enter to select" [ref=e663] [cursor=pointer]
+                      - button "Embed compliance and risk controls into system design through collaboration with engineering and product teams. - skill / duty / detail - press Enter to select" [ref=e665] [cursor=pointer]
+                      - button "Prepare and submit regulatory filings, returns, transaction reports, and incident notifications to authorities. - skill / duty / detail - press Enter to select" [ref=e667] [cursor=pointer]
+                      - button "Design and implement AML/CFT and KYC frameworks including customer due diligence and enhanced due diligence. - skill / duty / detail - press Enter to select" [ref=e669] [cursor=pointer]
+                      - button "Review suspicious transaction alerts and file Suspicious Transaction Reports with STRO when required. - skill / duty / detail - press Enter to select" [ref=e671] [cursor=pointer]
+                      - button "Conduct transaction monitoring and sanctions screening against watchlists and international sanctions regimes. - skill / duty / detail - press Enter to select" [ref=e673] [cursor=pointer]
+                      - button "Develop and implement compliance policies, procedures, and SOPs aligned with regulatory requirements. - skill / duty / detail - press Enter to select" [ref=e675] [cursor=pointer]
+                      - button "Conduct compliance monitoring, testing, and risk assessments to identify and mitigate control gaps. - skill / duty / detail - press Enter to select" [ref=e677] [cursor=pointer]
+                      - button "Provide compliance advisory to internal stakeholders on regulatory obligations and policy adherence. - skill / duty / detail - press Enter to select" [ref=e679] [cursor=pointer]
+                      - button "Review sales practices, marketing materials, and product documentation for regulatory compliance. - skill / duty / detail - press Enter to select" [ref=e681] [cursor=pointer]
+                      - button "Inform on Fiscal Duties - skill / duty / detail - press Enter to select" [ref=e683] [cursor=pointer]
+                      - button "Inspect Tax Returns - skill / duty / detail - press Enter to select" [ref=e685] [cursor=pointer]
+                      - button "Calculate Tax - skill / duty / detail - press Enter to select" [ref=e687] [cursor=pointer]
+                      - button "Debt Collection Techniques - skill / duty / detail - press Enter to select" [ref=e689] [cursor=pointer]
+                      - button "Assess Debtor's Financial Situation - skill / duty / detail - press Enter to select" [ref=e691] [cursor=pointer]
+                      - button "Law Enforcement - skill / duty / detail - press Enter to select" [ref=e693] [cursor=pointer]
+                      - button "Debt Classification - skill / duty / detail - press Enter to select" [ref=e695] [cursor=pointer]
+                      - button "Collect Tax - skill / duty / detail - press Enter to select" [ref=e697] [cursor=pointer]
+                      - button "Respond to Enquiries - skill / duty / detail - press Enter to select" [ref=e699] [cursor=pointer]
+                      - button "Insolvency Law - skill / duty / detail - press Enter to select" [ref=e701] [cursor=pointer]
+                      - button "Perform Debt Investigation - skill / duty / detail - press Enter to select" [ref=e703] [cursor=pointer]
+                      - button "Advise on Tax Policy - skill / duty / detail - press Enter to select" [ref=e705] [cursor=pointer]
+                      - button "Inspect Taxation Documents - skill / duty / detail - press Enter to select" [ref=e707] [cursor=pointer]
+                      - button "Assess Seizable Goods - skill / duty / detail - press Enter to select" [ref=e709] [cursor=pointer]
+                      - button "Tax Legislation - skill / duty / detail - press Enter to select" [ref=e711] [cursor=pointer]
+                      - button "Handle Financial Disputes - skill / duty / detail - press Enter to select" [ref=e713] [cursor=pointer]
+                      - button "Handle Financial Transactions - skill / duty / detail - press Enter to select" [ref=e715] [cursor=pointer]
+                      - button "tax compliance officer - occupation - press Enter to select" [ref=e717] [cursor=pointer]
+                      - button "STYL SOLUTIONS PTE. LTD. - organisation - press Enter to select" [ref=e719] [cursor=pointer]
+                  - generic [ref=e721]:
+                    - generic [ref=e722]:
+                      - generic [ref=e723]: "Shape = type:"
+                      - generic [ref=e724]:
+                        - img [ref=e725]
+                        - text: role
+                      - generic [ref=e727]:
+                        - img [ref=e728]
+                        - text: occupation
+                      - generic [ref=e730]:
+                        - img [ref=e731]
+                        - text: organisation
+                      - generic [ref=e733]:
+                        - img [ref=e734]
+                        - text: competitor
+                      - generic [ref=e736]:
+                        - img [ref=e737]
+                        - text: skill / detail
+                    - paragraph [ref=e739]:
+                      - strong [ref=e740]: Bigger + brighter
+                      - text: = more central; minor / supporting nodes are dimmed so the main structure reads. Colour = cluster layer. Hover a node to trace its links.
+                - generic [ref=e501]:
+                  - generic [ref=e502]:
+                    - generic [ref=e503]: role
+                    - generic [ref=e504]: ● from posting
+                  - heading "Compliance Officer" [level=3] [ref=e505]
+                  - paragraph [ref=e506]: "Confidence: high"
+                - generic [ref=e507]:
+                  - strong [ref=e508]: AI-assisted; human decides.
+                  - text: "Source: computed from role data (ESCO / ISCO / MCF) - Confidence: shown per node - Time-window: current session. Node size + spoke weight = how central the item is (major branches heavier, minor lighter); colour = cluster layer. Links appear only where evidence exists."
+              - generic [ref=e742]:
+                - generic [ref=e743]:
+                  - paragraph [ref=e744]: 📝 Responsibilities Analysis
+                  - paragraph [ref=e745]: Lead regulatory compliance, AML/KYC programmes, and operational risk management to protect the organisation against financial crime and regulatory breach.
+                  - paragraph [ref=e746]:
+                    - text: Extracted from
+                    - strong [ref=e747]: 24 live SG postings (MyCareersFuture + careers.gov.sg)
+                    - text: . AI exposure ratings are indicative - your context may differ.
+                - generic [ref=e748]:
+                  - button "📝 Responsibilities" [ref=e749] [cursor=pointer]
+                  - button "🗂 Categories" [ref=e750] [cursor=pointer]
+                  - button "⬆️ By Seniority" [ref=e751] [cursor=pointer]
+                  - button "🔄 Crossover Roles" [ref=e752] [cursor=pointer]
+                  - button "🏢 By Sector" [ref=e753] [cursor=pointer]
+                - generic [ref=e754]:
+                  - generic [ref=e755]:
+                    - generic [ref=e756]:
+                      - paragraph [ref=e757]: How AI touches these 17 responsibilities
+                      - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e758]:
+                        - generic [ref=e759]: ~
+                        - text: AI estimate
+                    - generic [ref=e765]:
+                      - generic [ref=e766]: 1 Full Automation
+                      - generic [ref=e767]: 13 AI-Augmented
+                      - generic [ref=e768]: 3 Human-Led
+                  - generic [ref=e769]:
+                    - generic [ref=e770]:
+                      - generic [ref=e771]: Human-Led
+                      - generic [ref=e772]: (3)
+                      - generic [ref=e773]: · Presence, judgement, or accountability keep these duties human-led.
+                    - generic [ref=e774]:
+                      - generic [ref=e777]:
+                        - generic [ref=e779]: ♦ Human-Led
+                        - generic [ref=e780]:
+                          - paragraph [ref=e781]: Liaison with MAS on regulatory matters, inspections, and compliance correspondence as primary contact.
+                          - generic [ref=e782]:
+                            - generic [ref=e783]: Stakeholder & Client
+                            - generic [ref=e784]: Core duty
+                      - generic [ref=e787]:
+                        - generic [ref=e789]: ♦ Human-Led
+                        - generic [ref=e790]:
+                          - paragraph [ref=e791]: Coordinate with external auditors and regulators for independent reviews of compliance areas.
+                          - generic [ref=e792]:
+                            - generic [ref=e793]: Stakeholder & Client
+                            - generic [ref=e794]: Occasional
+                      - generic [ref=e797]:
+                        - generic [ref=e799]: ♦ Human-Led
+                        - generic [ref=e800]:
+                          - paragraph [ref=e801]: Advise senior management and Board on emerging regulatory risks and risk-mitigating measures.
+                          - generic [ref=e802]:
+                            - generic [ref=e803]: Analysis & Reporting
+                            - generic [ref=e804]: Occasional
+                            - generic [ref=e805]: ↳ Tax Legislation
+                  - generic [ref=e806]:
+                    - generic [ref=e807]:
+                      - generic [ref=e808]: AI-Augmented
+                      - generic [ref=e809]: (13)
+                      - generic [ref=e810]: · AI markedly speeds these up; a human still directs and signs off.
+                    - generic [ref=e811]:
+                      - generic [ref=e814] [cursor=pointer]:
+                        - generic [ref=e816]: ~ AI-Augmented
+                        - generic [ref=e817]:
+                          - paragraph [ref=e818]: Prepare and submit regulatory filings, returns, transaction reports, and incident notifications to authorities.
+                          - generic [ref=e819]:
+                            - generic [ref=e820]: Compliance & Governance
+                            - generic [ref=e821]: Core duty
+                            - generic [ref=e822]: ↳ Tax Legislation
+                            - generic [ref=e823]: ▼ how AI applies
+                      - generic [ref=e826] [cursor=pointer]:
+                        - generic [ref=e828]: ~ AI-Augmented
+                        - generic [ref=e829]:
+                          - paragraph [ref=e830]: Design and implement AML/CFT and KYC frameworks including customer due diligence and enhanced due diligence.
+                          - generic [ref=e831]:
+                            - generic [ref=e832]: Compliance & Governance
+                            - generic [ref=e833]: Core duty
+                            - generic [ref=e834]: ▼ how AI applies
+                      - generic [ref=e837] [cursor=pointer]:
+                        - generic [ref=e839]: ~ AI-Augmented
+                        - generic [ref=e840]:
+                          - paragraph [ref=e841]: Review suspicious transaction alerts and file Suspicious Transaction Reports with STRO when required.
+                          - generic [ref=e842]:
+                            - generic [ref=e843]: Analysis & Reporting
+                            - generic [ref=e844]: Core duty
+                            - generic [ref=e845]: ↳ Perform Debt Investigation
+                            - generic [ref=e846]: ▼ how AI applies
+                      - generic [ref=e849] [cursor=pointer]:
+                        - generic [ref=e851]: ~ AI-Augmented
+                        - generic [ref=e852]:
+                          - paragraph [ref=e853]: Develop and implement compliance policies, procedures, and SOPs aligned with regulatory requirements.
+                          - generic [ref=e854]:
+                            - generic [ref=e855]: Compliance & Governance
+                            - generic [ref=e856]: Core duty
+                            - generic [ref=e857]: ↳ Tax Legislation
+                            - generic [ref=e858]: ▼ how AI applies
+                      - generic [ref=e861] [cursor=pointer]:
+                        - generic [ref=e863]: ~ AI-Augmented
+                        - generic [ref=e864]:
+                          - paragraph [ref=e865]: Conduct compliance monitoring, testing, and risk assessments to identify and mitigate control gaps.
+                          - generic [ref=e866]:
+                            - generic [ref=e867]: Analysis & Reporting
+                            - generic [ref=e868]: Common
+                            - generic [ref=e869]: ▼ how AI applies
+                      - generic [ref=e872] [cursor=pointer]:
+                        - generic [ref=e874]: ~ AI-Augmented
+                        - generic [ref=e875]:
+                          - paragraph [ref=e876]: Provide compliance advisory to internal stakeholders on regulatory obligations and policy adherence.
+                          - generic [ref=e877]:
+                            - generic [ref=e878]: Stakeholder & Client
+                            - generic [ref=e879]: Common
+                            - generic [ref=e880]: ↳ Tax Legislation
+                            - generic [ref=e881]: ▼ how AI applies
+                      - generic [ref=e884] [cursor=pointer]:
+                        - generic [ref=e886]: ~ AI-Augmented
+                        - generic [ref=e887]:
+                          - paragraph [ref=e888]: Review sales practices, marketing materials, and product documentation for regulatory compliance.
+                          - generic [ref=e889]:
+                            - generic [ref=e890]: Analysis & Reporting
+                            - generic [ref=e891]: Common
+                            - generic [ref=e892]: ↳ Tax Legislation
+                            - generic [ref=e893]: ▼ how AI applies
+                      - generic [ref=e896] [cursor=pointer]:
+                        - generic [ref=e898]: ~ AI-Augmented
+                        - generic [ref=e899]:
+                          - paragraph [ref=e900]: Lead fraud prevention, detection, and response processes including disputes and chargebacks.
+                          - generic [ref=e901]:
+                            - generic [ref=e902]: Delivery & Execution
+                            - generic [ref=e903]: Common
+                            - generic [ref=e904]: ↳ Law Enforcement
+                            - generic [ref=e905]: ▼ how AI applies
+                      - generic [ref=e908] [cursor=pointer]:
+                        - generic [ref=e910]: ~ AI-Augmented
+                        - generic [ref=e911]:
+                          - paragraph [ref=e912]: Oversee ACRA and statutory filings including incorporations, annual returns, and company profile updates.
+                          - generic [ref=e913]:
+                            - generic [ref=e914]: Compliance & Governance
+                            - generic [ref=e915]: Common
+                            - generic [ref=e916]: ▼ how AI applies
+                      - generic [ref=e919] [cursor=pointer]:
+                        - generic [ref=e921]: ~ AI-Augmented
+                        - generic [ref=e922]:
+                          - paragraph [ref=e923]: Perform periodic reviews of business activities, client files, and internal controls for compliance gaps.
+                          - generic [ref=e924]:
+                            - generic [ref=e925]: Analysis & Reporting
+                            - generic [ref=e926]: Common
+                            - generic [ref=e927]: ▼ how AI applies
+                      - generic [ref=e930] [cursor=pointer]:
+                        - generic [ref=e932]: ~ AI-Augmented
+                        - generic [ref=e933]:
+                          - paragraph [ref=e934]: Maintain regulatory registers, statutory records, and board resolutions in accordance with company legislation.
+                          - generic [ref=e935]:
+                            - generic [ref=e936]: Compliance & Governance
+                            - generic [ref=e937]: Occasional
+                            - generic [ref=e938]: ▼ how AI applies
+                      - generic [ref=e941] [cursor=pointer]:
+                        - generic [ref=e943]: ~ AI-Augmented
+                        - generic [ref=e944]:
+                          - paragraph [ref=e945]: Deliver compliance training to management and staff to promote a culture of compliance and ethics.
+                          - generic [ref=e946]:
+                            - generic [ref=e947]: People & Leadership
+                            - generic [ref=e948]: Occasional
+                            - generic [ref=e949]: ▼ how AI applies
+                      - generic [ref=e952] [cursor=pointer]:
+                        - generic [ref=e954]: ~ AI-Augmented
+                        - generic [ref=e955]:
+                          - paragraph [ref=e956]: Embed compliance and risk controls into system design through collaboration with engineering and product teams.
+                          - generic [ref=e957]:
+                            - generic [ref=e958]: Planning & Coordination
+                            - generic [ref=e959]: Occasional
+                            - generic [ref=e960]: ▼ how AI applies
+                  - generic [ref=e961]:
+                    - generic [ref=e962]:
+                      - generic [ref=e963]: Full Automation
+                      - generic [ref=e964]: (1)
+                      - generic [ref=e965]: · An AI agent can run these end-to-end today; the human reviews the outcome.
+                    - generic [ref=e969] [cursor=pointer]:
+                      - generic [ref=e971]: ⚡ Full Automation
+                      - generic [ref=e972]:
+                        - paragraph [ref=e973]: Conduct transaction monitoring and sanctions screening against watchlists and international sanctions regimes.
+                        - generic [ref=e974]:
+                          - generic [ref=e975]: Analysis & Reporting
+                          - generic [ref=e976]: Core duty
+                          - generic [ref=e977]: ▼ how AI applies
+                - paragraph [ref=e978]: "Based on live postings: Risk & Compliance Officer · Business Compliance Officer (Financial Services) · RQI Director / Corporate Secretarial & Compliance Officer · Senior Regulatory Compliance Officer · Compliance Officer - Client Due Diligence (Private Wealth) · AML/KYC Compliance Officer · Compliance Officer · Vice President - NAM Compliance officer - Compliance. Source: MyCareersFuture Singapore."
+              - generic [ref=e1014]:
+                - generic [ref=e1015]:
+                  - paragraph [ref=e1016]: Job Anatomy - what this role actually is
+                  - paragraph [ref=e1017]: Hands-on compliance operator embedding controls into financial crime detection systems.
+                  - paragraph [ref=e1018]: Across 12 live SG job ads - duty frequencies are real counts - work-layer & AI-exposure are classification labels, the scores are computed - not generated prose.
+                - generic [ref=e1019]:
+                  - paragraph [ref=e1020]:
+                    - button "Work-layer mixi" [ref=e1022]:
+                      - text: Work-layer mix
+                      - superscript [ref=e1023]: i
+                  - generic [ref=e1024]:
+                    - generic "Activity 55%" [ref=e1025]
+                    - generic "Coordination 3%" [ref=e1026]
+                    - generic "Accountability 24%" [ref=e1027]
+                    - generic "Relational 13%" [ref=e1028]
+                    - generic "Judgment 6%" [ref=e1029]
+                  - generic [ref=e1030]:
+                    - generic [ref=e1031]:
+                      - text: Activity
+                      - generic [ref=e1033]: 55%
+                    - generic [ref=e1034]:
+                      - text: Coordination
+                      - generic [ref=e1036]: 3%
+                    - generic [ref=e1037]:
+                      - text: Accountability
+                      - generic [ref=e1039]: 24%
+                    - generic [ref=e1040]:
+                      - text: Relational
+                      - generic [ref=e1042]: 13%
+                    - generic [ref=e1043]:
+                      - text: Judgment
+                      - generic [ref=e1045]: 6%
+                  - paragraph [ref=e1046]: Most of this role is hands-on production work today.
+                - generic [ref=e1047]:
+                  - paragraph [ref=e1048]: What the ads imply about the role's place in the org
+                  - paragraph [ref=e1049]: "~5+ years - supervises corporate secretarial staff - Singapore and South Asia Pacific - Singapore - Singapore and APAC markets - NAM SG / APAC - tools: AML/CFT systems, Sanctions screening tools, ACRA Bizfile, Adverse media review tools, AML transaction monitoring systems - works with: Business stakeholders, Compliance team, Internal stakeholders, MAS regulators, Senior management"
+                - generic [ref=e1050]:
+                  - generic [ref=e1051]:
+                    - paragraph [ref=e1052]: What this job really is
+                    - paragraph [ref=e1053]: Most of this role is running compliance checks, screening transactions, and filing regulatory returns—routine Activity work that AI is beginning to automate. But you also hold real Accountability for whether controls actually prevent harm, which no tool can fully own.
+                  - generic [ref=e1054]:
+                    - paragraph [ref=e1055]: What supervisors actually expect
+                    - paragraph [ref=e1056]: Management wants someone who can reliably execute compliance production work and own the governance rigor that regulators and boards expect. You are hired to translate MAS Notices into working controls, not just to tick boxes.
+                - generic [ref=e1057]:
+                  - paragraph [ref=e1058]: Duties - frequency - work layer - AI exposure now to ~2027
+                  - generic [ref=e1059]:
+                    - generic [ref=e1060]:
+                      - paragraph [ref=e1061]: Embed compliance and risk controls into system design
+                      - generic [ref=e1062]:
+                        - generic [ref=e1063]: Activity
+                        - generic [ref=e1064]: in 8/12 ads
+                    - generic [ref=e1065]:
+                      - generic [ref=e1066]: AI-Assisted
+                      - generic [ref=e1067]: →
+                      - generic [ref=e1068]: AI-Assisted
+                  - generic [ref=e1069]:
+                    - generic [ref=e1070]:
+                      - paragraph [ref=e1071]: Ensure full compliance with regulatory requirements and internal policies
+                      - generic [ref=e1072]:
+                        - generic [ref=e1073]: Accountability
+                        - generic [ref=e1074]: in 6/12 ads
+                        - generic [ref=e1075]: "- outcome / KPI"
+                    - generic [ref=e1076]:
+                      - generic [ref=e1077]: AI-Assisted
+                      - generic [ref=e1078]: →
+                      - generic [ref=e1079]: AI-Assisted
+                  - generic [ref=e1080]:
+                    - generic [ref=e1081]:
+                      - paragraph [ref=e1082]: Conduct regulatory checks and compliance monitoring
+                      - generic [ref=e1083]:
+                        - generic [ref=e1084]: Activity
+                        - generic [ref=e1085]: in 6/12 ads
+                    - generic [ref=e1086]:
+                      - generic [ref=e1087]: AI-Augmented
+                      - generic [ref=e1088]: ↗
+                      - generic [ref=e1089]: Full Automation
+                  - generic [ref=e1090]:
+                    - generic [ref=e1091]:
+                      - paragraph [ref=e1092]: Prepare and submit regulatory returns and transaction reports
+                      - generic [ref=e1093]:
+                        - generic [ref=e1094]: Activity
+                        - generic [ref=e1095]: in 6/12 ads
+                    - generic [ref=e1096]:
+                      - generic [ref=e1097]: AI-Augmented
+                      - generic [ref=e1098]: ↗
+                      - generic [ref=e1099]: Full Automation
+                  - generic [ref=e1100]:
+                    - generic [ref=e1101]:
+                      - paragraph [ref=e1102]: Compliance frameworks aligned with Payment Services Act
+                      - generic [ref=e1103]:
+                        - generic [ref=e1104]: Accountability
+                        - generic [ref=e1105]: in 4/12 ads
+                        - generic [ref=e1106]: "- outcome / KPI"
+                    - generic [ref=e1107]:
+                      - generic [ref=e1108]: AI-Assisted
+                      - generic [ref=e1109]: →
+                      - generic [ref=e1110]: AI-Assisted
+                  - generic [ref=e1111]:
+                    - generic [ref=e1112]:
+                      - paragraph [ref=e1113]: Support client onboarding and customer due diligence checks
+                      - generic [ref=e1114]:
+                        - generic [ref=e1115]: Activity
+                        - generic [ref=e1116]: in 4/12 ads
+                    - generic [ref=e1117]:
+                      - generic [ref=e1118]: AI-Augmented
+                      - generic [ref=e1119]: ↗
+                      - generic [ref=e1120]: Full Automation
+                  - generic [ref=e1121]:
+                    - generic [ref=e1122]:
+                      - paragraph [ref=e1123]: Approve sales practices and marketing materials for compliance
+                      - generic [ref=e1124]:
+                        - generic [ref=e1125]: Accountability
+                        - generic [ref=e1126]: in 3/12 ads
+                        - generic [ref=e1127]: "- owns / signs off"
+                    - generic [ref=e1128]:
+                      - generic [ref=e1129]: AI-Assisted
+                      - generic [ref=e1130]: →
+                      - generic [ref=e1131]: AI-Assisted
+                  - generic [ref=e1132]:
+                    - generic [ref=e1133]:
+                      - paragraph [ref=e1134]: Approves compliance policies and SOPs
+                      - generic [ref=e1135]:
+                        - generic [ref=e1136]: Accountability
+                        - generic [ref=e1137]: in 3/12 ads
+                        - generic [ref=e1138]: "- owns / signs off"
+                    - generic [ref=e1139]:
+                      - generic [ref=e1140]: AI-Assisted
+                      - generic [ref=e1141]: →
+                      - generic [ref=e1142]: AI-Assisted
+                  - generic [ref=e1143]:
+                    - generic [ref=e1144]:
+                      - paragraph [ref=e1145]: Develop and update compliance policies and procedures
+                      - generic [ref=e1146]:
+                        - generic [ref=e1147]: Activity
+                        - generic [ref=e1148]: in 3/12 ads
+                    - generic [ref=e1149]:
+                      - generic [ref=e1150]: AI-Assisted
+                      - generic [ref=e1151]: ↗
+                      - generic [ref=e1152]: AI-Augmented
+                  - generic [ref=e1153]:
+                    - generic [ref=e1154]:
+                      - paragraph [ref=e1155]: Escalate suspicious matters to senior compliance management
+                      - generic [ref=e1156]:
+                        - generic [ref=e1157]: Judgment
+                        - generic [ref=e1158]: in 3/12 ads
+                        - generic [ref=e1159]: "- owns / signs off"
+                    - generic [ref=e1160]:
+                      - generic [ref=e1161]: AI-Assisted
+                      - generic [ref=e1162]: →
+                      - generic [ref=e1163]: AI-Assisted
+                  - generic [ref=e1164]:
+                    - generic [ref=e1165]:
+                      - paragraph [ref=e1166]: Monitor and interpret changes in MAS Notices and guidelines
+                      - generic [ref=e1167]:
+                        - generic [ref=e1168]: Activity
+                        - generic [ref=e1169]: in 3/12 ads
+                    - generic [ref=e1170]:
+                      - generic [ref=e1171]: AI-Assisted
+                      - generic [ref=e1172]: ↗
+                      - generic [ref=e1173]: AI-Augmented
+                  - generic [ref=e1174]:
+                    - generic [ref=e1175]:
+                      - paragraph [ref=e1176]: Oversee compliance with Payment Services Act and safeguarding obligations
+                      - generic [ref=e1177]:
+                        - generic [ref=e1178]: Accountability
+                        - generic [ref=e1179]: in 3/12 ads
+                    - generic [ref=e1180]:
+                      - generic [ref=e1181]: AI-Assisted
+                      - generic [ref=e1182]: →
+                      - generic [ref=e1183]: AI-Assisted
+                  - generic [ref=e1184]:
+                    - generic [ref=e1185]:
+                      - paragraph [ref=e1186]: Provide compliance advice to Sales and Business Development teams
+                      - generic [ref=e1187]:
+                        - generic [ref=e1188]: Relational
+                        - generic [ref=e1189]: in 3/12 ads
+                    - generic [ref=e1190]:
+                      - generic [ref=e1191]: AI-Assisted
+                      - generic [ref=e1192]: →
+                      - generic [ref=e1193]: AI-Assisted
+                  - generic [ref=e1194]:
+                    - generic [ref=e1195]:
+                      - paragraph [ref=e1196]: Strong compliance culture and ethical conduct across organization
+                      - generic [ref=e1197]:
+                        - generic [ref=e1198]: Relational
+                        - generic [ref=e1199]: in 3/12 ads
+                        - generic [ref=e1200]: "- outcome / KPI"
+                    - generic [ref=e1201]:
+                      - generic [ref=e1202]: AI-Assisted
+                      - generic [ref=e1203]: →
+                      - generic [ref=e1204]: AI-Assisted
+                  - generic [ref=e1205]:
+                    - generic [ref=e1206]:
+                      - paragraph [ref=e1207]: Review sales practices, marketing materials, and client communications
+                      - generic [ref=e1208]:
+                        - generic [ref=e1209]: Activity
+                        - generic [ref=e1210]: in 3/12 ads
+                    - generic [ref=e1211]:
+                      - generic [ref=e1212]: AI-Augmented
+                      - generic [ref=e1213]: ↗
+                      - generic [ref=e1214]: Full Automation
+                  - generic [ref=e1215]:
+                    - generic [ref=e1216]:
+                      - paragraph [ref=e1217]: Review suspicious activities and file STRs with STRO
+                      - generic [ref=e1218]:
+                        - generic [ref=e1219]: Activity
+                        - generic [ref=e1220]: in 3/12 ads
+                    - generic [ref=e1221]:
+                      - generic [ref=e1222]: AI-Augmented
+                      - generic [ref=e1223]: →
+                      - generic [ref=e1224]: AI-Augmented
+                  - generic [ref=e1225]:
+                    - generic [ref=e1226]:
+                      - paragraph [ref=e1227]: Advise senior management and Board on regulatory risks
+                      - generic [ref=e1228]:
+                        - generic [ref=e1229]: Judgment
+                        - generic [ref=e1230]: in 2/12 ads
+                    - generic [ref=e1231]:
+                      - generic [ref=e1232]: AI-Assisted
+                      - generic [ref=e1233]: →
+                      - generic [ref=e1234]: AI-Assisted
+                  - generic [ref=e1235]:
+                    - generic [ref=e1236]:
+                      - paragraph [ref=e1237]: Lead MAS SPI licence application and regulatory engagement
+                      - generic [ref=e1238]:
+                        - generic [ref=e1239]: Coordination
+                        - generic [ref=e1240]: in 2/12 ads
+                    - generic [ref=e1241]:
+                      - generic [ref=e1242]: AI-Assisted
+                      - generic [ref=e1243]: →
+                      - generic [ref=e1244]: AI-Assisted
+                  - generic [ref=e1245]:
+                    - generic [ref=e1246]:
+                      - paragraph [ref=e1247]: Liaise with ACRA, IRAS, banks and professional service providers
+                      - generic [ref=e1248]:
+                        - generic [ref=e1249]: Relational
+                        - generic [ref=e1250]: in 2/12 ads
+                    - generic [ref=e1251]:
+                      - generic [ref=e1252]: AI-Assisted
+                      - generic [ref=e1253]: →
+                      - generic [ref=e1254]: AI-Assisted
+                  - generic [ref=e1255]:
+                    - generic [ref=e1256]:
+                      - paragraph [ref=e1257]: Liaison with MAS on regulatory matters, inspections, and correspondence
+                      - generic [ref=e1258]:
+                        - generic [ref=e1259]: Relational
+                        - generic [ref=e1260]: in 2/12 ads
+                    - generic [ref=e1261]:
+                      - generic [ref=e1262]: AI-Assisted
+                      - generic [ref=e1263]: →
+                      - generic [ref=e1264]: AI-Assisted
+                  - generic [ref=e1265]:
+                    - generic [ref=e1266]:
+                      - paragraph [ref=e1267]: Assess sanctions, PEP, adverse media findings and AML/CFT risk indicators
+                      - generic [ref=e1268]:
+                        - generic [ref=e1269]: Activity
+                        - generic [ref=e1270]: in 2/12 ads
+                    - generic [ref=e1271]:
+                      - generic [ref=e1272]: AI-Augmented
+                      - generic [ref=e1273]: ↗
+                      - generic [ref=e1274]: Full Automation
+                  - generic [ref=e1275]:
+                    - generic [ref=e1276]:
+                      - paragraph [ref=e1277]: Deliver compliance training to management and staff
+                      - generic [ref=e1278]:
+                        - generic [ref=e1279]: Activity
+                        - generic [ref=e1280]: in 2/12 ads
+                    - generic [ref=e1281]:
+                      - generic [ref=e1282]: AI-Augmented
+                      - generic [ref=e1283]: →
+                      - generic [ref=e1284]: AI-Augmented
+                  - generic [ref=e1285]:
+                    - generic [ref=e1286]:
+                      - paragraph [ref=e1287]: Develop onboarding and transaction risk scoring models
+                      - generic [ref=e1288]:
+                        - generic [ref=e1289]: Activity
+                        - generic [ref=e1290]: in 2/12 ads
+                    - generic [ref=e1291]:
+                      - generic [ref=e1292]: AI-Augmented
+                      - generic [ref=e1293]: ↗
+                      - generic [ref=e1294]: Full Automation
+                  - generic [ref=e1295]:
+                    - generic [ref=e1296]:
+                      - paragraph [ref=e1297]: Perform periodic reviews of business activities and client files
+                      - generic [ref=e1298]:
+                        - generic [ref=e1299]: Activity
+                        - generic [ref=e1300]: in 2/12 ads
+                    - generic [ref=e1301]:
+                      - generic [ref=e1302]: AI-Augmented
+                      - generic [ref=e1303]: ↗
+                      - generic [ref=e1304]: Full Automation
+                - generic [ref=e1305]:
+                  - paragraph [ref=e1306]: How to prepare - build the layers AI can't take
+                  - list [ref=e1307]:
+                    - listitem [ref=e1308]:
+                      - strong [ref=e1309]: Accountability
+                      - text: "- Core governance responsibility survives automation; judgment on control design and policy interpretation does not shift to AI.. Lead quarterly policy review sessions; document judgment calls on ambiguous regulatory situations.."
+                    - listitem [ref=e1310]:
+                      - strong [ref=e1311]: Judgment
+                      - text: "- Small layer now but critical—interpreting regulatory change and designing proportionate controls is inherently human.. Build expertise in MAS guidance interpretation; mentor junior staff on judgment, not just procedure.."
+                    - listitem [ref=e1312]:
+                      - strong [ref=e1313]: Relational
+                      - text: "- 13% today but rising in value as Activity tasks migrate to tools; stakeholder trust and internal influence matter more.. Deepen relationships with risk, legal, and business unit heads; become the compliance translator, not just checker.."
+            - note "How to read the provenance badges" [ref=e510]:
+              - generic [ref=e511]: "Badges, where shown:"
+              - generic [ref=e512]:
+                - generic "Taken verbatim from the live MyCareersFuture posting." [ref=e513]:
+                  - generic [ref=e514]: ●
+                  - text: from MyCareersFuture
+                - text: posting facts
+              - generic [ref=e515]:
+                - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e516]':
+                  - generic [ref=e517]: ✓
+                  - text: computed
+                - text: deterministic, reproducible
+              - generic [ref=e518]:
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e519]:
+                  - generic [ref=e520]: ~
+                  - text: AI estimate
+                - text: AI judgement, may vary
+              - generic [ref=e521]:
+                - 'generic "Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." [ref=e522]':
+                  - generic [ref=e523]: ◐
+                  - text: derived
+                - text: computed from the sampled ads
+        - button "Open the job advertisement" [ref=e979] [cursor=pointer]:
+          - generic [ref=e980]: 📄
+          - text: Job ad
+        - button "A note on how to use this ▼" [ref=e525] [cursor=pointer]:
+          - generic [ref=e526]: A note on how to use this
+          - generic [ref=e527]: ▼
+        - generic [ref=e529]:
+          - paragraph [ref=e530]: ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          - generic [ref=e531]:
+            - link "Share feedback" [ref=e532] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=e533] [cursor=pointer]
+            - button "Legal" [ref=e534] [cursor=pointer]
+            - link "Terms" [ref=e535] [cursor=pointer]:
+              - /url: /terms.html

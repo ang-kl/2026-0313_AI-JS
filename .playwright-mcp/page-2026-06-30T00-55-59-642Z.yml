@@ -1,0 +1,1722 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - button "New search" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: ←
+            - text: New search
+          - generic [ref=e112]:
+            - generic [ref=e113]: STEP 2 · SELECT EVIDENCE
+            - heading "Posting evidence for “data”" [level=2] [ref=e114]
+          - generic [ref=e115]:
+            - generic [ref=e116]: 80 of 80
+            - 'button "{ } OKF index" [ref=e117] [cursor=pointer]'
+        - generic [ref=e118]:
+          - textbox "Search postings" [ref=e119]:
+            - /placeholder: Search postings...
+          - 'button "Sort: Best match" [ref=e121] [cursor=pointer]':
+            - text: "Sort: Best match"
+            - generic [ref=e122]: ▼
+          - button "Sector" [ref=e124] [cursor=pointer]:
+            - text: Sector
+            - generic [ref=e125]: ▼
+          - button "Company" [ref=e127] [cursor=pointer]:
+            - text: Company
+            - generic [ref=e128]: ▼
+          - button "Department" [ref=e130] [cursor=pointer]:
+            - text: Department
+            - generic [ref=e131]: ▼
+          - button "Function" [ref=e133] [cursor=pointer]:
+            - text: Function
+            - generic [ref=e134]: ▼
+          - button "Experience" [ref=e136] [cursor=pointer]:
+            - text: Experience
+            - generic [ref=e137]: ▼
+          - button "Type of work" [ref=e139] [cursor=pointer]:
+            - text: Type of work
+            - generic [ref=e140]: ▼
+        - generic [ref=e141]:
+          - complementary [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]: INDEX · 80 OF 80
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]:
+                    - generic [ref=e148]: BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e149]: "1"
+                  - button "SM, Presales Consultant" [ref=e352] [cursor=pointer]:
+                    - generic [ref=e354]: SM, Presales Consultant
+                - generic [ref=e1608]:
+                  - generic [ref=e1609]:
+                    - generic [ref=e1610]: INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1611]: "36"
+                  - generic [ref=e1612]:
+                    - button "Data Architect S$10.5k" [ref=e1613] [cursor=pointer]:
+                      - generic [ref=e1615]: Data Architect
+                      - generic [ref=e1616]: S$10.5k
+                    - button "Head, AI Data Solutioning, AI Data Engineeri…" [ref=e1617] [cursor=pointer]:
+                      - generic [ref=e1619]: Head, AI Data Solutioning, AI Data Engineeri…
+                    - button "Principal Engineer" [ref=e1620] [cursor=pointer]:
+                      - generic [ref=e1622]: Principal Engineer
+                    - button "Lead Engineer/Engineer" [ref=e1623] [cursor=pointer]:
+                      - generic [ref=e1625]: Lead Engineer/Engineer
+                    - button "Data Engineer S$7.3k" [ref=e1626] [cursor=pointer]:
+                      - generic [ref=e1628]: Data Engineer
+                      - generic [ref=e1629]: S$7.3k
+                    - button "Data Engineer S$6k" [ref=e1630] [cursor=pointer]:
+                      - generic [ref=e1632]: Data Engineer
+                      - generic [ref=e1633]: S$6k
+                    - button "Data BAU Lead S$10k" [ref=e1634] [cursor=pointer]:
+                      - generic [ref=e1636]: Data BAU Lead
+                      - generic [ref=e1637]: S$10k
+                    - button "Data BAU Lead S$10k" [ref=e1638] [cursor=pointer]:
+                      - generic [ref=e1640]: Data BAU Lead
+                      - generic [ref=e1641]: S$10k
+                    - button "Data BAU Lead S$10k" [ref=e1642] [cursor=pointer]:
+                      - generic [ref=e1644]: Data BAU Lead
+                      - generic [ref=e1645]: S$10k
+                    - button "Data BAU Lead S$10k" [ref=e1646] [cursor=pointer]:
+                      - generic [ref=e1648]: Data BAU Lead
+                      - generic [ref=e1649]: S$10k
+                    - button "Senior Data Engineer S$7.3k" [ref=e1650] [cursor=pointer]:
+                      - generic [ref=e1652]: Senior Data Engineer
+                      - generic [ref=e1653]: S$7.3k
+                    - button "Senior Data Engineer S$9.7k" [ref=e1654] [cursor=pointer]:
+                      - generic [ref=e1656]: Senior Data Engineer
+                      - generic [ref=e1657]: S$9.7k
+                    - button "Data Engineer" [ref=e1658] [cursor=pointer]:
+                      - generic [ref=e1660]: Data Engineer
+                    - button "Senior Data Engineer S$8.7k" [ref=e1661] [cursor=pointer]:
+                      - generic [ref=e1663]: Senior Data Engineer
+                      - generic [ref=e1664]: S$8.7k
+                    - button "Software Engineer" [ref=e1665] [cursor=pointer]:
+                      - generic [ref=e1667]: Software Engineer
+                    - button "Database Administrator" [ref=e1668] [cursor=pointer]:
+                      - generic [ref=e1670]: Database Administrator
+                    - button "Executive" [ref=e1671] [cursor=pointer]:
+                      - generic [ref=e1673]: Executive
+                    - button "Data Engineer S$7.3k" [ref=e1674] [cursor=pointer]:
+                      - generic [ref=e1676]: Data Engineer
+                      - generic [ref=e1677]: S$7.3k
+                    - button "Success factor Data Architect S$21k" [ref=e1678] [cursor=pointer]:
+                      - generic [ref=e1680]: Success factor Data Architect
+                      - generic [ref=e1681]: S$21k
+                    - button "Senior Data Engineer S$5.8k" [ref=e1682] [cursor=pointer]:
+                      - generic [ref=e1684]: Senior Data Engineer
+                      - generic [ref=e1685]: S$5.8k
+                    - button "Senior Data Engineer S$19.5k" [ref=e1686] [cursor=pointer]:
+                      - generic [ref=e1688]: Senior Data Engineer
+                      - generic [ref=e1689]: S$19.5k
+                    - button "Reference Data Associate S$5.8k" [ref=e1690] [cursor=pointer]:
+                      - generic [ref=e1692]: Reference Data Associate
+                      - generic [ref=e1693]: S$5.8k
+                    - button "Reference Data Associate S$5.8k" [ref=e1694] [cursor=pointer]:
+                      - generic [ref=e1696]: Reference Data Associate
+                      - generic [ref=e1697]: S$5.8k
+                    - button "AI Data Architect S$9.3k" [ref=e1698] [cursor=pointer]:
+                      - generic [ref=e1700]: AI Data Architect
+                      - generic [ref=e1701]: S$9.3k
+                    - button "Data Engineer S$12.5k" [ref=e1702] [cursor=pointer]:
+                      - generic [ref=e1704]: Data Engineer
+                      - generic [ref=e1705]: S$12.5k
+                    - button "Data Engineer" [ref=e1706] [cursor=pointer]:
+                      - generic [ref=e1708]: Data Engineer
+                    - button "Data Engineers S$6k" [ref=e1709] [cursor=pointer]:
+                      - generic [ref=e1711]: Data Engineers
+                      - generic [ref=e1712]: S$6k
+                    - button "[CG] Manager / Assistant Manager (Industry D…" [ref=e1713] [cursor=pointer]:
+                      - generic [ref=e1715]: "[CG] Manager / Assistant Manager (Industry D…"
+                    - button "Data Architect S$12.5k" [ref=e1716] [cursor=pointer]:
+                      - generic [ref=e1718]: Data Architect
+                      - generic [ref=e1719]: S$12.5k
+                    - button "Senior / Data Engineer" [ref=e1720] [cursor=pointer]:
+                      - generic [ref=e1722]: Senior / Data Engineer
+                    - button "Snr Associate" [ref=e1723] [cursor=pointer]:
+                      - generic [ref=e1725]: Snr Associate
+                    - button "Data Engineer" [ref=e1726] [cursor=pointer]:
+                      - generic [ref=e1728]: Data Engineer
+                    - button "Data Engineer" [ref=e1729] [cursor=pointer]:
+                      - generic [ref=e1731]: Data Engineer
+                    - button "Data Engineer S$3.5k" [ref=e1732] [cursor=pointer]:
+                      - generic [ref=e1734]: Data Engineer
+                      - generic [ref=e1735]: S$3.5k
+                    - button "Junior Data Engineer S$4.8k" [ref=e1736] [cursor=pointer]:
+                      - generic [ref=e1738]: Junior Data Engineer
+                      - generic [ref=e1739]: S$4.8k
+                    - button "Data Engineer S$7.9k" [ref=e1740] [cursor=pointer]:
+                      - generic [ref=e1742]: Data Engineer
+                      - generic [ref=e1743]: S$7.9k
+                - generic [ref=e1744]:
+                  - generic [ref=e1745]:
+                    - generic [ref=e1746]: LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1747]: "4"
+                  - generic [ref=e1748]:
+                    - button "Assistant Director (Data Architecture & Stan…" [ref=e1749] [cursor=pointer]:
+                      - generic [ref=e1751]: Assistant Director (Data Architecture & Stan…
+                    - button "Assistant Director" [ref=e1752] [cursor=pointer]:
+                      - generic [ref=e1754]: Assistant Director
+                    - button "Assistant Director" [ref=e1755] [cursor=pointer]:
+                      - generic [ref=e1757]: Assistant Director
+                    - button "Deputy/Assistant Director" [ref=e1758] [cursor=pointer]:
+                      - generic [ref=e1760]: Deputy/Assistant Director
+                - generic [ref=e1761]:
+                  - generic [ref=e1762]:
+                    - generic [ref=e1763]: PHYSICAL AND ENGINEERING SCIENCE ASSOCIATE PROFESSIONALS
+                    - generic [ref=e1764]: "1"
+                  - button "AI Engineer 2" [ref=e1766] [cursor=pointer]:
+                    - generic [ref=e1768]: AI Engineer 2
+                - generic [ref=e1769]:
+                  - generic [ref=e1770]:
+                    - generic [ref=e1771]: SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1772]: "16"
+                  - generic [ref=e1773]:
+                    - button "Senior/Data Scientist" [ref=e1774] [cursor=pointer]:
+                      - generic [ref=e1776]: Senior/Data Scientist
+                    - button "Data Scientist" [ref=e1777] [cursor=pointer]:
+                      - generic [ref=e1779]: Data Scientist
+                    - button "Senior Data/Data Scientist" [ref=e1780] [cursor=pointer]:
+                      - generic [ref=e1782]: Senior Data/Data Scientist
+                    - button "Lead/Senior/ Data Scientist" [ref=e1783] [cursor=pointer]:
+                      - generic [ref=e1785]: Lead/Senior/ Data Scientist
+                    - button "Budget Manager & Data Analyst" [ref=e1786] [cursor=pointer]:
+                      - generic [ref=e1788]: Budget Manager & Data Analyst
+                    - button "Business Analyst S$5k" [ref=e1789] [cursor=pointer]:
+                      - generic [ref=e1791]: Business Analyst
+                      - generic [ref=e1792]: S$5k
+                    - button "Senior Analyst S$6k" [ref=e1793] [cursor=pointer]:
+                      - generic [ref=e1795]: Senior Analyst
+                      - generic [ref=e1796]: S$6k
+                    - button "Principal Data Scientist" [ref=e1797] [cursor=pointer]:
+                      - generic [ref=e1799]: Principal Data Scientist
+                    - button "Data Scientist" [ref=e1800] [cursor=pointer]:
+                      - generic [ref=e1802]: Data Scientist
+                    - button "Associate/Snr Associate" [ref=e1803] [cursor=pointer]:
+                      - generic [ref=e1805]: Associate/Snr Associate
+                    - button "Cross Asset Data Operations Analyst S$5.5k" [ref=e1806] [cursor=pointer]:
+                      - generic [ref=e1808]: Cross Asset Data Operations Analyst
+                      - generic [ref=e1809]: S$5.5k
+                    - button "[LTA-RDG] SENIOR DATA SCIENTIST" [ref=e1810] [cursor=pointer]:
+                      - generic [ref=e1812]: "[LTA-RDG] SENIOR DATA SCIENTIST"
+                    - button "Contract Senior Analyst Data Pilots" [ref=e1813] [cursor=pointer]:
+                      - generic [ref=e1815]: Contract Senior Analyst Data Pilots
+                    - button "Statistical Specialist (Data Analytics and M…" [ref=e1816] [cursor=pointer]:
+                      - generic [ref=e1818]: Statistical Specialist (Data Analytics and M…
+                    - button "Data Scientist" [ref=e1819] [cursor=pointer]:
+                      - generic [ref=e1821]: Data Scientist
+                    - button "Software Engineer" [ref=e1822] [cursor=pointer]:
+                      - generic [ref=e1824]: Software Engineer
+                - generic [ref=e1825]:
+                  - generic [ref=e1826]:
+                    - generic [ref=e1827]: TEACHING AND TRAINING PROFESSIONALS
+                    - generic [ref=e1828]: "1"
+                  - button "School of Business" [ref=e1830] [cursor=pointer]:
+                    - generic [ref=e1832]: School of Business
+                - generic [ref=e1833]:
+                  - generic [ref=e1834]:
+                    - generic [ref=e1835]: Unclassified
+                    - generic [ref=e1836]: "21"
+                  - generic [ref=e1837]:
+                    - button "Data Platform and Engineering Manager S$15.5k" [ref=e1838] [cursor=pointer]:
+                      - generic [ref=e1840]: Data Platform and Engineering Manager
+                      - generic [ref=e1841]: S$15.5k
+                    - button "Lead Investment Data Management S$19.5k" [ref=e1842] [cursor=pointer]:
+                      - generic [ref=e1844]: Lead Investment Data Management
+                      - generic [ref=e1845]: S$19.5k
+                    - button "Manager/Senior Mgr Data & AI Product Mgr" [ref=e1846] [cursor=pointer]:
+                      - generic [ref=e1848]: Manager/Senior Mgr Data & AI Product Mgr
+                    - button "Office of Digitalisation" [ref=e1849] [cursor=pointer]:
+                      - generic [ref=e1851]: Office of Digitalisation
+                    - button "Lead Engineer/ Engineer" [ref=e1852] [cursor=pointer]:
+                      - generic [ref=e1854]: Lead Engineer/ Engineer
+                    - button "Head, Sensemaking Application, Sensemaking,…" [ref=e1855] [cursor=pointer]:
+                      - generic [ref=e1857]: Head, Sensemaking Application, Sensemaking,…
+                    - button "Lead Engineer/ Engineer" [ref=e1858] [cursor=pointer]:
+                      - generic [ref=e1860]: Lead Engineer/ Engineer
+                    - button "Product Manager" [ref=e1861] [cursor=pointer]:
+                      - generic [ref=e1863]: Product Manager
+                    - button "Head, Data Architecture, CIB S$18.5k" [ref=e1864] [cursor=pointer]:
+                      - generic [ref=e1866]: Head, Data Architecture, CIB
+                      - generic [ref=e1867]: S$18.5k
+                    - button "Assistant Manager/Manager (Policy)" [ref=e1868] [cursor=pointer]:
+                      - generic [ref=e1870]: Assistant Manager/Manager (Policy)
+                    - button "Senior/Manager" [ref=e1871] [cursor=pointer]:
+                      - generic [ref=e1873]: Senior/Manager
+                    - button "Success Factors Data Lead S$15.5k" [ref=e1874] [cursor=pointer]:
+                      - generic [ref=e1876]: Success Factors Data Lead
+                      - generic [ref=e1877]: S$15.5k
+                    - button "[LTA-RAOM] SENIOR / EXECUTIVE ENGINEER" [ref=e1878] [cursor=pointer]:
+                      - generic [ref=e1880]: "[LTA-RAOM] SENIOR / EXECUTIVE ENGINEER"
+                    - button "[GRIT@Gov] <Singapore Land Authority> <Geosp…" [ref=e1881] [cursor=pointer]:
+                      - generic [ref=e1883]: "[GRIT@Gov] <Singapore Land Authority> <Geosp…"
+                    - button "Data and AI Capabilities Building Manager (D…" [ref=e1884] [cursor=pointer]:
+                      - generic [ref=e1886]: Data and AI Capabilities Building Manager (D…
+                    - button "Product Manager" [ref=e1887] [cursor=pointer]:
+                      - generic [ref=e1889]: Product Manager
+                    - button "Capability" [ref=e1890] [cursor=pointer]:
+                      - generic [ref=e1892]: Capability
+                    - button "Data Policy" [ref=e1893] [cursor=pointer]:
+                      - generic [ref=e1895]: Data Policy
+                    - button "Manager, Enforcement Planning & Policy, Data…" [ref=e1896] [cursor=pointer]:
+                      - generic [ref=e1898]: Manager, Enforcement Planning & Policy, Data…
+                    - button "Deputy Manager" [ref=e1899] [cursor=pointer]:
+                      - generic [ref=e1901]: Deputy Manager
+                    - button "Data & Analytics Engineer" [ref=e1902] [cursor=pointer]:
+                      - generic [ref=e1904]: Data & Analytics Engineer
+            - generic [ref=e391]:
+              - generic [ref=e392]:
+                - generic [ref=e393]: OKF v0.1
+                - generic [ref=e394]: Open Knowledge Format
+              - paragraph [ref=e395]: A vendor-neutral markdown bundle - tap a file to read it.
+              - generic [ref=e396]:
+                - button "data.okf/" [disabled] [ref=e397]
+                - button "├── index.md" [ref=e398] [cursor=pointer]
+                - button "├── postings/ (80)" [disabled] [ref=e399]
+                - button "├── sectors/" [disabled] [ref=e400]
+                - button "│ ├── business-and-administration-professionals.md" [ref=e1905] [cursor=pointer]
+                - button "│ ├── information-and-communications-technology-ict-professionals.md" [ref=e1906] [cursor=pointer]
+                - button "│ ├── legal-social-religious-and-cultural-professionals.md" [ref=e1907] [cursor=pointer]
+                - button "│ ├── physical-and-engineering-science-associate-professionals.md" [ref=e1908] [cursor=pointer]
+                - button "│ ├── science-and-engineering-professionals.md" [ref=e1909] [cursor=pointer]
+                - button "│ └── teaching-and-training-professionals.md" [ref=e1910] [cursor=pointer]
+                - button "└── log.md" [ref=e401] [cursor=pointer]
+              - button "Open index" [ref=e403] [cursor=pointer]
+          - generic [ref=e404]:
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e408]: MyCareersFuture
+                - generic [ref=e409]: "30"
+              - generic [ref=e410]:
+                - generic [ref=e411] [cursor=pointer]:
+                  - generic [ref=e412]:
+                    - generic [ref=e413]: C
+                    - generic "CHANEL ASIA PACIFIC PTE LIMITED" [ref=e414]
+                  - generic [ref=e415]:
+                    - heading "Data Platform and Engineering Manager, SEAA" [level=3] [ref=e416]
+                    - generic [ref=e417]: yesterday
+                    - generic [ref=e418]:
+                      - generic [ref=e419]: S$14,000 - S$17,000 / month
+                      - generic [ref=e420]: Permanent
+                    - paragraph [ref=e421]: The Data Platform and Engineering Manager is responsible for building and maintaining reliable data ingestion pipelines, curated datasets, semantic data models that enable trusted reporting, advanced…
+                    - generic [ref=e422]:
+                      - button "Analyse" [ref=e423]
+                      - link "Open" [ref=e424]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-platform-engineering-manager-seaa-chanel-asia-pacific-a9bc55f92348c15d118da99875fb3bf5
+                      - 'button "{ } OKF" [ref=e425]'
+                - generic [ref=e426] [cursor=pointer]:
+                  - generic [ref=e427]:
+                    - generic [ref=e428]: H
+                    - generic "HITACHI RAIL SINGAPORE PTE. LTD." [ref=e429]
+                    - 'generic "AI exposure: Full automation" [ref=e1911]'
+                  - generic [ref=e430]:
+                    - heading "Data Architect" [level=3] [ref=e431]
+                    - generic [ref=e432]: 4 days ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1913]: SSOC 25212 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e433]:
+                      - generic [ref=e434]: S$9,000 - S$12,000 / month
+                      - generic [ref=e435]: Permanent
+                    - paragraph [ref=e436]: R1013111) at our location in Singapore Hitachi Rail is seeking an enthusiastic and self-motivated Data Architect with strong experience in designing and delivering scalable data solutions.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1915]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e437]:
+                      - button "Analyse" [ref=e438]
+                      - link "Open" [ref=e439]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-architect-hitachi-rail-singapore-f7be67e1a5496a4ab35a845857b7862d
+                      - 'button "{ } OKF" [ref=e440]'
+                - generic [ref=e441] [cursor=pointer]:
+                  - generic [ref=e442]:
+                    - generic [ref=e443]: I
+                    - generic "INVARTIS CONSULTING PTE. LTD." [ref=e444]
+                  - generic [ref=e445]:
+                    - heading "Lead Investment Data Management" [level=3] [ref=e446]
+                    - generic [ref=e447]: 4 days ago
+                    - generic [ref=e448]:
+                      - generic [ref=e449]: S$18,000 - S$21,000 / month
+                      - generic [ref=e450]: Permanent
+                    - paragraph [ref=e451]: We are seeking an experienced Senior Investment Data Management Lead to drive the strategic management, governance, quality, and operational oversight of investment data across the organization.
+                    - generic [ref=e452]:
+                      - button "Analyse" [ref=e453]
+                      - link "Open" [ref=e454]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/consulting/lead-investment-data-management-invartis-consulting-1975da3210d4169ffaea356f88279db9
+                      - 'button "{ } OKF" [ref=e455]'
+                - generic [ref=e456] [cursor=pointer]:
+                  - generic [ref=e457]:
+                    - generic [ref=e458]: G
+                    - generic "GECO ASIA PTE. LTD." [ref=e459]
+                  - generic [ref=e460]:
+                    - heading "Data Engineer" [level=3] [ref=e461]
+                    - generic [ref=e462]: 6 days ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1917]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e463]:
+                      - generic [ref=e464]: S$6,500 - S$8,000 / month
+                      - generic [ref=e465]: Contract, Full Time
+                    - paragraph [ref=e466]: "Role: Data Engineer Start: ASAP Duration: 12 Months Location: Singapore We are seeking an experienced Data Engineer with 6+ years of expertise in enterprise data warehouse (EDW), ETL/ELT development,…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1919]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e467]:
+                      - button "Analyse" [ref=e468]
+                      - link "Open" [ref=e469]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-geco-asia-c4053a400a2dc084c95244009c6440f4
+                      - 'button "{ } OKF" [ref=e470]'
+                - generic [ref=e471] [cursor=pointer]:
+                  - generic [ref=e472]:
+                    - generic [ref=e473]: T
+                    - generic "THE EDGE CONTRACTING SERVICES PTE. LTD." [ref=e474]
+                  - generic [ref=e475]:
+                    - heading "Data Engineer" [level=3] [ref=e476]
+                    - generic [ref=e477]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1921]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e478]:
+                      - generic [ref=e479]: S$5,000 - S$7,000 / month
+                      - generic [ref=e480]: Contract
+                    - paragraph [ref=e481]: Design, develop, maintain, and support data pipelines and ETL workflows across multiple systems Develop and optimize SQL queries, stored procedures, and data transformations Perform data validation,…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1923]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e482]:
+                      - button "Analyse" [ref=e483]
+                      - link "Open" [ref=e484]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-edge-contracting-services-7bcf432a5fa11c40a08de75becb666f3
+                      - 'button "{ } OKF" [ref=e485]'
+                - generic [ref=e486] [cursor=pointer]:
+                  - generic [ref=e487]:
+                    - generic [ref=e488]: "N"
+                    - generic "NEARSOURCE PTE. LTD." [ref=e489]
+                  - generic [ref=e490]:
+                    - heading "Data BAU Lead" [level=3] [ref=e491]
+                    - generic [ref=e492]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1925]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e493]:
+                      - generic [ref=e494]: S$7,500 - S$12,500 / month
+                      - generic [ref=e495]: Full Time
+                    - paragraph [ref=e496]: We are looking for a seasoned BAU Lead - Data Engineering to lead our data operations and support function in a cloud-first environment.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1927]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e497]:
+                      - button "Analyse" [ref=e498]
+                      - link "Open" [ref=e499]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-bau-lead-nearsource-ccf6e2557f52658326b7c52e45f1f615
+                      - 'button "{ } OKF" [ref=e500]'
+                - generic [ref=e501] [cursor=pointer]:
+                  - generic [ref=e502]:
+                    - generic [ref=e503]: T
+                    - generic "TECHNOPALS CONSULTANTS PTE. LTD." [ref=e504]
+                  - generic [ref=e505]:
+                    - heading "Data BAU Lead" [level=3] [ref=e506]
+                    - generic [ref=e507]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1929]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e508]:
+                      - generic [ref=e509]: S$7,500 - S$12,500 / month
+                      - generic [ref=e510]: Full Time
+                    - paragraph [ref=e511]: We are looking for a seasoned BAU Lead - Data Engineering to lead our data operations and support function in a cloud-first environment.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1931]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e512]:
+                      - button "Analyse" [ref=e513]
+                      - link "Open" [ref=e514]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-bau-lead-technopals-consultants-5de294951777d822e1748910cd24a734
+                      - 'button "{ } OKF" [ref=e515]'
+                - generic [ref=e516] [cursor=pointer]:
+                  - generic [ref=e517]:
+                    - generic [ref=e518]: "N"
+                    - generic "NAVISOFT SOLUTIONS PTE. LTD." [ref=e519]
+                  - generic [ref=e520]:
+                    - heading "Data BAU Lead" [level=3] [ref=e521]
+                    - generic [ref=e522]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1933]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e523]:
+                      - generic [ref=e524]: S$7,500 - S$12,500 / month
+                      - generic [ref=e525]: Full Time
+                    - paragraph [ref=e526]: We are looking for a seasoned BAU Lead - Data Engineering to lead our data operations and support function in a cloud-first environment.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1935]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e527]:
+                      - button "Analyse" [ref=e528]
+                      - link "Open" [ref=e529]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-bau-lead-navisoft-solutions-5e358762ce286b19c987cef7a96b6f9f
+                      - 'button "{ } OKF" [ref=e530]'
+                - generic [ref=e531] [cursor=pointer]:
+                  - generic [ref=e532]:
+                    - generic [ref=e533]: T
+                    - generic "TECHNOPALS PTE. LTD." [ref=e534]
+                  - generic [ref=e535]:
+                    - heading "Data BAU Lead" [level=3] [ref=e536]
+                    - generic [ref=e537]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1937]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e538]:
+                      - generic [ref=e539]: S$7,500 - S$12,500 / month
+                      - generic [ref=e540]: Full Time
+                    - paragraph [ref=e541]: We are looking for a seasoned BAU Lead - Data Engineering to lead our data operations and support function in a cloud-first environment.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1939]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e542]:
+                      - button "Analyse" [ref=e543]
+                      - link "Open" [ref=e544]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-bau-lead-technopals-2b4666bb0291a973a047a809eaddf766
+                      - 'button "{ } OKF" [ref=e545]'
+                - generic [ref=e546] [cursor=pointer]:
+                  - generic [ref=e547]:
+                    - generic [ref=e548]: C
+                    - generic "CMC-APAC PRIVATE LIMITED" [ref=e549]
+                  - generic [ref=e550]:
+                    - heading "Senior Data Engineer" [level=3] [ref=e551]
+                    - generic [ref=e552]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1941]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e553]:
+                      - generic [ref=e554]: S$6,500 - S$8,000 / month
+                      - generic [ref=e555]: Full Time
+                    - paragraph [ref=e556]: We are seeking a Data Engineer to design, develop, and maintain scalable, secure, and reliable data platforms and pipelines that support business and operational needs.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1943]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e557]:
+                      - button "Analyse" [ref=e558]
+                      - link "Open" [ref=e559]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-cmc-apac-232f7f29918625adbbd17a6d25c92c92
+                      - 'button "{ } OKF" [ref=e560]'
+                - generic [ref=e561] [cursor=pointer]:
+                  - generic [ref=e562]:
+                    - generic [ref=e563]: I
+                    - generic "ILLUMINA INTERNATIONAL GENOMICS PTE. LTD." [ref=e564]
+                  - generic [ref=e565]:
+                    - heading "Senior Data Engineer (18 Months Contract)" [level=3] [ref=e566]
+                    - generic [ref=e567]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1945]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e568]:
+                      - generic [ref=e569]: S$8,200 - S$11,100 / month
+                      - generic [ref=e570]: Contract
+                    - paragraph [ref=e571]: We are seeking a highly skilled and motivated Senior Data Engineer to join our team and play a crucial role in building and maintaining our common unified framework, data pipelines, data models, data…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1947]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e572]:
+                      - button "Analyse" [ref=e573]
+                      - link "Open" [ref=e574]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-data-engineer-illumina-international-genomics-c88a644854e67f575bcb783d87d06cfb
+                      - 'button "{ } OKF" [ref=e575]'
+                - generic [ref=e576] [cursor=pointer]:
+                  - generic [ref=e577]:
+                    - generic [ref=e578]: S
+                    - generic "STANDARD CHARTERED BANK" [ref=e579]
+                  - generic [ref=e580]:
+                    - heading "Head, Data Architecture, CIB (Singapore, United Kingdom)" [level=3] [ref=e581]
+                    - generic [ref=e582]: 1 week ago
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: S$12,350 - S$24,700 / month
+                      - generic [ref=e585]: Permanent, Full Time
+                    - paragraph [ref=e586]: This role could be based in Singapore or United Kingdom. When you start the application process you will be presented with a drop down menu showing all countries, please ensure that you select a…
+                    - generic [ref=e587]:
+                      - button "Analyse" [ref=e588]
+                      - link "Open" [ref=e589]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/head-data-architecture-cib-standard-chartered-bank-55c79f14204e63d4ca548a7d54aa27c3
+                      - 'button "{ } OKF" [ref=e590]'
+                - generic [ref=e591] [cursor=pointer]:
+                  - generic [ref=e592]:
+                    - generic [ref=e593]: I
+                    - generic "IDC TECHNOLOGIES (SINGAPORE) PTE. LTD." [ref=e594]
+                  - generic [ref=e595]:
+                    - heading "Senior Data Engineer – Databricks" [level=3] [ref=e596]
+                    - generic [ref=e597]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1949]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e598]:
+                      - generic [ref=e599]: S$7,200 - S$10,200 / month
+                      - generic [ref=e600]: Contract, Full Time
+                    - paragraph [ref=e601]: Data Pipeline Development & Operations Design, build, and operate scalable and reliable data pipelines on the Databricks platform Develop end-to-end data workflows from ingestion through…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1951]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e602]:
+                      - button "Analyse" [ref=e603]
+                      - link "Open" [ref=e604]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-%E2%80%93-databricks-idc-technologies-5e4061fbf495e30f928a649233cbc60d
+                      - 'button "{ } OKF" [ref=e605]'
+                - generic [ref=e606] [cursor=pointer]:
+                  - generic [ref=e607]:
+                    - generic [ref=e608]: S
+                    - generic "SISTIC.COM PTE LTD" [ref=e609]
+                    - 'generic "AI exposure: Full automation" [ref=e1952]'
+                  - generic [ref=e610]:
+                    - heading "Business Analyst, Data & Insights" [level=3] [ref=e611]
+                    - generic [ref=e612]: 2 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e1954]: SSOC 21231 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e613]:
+                      - generic [ref=e614]: S$4,500 - S$5,500 / month
+                      - generic [ref=e615]: Full Time
+                    - paragraph [ref=e616]: We are looking for a junior-to-mid level Business Analyst, Data & Insights to support the Data team in turning business questions into useful reporting, analysis, and recommendations.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e1956]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e617]:
+                      - button "Analyse" [ref=e618]
+                      - link "Open" [ref=e619]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/others/business-analyst-data-insights-sisticcom-7555e00b2d4df86827718935d23ada51
+                      - 'button "{ } OKF" [ref=e620]'
+                - generic [ref=e621] [cursor=pointer]:
+                  - generic [ref=e622]:
+                    - generic [ref=e623]: W
+                    - generic "WEBSPARKS PTE. LTD." [ref=e624]
+                  - generic [ref=e625]:
+                    - heading "Data Engineer (Public Sector)" [level=3] [ref=e626]
+                    - generic [ref=e627]: 2 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1958]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e628]:
+                      - generic [ref=e629]: S$5,500 - S$9,000 / month
+                      - generic [ref=e630]: Contract
+                    - paragraph [ref=e631]: Data Modelling & Architecture Analyse the current organisational data landscape and identify opportunities to improve data structures and integration.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1960]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e632]:
+                      - button "Analyse" [ref=e633]
+                      - link "Open" [ref=e634]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-websparks-0c3aea5b191af10d9ba9c6c84485cd38
+                      - 'button "{ } OKF" [ref=e635]'
+                - generic [ref=e636] [cursor=pointer]:
+                  - generic [ref=e637]:
+                    - generic [ref=e638]: R
+                    - generic "RANDSTAD PTE. LIMITED" [ref=e639]
+                    - 'generic "AI exposure: Full automation" [ref=e1961]'
+                  - generic [ref=e640]:
+                    - heading "Success factor Data Architect" [level=3] [ref=e641]
+                    - generic [ref=e642]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1963]: SSOC 25212 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e643]:
+                      - generic [ref=e644]: S$20,000 - S$22,000 / month
+                      - generic [ref=e645]: Contract
+                    - paragraph [ref=e646]: "HR Data Strategy, Target-State Architecture & Harmonization Target-State Modeling: Define and own the enterprise HR data strategy across multiple SuccessFactors instances and legacy platforms,…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1965]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e647]:
+                      - button "Analyse" [ref=e648]
+                      - link "Open" [ref=e649]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/success-factor-data-architect-randstad-6e4c08214fb777dac3e7d0df82417c89
+                      - 'button "{ } OKF" [ref=e650]'
+                - generic [ref=e651] [cursor=pointer]:
+                  - generic [ref=e652]:
+                    - generic [ref=e653]: T
+                    - generic "THINKT PTE. LTD." [ref=e654]
+                    - 'generic "AI exposure: Full automation" [ref=e1966]'
+                  - generic [ref=e655]:
+                    - heading "Senior Analyst - Digitalization & Data" [level=3] [ref=e656]
+                    - generic [ref=e657]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e1968]: SSOC 21231 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e658]:
+                      - generic [ref=e659]: S$5,000 - S$7,000 / month
+                      - generic [ref=e660]: Full Time
+                    - paragraph [ref=e661]: We’re seeking an analytical engineer to develop and maintain governed, analytics-ready data products that support management reporting, operational MI, and AI strategy in Group Audit.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e1970]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e662]:
+                      - button "Analyse" [ref=e663]
+                      - link "Open" [ref=e664]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/insurance/senior-analyst-digitalization-data-thinkt-9953b45a25541fdb5c9347d3b327a1e2
+                      - 'button "{ } OKF" [ref=e665]'
+                - generic [ref=e666] [cursor=pointer]:
+                  - generic [ref=e667]:
+                    - generic [ref=e668]: C
+                    - generic "COMBUILDER PTE LTD" [ref=e669]
+                  - generic [ref=e670]:
+                    - heading "Senior Data Engineer" [level=3] [ref=e671]
+                    - generic [ref=e672]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1972]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e673]:
+                      - generic [ref=e674]: S$5,000 - S$6,500 / month
+                      - generic [ref=e675]: Contract, Full Time
+                    - paragraph [ref=e676]: We are looking for an experienced Senior Data Engineer to build scalable, secure, and high-performing data solutions that support digital transformation and data-driven decision-making.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1974]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e677]:
+                      - button "Analyse" [ref=e678]
+                      - link "Open" [ref=e679]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-combuilder-cd27eb61b5db6059677ca881c05e8f74
+                      - 'button "{ } OKF" [ref=e680]'
+                - generic [ref=e681] [cursor=pointer]:
+                  - generic [ref=e682]:
+                    - generic [ref=e683]: A
+                    - generic "AVENSYS CONSULTING PTE. LTD." [ref=e684]
+                  - generic [ref=e685]:
+                    - heading "Success Factors Data Lead" [level=3] [ref=e686]
+                    - generic [ref=e687]: 3 weeks ago
+                    - generic [ref=e688]:
+                      - generic [ref=e689]: S$12,000 - S$19,000 / month
+                      - generic [ref=e690]: Contract
+                    - paragraph [ref=e691]: HR Data Strategy & Architecture Define and own the enterprise HR data strategy across multiple SuccessFactors instances, legacy systems, and manual processes Design the target-state data architecture…
+                    - generic [ref=e692]:
+                      - button "Analyse" [ref=e693]
+                      - link "Open" [ref=e694]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/consulting/success-factors-data-lead-avensys-consulting-fde6a0ad6afa91ca2e8b5c1a64586a37
+                      - 'button "{ } OKF" [ref=e695]'
+                - generic [ref=e696] [cursor=pointer]:
+                  - generic [ref=e697]:
+                    - generic [ref=e698]: S
+                    - generic "SPH MEDIA LIMITED" [ref=e699]
+                  - generic [ref=e700]:
+                    - heading "Senior Data Engineer" [level=3] [ref=e701]
+                    - generic [ref=e702]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1976]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e703]:
+                      - generic [ref=e704]: S$17,000 - S$22,000 / month
+                      - generic [ref=e705]: Full Time
+                    - paragraph [ref=e706]: Role We are hiring Data Engineers at all levels, seeking individuals who bring deep technical expertise and a clear drive to deliver measurable results.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1978]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e707]:
+                      - button "Analyse" [ref=e708]
+                      - link "Open" [ref=e709]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/others/senior-data-engineer-sph-media-081fd5656715e830377dea9c5c7d9140
+                      - 'button "{ } OKF" [ref=e710]'
+                - generic [ref=e711] [cursor=pointer]:
+                  - generic [ref=e712]:
+                    - generic [ref=e713]: I
+                    - generic "ICE DATA SERVICES SINGAPORE PTE. LTD." [ref=e714]
+                  - generic [ref=e715]:
+                    - heading "Reference Data Associate" [level=3] [ref=e716]
+                    - generic [ref=e717]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1980]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e718]:
+                      - generic [ref=e719]: S$4,166 - S$7,500 / month
+                      - generic [ref=e720]: Full Time
+                    - paragraph [ref=e721]: Analyze, interpret, collate and transform reference data provided in a variety legal and financial documents, third party reports and vendor information while ensuring that the reference data…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1982]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e722]:
+                      - button "Analyse" [ref=e723]
+                      - link "Open" [ref=e724]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/reference-data-associate-ice-data-services-singapore-09e6c0598704419e61fdd029db4f2c9f
+                      - 'button "{ } OKF" [ref=e725]'
+                - generic [ref=e726] [cursor=pointer]:
+                  - generic [ref=e727]:
+                    - generic [ref=e728]: I
+                    - generic "ICE DATA SERVICES SINGAPORE PTE. LTD." [ref=e729]
+                  - generic [ref=e730]:
+                    - heading "Reference Data Associate" [level=3] [ref=e731]
+                    - generic [ref=e732]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1984]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e733]:
+                      - generic [ref=e734]: S$4,166 - S$7,500 / month
+                      - generic [ref=e735]: Full Time
+                    - paragraph [ref=e736]: Analyze, interpret, collate and transform reference data provided in a variety legal and financial document, third party reports and vendor information while ensuring that the reference data provided…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1986]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e737]:
+                      - button "Analyse" [ref=e738]
+                      - link "Open" [ref=e739]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/reference-data-associate-ice-data-services-singapore-7eb44192482591f4154080ec972c50ad
+                      - 'button "{ } OKF" [ref=e740]'
+                - generic [ref=e741] [cursor=pointer]:
+                  - generic [ref=e742]:
+                    - generic [ref=e743]: I
+                    - generic "ICE DATA SERVICES SINGAPORE PTE. LTD." [ref=e744]
+                    - 'generic "AI exposure: Full automation" [ref=e1987]'
+                  - generic [ref=e745]:
+                    - heading "Cross Asset Data Operations Analyst" [level=3] [ref=e746]
+                    - generic [ref=e747]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e1989]: SSOC 21212 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e748]:
+                      - generic [ref=e749]: S$4,035 - S$6,881 / month
+                      - generic [ref=e750]: Full Time
+                    - paragraph [ref=e751]: Monitor and validate cross-asset raw and derived market data using in-house analytical tools to ensure accuracy and integrity.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e1991]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e752]:
+                      - button "Analyse" [ref=e753]
+                      - link "Open" [ref=e754]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/cross-asset-data-operations-analyst-ice-data-services-singapore-b7966abc8aef1a4d46bf21241ea52a54
+                      - 'button "{ } OKF" [ref=e755]'
+                - generic [ref=e756] [cursor=pointer]:
+                  - generic [ref=e757]:
+                    - generic [ref=e758]: K
+                    - generic "KUOK (SINGAPORE) LIMITED" [ref=e759]
+                    - 'generic "AI exposure: Full automation" [ref=e1992]'
+                  - generic [ref=e760]:
+                    - heading "AI Data Architect" [level=3] [ref=e761]
+                    - generic [ref=e762]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1994]: SSOC 25212 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e763]:
+                      - generic [ref=e764]: S$8,300 - S$10,300 / month
+                      - generic [ref=e765]: Permanent
+                    - paragraph [ref=e766]: AI Data Foundation Architecture Design and own the hybrid vector and knowledge graph layer that underpins RAG across all Kuok Group BUs — the enterprise semantic memory that AI use cases draw on Make…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e1996]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e767]:
+                      - button "Analyse" [ref=e768]
+                      - link "Open" [ref=e769]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/ai-data-architect-kuok-6cfec9d8633a76316973845db2416d57
+                      - 'button "{ } OKF" [ref=e770]'
+                - generic [ref=e771] [cursor=pointer]:
+                  - generic [ref=e772]:
+                    - generic [ref=e773]: S
+                    - generic "SPH MEDIA LIMITED" [ref=e774]
+                  - generic [ref=e775]:
+                    - heading "Data Engineer" [level=3] [ref=e776]
+                    - generic [ref=e777]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e1998]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e778]:
+                      - generic [ref=e779]: S$10,000 - S$15,000 / month
+                      - generic [ref=e780]: Full Time
+                    - paragraph [ref=e781]: Role We are hiring Data Engineers at all levels, seeking individuals who bring deep technical expertise and a clear drive to deliver measurable results.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2000]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e782]:
+                      - button "Analyse" [ref=e783]
+                      - link "Open" [ref=e784]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/others/data-engineer-sph-media-6e015c3fc0d059fd4b1fd3c44cf2fc0a
+                      - 'button "{ } OKF" [ref=e785]'
+                - generic [ref=e786] [cursor=pointer]:
+                  - generic [ref=e787]:
+                    - generic [ref=e788]: O
+                    - generic "OAKTREE CONSULTING" [ref=e789]
+                  - generic [ref=e790]:
+                    - heading "Data Engineers" [level=3] [ref=e791]
+                    - generic [ref=e792]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2002]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e793]:
+                      - generic [ref=e794]: S$4,000 - S$8,000 / month
+                      - generic [ref=e795]: Permanent, Full Time
+                    - paragraph [ref=e796]: Data Architecture & Development Design, create, and deploy data models, tables, views, and data marts across data warehouses, operational data stores, data lakes, and data virtualization environments.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2004]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e797]:
+                      - button "Analyse" [ref=e798]
+                      - link "Open" [ref=e799]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-engineers-oaktree-consulting-ca2d2e93aaf7e3506fecd06fa2ede4a3
+                      - 'button "{ } OKF" [ref=e800]'
+                - generic [ref=e801] [cursor=pointer]:
+                  - generic [ref=e802]:
+                    - generic [ref=e803]: S
+                    - generic "SMARTOSC PTE. LTD." [ref=e804]
+                    - 'generic "AI exposure: Full automation" [ref=e2005]'
+                  - generic [ref=e805]:
+                    - heading "Data Architect" [level=3] [ref=e806]
+                    - generic [ref=e807]: 4 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2007]: SSOC 25212 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e808]:
+                      - generic [ref=e809]: S$11,000 - S$14,000 / month
+                      - generic [ref=e810]: Full Time
+                    - paragraph [ref=e811]: Design and lead the implementation of scalable data architecture and data platform solutions to support complex business needs in the airline industry.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2009]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e812]:
+                      - button "Analyse" [ref=e813]
+                      - link "Open" [ref=e814]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-architect-smartosc-bb8a2273cbbdc5b4e04edd8e330a7fb1
+                      - 'button "{ } OKF" [ref=e815]'
+                - generic [ref=e816] [cursor=pointer]:
+                  - generic [ref=e817]:
+                    - generic [ref=e818]: "N"
+                    - generic "NES GLOBAL PTE. LTD." [ref=e819]
+                  - generic [ref=e820]:
+                    - heading "Data Engineer (Contract)" [level=3] [ref=e821]
+                    - generic [ref=e822]: 1 month ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2011]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e823]:
+                      - generic [ref=e824]: S$1,500 - S$5,500 / month
+                      - generic [ref=e825]: Contract
+                    - paragraph [ref=e826]: Your role Our major Oil & Gas Downstream Client is urgently looking for Data Engineer who is responsible for identifying relevant data to be gathered and implementing a solution to do so, including…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2013]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e827]:
+                      - button "Analyse" [ref=e828]
+                      - link "Open" [ref=e829]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-nes-global-34467c84368008cb4e88c6e3f9457695
+                      - 'button "{ } OKF" [ref=e830]'
+                - generic [ref=e831] [cursor=pointer]:
+                  - generic [ref=e832]:
+                    - generic [ref=e833]: V
+                    - generic "VANGUARD SOFTWARE PTE. LTD." [ref=e834]
+                  - generic [ref=e835]:
+                    - heading "Junior Data Engineer" [level=3] [ref=e836]
+                    - generic [ref=e837]: 2 months ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2015]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e838]:
+                      - generic [ref=e839]: S$4,000 - S$5,500 / month
+                      - generic [ref=e840]: Full Time
+                    - paragraph [ref=e841]: We're looking for a Data Engineer with strong software engineering fundamentals to build and scale our data infrastructure.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2017]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e842]:
+                      - button "Analyse" [ref=e843]
+                      - link "Open" [ref=e844]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/junior-data-engineer-vanguard-software-7eb52e1040a1e9a4ea0c1dd44131e51e
+                      - 'button "{ } OKF" [ref=e845]'
+                - generic [ref=e846] [cursor=pointer]:
+                  - generic [ref=e847]:
+                    - generic [ref=e848]: S
+                    - generic "SYNAPXE PTE. LTD." [ref=e849]
+                  - generic [ref=e850]:
+                    - heading "Data Engineer - Informatica" [level=3] [ref=e851]
+                    - generic [ref=e852]: 5 months ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2019]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e853]:
+                      - generic [ref=e854]: S$7,200 - S$8,500 / month
+                      - generic [ref=e855]: Full Time
+                    - paragraph [ref=e856]: We are hiring a Data Engineer for data migration projects (Primarily utilizing AWS, IDMC, Databricks and Tableau) Roles and responsibilities Design and architect data storage solutions, including…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2021]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e857]:
+                      - button "Analyse" [ref=e858]
+                      - link "Open" [ref=e859]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-informatica-synapxe-546fe1ed9440b5b35b44eb5f620e7c32
+                      - 'button "{ } OKF" [ref=e860]'
+            - generic [ref=e861]:
+              - generic [ref=e862]:
+                - generic [ref=e864]: careers.gov.sg
+                - generic [ref=e865]: "50"
+              - generic [ref=e866]:
+                - generic [ref=e867] [cursor=pointer]:
+                  - generic [ref=e868]:
+                    - generic [ref=e869]: R
+                    - generic "Republic Polytechnic" [ref=e870]
+                    - 'generic "AI exposure: Full automation" [ref=e2022]'
+                  - generic [ref=e871]:
+                    - heading "School of Business - Associate Lecturer (Data Visualisation)" [level=3] [ref=e872]
+                    - generic [ref=e873]: 3 days ago
+                    - generic "TEACHING AND TRAINING PROFESSIONALS" [ref=e2024]: SSOC 23102 · TEACHING AND TRAINING PROFESSIONALS
+                    - generic [ref=e874]:
+                      - generic [ref=e875]: Salary on application
+                      - generic [ref=e876]: Contract
+                    - paragraph [ref=e877]: "Facilitate student learning for adult learners, deliver curricula, and/or assessment in the following areas: - Data Visualisation"
+                    - generic "UNIVERSITY, POLYTECHNIC AND HIGHER EDUCATION TEACHERS" [ref=e2026]: → UNIVERSITY, POLYTECHNIC AND HIGHER EDUCATION TEACHERS
+                    - generic [ref=e878]:
+                      - button "Analyse" [ref=e879]
+                      - link "Open" [ref=e880]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/16102434/005056a3-53e2-1fd1-97be-efb2db3dd3fa
+                      - 'button "{ } OKF" [ref=e881]'
+                - generic [ref=e882] [cursor=pointer]:
+                  - generic [ref=e883]:
+                    - generic [ref=e884]: S
+                    - generic "Singapore Tourism Board" [ref=e885]
+                  - generic [ref=e886]:
+                    - heading "Manager/Senior Mgr Data & AI Product Mgr, Data Exploration & Partnerships" [level=3] [ref=e887]
+                    - generic [ref=e888]: 4 days ago
+                    - generic [ref=e889]:
+                      - generic [ref=e890]: Salary on application
+                      - generic [ref=e891]: Permanent
+                    - paragraph [ref=e892]: "[What you will be working on] As a Data and AI Product Manager, your key responsibilities include: 1."
+                    - generic [ref=e893]:
+                      - button "Analyse" [ref=e894]
+                      - link "Open" [ref=e895]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17509205/005056a3-53e2-1fd1-9c9a-6ce8f6db93ff
+                      - 'button "{ } OKF" [ref=e896]'
+                - generic [ref=e897] [cursor=pointer]:
+                  - generic [ref=e898]:
+                    - generic [ref=e899]: R
+                    - generic "Republic Polytechnic" [ref=e900]
+                  - generic [ref=e901]:
+                    - heading "Office of Digitalisation, Data and AI - Deputy Manager/Manager (Data Scientist)" [level=3] [ref=e902]
+                    - generic [ref=e903]: 4 days ago
+                    - generic [ref=e904]:
+                      - generic [ref=e905]: Salary on application
+                      - generic [ref=e906]: Fixed Terms
+                    - paragraph [ref=e907]: Analyse educational data to identify key predictors, conduct statistical testing, and prepare high quality modelling datasets.
+                    - generic [ref=e908]:
+                      - button "Analyse" [ref=e909]
+                      - link "Open" [ref=e910]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17721831/005056a3-53e2-1fd1-9b91-482bd13c33ff
+                      - 'button "{ } OKF" [ref=e911]'
+                - generic [ref=e912] [cursor=pointer]:
+                  - generic [ref=e913]:
+                    - generic [ref=e914]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e915]
+                  - generic [ref=e916]:
+                    - heading "Lead Engineer/ Engineer, Geospatial Development, Data Platforms, xData" [level=3] [ref=e917]
+                    - generic [ref=e918]: 4 days ago
+                    - generic [ref=e919]:
+                      - generic [ref=e920]: Salary on application
+                      - generic [ref=e921]: Permanent/Contract
+                    - paragraph [ref=e922]: "Job Scope / Key Deliverables The principal accountabilities of the job holder to: a. Work with stakeholders to develop and manage new capabilities in geospatial technologies to enhance Home Team…"
+                    - generic [ref=e923]:
+                      - button "Analyse" [ref=e924]
+                      - link "Open" [ref=e925]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753558/005056a3-53e2-1fd1-9ca2-d26b1c0bf3ff
+                      - 'button "{ } OKF" [ref=e926]'
+                - generic [ref=e927] [cursor=pointer]:
+                  - generic [ref=e928]:
+                    - generic [ref=e929]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e930]
+                  - generic [ref=e931]:
+                    - heading "Head, Sensemaking Application, Sensemaking, xData, Enterprise Group" [level=3] [ref=e932]
+                    - generic [ref=e933]: 4 days ago
+                    - generic [ref=e934]:
+                      - generic [ref=e935]: Salary on application
+                      - generic [ref=e936]: Permanent/Contract
+                    - paragraph [ref=e937]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and…"
+                    - generic [ref=e938]:
+                      - button "Analyse" [ref=e939]
+                      - link "Open" [ref=e940]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753497/005056a3-53e2-1fd1-9ca2-ad50144053ff
+                      - 'button "{ } OKF" [ref=e941]'
+                - generic [ref=e942] [cursor=pointer]:
+                  - generic [ref=e943]:
+                    - generic [ref=e944]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e945]
+                  - generic [ref=e946]:
+                    - heading "Head, AI Data Solutioning, AI Data Engineering, xData" [level=3] [ref=e947]
+                    - generic [ref=e948]: 4 days ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2028]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e949]:
+                      - generic [ref=e950]: Salary on application
+                      - generic [ref=e951]: Permanent/Contract
+                    - paragraph [ref=e952]: "The job holder will be responsible for the following: Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas."
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2030]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e953]:
+                      - button "Analyse" [ref=e954]
+                      - link "Open" [ref=e955]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753442/005056a3-53e2-1fd1-9ca2-9253742573ff
+                      - 'button "{ } OKF" [ref=e956]'
+                - generic [ref=e957] [cursor=pointer]:
+                  - generic [ref=e958]:
+                    - generic [ref=e959]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e960]
+                  - generic [ref=e961]:
+                    - heading "Principal Engineer, AI & Data Engineering, Data Solutioning, xData" [level=3] [ref=e962]
+                    - generic [ref=e963]: 4 days ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2032]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e964]:
+                      - generic [ref=e965]: Salary on application
+                      - generic [ref=e966]: Permanent/Contract
+                    - paragraph [ref=e967]: "AI Data Architecture: develop and implement a cohesive data strategy across Home Teams that aligns with organisation’s AI goals. o Provide guidance as SME to formulate capabilities development…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2034]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e968]:
+                      - button "Analyse" [ref=e969]
+                      - link "Open" [ref=e970]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753306/005056a3-53e2-1fd1-9ca2-3a4285c373ff
+                      - 'button "{ } OKF" [ref=e971]'
+                - generic [ref=e972] [cursor=pointer]:
+                  - generic [ref=e973]:
+                    - generic [ref=e974]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e975]
+                  - generic [ref=e976]:
+                    - heading "Lead Engineer/Engineer, AI & Data Engineering, xData" [level=3] [ref=e977]
+                    - generic [ref=e978]: 4 days ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2036]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e979]:
+                      - generic [ref=e980]: Salary on application
+                      - generic [ref=e981]: Permanent/Contract
+                    - paragraph [ref=e982]: "The principal accountabilities of the job holder is to: a. Ensure timely delivery of projects within the committed schedule and budget ensuring project issues are timely resolved or escalated to…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2038]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e983]:
+                      - button "Analyse" [ref=e984]
+                      - link "Open" [ref=e985]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753722/005056a3-53e2-1fd1-9ca3-30d2625f93ff
+                      - 'button "{ } OKF" [ref=e986]'
+                - generic [ref=e987] [cursor=pointer]:
+                  - generic [ref=e988]:
+                    - generic [ref=e989]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e990]
+                    - 'generic "AI exposure: Full automation" [ref=e2039]'
+                  - generic [ref=e991]:
+                    - heading "Senior/Data Scientist, Process Modelling & Simulation, Decision Science, xData" [level=3] [ref=e992]
+                    - generic [ref=e993]: 4 days ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2041]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e994]:
+                      - generic [ref=e995]: Salary on application
+                      - generic [ref=e996]: Permanent/Contract
+                    - paragraph [ref=e997]: Work in a Data Science team with other stakeholders to identify, scope, develop and implement Data Science and AI solutions to address users’ needs.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2043]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e998]:
+                      - button "Analyse" [ref=e999]
+                      - link "Open" [ref=e1000]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753708/005056a3-53e2-1fd1-9ca3-15d7c03653ff
+                      - 'button "{ } OKF" [ref=e1001]'
+                - generic [ref=e1002] [cursor=pointer]:
+                  - generic [ref=e1003]:
+                    - generic [ref=e1004]: G
+                    - generic "Government Technology Agency" [ref=e1005]
+                    - 'generic "AI exposure: Full automation" [ref=e2044]'
+                  - generic [ref=e1006]:
+                    - heading "Data Scientist, Forward-Deployed Team, SWDA" [level=3] [ref=e1007]
+                    - generic [ref=e1008]: 4 days ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2046]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1010]: Salary on application
+                    - paragraph [ref=e1011]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2048]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1012]:
+                      - button "Analyse" [ref=e1013]
+                      - link "Open" [ref=e1014]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004466201?gh_jid=4004466201
+                      - 'button "{ } OKF" [ref=e1015]'
+                - generic [ref=e1016] [cursor=pointer]:
+                  - generic [ref=e1017]:
+                    - generic [ref=e1018]: M
+                    - generic "Monetary Authority of Singapore" [ref=e1019]
+                    - 'generic "AI exposure: Full automation" [ref=e2049]'
+                  - generic [ref=e1020]:
+                    - heading "Senior Data/Data Scientist (Contract)" [level=3] [ref=e1021]
+                    - generic [ref=e1022]: 6 days ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2051]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1023]:
+                      - generic [ref=e1024]: Salary on application
+                      - generic [ref=e1025]: Fixed Terms
+                    - paragraph [ref=e1026]: "- Lead advanced data science projects using sophisticated techniques to uncover insights, refine problem statements to solve challenges and deliver business value - Develop and implement AI/ML…"
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2053]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1027]:
+                      - button "Analyse" [ref=e1028]
+                      - link "Open" [ref=e1029]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17509211/005056a3-53e2-1fd1-9be8-3f7654f773ff
+                      - 'button "{ } OKF" [ref=e1030]'
+                - generic [ref=e1031] [cursor=pointer]:
+                  - generic [ref=e1032]:
+                    - generic [ref=e1033]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e1034]
+                  - generic [ref=e1035]:
+                    - heading "Lead Engineer/ Engineer, Sensemaking Application, Sensemaking, xData" [level=3] [ref=e1036]
+                    - generic [ref=e1037]: 6 days ago
+                    - generic [ref=e1038]:
+                      - generic [ref=e1039]: Salary on application
+                      - generic [ref=e1040]: Permanent/Contract
+                    - paragraph [ref=e1041]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and…"
+                    - generic [ref=e1042]:
+                      - button "Analyse" [ref=e1043]
+                      - link "Open" [ref=e1044]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17737823/005056a3-d347-1fe1-9bed-9b58b775a2ad
+                      - 'button "{ } OKF" [ref=e1045]'
+                - generic [ref=e1046] [cursor=pointer]:
+                  - generic [ref=e1047]:
+                    - generic [ref=e1048]: M
+                    - generic "MINDEF" [ref=e1049]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2054]'
+                  - generic [ref=e1050]:
+                    - heading "Assistant Director (Data Architecture & Standards) - DIS" [level=3] [ref=e1051]
+                    - generic [ref=e1052]: 6 days ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e2056]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1053]:
+                      - generic [ref=e1054]: Salary on application
+                      - generic [ref=e1055]: Permanent
+                    - paragraph [ref=e1056]: "- Research data quality, data management policies and data technologies - Research advances in Artificial Intelligence (AI) and Machine Learning (ML) for the SAF in consultation with key…"
+                    - generic "CREATIVE AND PERFORMING ARTISTS" [ref=e2058]: → CREATIVE AND PERFORMING ARTISTS
+                    - generic [ref=e1057]:
+                      - button "Analyse" [ref=e1058]
+                      - link "Open" [ref=e1059]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/16879015/005056a3-d347-1fe1-9bf2-c2a9b0cda2ad
+                      - 'button "{ } OKF" [ref=e1060]'
+                - generic [ref=e1061] [cursor=pointer]:
+                  - generic [ref=e1062]:
+                    - generic [ref=e1063]: M
+                    - generic "MINDEF" [ref=e1064]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2059]'
+                  - generic [ref=e1065]:
+                    - heading "Assistant Director (Data Analysis)" [level=3] [ref=e1066]
+                    - generic [ref=e1067]: 6 days ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e2061]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1068]:
+                      - generic [ref=e1069]: Salary on application
+                      - generic [ref=e1070]: Permanent
+                    - paragraph [ref=e1071]: "- Apply data analytic techniques to exploit existing data - Discover new data sources for trending and deeper insights - Apply insights practically to secure the maritime domain - Proactively engage…"
+                    - generic "CREATIVE AND PERFORMING ARTISTS" [ref=e2063]: → CREATIVE AND PERFORMING ARTISTS
+                    - generic [ref=e1072]:
+                      - button "Analyse" [ref=e1073]
+                      - link "Open" [ref=e1074]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/13736769/005056a3-d347-1fe1-9bf2-7673548902ad
+                      - 'button "{ } OKF" [ref=e1075]'
+                - generic [ref=e1076] [cursor=pointer]:
+                  - generic [ref=e1077]:
+                    - generic [ref=e1078]: M
+                    - generic "MINDEF" [ref=e1079]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2064]'
+                  - generic [ref=e1080]:
+                    - heading "Assistant Director (Data Science)" [level=3] [ref=e1081]
+                    - generic [ref=e1082]: 6 days ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e2066]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1083]:
+                      - generic [ref=e1084]: Salary on application
+                      - generic [ref=e1085]: Permanent
+                    - paragraph [ref=e1086]: "- Supervise the derivation of data-driven insights and recommendations - Study MINDEF/SAF's audiences and defence-related issues with integration of social science insights - Guide MINDEF/SAF's…"
+                    - generic "CREATIVE AND PERFORMING ARTISTS" [ref=e2068]: → CREATIVE AND PERFORMING ARTISTS
+                    - generic [ref=e1087]:
+                      - button "Analyse" [ref=e1088]
+                      - link "Open" [ref=e1089]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/16986942/005056a3-d347-1fe1-9bf2-6e3603afc2ad
+                      - 'button "{ } OKF" [ref=e1090]'
+                - generic [ref=e1091] [cursor=pointer]:
+                  - generic [ref=e1092]:
+                    - generic [ref=e1093]: M
+                    - generic "Monetary Authority of Singapore" [ref=e1094]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2069]'
+                  - generic [ref=e1095]:
+                    - heading "Deputy/Assistant Director, Data Analyst, Banking Department (Contract)" [level=3] [ref=e1096]
+                    - generic [ref=e1097]: 1 week ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e2071]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1098]:
+                      - generic [ref=e1099]: Salary on application
+                      - generic [ref=e1100]: Fixed Terms
+                    - paragraph [ref=e1101]: You will be part of a team responsible for the knowledge management and data analysis for banking supervision.
+                    - generic "CREATIVE AND PERFORMING ARTISTS" [ref=e2073]: → CREATIVE AND PERFORMING ARTISTS
+                    - generic [ref=e1102]:
+                      - button "Analyse" [ref=e1103]
+                      - link "Open" [ref=e1104]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17038309/005056a3-d347-1fe1-9bce-fb871c7e62ad
+                      - 'button "{ } OKF" [ref=e1105]'
+                - generic [ref=e1106] [cursor=pointer]:
+                  - generic [ref=e1107]:
+                    - generic [ref=e1108]: G
+                    - generic "Government Technology Agency" [ref=e1109]
+                  - generic [ref=e1110]:
+                    - heading "Product Manager, Data Programme" [level=3] [ref=e1111]
+                    - generic [ref=e1112]: 1 week ago
+                    - generic [ref=e1114]: Salary on application
+                    - paragraph [ref=e1115]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1116]:
+                      - button "Analyse" [ref=e1117]
+                      - link "Open" [ref=e1118]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004393201?gh_jid=4004393201
+                      - 'button "{ } OKF" [ref=e1119]'
+                - generic [ref=e1120] [cursor=pointer]:
+                  - generic [ref=e1121]:
+                    - generic [ref=e1122]: C
+                    - generic "Civil Aviation Authority of Singapore" [ref=e1123]
+                    - 'generic "AI exposure: Full automation" [ref=e2074]'
+                  - generic [ref=e1124]:
+                    - heading "Lead/Senior/ Data Scientist" [level=3] [ref=e1125]
+                    - generic [ref=e1126]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2076]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1127]:
+                      - generic [ref=e1128]: Salary on application
+                      - generic [ref=e1129]: Fixed Terms
+                    - paragraph [ref=e1130]: "- Partner divisions to identify, translate, and deliver high-value business problems into clear data science problem statements and evaluation metrics. - Design and develop ML and AI solutions for…"
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2078]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1131]:
+                      - button "Analyse" [ref=e1132]
+                      - link "Open" [ref=e1133]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17713906/005056a3-d347-1fe1-9ad1-43a0a69c02aa
+                      - 'button "{ } OKF" [ref=e1134]'
+                - generic [ref=e1135] [cursor=pointer]:
+                  - generic [ref=e1136]:
+                    - generic [ref=e1137]: G
+                    - generic "Government Technology Agency" [ref=e1138]
+                  - generic [ref=e1139]:
+                    - heading "Data Engineer (CSC)" [level=3] [ref=e1140]
+                    - generic [ref=e1141]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2080]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1143]: Salary on application
+                    - paragraph [ref=e1144]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2082]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1145]:
+                      - button "Analyse" [ref=e1146]
+                      - link "Open" [ref=e1147]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004340201?gh_jid=4004340201
+                      - 'button "{ } OKF" [ref=e1148]'
+                - generic [ref=e1149] [cursor=pointer]:
+                  - generic [ref=e1150]:
+                    - generic [ref=e1151]: G
+                    - generic "Government Technology Agency" [ref=e1152]
+                    - 'generic "AI exposure: Full automation" [ref=e2083]'
+                  - generic [ref=e1153]:
+                    - heading "Software Engineer, Data Programme" [level=3] [ref=e1154]
+                    - generic [ref=e1155]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2085]: SSOC 25291 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1157]: Salary on application
+                    - paragraph [ref=e1158]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2087]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1159]:
+                      - button "Analyse" [ref=e1160]
+                      - link "Open" [ref=e1161]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004128201?gh_jid=4004128201
+                      - 'button "{ } OKF" [ref=e1162]'
+                - generic [ref=e1163] [cursor=pointer]:
+                  - generic [ref=e1164]:
+                    - generic [ref=e1165]: M
+                    - generic "Monetary Authority of Singapore" [ref=e1166]
+                    - 'generic "AI exposure: Full automation" [ref=e2088]'
+                  - generic [ref=e1167]:
+                    - heading "Database Administrator (Contract)" [level=3] [ref=e1168]
+                    - generic [ref=e1169]: 2 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2090]: SSOC 25211 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1170]:
+                      - generic [ref=e1171]: Salary on application
+                      - generic [ref=e1172]: Fixed Terms
+                    - paragraph [ref=e1173]: "- Design, implement, and maintain Oracle, SQL Server and PostgreSQL (including pgvector) database systems to support critical banking operations - Develop and implement high availability technologies…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2092]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1174]:
+                      - button "Analyse" [ref=e1175]
+                      - link "Open" [ref=e1176]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17623163/005056a3-53e2-1fd1-9a9e-fc25ab6493fd
+                      - 'button "{ } OKF" [ref=e1177]'
+                - generic [ref=e1178] [cursor=pointer]:
+                  - generic [ref=e1179]:
+                    - generic [ref=e1180]: "N"
+                    - generic "National Parks Board" [ref=e1181]
+                    - 'generic "AI exposure: Full automation" [ref=e2093]'
+                  - generic [ref=e1182]:
+                    - heading "Budget Manager & Data Analyst (Contract)" [level=3] [ref=e1183]
+                    - generic [ref=e1184]: 2 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2095]: SSOC 21231 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1185]:
+                      - generic [ref=e1186]: Salary on application
+                      - generic [ref=e1187]: Fixed Terms
+                    - paragraph [ref=e1188]: You will be responsible for budget preparation, grant management, financial tracking, variance analysis and generating data-driven insights to support strategic and operational decision making.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2097]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1189]:
+                      - button "Analyse" [ref=e1190]
+                      - link "Open" [ref=e1191]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17702215/005056a3-53e2-1fd1-9a9f-004792f573fd
+                      - 'button "{ } OKF" [ref=e1192]'
+                - generic [ref=e1193] [cursor=pointer]:
+                  - generic [ref=e1194]:
+                    - generic [ref=e1195]: M
+                    - generic "MHA - Singapore Prison Service (SPS)" [ref=e1196]
+                  - generic [ref=e1197]:
+                    - heading "Executive, Data (Infonomics)" [level=3] [ref=e1198]
+                    - generic [ref=e1199]: 2 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2099]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1200]:
+                      - generic [ref=e1201]: Salary on application
+                      - generic [ref=e1202]: Permanent/Contract
+                    - paragraph [ref=e1203]: Partner with Data Owners and Stewards to define and map SPS’s critical data needs, shaping the data that will support both current operations and future transformation efforts.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2101]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1204]:
+                      - button "Analyse" [ref=e1205]
+                      - link "Open" [ref=e1206]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17705666/005056a3-d347-1fe1-9aac-b1c079b0a2aa
+                      - 'button "{ } OKF" [ref=e1207]'
+                - generic [ref=e1208] [cursor=pointer]:
+                  - generic [ref=e1209]:
+                    - generic [ref=e1210]: I
+                    - generic "Info-communications Media Development Authority" [ref=e1211]
+                  - generic [ref=e1212]:
+                    - heading "Assistant Manager/Manager (Policy), Data Innovation & Policy Group" [level=3] [ref=e1213]
+                    - generic [ref=e1214]: 2 weeks ago
+                    - generic [ref=e1215]:
+                      - generic [ref=e1216]: Salary on application
+                      - generic [ref=e1217]: Fixed Terms
+                    - paragraph [ref=e1218]: Update data protection policies and laws to maintain their effectiveness. - Provide practical guidance to help people and businesses navigate personal data protection requirements confidently. -…
+                    - generic [ref=e1219]:
+                      - button "Analyse" [ref=e1220]
+                      - link "Open" [ref=e1221]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17679080/005056a3-d347-1fe1-9988-1b8629a8e2a8
+                      - 'button "{ } OKF" [ref=e1222]'
+                - generic [ref=e1223] [cursor=pointer]:
+                  - generic [ref=e1224]:
+                    - generic [ref=e1225]: H
+                    - generic "Health Promotion Board" [ref=e1226]
+                  - generic [ref=e1227]:
+                    - heading "Senior/Manager, Data Analytics & Translation (2-year contract)" [level=3] [ref=e1228]
+                    - generic [ref=e1229]: 2 weeks ago
+                    - generic [ref=e1230]:
+                      - generic [ref=e1231]: Salary on application
+                      - generic [ref=e1232]: Permanent
+                    - paragraph [ref=e1233]: As a member of the Analytics and Translation team in the Research, Evaluation and Monitoring division, you will work in a cross-functional, matrix team to contribute to high-impact projects in…
+                    - generic [ref=e1234]:
+                      - button "Analyse" [ref=e1235]
+                      - link "Open" [ref=e1236]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/16363680/005056a3-d347-1fe1-9988-2011b58362a8
+                      - 'button "{ } OKF" [ref=e1237]'
+                - generic [ref=e1238] [cursor=pointer]:
+                  - generic [ref=e1239]:
+                    - generic [ref=e1240]: H
+                    - generic "Housing and Development Board" [ref=e1241]
+                    - 'generic "AI exposure: Full automation" [ref=e2102]'
+                  - generic [ref=e1242]:
+                    - heading "Principal Data Scientist" [level=3] [ref=e1243]
+                    - generic [ref=e1244]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2104]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1245]:
+                      - generic [ref=e1246]: Salary on application
+                      - generic [ref=e1247]: Contract
+                    - paragraph [ref=e1248]: Contribute to data science strategy as a core member of the DSAI COE. Specifically, you support the team's transition towards industry standard MLOps frameworks, support the DSAI COE's core efforts…
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2106]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1249]:
+                      - button "Analyse" [ref=e1250]
+                      - link "Open" [ref=e1251]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17671570/005056a3-d347-1fe1-98e5-0b120e63c2a8
+                      - 'button "{ } OKF" [ref=e1252]'
+                - generic [ref=e1253] [cursor=pointer]:
+                  - generic [ref=e1254]:
+                    - generic [ref=e1255]: L
+                    - generic "Land Transport Authority" [ref=e1256]
+                  - generic [ref=e1257]:
+                    - heading "[LTA-RAOM] SENIOR / EXECUTIVE ENGINEER (DATA STANDARDS AND INFORMATION)" [level=3] [ref=e1258]
+                    - generic [ref=e1259]: 3 weeks ago
+                    - generic [ref=e1260]:
+                      - generic [ref=e1261]: Salary on application
+                      - generic [ref=e1262]: Fixed Terms
+                    - paragraph [ref=e1263]: An exciting opportunity has arisen for a highly capable individual to join our asset management team in the development of an integrated Rail Asset Data Management.
+                    - generic [ref=e1264]:
+                      - button "Analyse" [ref=e1265]
+                      - link "Open" [ref=e1266]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17662848/005056a3-d347-1fe1-98a3-8716754782a8
+                      - 'button "{ } OKF" [ref=e1267]'
+                - generic [ref=e1268] [cursor=pointer]:
+                  - generic [ref=e1269]:
+                    - generic [ref=e1270]: S
+                    - generic "Singapore Land Authority" [ref=e1271]
+                  - generic [ref=e1272]:
+                    - heading "[GRIT@Gov] <Singapore Land Authority> <Geospatial & Data Traineeship>" [level=3] [ref=e1273]
+                    - generic [ref=e1274]: 3 weeks ago
+                    - generic [ref=e1275]:
+                      - generic [ref=e1276]: Salary on application
+                      - generic [ref=e1277]: Traineeship
+                    - paragraph [ref=e1278]: "- Geospatial Development and Implementation - Develop and configure geospatial apps, to deliver user-friendly interfaces and robust back-end systems. - GeoData Quality Assurance and Validation -…"
+                    - generic [ref=e1279]:
+                      - button "Analyse" [ref=e1280]
+                      - link "Open" [ref=e1281]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17662842/005056a3-d347-1fe1-98a3-84e719e2e2a8
+                      - 'button "{ } OKF" [ref=e1282]'
+                - generic [ref=e1283] [cursor=pointer]:
+                  - generic [ref=e1284]:
+                    - generic [ref=e1285]: S
+                    - generic "SkillsFuture Singapore" [ref=e1286]
+                    - 'generic "AI exposure: Full automation" [ref=e2107]'
+                  - generic [ref=e1287]:
+                    - heading "Data Scientist (DSAD)" [level=3] [ref=e1288]
+                    - generic [ref=e1289]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2109]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1290]:
+                      - generic [ref=e1291]: Salary on application
+                      - generic [ref=e1292]: Fixed Terms
+                    - paragraph [ref=e1293]: "- Work closely with business teams to understand their data needs, contributing to data science projects that deliver predictive models, dashboards, and other analytical products. - Help ensure the…"
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2111]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1294]:
+                      - button "Analyse" [ref=e1295]
+                      - link "Open" [ref=e1296]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17662837/005056a3-d347-1fe1-9bcf-0406235142ad
+                      - 'button "{ } OKF" [ref=e1297]'
+                - generic [ref=e1298] [cursor=pointer]:
+                  - generic [ref=e1299]:
+                    - generic [ref=e1300]: E
+                    - generic "Energy Market Authority" [ref=e1301]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2112]'
+                  - generic [ref=e1302]:
+                    - heading "AI Engineer 2 (Data & AI Department)" [level=3] [ref=e1303]
+                    - generic [ref=e1304]: 3 weeks ago
+                    - generic "PHYSICAL AND ENGINEERING SCIENCE ASSOCIATE PROFESSIONALS" [ref=e2114]: SSOC 31009 · PHYSICAL AND ENGINEERING SCIENCE ASSOCIATE PROFESSIONALS
+                    - generic [ref=e1305]:
+                      - generic [ref=e1306]: Salary on application
+                      - generic [ref=e1307]: Fixed Terms
+                    - paragraph [ref=e1308]: "(1) AI Solution Development : Work collaboratively with Data Scientists and Data Engineers to design, test, and implement AI/ML models for EMA's diverse use cases across the complete AI/ML lifecycle."
+                    - generic "ASSISTANT ENGINEERS" [ref=e2116]: → ASSISTANT ENGINEERS
+                    - generic [ref=e1309]:
+                      - button "Analyse" [ref=e1310]
+                      - link "Open" [ref=e1311]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17654470/005056a3-53e2-1fd1-988a-6904b302d3fb
+                      - 'button "{ } OKF" [ref=e1312]'
+                - generic [ref=e1313] [cursor=pointer]:
+                  - generic [ref=e1314]:
+                    - generic [ref=e1315]: A
+                    - generic "Accountant-General's Department" [ref=e1316]
+                    - 'generic "AI exposure: Full automation" [ref=e2117]'
+                  - generic [ref=e1317]:
+                    - heading "Associate/Snr Associate - Data Scientist" [level=3] [ref=e1318]
+                    - generic [ref=e1319]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2119]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1320]:
+                      - generic [ref=e1321]: Salary on application
+                      - generic [ref=e1322]: Contract
+                    - paragraph [ref=e1323]: "You will assist the team in the following key areas: i. Exploratory analysis and model prototyping Conduct exploratory data analysis on government finance datasets and build AI/ML model prototypes…"
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2121]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1324]:
+                      - button "Analyse" [ref=e1325]
+                      - link "Open" [ref=e1326]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17138856/005056a3-d347-1fe1-9af6-c7a38c5e62ac
+                      - 'button "{ } OKF" [ref=e1327]'
+                - generic [ref=e1328] [cursor=pointer]:
+                  - generic [ref=e1329]:
+                    - generic [ref=e1330]: S
+                    - generic "SkillsFuture Singapore" [ref=e1331]
+                  - generic [ref=e1332]:
+                    - heading "Data and AI Capabilities Building Manager (DSAD) (1-yr Temp Contract)" [level=3] [ref=e1333]
+                    - generic [ref=e1334]: 3 weeks ago
+                    - generic [ref=e1335]:
+                      - generic [ref=e1336]: Salary on application
+                      - generic [ref=e1337]: Fixed Terms
+                    - paragraph [ref=e1338]: "You will support the end‑to‑end delivery of Data and AI capability programmes by: Planning and coordinating Data and AI capability‑building programmes (e.g. data bootcamps, learning events and…"
+                    - generic [ref=e1339]:
+                      - button "Analyse" [ref=e1340]
+                      - link "Open" [ref=e1341]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17656150/005056a3-d347-1fe1-97fb-d2df9efde2a7
+                      - 'button "{ } OKF" [ref=e1342]'
+                - generic [ref=e1343] [cursor=pointer]:
+                  - generic [ref=e1344]:
+                    - generic [ref=e1345]: C
+                    - generic "Civil Service College" [ref=e1346]
+                  - generic [ref=e1347]:
+                    - heading "Data Engineer, Data and AI Office (DAO) - 2 Two-Year Contract" [level=3] [ref=e1348]
+                    - generic [ref=e1349]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2123]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1350]:
+                      - generic [ref=e1351]: Salary on application
+                      - generic [ref=e1352]: Contract
+                    - paragraph [ref=e1353]: Data Infrastructure and Data Pipeline Development Collaborate with system architect or senior engineers to design and implement the suitable data architecture, schema and data storage solutions that…
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2125]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1354]:
+                      - button "Analyse" [ref=e1355]
+                      - link "Open" [ref=e1356]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17390896/005056a3-53e2-1fd1-93bb-53b8e358f3f3
+                      - 'button "{ } OKF" [ref=e1357]'
+                - generic [ref=e1358] [cursor=pointer]:
+                  - generic [ref=e1359]:
+                    - generic [ref=e1360]: G
+                    - generic "Government Technology Agency" [ref=e1361]
+                  - generic [ref=e1362]:
+                    - heading "Product Manager, Data Programme (MOE)" [level=3] [ref=e1363]
+                    - generic [ref=e1364]: 3 weeks ago
+                    - generic [ref=e1366]: Salary on application
+                    - paragraph [ref=e1367]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1368]:
+                      - button "Analyse" [ref=e1369]
+                      - link "Open" [ref=e1370]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004026201?gh_jid=4004026201
+                      - 'button "{ } OKF" [ref=e1371]'
+                - generic [ref=e1372] [cursor=pointer]:
+                  - generic [ref=e1373]:
+                    - generic [ref=e1374]: M
+                    - generic "Ministry of Digital Development and Information" [ref=e1375]
+                  - generic [ref=e1376]:
+                    - heading "Capability, Manager / Snr. Manager, Data Governance, Govt. Data Division, SNDG" [level=3] [ref=e1377]
+                    - generic [ref=e1378]: 4 weeks ago
+                    - generic [ref=e1379]:
+                      - generic [ref=e1380]: Salary on application
+                      - generic [ref=e1381]: Permanent/Contract
+                    - paragraph [ref=e1382]: You will be part of a team refreshing strategies, spearheading capability development policy and efforts, and driving the implementation of high impact initiatives to advance public sector data…
+                    - generic [ref=e1383]:
+                      - button "Analyse" [ref=e1384]
+                      - link "Open" [ref=e1385]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17644108/005056a3-d347-1fe1-97c5-cdc2894262a7
+                      - 'button "{ } OKF" [ref=e1386]'
+                - generic [ref=e1387] [cursor=pointer]:
+                  - generic [ref=e1388]:
+                    - generic [ref=e1389]: M
+                    - generic "Ministry of Digital Development and Information" [ref=e1390]
+                  - generic [ref=e1391]:
+                    - heading "Data Policy, M/SM/AD, Govt Data Division, SNDG" [level=3] [ref=e1392]
+                    - generic [ref=e1393]: 4 weeks ago
+                    - generic [ref=e1394]:
+                      - generic [ref=e1395]: Salary on application
+                      - generic [ref=e1396]: Permanent/Contract
+                    - paragraph [ref=e1397]: We want a change maker who has experience in policymaking, and is collaborative in stakeholder management.
+                    - generic [ref=e1398]:
+                      - button "Analyse" [ref=e1399]
+                      - link "Open" [ref=e1400]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17643972/005056a3-d347-1fe1-97c5-4839f3fa82a7
+                      - 'button "{ } OKF" [ref=e1401]'
+                - generic [ref=e1402] [cursor=pointer]:
+                  - generic [ref=e1403]:
+                    - generic [ref=e1404]: J
+                    - generic "JTC Corporation" [ref=e1405]
+                    - 'generic "AI exposure: Full automation" [ref=e2126]'
+                  - generic [ref=e1406]:
+                    - heading "[CG] Manager / Assistant Manager (Industry Development) - Data Centre (2yr Contr" [level=3] [ref=e1407]
+                    - generic [ref=e1408]: 4 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2128]: SSOC 25291 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1409]:
+                      - generic [ref=e1410]: Salary on application
+                      - generic [ref=e1411]: Fixed Terms
+                    - paragraph [ref=e1412]: Account Management You will manage customer leases and provide support to our customers' operations.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2130]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1413]:
+                      - button "Analyse" [ref=e1414]
+                      - link "Open" [ref=e1415]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17647005/005056a3-d347-1fe1-97cd-ffd26a9602a7
+                      - 'button "{ } OKF" [ref=e1416]'
+                - generic [ref=e1417] [cursor=pointer]:
+                  - generic [ref=e1418]:
+                    - generic [ref=e1419]: M
+                    - generic "Ministry of Manpower" [ref=e1420]
+                  - generic [ref=e1421]:
+                    - heading "Manager, Enforcement Planning & Policy, Data & Statistics, FMMD" [level=3] [ref=e1422]
+                    - generic [ref=e1423]: 4 weeks ago
+                    - generic [ref=e1424]:
+                      - generic [ref=e1425]: Salary on application
+                      - generic [ref=e1426]: Permanent/Contract
+                    - paragraph [ref=e1427]: Handle data extraction through the building of data queries to acquire data from primary and secondary sources (e.g.
+                    - generic [ref=e1428]:
+                      - button "Analyse" [ref=e1429]
+                      - link "Open" [ref=e1430]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17646523/005056a3-53e2-1fd1-9ac1-ba5ea1e753fe
+                      - 'button "{ } OKF" [ref=e1431]'
+                - generic [ref=e1432] [cursor=pointer]:
+                  - generic [ref=e1433]:
+                    - generic [ref=e1434]: L
+                    - generic "Land Transport Authority" [ref=e1435]
+                    - 'generic "AI exposure: Full automation" [ref=e2131]'
+                  - generic [ref=e1436]:
+                    - heading "[LTA-RDG] SENIOR DATA SCIENTIST" [level=3] [ref=e1437]
+                    - generic [ref=e1438]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2133]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1439]:
+                      - generic [ref=e1440]: Salary on application
+                      - generic [ref=e1441]: Fixed Terms
+                    - paragraph [ref=e1442]: The Rail Digitalisation Division is a cross-functional and multi-disciplinary team set up to drive and deliver LTA’s Railway Common Data Platform (CDP) , which includes data analytics and artificial…
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2135]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1443]:
+                      - button "Analyse" [ref=e1444]
+                      - link "Open" [ref=e1445]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17226740/005056a3-53e2-1fd1-988a-717de5f913fb
+                      - 'button "{ } OKF" [ref=e1446]'
+                - generic [ref=e1447] [cursor=pointer]:
+                  - generic [ref=e1448]:
+                    - generic [ref=e1449]: S
+                    - generic "Singapore Tourism Board" [ref=e1450]
+                    - 'generic "AI exposure: Full automation" [ref=e2136]'
+                  - generic [ref=e1451]:
+                    - heading "Contract Senior Analyst Data Pilots, Data Exploration and Partnerships" [level=3] [ref=e1452]
+                    - generic [ref=e1453]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2138]: SSOC 21231 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1454]:
+                      - generic [ref=e1455]: Salary on application
+                      - generic [ref=e1456]: Fixed Terms
+                    - paragraph [ref=e1457]: "[What you will be working on] Technical Design & Feasibility Assessment: - Partner with Data Partnership Managers in later-stage discussions with potential data partners to finalise the scope and…"
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2140]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1458]:
+                      - button "Analyse" [ref=e1459]
+                      - link "Open" [ref=e1460]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17631272/005056a3-53e2-1fd1-9c9a-6d26321a33ff
+                      - 'button "{ } OKF" [ref=e1461]'
+                - generic [ref=e1462] [cursor=pointer]:
+                  - generic [ref=e1463]:
+                    - generic [ref=e1464]: I
+                    - generic "Info-communications Media Development Authority" [ref=e1465]
+                    - 'generic "AI exposure: Full automation" [ref=e2141]'
+                  - generic [ref=e1466]:
+                    - heading "SM, Presales Consultant (AI & Data Engineering)" [level=3] [ref=e1467]
+                    - generic [ref=e1468]: 1 month ago
+                    - generic "BUSINESS AND ADMINISTRATION PROFESSIONALS" [ref=e2143]: SSOC 24212 · BUSINESS AND ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e1469]:
+                      - generic [ref=e1470]: Salary on application
+                      - generic [ref=e1471]: Fixed Terms
+                    - paragraph [ref=e1472]: Client Engagement & Problem Definition - Engage government agencies and enterprises to identify, distil, and prioritise digital pain points, translating broad challenges into clear problem statements…
+                    - generic "ADMINISTRATION PROFESSIONALS" [ref=e2145]: → ADMINISTRATION PROFESSIONALS
+                    - generic [ref=e1473]:
+                      - button "Analyse" [ref=e1474]
+                      - link "Open" [ref=e1475]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/16007345/005056a3-53e2-1fd1-96da-563dee2713f8
+                      - 'button "{ } OKF" [ref=e1476]'
+                - generic [ref=e1477] [cursor=pointer]:
+                  - generic [ref=e1478]:
+                    - generic [ref=e1479]: G
+                    - generic "Government Technology Agency" [ref=e1480]
+                  - generic [ref=e1481]:
+                    - heading "Senior / Data Engineer (AGC)" [level=3] [ref=e1482]
+                    - generic [ref=e1483]: 1 month ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2147]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1485]: Salary on application
+                    - paragraph [ref=e1486]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2149]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1487]:
+                      - button "Analyse" [ref=e1488]
+                      - link "Open" [ref=e1489]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004030201?gh_jid=4004030201
+                      - 'button "{ } OKF" [ref=e1490]'
+                - generic [ref=e1491] [cursor=pointer]:
+                  - generic [ref=e1492]:
+                    - generic [ref=e1493]: M
+                    - generic "Ministry of Manpower" [ref=e1494]
+                    - 'generic "AI exposure: Full automation" [ref=e2150]'
+                  - generic [ref=e1495]:
+                    - heading "Statistical Specialist (Data Analytics and Methodology), Data Collection, MRSD" [level=3] [ref=e1496]
+                    - generic [ref=e1497]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2152]: SSOC 21231 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1498]:
+                      - generic [ref=e1499]: Salary on application
+                      - generic [ref=e1500]: Permanent/Contract
+                    - paragraph [ref=e1501]: Leveraging on a variety of data sources (i.e survey data, administrative data), including big data to generate actionable insights.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2154]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1502]:
+                      - button "Analyse" [ref=e1503]
+                      - link "Open" [ref=e1504]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17626361/005056a3-53e2-1fd1-9ac1-6f972215f3fe
+                      - 'button "{ } OKF" [ref=e1505]'
+                - generic [ref=e1506] [cursor=pointer]:
+                  - generic [ref=e1507]:
+                    - generic [ref=e1508]: A
+                    - generic "Accountant-General's Department" [ref=e1509]
+                    - 'generic "AI exposure: Full automation" [ref=e2155]'
+                  - generic [ref=e1510]:
+                    - heading "Snr Associate - Data Solutions Engineer" [level=3] [ref=e1511]
+                    - generic [ref=e1512]: 1 month ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2157]: SSOC 25291 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1513]:
+                      - generic [ref=e1514]: Salary on application
+                      - generic [ref=e1515]: Contract
+                    - paragraph [ref=e1516]: "Your key responsibilities will include: Planning, designing and executing the data strategy for the WOG enterprise finance data analytics platform, integrating with agency’s objectives and building…"
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2159]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1517]:
+                      - button "Analyse" [ref=e1518]
+                      - link "Open" [ref=e1519]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17138868/005056a3-53e2-1fd1-9af6-bd85cf5a33fe
+                      - 'button "{ } OKF" [ref=e1520]'
+                - generic [ref=e1521] [cursor=pointer]:
+                  - generic [ref=e1522]:
+                    - generic [ref=e1523]: I
+                    - generic "Institute of Technical Education" [ref=e1524]
+                  - generic [ref=e1525]:
+                    - heading "Deputy Manager - Data Analysis & Surveys [ITE Headquarters] – 2 Year Contract" [level=3] [ref=e1526]
+                    - generic [ref=e1527]: 1 month ago
+                    - generic [ref=e1528]:
+                      - generic [ref=e1529]: Salary on application
+                      - generic [ref=e1530]: Fixed Terms
+                    - paragraph [ref=e1531]: "- Manage Special Educational Needs (SEN) Work - Liaise with Colleges to collate SEN, counselling and SEN Fund data for periodic reporting. - Collate the list of students declared SEN conditions and…"
+                    - generic [ref=e1532]:
+                      - button "Analyse" [ref=e1533]
+                      - link "Open" [ref=e1534]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17623248/005056a3-53e2-1fd1-97d8-17e953ca53fa
+                      - 'button "{ } OKF" [ref=e1535]'
+                - generic [ref=e1536] [cursor=pointer]:
+                  - generic [ref=e1537]:
+                    - generic [ref=e1538]: I
+                    - generic "Institute of Technical Education" [ref=e1539]
+                  - generic [ref=e1540]:
+                    - heading "Data & Analytics Engineer - Learning Technologies Devt [ITE Headquarters]" [level=3] [ref=e1541]
+                    - generic [ref=e1542]: 1 month ago
+                    - generic [ref=e1543]:
+                      - generic [ref=e1544]: Salary on application
+                      - generic [ref=e1545]: Fixed Terms
+                    - paragraph [ref=e1546]: You are expected to build scripts to extract, prepare, transform and load data into an analytics software; build AI models with clustering and predictive capabilities.
+                    - generic [ref=e1547]:
+                      - button "Analyse" [ref=e1548]
+                      - link "Open" [ref=e1549]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17623237/005056a3-53e2-1fd1-97d8-16456e91d3fa
+                      - 'button "{ } OKF" [ref=e1550]'
+                - generic [ref=e1551] [cursor=pointer]:
+                  - generic [ref=e1552]:
+                    - generic [ref=e1553]: G
+                    - generic "Government Technology Agency" [ref=e1554]
+                  - generic [ref=e1555]:
+                    - heading "Data Engineer, Data Practice" [level=3] [ref=e1556]
+                    - generic [ref=e1557]: 1 month ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2161]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1559]: Salary on application
+                    - paragraph [ref=e1560]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2163]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1561]:
+                      - button "Analyse" [ref=e1562]
+                      - link "Open" [ref=e1563]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003992201?gh_jid=4003992201
+                      - 'button "{ } OKF" [ref=e1564]'
+                - generic [ref=e1565] [cursor=pointer]:
+                  - generic [ref=e1566]:
+                    - generic [ref=e1567]: G
+                    - generic "Government Technology Agency" [ref=e1568]
+                    - 'generic "AI exposure: Full automation" [ref=e2164]'
+                  - generic [ref=e1569]:
+                    - heading "Data Scientist, Data Practice" [level=3] [ref=e1570]
+                    - generic [ref=e1571]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2166]: SSOC 21222 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1573]: Salary on application
+                    - paragraph [ref=e1574]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS" [ref=e2168]: → MATHEMATICIANS, ACTUARIES, STATISTICIANS AND RELATED PROFESSIONALS
+                    - generic [ref=e1575]:
+                      - button "Analyse" [ref=e1576]
+                      - link "Open" [ref=e1577]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003981201?gh_jid=4003981201
+                      - 'button "{ } OKF" [ref=e1578]'
+                - generic [ref=e1579] [cursor=pointer]:
+                  - generic [ref=e1580]:
+                    - generic [ref=e1581]: C
+                    - generic "Centre for Strategic Infocomm Technologies" [ref=e1582]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2169]'
+                  - generic [ref=e1583]:
+                    - heading "Software Engineer (Data Processing and Management)" [level=3] [ref=e1584]
+                    - generic [ref=e1585]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2171]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1586]:
+                      - generic [ref=e1587]: Salary on application
+                      - generic [ref=e1588]: Permanent
+                    - paragraph [ref=e1589]: Write high-quality code with comprehensive unit, functional, and end-to-end tests. Design, build, and deploy applications and APIs for data processing and management.
+                    - generic "ENGINEERING PROFESSIONALS I" [ref=e2173]: → ENGINEERING PROFESSIONALS I
+                    - generic [ref=e1590]:
+                      - button "Analyse" [ref=e1591]
+                      - link "Open" [ref=e1592]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17616133/005056a3-53e2-1fd1-9681-7debc131d3f7
+                      - 'button "{ } OKF" [ref=e1593]'
+                - generic [ref=e1594] [cursor=pointer]:
+                  - generic [ref=e1595]:
+                    - generic [ref=e1596]: G
+                    - generic "Government Technology Agency" [ref=e1597]
+                  - generic [ref=e1598]:
+                    - heading "Data Engineer, Data Programme" [level=3] [ref=e1599]
+                    - generic [ref=e1600]: 1 month ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2175]: SSOC 25213 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1602]: Salary on application
+                    - paragraph [ref=e1603]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic "DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS" [ref=e2177]: → DATABASE, NETWORK, INFRASTRUCTURE AND CYBERSECURITY PROFESSIONALS
+                    - generic [ref=e1604]:
+                      - button "Analyse" [ref=e1605]
+                      - link "Open" [ref=e1606]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003953201?gh_jid=4003953201
+                      - 'button "{ } OKF" [ref=e1607]'

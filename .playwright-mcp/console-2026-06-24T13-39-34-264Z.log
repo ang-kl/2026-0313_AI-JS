@@ -1,0 +1,3 @@
+[     486ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v3.takearoundabout.com/_vercel/insights/script.js:0
+[     486ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/dmm=1:0
+[     489ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-fGQ_QmSi.js:916

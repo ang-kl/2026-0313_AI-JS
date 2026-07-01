@@ -1,0 +1,4 @@
+[    1653ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/?view=wiki:0
+[    1653ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-x8fyCNwj.js:926
+[  118498ms] [WARNING] [generatePrompts] batch failed for skills 4,5,6 Could not parse JSON for prompts-batch @ https://v3.takearoundabout.com/assets/index-x8fyCNwj.js:377
+[  123347ms] [WARNING] [generatePrompts] batch failed for skills 11,12,13 Could not parse JSON for prompts-batch @ https://v3.takearoundabout.com/assets/index-x8fyCNwj.js:377
