@@ -1,0 +1,215 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e2444]:
+        - generic [ref=e2445]:
+          - button "Postings" [ref=e2446] [cursor=pointer]: ← Postings
+          - generic [ref=e2447]:
+            - generic [ref=e2448]:
+              - generic [ref=e2449]: REVIEWING
+              - generic [ref=e2450]: ● from MCF
+            - generic [ref=e2451]: Data Analyst
+          - generic [ref=e2452]:
+            - generic [ref=e2596]: AI-augmented
+            - generic [ref=e2453]: 24 duties · 36 skills
+        - generic [ref=e2454]:
+          - generic [ref=e2455]:
+            - generic [ref=e2456]: REVIEW
+            - generic [ref=e2457]:
+              - button "Read clean" [ref=e2458] [cursor=pointer]
+              - button "Suggestions" [pressed] [ref=e2459] [cursor=pointer]
+              - button "Comments" [ref=e2460] [cursor=pointer]
+              - button "Dissect" [ref=e2461] [cursor=pointer]
+          - generic [ref=e2462]:
+            - generic [ref=e2463]: VISUALS
+            - generic [ref=e2464]:
+              - button "Job graph" [pressed] [ref=e2465] [cursor=pointer]
+              - button "AI trace" [ref=e2466] [cursor=pointer]
+              - button "Workflow" [ref=e2467] [cursor=pointer]
+              - button "Value stream" [ref=e2468] [cursor=pointer]
+              - button "Org map" [ref=e2469] [cursor=pointer]
+          - generic [ref=e2470]:
+            - generic [ref=e2471]: EVIDENCE
+            - generic [ref=e2472]:
+              - button "Observed" [ref=e2473] [cursor=pointer]
+              - button "Interpreted" [ref=e2474] [cursor=pointer]
+              - button "Applied" [ref=e2475] [cursor=pointer]
+              - button "Withheld" [ref=e2476] [cursor=pointer]
+              - button "Provenance" [ref=e2477] [cursor=pointer]
+          - generic [ref=e2478]:
+            - generic [ref=e2479]: OUTPUT
+            - generic [ref=e2480]:
+              - button "Cover letter" [ref=e2481] [cursor=pointer]
+              - button "Resume notes" [ref=e2482] [cursor=pointer]
+              - button "Interview pack" [ref=e2483] [cursor=pointer]
+              - button "Print / PDF" [ref=e2484] [cursor=pointer]
+        - generic [ref=e2485]:
+          - navigation [ref=e2486]:
+            - button "Collapse rail" [ref=e2487] [cursor=pointer]: «
+            - button "Sources" [ref=e2488] [cursor=pointer]:
+              - generic [ref=e2489]: ▤
+              - text: Sources
+            - button "Trace" [ref=e2490] [cursor=pointer]:
+              - generic [ref=e2491]: ⋔
+              - text: Trace
+            - button "Skilling" [ref=e2492] [cursor=pointer]:
+              - generic [ref=e2493]: ◇
+              - text: Skilling
+            - button "Advisory" [ref=e2494] [cursor=pointer]:
+              - generic [ref=e2495]: ✦
+              - text: Advisory
+            - button "Cover letter" [ref=e2496] [cursor=pointer]:
+              - generic [ref=e2497]: ✎
+              - text: Cover letter
+            - button "Boards" [ref=e2498] [cursor=pointer]:
+              - generic [ref=e2499]: ▦
+              - text: Boards
+            - button "Saved" [ref=e2500] [cursor=pointer]:
+              - generic [ref=e2501]: ⤓
+              - text: Saved
+            - generic [ref=e2502]: local + cloud
+          - generic [ref=e2504]:
+            - generic [ref=e2505]: MANUSCRIPT · LIVE POSTING
+            - heading "Data Analyst" [level=1] [ref=e2506]
+            - generic [ref=e2507]:
+              - generic [ref=e2508]: ● from MCF · verbatim
+              - generic [ref=e2598]: AI-augmented
+            - heading "Role overview" [level=2] [ref=e2599]
+            - paragraph [ref=e2600]: Analyse, manage, and visualise data to deliver actionable insights supporting business decisions in diverse sectors.
+            - heading "Responsibilities" [level=2] [ref=e2601]
+            - list [ref=e2602]:
+              - listitem [ref=e2603]:
+                - button "Provide ad-hoc data analysis and insights" [ref=e2604] [cursor=pointer]
+              - listitem [ref=e2605]:
+                - button "develop reports and dashboards" [ref=e2606] [cursor=pointer]
+              - listitem [ref=e2607]:
+                - button "Embed data quality checks and monitoring within pipelines" [ref=e2608] [cursor=pointer]
+              - listitem [ref=e2609]:
+                - button "Analyse field definitions, data structures, and relationships" [ref=e2610] [cursor=pointer]
+              - listitem [ref=e2611]:
+                - button "Assist in documenting data templates and integration requirements" [ref=e2612] [cursor=pointer]
+              - listitem [ref=e2613]:
+                - button "Collaborate with cross-functional stakeholders on business requirements" [ref=e2614] [cursor=pointer]
+              - listitem [ref=e2615]:
+                - button "Deliver actionable insights and scalable analytics solutions" [ref=e2616] [cursor=pointer]
+              - listitem [ref=e2617]:
+                - button "document business rules and define metrics" [ref=e2618] [cursor=pointer]
+              - listitem [ref=e2619]:
+                - button "Ensure data accuracy, consistency, and documentation of processes" [ref=e2620] [cursor=pointer]
+              - listitem [ref=e2621]:
+                - button "Lead build and operationalise data management platform" [ref=e2622] [cursor=pointer]
+              - listitem [ref=e2623]:
+                - button "Support data mapping between Salesforce and external systems" [ref=e2624] [cursor=pointer]
+              - listitem [ref=e2625]:
+                - button "Build and maintain automated reporting solutions" [ref=e2626] [cursor=pointer]
+              - listitem [ref=e2627]:
+                - button "Communicate findings to diverse stakeholders" [ref=e2628] [cursor=pointer]
+              - listitem [ref=e2629]:
+                - button "Implement and support data governance practices" [ref=e2630] [cursor=pointer]
+            - heading "Skills the posting asks for" [level=2] [ref=e2509]
+            - generic [ref=e2510]:
+              - generic [ref=e2511]: Collect ICT Data
+              - generic [ref=e2512]: Use Data Processing Techniques
+              - generic [ref=e2513]: Data Engineering
+              - generic [ref=e2514]: Data Models
+              - generic [ref=e2515]: Manage Data
+              - generic [ref=e2516]: Information Structure
+              - generic [ref=e2517]: Digital Data Processing
+              - generic [ref=e2518]: Execute Analytical Mathematical Calculations
+              - generic [ref=e2519]: Establish Data Processes
+              - generic [ref=e2520]: Visual Presentation Techniques
+              - generic [ref=e2521]: Analyse Big Data
+              - generic [ref=e2522]: Data Visualisation Software
+              - generic [ref=e2523]: Integrate ICT Data
+              - generic [ref=e2524]: Data Mining
+              - generic [ref=e2525]: Handle Data Samples
+              - generic [ref=e2526]: Interpret Current Data
+              - generic [ref=e2527]: Statistics
+              - generic [ref=e2528]: Normalise Data
+              - generic [ref=e2529]: Documentation Types
+              - generic [ref=e2530]: Information Extraction
+              - generic [ref=e2531]: Resource Description Framework Query Language
+              - generic [ref=e2532]: Define Data Quality Criteria
+              - generic [ref=e2533]: Apply Statistical Analysis Techniques
+              - generic [ref=e2534]: Information Categorisation
+          - complementary [ref=e2536]:
+            - generic [ref=e2537]:
+              - generic [ref=e2538]: REVIEWER COMMENTS
+              - generic [ref=e2539]: "1"
+            - generic [ref=e2631] [cursor=pointer]:
+              - generic [ref=e2632]:
+                - generic [ref=e2633]: ✦
+                - generic [ref=e2634]: AI Exposure Reviewer
+                - generic [ref=e2635]: AI exposure
+              - generic [ref=e2636]: AI-augmented
+              - paragraph [ref=e2637]: “Provide ad-hoc data analysis and insights”
+              - paragraph [ref=e2638]: Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads AI-augmented, not full automation.
+              - generic [ref=e2639]:
+                - generic [ref=e2640]: AI estimate
+                - generic [ref=e2641]: conf · medium
+              - generic [ref=e2642]:
+                - button "Accept" [ref=e2643]
+                - button "Reject" [ref=e2644]
+                - button "Ask why" [ref=e2645]
+          - generic [ref=e2541]:
+            - generic [ref=e2542]:
+              - generic [ref=e2543]: VISUAL INTELLIGENCE
+              - generic [ref=e2544]:
+                - button "Job graph" [pressed] [ref=e2545] [cursor=pointer]
+                - button "AI trace" [ref=e2546] [cursor=pointer]
+                - button "Workflow" [ref=e2547] [cursor=pointer]
+                - button "Value stream" [ref=e2548] [cursor=pointer]
+                - button "Org map" [ref=e2549] [cursor=pointer]
+            - generic [ref=e2551]:
+              - generic [ref=e2553]:
+                - generic [ref=e2554]:
+                  - paragraph [ref=e2555]: Role Graph
+                  - heading "Data Analyst as work, skills, and occupation evidence" [level=3] [ref=e2556]
+                  - paragraph [ref=e2557]: The graph keeps the V2 fast read, now grounded in live duties, ESCO skills, and ISCO-08 occupation evidence.
+                - button "Show method" [ref=e2558] [cursor=pointer]:
+                  - generic [ref=e2559]: Show method
+                  - generic [ref=e2560]: down
+              - group "Graph view" [ref=e2561]:
+                - button "Layered" [pressed] [ref=e2562] [cursor=pointer]
+                - button "Knowledge graph" [ref=e2563] [cursor=pointer]
+              - generic [ref=e2564]:
+                - paragraph [ref=e2565]: Building the role graph
+                - paragraph [ref=e2566]: Step 5 of 6
+                - generic [ref=e2567]:
+                  - generic [ref=e2568]:
+                    - generic [ref=e2570]: ✓
+                    - generic [ref=e2571]: Ingest the job posting and extract the responsibilities, requirements, qualifications, and preferred competencies.
+                  - generic [ref=e2572]:
+                    - generic [ref=e2574]: ✓
+                    - generic [ref=e2575]: Structure the extracted content into itemised responsibility and requirement statements.
+                  - generic [ref=e2576]:
+                    - generic [ref=e2578]: ✓
+                    - generic [ref=e2579]: Analyse each statement to infer the underlying work activities, tasks, skills, and competency signals.
+                  - generic [ref=e2580]:
+                    - generic [ref=e2582]: ✓
+                    - generic [ref=e2583]: Map each inferred responsibility to relevant ESCO skills.
+                  - generic [ref=e2587]: Reverse-map the ESCO skills to likely ISCO-08 occupations, using similarity scoring and weighted matching.
+                  - generic [ref=e2588]:
+                    - generic [ref=e2590]: "6."
+                    - generic [ref=e2591]: Apply trading-algorithm-style scoring to rank the ISCO-08 roles against the selected MyCareersFuture role, based on skill proximity, responsibility overlap, and confidence weightage.
+            - generic [ref=e2592]: every node ← source span
+        - generic [ref=e2593]:
+          - generic [ref=e2594]: Review Studio · local + cloud
+          - generic [ref=e2595]: AI-assisted · human decides

@@ -1,0 +1,74 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - textbox [active] [ref=e90]: Tax Officer
+          - button "Search" [ref=e91] [cursor=pointer]
+        - generic [ref=e92]:
+          - paragraph [ref=e93]:
+            - text: 5 roles similar to
+            - generic [ref=e94]: "\"Tax Officer\""
+          - paragraph [ref=e95]: Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - paragraph [ref=e99]: Tax Officer
+            - paragraph [ref=e100]:
+              - generic [ref=e101]: "ISCO-08: 3311 ·"
+              - text: A public official who administers tax collection, compliance, and enforcement for government revenue authoriti...
+          - generic [ref=e102] [cursor=pointer]:
+            - paragraph [ref=e104]: Tax Adviser
+            - paragraph [ref=e105]:
+              - generic [ref=e106]: "ISCO-08: 2411 ·"
+              - text: A professional who provides expert advice on tax planning, compliance, and optimization strategies to individu...
+          - generic [ref=e107] [cursor=pointer]:
+            - paragraph [ref=e109]: Customs Officer
+            - paragraph [ref=e110]:
+              - generic [ref=e111]: "ISCO-08: 3354 ·"
+              - text: A government official who enforces customs regulations, assesses duties, and inspects goods at borders and por...
+          - generic [ref=e112] [cursor=pointer]:
+            - paragraph [ref=e114]: Government Tax Official
+            - paragraph [ref=e115]:
+              - generic [ref=e116]: "ISCO-08: 1219 ·"
+              - text: A senior government professional responsible for developing and implementing tax policy and administration at ...
+          - generic [ref=e117] [cursor=pointer]:
+            - paragraph [ref=e119]: Accountant
+            - paragraph [ref=e120]:
+              - generic [ref=e121]: "ISCO-08: 2411 ·"
+              - text: A professional who prepares financial records, manages accounts, and ensures compliance with accounting standa...
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - paragraph [ref=e124]: Browse all roles
+            - button "Expand all" [ref=e125] [cursor=pointer]
+          - button "Finance and Banking 3 ▼" [ref=e127] [cursor=pointer]:
+            - generic [ref=e128]:
+              - generic [ref=e129]: Finance and Banking
+              - generic [ref=e130]: "3"
+            - generic [ref=e131]: ▼
+          - button "Government and Public Administration 1 ▼" [ref=e133] [cursor=pointer]:
+            - generic [ref=e134]:
+              - generic [ref=e135]: Government and Public Administration
+              - generic [ref=e136]: "1"
+            - generic [ref=e137]: ▼
+          - button "Legal and Compliance 1 ▼" [ref=e139] [cursor=pointer]:
+            - generic [ref=e140]:
+              - generic [ref=e141]: Legal and Compliance
+              - generic [ref=e142]: "1"
+            - generic [ref=e143]: ▼

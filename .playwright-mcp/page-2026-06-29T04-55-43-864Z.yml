@@ -1,0 +1,17 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "Back to search" [ref=e7] [cursor=pointer]: ← Search
+        - generic [ref=e8]: Software Developer
+      - generic [ref=e9]:
+        - group "Graph view" [ref=e10]:
+          - button "Chain" [pressed] [ref=e11] [cursor=pointer]
+          - button "Map" [ref=e12] [cursor=pointer]
+        - generic [ref=e13]:
+          - button "Expand graph to fullscreen" [ref=e14] [cursor=pointer]: ⤢
+          - button "Float graph as a movable panel" [ref=e15] [cursor=pointer]: ▢
+          - button "Close graph to a small panel" [ref=e16] [cursor=pointer]: ×
+    - status [ref=e17]: "Analysing posting: occupation, SSOC and AI-exposure..."

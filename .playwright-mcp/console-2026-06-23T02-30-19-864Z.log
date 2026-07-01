@@ -1,0 +1,77 @@
+[    1600ms] [ERROR] Refused to execute script from 'https://v3.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled. @ https://v3.takearoundabout.com/?view=wiki:0
+[    1694ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:929
+[  145461ms] [WARNING] [generatePrompts] batch failed for skills 12,13,14 Could not parse JSON for prompts-batch @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:379
+[  147334ms] [WARNING] [generatePrompts] batch failed for skills 9,10,11 Could not parse JSON for prompts-batch @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:379
+[  907905ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  907980ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  907995ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908053ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908106ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908139ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908177ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908254ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908588ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908589ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908622ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908638ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908651ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908667ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908680ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908725ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908759ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  908811ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909323ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909335ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909372ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909402ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909429ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909461ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909501ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909895ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909911ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909928ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909945ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909961ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  909976ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  910006ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  915934ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  915957ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  915975ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  915990ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916008ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916059ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916109ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916165ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button>
+Ancestor with aria-hidden: <button> @ https://v3.takearoundabout.com/?view=wiki:0
+[  916488ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916505ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916522ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916539ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916556ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916584ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916617ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  916672ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923792ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923828ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923845ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923861ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923892ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  923955ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924006ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924058ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924093ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924191ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924426ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924460ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924477ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924494ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924510ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924523ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924537ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924577ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924611ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924660ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924691ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924748ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36
+[  924757ms] [ERROR] Unable to preventDefault inside passive event listener invocation. @ https://v3.takearoundabout.com/assets/index-BiyWg0Yt.js:36

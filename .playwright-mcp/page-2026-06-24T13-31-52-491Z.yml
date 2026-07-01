@@ -1,0 +1,703 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e107] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e108]:
+        - button "← New search" [ref=e109] [cursor=pointer]
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - heading "🇸🇬 SG Job Postings" [level=2] [ref=e112]
+            - paragraph [ref=e113]:
+              - text: Current openings from
+              - link "MyCareersFuture" [ref=e114] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/
+              - text: and
+              - link "careers.gov.sg" [ref=e115] [cursor=pointer]:
+                - /url: https://careers.gov.sg/
+              - text: matching this role. Tap
+              - strong [ref=e116]: Analyse this posting
+              - text: on any job to run a skill analysis grounded in that listing - or analyse all of them as one role. Postings refresh daily.
+            - button "📊 Analyse all 80 postings as one role →" [ref=e117] [cursor=pointer]
+          - button "Open job table of contents" [active] [ref=e118] [cursor=pointer]:
+            - generic [ref=e119]: ☰
+            - text: Jobs
+          - dialog "Job results navigation" [ref=e707]:
+            - generic [ref=e708]:
+              - paragraph [ref=e709]: Job drawer
+              - button "Close job drawer" [ref=e710] [cursor=pointer]: ×
+            - paragraph [ref=e711]: Title matches are ranked first. Responsibility and segment matches are kept visible as secondary evidence.
+            - generic [ref=e712]:
+              - button "MCF (30) Title 30 · Responsibility 0 · Segment 0" [ref=e713] [cursor=pointer]:
+                - generic [ref=e714]: MCF (30)
+                - generic [ref=e715]: Title 30 · Responsibility 0 · Segment 0
+              - button "Careers (50) Title 29 · Responsibility 21 · Segment 0" [ref=e716] [cursor=pointer]:
+                - generic [ref=e717]: Careers (50)
+                - generic [ref=e718]: Title 29 · Responsibility 21 · Segment 0
+              - button "Analyse all 80 postings" [ref=e719] [cursor=pointer]
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - heading "MyCareersFuture (30)" [level=3] [ref=e122]:
+                - generic [ref=e123]: 🇸🇬
+                - text: MyCareersFuture (30)
+              - generic [ref=e124]:
+                - paragraph [ref=e125]: These 30 postings fall into 3 distinct skill clusters — tap to filter
+                - generic [ref=e126]:
+                  - button "All (30)" [ref=e127] [cursor=pointer]
+                  - button "Risk + Payment Processing (4)" [ref=e128] [cursor=pointer]
+                  - button "Managing External Agencies + Accounting (3)" [ref=e129] [cursor=pointer]
+                  - button "Mixed (23)" [ref=e130] [cursor=pointer]
+              - generic [ref=e131]:
+                - generic [ref=e132]: 30 postings · showing 1–10
+                - generic [ref=e133]: Exact title match
+              - generic [ref=e134]:
+                - generic [ref=e135]:
+                  - generic [ref=e136]:
+                    - generic [ref=e137]: T
+                    - paragraph [ref=e138]: Title match
+                  - generic [ref=e139]:
+                    - generic [ref=e140]:
+                      - link "Cloud Ops Transformation Lead (AIOps)" [ref=e141] [cursor=pointer]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/consulting/cloud-ops-transformation-lead-ibm-singapore-1fa0cd19395348b78d19aff854a03955
+                      - generic [ref=e142]: Today
+                    - paragraph [ref=e143]: IBM SINGAPORE PTE LTD
+                    - generic [ref=e144]:
+                      - 'generic "Source: MyCareersFuture" [ref=e145]':
+                        - generic [ref=e146]: 🇸🇬
+                        - text: MyCareersFuture
+                      - 'generic "Search match: Title match" [ref=e147]':
+                        - generic [ref=e148]: T
+                        - text: Title match
+                    - generic [ref=e149]:
+                      - generic [ref=e150]: S$15,000 - S$21,000 / month
+                      - generic [ref=e151]: Permanent, Full Time
+                      - generic [ref=e152]: Professional
+                      - generic [ref=e153]: 10+ yrs exp
+                    - button "▼ Show responsibilities & skills" [ref=e154] [cursor=pointer]
+                    - generic [ref=e155]:
+                      - button "📊 Analyse this posting" [ref=e156] [cursor=pointer]
+                      - button "＋ Compare" [ref=e157] [cursor=pointer]
+                - generic [ref=e159]:
+                  - generic [ref=e160]:
+                    - link "Group Finance Director (Funding & Transformation)" [ref=e161] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/accounting/group-finance-director-alwayshired-d03476edda9a1e354258785be5712e6a
+                    - generic [ref=e162]: Today
+                  - paragraph [ref=e163]: ALWAYSHIRED PTE. LTD.
+                  - generic [ref=e164]:
+                    - 'generic "Source: MyCareersFuture" [ref=e165]':
+                      - generic [ref=e166]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e167]':
+                      - generic [ref=e168]: T
+                      - text: Title match
+                  - generic [ref=e169]:
+                    - generic [ref=e170]: S$14,000 - S$18,000 / month
+                    - generic [ref=e171]: Permanent, Full Time
+                    - generic [ref=e172]: Senior Management
+                    - generic [ref=e173]: 15+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e174] [cursor=pointer]
+                  - generic [ref=e175]:
+                    - button "📊 Analyse this posting" [ref=e176] [cursor=pointer]
+                    - button "＋ Compare" [ref=e177] [cursor=pointer]
+                - generic [ref=e179]:
+                  - generic [ref=e180]:
+                    - link "Senior Manager, Banking & Financial Services Technology Transformation" [ref=e181] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-manager-banking-financial-services-technology-transformation-abeam-consulting-cbcf48b7289389501ba75932a0bb83e5
+                    - generic [ref=e182]: Yesterday
+                  - paragraph [ref=e183]: ABEAM CONSULTING (SINGAPORE) PTE. LTD.
+                  - generic [ref=e184]:
+                    - 'generic "Source: MyCareersFuture" [ref=e185]':
+                      - generic [ref=e186]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e187]':
+                      - generic [ref=e188]: T
+                      - text: Title match
+                  - generic [ref=e189]:
+                    - generic [ref=e190]: S$14,000 - S$17,000 / month
+                    - generic [ref=e191]: Permanent
+                    - generic [ref=e192]: Senior Management
+                    - generic [ref=e193]: 10+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e194] [cursor=pointer]
+                  - generic [ref=e195]:
+                    - button "📊 Analyse this posting" [ref=e196] [cursor=pointer]
+                    - button "＋ Compare" [ref=e197] [cursor=pointer]
+                - generic [ref=e199]:
+                  - generic [ref=e200]:
+                    - link "Supply Chain Finance Manager - Commodity Risk Management & Finance Transformation" [ref=e201] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/supply-chain-finance-manager-commodity-risk-management-finance-transformation-dole-asia-holdings-e31180134cb5cb74761a27d80132eb65
+                    - generic [ref=e202]: Yesterday
+                  - paragraph [ref=e203]: DOLE ASIA HOLDINGS PTE. LTD.
+                  - generic [ref=e204]:
+                    - 'generic "Source: MyCareersFuture" [ref=e205]':
+                      - generic [ref=e206]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e207]':
+                      - generic [ref=e208]: T
+                      - text: Title match
+                  - generic [ref=e209]:
+                    - generic [ref=e210]: S$12,000 - S$14,500 / month
+                    - generic [ref=e211]: Permanent
+                    - generic [ref=e212]: Manager
+                    - generic [ref=e213]: 4+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e214] [cursor=pointer]
+                  - generic [ref=e215]:
+                    - button "📊 Analyse this posting" [ref=e216] [cursor=pointer]
+                    - button "＋ Compare" [ref=e217] [cursor=pointer]
+                - generic [ref=e219]:
+                  - generic [ref=e220]:
+                    - link "AI Adoption & Transformation Assistant Manager" [ref=e221] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/information-technology/ai-adoption-transformation-assistant-manager-triton-ai-787cde742669561648ccd8df4f9ec65a
+                    - generic [ref=e222]: 2 days ago
+                  - paragraph [ref=e223]: TRITON AI PTE. LTD.
+                  - generic [ref=e224]:
+                    - 'generic "Source: MyCareersFuture" [ref=e225]':
+                      - generic [ref=e226]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e227]':
+                      - generic [ref=e228]: T
+                      - text: Title match
+                  - generic [ref=e229]:
+                    - generic [ref=e230]: S$6,000 - S$7,500 / month
+                    - generic [ref=e231]: Permanent, Full Time
+                    - generic [ref=e232]: Senior Executive
+                    - generic [ref=e233]: 6+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e234] [cursor=pointer]
+                  - generic [ref=e235]:
+                    - button "📊 Analyse this posting" [ref=e236] [cursor=pointer]
+                    - button "＋ Compare" [ref=e237] [cursor=pointer]
+                - generic [ref=e239]:
+                  - generic [ref=e240]:
+                    - link "Head of Strategy and Technology Transformation (Senior Director / Managing Director)" [ref=e241] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/information-technology/head-strategy-technology-transformation-charterhouse-27bd9a4a58742274ac2cd80e10188d6d
+                    - generic [ref=e242]: 2 days ago
+                  - paragraph [ref=e243]: CHARTERHOUSE PTE. LTD.
+                  - generic [ref=e244]:
+                    - 'generic "Source: MyCareersFuture" [ref=e245]':
+                      - generic [ref=e246]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e247]':
+                      - generic [ref=e248]: T
+                      - text: Title match
+                  - generic [ref=e249]:
+                    - generic [ref=e250]: S$30,000 - S$36,000 / month
+                    - generic [ref=e251]: Permanent, Full Time
+                    - generic [ref=e252]: Senior Management
+                    - generic [ref=e253]: 18+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e254] [cursor=pointer]
+                  - generic [ref=e255]:
+                    - button "📊 Analyse this posting" [ref=e256] [cursor=pointer]
+                    - button "＋ Compare" [ref=e257] [cursor=pointer]
+                - generic [ref=e259]:
+                  - generic [ref=e260]:
+                    - link "Manager (Strategic Operations & Transformation) - JL" [ref=e261] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/consulting/manager-jl-apba-tg-human-resource-78a9d69b608a0d659c3177c34452b89d
+                    - generic [ref=e262]: 5 days ago
+                  - paragraph [ref=e263]: APBA TG HUMAN RESOURCE PTE. LTD.
+                  - generic [ref=e264]:
+                    - 'generic "Source: MyCareersFuture" [ref=e265]':
+                      - generic [ref=e266]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e267]':
+                      - generic [ref=e268]: T
+                      - text: Title match
+                  - generic [ref=e269]:
+                    - generic [ref=e270]: S$6,100 - S$8,500 / month
+                    - generic [ref=e271]: Temporary, Contract, Full Time
+                    - generic [ref=e272]: Manager
+                    - generic [ref=e273]: 5+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e274] [cursor=pointer]
+                  - generic [ref=e275]:
+                    - button "📊 Analyse this posting" [ref=e276] [cursor=pointer]
+                    - button "＋ Compare" [ref=e277] [cursor=pointer]
+                - generic [ref=e279]:
+                  - generic [ref=e280]:
+                    - link "Regional Business Transformation Manager – BG Asia" [ref=e281] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/general-management/regional-business-transformation-manager-%E2%80%93-bg-asia-frieslandcampina-amea-b675d3a2991404c339f90857ab938ecf
+                    - generic [ref=e282]: 5 days ago
+                  - paragraph [ref=e283]: FRIESLANDCAMPINA AMEA PTE. LTD.
+                  - generic [ref=e284]:
+                    - 'generic "Source: MyCareersFuture" [ref=e285]':
+                      - generic [ref=e286]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e287]':
+                      - generic [ref=e288]: T
+                      - text: Title match
+                  - generic [ref=e289]:
+                    - generic [ref=e290]: S$13,000 - S$17,000 / month
+                    - generic [ref=e291]: Permanent, Full Time
+                    - generic [ref=e292]: Middle Management
+                    - generic [ref=e293]: 10+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e294] [cursor=pointer]
+                  - generic [ref=e295]:
+                    - button "📊 Analyse this posting" [ref=e296] [cursor=pointer]
+                    - button "＋ Compare" [ref=e297] [cursor=pointer]
+                - generic [ref=e299]:
+                  - generic [ref=e300]:
+                    - link "AI Transformation Specialist/Consultant" [ref=e301] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/information-technology/ai-transformation-specialistconsultant-infinity-financial-advisory-f7b1067a2740b7c33d0037fd3859964c
+                    - generic [ref=e302]: 5 days ago
+                  - paragraph [ref=e303]: INFINITY FINANCIAL ADVISORY PTE. LTD.
+                  - generic [ref=e304]:
+                    - 'generic "Source: MyCareersFuture" [ref=e305]':
+                      - generic [ref=e306]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e307]':
+                      - generic [ref=e308]: T
+                      - text: Title match
+                  - generic [ref=e309]:
+                    - generic [ref=e310]: S$8,000 - S$10,000 / month
+                    - generic [ref=e311]: Full Time
+                    - generic [ref=e312]: Middle Management
+                    - generic [ref=e313]: 5+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e314] [cursor=pointer]
+                  - generic [ref=e315]:
+                    - button "📊 Analyse this posting" [ref=e316] [cursor=pointer]
+                    - button "＋ Compare" [ref=e317] [cursor=pointer]
+                - generic [ref=e319]:
+                  - generic [ref=e320]:
+                    - link "IT Project Management (ERP Transformation) | 1-Year contract Convertible" [ref=e321] [cursor=pointer]:
+                      - /url: https://www.mycareersfuture.gov.sg/job/logistics/project-management-1-year-contract-convertible-business-edge-personnel-services-4b5223dad673daa59592d7a8f57ef902
+                    - generic [ref=e322]: 5 days ago
+                  - paragraph [ref=e323]: BUSINESS EDGE PERSONNEL SERVICES PTE LTD
+                  - generic [ref=e324]:
+                    - 'generic "Source: MyCareersFuture" [ref=e325]':
+                      - generic [ref=e326]: 🇸🇬
+                      - text: MyCareersFuture
+                    - 'generic "Search match: Title match" [ref=e327]':
+                      - generic [ref=e328]: T
+                      - text: Title match
+                  - generic [ref=e329]:
+                    - generic [ref=e330]: S$8,000 - S$9,500 / month
+                    - generic [ref=e331]: Full Time
+                    - generic [ref=e332]: Professional
+                    - generic [ref=e333]: 5+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e334] [cursor=pointer]
+                  - generic [ref=e335]:
+                    - button "📊 Analyse this posting" [ref=e336] [cursor=pointer]
+                    - button "＋ Compare" [ref=e337] [cursor=pointer]
+              - generic [ref=e338]:
+                - button "‹ Prev" [disabled] [ref=e339]
+                - button "1" [ref=e340] [cursor=pointer]
+                - button "2" [ref=e341] [cursor=pointer]
+                - button "3" [ref=e342] [cursor=pointer]
+                - button "Next ›" [ref=e343] [cursor=pointer]
+              - paragraph [ref=e344]:
+                - text: "Sources: MyCareersFuture Singapore + careers.gov.sg (public-service roles)."
+                - link "See all on MyCareersFuture →" [ref=e345] [cursor=pointer]:
+                  - /url: https://www.mycareersfuture.gov.sg/search?search=transformation
+            - generic [ref=e346]:
+              - heading "careers.gov.sg (50)" [level=3] [ref=e347]:
+                - generic [ref=e348]: 🏛
+                - text: careers.gov.sg (50)
+              - generic [ref=e349]:
+                - generic [ref=e350]:
+                  - generic [ref=e351]:
+                    - generic [ref=e352]: T
+                    - paragraph [ref=e353]: Title match
+                  - generic [ref=e354]:
+                    - generic [ref=e355]:
+                      - link "Senior Manager (Service and Digital Transformation), FLG/OPT" [ref=e356] [cursor=pointer]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17728982/005056a3-53e2-1fd1-9bc3-39cee996d3ff
+                      - generic [ref=e357]: Today
+                    - paragraph [ref=e358]: Ministry Of Social And Family Development
+                    - generic [ref=e359]:
+                      - 'generic "Source: careers.gov.sg" [ref=e360]':
+                        - generic [ref=e361]: 🏛
+                        - text: careers.gov.sg
+                      - 'generic "Search match: Title match" [ref=e362]':
+                        - generic [ref=e363]: T
+                        - text: Title match
+                    - generic [ref=e364]:
+                      - generic [ref=e365]: Contract
+                      - generic [ref=e366]: 6+ yrs exp
+                    - button "▼ Show responsibilities & skills" [ref=e367] [cursor=pointer]
+                    - generic [ref=e368]:
+                      - button "📊 Analyse this posting" [ref=e369] [cursor=pointer]
+                      - button "＋ Compare" [ref=e370] [cursor=pointer]
+                - generic [ref=e372]:
+                  - generic [ref=e373]:
+                    - link "Assistant Director (Service and Digital Transformation), FLG/OPT" [ref=e374] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17728857/005056a3-53e2-1fd1-9bc2-6c1f2a2253ff
+                    - generic [ref=e375]: Today
+                  - paragraph [ref=e376]: Ministry Of Social And Family Development
+                  - generic [ref=e377]:
+                    - 'generic "Source: careers.gov.sg" [ref=e378]':
+                      - generic [ref=e379]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e380]':
+                      - generic [ref=e381]: T
+                      - text: Title match
+                  - generic [ref=e382]:
+                    - generic [ref=e383]: Contract
+                    - generic [ref=e384]: 8+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e385] [cursor=pointer]
+                  - generic [ref=e386]:
+                    - button "📊 Analyse this posting" [ref=e387] [cursor=pointer]
+                    - button "＋ Compare" [ref=e388] [cursor=pointer]
+                - generic [ref=e390]:
+                  - generic [ref=e391]:
+                    - link "Manager (Digital Transformation)" [ref=e392] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17734779/005056a3-d347-1fe1-9bdf-84e50b2de2ad
+                    - generic [ref=e393]: Yesterday
+                  - paragraph [ref=e394]: Ministry of Education
+                  - generic [ref=e395]:
+                    - 'generic "Source: careers.gov.sg" [ref=e396]':
+                      - generic [ref=e397]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e398]':
+                      - generic [ref=e399]: T
+                      - text: Title match
+                  - generic [ref=e400]:
+                    - generic [ref=e401]: Contract
+                    - generic [ref=e402]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e403] [cursor=pointer]
+                  - generic [ref=e404]:
+                    - button "📊 Analyse this posting" [ref=e405] [cursor=pointer]
+                    - button "＋ Compare" [ref=e406] [cursor=pointer]
+                - generic [ref=e408]:
+                  - generic [ref=e409]:
+                    - link "Manager / Human Resource - HR Transformation & Analytics" [ref=e410] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/16894270/005056a3-d347-1fe1-9bce-fa0dd5ddc2ad
+                    - generic [ref=e411]: Yesterday
+                  - paragraph [ref=e412]: National Parks Board
+                  - generic [ref=e413]:
+                    - 'generic "Source: careers.gov.sg" [ref=e414]':
+                      - generic [ref=e415]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e416]':
+                      - generic [ref=e417]: T
+                      - text: Title match
+                  - generic [ref=e419]: Fixed Terms
+                  - button "▼ Show responsibilities & skills" [ref=e420] [cursor=pointer]
+                  - generic [ref=e421]:
+                    - button "📊 Analyse this posting" [ref=e422] [cursor=pointer]
+                    - button "＋ Compare" [ref=e423] [cursor=pointer]
+                - generic [ref=e425]:
+                  - generic [ref=e426]:
+                    - link "Temporary Officer - AM/M/SM,Organisational Transformation (Comms & Engagement)" [ref=e427] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17720191/005056a3-d347-1fe1-9af7-38eccb2162ac
+                    - generic [ref=e428]: 5 days ago
+                  - paragraph [ref=e429]: Singapore Medical Council
+                  - generic [ref=e430]:
+                    - 'generic "Source: careers.gov.sg" [ref=e431]':
+                      - generic [ref=e432]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e433]':
+                      - generic [ref=e434]: T
+                      - text: Title match
+                  - generic [ref=e436]: Contract
+                  - button "▼ Show responsibilities & skills" [ref=e437] [cursor=pointer]
+                  - generic [ref=e438]:
+                    - button "📊 Analyse this posting" [ref=e439] [cursor=pointer]
+                    - button "＋ Compare" [ref=e440] [cursor=pointer]
+                - generic [ref=e442]:
+                  - generic [ref=e443]:
+                    - link "LECTURER, AI & DIGITAL TRANSFORMATION - SCHOOL OF BUSINESS & ACCOUNTANCY" [ref=e444] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17713880/005056a3-d347-1fe1-9ad1-419e818982aa
+                    - generic [ref=e445]: 6 days ago
+                  - paragraph [ref=e446]: Ngee Ann Polytechnic
+                  - generic [ref=e447]:
+                    - 'generic "Source: careers.gov.sg" [ref=e448]':
+                      - generic [ref=e449]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e450]':
+                      - generic [ref=e451]: T
+                      - text: Title match
+                  - generic [ref=e452]:
+                    - generic [ref=e453]: Fixed Terms
+                    - generic [ref=e454]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e455] [cursor=pointer]
+                  - generic [ref=e456]:
+                    - button "📊 Analyse this posting" [ref=e457] [cursor=pointer]
+                    - button "＋ Compare" [ref=e458] [cursor=pointer]
+                - generic [ref=e460]:
+                  - generic [ref=e461]:
+                    - link "Senior Assistant Director (Transformation Office), SPPD" [ref=e462] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/16452433/005056a3-53e2-1fd1-9ad8-8f25a3c093fe
+                    - generic [ref=e463]: 6 days ago
+                  - paragraph [ref=e464]: Ministry of Law
+                  - generic [ref=e465]:
+                    - 'generic "Source: careers.gov.sg" [ref=e466]':
+                      - generic [ref=e467]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e468]':
+                      - generic [ref=e469]: T
+                      - text: Title match
+                  - generic [ref=e470]:
+                    - generic [ref=e471]: Contract
+                    - generic [ref=e472]: 15+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e473] [cursor=pointer]
+                  - generic [ref=e474]:
+                    - button "📊 Analyse this posting" [ref=e475] [cursor=pointer]
+                    - button "＋ Compare" [ref=e476] [cursor=pointer]
+                - generic [ref=e478]:
+                  - generic [ref=e479]:
+                    - link "Lead Associate/ Associate (Digital Transformation - Procurement)" [ref=e480] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17697344/005056a3-d347-1fe1-9a8c-1c99bc5222a9
+                    - generic [ref=e481]: 1 week ago
+                  - paragraph [ref=e482]: Ministry of Finance
+                  - generic [ref=e483]:
+                    - 'generic "Source: careers.gov.sg" [ref=e484]':
+                      - generic [ref=e485]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e486]':
+                      - generic [ref=e487]: T
+                      - text: Title match
+                  - generic [ref=e489]: Permanent/Contract
+                  - button "▼ Show responsibilities & skills" [ref=e490] [cursor=pointer]
+                  - generic [ref=e491]:
+                    - button "📊 Analyse this posting" [ref=e492] [cursor=pointer]
+                    - button "＋ Compare" [ref=e493] [cursor=pointer]
+                - generic [ref=e495]:
+                  - generic [ref=e496]:
+                    - link "(Senior) Business Partner, Transformation Office" [ref=e497] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17683987/005056a3-d347-1fe1-99a1-3ef6790242a8
+                    - generic [ref=e498]: 1 week ago
+                  - paragraph [ref=e499]: Enterprise Singapore
+                  - generic [ref=e500]:
+                    - 'generic "Source: careers.gov.sg" [ref=e501]':
+                      - generic [ref=e502]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e503]':
+                      - generic [ref=e504]: T
+                      - text: Title match
+                  - generic [ref=e505]:
+                    - generic [ref=e506]: Permanent
+                    - generic [ref=e507]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e508] [cursor=pointer]
+                  - generic [ref=e509]:
+                    - button "📊 Analyse this posting" [ref=e510] [cursor=pointer]
+                    - button "＋ Compare" [ref=e511] [cursor=pointer]
+                - generic [ref=e513]:
+                  - generic [ref=e514]:
+                    - link "Assistant Director (Transformation)" [ref=e515] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17681886/005056a3-d347-1fe1-9995-13f3589be2a8
+                    - generic [ref=e516]: 2 weeks ago
+                  - paragraph [ref=e517]: Military Security Department
+                  - generic [ref=e518]:
+                    - 'generic "Source: careers.gov.sg" [ref=e519]':
+                      - generic [ref=e520]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e521]':
+                      - generic [ref=e522]: T
+                      - text: Title match
+                  - generic [ref=e523]:
+                    - generic [ref=e524]: Permanent
+                    - generic [ref=e525]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e526] [cursor=pointer]
+                  - generic [ref=e527]:
+                    - button "📊 Analyse this posting" [ref=e528] [cursor=pointer]
+                    - button "＋ Compare" [ref=e529] [cursor=pointer]
+                - generic [ref=e531]:
+                  - generic [ref=e532]:
+                    - link "Senior Manager (Service & Digital Transformation – Product Manager), FLG/OPT" [ref=e533] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17681423/005056a3-53e2-1fd1-9993-ee2f584d13fc
+                    - generic [ref=e534]: 2 weeks ago
+                  - paragraph [ref=e535]: Ministry Of Social And Family Development
+                  - generic [ref=e536]:
+                    - 'generic "Source: careers.gov.sg" [ref=e537]':
+                      - generic [ref=e538]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e539]':
+                      - generic [ref=e540]: T
+                      - text: Title match
+                  - generic [ref=e541]:
+                    - generic [ref=e542]: Permanent/Contract
+                    - generic [ref=e543]: 6+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e544] [cursor=pointer]
+                  - generic [ref=e545]:
+                    - button "📊 Analyse this posting" [ref=e546] [cursor=pointer]
+                    - button "＋ Compare" [ref=e547] [cursor=pointer]
+                - generic [ref=e549]:
+                  - generic [ref=e550]:
+                    - link "Manager (HR Digital Transformation Catalyst)" [ref=e551] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/16538854/005056a3-53e2-1fd1-98fa-1d02595893fb
+                    - generic [ref=e552]: 2 weeks ago
+                  - paragraph [ref=e553]: MINDEF
+                  - generic [ref=e554]:
+                    - 'generic "Source: careers.gov.sg" [ref=e555]':
+                      - generic [ref=e556]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e557]':
+                      - generic [ref=e558]: T
+                      - text: Title match
+                  - generic [ref=e559]:
+                    - generic [ref=e560]: Permanent/Contract
+                    - generic [ref=e561]: 2+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e562] [cursor=pointer]
+                  - generic [ref=e563]:
+                    - button "📊 Analyse this posting" [ref=e564] [cursor=pointer]
+                    - button "＋ Compare" [ref=e565] [cursor=pointer]
+                - generic [ref=e567]:
+                  - generic [ref=e568]:
+                    - link "Senior Executive/(Senior) Asst Director, Legal Technology Transformation Office" [ref=e569] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17666416/005056a3-d347-1fe1-98ca-6bfe1657a2a8
+                    - generic [ref=e570]: 2 weeks ago
+                  - paragraph [ref=e571]: Ministry of Law
+                  - generic [ref=e572]:
+                    - 'generic "Source: careers.gov.sg" [ref=e573]':
+                      - generic [ref=e574]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e575]':
+                      - generic [ref=e576]: T
+                      - text: Title match
+                  - generic [ref=e578]: Contract
+                  - button "▼ Show responsibilities & skills" [ref=e579] [cursor=pointer]
+                  - generic [ref=e580]:
+                    - button "📊 Analyse this posting" [ref=e581] [cursor=pointer]
+                    - button "＋ Compare" [ref=e582] [cursor=pointer]
+                - generic [ref=e584]:
+                  - generic [ref=e585]:
+                    - link "Lead Product Manager, HRMS Transformation & Modernisation" [ref=e586] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004022201?gh_jid=4004022201
+                    - generic [ref=e587]: 3 weeks ago
+                  - paragraph [ref=e588]: Government Technology Agency
+                  - generic [ref=e589]:
+                    - 'generic "Source: careers.gov.sg" [ref=e590]':
+                      - generic [ref=e591]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e592]':
+                      - generic [ref=e593]: T
+                      - text: Title match
+                  - button "▼ Show responsibilities & skills" [ref=e594] [cursor=pointer]
+                  - generic [ref=e595]:
+                    - button "📊 Analyse this posting" [ref=e596] [cursor=pointer]
+                    - button "＋ Compare" [ref=e597] [cursor=pointer]
+                - generic [ref=e599]:
+                  - generic [ref=e600]:
+                    - link "Sr Manager (Innovation & Transformation), SNDG" [ref=e601] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17644459/005056a3-53e2-1fd1-9896-1b91072c33fb
+                    - generic [ref=e602]: 3 weeks ago
+                  - paragraph [ref=e603]: Ministry of Digital Development and Information
+                  - generic [ref=e604]:
+                    - 'generic "Source: careers.gov.sg" [ref=e605]':
+                      - generic [ref=e606]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e607]':
+                      - generic [ref=e608]: T
+                      - text: Title match
+                  - generic [ref=e609]:
+                    - generic [ref=e610]: Contract
+                    - generic [ref=e611]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e612] [cursor=pointer]
+                  - generic [ref=e613]:
+                    - button "📊 Analyse this posting" [ref=e614] [cursor=pointer]
+                    - button "＋ Compare" [ref=e615] [cursor=pointer]
+                - generic [ref=e617]:
+                  - generic [ref=e618]:
+                    - link "Associate/Assistant Director, Transformation Division (1-Year Contract)" [ref=e619] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17623159/005056a3-d347-1fe1-9bce-fa7c40b922ad
+                    - generic [ref=e620]: 4 weeks ago
+                  - paragraph [ref=e621]: Monetary Authority of Singapore
+                  - generic [ref=e622]:
+                    - 'generic "Source: careers.gov.sg" [ref=e623]':
+                      - generic [ref=e624]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e625]':
+                      - generic [ref=e626]: T
+                      - text: Title match
+                  - generic [ref=e628]: Fixed Terms
+                  - button "▼ Show responsibilities & skills" [ref=e629] [cursor=pointer]
+                  - generic [ref=e630]:
+                    - button "📊 Analyse this posting" [ref=e631] [cursor=pointer]
+                    - button "＋ Compare" [ref=e632] [cursor=pointer]
+                - generic [ref=e634]:
+                  - generic [ref=e635]:
+                    - link "Lead Engineer/Engineer (Transformation), xDigital" [ref=e636] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17608141/005056a3-d347-1fe1-95b7-5d440606e2a7
+                    - generic [ref=e637]: 1 month ago
+                  - paragraph [ref=e638]: Home Team Science and Technology Agency (HTX)
+                  - generic [ref=e639]:
+                    - 'generic "Source: careers.gov.sg" [ref=e640]':
+                      - generic [ref=e641]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e642]':
+                      - generic [ref=e643]: T
+                      - text: Title match
+                  - generic [ref=e644]:
+                    - generic [ref=e645]: Permanent/Contract
+                    - generic [ref=e646]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e647] [cursor=pointer]
+                  - generic [ref=e648]:
+                    - button "📊 Analyse this posting" [ref=e649] [cursor=pointer]
+                    - button "＋ Compare" [ref=e650] [cursor=pointer]
+                - generic [ref=e652]:
+                  - generic [ref=e653]:
+                    - link "Senior Manager/Assistant Director (Service and Digital Transformation), FLG/OPT" [ref=e654] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17596042/005056a3-d347-1fe1-94fe-5858ba33a2a6
+                    - generic [ref=e655]: 1 month ago
+                  - paragraph [ref=e656]: Ministry Of Social And Family Development
+                  - generic [ref=e657]:
+                    - 'generic "Source: careers.gov.sg" [ref=e658]':
+                      - generic [ref=e659]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e660]':
+                      - generic [ref=e661]: T
+                      - text: Title match
+                  - generic [ref=e662]:
+                    - generic [ref=e663]: Permanent/Contract
+                    - generic [ref=e664]: 6+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e665] [cursor=pointer]
+                  - generic [ref=e666]:
+                    - button "📊 Analyse this posting" [ref=e667] [cursor=pointer]
+                    - button "＋ Compare" [ref=e668] [cursor=pointer]
+                - generic [ref=e670]:
+                  - generic [ref=e671]:
+                    - link "Executive (Organisation Development & Transformation), HROD Div (1-year contract" [ref=e672] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17512592/005056a3-d347-1fe1-918e-916ba4ab2294
+                    - generic [ref=e673]: 1 month ago
+                  - paragraph [ref=e674]: Ministry of Trade and Industry
+                  - generic [ref=e675]:
+                    - 'generic "Source: careers.gov.sg" [ref=e676]':
+                      - generic [ref=e677]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e678]':
+                      - generic [ref=e679]: T
+                      - text: Title match
+                  - generic [ref=e680]:
+                    - generic [ref=e681]: Contract
+                    - generic [ref=e682]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e683] [cursor=pointer]
+                  - generic [ref=e684]:
+                    - button "📊 Analyse this posting" [ref=e685] [cursor=pointer]
+                    - button "＋ Compare" [ref=e686] [cursor=pointer]
+                - generic [ref=e688]:
+                  - generic [ref=e689]:
+                    - link "Asst Mgr (Data Management & Governance) - Organisational Transformation Dept" [ref=e690] [cursor=pointer]:
+                      - /url: https://jobs.careers.gov.sg/jobs/hrp/17509230/005056a3-d347-1fe1-99ba-634cbaaf82a8
+                    - generic [ref=e691]: 1 month ago
+                  - paragraph [ref=e692]: Nanyang Polytechnic
+                  - generic [ref=e693]:
+                    - 'generic "Source: careers.gov.sg" [ref=e694]':
+                      - generic [ref=e695]: 🏛
+                      - text: careers.gov.sg
+                    - 'generic "Search match: Title match" [ref=e696]':
+                      - generic [ref=e697]: T
+                      - text: Title match
+                  - generic [ref=e698]:
+                    - generic [ref=e699]: Fixed Terms
+                    - generic [ref=e700]: 3+ yrs exp
+                  - button "▼ Show responsibilities & skills" [ref=e701] [cursor=pointer]
+                  - generic [ref=e702]:
+                    - button "📊 Analyse this posting" [ref=e703] [cursor=pointer]
+                    - button "＋ Compare" [ref=e704] [cursor=pointer]
+              - paragraph [ref=e705]:
+                - text: +30 more public-service postings on
+                - link "careers.gov.sg" [ref=e706] [cursor=pointer]:
+                  - /url: https://careers.gov.sg/
+                - text: .

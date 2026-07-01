@@ -1,0 +1,160 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - status [ref=e144]:
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - generic [ref=e149]:
+              - generic [ref=e150]: 50%
+              - generic [ref=e151]: STEP 2/3
+            - paragraph [ref=e152]: 17 skills confirmed - analysing automation exposure and mapping career paths...
+            - generic [ref=e156]:
+              - generic [ref=e157]: ✓
+              - generic [ref=e158]: "2"
+              - generic [ref=e159]: "3"
+              - generic [ref=e160]: 2 of 3
+          - generic [ref=e161]:
+            - paragraph [ref=e162]:
+              - text: The skills in this role - from the
+              - button "ESCOi" [ref=e164]:
+                - text: ESCO
+                - superscript [ref=e165]: i
+              - text: taxonomy
+            - generic [ref=e166]:
+              - generic [ref=e167]:
+                - generic [ref=e168]:
+                  - generic [ref=e169]: "01"
+                  - paragraph [ref=e170]: Perform Debt Investigation
+                - paragraph [ref=e171]: Use research techniques and tracing strategies to identify overdue payment arrangements and address them
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - generic [ref=e174]: "02"
+                  - paragraph [ref=e175]: Handle Financial Disputes
+                - paragraph [ref=e176]: Handle disputes between individuals or organisations, either public or corporate, which deal with financial matters, accounts, and taxation.
+              - generic [ref=e177]:
+                - generic [ref=e178]:
+                  - generic [ref=e179]: "03"
+                  - paragraph [ref=e180]: Calculate Tax
+                - paragraph [ref=e181]: Calculate the taxes which have to be paid by an individual or organisation, or paid back by a governmental institution, compliant with specific legislation.
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e184]: "04"
+                  - paragraph [ref=e185]: Inspect Taxation Documents
+                - paragraph [ref=e186]: Inspect files and documentation dealing with taxation cases to ensure no faulty or fraudulous activity is present, and to ensure the procedure is compliant with legislation.
+              - generic [ref=e187]:
+                - generic [ref=e188]:
+                  - generic [ref=e189]: "05"
+                  - paragraph [ref=e190]: Advise on Tax Policy
+                - paragraph [ref=e191]: Advise on changes in tax policies and procedures, and the implementation of new policies on a national and local level.
+              - generic [ref=e192]:
+                - generic [ref=e193]:
+                  - generic [ref=e194]: "06"
+                  - paragraph [ref=e195]: Assess Debtor's Financial Situation
+                - paragraph [ref=e196]: Assess the defaulter's pecuniary circumstances by evaluating the personal income and expenses, and the balance sheet which includes the value of the house, bank account, car and other assets.
+              - generic [ref=e197]:
+                - generic [ref=e198]:
+                  - generic [ref=e199]: "07"
+                  - paragraph [ref=e200]: Inform on Fiscal Duties
+                - paragraph [ref=e201]: Inform organisations and individuals on their specific fiscal duties and the legislation and regulations involving fiscal processes, such as tax duties.
+              - generic [ref=e202]:
+                - generic [ref=e203]:
+                  - generic [ref=e204]: "08"
+                  - paragraph [ref=e205]: Insolvency Law
+                - paragraph [ref=e206]: The legal rules regulating the incapacity to pay debts when they fall due.
+              - generic [ref=e207]:
+                - generic [ref=e208]:
+                  - generic [ref=e209]: "09"
+                  - paragraph [ref=e210]: Law Enforcement
+                - paragraph [ref=e211]: The different organisations involved in law enforcement, as well as the laws and regulations in law enforcement procedures.
+              - generic [ref=e212]:
+                - generic [ref=e213]:
+                  - generic [ref=e214]: "10"
+                  - paragraph [ref=e215]: Handle Financial Transactions
+                - paragraph [ref=e216]: Administer currencies, financial exchange activities, deposits as well as company and voucher payments. Prepare and manage guest accounts and take payments by cash, credit card and debit card.
+              - generic [ref=e217]:
+                - generic [ref=e218]:
+                  - generic [ref=e219]: "11"
+                  - paragraph [ref=e220]: Collect Tax
+                - paragraph [ref=e221]: Collect the amounts due to be paid to the government by organisations and individuals, following the regulations and correct calculation, ensuring no one pays more or less than they are obligated to.
+              - generic [ref=e222]:
+                - generic [ref=e223]:
+                  - generic [ref=e224]: "12"
+                  - paragraph [ref=e225]: Respond to Enquiries
+                - paragraph [ref=e226]: Respond to enquiries and requests for information from other organisations and members of the public.
+              - generic [ref=e227]:
+                - generic [ref=e228]:
+                  - generic [ref=e229]: "13"
+                  - paragraph [ref=e230]: Tax Legislation
+                - paragraph [ref=e231]: Tax legislation applicable to a specific area of specialisation, such as import tax, government tax, etc.
+              - generic [ref=e232]:
+                - generic [ref=e233]:
+                  - generic [ref=e234]: "14"
+                  - paragraph [ref=e235]: Debt Classification
+                - paragraph [ref=e236]: The different classifications of debt such as public and publicly guaranteed debt, private non-guaranteed credits, central bank deposits, etc.
+              - generic [ref=e237]:
+                - generic [ref=e238]:
+                  - generic [ref=e239]: "15"
+                  - paragraph [ref=e240]: Inspect Tax Returns
+                - paragraph [ref=e241]: Inspect the documents which declare liability for taxation which is not automatically withheld from wages and salaries to ensure correct taxes are being paid by the liable individuals and organisations.
+              - generic [ref=e242]:
+                - generic [ref=e243]:
+                  - generic [ref=e244]: "16"
+                  - paragraph [ref=e245]: Debt Collection Techniques
+                - paragraph [ref=e246]: The techniques and principles used to collect overdue debt from customers.
+              - generic [ref=e247]:
+                - generic [ref=e248]:
+                  - generic [ref=e249]: "17"
+                  - paragraph [ref=e250]: Assess Seizable Goods
+                - paragraph [ref=e251]: Assess the nature, quality and value of assets that can be taken by force, in possession or custody, by lawful authority.
+          - generic [ref=e252]:
+            - generic [ref=e253]:
+              - paragraph [ref=e254]: What will be shown
+              - paragraph [ref=e255]:
+                - text: This is a
+                - strong [ref=e256]: real Singapore role
+                - text: "- not a generic or made-up one. We match your search to"
+                - strong [ref=e257]: live 🇸🇬 job postings (MyCareersFuture + careers.gov.sg)
+                - text: (real duties and hiring demand) plus the ESCO skill list. Every skill is then sorted into four levels of AI involvement -
+                - strong [ref=e258]: Full Automation
+                - text: (AI, including AI agents, does it end-to-end),
+                - strong [ref=e259]: AI-Augmented
+                - text: ","
+                - strong [ref=e260]: AI-Assisted
+                - text: ", and"
+                - strong [ref=e261]: Human-Led
+                - text: "- with a visual overview up top."
+            - generic [ref=e262]:
+              - paragraph [ref=e263]: What each section enables
+              - list [ref=e264]:
+                - listitem [ref=e265]:
+                  - strong [ref=e266]: Skill Analysis
+                  - text: — each skill with a ready-to-use AI prompt and a 3-step “what to do next”.
+                - listitem [ref=e267]:
+                  - strong [ref=e268]: Career Progression
+                  - text: — realistic next roles and the skill gaps to close.
+                - listitem [ref=e269]:
+                  - strong [ref=e270]: Role Crossover
+                  - text: — transferable skills that open doors to nearby roles.
+                - listitem [ref=e271]:
+                  - strong [ref=e272]: Skill Categories
+                  - text: — skills grouped into themes for easier learning.
+                - listitem [ref=e273]:
+                  - strong [ref=e274]: Role Context
+                  - text: — how the role plays out across sectors in Singapore and ASEAN.

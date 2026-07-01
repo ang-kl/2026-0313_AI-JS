@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "v3 debug" [level=1] [ref=e6]
+      - generic [ref=e7]: session pm787ure
+      - generic [ref=e8]: ● active
+      - generic [ref=e9]: 0 API · 0 logic · 3 total
+      - button "⬇ Download session log (.jsonl)" [ref=e10] [cursor=pointer]
+      - button "refresh" [ref=e11] [cursor=pointer]
+    - paragraph [ref=e12]:
+      - text: Newest last · capture stops after 1 min idle, resumes on next activity. In local
+      - code [ref=e13]: npm run dev
+      - text: these rows are also written to
+      - code [ref=e14]: v3/debug/pm787ure-<date>.jsonl
+      - text: .
+    - table [ref=e15]:
+      - rowgroup [ref=e16]:
+        - row "# kind when what status ms" [ref=e17]:
+          - columnheader "#" [ref=e18]
+          - columnheader "kind" [ref=e19]
+          - columnheader "when" [ref=e20]
+          - columnheader "what" [ref=e21]
+          - columnheader "status" [ref=e22]
+          - columnheader "ms" [ref=e23]
+          - columnheader [ref=e24]
+      - rowgroup [ref=e25]:
+        - row "0 META 13:39:27.914 session_start" [ref=e26]:
+          - cell "0" [ref=e27]
+          - cell "META" [ref=e28]
+          - cell "13:39:27.914" [ref=e29]
+          - cell "session_start" [ref=e30]
+          - cell [ref=e31]
+          - cell [ref=e32]
+          - cell [ref=e33]
+        - row "1 META 13:39:34.697 session_start" [ref=e34]:
+          - cell "1" [ref=e35]
+          - cell "META" [ref=e36]
+          - cell "13:39:34.697" [ref=e37]
+          - cell "session_start" [ref=e38]
+          - cell [ref=e39]
+          - cell [ref=e40]
+          - cell [ref=e41]
+        - row "2 META 13:39:44.206 session_start" [ref=e42]:
+          - cell "2" [ref=e43]
+          - cell "META" [ref=e44]
+          - cell "13:39:44.206" [ref=e45]
+          - cell "session_start" [ref=e46]
+          - cell [ref=e47]
+          - cell [ref=e48]
+          - cell [ref=e49]
+    - heading "Postgres step log · this session (0) · loading…" [level=2] [ref=e51]

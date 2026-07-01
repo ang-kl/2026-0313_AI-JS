@@ -1,0 +1,243 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e2255]:
+        - generic [ref=e2256]:
+          - button "Postings" [ref=e2257] [cursor=pointer]: ← Postings
+          - generic [ref=e2258]:
+            - generic [ref=e2259]:
+              - generic [ref=e2260]: REVIEWING
+              - generic [ref=e2261]: ● from MCF
+            - generic [ref=e2262]: Software Engineer
+          - generic [ref=e2264]: 0 duties · 24 skills
+        - generic [ref=e2265]:
+          - generic [ref=e2266]:
+            - generic [ref=e2267]: REVIEW
+            - generic [ref=e2268]:
+              - button "Read clean" [pressed] [ref=e2269] [cursor=pointer]
+              - button "Suggestions" [ref=e2270] [cursor=pointer]
+              - button "Comments" [ref=e2271] [cursor=pointer]
+              - button "Dissect" [ref=e2272] [cursor=pointer]
+          - generic [ref=e2273]:
+            - generic [ref=e2274]: VISUALS
+            - generic [ref=e2275]:
+              - button "Job graph" [pressed] [ref=e2276] [cursor=pointer]
+              - button "AI trace" [ref=e2277] [cursor=pointer]
+              - button "Workflow" [ref=e2278] [cursor=pointer]
+              - button "Value stream" [ref=e2279] [cursor=pointer]
+              - button "Org map" [ref=e2280] [cursor=pointer]
+          - generic [ref=e2281]:
+            - generic [ref=e2282]: EVIDENCE
+            - generic [ref=e2283]:
+              - button "Observed" [ref=e2284] [cursor=pointer]
+              - button "Interpreted" [ref=e2285] [cursor=pointer]
+              - button "Applied" [ref=e2286] [cursor=pointer]
+              - button "Withheld" [ref=e2287] [cursor=pointer]
+              - button "Provenance" [ref=e2288] [cursor=pointer]
+          - generic [ref=e2289]:
+            - generic [ref=e2290]: OUTPUT
+            - generic [ref=e2291]:
+              - button "Cover letter" [ref=e2292] [cursor=pointer]
+              - button "Resume notes" [ref=e2293] [cursor=pointer]
+              - button "Interview pack" [ref=e2294] [cursor=pointer]
+              - button "Print / PDF" [ref=e2295] [cursor=pointer]
+        - generic [ref=e2296]:
+          - navigation [ref=e2297]:
+            - button "Collapse rail" [ref=e2298] [cursor=pointer]: «
+            - button "Sources" [ref=e2299] [cursor=pointer]:
+              - generic [ref=e2300]: ▤
+              - text: Sources
+            - button "Trace" [ref=e2301] [cursor=pointer]:
+              - generic [ref=e2302]: ⋔
+              - text: Trace
+            - button "Skilling" [ref=e2303] [cursor=pointer]:
+              - generic [ref=e2304]: ◇
+              - text: Skilling
+            - button "Advisory" [ref=e2305] [cursor=pointer]:
+              - generic [ref=e2306]: ✦
+              - text: Advisory
+            - button "Cover letter" [ref=e2307] [cursor=pointer]:
+              - generic [ref=e2308]: ✎
+              - text: Cover letter
+            - button "Boards" [ref=e2309] [cursor=pointer]:
+              - generic [ref=e2310]: ▦
+              - text: Boards
+            - button "Saved" [ref=e2311] [cursor=pointer]:
+              - generic [ref=e2312]: ⤓
+              - text: Saved
+            - generic [ref=e2313]: local + cloud
+          - generic [ref=e2315]:
+            - generic [ref=e2316]: MANUSCRIPT · LIVE POSTING
+            - heading "Software Engineer" [level=1] [ref=e2317]
+            - generic [ref=e2319]: ● from MCF · verbatim
+            - heading "Skills the posting asks for" [level=2] [ref=e2320]
+            - generic [ref=e2321]:
+              - generic [ref=e2322]: ICT Debugging Tools
+              - generic [ref=e2323]: Develop Software Prototype
+              - generic [ref=e2324]: Debug Software
+              - generic [ref=e2325]: Use Software Libraries
+              - generic [ref=e2326]: Web Services
+              - generic [ref=e2327]: Analyse Software Specifications
+              - generic [ref=e2328]: Develop Automated Migration Methods
+              - generic [ref=e2329]: Define Technical Requirements
+              - generic [ref=e2330]: Computer Programming
+              - generic [ref=e2331]: Project Management
+              - generic [ref=e2332]: Identify Customer Requirements
+              - generic [ref=e2333]: Technical Drawings
+              - generic [ref=e2334]: Utilise Computer-Aided Software Engineering Tools
+              - generic [ref=e2335]: Tools for Software Configuration Management
+              - generic [ref=e2336]: Engineering Principles
+              - generic [ref=e2337]: Engineering Processes
+              - generic [ref=e2338]: Manage Engineering Project
+              - generic [ref=e2339]: Create Flowchart Diagram
+              - generic [ref=e2340]: Use an Application-Specific Interface
+              - generic [ref=e2341]: Integrated Development Environment Software
+              - generic [ref=e2342]: Use Software Design Patterns
+              - generic [ref=e2343]: Use Technical Drawing Software
+              - generic [ref=e2344]: Interpret Technical Requirements
+              - generic [ref=e2345]: Perform Scientific Research
+            - paragraph [ref=e2346]: The analysed posting did not yield responsibilities text to render as a manuscript.
+          - generic [ref=e2347]:
+            - generic [ref=e2348]:
+              - generic [ref=e2349]: VISUAL INTELLIGENCE
+              - generic [ref=e2350]:
+                - button "Job graph" [pressed] [ref=e2351] [cursor=pointer]
+                - button "AI trace" [ref=e2352] [cursor=pointer]
+                - button "Workflow" [ref=e2353] [cursor=pointer]
+                - button "Value stream" [ref=e2354] [cursor=pointer]
+                - button "Org map" [ref=e2355] [cursor=pointer]
+            - generic [ref=e2356]:
+              - paragraph [ref=e2357]: What shape is this role - duties, skills, adjacency?
+              - generic [ref=e2359]:
+                - generic [ref=e2360]:
+                  - generic [ref=e2361]: Knowledge graph - wired structure of the role
+                  - heading "Software Engineer" [level=1] [ref=e2362]
+                  - generic [ref=e2363]: 26 nodes - 24 edges - 2 cluster lanes present - KG version kg1
+                - generic [ref=e2364]:
+                  - generic [ref=e2365]: ● from MCF
+                  - generic [ref=e2366]: ✓ computed
+                  - generic [ref=e2367]: ≈ inferred
+                  - generic [ref=e2368]: "? unverified"
+                - generic [ref=e2369]:
+                  - generic "Force-directed graph. Use +/- to zoom, arrow keys to pan, or drag and scroll. Switch to Lanes for keyboard navigation." [ref=e2370]:
+                    - generic [ref=e2371]:
+                      - img:
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                      - 'button "role: Software Engineer. Tap to read in full." [ref=e2372] [cursor=pointer]': Software Engineer
+                      - 'button "skill: Use an Application-Specific Interface. Tap to read in full." [ref=e2373] [cursor=pointer]': Use an Application-Specific Interface
+                      - 'button "skill: Develop Automated Migration Methods. Tap to read in full." [ref=e2374] [cursor=pointer]': Develop Automated Migration Methods
+                      - 'button "skill: Identify Customer Requirements. Tap to read in full." [ref=e2375] [cursor=pointer]': Identify Customer Requirements
+                      - 'button "skill: Utilise Computer-Aided Software Engineering Tools. Tap to read in full." [ref=e2376] [cursor=pointer]': Utilise Computer-Aided Software Engineering Tools
+                      - 'button "skill: Engineering Principles. Tap to read in full." [ref=e2377] [cursor=pointer]': Engineering Principles
+                      - 'button "skill: Computer Programming. Tap to read in full." [ref=e2378] [cursor=pointer]': Computer Programming
+                      - 'button "skill: Debug Software. Tap to read in full." [ref=e2379] [cursor=pointer]': Debug Software
+                      - 'button "skill: Use Software Design Patterns. Tap to read in full." [ref=e2380] [cursor=pointer]': Use Software Design Patterns
+                      - 'button "skill: Perform Scientific Research. Tap to read in full." [ref=e2381] [cursor=pointer]': Perform Scientific Research
+                      - 'button "skill: Use Technical Drawing Software. Tap to read in full." [ref=e2382] [cursor=pointer]': Use Technical Drawing Software
+                      - 'button "skill: Technical Drawings. Tap to read in full." [ref=e2383] [cursor=pointer]': Technical Drawings
+                      - 'button "skill: ICT Debugging Tools. Tap to read in full." [ref=e2384] [cursor=pointer]': ICT Debugging Tools
+                      - 'button "skill: Manage Engineering Project. Tap to read in full." [ref=e2385] [cursor=pointer]': Manage Engineering Project
+                      - 'button "skill: Project Management. Tap to read in full." [ref=e2386] [cursor=pointer]': Project Management
+                      - 'button "skill: Engineering Processes. Tap to read in full." [ref=e2387] [cursor=pointer]': Engineering Processes
+                      - 'button "skill: Develop Software Prototype. Tap to read in full." [ref=e2388] [cursor=pointer]': Develop Software Prototype
+                      - 'button "skill: Use Software Libraries. Tap to read in full." [ref=e2389] [cursor=pointer]': Use Software Libraries
+                      - 'button "skill: Create Flowchart Diagram. Tap to read in full." [ref=e2390] [cursor=pointer]': Create Flowchart Diagram
+                      - 'button "skill: Integrated Development Environment Software. Tap to read in full." [ref=e2391] [cursor=pointer]': Integrated Development Environment Software
+                      - 'button "skill: Tools for Software Configuration Management. Tap to read in full." [ref=e2392] [cursor=pointer]': Tools for Software Configuration Management
+                      - 'button "skill: Interpret Technical Requirements. Tap to read in full." [ref=e2393] [cursor=pointer]': Interpret Technical Requirements
+                      - 'button "skill: Define Technical Requirements. Tap to read in full." [ref=e2394] [cursor=pointer]': Define Technical Requirements
+                      - 'button "skill: Analyse Software Specifications. Tap to read in full." [ref=e2395] [cursor=pointer]': Analyse Software Specifications
+                      - 'button "skill: Web Services. Tap to read in full." [ref=e2396] [cursor=pointer]': Web Services
+                      - 'button "occupation: software developer. Tap to read in full." [ref=e2397] [cursor=pointer]': software developer
+                    - generic [ref=e2398]:
+                      - button "Zoom in" [ref=e2399] [cursor=pointer]: +
+                      - button "Zoom out" [ref=e2400] [cursor=pointer]: "-"
+                      - button "Reset and fit graph to view" [ref=e2401] [cursor=pointer]: fit
+                      - generic [ref=e2402]: 100%
+                  - paragraph [ref=e2403]:
+                    - text: Neural graph -
+                    - strong [ref=e2404]: tap a node to expand it and read the full text
+                    - text: (tap again to collapse). Tap also traces its connections. Wheel/pinch or +/- to zoom; drag or arrow keys to pan. Prefer reading? Switch to
+                    - strong [ref=e2405]: Cards
+                    - text: .
+                - button "Verb-labelled edges (24 total)" [ref=e2407] [cursor=pointer]:
+                  - generic [ref=e2408]: Verb-labelled edges (24 total)
+                  - generic [ref=e2409]: show
+                - generic [ref=e2410]:
+                  - generic [ref=e2411]: "? Withheld (not faked)"
+                  - list [ref=e2412]:
+                    - listitem [ref=e2413]: "organisation: hiring organisation not named in posting metadata"
+                    - listitem [ref=e2414]: "competition: no computed mirror-role data in result"
+                    - listitem [ref=e2415]: "department: no function/team marker found - role node kept in department cluster by position"
+                - generic [ref=e2416]:
+                  - generic [ref=e2417]: "Source: duties from MCF posting (verbatim); skills from ESCO; occupation from ESCO/ISCO-08. Confidence: high = verified; medium = inferred from ESCO overlap; low = sparse evidence. Time-window: snapshot of the analysed posting."
+                  - generic [ref=e2418]: "AI-assisted; human decides. Knowledge graph is computed deterministically from the MCF posting data - no LLM authoring any node, edge, verb, or cluster. Version: kg1. Generated: 2026-06-30."
+                  - generic [ref=e2419]: "Withheld: organisation: hiring organisation not named in posting metadata; competition: no computed mirror-role data in result; department: no function/team marker found - role node kept in department cluster by position."
+            - generic [ref=e2420]: every node ← source span
+        - generic [ref=e2421]:
+          - generic [ref=e2422]: Review Studio · local + cloud
+          - generic [ref=e2423]: AI-assisted · human decides

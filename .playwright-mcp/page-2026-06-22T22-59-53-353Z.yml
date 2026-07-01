@@ -1,0 +1,399 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e275]:
+        - generic [ref=e276]:
+          - generic [ref=e278]:
+            - paragraph [ref=e279]: Navigation
+            - tree "Section navigation" [ref=e280]:
+              - treeitem "Understand - active" [expanded] [ref=e281]:
+                - button "Understand - active" [ref=e282] [cursor=pointer]:
+                  - generic [ref=e283]: "1"
+                  - generic [ref=e284]: Understand
+                  - generic [ref=e285]: "- active"
+                  - generic [ref=e286]: ▼
+                - group [ref=e287]:
+                  - treeitem "Why this role exists" [ref=e288] [cursor=pointer]:
+                    - generic [ref=e289]: Why this role exists
+                  - treeitem "Same job, other names" [ref=e290] [cursor=pointer]:
+                    - generic [ref=e291]: Same job, other names
+                  - treeitem "🕸 Role Graph" [ref=e292] [cursor=pointer]:
+                    - generic [ref=e293]: 🕸 Role Graph
+                  - treeitem "🌐 Career WikiGraph" [ref=e294] [cursor=pointer]:
+                    - generic [ref=e295]: 🌐 Career WikiGraph
+              - treeitem "Position" [ref=e296]:
+                - button "Position" [ref=e297] [cursor=pointer]:
+                  - generic [ref=e298]: "2"
+                  - generic [ref=e299]: Position
+                  - generic [ref=e300]: ▼
+              - treeitem "Become" [ref=e301]:
+                - button "Become" [ref=e302] [cursor=pointer]:
+                  - generic [ref=e303]: "3"
+                  - generic [ref=e304]: Become
+                  - generic [ref=e305]: ▼
+              - treeitem "AI Readiness" [ref=e306]:
+                - button "AI Readiness" [ref=e307] [cursor=pointer]:
+                  - generic [ref=e308]: "4"
+                  - generic [ref=e309]: AI Readiness
+                  - generic [ref=e310]: ▼
+              - treeitem "Arm" [ref=e311]:
+                - button "Arm" [ref=e312] [cursor=pointer]:
+                  - generic [ref=e313]: "5"
+                  - generic [ref=e314]: Arm
+                  - generic [ref=e315]: ▼
+            - button "New here? How to read this analysis" [ref=e317] [cursor=pointer]:
+              - generic [ref=e318]: 💡 New here? How to read this analysis
+              - generic [ref=e319]: ▼
+          - generic [ref=e320]:
+            - generic [ref=e321]:
+              - heading "Tax Officer" [level=2] [ref=e322]
+              - paragraph [ref=e323]: A public official who administers tax collection, compliance, and enforcement for government revenue authorities.
+              - paragraph [ref=e324]:
+                - text: ESCO v1.2.1 · Financial and accounting associate professionals
+                - generic [ref=e325]:
+                  - text: ·
+                  - 'link "ISCO-08: 3311" [ref=e326] [cursor=pointer]':
+                    - /url: https://ilostat.ilo.org/methods/concepts-and-definitions/classification-occupation/#find-an-occupation-in-isco-08
+              - button "＋ Start comparison with this role" [ref=e329] [cursor=pointer]
+            - generic "What this means for you - plain-language summary" [ref=e330]:
+              - generic [ref=e331]:
+                - paragraph [ref=e332]: What this means for you
+                - generic [ref=e333]: assembled from the reads on this page
+              - paragraph [ref=e334]:
+                - text: Your edge is the
+                - strong [ref=e335]: 1 human-led skill
+                - text: AI cannot hold
+                - generic [ref=e336]:
+                  - text: ":"
+                  - emphasis [ref=e338]: Law Enforcement
+                - text: .
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e339]:
+                  - generic [ref=e340]: ~
+                  - text: AI estimate
+              - note [ref=e341]: AI-assisted; human decides. Assembled from the reads on this page - no new number. Per-clause provenance shown inline above.
+            - generic [ref=e342]:
+              - heading "What is this role and why does it exist?" [level=2] [ref=e343]
+              - generic [ref=e345]:
+                - generic [ref=e346]:
+                  - generic [ref=e347]:
+                    - paragraph [ref=e348]: Organisational placement
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e349]:
+                      - generic [ref=e350]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e351]: typically sits within Finance and Accounting, Compliance and Regulatory Affairs, or Tax Department
+                  - paragraph [ref=e352]: Typical department placement - illustrative, not derived from this specific posting.
+                - generic [ref=e353]:
+                  - generic [ref=e354]:
+                    - paragraph [ref=e355]: Why the organisation wants this role
+                    - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e356]:
+                      - generic [ref=e357]: ~
+                      - text: AI estimate
+                  - paragraph [ref=e358]: withheld - too few duties to ground a narration (need 3 or more).
+                - paragraph [ref=e359]: "AI-assisted; human decides. Source: duty statements + Role Context. Confidence: advisory. Time-window: this posting."
+              - button "Same job, other names 6 sibling titles" [ref=e362] [cursor=pointer]:
+                - generic [ref=e363]:
+                  - generic [ref=e364]: 🏷️
+                  - generic [ref=e365]: Same job, other names
+                  - generic [ref=e366]: 6 sibling titles
+                - generic [ref=e367]: ▼
+              - generic [ref=e369]:
+                - generic [ref=e370]:
+                  - paragraph [ref=e371]: Role Graph - what Tax Officer actually is, mapped end-to-end
+                  - paragraph [ref=e372]:
+                    - text: Takes the role's itemised responsibilities - infers the work activities and skills behind each - maps them to
+                    - strong [ref=e373]: ESCO
+                    - text: skills - reverse-maps those to the
+                    - strong [ref=e374]: ISCO-08
+                    - text: occupations the role most resembles (similarity + trading-style weighted scoring) - assembles an API-ready
+                    - strong [ref=e375]: role - occupation - skill - responsibility
+                    - text: graph and a skill-analysis card.
+                  - generic [ref=e376]:
+                    - generic [ref=e377]: 1. Source role
+                    - generic [ref=e378]: 2. Itemise statements
+                    - generic [ref=e379]: 3. Infer activities/skills
+                    - generic [ref=e380]: 4. Map → ESCO skills
+                    - generic [ref=e381]: 5. Reverse-map → ISCO-08
+                    - generic [ref=e382]: 6. Trading-score & rank
+                    - generic [ref=e383]: 7. Build graph + card
+                - group "Graph view" [ref=e384]:
+                  - button "Layered" [pressed] [ref=e385] [cursor=pointer]
+                  - button "Knowledge graph" [ref=e386] [cursor=pointer]
+                - generic [ref=e387]:
+                  - paragraph [ref=e388]: Not enough role data yet for the graph
+                  - paragraph [ref=e389]: This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live SG job postings (MyCareersFuture + careers.gov.sg) - or a specific posting - and the graph will fill in.
+              - generic [ref=e391]:
+                - generic [ref=e392]:
+                  - generic [ref=e393]:
+                    - generic [ref=e394]:
+                      - paragraph [ref=e395]: Career WikiGraph
+                      - heading "Tax Officer" [level=2] [ref=e396]
+                    - generic [ref=e397]:
+                      - generic [ref=e398]: ✓ computed
+                      - generic [ref=e399]: ◐ derived
+                  - paragraph [ref=e400]: One centre, tap a bubble to dive in - the path shrinks into a trail at the top. Tap the trail to go back.
+                - tablist "Switch view lens" [ref=e401]:
+                  - tab "Candidate view - Seven-step career journey wired to engine output" [selected] [ref=e402] [cursor=pointer]: Candidate view
+                  - 'tab "Organisation view - Value-stream perspective: value stream, capability map, future state" [ref=e403] [cursor=pointer]': Organisation view
+                - generic [ref=e404]:
+                  - button "Hide Candidate Brief" [expanded] [ref=e406] [cursor=pointer]
+                  - generic "Candidate Brief - printable one-pager" [ref=e408]:
+                    - generic [ref=e409]:
+                      - generic [ref=e410]:
+                        - paragraph [ref=e411]: Candidate Brief
+                        - heading "Tax Officer" [level=3] [ref=e412]
+                      - button "Print or save Candidate Brief as PDF" [ref=e413] [cursor=pointer]: Print / save as PDF
+                    - generic [ref=e414]:
+                      - generic [ref=e415]: AI-readiness
+                      - generic [ref=e417]: not enough evidence (Job Anatomy not yet loaded)
+                    - generic [ref=e418]:
+                      - generic [ref=e419]: Your edge
+                      - generic [ref=e420]:
+                        - text: Law Enforcement - the Human-Led core AI cannot own
+                        - generic [ref=e421]:
+                          - generic [ref=e422]: ◐
+                          - text: derived
+                    - generic [ref=e423]:
+                      - generic [ref=e424]: Build next
+                      - generic [ref=e426]: not enough evidence (Foundation plan not loaded (select a persona on the result page))
+                    - generic [ref=e427]:
+                      - generic [ref=e428]: Next move
+                      - generic [ref=e429]:
+                        - strong [ref=e430]: Senior Tax Officer
+                        - text: "- Lead tax compliance projects and mentor junior tax staff"
+                        - generic [ref=e431]:
+                          - generic [ref=e432]: ~
+                          - text: AI estimate
+                    - generic [ref=e433]:
+                      - generic [ref=e434]: Crossover
+                      - generic [ref=e435]:
+                        - strong [ref=e436]: Credit Risk Analyst
+                        - text: via Assess debtor financial situation and repayment capacity
+                        - generic [ref=e437]:
+                          - generic [ref=e438]: ~
+                          - text: AI estimate
+                    - generic [ref=e439]:
+                      - strong [ref=e440]: AI-assisted; human decides.
+                      - text: "Source: computed from live SG role data (ESCO / ISCO / MCF) - Confidence: varies per row (see badge) - Time-window: current session. Build your proof, then re-read."
+                  - generic [ref=e441]:
+                    - paragraph [ref=e442]: Candidate guidance
+                    - paragraph [ref=e443]: A guided read chained from your v3 result panels - every step pulls live engine output
+                  - generic [ref=e444]:
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: "1"
+                      - heading "What this role really is (Job Anatomy)" [level=4] [ref=e447]
+                    - generic [ref=e449]:
+                      - text: "Not enough evidence: Job Anatomy not yet loaded - the tab appears once live SG job ads are fetched - withheld rather than invented."
+                      - generic [ref=e450]:
+                        - generic [ref=e451]: "?"
+                        - text: unverified
+                  - generic [ref=e452]:
+                    - generic [ref=e453]:
+                      - generic [ref=e454]: "2"
+                      - heading "What it asks for, by AI level (Skill Analysis)" [level=4] [ref=e455]
+                    - generic [ref=e457]:
+                      - generic [ref=e458]:
+                        - generic [ref=e459]: 17 skills classified
+                        - generic [ref=e460]:
+                          - generic [ref=e461]: ✓
+                          - text: computed
+                      - generic [ref=e462]:
+                        - generic [ref=e463]:
+                          - generic [ref=e464]: Human-Led
+                          - generic [ref=e465]: (1)
+                        - generic [ref=e467]: Law Enforcement
+                      - generic [ref=e468]:
+                        - generic [ref=e469]:
+                          - generic [ref=e470]: AI-Assisted
+                          - generic [ref=e471]: (6)
+                        - generic [ref=e472]:
+                          - generic [ref=e473]: Handle Financial Disputes
+                          - generic [ref=e474]: Advise on Tax Policy
+                          - generic [ref=e475]: Inform on Fiscal Duties
+                          - generic [ref=e476]: Insolvency Law
+                          - generic [ref=e477]: Tax Legislation
+                          - generic [ref=e478]: Debt Collection Techniques
+                      - generic [ref=e479]:
+                        - generic [ref=e480]:
+                          - generic [ref=e481]: AI-Augmented
+                          - generic [ref=e482]: (9)
+                        - generic [ref=e483]:
+                          - generic [ref=e484]: Perform Debt Investigation
+                          - generic [ref=e485]: Inspect Taxation Documents
+                          - generic [ref=e486]: Assess Debtor's Financial Situation
+                          - generic [ref=e487]: Handle Financial Transactions
+                          - generic [ref=e488]: Collect Tax
+                          - generic [ref=e489]: Respond to Enquiries
+                          - generic [ref=e490]: Debt Classification
+                          - generic [ref=e491]: Inspect Tax Returns
+                          - generic [ref=e492]: +1 more
+                      - generic [ref=e493]:
+                        - generic [ref=e494]:
+                          - generic [ref=e495]: Full Automation
+                          - generic [ref=e496]: (1)
+                        - generic [ref=e498]: Calculate Tax
+                      - paragraph [ref=e499]: Build proof on the Human-Led skills first - they are your edge and the least automatable.
+                  - generic [ref=e500]:
+                    - generic [ref=e501]:
+                      - generic [ref=e502]: "3"
+                      - heading "Is the demand real (Demand Proof)" [level=4] [ref=e503]
+                    - generic [ref=e505]:
+                      - text: "Not enough evidence: less than 4 MCF postings in the sample (D4 floor) - demand not proven - withheld rather than invented."
+                      - generic [ref=e506]:
+                        - generic [ref=e507]: "?"
+                        - text: unverified
+                  - generic [ref=e508]:
+                    - generic [ref=e509]:
+                      - generic [ref=e510]: "4"
+                      - heading "Your gaps and build plan (Foundation)" [level=4] [ref=e511]
+                    - generic [ref=e513]:
+                      - text: "Not enough evidence: Foundation plan not loaded - select a persona (Employees / Fresh Grad / Crossover) on the result page to generate it - withheld rather than invented."
+                      - generic [ref=e514]:
+                        - generic [ref=e515]: "?"
+                        - text: unverified
+                  - generic [ref=e516]:
+                    - generic [ref=e517]:
+                      - generic [ref=e518]: "5"
+                      - heading "The edge to aim for (stand where work is Human-Led)" [level=4] [ref=e519]
+                    - generic [ref=e521]:
+                      - paragraph [ref=e522]:
+                        - text: "Stand at the edge - these Human-Led skills are where AI cannot replace you:"
+                        - generic [ref=e523]:
+                          - generic [ref=e524]: ◐
+                          - text: derived
+                      - paragraph [ref=e525]: "Derivation rule: Human-Led skills (level = HUMAN) from the engine skill classification are the candidate's edge. This is a deterministic filter over computed skill levels, not LLM prose."
+                      - generic [ref=e527]: Law Enforcement
+                  - generic [ref=e528]:
+                    - generic [ref=e529]:
+                      - generic [ref=e530]: "6"
+                      - heading "Where you can go (Progression + Crossover)" [level=4] [ref=e531]
+                    - generic [ref=e533]:
+                      - generic [ref=e534]:
+                        - generic [ref=e535]:
+                          - generic [ref=e536]: Progression
+                          - generic [ref=e537]:
+                            - generic [ref=e538]: ~
+                            - text: AI estimate
+                        - generic [ref=e539]:
+                          - generic [ref=e540]: Senior Tax Officer
+                          - generic [ref=e541]: Tax Manager
+                          - generic [ref=e542]: Transfer Pricing Specialist
+                          - generic [ref=e543]: Compliance and Risk Officer
+                      - generic [ref=e544]:
+                        - generic [ref=e545]:
+                          - generic [ref=e546]: Crossover
+                          - generic [ref=e547]:
+                            - generic [ref=e548]: ~
+                            - text: AI estimate
+                        - generic [ref=e549]:
+                          - generic [ref=e550]: Credit Risk Analyst
+                          - generic [ref=e551]: Compliance Officer
+                          - generic [ref=e552]: Insurance Claims Investigator
+                  - generic [ref=e553]:
+                    - generic [ref=e554]:
+                      - generic [ref=e555]: "7"
+                      - heading "Your positioning + next move" [level=4] [ref=e556]
+                    - generic [ref=e558]:
+                      - generic [ref=e559]:
+                        - generic [ref=e560]: Next move (up)
+                        - generic [ref=e561]:
+                          - generic [ref=e562]: ~
+                          - text: AI estimate
+                      - generic [ref=e563]:
+                        - paragraph [ref=e564]: Senior Tax Officer
+                        - paragraph [ref=e565]: Lead tax compliance projects and mentor junior tax staff
+                        - paragraph [ref=e566]: "Build: Tax Audit Management, Stakeholder Communication, Project Oversight, ASEAN Tax Treaties"
+                      - paragraph [ref=e567]:
+                        - text: "Position yourself as: strong on Law Enforcement - the human-led core that survives the AI shift."
+                        - generic [ref=e568]:
+                          - generic [ref=e569]: ◐
+                          - text: derived
+                  - paragraph [ref=e570]:
+                    - strong [ref=e571]: AI-assisted; human decides.
+                    - text: "Source: role data (ESCO / ISCO / MCF). Confidence: shown per chip. Time-window: current session."
+                - generic [ref=e572]:
+                  - paragraph [ref=e573]: Role ecosystem graph
+                  - button "Ecotone overlay - tint nodes by realm internal, edge, external - currently off" [ref=e574] [cursor=pointer]: Ecotone overlay off
+                - generic [ref=e576]:
+                  - generic [ref=e577]:
+                    - generic [ref=e578]: Centre = where you are - tap a bubble to dive in, tap trail to go back
+                    - button "Zoom in" [ref=e579] [cursor=pointer]: +
+                    - button "Zoom out" [ref=e580] [cursor=pointer]: "-"
+                    - button "Reset graph view to centre" [ref=e581] [cursor=pointer]: Reset
+                  - img "Career WikiGraph - radial ecosystem - one centre, tap a bubble to dive in" [ref=e583]:
+                    - button "Tax Officer - role - press Enter to select" [pressed] [ref=e585] [cursor=pointer]:
+                      - generic: Tax Officer
+                  - generic [ref=e587]:
+                    - generic [ref=e588]: "Colour = cluster layer:"
+                    - generic [ref=e589]: individual
+                    - generic [ref=e591]: department
+                    - generic [ref=e593]: organisation
+                    - generic [ref=e595]: competition
+                    - generic [ref=e597]: unscoped
+                    - generic [ref=e599]: Bigger bubble = more occurrences.
+                  - generic [ref=e600]:
+                    - generic [ref=e601]: "Source:"
+                    - generic [ref=e602]: ● from posting
+                    - generic [ref=e603]: ✓ computed
+                    - generic [ref=e604]: ◐ derived
+                    - generic [ref=e605]: ~ AI estimate
+                    - generic [ref=e606]: "? unverified"
+                - generic [ref=e607]:
+                  - generic [ref=e608]:
+                    - generic [ref=e609]: role
+                    - generic [ref=e610]: ● from posting
+                  - heading "Tax Officer" [level=3] [ref=e611]
+                  - paragraph [ref=e612]: "Confidence: high"
+                - generic [ref=e613]:
+                  - strong [ref=e614]: AI-assisted; human decides.
+                  - text: "Source: computed from role data (ESCO / ISCO / MCF) - Confidence: shown per node - Time-window: current session. Node size = occurrence count; colour = cluster layer. Links appear only where evidence exists."
+            - note "How to read the provenance badges" [ref=e616]:
+              - generic [ref=e617]: "Badges, where shown:"
+              - generic [ref=e618]:
+                - generic "Taken verbatim from the live MyCareersFuture posting." [ref=e619]:
+                  - generic [ref=e620]: ●
+                  - text: from MyCareersFuture
+                - text: posting facts
+              - generic [ref=e621]:
+                - 'generic "Deterministic: calculated from ESCO/ISCO data. Same inputs give the same result." [ref=e622]':
+                  - generic [ref=e623]: ✓
+                  - text: computed
+                - text: deterministic, reproducible
+              - generic [ref=e624]:
+                - generic "An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." [ref=e625]:
+                  - generic [ref=e626]: ~
+                  - text: AI estimate
+                - text: AI judgement, may vary
+              - generic [ref=e627]:
+                - 'generic "Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." [ref=e628]':
+                  - generic [ref=e629]: ◐
+                  - text: derived
+                - text: computed from the sampled ads
+        - button "A note on how to use this ▼" [ref=e631] [cursor=pointer]:
+          - generic [ref=e632]: A note on how to use this
+          - generic [ref=e633]: ▼
+        - generic [ref=e635]:
+          - paragraph [ref=e636]: ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (Anthropic).
+          - generic [ref=e637]:
+            - link "Share feedback" [ref=e638] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=e639] [cursor=pointer]
+            - button "Legal" [ref=e640] [cursor=pointer]
+            - link "Terms" [ref=e641] [cursor=pointer]:
+              - /url: /terms.html

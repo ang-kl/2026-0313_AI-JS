@@ -1,0 +1,1144 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=e4]:
+    - generic [ref=e726]:
+      - generic [ref=e727]:
+        - generic [ref=e728]: V3
+        - generic [ref=e729]:
+          - strong [ref=e730]: Reviewable Work Intelligence
+          - generic [ref=e731]: AI-assisted; human decides.
+      - generic [ref=e732]:
+        - generic [ref=e733]: wired
+        - generic [ref=e734]: v3/goal/v3-blueprint.md
+        - button "Dark" [ref=e735] [cursor=pointer]
+    - navigation "V3 command ribbon" [ref=e736]:
+      - generic [ref=e737]:
+        - strong [ref=e738]: Start
+        - generic [ref=e739]:
+          - button "Browse SG jobs live MyCareersFuture postings" [ref=e740] [cursor=pointer]:
+            - text: Browse SG jobs
+            - generic [ref=e741]: live MyCareersFuture postings
+          - button "Organisation view MCF + careers.gov.sg" [ref=e742] [cursor=pointer]:
+            - text: Organisation view
+            - generic [ref=e743]: MCF + careers.gov.sg
+          - button "Plan my edge Proof, interview, output" [ref=e744] [cursor=pointer]:
+            - text: Plan my edge
+            - generic [ref=e745]: Proof, interview, output
+      - generic [ref=e746]:
+        - strong [ref=e747]: Review
+        - generic [ref=e748]:
+          - button "markup" [ref=e749] [cursor=pointer]
+          - button "clean" [ref=e750] [cursor=pointer]
+          - button "trace" [ref=e751] [cursor=pointer]
+      - generic [ref=e752]:
+        - strong [ref=e753]: Visuals
+        - generic [ref=e754]:
+          - button "Graph What shape is this role?" [ref=e755] [cursor=pointer]:
+            - text: Graph
+            - generic [ref=e756]: What shape is this role?
+          - button "Org What reports up to what?" [ref=e757] [cursor=pointer]:
+            - text: Org
+            - generic [ref=e758]: What reports up to what?
+          - button "Workflow Who acts when?" [ref=e759] [cursor=pointer]:
+            - text: Workflow
+            - generic [ref=e760]: Who acts when?
+          - button "Value stream Where does time go?" [ref=e761] [cursor=pointer]:
+            - text: Value stream
+            - generic [ref=e762]: Where does time go?
+      - generic [ref=e763]:
+        - strong [ref=e764]: Output
+        - generic [ref=e765]:
+          - button "Cover letter" [ref=e766] [cursor=pointer]
+          - button "Print view" [ref=e767] [cursor=pointer]
+    - generic [ref=e768]:
+      - generic [ref=e769]:
+        - generic [ref=e770]: Step 1
+        - strong [ref=e771]: Browse SG jobs
+        - emphasis [ref=e772]: "live sources: MCF + careers.gov.sg"
+      - generic "Step 1 source mode" [ref=e773]:
+        - button "Analyse a role ESCO essential skills" [ref=e774] [cursor=pointer]:
+          - strong [ref=e775]: Analyse a role
+          - generic [ref=e776]: ESCO essential skills
+        - button "Browse SG jobs MCF + careers.gov.sg postings" [ref=e777] [cursor=pointer]:
+          - strong [ref=e778]: Browse SG jobs
+          - generic [ref=e779]: MCF + careers.gov.sg postings
+        - button "Search by employer MCF + careers.gov.sg agencies" [ref=e780] [cursor=pointer]:
+          - strong [ref=e781]: Search by employer
+          - generic [ref=e782]: MCF + careers.gov.sg agencies
+        - generic [ref=e783] [cursor=pointer]:
+          - checkbox "Fresh grads · < 4 yrs experience" [ref=e784]
+          - generic [ref=e785]: Fresh grads · < 4 yrs experience
+      - generic [ref=e786]:
+        - generic [ref=e787]: Role / keyword
+        - textbox "Role / keyword" [ref=e788]:
+          - /placeholder: Job title to browse live SG postings...
+          - text: Software Developer
+        - button "Browse" [ref=e789] [cursor=pointer]
+      - paragraph [ref=e790]: Loaded 36 live postings.
+    - generic [ref=e791]:
+      - complementary "Working drawers" [ref=e792]:
+        - button "Source" [ref=e793] [cursor=pointer]
+        - button "SSOC" [ref=e794] [cursor=pointer]
+        - button "Org" [ref=e795] [cursor=pointer]
+        - button "Blueprint" [ref=e796] [cursor=pointer]
+        - button "Advisory" [ref=e797] [cursor=pointer]
+        - button "Letter" [ref=e798] [cursor=pointer]
+        - button "001" [ref=e800] [cursor=pointer]
+        - button "002" [ref=e801] [cursor=pointer]
+        - button "003" [ref=e802] [cursor=pointer]
+        - button "004" [ref=e803] [cursor=pointer]
+        - button "006" [ref=e804] [cursor=pointer]
+      - region "Review manuscript canvas" [ref=e805]:
+        - generic [ref=e806]:
+          - generic [ref=e807]:
+            - strong [ref=e808]: "Step 2: select the right role"
+            - generic [ref=e809]: 36 items
+          - article [ref=e810]:
+            - button "Software Developer 3 weeks ago VINOVA PTE. LTD. S$7,000 - S$14,000 / month Full Time 3+ yrs exp CSS Analytical Skills Hardware Agile JavaScript from MCF exact title" [ref=e811] [cursor=pointer]:
+              - generic [ref=e812]:
+                - strong [ref=e813]: Software Developer
+                - emphasis [ref=e814]: 3 weeks ago
+              - generic [ref=e815]: VINOVA PTE. LTD.
+              - generic [ref=e816]:
+                - generic [ref=e817]: S$7,000 - S$14,000 / month
+                - generic [ref=e818]: Full Time
+                - generic [ref=e819]: 3+ yrs exp
+              - generic [ref=e820]:
+                - generic [ref=e821]: CSS
+                - generic [ref=e822]: Analytical Skills
+                - generic [ref=e823]: Hardware
+                - generic [ref=e824]: Agile
+                - generic [ref=e825]: JavaScript
+              - emphasis [ref=e826]: from MCF
+              - emphasis [ref=e827]: exact title
+            - generic [ref=e828]:
+              - button "Analyse this posting" [ref=e829] [cursor=pointer]
+              - button "View role graph" [ref=e830] [cursor=pointer]
+              - link "Open posting" [ref=e831] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-vinova-9d744de81ea6b9ced4b80057fad79011
+          - article [ref=e832]:
+            - button "Software Developer 3 weeks ago TITANSOFT PTE. LTD. S$5,600 - S$7,800 / month Full Time 1+ yrs exp CSS Web Programming .NET MySQL Agile from MCF exact title" [ref=e833] [cursor=pointer]:
+              - generic [ref=e834]:
+                - strong [ref=e835]: Software Developer
+                - emphasis [ref=e836]: 3 weeks ago
+              - generic [ref=e837]: TITANSOFT PTE. LTD.
+              - generic [ref=e838]:
+                - generic [ref=e839]: S$5,600 - S$7,800 / month
+                - generic [ref=e840]: Full Time
+                - generic [ref=e841]: 1+ yrs exp
+              - generic [ref=e842]:
+                - generic [ref=e843]: CSS
+                - generic [ref=e844]: Web Programming
+                - generic [ref=e845]: .NET
+                - generic [ref=e846]: MySQL
+                - generic [ref=e847]: Agile
+              - emphasis [ref=e848]: from MCF
+              - emphasis [ref=e849]: exact title
+            - generic [ref=e850]:
+              - button "Analyse this posting" [ref=e851] [cursor=pointer]
+              - button "View role graph" [ref=e852] [cursor=pointer]
+              - link "Open posting" [ref=e853] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-titansoft-7fb0d610330f76651a91b5a7c6d5cde9
+          - article [ref=e854]:
+            - button "Software Developer 2 weeks ago Toppan Next Tech PTE. LTD. S$4,000 - S$7,000 / month Permanent, Full Time 3+ yrs exp Kubernetes .NET Design Patterns Agile JavaScript from MCF exact title" [ref=e855] [cursor=pointer]:
+              - generic [ref=e856]:
+                - strong [ref=e857]: Software Developer
+                - emphasis [ref=e858]: 2 weeks ago
+              - generic [ref=e859]: Toppan Next Tech PTE. LTD.
+              - generic [ref=e860]:
+                - generic [ref=e861]: S$4,000 - S$7,000 / month
+                - generic [ref=e862]: Permanent, Full Time
+                - generic [ref=e863]: 3+ yrs exp
+              - generic [ref=e864]:
+                - generic [ref=e865]: Kubernetes
+                - generic [ref=e866]: .NET
+                - generic [ref=e867]: Design Patterns
+                - generic [ref=e868]: Agile
+                - generic [ref=e869]: JavaScript
+              - emphasis [ref=e870]: from MCF
+              - emphasis [ref=e871]: exact title
+            - generic [ref=e872]:
+              - button "Analyse this posting" [ref=e873] [cursor=pointer]
+              - button "View role graph" [ref=e874] [cursor=pointer]
+              - link "Open posting" [ref=e875] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-toppan-next-tech-513112f584e781074dac07c1e13b0d9b
+          - article [ref=e876]:
+            - button "Software Developer 2 weeks ago ECICS LIMITED S$4,000 - S$6,000 / month Contract Liaising with cross functional teams Analytical Skills Software Engineering Agile JavaScript from MCF exact title" [ref=e877] [cursor=pointer]:
+              - generic [ref=e878]:
+                - strong [ref=e879]: Software Developer
+                - emphasis [ref=e880]: 2 weeks ago
+              - generic [ref=e881]: ECICS LIMITED
+              - generic [ref=e882]:
+                - generic [ref=e883]: S$4,000 - S$6,000 / month
+                - generic [ref=e884]: Contract
+              - generic [ref=e885]:
+                - generic [ref=e886]: Liaising with cross functional teams
+                - generic [ref=e887]: Analytical Skills
+                - generic [ref=e888]: Software Engineering
+                - generic [ref=e889]: Agile
+                - generic [ref=e890]: JavaScript
+              - emphasis [ref=e891]: from MCF
+              - emphasis [ref=e892]: exact title
+            - generic [ref=e893]:
+              - button "Analyse this posting" [ref=e894] [cursor=pointer]
+              - button "View role graph" [ref=e895] [cursor=pointer]
+              - link "Open posting" [ref=e896] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-ecics-6b021c92e1d274d86cb58fe37a0577ed
+          - article [ref=e897]:
+            - button "Software Developer 1 week ago AVENSYS CONSULTING PTE. LTD. S$3,000 - S$6,000 / month Contract 1+ yrs exp Computer Engineering Foundation Design Object-Oriented Analysis, Design and Programming Software Engineering Application Development from MCF exact title" [ref=e898] [cursor=pointer]:
+              - generic [ref=e899]:
+                - strong [ref=e900]: Software Developer
+                - emphasis [ref=e901]: 1 week ago
+              - generic [ref=e902]: AVENSYS CONSULTING PTE. LTD.
+              - generic [ref=e903]:
+                - generic [ref=e904]: S$3,000 - S$6,000 / month
+                - generic [ref=e905]: Contract
+                - generic [ref=e906]: 1+ yrs exp
+              - generic [ref=e907]:
+                - generic [ref=e908]: Computer Engineering
+                - generic [ref=e909]: Foundation Design
+                - generic [ref=e910]: Object-Oriented Analysis, Design and Programming
+                - generic [ref=e911]: Software Engineering
+                - generic [ref=e912]: Application Development
+              - emphasis [ref=e913]: from MCF
+              - emphasis [ref=e914]: exact title
+            - generic [ref=e915]:
+              - button "Analyse this posting" [ref=e916] [cursor=pointer]
+              - button "View role graph" [ref=e917] [cursor=pointer]
+              - link "Open posting" [ref=e918] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-avensys-consulting-86d4433ba78e9cdc1e0b3a24fa3b0a58
+          - article [ref=e919]:
+            - button "Software Developer 6 days ago SAKSOFT PTE LIMITED S$7,500 - S$8,500 / month Permanent 6+ yrs exp Git Sonarqube Jenkins .NET Technical Skills from MCF exact title" [ref=e920] [cursor=pointer]:
+              - generic [ref=e921]:
+                - strong [ref=e922]: Software Developer
+                - emphasis [ref=e923]: 6 days ago
+              - generic [ref=e924]: SAKSOFT PTE LIMITED
+              - generic [ref=e925]:
+                - generic [ref=e926]: S$7,500 - S$8,500 / month
+                - generic [ref=e927]: Permanent
+                - generic [ref=e928]: 6+ yrs exp
+              - generic [ref=e929]:
+                - generic [ref=e930]: Git
+                - generic [ref=e931]: Sonarqube
+                - generic [ref=e932]: Jenkins
+                - generic [ref=e933]: .NET
+                - generic [ref=e934]: Technical Skills
+              - emphasis [ref=e935]: from MCF
+              - emphasis [ref=e936]: exact title
+            - generic [ref=e937]:
+              - button "Analyse this posting" [ref=e938] [cursor=pointer]
+              - button "View role graph" [ref=e939] [cursor=pointer]
+              - link "Open posting" [ref=e940] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-saksoft-0caaa143ffb49161a94ad51344dcf135
+          - article [ref=e941]:
+            - button "Software Developer 4 days ago TECH GRID ASIA PTE. LTD. S$5,000 - S$7,000 / month Contract 3+ yrs exp Functional Requirements Analysis Computer Engineering Mobile Software Software Engineering JavaScript from MCF exact title" [ref=e942] [cursor=pointer]:
+              - generic [ref=e943]:
+                - strong [ref=e944]: Software Developer
+                - emphasis [ref=e945]: 4 days ago
+              - generic [ref=e946]: TECH GRID ASIA PTE. LTD.
+              - generic [ref=e947]:
+                - generic [ref=e948]: S$5,000 - S$7,000 / month
+                - generic [ref=e949]: Contract
+                - generic [ref=e950]: 3+ yrs exp
+              - generic [ref=e951]:
+                - generic [ref=e952]: Functional Requirements Analysis
+                - generic [ref=e953]: Computer Engineering
+                - generic [ref=e954]: Mobile Software
+                - generic [ref=e955]: Software Engineering
+                - generic [ref=e956]: JavaScript
+              - emphasis [ref=e957]: from MCF
+              - emphasis [ref=e958]: exact title
+            - generic [ref=e959]:
+              - button "Analyse this posting" [ref=e960] [cursor=pointer]
+              - button "View role graph" [ref=e961] [cursor=pointer]
+              - link "Open posting" [ref=e962] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-tech-grid-asia-0643d2cc268035cad3f233c4346278bd
+          - article [ref=e963]:
+            - button "Software Developer 2 weeks ago INFRASOFT TECHNOLOGIES PTE LTD S$8,000 - S$11,000 / month Contract 5+ yrs exp Liaising with cross functional teams Applications Training Needs Analysis Documentation Consultation from MCF exact title" [ref=e964] [cursor=pointer]:
+              - generic [ref=e965]:
+                - strong [ref=e966]: Software Developer
+                - emphasis [ref=e967]: 2 weeks ago
+              - generic [ref=e968]: INFRASOFT TECHNOLOGIES PTE LTD
+              - generic [ref=e969]:
+                - generic [ref=e970]: S$8,000 - S$11,000 / month
+                - generic [ref=e971]: Contract
+                - generic [ref=e972]: 5+ yrs exp
+              - generic [ref=e973]:
+                - generic [ref=e974]: Liaising with cross functional teams
+                - generic [ref=e975]: Applications
+                - generic [ref=e976]: Training Needs Analysis
+                - generic [ref=e977]: Documentation
+                - generic [ref=e978]: Consultation
+              - emphasis [ref=e979]: from MCF
+              - emphasis [ref=e980]: exact title
+            - generic [ref=e981]:
+              - button "Analyse this posting" [ref=e982] [cursor=pointer]
+              - button "View role graph" [ref=e983] [cursor=pointer]
+              - link "Open posting" [ref=e984] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-infrasoft-technologies-c493aab6909d5cfc7c33829a052baf5a
+          - article [ref=e985]:
+            - button "SOFTWARE DEVELOPER 2 months ago RMR INTERNATIONAL PRIVATE LIMITED S$7,500 - S$13,500 / month Full Time 5+ yrs exp Full Stack Development Desktops PC Design Development Web C# from MCF exact title" [ref=e986] [cursor=pointer]:
+              - generic [ref=e987]:
+                - strong [ref=e988]: SOFTWARE DEVELOPER
+                - emphasis [ref=e989]: 2 months ago
+              - generic [ref=e990]: RMR INTERNATIONAL PRIVATE LIMITED
+              - generic [ref=e991]:
+                - generic [ref=e992]: S$7,500 - S$13,500 / month
+                - generic [ref=e993]: Full Time
+                - generic [ref=e994]: 5+ yrs exp
+              - generic [ref=e995]:
+                - generic [ref=e996]: Full Stack Development
+                - generic [ref=e997]: Desktops PC
+                - generic [ref=e998]: Design Development
+                - generic [ref=e999]: Web
+                - generic [ref=e1000]: C#
+              - emphasis [ref=e1001]: from MCF
+              - emphasis [ref=e1002]: exact title
+            - generic [ref=e1003]:
+              - button "Analyse this posting" [ref=e1004] [cursor=pointer]
+              - button "View role graph" [ref=e1005] [cursor=pointer]
+              - link "Open posting" [ref=e1006] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-rmr-information-technology-services-116ae5d73ca930f097c669d9e09a320a
+          - article [ref=e1007]:
+            - button "Cloud Software Developer 1 month ago BIOTRONIK APM II PTE. LTD. S$5,000 - S$7,000 / month Permanent 5+ yrs exp Liaising with cross functional teams Design Scalability Regulatory Compliance Pipelines from MCF title contains signal" [ref=e1008] [cursor=pointer]:
+              - generic [ref=e1009]:
+                - strong [ref=e1010]: Cloud Software Developer
+                - emphasis [ref=e1011]: 1 month ago
+              - generic [ref=e1012]: BIOTRONIK APM II PTE. LTD.
+              - generic [ref=e1013]:
+                - generic [ref=e1014]: S$5,000 - S$7,000 / month
+                - generic [ref=e1015]: Permanent
+                - generic [ref=e1016]: 5+ yrs exp
+              - generic [ref=e1017]:
+                - generic [ref=e1018]: Liaising with cross functional teams
+                - generic [ref=e1019]: Design
+                - generic [ref=e1020]: Scalability
+                - generic [ref=e1021]: Regulatory Compliance
+                - generic [ref=e1022]: Pipelines
+              - emphasis [ref=e1023]: from MCF
+              - emphasis [ref=e1024]: title contains signal
+            - generic [ref=e1025]:
+              - button "Analyse this posting" [ref=e1026] [cursor=pointer]
+              - button "View role graph" [ref=e1027] [cursor=pointer]
+              - link "Open posting" [ref=e1028] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/manufacturing/cloud-software-developer-biotronik-apm-ii-a604a0b6a5deff85b6cb865fd8c5387c
+          - article [ref=e1029]:
+            - button "Full Stack Software Developer (Polytechnic Graduates) 1 week ago SIMPLIFYNEXT PTE. LTD. S$3,500 - S$4,200 / month Full Time Git CSS Architect TypeScript Agile from MCF title contains signal" [ref=e1030] [cursor=pointer]:
+              - generic [ref=e1031]:
+                - strong [ref=e1032]: Full Stack Software Developer (Polytechnic Graduates)
+                - emphasis [ref=e1033]: 1 week ago
+              - generic [ref=e1034]: SIMPLIFYNEXT PTE. LTD.
+              - generic [ref=e1035]:
+                - generic [ref=e1036]: S$3,500 - S$4,200 / month
+                - generic [ref=e1037]: Full Time
+              - generic [ref=e1038]:
+                - generic [ref=e1039]: Git
+                - generic [ref=e1040]: CSS
+                - generic [ref=e1041]: Architect
+                - generic [ref=e1042]: TypeScript
+                - generic [ref=e1043]: Agile
+              - emphasis [ref=e1044]: from MCF
+              - emphasis [ref=e1045]: title contains signal
+            - generic [ref=e1046]:
+              - button "Analyse this posting" [ref=e1047] [cursor=pointer]
+              - button "View role graph" [ref=e1048] [cursor=pointer]
+              - link "Open posting" [ref=e1049] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/consulting/full-stack-software-developer-simplifynext-306d06f0563529e2e5de6ecc9e932a0c
+          - article [ref=e1050]:
+            - button "Junior Software Developer 1 week ago CONSUMER CLOUD TECHNOLOGY SERVICES PTE. LTD. S$2,000 - S$3,500 / month Full Time 1+ yrs exp Machine Learning Liaising with cross functional teams Pandas Data Pipeline Data Structures from MCF title contains signal" [ref=e1051] [cursor=pointer]:
+              - generic [ref=e1052]:
+                - strong [ref=e1053]: Junior Software Developer
+                - emphasis [ref=e1054]: 1 week ago
+              - generic [ref=e1055]: CONSUMER CLOUD TECHNOLOGY SERVICES PTE. LTD.
+              - generic [ref=e1056]:
+                - generic [ref=e1057]: S$2,000 - S$3,500 / month
+                - generic [ref=e1058]: Full Time
+                - generic [ref=e1059]: 1+ yrs exp
+              - generic [ref=e1060]:
+                - generic [ref=e1061]: Machine Learning
+                - generic [ref=e1062]: Liaising with cross functional teams
+                - generic [ref=e1063]: Pandas
+                - generic [ref=e1064]: Data Pipeline
+                - generic [ref=e1065]: Data Structures
+              - emphasis [ref=e1066]: from MCF
+              - emphasis [ref=e1067]: title contains signal
+            - generic [ref=e1068]:
+              - button "Analyse this posting" [ref=e1069] [cursor=pointer]
+              - button "View role graph" [ref=e1070] [cursor=pointer]
+              - link "Open posting" [ref=e1071] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/professional-services/junior-software-developer-consumer-cloud-technology-services-3c12feabf1563544100fad048c0f1817
+          - article [ref=e1072]:
+            - button "Lead unity 3D developer (Software developer) 5 days ago RANDSTAD PTE. LIMITED S$8,000 - S$10,000 / month Contract 5+ yrs exp 3D Visualization Optimization Medical Degree Unity 3D Software Engineering from MCF title contains signal" [ref=e1073] [cursor=pointer]:
+              - generic [ref=e1074]:
+                - strong [ref=e1075]: Lead unity 3D developer (Software developer)
+                - emphasis [ref=e1076]: 5 days ago
+              - generic [ref=e1077]: RANDSTAD PTE. LIMITED
+              - generic [ref=e1078]:
+                - generic [ref=e1079]: S$8,000 - S$10,000 / month
+                - generic [ref=e1080]: Contract
+                - generic [ref=e1081]: 5+ yrs exp
+              - generic [ref=e1082]:
+                - generic [ref=e1083]: 3D Visualization
+                - generic [ref=e1084]: Optimization
+                - generic [ref=e1085]: Medical Degree
+                - generic [ref=e1086]: Unity 3D
+                - generic [ref=e1087]: Software Engineering
+              - emphasis [ref=e1088]: from MCF
+              - emphasis [ref=e1089]: title contains signal
+            - generic [ref=e1090]:
+              - button "Analyse this posting" [ref=e1091] [cursor=pointer]
+              - button "View role graph" [ref=e1092] [cursor=pointer]
+              - link "Open posting" [ref=e1093] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/lead-unity-3d-developer-randstad-478f141ac6e7b17e01cdf6cc9d1edc8a
+          - article [ref=e1094]:
+            - button "Security Software Developer 5 months ago Centre for Strategic Infocomm Technologies Permanent from careers.gov.sg title contains signal" [ref=e1095] [cursor=pointer]:
+              - generic [ref=e1096]:
+                - strong [ref=e1097]: Security Software Developer
+                - emphasis [ref=e1098]: 5 months ago
+              - generic [ref=e1099]: Centre for Strategic Infocomm Technologies
+              - generic [ref=e1101]: Permanent
+              - emphasis [ref=e1102]: from careers.gov.sg
+              - emphasis [ref=e1103]: title contains signal
+            - generic [ref=e1104]:
+              - button "Analyse this posting" [ref=e1105] [cursor=pointer]
+              - button "View role graph" [ref=e1106] [cursor=pointer]
+              - link "Open posting" [ref=e1107] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/hrp/16967317/005056a3-d347-1fe0-bb84-c29a3fad8284
+          - article [ref=e1108]:
+            - button "Senior software developer 3 weeks ago WEB SYNERGIES (S) PTE LTD S$6,000 - S$7,300 / month Contract 7+ yrs exp Liaising with cross functional teams Design Process Improvement Design Patterns MySQL from MCF title contains signal" [ref=e1109] [cursor=pointer]:
+              - generic [ref=e1110]:
+                - strong [ref=e1111]: Senior software developer
+                - emphasis [ref=e1112]: 3 weeks ago
+              - generic [ref=e1113]: WEB SYNERGIES (S) PTE LTD
+              - generic [ref=e1114]:
+                - generic [ref=e1115]: S$6,000 - S$7,300 / month
+                - generic [ref=e1116]: Contract
+                - generic [ref=e1117]: 7+ yrs exp
+              - generic [ref=e1118]:
+                - generic [ref=e1119]: Liaising with cross functional teams
+                - generic [ref=e1120]: Design
+                - generic [ref=e1121]: Process Improvement
+                - generic [ref=e1122]: Design Patterns
+                - generic [ref=e1123]: MySQL
+              - emphasis [ref=e1124]: from MCF
+              - emphasis [ref=e1125]: title contains signal
+            - generic [ref=e1126]:
+              - button "Analyse this posting" [ref=e1127] [cursor=pointer]
+              - button "View role graph" [ref=e1128] [cursor=pointer]
+              - link "Open posting" [ref=e1129] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-web-synergies-63ae29fd2ce3a294587eb2f9bcf19524
+          - article [ref=e1130]:
+            - button "Senior Software Developer 1 week ago TITANSOFT PTE. LTD. S$7,000 - S$11,000 / month Full Time 3+ yrs exp .NET Design Patterns Test Driven Development Agile JavaScript from MCF title contains signal" [ref=e1131] [cursor=pointer]:
+              - generic [ref=e1132]:
+                - strong [ref=e1133]: Senior Software Developer
+                - emphasis [ref=e1134]: 1 week ago
+              - generic [ref=e1135]: TITANSOFT PTE. LTD.
+              - generic [ref=e1136]:
+                - generic [ref=e1137]: S$7,000 - S$11,000 / month
+                - generic [ref=e1138]: Full Time
+                - generic [ref=e1139]: 3+ yrs exp
+              - generic [ref=e1140]:
+                - generic [ref=e1141]: .NET
+                - generic [ref=e1142]: Design Patterns
+                - generic [ref=e1143]: Test Driven Development
+                - generic [ref=e1144]: Agile
+                - generic [ref=e1145]: JavaScript
+              - emphasis [ref=e1146]: from MCF
+              - emphasis [ref=e1147]: title contains signal
+            - generic [ref=e1148]:
+              - button "Analyse this posting" [ref=e1149] [cursor=pointer]
+              - button "View role graph" [ref=e1150] [cursor=pointer]
+              - link "Open posting" [ref=e1151] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-titansoft-c44098e5ae35917a922b59cbc4c5d4ad
+          - article [ref=e1152]:
+            - button "Senior Software Developer (.Net) - Tech Lead 3 days ago THE EDGE CONTRACTING SERVICES PTE. LTD. S$7,000 - S$11,000 / month Contract 5+ yrs exp Code Review .NET Development Azure DevOps Software Engineering from MCF title contains signal" [ref=e1153] [cursor=pointer]:
+              - generic [ref=e1154]:
+                - strong [ref=e1155]: Senior Software Developer (.Net) - Tech Lead
+                - emphasis [ref=e1156]: 3 days ago
+              - generic [ref=e1157]: THE EDGE CONTRACTING SERVICES PTE. LTD.
+              - generic [ref=e1158]:
+                - generic [ref=e1159]: S$7,000 - S$11,000 / month
+                - generic [ref=e1160]: Contract
+                - generic [ref=e1161]: 5+ yrs exp
+              - generic [ref=e1162]:
+                - generic [ref=e1163]: Code Review
+                - generic [ref=e1164]: .NET
+                - generic [ref=e1165]: Development
+                - generic [ref=e1166]: Azure DevOps
+                - generic [ref=e1167]: Software Engineering
+              - emphasis [ref=e1168]: from MCF
+              - emphasis [ref=e1169]: title contains signal
+            - generic [ref=e1170]:
+              - button "Analyse this posting" [ref=e1171] [cursor=pointer]
+              - button "View role graph" [ref=e1172] [cursor=pointer]
+              - link "Open posting" [ref=e1173] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-developer-tech-lead-edge-contracting-services-b4fd8cdd50bd6567e9ac11bce91efd7a
+          - article [ref=e1174]:
+            - button "Senior Software Developer (Android) 1 week ago RAPSODO PTE. LTD. S$7,000 - S$10,000 / month Full Time 5+ yrs exp consistent customer experience Sports Development systems reliability Collaboration Impact Assessment from MCF title contains signal" [ref=e1175] [cursor=pointer]:
+              - generic [ref=e1176]:
+                - strong [ref=e1177]: Senior Software Developer (Android)
+                - emphasis [ref=e1178]: 1 week ago
+              - generic [ref=e1179]: RAPSODO PTE. LTD.
+              - generic [ref=e1180]:
+                - generic [ref=e1181]: S$7,000 - S$10,000 / month
+                - generic [ref=e1182]: Full Time
+                - generic [ref=e1183]: 5+ yrs exp
+              - generic [ref=e1184]:
+                - generic [ref=e1185]: consistent customer experience
+                - generic [ref=e1186]: Sports Development
+                - generic [ref=e1187]: systems reliability
+                - generic [ref=e1188]: Collaboration
+                - generic [ref=e1189]: Impact Assessment
+              - emphasis [ref=e1190]: from MCF
+              - emphasis [ref=e1191]: title contains signal
+            - generic [ref=e1192]:
+              - button "Analyse this posting" [ref=e1193] [cursor=pointer]
+              - button "View role graph" [ref=e1194] [cursor=pointer]
+              - link "Open posting" [ref=e1195] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-software-developer-rapsodo-a7531763813ca8a3c60a2144e7cebcaf
+          - article [ref=e1196]:
+            - button "Sr Software Developer 2 weeks ago INFRASOFT TECHNOLOGIES PTE LTD S$11,200 - S$14,500 / month Contract 8+ yrs exp Liaising with cross functional teams Applications Training Needs Analysis Documentation Consultation from MCF title contains signal" [ref=e1197] [cursor=pointer]:
+              - generic [ref=e1198]:
+                - strong [ref=e1199]: Sr Software Developer
+                - emphasis [ref=e1200]: 2 weeks ago
+              - generic [ref=e1201]: INFRASOFT TECHNOLOGIES PTE LTD
+              - generic [ref=e1202]:
+                - generic [ref=e1203]: S$11,200 - S$14,500 / month
+                - generic [ref=e1204]: Contract
+                - generic [ref=e1205]: 8+ yrs exp
+              - generic [ref=e1206]:
+                - generic [ref=e1207]: Liaising with cross functional teams
+                - generic [ref=e1208]: Applications
+                - generic [ref=e1209]: Training Needs Analysis
+                - generic [ref=e1210]: Documentation
+                - generic [ref=e1211]: Consultation
+              - emphasis [ref=e1212]: from MCF
+              - emphasis [ref=e1213]: title contains signal
+            - generic [ref=e1214]:
+              - button "Analyse this posting" [ref=e1215] [cursor=pointer]
+              - button "View role graph" [ref=e1216] [cursor=pointer]
+              - link "Open posting" [ref=e1217] [cursor=pointer]:
+                - /url: https://www.mycareersfuture.gov.sg/job/information-technology/sr-software-developer-infrasoft-technologies-c5e997c925067cc33144546458580621
+          - article [ref=e1218]:
+            - button "[LTA-ITCD] PRP / SENIOR / EXECUTIVE SOFTWARE/OUTSYSTEMS DEVELOPER 2 weeks ago Land Transport Authority Fixed Terms 4+ yrs exp from careers.gov.sg responsibility contains signal" [ref=e1219] [cursor=pointer]:
+              - generic [ref=e1220]:
+                - strong [ref=e1221]: "[LTA-ITCD] PRP / SENIOR / EXECUTIVE SOFTWARE/OUTSYSTEMS DEVELOPER"
+                - emphasis [ref=e1222]: 2 weeks ago
+              - generic [ref=e1223]: Land Transport Authority
+              - generic [ref=e1224]:
+                - generic [ref=e1225]: Fixed Terms
+                - generic [ref=e1226]: 4+ yrs exp
+              - emphasis [ref=e1227]: from careers.gov.sg
+              - emphasis [ref=e1228]: responsibility contains signal
+            - generic [ref=e1229]:
+              - button "Analyse this posting" [ref=e1230] [cursor=pointer]
+              - button "View role graph" [ref=e1231] [cursor=pointer]
+              - link "Open posting" [ref=e1232] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/hrp/17691853/005056a3-d347-1fe1-99d3-8a6f549982a9
+          - article [ref=e1233]:
+            - button "Deputy Director, AI Software Engineering, AI Products 3 days ago Home Team Science and Technology Agency (HTX) Permanent/Contract 10+ yrs exp from careers.gov.sg adjacent role" [ref=e1234] [cursor=pointer]:
+              - generic [ref=e1235]:
+                - strong [ref=e1236]: Deputy Director, AI Software Engineering, AI Products
+                - emphasis [ref=e1237]: 3 days ago
+              - generic [ref=e1238]: Home Team Science and Technology Agency (HTX)
+              - generic [ref=e1239]:
+                - generic [ref=e1240]: Permanent/Contract
+                - generic [ref=e1241]: 10+ yrs exp
+              - emphasis [ref=e1242]: from careers.gov.sg
+              - emphasis [ref=e1243]: adjacent role
+            - generic [ref=e1244]:
+              - button "Analyse this posting" [ref=e1245] [cursor=pointer]
+              - button "View role graph" [ref=e1246] [cursor=pointer]
+              - link "Open posting" [ref=e1247] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/hrp/17753430/005056a3-53e2-1fd1-9ca2-860cecea13ff
+          - article [ref=e1248]:
+            - button "Deputy Director, Engineering Management, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1249] [cursor=pointer]:
+              - generic [ref=e1250]:
+                - strong [ref=e1251]: Deputy Director, Engineering Management, Developer Productivity & Services Programme
+                - emphasis [ref=e1252]: 5 days ago
+              - generic [ref=e1253]: Government Technology Agency
+              - emphasis [ref=e1254]: from careers.gov.sg
+              - emphasis [ref=e1255]: adjacent role
+            - generic [ref=e1256]:
+              - button "Analyse this posting" [ref=e1257] [cursor=pointer]
+              - button "View role graph" [ref=e1258] [cursor=pointer]
+              - link "Open posting" [ref=e1259] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004426201?gh_jid=4004426201
+          - article [ref=e1260]:
+            - button "Engineer / Senior Software Engineer, AI Products & Platform, Ministry of Education 4 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1261] [cursor=pointer]:
+              - generic [ref=e1262]:
+                - strong [ref=e1263]: Engineer / Senior Software Engineer, AI Products & Platform, Ministry of Education
+                - emphasis [ref=e1264]: 4 days ago
+              - generic [ref=e1265]: Government Technology Agency
+              - emphasis [ref=e1266]: from careers.gov.sg
+              - emphasis [ref=e1267]: adjacent role
+            - generic [ref=e1268]:
+              - button "Analyse this posting" [ref=e1269] [cursor=pointer]
+              - button "View role graph" [ref=e1270] [cursor=pointer]
+              - link "Open posting" [ref=e1271] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004456201?gh_jid=4004456201
+          - article [ref=e1272]:
+            - button "Enterprise Software Specialist (Salesforce), Infocomm Media Development Authority 3 days ago Government Technology Agency 7+ yrs exp from careers.gov.sg adjacent role" [ref=e1273] [cursor=pointer]:
+              - generic [ref=e1274]:
+                - strong [ref=e1275]: Enterprise Software Specialist (Salesforce), Infocomm Media Development Authority
+                - emphasis [ref=e1276]: 3 days ago
+              - generic [ref=e1277]: Government Technology Agency
+              - generic [ref=e1279]: 7+ yrs exp
+              - emphasis [ref=e1280]: from careers.gov.sg
+              - emphasis [ref=e1281]: adjacent role
+            - generic [ref=e1282]:
+              - button "Analyse this posting" [ref=e1283] [cursor=pointer]
+              - button "View role graph" [ref=e1284] [cursor=pointer]
+              - link "Open posting" [ref=e1285] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004343201?gh_jid=4004343201
+          - article [ref=e1286]:
+            - button "Modelling & Simulation Software Engineer 3 weeks ago Defence Science and Technology Agency Permanent from careers.gov.sg adjacent role" [ref=e1287] [cursor=pointer]:
+              - generic [ref=e1288]:
+                - strong [ref=e1289]: Modelling & Simulation Software Engineer
+                - emphasis [ref=e1290]: 3 weeks ago
+              - generic [ref=e1291]: Defence Science and Technology Agency
+              - generic [ref=e1293]: Permanent
+              - emphasis [ref=e1294]: from careers.gov.sg
+              - emphasis [ref=e1295]: adjacent role
+            - generic [ref=e1296]:
+              - button "Analyse this posting" [ref=e1297] [cursor=pointer]
+              - button "View role graph" [ref=e1298] [cursor=pointer]
+              - link "Open posting" [ref=e1299] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/hrp/17655340/005056a3-d347-1fe1-97f8-5f82b3c442a7
+          - article [ref=e1300]:
+            - button "Principal / Software Engineer, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1301] [cursor=pointer]:
+              - generic [ref=e1302]:
+                - strong [ref=e1303]: Principal / Software Engineer, Developer Productivity & Services Programme
+                - emphasis [ref=e1304]: 5 days ago
+              - generic [ref=e1305]: Government Technology Agency
+              - emphasis [ref=e1306]: from careers.gov.sg
+              - emphasis [ref=e1307]: adjacent role
+            - generic [ref=e1308]:
+              - button "Analyse this posting" [ref=e1309] [cursor=pointer]
+              - button "View role graph" [ref=e1310] [cursor=pointer]
+              - link "Open posting" [ref=e1311] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004429201?gh_jid=4004429201
+          - article [ref=e1312]:
+            - button "Senior / Software Engineer (Developer Productivity Platforms), Core Engineering Products 2 months ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1313] [cursor=pointer]:
+              - generic [ref=e1314]:
+                - strong [ref=e1315]: Senior / Software Engineer (Developer Productivity Platforms), Core Engineering Products
+                - emphasis [ref=e1316]: 2 months ago
+              - generic [ref=e1317]: Government Technology Agency
+              - emphasis [ref=e1318]: from careers.gov.sg
+              - emphasis [ref=e1319]: adjacent role
+            - generic [ref=e1320]:
+              - button "Analyse this posting" [ref=e1321] [cursor=pointer]
+              - button "View role graph" [ref=e1322] [cursor=pointer]
+              - link "Open posting" [ref=e1323] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001881201?gh_jid=4001881201
+          - article [ref=e1324]:
+            - button "Senior / Software Engineer, Developer Productivity & Services Programme 5 days ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1325] [cursor=pointer]:
+              - generic [ref=e1326]:
+                - strong [ref=e1327]: Senior / Software Engineer, Developer Productivity & Services Programme
+                - emphasis [ref=e1328]: 5 days ago
+              - generic [ref=e1329]: Government Technology Agency
+              - emphasis [ref=e1330]: from careers.gov.sg
+              - emphasis [ref=e1331]: adjacent role
+            - generic [ref=e1332]:
+              - button "Analyse this posting" [ref=e1333] [cursor=pointer]
+              - button "View role graph" [ref=e1334] [cursor=pointer]
+              - link "Open posting" [ref=e1335] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004423201?gh_jid=4004423201
+          - article [ref=e1336]:
+            - button "Senior Enterprise Software Specialist(GeBIZ X) 1 month ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1337] [cursor=pointer]:
+              - generic [ref=e1338]:
+                - strong [ref=e1339]: Senior Enterprise Software Specialist(GeBIZ X)
+                - emphasis [ref=e1340]: 1 month ago
+              - generic [ref=e1341]: Government Technology Agency
+              - emphasis [ref=e1342]: from careers.gov.sg
+              - emphasis [ref=e1343]: adjacent role
+            - generic [ref=e1344]:
+              - button "Analyse this posting" [ref=e1345] [cursor=pointer]
+              - button "View role graph" [ref=e1346] [cursor=pointer]
+              - link "Open posting" [ref=e1347] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004032201?gh_jid=4004032201
+          - article [ref=e1348]:
+            - button "Senior Software Engineer (Reimagine Engineering), Software Engineering Practice 3 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1349] [cursor=pointer]:
+              - generic [ref=e1350]:
+                - strong [ref=e1351]: Senior Software Engineer (Reimagine Engineering), Software Engineering Practice
+                - emphasis [ref=e1352]: 3 weeks ago
+              - generic [ref=e1353]: Government Technology Agency
+              - emphasis [ref=e1354]: from careers.gov.sg
+              - emphasis [ref=e1355]: adjacent role
+            - generic [ref=e1356]:
+              - button "Analyse this posting" [ref=e1357] [cursor=pointer]
+              - button "View role graph" [ref=e1358] [cursor=pointer]
+              - link "Open posting" [ref=e1359] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004091201?gh_jid=4004091201
+          - article [ref=e1360]:
+            - button "Senior Software Engineer, AI Infrastructure & Operations, AI Practice 2 months ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1361] [cursor=pointer]:
+              - generic [ref=e1362]:
+                - strong [ref=e1363]: Senior Software Engineer, AI Infrastructure & Operations, AI Practice
+                - emphasis [ref=e1364]: 2 months ago
+              - generic [ref=e1365]: Government Technology Agency
+              - emphasis [ref=e1366]: from careers.gov.sg
+              - emphasis [ref=e1367]: adjacent role
+            - generic [ref=e1368]:
+              - button "Analyse this posting" [ref=e1369] [cursor=pointer]
+              - button "View role graph" [ref=e1370] [cursor=pointer]
+              - link "Open posting" [ref=e1371] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003193201?gh_jid=4003193201
+          - article [ref=e1372]:
+            - button "Software Engineer (Developer Platform) 3 months ago Centre for Strategic Infocomm Technologies Permanent from careers.gov.sg adjacent role" [ref=e1373] [cursor=pointer]:
+              - generic [ref=e1374]:
+                - strong [ref=e1375]: Software Engineer (Developer Platform)
+                - emphasis [ref=e1376]: 3 months ago
+              - generic [ref=e1377]: Centre for Strategic Infocomm Technologies
+              - generic [ref=e1379]: Permanent
+              - emphasis [ref=e1380]: from careers.gov.sg
+              - emphasis [ref=e1381]: adjacent role
+            - generic [ref=e1382]:
+              - button "Analyse this posting" [ref=e1383] [cursor=pointer]
+              - button "View role graph" [ref=e1384] [cursor=pointer]
+              - link "Open posting" [ref=e1385] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/hrp/17347518/005056a3-d347-1fe1-8afa-b3870438c28d
+          - article [ref=e1386]:
+            - button "Software Engineer, DevOps, Salesforce CoE 2 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1387] [cursor=pointer]:
+              - generic [ref=e1388]:
+                - strong [ref=e1389]: Software Engineer, DevOps, Salesforce CoE
+                - emphasis [ref=e1390]: 2 weeks ago
+              - generic [ref=e1391]: Government Technology Agency
+              - emphasis [ref=e1392]: from careers.gov.sg
+              - emphasis [ref=e1393]: adjacent role
+            - generic [ref=e1394]:
+              - button "Analyse this posting" [ref=e1395] [cursor=pointer]
+              - button "View role graph" [ref=e1396] [cursor=pointer]
+              - link "Open posting" [ref=e1397] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004155201?gh_jid=4004155201
+          - article [ref=e1398]:
+            - button "Software Engineer, Digital Products & Platforms (STB) 1 week ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1399] [cursor=pointer]:
+              - generic [ref=e1400]:
+                - strong [ref=e1401]: Software Engineer, Digital Products & Platforms (STB)
+                - emphasis [ref=e1402]: 1 week ago
+              - generic [ref=e1403]: Government Technology Agency
+              - emphasis [ref=e1404]: from careers.gov.sg
+              - emphasis [ref=e1405]: adjacent role
+            - generic [ref=e1406]:
+              - button "Analyse this posting" [ref=e1407] [cursor=pointer]
+              - button "View role graph" [ref=e1408] [cursor=pointer]
+              - link "Open posting" [ref=e1409] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004385201?gh_jid=4004385201
+          - article [ref=e1410]:
+            - button "Software Engineer, GovTech Innovation Office 2 weeks ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1411] [cursor=pointer]:
+              - generic [ref=e1412]:
+                - strong [ref=e1413]: Software Engineer, GovTech Innovation Office
+                - emphasis [ref=e1414]: 2 weeks ago
+              - generic [ref=e1415]: Government Technology Agency
+              - emphasis [ref=e1416]: from careers.gov.sg
+              - emphasis [ref=e1417]: adjacent role
+            - generic [ref=e1418]:
+              - button "Analyse this posting" [ref=e1419] [cursor=pointer]
+              - button "View role graph" [ref=e1420] [cursor=pointer]
+              - link "Open posting" [ref=e1421] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004219201?gh_jid=4004219201
+          - article [ref=e1422]:
+            - button "Software Engineer, IPOS 1 week ago Government Technology Agency from careers.gov.sg adjacent role" [ref=e1423] [cursor=pointer]:
+              - generic [ref=e1424]:
+                - strong [ref=e1425]: Software Engineer, IPOS
+                - emphasis [ref=e1426]: 1 week ago
+              - generic [ref=e1427]: Government Technology Agency
+              - emphasis [ref=e1428]: from careers.gov.sg
+              - emphasis [ref=e1429]: adjacent role
+            - generic [ref=e1430]:
+              - button "Analyse this posting" [ref=e1431] [cursor=pointer]
+              - button "View role graph" [ref=e1432] [cursor=pointer]
+              - link "Open posting" [ref=e1433] [cursor=pointer]:
+                - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004356201?gh_jid=4004356201
+        - article [ref=e1434]:
+          - generic:
+            - generic [ref=e1435]:
+              - paragraph [ref=e1436]: "Step 3: analyse selected live posting"
+              - heading "Software Developer" [level=1] [ref=e1437]
+              - paragraph [ref=e1438]: VINOVA PTE. LTD.
+              - generic [ref=e1439]:
+                - generic [ref=e1440]: from MCF
+                - generic [ref=e1441]: MyCareersFuture Singapore
+            - generic [ref=e1442]:
+              - generic [ref=e1443]: 1 O-I-A claims
+              - generic [ref=e1444]: 4 reviewer notes
+          - generic:
+            - generic [ref=e1445]:
+              - paragraph [ref=e1446]: Role summary
+              - generic [ref=e1447]:
+                - text: "Job Overview: We are seeking a highly skilled Software Developer to join our team in Singapore."
+                - generic [ref=e1448]: replace
+              - generic [ref=e1449]: The successful candidate will be responsible for researching, designing, and developing software and applications.
+            - generic [ref=e1450]:
+              - paragraph [ref=e1451]: Responsibilities
+              - list [ref=e1452]:
+                - listitem [ref=e1453]:
+                  - generic [ref=e1454]: This role requires strong analytical skills and the ability to develop innovative software solutions that meet user needs and performance requirements.
+                - listitem [ref=e1455]:
+                  - generic [ref=e1456]: "Key Responsibilities: Research, design, and develop computer software and applications to meet business and technical requirements."
+                - listitem [ref=e1457]:
+                  - generic [ref=e1458]:
+                    - text: Analyze user needs and translate them into software solutions using computer science, engineering, and mathematical principles.
+                    - generic [ref=e1459]: split
+                - listitem [ref=e1460]:
+                  - generic [ref=e1461]:
+                    - text: Update, enhance, and optimize existing software to improve performance and functionality.
+                    - generic [ref=e1462]: split
+                - listitem [ref=e1463]:
+                  - generic [ref=e1464]:
+                    - text: Develop and direct software testing and validation procedures to ensure quality and security.
+                    - generic [ref=e1465]: split
+            - generic [ref=e1466]:
+              - paragraph [ref=e1467]: Requirements
+              - paragraph [ref=e1468]: This role requires strong analytical skills and the ability to develop innovative software solutions that meet user needs and performance requirements.
+            - generic [ref=e1469]:
+              - paragraph [ref=e1470]: Evidence chain
+              - paragraph [ref=e1471]: Observation identifies the title, duties, AI terms, organisation handoffs, and governance language. Interpretation turns those signals into reviewable claims. Application routes claims to proof, interview questions, cover letter rationale, or withholding.
+      - complementary "Visual intelligence" [ref=e1472]:
+        - generic [ref=e1473]:
+          - generic [ref=e1474]:
+            - paragraph [ref=e1475]: Visual intelligence
+            - heading "Graph" [level=2] [ref=e1476]
+          - button "Expand" [ref=e1477] [cursor=pointer]
+        - generic [ref=e1478]:
+          - group "Job graph layout" [ref=e1479]:
+            - button "Map" [pressed] [ref=e1480] [cursor=pointer]
+            - button "Neural" [ref=e1481] [cursor=pointer]
+          - generic [ref=e1483]:
+            - generic [ref=e1484]:
+              - generic [ref=e1485]: Knowledge graph - wired structure of the role
+              - heading "Software Developer" [level=1] [ref=e1486]
+              - generic [ref=e1487]: 33 nodes - 27 edges - 2 cluster lanes present - KG version kg1
+            - generic [ref=e1488]:
+              - generic [ref=e1489]: ● from MCF
+              - generic [ref=e1490]: ✓ computed
+              - generic [ref=e1491]: ≈ inferred
+              - generic [ref=e1492]: "? unverified"
+            - generic [ref=e1493]:
+              - region "Individual cluster" [ref=e1494]:
+                - generic [ref=e1495]: Individual
+                - generic [ref=e1496]:
+                  - 'button "duty: Research emerging technologies to enhance software development processes. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1497] [cursor=pointer]':
+                    - generic [ref=e1498]:
+                      - generic [ref=e1499]: Duty
+                      - generic [ref=e1500]: ● from MCF
+                      - generic [ref=e1501]: high
+                    - generic [ref=e1502]: Research emerging technologies to enhance software development processes
+                  - 'button "duty: Design and develop computer software and applications according to requirements. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1503] [cursor=pointer]':
+                    - generic [ref=e1504]:
+                      - generic [ref=e1505]: Duty
+                      - generic [ref=e1506]: ● from MCF
+                      - generic [ref=e1507]: high
+                    - generic [ref=e1508]: Design and develop computer software and applications according to requirements
+                  - 'button "duty: Analyze user needs and translate them into appropriate software solutions. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1509] [cursor=pointer]':
+                    - generic [ref=e1510]:
+                      - generic [ref=e1511]: Duty
+                      - generic [ref=e1512]: ● from MCF
+                      - generic [ref=e1513]: high
+                    - generic [ref=e1514]: Analyze user needs and translate them into appropriate software solutions
+                  - 'button "duty: Update, enhance, and optimize existing software to improve functionality and performance. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1515] [cursor=pointer]':
+                    - generic [ref=e1516]:
+                      - generic [ref=e1517]: Duty
+                      - generic [ref=e1518]: ● from MCF
+                      - generic [ref=e1519]: high
+                    - generic [ref=e1520]: Update, enhance, and optimize existing software to improve functionality and performance
+                  - 'button "duty: Develop and implement software testing and validation procedures to ensure quality. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1521] [cursor=pointer]':
+                    - generic [ref=e1522]:
+                      - generic [ref=e1523]: Duty
+                      - generic [ref=e1524]: ● from MCF
+                      - generic [ref=e1525]: high
+                    - generic [ref=e1526]: Develop and implement software testing and validation procedures to ensure quality
+                  - 'button "duty: Collaborate to integrate hardware and software systems for seamless operation. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1527] [cursor=pointer]':
+                    - generic [ref=e1528]:
+                      - generic [ref=e1529]: Duty
+                      - generic [ref=e1530]: ● from MCF
+                      - generic [ref=e1531]: high
+                    - generic [ref=e1532]: Collaborate to integrate hardware and software systems for seamless operation
+                  - 'button "duty: Define detailed software specifications and performance requirements. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1533] [cursor=pointer]':
+                    - generic [ref=e1534]:
+                      - generic [ref=e1535]: Duty
+                      - generic [ref=e1536]: ● from MCF
+                      - generic [ref=e1537]: high
+                    - generic [ref=e1538]: Define detailed software specifications and performance requirements
+                  - 'button "skill: Software Requirements Analysis. Source: computed. Confidence: low. Tap to trace connections." [ref=e1539] [cursor=pointer]':
+                    - generic [ref=e1540]:
+                      - generic [ref=e1541]: Skill
+                      - generic [ref=e1542]: ✓ computed
+                      - generic [ref=e1543]: low
+                    - generic [ref=e1544]: Software Requirements Analysis
+                  - 'button "skill: Performance Optimization of Software. Source: computed. Confidence: low. Tap to trace connections." [ref=e1545] [cursor=pointer]':
+                    - generic [ref=e1546]:
+                      - generic [ref=e1547]: Skill
+                      - generic [ref=e1548]: ✓ computed
+                      - generic [ref=e1549]: low
+                    - generic [ref=e1550]: Performance Optimization of Software
+                  - 'button "skill: Integration of Hardware and Software Systems. Source: computed. Confidence: low. Tap to trace connections." [ref=e1551] [cursor=pointer]':
+                    - generic [ref=e1552]:
+                      - generic [ref=e1553]: Skill
+                      - generic [ref=e1554]: ✓ computed
+                      - generic [ref=e1555]: low
+                    - generic [ref=e1556]: Integration of Hardware and Software Systems
+                  - 'button "skill: AGILE Software Development Practices. Source: computed. Confidence: low. Tap to trace connections." [ref=e1557] [cursor=pointer]':
+                    - generic [ref=e1558]:
+                      - generic [ref=e1559]: Skill
+                      - generic [ref=e1560]: ✓ computed
+                      - generic [ref=e1561]: low
+                    - generic [ref=e1562]: AGILE Software Development Practices
+                  - 'button "skill: Information Technology Systems Analysis. Source: computed. Confidence: low. Tap to trace connections." [ref=e1563] [cursor=pointer]':
+                    - generic [ref=e1564]:
+                      - generic [ref=e1565]: Skill
+                      - generic [ref=e1566]: ✓ computed
+                      - generic [ref=e1567]: low
+                    - generic [ref=e1568]: Information Technology Systems Analysis
+                  - 'button "skill: Problem Solving for Software Issues. Source: computed. Confidence: low. Tap to trace connections." [ref=e1569] [cursor=pointer]':
+                    - generic [ref=e1570]:
+                      - generic [ref=e1571]: Skill
+                      - generic [ref=e1572]: ✓ computed
+                      - generic [ref=e1573]: low
+                    - generic [ref=e1574]: Problem Solving for Software Issues
+                  - 'button "skill: Collaborative Software Development. Source: computed. Confidence: low. Tap to trace connections." [ref=e1575] [cursor=pointer]':
+                    - generic [ref=e1576]:
+                      - generic [ref=e1577]: Skill
+                      - generic [ref=e1578]: ✓ computed
+                      - generic [ref=e1579]: low
+                    - generic [ref=e1580]: Collaborative Software Development
+                  - 'button "skill: Researching Emerging Technologies. Source: computed. Confidence: low. Tap to trace connections." [ref=e1581] [cursor=pointer]':
+                    - generic [ref=e1582]:
+                      - generic [ref=e1583]: Skill
+                      - generic [ref=e1584]: ✓ computed
+                      - generic [ref=e1585]: low
+                    - generic [ref=e1586]: Researching Emerging Technologies
+                  - 'button "skill: Translating User Needs into Software Solutions. Source: computed. Confidence: low. Tap to trace connections." [ref=e1587] [cursor=pointer]':
+                    - generic [ref=e1588]:
+                      - generic [ref=e1589]: Skill
+                      - generic [ref=e1590]: ✓ computed
+                      - generic [ref=e1591]: low
+                    - generic [ref=e1592]: Translating User Needs into Software Solutions
+                  - 'button "skill: Attention to Detail in Software Quality. Source: computed. Confidence: low. Tap to trace connections." [ref=e1593] [cursor=pointer]':
+                    - generic [ref=e1594]:
+                      - generic [ref=e1595]: Skill
+                      - generic [ref=e1596]: ✓ computed
+                      - generic [ref=e1597]: low
+                    - generic [ref=e1598]: Attention to Detail in Software Quality
+                  - 'button "skill: Adaptability to Changing Technical Requirements. Source: computed. Confidence: low. Tap to trace connections." [ref=e1599] [cursor=pointer]':
+                    - generic [ref=e1600]:
+                      - generic [ref=e1601]: Skill
+                      - generic [ref=e1602]: ✓ computed
+                      - generic [ref=e1603]: low
+                    - generic [ref=e1604]: Adaptability to Changing Technical Requirements
+                  - 'button "skill: Software Design and Architecture. Source: computed. Confidence: low. Tap to trace connections." [ref=e1605] [cursor=pointer]':
+                    - generic [ref=e1606]:
+                      - generic [ref=e1607]: Skill
+                      - generic [ref=e1608]: ✓ computed
+                      - generic [ref=e1609]: low
+                    - generic [ref=e1610]: Software Design and Architecture
+                  - 'button "skill: Effective Communication with Technical Teams. Source: computed. Confidence: low. Tap to trace connections." [ref=e1611] [cursor=pointer]':
+                    - generic [ref=e1612]:
+                      - generic [ref=e1613]: Skill
+                      - generic [ref=e1614]: ✓ computed
+                      - generic [ref=e1615]: low
+                    - generic [ref=e1616]: Effective Communication with Technical Teams
+                  - 'button "skill: Time Management in AGILE Environments. Source: computed. Confidence: low. Tap to trace connections." [ref=e1617] [cursor=pointer]':
+                    - generic [ref=e1618]:
+                      - generic [ref=e1619]: Skill
+                      - generic [ref=e1620]: ✓ computed
+                      - generic [ref=e1621]: low
+                    - generic [ref=e1622]: Time Management in AGILE Environments
+                  - 'button "skill: Logical and Analytical Thinking. Source: computed. Confidence: low. Tap to trace connections." [ref=e1623] [cursor=pointer]':
+                    - generic [ref=e1624]:
+                      - generic [ref=e1625]: Skill
+                      - generic [ref=e1626]: ✓ computed
+                      - generic [ref=e1627]: low
+                    - generic [ref=e1628]: Logical and Analytical Thinking
+                  - 'button "skill: Use of Mathematical Principles in Programming. Source: computed. Confidence: low. Tap to trace connections." [ref=e1629] [cursor=pointer]':
+                    - generic [ref=e1630]:
+                      - generic [ref=e1631]: Skill
+                      - generic [ref=e1632]: ✓ computed
+                      - generic [ref=e1633]: low
+                    - generic [ref=e1634]: Use of Mathematical Principles in Programming
+                  - 'button "skill: Understanding Computer Hardware Components. Source: computed. Confidence: low. Tap to trace connections." [ref=e1635] [cursor=pointer]':
+                    - generic [ref=e1636]:
+                      - generic [ref=e1637]: Skill
+                      - generic [ref=e1638]: ✓ computed
+                      - generic [ref=e1639]: low
+                    - generic [ref=e1640]: Understanding Computer Hardware Components
+                  - 'button "skill: Security Considerations in Software Development. Source: computed. Confidence: low. Tap to trace connections." [ref=e1641] [cursor=pointer]':
+                    - generic [ref=e1642]:
+                      - generic [ref=e1643]: Skill
+                      - generic [ref=e1644]: ✓ computed
+                      - generic [ref=e1645]: low
+                    - generic [ref=e1646]: Security Considerations in Software Development
+                  - 'button "skill: Application Development in JavaScript. Source: computed. Confidence: low. Tap to trace connections." [ref=e1647] [cursor=pointer]':
+                    - generic [ref=e1648]:
+                      - generic [ref=e1649]: Skill
+                      - generic [ref=e1650]: ✓ computed
+                      - generic [ref=e1651]: low
+                    - generic [ref=e1652]: Application Development in JavaScript
+                  - 'button "skill: Application Development in Python. Source: computed. Confidence: low. Tap to trace connections." [ref=e1653] [cursor=pointer]':
+                    - generic [ref=e1654]:
+                      - generic [ref=e1655]: Skill
+                      - generic [ref=e1656]: ✓ computed
+                      - generic [ref=e1657]: low
+                    - generic [ref=e1658]: Application Development in Python
+                  - 'button "skill: Application Development in Java. Source: computed. Confidence: low. Tap to trace connections." [ref=e1659] [cursor=pointer]':
+                    - generic [ref=e1660]:
+                      - generic [ref=e1661]: Skill
+                      - generic [ref=e1662]: ✓ computed
+                      - generic [ref=e1663]: low
+                    - generic [ref=e1664]: Application Development in Java
+                  - 'button "skill: Application Development in C#. Source: computed. Confidence: low. Tap to trace connections." [ref=e1665] [cursor=pointer]':
+                    - generic [ref=e1666]:
+                      - generic [ref=e1667]: Skill
+                      - generic [ref=e1668]: ✓ computed
+                      - generic [ref=e1669]: low
+                    - generic [ref=e1670]: Application Development in C#
+                  - 'button "skill: CSS Styling and Layout Implementation. Source: computed. Confidence: low. Tap to trace connections." [ref=e1671] [cursor=pointer]':
+                    - generic [ref=e1672]:
+                      - generic [ref=e1673]: Skill
+                      - generic [ref=e1674]: ✓ computed
+                      - generic [ref=e1675]: low
+                    - generic [ref=e1676]: CSS Styling and Layout Implementation
+                  - 'button "skill: SQL Database Querying and Management. Source: computed. Confidence: low. Tap to trace connections." [ref=e1677] [cursor=pointer]':
+                    - generic [ref=e1678]:
+                      - generic [ref=e1679]: Skill
+                      - generic [ref=e1680]: ✓ computed
+                      - generic [ref=e1681]: low
+                    - generic [ref=e1682]: SQL Database Querying and Management
+                  - 'button "skill: Software Testing and Validation. Source: computed. Confidence: low. Tap to trace connections." [ref=e1683] [cursor=pointer]':
+                    - generic [ref=e1684]:
+                      - generic [ref=e1685]: Skill
+                      - generic [ref=e1686]: ✓ computed
+                      - generic [ref=e1687]: low
+                    - generic [ref=e1688]: Software Testing and Validation
+              - region "Department cluster" [ref=e1689]:
+                - generic [ref=e1690]: Department
+                - 'button "role: Software Developer. Source: from MCF. Confidence: high. Tap to trace connections." [ref=e1692] [cursor=pointer]':
+                  - generic [ref=e1693]:
+                    - generic [ref=e1694]: Role
+                    - generic [ref=e1695]: ● from MCF
+                    - generic [ref=e1696]: high
+                  - generic [ref=e1697]: Software Developer
+            - button "Verb-labelled edges (27 total)" [ref=e1699] [cursor=pointer]:
+              - generic [ref=e1700]: Verb-labelled edges (27 total)
+              - generic [ref=e1701]: show
+            - generic [ref=e1702]:
+              - generic [ref=e1703]: "? Withheld (not faked)"
+              - list [ref=e1704]:
+                - listitem [ref=e1705]: "organisation: hiring organisation not named in posting metadata"
+                - listitem [ref=e1706]: "competition: no computed mirror-role data in result"
+            - generic [ref=e1707]:
+              - generic [ref=e1708]: "Source: duties from MCF posting (verbatim); skills from ESCO; occupation from ESCO/ISCO-08. Confidence: high = verified; medium = inferred from ESCO overlap; low = sparse evidence. Time-window: snapshot of the analysed posting."
+              - generic [ref=e1709]: "AI-assisted; human decides. Knowledge graph is computed deterministically from the MCF posting data - no LLM authoring any node, edge, verb, or cluster. Version: kg1. Generated: 2026-06-29."
+              - generic [ref=e1710]: "Withheld: organisation: hiring organisation not named in posting metadata; competition: no computed mirror-role data in result."
+          - paragraph [ref=e1711]: "Deep analysis: ESCO skills and extracted responsibilities wired into role, duty, skill, and qualification nodes. Map view is keyboard-navigable; Neural view is the same nodes as a force layout. No relationship is invented."
+        - generic [ref=e1712]:
+          - generic [ref=e1713]:
+            - generic [ref=e1714]:
+              - paragraph [ref=e1715]: AIOE determinism
+              - heading "Computed exposure" [level=3] [ref=e1716]
+            - generic [ref=e1717]: computed
+          - generic [ref=e1718]:
+            - generic [ref=e1719]: SSOC 2024
+            - strong [ref=e1720]: 25121 Software developer
+            - emphasis [ref=e1721]: database
+          - paragraph [ref=e1722]: "Software developers: AIOE 84 / 100, high exposure."
+          - generic [ref=e1723]:
+            - generic [ref=e1724]:
+              - text: Occupation
+              - generic [ref=e1725]: Software developers
+            - generic [ref=e1726]:
+              - text: SSOC
+              - generic [ref=e1727]: "25121"
+            - generic [ref=e1728]:
+              - text: ISCO
+              - generic [ref=e1729]: "2512"
+            - generic [ref=e1730]:
+              - text: Index
+              - generic [ref=e1731]: "84"
+          - generic "SSOC to AIOE evidence route" [ref=e1732]:
+            - generic [ref=e1733]:
+              - generic [ref=e1734]: "1"
+              - generic [ref=e1735]:
+                - strong [ref=e1736]: SSOC 2024 spine
+                - paragraph [ref=e1737]: 25121 Software developer
+            - generic [ref=e1738]:
+              - generic [ref=e1739]: "2"
+              - generic [ref=e1740]:
+                - strong [ref=e1741]: International crosswalk
+                - paragraph [ref=e1742]: ISCO-08 mapping not loaded.
+            - generic [ref=e1743]:
+              - generic [ref=e1744]: "3"
+              - generic [ref=e1745]:
+                - strong [ref=e1746]: AIOE calculation
+                - paragraph [ref=e1747]: 84 / 100, high exposure
+            - generic [ref=e1748]:
+              - generic [ref=e1749]: "4"
+              - generic [ref=e1750]:
+                - strong [ref=e1751]: SSOC 2020 migration
+                - paragraph [ref=e1752]: Historical mapping not loaded.
+          - generic [ref=e1753]: "Rule: no SSOC / ESCO fingerprint means no computed-looking AI exposure number."
+        - generic [ref=e1754]:
+          - generic [ref=e1756]:
+            - paragraph [ref=e1757]: Reviewer notes
+            - heading "Accept, reject, ask why" [level=2] [ref=e1758]
+          - article [ref=e1759]:
+            - generic [ref=e1760]:
+              - strong [ref=e1761]: Process Redesign Reviewer
+              - generic [ref=e1762]: split
+            - paragraph [ref=e1763]: "This may be two jobs: pipeline engineering plus transformation/change ownership."
+            - blockquote [ref=e1764]: Split into delivery system work and organisation-change work before applying.
+            - generic [ref=e1765]:
+              - generic [ref=e1766]: derived
+              - generic [ref=e1767]: v3-blueprint.md 6.4 Business Process Re-engineering
+              - generic [ref=e1768]: v3-ui-blueprint.md 5.2 Suggested Rewrites
+            - generic [ref=e1769]:
+              - button "Accept" [ref=e1770] [cursor=pointer]
+              - button "Reject" [ref=e1771] [cursor=pointer]
+              - button "Ask why" [ref=e1772] [cursor=pointer]
+          - article [ref=e1773]:
+            - generic [ref=e1774]:
+              - strong [ref=e1775]: Hiring Manager
+              - generic [ref=e1776]: replace
+            - paragraph [ref=e1777]: The hiring signal is not only data skill. It asks whether the candidate can reduce reporting friction across teams.
+            - blockquote [ref=e1778]: Prepare one story where a data improvement changed a business decision.
+            - generic [ref=e1779]:
+              - generic [ref=e1780]: derived
+              - generic [ref=e1781]: v3-blueprint.md 9.4 Interview Intelligence
+              - generic [ref=e1782]: v3-ui-blueprint.md 9 Candidate Edge Standard
+            - generic [ref=e1783]:
+              - button "Accept" [ref=e1784] [cursor=pointer]
+              - button "Reject" [ref=e1785] [cursor=pointer]
+              - button "Ask why" [ref=e1786] [cursor=pointer]
+          - article [ref=e1787]:
+            - generic [ref=e1788]:
+              - strong [ref=e1789]: AI Exposure Reviewer
+              - generic [ref=e1790]: trace
+            - paragraph [ref=e1791]: AI exposure is an occupational signal, not a verdict. Automation may assist quality checks, not own data decisions.
+            - blockquote [ref=e1792]: Keep the phrase "final decisions remain human-owned" visible in the evidence chain.
+            - generic [ref=e1793]:
+              - generic [ref=e1794]: AI estimate
+              - generic [ref=e1795]: v3-blueprint.md 8 Deterministic Evidence Framework
+              - generic [ref=e1796]: v3-ui-blueprint.md 1.2 Exposure Spectrum
+            - generic [ref=e1797]:
+              - button "Accept" [ref=e1798] [cursor=pointer]
+              - button "Reject" [ref=e1799] [cursor=pointer]
+              - button "Ask why" [ref=e1800] [cursor=pointer]
+          - article [ref=e1801]:
+            - generic [ref=e1802]:
+              - strong [ref=e1803]: Candidate Advocate
+              - generic [ref=e1804]: proof
+            - paragraph [ref=e1805]: The strongest candidate edge is proof of reliability, governance, and recovery, not a longer tools list.
+            - blockquote [ref=e1806]: Bring one incident/recovery example, one lineage/governance example, and one stakeholder decision path.
+            - generic [ref=e1807]:
+              - generic [ref=e1808]: computed
+              - generic [ref=e1809]: v3-blueprint.md 9.2 Candidate Edge
+              - generic [ref=e1810]: v3-ui-blueprint.md 4.6 Advisory Panel
+            - generic [ref=e1811]:
+              - button "Accept" [ref=e1812] [cursor=pointer]
+              - button "Reject" [ref=e1813] [cursor=pointer]
+              - button "Ask why" [ref=e1814] [cursor=pointer]
+    - generic [ref=e1815]:
+      - generic [ref=e1816]: "Canon: v3/goal/v3-blueprint.md + v3/goal/v3-ui-blueprint.md"
+      - generic [ref=e1817]: "Ledger: v3/goal/v3-rebuild-ledger.md"
+      - generic [ref=e1818]: Accepted 0 / rejected 0
+      - generic [ref=e1819]: v3 rebuild pass 2026-06-27 22:08 SGT

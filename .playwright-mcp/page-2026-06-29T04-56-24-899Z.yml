@@ -1,0 +1,112 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - button "Back to search" [ref=e7] [cursor=pointer]: ← Search
+        - generic [ref=e8]: Software Developer
+      - generic [ref=e9]:
+        - group "Graph view" [ref=e10]:
+          - button "Chain" [pressed] [ref=e11] [cursor=pointer]
+          - button "Map" [ref=e12] [cursor=pointer]
+        - generic [ref=e13]:
+          - button "Expand graph to fullscreen" [ref=e14] [cursor=pointer]: ⤢
+          - button "Float graph as a movable panel" [ref=e15] [cursor=pointer]: ▢
+          - button "Close graph to a small panel" [ref=e16] [cursor=pointer]: ×
+    - generic [ref=e18]:
+      - generic [ref=e19]: Deterministic chain - job ad → role → SSOC → ISCO-08 (ILO) → ESCO skills → AI-exposure (AIOE). Tap a node to trace its links. No LLM.
+      - generic [ref=e20]:
+        - img
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]: ●
+            - generic [ref=e24]: Job ad - responsibilities
+          - 'button "Job ad - responsibilities: Key Responsibilities:. Tap to trace links." [ref=e25] [cursor=pointer]':
+            - generic [ref=e26]: "Key Responsibilities:"
+          - 'button "Job ad - responsibilities: Research, design, and develop computer software and applications to meet business and technical requirements.. Tap to trace links." [ref=e27] [cursor=pointer]':
+            - generic [ref=e28]: Research, design, and develop computer software and applications to meet business and technical requirements.
+          - 'button "Job ad - responsibilities: Analyze user needs and translate them into software solutions using computer science, engineering, and mathematical principles.. Tap to trace links." [ref=e29] [cursor=pointer]':
+            - generic [ref=e30]: Analyze user needs and translate them into software solutions using computer science, engineering, and mathematical principles.
+          - 'button "Job ad - responsibilities: Update, enhance, and optimize existing software to improve performance and functionality.. Tap to trace links." [ref=e31] [cursor=pointer]':
+            - generic [ref=e32]: Update, enhance, and optimize existing software to improve performance and functionality.
+          - 'button "Job ad - responsibilities: Develop and direct software testing and validation procedures to ensure quality and security.. Tap to trace links." [ref=e33] [cursor=pointer]':
+            - generic [ref=e34]: Develop and direct software testing and validation procedures to ensure quality and security.
+          - 'button "Job ad - responsibilities: Collaborate to integrate hardware and software systems for seamless operation.. Tap to trace links." [ref=e35] [cursor=pointer]':
+            - generic [ref=e36]: Collaborate to integrate hardware and software systems for seamless operation.
+          - 'button "Job ad - responsibilities: Define software specifications and performance requirements for new and existing applications.. Tap to trace links." [ref=e37] [cursor=pointer]':
+            - generic [ref=e38]: Define software specifications and performance requirements for new and existing applications.
+          - 'button "Job ad - responsibilities: Stay updated with emerging technologies to continuously improve software development processes.. Tap to trace links." [ref=e39] [cursor=pointer]':
+            - generic [ref=e40]: Stay updated with emerging technologies to continuously improve software development processes.
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]: ●
+            - generic [ref=e44]: Role
+          - 'button "Role: Software Developer. VINOVA PTE. LTD.. Tap to trace links." [ref=e45] [cursor=pointer]':
+            - generic [ref=e46]: Software Developer
+            - generic [ref=e47]: VINOVA PTE. LTD.
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - generic [ref=e50]: ✓
+            - generic [ref=e51]: SSOC 2024
+          - 'button "SSOC 2024: SSOC 25121. Software developer - high confidence. Tap to trace links." [ref=e52] [cursor=pointer]':
+            - generic [ref=e53]: SSOC 25121
+            - generic [ref=e54]: Software developer - high confidence
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: ✓
+            - generic [ref=e58]: ISCO-08 (ILO) - official crosswalk
+          - 'button "ISCO-08 (ILO) - official crosswalk: Software developers. ISCO 2512. Tap to trace links." [ref=e59] [cursor=pointer]':
+            - generic [ref=e60]: Software developers
+            - generic [ref=e61]: ISCO 2512
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e64]: ✓
+            - generic [ref=e65]: ESCO skills
+          - 'button "ESCO skills: CSS. from posting. Tap to trace links." [ref=e66] [cursor=pointer]':
+            - generic [ref=e67]: CSS
+            - generic [ref=e68]: from posting
+          - 'button "ESCO skills: Analytical Skills. from posting. Tap to trace links." [ref=e69] [cursor=pointer]':
+            - generic [ref=e70]: Analytical Skills
+            - generic [ref=e71]: from posting
+          - 'button "ESCO skills: Hardware. from posting. Tap to trace links." [ref=e72] [cursor=pointer]':
+            - generic [ref=e73]: Hardware
+            - generic [ref=e74]: from posting
+          - 'button "ESCO skills: Agile. from posting. Tap to trace links." [ref=e75] [cursor=pointer]':
+            - generic [ref=e76]: Agile
+            - generic [ref=e77]: from posting
+          - 'button "ESCO skills: JavaScript. from posting. Tap to trace links." [ref=e78] [cursor=pointer]':
+            - generic [ref=e79]: JavaScript
+            - generic [ref=e80]: from posting
+          - 'button "ESCO skills: Information Technology. from posting. Tap to trace links." [ref=e81] [cursor=pointer]':
+            - generic [ref=e82]: Information Technology
+            - generic [ref=e83]: from posting
+          - 'button "ESCO skills: Systems Analysis. from posting. Tap to trace links." [ref=e84] [cursor=pointer]':
+            - generic [ref=e85]: Systems Analysis
+            - generic [ref=e86]: from posting
+          - 'button "ESCO skills: SQL. from posting. Tap to trace links." [ref=e87] [cursor=pointer]':
+            - generic [ref=e88]: SQL
+            - generic [ref=e89]: from posting
+          - 'button "ESCO skills: Python. from posting. Tap to trace links." [ref=e90] [cursor=pointer]':
+            - generic [ref=e91]: Python
+            - generic [ref=e92]: from posting
+          - 'button "ESCO skills: Software Testing. from posting. Tap to trace links." [ref=e93] [cursor=pointer]':
+            - generic [ref=e94]: Software Testing
+            - generic [ref=e95]: from posting
+          - 'button "ESCO skills: Java. from posting. Tap to trace links." [ref=e96] [cursor=pointer]':
+            - generic [ref=e97]: Java
+            - generic [ref=e98]: from posting
+          - 'button "ESCO skills: C#. from posting. Tap to trace links." [ref=e99] [cursor=pointer]':
+            - generic [ref=e100]: C#
+            - generic [ref=e101]: from posting
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic [ref=e104]: ✓
+            - generic [ref=e105]: AI-exposure (AIOE)
+          - 'button "AI-exposure (AIOE): 84/100. high AI-exposure. Tap to trace links." [ref=e106] [cursor=pointer]':
+            - generic [ref=e107]: 84/100
+            - generic [ref=e108]: high AI-exposure
+      - contentinfo [ref=e109]:
+        - generic [ref=e110]: "Computed (deterministic): SSOC/ISCO - SingStat & ILO; ESCO skills - EU ESCO occupationFingerprint; AIOE - Felten, Raj and Seamans 2021. No LLM: same posting, same chain. AI-assisted; human decides."
+        - link "View the source posting" [ref=e112] [cursor=pointer]:
+          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-developer-vinova-9d744de81ea6b9ced4b80057fad79011

@@ -1,0 +1,79 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e87] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - textbox [active] [ref=e90]: Data Analyst
+          - button "Search" [ref=e91] [cursor=pointer]
+        - generic [ref=e92]:
+          - paragraph [ref=e93]:
+            - text: 5 roles similar to
+            - generic [ref=e153]: "\"Data Analyst\""
+          - paragraph [ref=e95]: Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
+        - generic [ref=e96]:
+          - generic [ref=e97] [cursor=pointer]:
+            - paragraph [ref=e99]: Data Analyst
+            - paragraph [ref=e100]:
+              - generic [ref=e101]: "ISCO-08: 2151 ·"
+              - text: Examines data to identify patterns, trends, and insights that support business decisions.
+          - generic [ref=e102] [cursor=pointer]:
+            - paragraph [ref=e104]: Business Analyst
+            - paragraph [ref=e105]:
+              - generic [ref=e106]: "ISCO-08: 2161 ·"
+              - text: Analyses business processes and requirements to recommend improvements and solutions.
+          - generic [ref=e107] [cursor=pointer]:
+            - paragraph [ref=e109]: Financial Analyst
+            - paragraph [ref=e110]:
+              - generic [ref=e111]: "ISCO-08: 2413 ·"
+              - text: Evaluates financial performance and provides investment recommendations based on statistical analysis.
+          - generic [ref=e112] [cursor=pointer]:
+            - paragraph [ref=e114]: Market Research Analyst
+            - paragraph [ref=e115]:
+              - generic [ref=e116]: "ISCO-08: 2632 ·"
+              - text: Analyses market trends, consumer behaviour, and competitive data to inform marketing and sales strategies.
+          - generic [ref=e117] [cursor=pointer]:
+            - paragraph [ref=e119]: Quality Assurance Analyst
+            - paragraph [ref=e120]:
+              - generic [ref=e121]: "ISCO-08: 2152 ·"
+              - text: Tests software, systems, or products to identify defects and ensure quality standards are met.
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - paragraph [ref=e124]: Browse all roles
+            - button "Expand all" [ref=e125] [cursor=pointer]
+          - button "Finance and Banking 2 ▼" [ref=e130] [cursor=pointer]:
+            - generic [ref=e131]:
+              - generic [ref=e132]: Finance and Banking
+              - generic [ref=e133]: "2"
+            - generic [ref=e134]: ▼
+          - button "Manufacturing 1 ▼" [ref=e136] [cursor=pointer]:
+            - generic [ref=e137]:
+              - generic [ref=e138]: Manufacturing
+              - generic [ref=e139]: "1"
+            - generic [ref=e140]: ▼
+          - button "Retail and Commerce 1 ▼" [ref=e142] [cursor=pointer]:
+            - generic [ref=e143]:
+              - generic [ref=e144]: Retail and Commerce
+              - generic [ref=e145]: "1"
+            - generic [ref=e146]: ▼
+          - button "Technology 1 ▼" [ref=e148] [cursor=pointer]:
+            - generic [ref=e149]:
+              - generic [ref=e150]: Technology
+              - generic [ref=e151]: "1"
+            - generic [ref=e152]: ▼

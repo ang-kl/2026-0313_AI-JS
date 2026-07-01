@@ -1,0 +1,1825 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - button "New search" [ref=e110] [cursor=pointer]:
+            - generic [ref=e111]: ←
+            - text: New search
+          - generic [ref=e112]:
+            - generic [ref=e113]: STEP 2 · SELECT EVIDENCE
+            - heading "Posting evidence for “Software Engineer”" [level=2] [ref=e114]
+          - generic [ref=e115]:
+            - generic [ref=e116]: 80 of 80
+            - 'button "{ } OKF index" [ref=e117] [cursor=pointer]'
+        - generic [ref=e118]:
+          - textbox "Search postings" [ref=e119]:
+            - /placeholder: Search postings...
+          - 'button "Sort: Best match" [ref=e121] [cursor=pointer]':
+            - text: "Sort: Best match"
+            - generic [ref=e122]: ▼
+          - button "Sector" [ref=e124] [cursor=pointer]:
+            - text: Sector
+            - generic [ref=e125]: ▼
+          - button "Company" [ref=e127] [cursor=pointer]:
+            - text: Company
+            - generic [ref=e128]: ▼
+          - button "Department" [ref=e130] [cursor=pointer]:
+            - text: Department
+            - generic [ref=e131]: ▼
+          - button "Function" [ref=e133] [cursor=pointer]:
+            - text: Function
+            - generic [ref=e134]: ▼
+          - button "Experience" [ref=e136] [cursor=pointer]:
+            - text: Experience
+            - generic [ref=e137]: ▼
+          - button "Type of work" [ref=e139] [cursor=pointer]:
+            - text: Type of work
+            - generic [ref=e140]: ▼
+        - generic [ref=e141]:
+          - complementary [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]: INDEX · 80 OF 80
+              - generic [ref=e145]:
+                - generic [ref=e146]:
+                  - generic [ref=e147]:
+                    - generic [ref=e148]: INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e149]: "2"
+                  - generic [ref=e150]:
+                    - button "Software Engineer" [ref=e232] [cursor=pointer]:
+                      - generic [ref=e234]: Software Engineer
+                    - button "Software Engineer" [ref=e256] [cursor=pointer]:
+                      - generic [ref=e258]: Software Engineer
+                - generic [ref=e1826]:
+                  - generic [ref=e1827]:
+                    - generic [ref=e1828]: LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1829]: "1"
+                  - button "Deputy Director" [ref=e1831] [cursor=pointer]:
+                    - generic [ref=e1833]: Deputy Director
+                - generic [ref=e1834]:
+                  - generic [ref=e1835]:
+                    - generic [ref=e1836]: PRODUCTION AND SPECIALISED SERVICES MANAGERS
+                    - generic [ref=e1837]: "1"
+                  - button "Software Engineer" [ref=e1839] [cursor=pointer]:
+                    - generic [ref=e1841]: Software Engineer
+                - generic [ref=e1842]:
+                  - generic [ref=e1843]:
+                    - generic [ref=e1844]: SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1845]: "30"
+                  - generic [ref=e1846]:
+                    - button "Software Engineer S$8k" [ref=e1847] [cursor=pointer]:
+                      - generic [ref=e1849]: Software Engineer
+                      - generic [ref=e1850]: S$8k
+                    - button "Software Engineer S$7.8k" [ref=e1851] [cursor=pointer]:
+                      - generic [ref=e1853]: Software Engineer
+                      - generic [ref=e1854]: S$7.8k
+                    - button "[LTA-T&ID] PRINCIPAL / SENIOR / EXECUTIVE SO…" [ref=e1855] [cursor=pointer]:
+                      - generic [ref=e1857]: "[LTA-T&ID] PRINCIPAL / SENIOR / EXECUTIVE SO…"
+                    - button "Senior Software Engineer S$11k" [ref=e1858] [cursor=pointer]:
+                      - generic [ref=e1860]: Senior Software Engineer
+                      - generic [ref=e1861]: S$11k
+                    - button "Senior Control Software Engineer S$12.5k" [ref=e1862] [cursor=pointer]:
+                      - generic [ref=e1864]: Senior Control Software Engineer
+                      - generic [ref=e1865]: S$12.5k
+                    - button "Software Engineer S$5.5k" [ref=e1866] [cursor=pointer]:
+                      - generic [ref=e1868]: Software Engineer
+                      - generic [ref=e1869]: S$5.5k
+                    - button "Software Engineer S$6.1k" [ref=e1870] [cursor=pointer]:
+                      - generic [ref=e1872]: Software Engineer
+                      - generic [ref=e1873]: S$6.1k
+                    - button "Software Engineer S$4.5k" [ref=e1874] [cursor=pointer]:
+                      - generic [ref=e1876]: Software Engineer
+                      - generic [ref=e1877]: S$4.5k
+                    - button "Software Engineer S$5.5k" [ref=e1878] [cursor=pointer]:
+                      - generic [ref=e1880]: Software Engineer
+                      - generic [ref=e1881]: S$5.5k
+                    - button "Software Engineer II S$6.3k" [ref=e1882] [cursor=pointer]:
+                      - generic [ref=e1884]: Software Engineer II
+                      - generic [ref=e1885]: S$6.3k
+                    - button "Software Engineer" [ref=e1886] [cursor=pointer]:
+                      - generic [ref=e1888]: Software Engineer
+                    - button "Software Engineer and Senior Software Engineer S$9k" [ref=e1889] [cursor=pointer]:
+                      - generic [ref=e1891]: Software Engineer and Senior Software Engineer
+                      - generic [ref=e1892]: S$9k
+                    - button "Software Engineer" [ref=e1893] [cursor=pointer]:
+                      - generic [ref=e1895]: Software Engineer
+                    - button "Software Engineer S$8k" [ref=e1896] [cursor=pointer]:
+                      - generic [ref=e1898]: Software Engineer
+                      - generic [ref=e1899]: S$8k
+                    - button "Senior / Software Engineer" [ref=e1900] [cursor=pointer]:
+                      - generic [ref=e1902]: Senior / Software Engineer
+                    - button "Software Engineer" [ref=e1903] [cursor=pointer]:
+                      - generic [ref=e1905]: Software Engineer
+                    - button "Senior / Software Engineer" [ref=e1906] [cursor=pointer]:
+                      - generic [ref=e1908]: Senior / Software Engineer
+                    - button "Software Engineer- Senior Embedded Engineer S$10k" [ref=e1909] [cursor=pointer]:
+                      - generic [ref=e1911]: Software Engineer- Senior Embedded Engineer
+                      - generic [ref=e1912]: S$10k
+                    - button "Software Engineer" [ref=e1913] [cursor=pointer]:
+                      - generic [ref=e1915]: Software Engineer
+                    - button "Software Engineer" [ref=e1916] [cursor=pointer]:
+                      - generic [ref=e1918]: Software Engineer
+                    - button "Software Engineer" [ref=e1919] [cursor=pointer]:
+                      - generic [ref=e1921]: Software Engineer
+                    - button "Senior Software Engineer" [ref=e1922] [cursor=pointer]:
+                      - generic [ref=e1924]: Senior Software Engineer
+                    - button "Software Engineer" [ref=e1925] [cursor=pointer]:
+                      - generic [ref=e1927]: Software Engineer
+                    - button "Senior Software Engineer" [ref=e1928] [cursor=pointer]:
+                      - generic [ref=e1930]: Senior Software Engineer
+                    - button "Senior / Software Engineer" [ref=e1931] [cursor=pointer]:
+                      - generic [ref=e1933]: Senior / Software Engineer
+                    - button "Software Engineer" [ref=e1934] [cursor=pointer]:
+                      - generic [ref=e1936]: Software Engineer
+                    - button "Software Engineer S$6.5k" [ref=e1937] [cursor=pointer]:
+                      - generic [ref=e1939]: Software Engineer
+                      - generic [ref=e1940]: S$6.5k
+                    - button "Software Engineer S$5k" [ref=e1941] [cursor=pointer]:
+                      - generic [ref=e1943]: Software Engineer
+                      - generic [ref=e1944]: S$5k
+                    - button "Software Engineer S$4k" [ref=e1945] [cursor=pointer]:
+                      - generic [ref=e1947]: Software Engineer
+                      - generic [ref=e1948]: S$4k
+                    - button "Software Engineer S$5k" [ref=e1949] [cursor=pointer]:
+                      - generic [ref=e1951]: Software Engineer
+                      - generic [ref=e1952]: S$5k
+                - generic [ref=e1953]:
+                  - generic [ref=e1954]:
+                    - generic [ref=e1955]: Unclassified
+                    - generic [ref=e1956]: "46"
+                  - generic [ref=e1957]:
+                    - button "Senior Lead Software Engineer S$16.5k" [ref=e1958] [cursor=pointer]:
+                      - generic [ref=e1960]: Senior Lead Software Engineer
+                      - generic [ref=e1961]: S$16.5k
+                    - button "HMAX Software Engineer S$8.3k" [ref=e1962] [cursor=pointer]:
+                      - generic [ref=e1964]: HMAX Software Engineer
+                      - generic [ref=e1965]: S$8.3k
+                    - button "Lead Engineer / Engineer" [ref=e1966] [cursor=pointer]:
+                      - generic [ref=e1968]: Lead Engineer / Engineer
+                    - button "Head (AI Software Engineering)" [ref=e1969] [cursor=pointer]:
+                      - generic [ref=e1971]: Head (AI Software Engineering)
+                    - button "[LTA-ITCD] PRINCIPAL / SENIOR / EXECUTIVE SO…" [ref=e1972] [cursor=pointer]:
+                      - generic [ref=e1974]: "[LTA-ITCD] PRINCIPAL / SENIOR / EXECUTIVE SO…"
+                    - button "Senior Software Engineer-Digital Products &…" [ref=e1975] [cursor=pointer]:
+                      - generic [ref=e1977]: Senior Software Engineer-Digital Products &…
+                    - button "Engineer / Senior Software Engineer" [ref=e1978] [cursor=pointer]:
+                      - generic [ref=e1980]: Engineer / Senior Software Engineer
+                    - button "Principal / Software Engineer" [ref=e1981] [cursor=pointer]:
+                      - generic [ref=e1983]: Principal / Software Engineer
+                    - button "Senior / Software Engineer" [ref=e1984] [cursor=pointer]:
+                      - generic [ref=e1986]: Senior / Software Engineer
+                    - button "Senior Software Engineer" [ref=e1987] [cursor=pointer]:
+                      - generic [ref=e1989]: Senior Software Engineer
+                    - button "Software Engineer" [ref=e1990] [cursor=pointer]:
+                      - generic [ref=e1992]: Software Engineer
+                    - button "Software Engineer II S$9k" [ref=e1993] [cursor=pointer]:
+                      - generic [ref=e1995]: Software Engineer II
+                      - generic [ref=e1996]: S$9k
+                    - button "Senior/Staff Software Engineer S$9k" [ref=e1997] [cursor=pointer]:
+                      - generic [ref=e1999]: Senior/Staff Software Engineer
+                      - generic [ref=e2000]: S$9k
+                    - button "Advanced/Senior Software Engineer S$6.5k" [ref=e2001] [cursor=pointer]:
+                      - generic [ref=e2003]: Advanced/Senior Software Engineer
+                      - generic [ref=e2004]: S$6.5k
+                    - button "Lead Software Engineer S$16.5k" [ref=e2005] [cursor=pointer]:
+                      - generic [ref=e2007]: Lead Software Engineer
+                      - generic [ref=e2008]: S$16.5k
+                    - button "Software Engineer" [ref=e2009] [cursor=pointer]:
+                      - generic [ref=e2011]: Software Engineer
+                    - button "Software Engineer (C++) **No Exp required S$5k" [ref=e2012] [cursor=pointer]:
+                      - generic [ref=e2014]: Software Engineer (C++) **No Exp required
+                      - generic [ref=e2015]: S$5k
+                    - button "Software Engineer" [ref=e2016] [cursor=pointer]:
+                      - generic [ref=e2018]: Software Engineer
+                    - button "Software Engineer III S$12k" [ref=e2019] [cursor=pointer]:
+                      - generic [ref=e2021]: Software Engineer III
+                      - generic [ref=e2022]: S$12k
+                    - button "Software Engineer" [ref=e2023] [cursor=pointer]:
+                      - generic [ref=e2025]: Software Engineer
+                    - button "[LTA-ITCD] LEAD / PRINCIPAL / SENIOR SOFTWAR…" [ref=e2026] [cursor=pointer]:
+                      - generic [ref=e2028]: "[LTA-ITCD] LEAD / PRINCIPAL / SENIOR SOFTWAR…"
+                    - button "Software Engineer" [ref=e2029] [cursor=pointer]:
+                      - generic [ref=e2031]: Software Engineer
+                    - button "[LTA-TRO] SENIOR/ EXECUTIVE/ SOFTWARE ENGINEER" [ref=e2032] [cursor=pointer]:
+                      - generic [ref=e2034]: "[LTA-TRO] SENIOR/ EXECUTIVE/ SOFTWARE ENGINEER"
+                    - button "Software Engineer and Test | Software Valida… S$8.3k" [ref=e2035] [cursor=pointer]:
+                      - generic [ref=e2037]: Software Engineer and Test | Software Valida…
+                      - generic [ref=e2038]: S$8.3k
+                    - button "Modelling & Simulation Software Engineer" [ref=e2039] [cursor=pointer]:
+                      - generic [ref=e2041]: Modelling & Simulation Software Engineer
+                    - button "Senior Software Engineer (Reimagine Engineer…" [ref=e2042] [cursor=pointer]:
+                      - generic [ref=e2044]: Senior Software Engineer (Reimagine Engineer…
+                    - button "Staff / Senior Software Engineer" [ref=e2045] [cursor=pointer]:
+                      - generic [ref=e2047]: Staff / Senior Software Engineer
+                    - button "[LTA-TRO] SOFTWARE ENGINEER" [ref=e2048] [cursor=pointer]:
+                      - generic [ref=e2050]: "[LTA-TRO] SOFTWARE ENGINEER"
+                    - button "Java Software Engineer (with GUI experience)… S$7.5k" [ref=e2051] [cursor=pointer]:
+                      - generic [ref=e2053]: Java Software Engineer (with GUI experience)…
+                      - generic [ref=e2054]: S$7.5k
+                    - button "Full Stack Software Engineer S$6.3k" [ref=e2055] [cursor=pointer]:
+                      - generic [ref=e2057]: Full Stack Software Engineer
+                      - generic [ref=e2058]: S$6.3k
+                    - button "System Software Engineer / Product Engineer S$4.9k" [ref=e2059] [cursor=pointer]:
+                      - generic [ref=e2061]: System Software Engineer / Product Engineer
+                      - generic [ref=e2062]: S$4.9k
+                    - button "Software Engineer" [ref=e2063] [cursor=pointer]:
+                      - generic [ref=e2065]: Software Engineer
+                    - button "Senior/ Staff Software Engineer" [ref=e2066] [cursor=pointer]:
+                      - generic [ref=e2068]: Senior/ Staff Software Engineer
+                    - button "Software Engineer" [ref=e2069] [cursor=pointer]:
+                      - generic [ref=e2071]: Software Engineer
+                    - button "Software Engineer (DevOps)" [ref=e2072] [cursor=pointer]:
+                      - generic [ref=e2074]: Software Engineer (DevOps)
+                    - button "Software Engineer" [ref=e2075] [cursor=pointer]:
+                      - generic [ref=e2077]: Software Engineer
+                    - button "Permanent Senior/Embedded Software Engineer… S$6.8k" [ref=e2078] [cursor=pointer]:
+                      - generic [ref=e2080]: Permanent Senior/Embedded Software Engineer…
+                      - generic [ref=e2081]: S$6.8k
+                    - button "Senior / Staff Software Engineer" [ref=e2082] [cursor=pointer]:
+                      - generic [ref=e2084]: Senior / Staff Software Engineer
+                    - button "Software Engineer" [ref=e2085] [cursor=pointer]:
+                      - generic [ref=e2087]: Software Engineer
+                    - button "Software Engineer" [ref=e2088] [cursor=pointer]:
+                      - generic [ref=e2090]: Software Engineer
+                    - button "Senior Software Engineer" [ref=e2091] [cursor=pointer]:
+                      - generic [ref=e2093]: Senior Software Engineer
+                    - button "Software Engineer" [ref=e2094] [cursor=pointer]:
+                      - generic [ref=e2096]: Software Engineer
+                    - button "Staff / Principal Software Engineer" [ref=e2097] [cursor=pointer]:
+                      - generic [ref=e2099]: Staff / Principal Software Engineer
+                    - button "Senior Software Engineer" [ref=e2100] [cursor=pointer]:
+                      - generic [ref=e2102]: Senior Software Engineer
+                    - button "Software Engineer" [ref=e2103] [cursor=pointer]:
+                      - generic [ref=e2105]: Software Engineer
+                    - button "Network Software Engineer S$8k" [ref=e2106] [cursor=pointer]:
+                      - generic [ref=e2108]: Network Software Engineer
+                      - generic [ref=e2109]: S$8k
+            - generic [ref=e391]:
+              - generic [ref=e392]:
+                - generic [ref=e393]: OKF v0.1
+                - generic [ref=e394]: Open Knowledge Format
+              - paragraph [ref=e395]: A vendor-neutral markdown bundle - tap a file to read it.
+              - generic [ref=e396]:
+                - button "software-engineer.okf/" [disabled] [ref=e397]
+                - button "├── index.md" [ref=e398] [cursor=pointer]
+                - button "├── postings/ (80)" [disabled] [ref=e399]
+                - button "├── sectors/" [disabled] [ref=e400]
+                - button "│ ├── information-and-communications-technology-ict-professionals.md" [ref=e2110] [cursor=pointer]
+                - button "│ ├── legal-social-religious-and-cultural-professionals.md" [ref=e2111] [cursor=pointer]
+                - button "│ ├── production-and-specialised-services-managers.md" [ref=e2112] [cursor=pointer]
+                - button "│ └── science-and-engineering-professionals.md" [ref=e2113] [cursor=pointer]
+                - button "└── log.md" [ref=e401] [cursor=pointer]
+              - button "Open index" [ref=e403] [cursor=pointer]
+          - generic [ref=e404]:
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e408]: MyCareersFuture
+                - generic [ref=e409]: "30"
+              - generic [ref=e410]:
+                - generic [ref=e411] [cursor=pointer]:
+                  - generic [ref=e412]:
+                    - generic [ref=e413]: T
+                    - generic "TERADYNE (ASIA) PTE. LTD." [ref=e414]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2114]'
+                  - generic [ref=e415]:
+                    - heading "Software Engineer" [level=3] [ref=e416]
+                    - generic [ref=e417]: yesterday
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2116]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e418]:
+                      - generic [ref=e419]: S$6,000 - S$10,000 / month
+                      - generic [ref=e420]: Permanent
+                    - paragraph [ref=e421]: Our Purpose Teradyne is where experience meets innovation, driving excellence in every connection. We are fueled by creativity and diversity of thought across our workforce.
+                    - generic [ref=e422]:
+                      - generic [ref=e423]: SKILLSETS
+                      - generic [ref=e424]:
+                        - generic [ref=e425]: UML
+                        - generic [ref=e426]: Software Engineering
+                        - generic [ref=e427]: Team Problem Solving
+                        - generic [ref=e428]: Designing software systems
+                        - generic [ref=e429]: Customer Escalation Management
+                    - generic [ref=e430]:
+                      - button "Analyse" [ref=e431]
+                      - link "Open" [ref=e432]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-teradyne-f2f922e03ed4fb31b6f3a41508cc7d39
+                      - 'button "{ } OKF" [ref=e433]'
+                - generic [ref=e434] [cursor=pointer]:
+                  - generic [ref=e435]:
+                    - generic [ref=e436]: J
+                    - generic "JPMORGAN ASSET MANAGEMENT (SINGAPORE) LIMITED" [ref=e437]
+                  - generic [ref=e438]:
+                    - heading "Senior Lead Software Engineer – Java - Asset Management Trading" [level=3] [ref=e439]
+                    - generic [ref=e440]: yesterday
+                    - generic [ref=e441]:
+                      - generic [ref=e442]: S$11,000 - S$22,000 / month
+                      - generic [ref=e443]: Permanent, Full Time
+                    - paragraph [ref=e444]: As a Senior Lead Software Engineer within Asset Management Trading Technology, you will help transform trading.
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: SKILLSETS
+                      - generic [ref=e447]:
+                        - generic [ref=e448]: Creative Problem Solving
+                        - generic [ref=e449]: Idea Generation
+                        - generic [ref=e450]: Architectural Patterns
+                        - generic [ref=e451]: Scalability
+                        - generic [ref=e452]: Software Training
+                    - generic [ref=e453]:
+                      - button "Analyse" [ref=e454]
+                      - link "Open" [ref=e455]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/senior-lead-software-engineer-%E2%80%93-java-asset-management-trading-jpmorgan-asset-management-8bdfa75acb497208d9de1e1734d685f8
+                      - 'button "{ } OKF" [ref=e456]'
+                - generic [ref=e457] [cursor=pointer]:
+                  - generic [ref=e458]:
+                    - generic [ref=e459]: H
+                    - generic "HITACHI RAIL SINGAPORE PTE. LTD." [ref=e460]
+                  - generic [ref=e461]:
+                    - heading "HMAX Software Engineer" [level=3] [ref=e462]
+                    - generic [ref=e463]: 4 days ago
+                    - generic [ref=e464]:
+                      - generic [ref=e465]: S$7,000 - S$9,500 / month
+                      - generic [ref=e466]: Permanent
+                    - paragraph [ref=e467]: Software Engineer (Ref.No. R1013044 ) at our location in Singapore Hitachi Rail is looking for an enthusiastic self-motivated skilled Senior Developer with proven experience in software development…
+                    - generic [ref=e468]:
+                      - generic [ref=e469]: SKILLSETS
+                      - generic [ref=e470]:
+                        - generic [ref=e471]: Project Team Management
+                        - generic [ref=e472]: Liaising with cross functional teams
+                        - generic [ref=e473]: Continuous Improvement
+                        - generic [ref=e474]: Linux Development
+                        - generic [ref=e475]: Develops Software Solutions
+                    - generic [ref=e476]:
+                      - button "Analyse" [ref=e477]
+                      - link "Open" [ref=e478]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/hmax-software-engineer-hitachi-rail-singapore-b3e82334bd09df8a7e7c0dd191d3b697
+                      - 'button "{ } OKF" [ref=e479]'
+                - generic [ref=e480] [cursor=pointer]:
+                  - generic [ref=e481]:
+                    - generic [ref=e482]: M
+                    - generic "MSI GLOBAL PRIVATE LIMITED" [ref=e483]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2117]'
+                  - generic [ref=e484]:
+                    - heading "Software Engineer (Device)" [level=3] [ref=e485]
+                    - generic [ref=e486]: 4 days ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2119]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e487]:
+                      - generic [ref=e488]: S$7,000 - S$8,500 / month
+                      - generic [ref=e489]: Contract
+                    - paragraph [ref=e490]: "Responsibilities: Working in a team to design and develop a real-time, reliable and secured e-payment devices that processes millions of public transport commuters’ cards daily."
+                    - generic [ref=e491]:
+                      - generic [ref=e492]: SKILLSETS
+                      - generic [ref=e493]:
+                        - generic [ref=e494]: Use cases
+                        - generic [ref=e495]: Computer Engineering
+                        - generic [ref=e496]: Multithreading
+                        - generic [ref=e497]: Object Oriented Modeling
+                        - generic [ref=e498]: scientific discipline
+                    - generic [ref=e499]:
+                      - button "Analyse" [ref=e500]
+                      - link "Open" [ref=e501]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-msi-global-54054ecc8390e7828d870f9b506ed584
+                      - 'button "{ } OKF" [ref=e502]'
+                - generic [ref=e503] [cursor=pointer]:
+                  - generic [ref=e504]:
+                    - generic [ref=e505]: J
+                    - generic "JPMORGAN CHASE BANK, N.A." [ref=e506]
+                  - generic [ref=e507]:
+                    - heading "Software Engineer II - Java" [level=3] [ref=e508]
+                    - generic [ref=e509]: 1 week ago
+                    - generic [ref=e510]:
+                      - generic [ref=e511]: S$6,000 - S$12,000 / month
+                      - generic [ref=e512]: Permanent, Full Time
+                    - paragraph [ref=e513]: You’re ready to gain the skills and experience needed to grow within your role and advance your career — and we have the perfect software engineering opportunity for you.
+                    - generic [ref=e514]:
+                      - generic [ref=e515]: SKILLSETS
+                      - generic [ref=e516]:
+                        - generic [ref=e517]: Stability Testing
+                        - generic [ref=e518]: Certifications
+                        - generic [ref=e519]: Security
+                        - generic [ref=e520]: Leading Diverse Teams
+                        - generic [ref=e521]: Develops Software Solutions
+                    - generic [ref=e522]:
+                      - button "Analyse" [ref=e523]
+                      - link "Open" [ref=e524]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/software-engineer-ii-java-jpmorgan-chase-bank-na-fbc37df3b5a3146840395266d2cd541c
+                      - 'button "{ } OKF" [ref=e525]'
+                - generic [ref=e526] [cursor=pointer]:
+                  - generic [ref=e527]:
+                    - generic [ref=e528]: K
+                    - generic "KULICKE & SOFFA PTE. LTD." [ref=e529]
+                  - generic [ref=e530]:
+                    - heading "Senior/Staff Software Engineer (Systems)" [level=3] [ref=e531]
+                    - generic [ref=e532]: 1 week ago
+                    - generic [ref=e533]:
+                      - generic [ref=e534]: S$7,000 - S$11,000 / month
+                      - generic [ref=e535]: Permanent, Full Time
+                    - paragraph [ref=e536]: Design and develop software for real-time application and automation. Translate Functional Requirements into Technical Specifications and System Designs.
+                    - generic [ref=e537]:
+                      - generic [ref=e538]: SKILLSETS
+                      - generic [ref=e539]:
+                        - generic [ref=e540]: Object-Oriented Programming
+                        - generic [ref=e541]: Semiconductor Industry
+                        - generic [ref=e542]: Object-Oriented Analysis, Design and Programming
+                        - generic [ref=e543]: Application Development
+                        - generic [ref=e544]: Object-Oriented Analysis
+                    - generic [ref=e545]:
+                      - button "Analyse" [ref=e546]
+                      - link "Open" [ref=e547]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/seniorstaff-software-engineer-kulicke-soffa-2b78143d10ada69bffc9d9bcf7daf372
+                      - 'button "{ } OKF" [ref=e548]'
+                - generic [ref=e549] [cursor=pointer]:
+                  - generic [ref=e550]:
+                    - generic [ref=e551]: D
+                    - generic "DELL GLOBAL B.V. (Singapore Branch)" [ref=e552]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2120]'
+                  - generic [ref=e553]:
+                    - heading "Senior Software Engineer" [level=3] [ref=e554]
+                    - generic [ref=e555]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2122]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e556]:
+                      - generic [ref=e557]: S$9,000 - S$13,000 / month
+                      - generic [ref=e558]: Full Time
+                    - paragraph [ref=e559]: Software Senior Engineer, Software Engineering The Software Engineering team delivers next-generation application enhancements and new products for a changing world.
+                    - generic [ref=e560]:
+                      - generic [ref=e561]: SKILLSETS
+                      - generic [ref=e562]:
+                        - generic [ref=e563]: Microsoft PowerPoint
+                        - generic [ref=e564]: on-the-job training
+                        - generic [ref=e565]: CSS
+                        - generic [ref=e566]: Windows 10
+                        - generic [ref=e567]: Multimedia
+                    - generic [ref=e568]:
+                      - button "Analyse" [ref=e569]
+                      - link "Open" [ref=e570]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-software-engineer-dell-global-bv-9976284e62b7a6f64f5dca2565296da4
+                      - 'button "{ } OKF" [ref=e571]'
+                - generic [ref=e572] [cursor=pointer]:
+                  - generic [ref=e573]:
+                    - generic [ref=e574]: T
+                    - generic "TRANSCELESTIAL TECHNOLOGIES PTE. LTD." [ref=e575]
+                    - 'generic "AI exposure: Full automation" [ref=e2123]'
+                  - generic [ref=e576]:
+                    - heading "Senior Control Software Engineer (Space Laser Communications)" [level=3] [ref=e577]
+                    - generic [ref=e578]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2125]: SSOC 21414 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e579]:
+                      - generic [ref=e580]: S$9,000 - S$16,000 / month
+                      - generic [ref=e581]: Full Time
+                    - paragraph [ref=e582]: Transcelestial’s vision is to improve the connectivity experience for the next billion people. We believe that connectivity is a human right and Transcelestial is on a mission to solve the problem of…
+                    - generic [ref=e583]:
+                      - generic [ref=e584]: SKILLSETS
+                      - generic [ref=e585]:
+                        - generic [ref=e586]: ROS
+                        - generic [ref=e587]: Aerospace Engineering
+                        - generic [ref=e588]: Software Requirement Specification
+                        - generic [ref=e589]: Laser and Optics Application
+                        - generic [ref=e590]: Hardware
+                    - generic [ref=e591]:
+                      - button "Analyse" [ref=e592]
+                      - link "Open" [ref=e593]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-control-software-engineer-transcelestial-technologies-f0f37358b687bfd8c1443b22db163fd2
+                      - 'button "{ } OKF" [ref=e594]'
+                - generic [ref=e595] [cursor=pointer]:
+                  - generic [ref=e596]:
+                    - generic [ref=e597]: K
+                    - generic "KULICKE & SOFFA PTE. LTD." [ref=e598]
+                  - generic [ref=e599]:
+                    - heading "Advanced/Senior Software Engineer (Systems)" [level=3] [ref=e600]
+                    - generic [ref=e601]: 1 week ago
+                    - generic [ref=e602]:
+                      - generic [ref=e603]: S$5,000 - S$8,000 / month
+                      - generic [ref=e604]: Permanent, Full Time
+                    - paragraph [ref=e605]: Software design and development for advanced semiconductor equipment. Software requirement analysis, design specifications, implementation and unit testing.
+                    - generic [ref=e606]:
+                      - generic [ref=e607]: SKILLSETS
+                      - generic [ref=e608]:
+                        - generic [ref=e609]: Object-Oriented Programming
+                        - generic [ref=e610]: Semiconductor Industry
+                        - generic [ref=e611]: Object-Oriented Analysis, Design and Programming
+                        - generic [ref=e612]: Application Development
+                        - generic [ref=e613]: Object-Oriented Analysis
+                    - generic [ref=e614]:
+                      - button "Analyse" [ref=e615]
+                      - link "Open" [ref=e616]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/advancedsenior-software-engineer-kulicke-soffa-ea3248b4e656edee39cfe29cdcba70f2
+                      - 'button "{ } OKF" [ref=e617]'
+                - generic [ref=e618] [cursor=pointer]:
+                  - generic [ref=e619]:
+                    - generic [ref=e620]: J
+                    - generic "JPMORGAN CHASE BANK, N.A." [ref=e621]
+                  - generic [ref=e622]:
+                    - heading "Lead Software Engineer, Athena Core Risk Team" [level=3] [ref=e623]
+                    - generic [ref=e624]: 1 week ago
+                    - generic [ref=e625]:
+                      - generic [ref=e626]: S$11,000 - S$22,000 / month
+                      - generic [ref=e627]: Permanent, Full Time
+                    - paragraph [ref=e628]: We have an exciting and rewarding opportunity for you to take your software engineering career to the next level.
+                    - generic [ref=e629]:
+                      - generic [ref=e630]: SKILLSETS
+                      - generic [ref=e631]:
+                        - generic [ref=e632]: Stability Testing
+                        - generic [ref=e633]: Certifications
+                        - generic [ref=e634]: Data Insight
+                        - generic [ref=e635]: Leading Diverse Teams
+                        - generic [ref=e636]: Query Language
+                    - generic [ref=e637]:
+                      - button "Analyse" [ref=e638]
+                      - link "Open" [ref=e639]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/lead-software-engineer-athena-core-risk-team-jpmorgan-chase-bank-na-438a4fbe20b1d48b242c2233002b6e60
+                      - 'button "{ } OKF" [ref=e640]'
+                - generic [ref=e641] [cursor=pointer]:
+                  - generic [ref=e642]:
+                    - generic [ref=e643]: C
+                    - generic "CMC-APAC PRIVATE LIMITED" [ref=e644]
+                    - 'generic "AI exposure: Full automation" [ref=e2126]'
+                  - generic [ref=e645]:
+                    - heading "Software Engineer, Quality & Platform (GenAI)" [level=3] [ref=e646]
+                    - generic [ref=e647]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2128]: SSOC 21414 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e648]:
+                      - generic [ref=e649]: S$5,000 - S$6,000 / month
+                      - generic [ref=e650]: Full Time
+                    - paragraph [ref=e651]: We are seeking a Software Engineer, Quality & Platform (Generative AI) to support the quality, reliability, security, and performance of enterprise-grade AI applications and agent orchestration platforms.
+                    - generic [ref=e652]:
+                      - generic [ref=e653]: SKILLSETS
+                      - generic [ref=e654]:
+                        - generic [ref=e655]: Performance Testing
+                        - generic [ref=e656]: Microsoft Excel
+                        - generic [ref=e657]: Technical Writing
+                        - generic [ref=e658]: UI
+                        - generic [ref=e659]: Information Technology
+                    - generic [ref=e660]:
+                      - button "Analyse" [ref=e661]
+                      - link "Open" [ref=e662]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-quality-platform-cmc-apac-c817e08b942140f8e684c8c6c7eccc56
+                      - 'button "{ } OKF" [ref=e663]'
+                - generic [ref=e664] [cursor=pointer]:
+                  - generic [ref=e665]:
+                    - generic [ref=e666]: M
+                    - generic "MAESTRO HUMAN RESOURCE PTE. LTD." [ref=e667]
+                  - generic [ref=e668]:
+                    - heading "Software Engineer (C++) **No Exp required (AMK)" [level=3] [ref=e669]
+                    - generic [ref=e670]: 1 week ago
+                    - generic [ref=e671]:
+                      - generic [ref=e672]: S$4,000 - S$6,000 / month
+                      - generic [ref=e673]: Permanent, Full Time
+                    - paragraph [ref=e674]: "ob Description: Work closely with software architect and other team members within the software development team to detail the software architecture for C3 (Command, Control and Communication)…"
+                    - generic [ref=e675]:
+                      - generic [ref=e676]: SKILLSETS
+                      - generic [ref=e677]:
+                        - generic [ref=e678]: Customer Support
+                        - generic [ref=e679]: Architect
+                        - generic [ref=e680]: High Availability
+                        - generic [ref=e681]: GMP
+                        - generic [ref=e682]: Software Engineering
+                    - generic [ref=e683]:
+                      - button "Analyse" [ref=e684]
+                      - link "Open" [ref=e685]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-no-exp-required-maestro-human-resource-570fbc59c8164402ae05c6be910c87a2
+                      - 'button "{ } OKF" [ref=e686]'
+                - generic [ref=e687] [cursor=pointer]:
+                  - generic [ref=e688]:
+                    - generic [ref=e689]: E
+                    - generic "ELLIOTT MOSS CONSULTING PTE. LTD." [ref=e690]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2129]'
+                  - generic [ref=e691]:
+                    - heading "Software Engineer(Java +Oracle-BEA WebLogic App server)" [level=3] [ref=e692]
+                    - generic [ref=e693]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2131]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e694]:
+                      - generic [ref=e695]: S$5,400 - S$6,800 / month
+                      - generic [ref=e696]: Contract
+                    - paragraph [ref=e697]: We are seeking a talented and motivated Software Engineer (Java) to join our technology team. The ideal candidate will be responsible for designing, developing, testing, and maintaining enterprise…
+                    - generic [ref=e698]:
+                      - generic [ref=e699]: SKILLSETS
+                      - generic [ref=e700]:
+                        - generic [ref=e701]: UAT
+                        - generic [ref=e702]: Design
+                        - generic [ref=e703]: Computer Engineering
+                        - generic [ref=e704]: Development
+                        - generic [ref=e705]: Quality Testing
+                    - generic [ref=e706]:
+                      - button "Analyse" [ref=e707]
+                      - link "Open" [ref=e708]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-elliott-moss-consulting-0ce0bba1608fee4fccb5584419e60697
+                      - 'button "{ } OKF" [ref=e709]'
+                - generic [ref=e710] [cursor=pointer]:
+                  - generic [ref=e711]:
+                    - generic [ref=e712]: E
+                    - generic "ETHOS SEARCH ASSOCIATES PTE. LTD." [ref=e713]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2132]'
+                  - generic [ref=e714]:
+                    - heading "Software Engineer" [level=3] [ref=e715]
+                    - generic [ref=e716]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2134]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e717]:
+                      - generic [ref=e718]: S$3,500 - S$5,500 / month
+                      - generic [ref=e719]: Permanent, Full Time
+                    - paragraph [ref=e720]: We are seeking a Software Engineer to develop software solutions for high-performance semiconductor test systems.
+                    - generic [ref=e721]:
+                      - generic [ref=e722]: SKILLSETS
+                      - generic [ref=e723]:
+                        - generic [ref=e724]: Liaising with cross functional teams
+                        - generic [ref=e725]: TDD
+                        - generic [ref=e726]: Electronics Engineering
+                        - generic [ref=e727]: Strong Attention To Detail
+                        - generic [ref=e728]: Java Swing
+                    - generic [ref=e729]:
+                      - button "Analyse" [ref=e730]
+                      - link "Open" [ref=e731]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-ethos-search-associates-f38ca6f5d51343b5b9453c761be238ff
+                      - 'button "{ } OKF" [ref=e732]'
+                - generic [ref=e733] [cursor=pointer]:
+                  - generic [ref=e734]:
+                    - generic [ref=e735]: J
+                    - generic "JPMORGAN CHASE BANK, N.A." [ref=e736]
+                  - generic [ref=e737]:
+                    - heading "Software Engineer III, Rates Technology" [level=3] [ref=e738]
+                    - generic [ref=e739]: 2 weeks ago
+                    - generic [ref=e740]:
+                      - generic [ref=e741]: S$8,000 - S$16,000 / month
+                      - generic [ref=e742]: Permanent, Full Time
+                    - paragraph [ref=e743]: We have an exciting and rewarding opportunity for you to take your software engineering career to the next level.
+                    - generic [ref=e744]:
+                      - generic [ref=e745]: SKILLSETS
+                      - generic [ref=e746]:
+                        - generic [ref=e747]: Teamwork
+                        - generic [ref=e748]: Trust
+                        - generic [ref=e749]: Team Effectiveness Management
+                        - generic [ref=e750]: Collaborative
+                        - generic [ref=e751]: Software Engineering
+                    - generic [ref=e752]:
+                      - button "Analyse" [ref=e753]
+                      - link "Open" [ref=e754]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/software-engineer-iii-rates-technology-jpmorgan-chase-bank-na-417b7196648e9043e13d1daedc1a995f
+                      - 'button "{ } OKF" [ref=e755]'
+                - generic [ref=e756] [cursor=pointer]:
+                  - generic [ref=e757]:
+                    - generic [ref=e758]: G
+                    - generic "GEMINI PERSONNEL PTE. LTD." [ref=e759]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2135]'
+                  - generic [ref=e760]:
+                    - heading "Software Engineer (Factory Automation & Equipment Integration)" [level=3] [ref=e761]
+                    - generic [ref=e762]: 2 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2137]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e763]:
+                      - generic [ref=e764]: S$5,000 - S$6,000 / month
+                      - generic [ref=e765]: Contract
+                    - paragraph [ref=e766]: You will be involved in the full software development lifecycle, working closely with internal and external stakeholders to build applications that support equipment connectivity, process automation,…
+                    - generic [ref=e767]:
+                      - generic [ref=e768]: SKILLSETS
+                      - generic [ref=e769]:
+                        - generic [ref=e770]: TCP/IP
+                        - generic [ref=e771]: manufacturing environment
+                        - generic [ref=e772]: Troubleshooting
+                        - generic [ref=e773]: Computer Engineering
+                        - generic [ref=e774]: Manufacturing Automation
+                    - generic [ref=e775]:
+                      - button "Analyse" [ref=e776]
+                      - link "Open" [ref=e777]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-gemini-personnel-5d41a7d768d744202ff000667882ae11
+                      - 'button "{ } OKF" [ref=e778]'
+                - generic [ref=e779] [cursor=pointer]:
+                  - generic [ref=e780]:
+                    - generic [ref=e781]: G
+                    - generic "GN AUDIO SINGAPORE PTE. LTD." [ref=e782]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2138]'
+                  - generic [ref=e783]:
+                    - heading "Software Engineer II (SteelSeries)" [level=3] [ref=e784]
+                    - generic [ref=e785]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2140]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e786]:
+                      - generic [ref=e787]: S$5,500 - S$7,000 / month
+                      - generic [ref=e788]: Permanent
+                    - paragraph [ref=e789]: The point is we've been helping gamers get better since 2001. In fact, Esports pros have won more money using SteelSeries products than any other brand and we're just getting started.
+                    - generic [ref=e790]:
+                      - generic [ref=e791]: SKILLSETS
+                      - generic [ref=e792]:
+                        - generic [ref=e793]: Architectural Patterns
+                        - generic [ref=e794]: WPF
+                        - generic [ref=e795]: GitHub repository
+                        - generic [ref=e796]: Automated Software Testing
+                        - generic [ref=e797]: Development Tools
+                    - generic [ref=e798]:
+                      - button "Analyse" [ref=e799]
+                      - link "Open" [ref=e800]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-ii-gn-audio-singapore-678ea7d91a348fae8b16b401db2d1751
+                      - 'button "{ } OKF" [ref=e801]'
+                - generic [ref=e802] [cursor=pointer]:
+                  - generic [ref=e803]:
+                    - generic [ref=e804]: E
+                    - generic "EOS INNOVATION SINGAPORE PTE. LTD." [ref=e805]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2141]'
+                  - generic [ref=e806]:
+                    - heading "Software Engineer and Senior Software Engineer" [level=3] [ref=e807]
+                    - generic [ref=e808]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2143]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e809]:
+                      - generic [ref=e810]: S$8,000 - S$10,000 / month
+                      - generic [ref=e811]: Full Time
+                    - paragraph [ref=e812]: Design, develop, test, integrate and maintain software for advanced defence products, ranging from equipment interfacing and control functions to data processing, automation and user-facing applications.
+                    - generic [ref=e813]:
+                      - generic [ref=e814]: SKILLSETS
+                      - generic [ref=e815]:
+                        - generic [ref=e816]: Design
+                        - generic [ref=e817]: Control & Automation
+                        - generic [ref=e818]: User Interface Design
+                        - generic [ref=e819]: Build Prototypes
+                        - generic [ref=e820]: Manufacturing Equipment Operation and Control
+                    - generic [ref=e821]:
+                      - button "Analyse" [ref=e822]
+                      - link "Open" [ref=e823]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-senior-software-engineer-eos-innovation-singapore-c4afaa0c4d4d558b973fcf5592c075e6
+                      - 'button "{ } OKF" [ref=e824]'
+                - generic [ref=e825] [cursor=pointer]:
+                  - generic [ref=e826]:
+                    - generic [ref=e827]: A
+                    - generic "AKKODIS SINGAPORE PTE. LTD." [ref=e828]
+                  - generic [ref=e829]:
+                    - heading "Software Engineer and Test | Software Validation Engineer" [level=3] [ref=e830]
+                    - generic [ref=e831]: 3 weeks ago
+                    - generic [ref=e832]:
+                      - generic [ref=e833]: S$7,000 - S$9,500 / month
+                      - generic [ref=e834]: Contract, Full Time
+                    - paragraph [ref=e835]: This role focuses primarily on Integration, Verification, Validation and Qualification (IVVQ) activities for mission-critical defence systems.
+                    - generic [ref=e836]:
+                      - generic [ref=e837]: SKILLSETS
+                      - generic [ref=e838]:
+                        - generic [ref=e839]: Message Broker
+                        - generic [ref=e840]: test documentation
+                        - generic [ref=e841]: Verification
+                        - generic [ref=e842]: Defect Analysis
+                        - generic [ref=e843]: Functional Design
+                    - generic [ref=e844]:
+                      - button "Analyse" [ref=e845]
+                      - link "Open" [ref=e846]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-test-software-validation-engineer-akkodis-singapore-10008f1040b54dea5fde49bb744d1901
+                      - 'button "{ } OKF" [ref=e847]'
+                - generic [ref=e848] [cursor=pointer]:
+                  - generic [ref=e849]:
+                    - generic [ref=e850]: Z
+                    - generic "ZENITH INFOTECH (S) PTE LTD." [ref=e851]
+                  - generic [ref=e852]:
+                    - heading "Java Software Engineer (with GUI experience) | Contract" [level=3] [ref=e853]
+                    - generic [ref=e854]: 4 weeks ago
+                    - generic [ref=e855]:
+                      - generic [ref=e856]: S$6,500 - S$8,500 / month
+                      - generic [ref=e857]: Contract
+                    - paragraph [ref=e858]: Gather and analyze business and system requirements. Design, develop, test, implement, and maintain enterprise software solutions.
+                    - generic [ref=e859]:
+                      - generic [ref=e860]: SKILLSETS
+                      - generic [ref=e861]:
+                        - generic [ref=e862]: Optimization
+                        - generic [ref=e863]: Design
+                        - generic [ref=e864]: Business Rules
+                        - generic [ref=e865]: Software Architecture
+                        - generic [ref=e866]: Information Technology
+                    - generic [ref=e867]:
+                      - button "Analyse" [ref=e868]
+                      - link "Open" [ref=e869]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/java-software-engineer-contract-zenith-infotech-dae6217dbcc5cc4fadd9a21866a85d3f
+                      - 'button "{ } OKF" [ref=e870]'
+                - generic [ref=e871] [cursor=pointer]:
+                  - generic [ref=e872]:
+                    - generic [ref=e873]: W
+                    - generic "WE-PLUS PTE. LTD." [ref=e874]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2144]'
+                  - generic [ref=e875]:
+                    - heading "Software Engineer" [level=3] [ref=e876]
+                    - generic [ref=e877]: 4 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2146]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e878]:
+                      - generic [ref=e879]: S$6,000 - S$10,000 / month
+                      - generic [ref=e880]: Permanent, Full Time
+                    - paragraph [ref=e881]: ⇒ Role Summary The Software Engineer is responsible for designing and developing software solutions to enable connectivity and control of measurement devices in the Field, Edge as well as the Cloud.
+                    - generic [ref=e882]:
+                      - generic [ref=e883]: SKILLSETS
+                      - generic [ref=e884]:
+                        - generic [ref=e885]: .NET
+                        - generic [ref=e886]: Petroleum Engineering
+                        - generic [ref=e887]: Pipelines
+                        - generic [ref=e888]: Geology
+                        - generic [ref=e889]: Software Engineering
+                    - generic [ref=e890]:
+                      - button "Analyse" [ref=e891]
+                      - link "Open" [ref=e892]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-we-plus-158e41db843b5427793805360f315abb
+                      - 'button "{ } OKF" [ref=e893]'
+                - generic [ref=e894] [cursor=pointer]:
+                  - generic [ref=e895]:
+                    - generic [ref=e896]: C
+                    - generic "COMCENTRIC SOLUTIONS PTE. LTD." [ref=e897]
+                  - generic [ref=e898]:
+                    - heading "Full Stack Software Engineer (.NET / React)" [level=3] [ref=e899]
+                    - generic [ref=e900]: 4 weeks ago
+                    - generic [ref=e901]:
+                      - generic [ref=e902]: S$5,000 - S$7,500 / month
+                      - generic [ref=e903]: Contract
+                    - paragraph [ref=e904]: Design, develop, and maintain web applications using ASP.NET Core and React technologies. Develop RESTful APIs and backend services.
+                    - generic [ref=e905]:
+                      - generic [ref=e906]: SKILLSETS
+                      - generic [ref=e907]:
+                        - generic [ref=e908]: Git
+                        - generic [ref=e909]: Code Review
+                        - generic [ref=e910]: Design
+                        - generic [ref=e911]: ASP.NET Core
+                        - generic [ref=e912]: Push Notifications
+                    - generic [ref=e913]:
+                      - button "Analyse" [ref=e914]
+                      - link "Open" [ref=e915]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/full-stack-software-engineer-comcentric-solutions-6126de8ac9ce620ed8f2bfb7ee1d53bb
+                      - 'button "{ } OKF" [ref=e916]'
+                - generic [ref=e917] [cursor=pointer]:
+                  - generic [ref=e918]:
+                    - generic [ref=e919]: V
+                    - generic "VY SYSTEMS PTE. LTD." [ref=e920]
+                  - generic [ref=e921]:
+                    - heading "System Software Engineer / Product Engineer" [level=3] [ref=e922]
+                    - generic [ref=e923]: 1 month ago
+                    - generic [ref=e924]:
+                      - generic [ref=e925]: S$4,750 - S$5,000 / month
+                      - generic [ref=e926]: Full Time
+                    - paragraph [ref=e927]: System Software Engineering Design, develop, integrate, and debug system software components, including:OS-level components and platform enabling drivers Hardware abstraction and system-level…
+                    - generic [ref=e928]:
+                      - generic [ref=e929]: SKILLSETS
+                      - generic [ref=e930]:
+                        - generic [ref=e931]: Device Driver
+                        - generic [ref=e932]: Device Driver Development
+                        - generic [ref=e933]: Design
+                        - generic [ref=e934]: Computer Engineering
+                        - generic [ref=e935]: liaison with design teams
+                    - generic [ref=e936]:
+                      - button "Analyse" [ref=e937]
+                      - link "Open" [ref=e938]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/system-software-engineer-product-engineer-vy-systems-617c7186b4f5e976174a69a4129678df
+                      - 'button "{ } OKF" [ref=e939]'
+                - generic [ref=e940] [cursor=pointer]:
+                  - generic [ref=e941]:
+                    - generic [ref=e942]: R
+                    - generic "REALTEK SINGAPORE PRIVATE LIMITED" [ref=e943]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2147]'
+                  - generic [ref=e944]:
+                    - heading "Software Engineer- Senior Embedded Engineer(Automotive / Linux / Tools)" [level=3] [ref=e945]
+                    - generic [ref=e946]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2149]: SSOC 21526 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e947]:
+                      - generic [ref=e948]: S$8,000 - S$12,000 / month
+                      - generic [ref=e949]: Permanent
+                    - paragraph [ref=e950]: Join us as an experienced Software Engineer to drive the development of innovative, high-performance automotive products from inception.
+                    - generic [ref=e951]:
+                      - generic [ref=e952]: SKILLSETS
+                      - generic [ref=e953]:
+                        - generic [ref=e954]: Scalability
+                        - generic [ref=e955]: .NET
+                        - generic [ref=e956]: Scripting
+                        - generic [ref=e957]: Python
+                        - generic [ref=e958]: Firmware
+                    - generic [ref=e959]:
+                      - button "Analyse" [ref=e960]
+                      - link "Open" [ref=e961]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-senior-embedded-engineer-realtek-singapore-72308023b23b2984bab30ce1624a6232
+                      - 'button "{ } OKF" [ref=e962]'
+                - generic [ref=e963] [cursor=pointer]:
+                  - generic [ref=e964]:
+                    - generic [ref=e965]: S
+                    - generic "SUCCESS RESOURCE CENTRE PTE. LTD." [ref=e966]
+                  - generic [ref=e967]:
+                    - heading "Permanent Senior/Embedded Software Engineer at Jurong East (Shuttle service provided), Up to $7,000 + PB (Office hours)" [level=3] [ref=e968]
+                    - generic [ref=e969]: 1 month ago
+                    - generic [ref=e970]:
+                      - generic [ref=e971]: S$6,500 - S$7,000 / month
+                      - generic [ref=e972]: Permanent, Full Time
+                    - paragraph [ref=e973]: "- Permanent - Up to $7,000 + PB - Mon–Fri 8am–5:30pm - Jurong East (Shuttle service provided at selected MRT station) Job Responsibilities: Design, develop, and maintain embedded software modules…"
+                    - generic [ref=e974]:
+                      - generic [ref=e975]: SKILLSETS
+                      - generic [ref=e976]:
+                        - generic [ref=e977]: Electronics Engineering
+                        - generic [ref=e978]: Troubleshooting
+                        - generic [ref=e979]: Technical Analysis
+                        - generic [ref=e980]: Computer Engineering
+                        - generic [ref=e981]: Profiling
+                    - generic [ref=e982]:
+                      - button "Analyse" [ref=e983]
+                      - link "Open" [ref=e984]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/permanent-seniorembedded-software-engineer-jurong-east-7000-pb-success-resource-centre-ac8eaa647f20b13d4d6447759fa99237
+                      - 'button "{ } OKF" [ref=e985]'
+                - generic [ref=e986] [cursor=pointer]:
+                  - generic [ref=e987]:
+                    - generic [ref=e988]: W
+                    - generic "WE-PLUS PTE. LTD." [ref=e989]
+                  - generic [ref=e990]:
+                    - heading "Network Software Engineer" [level=3] [ref=e991]
+                    - generic [ref=e992]: 2 months ago
+                    - generic [ref=e993]:
+                      - generic [ref=e994]: S$6,000 - S$10,000 / month
+                      - generic [ref=e995]: Permanent, Full Time
+                    - paragraph [ref=e996]: ⇒ Role Summary Our client is developing an in-house Network Management System (NMS) to support their radio communications products for defence clients.
+                    - generic [ref=e997]:
+                      - generic [ref=e998]: SKILLSETS
+                      - generic [ref=e999]:
+                        - generic [ref=e1000]: API Development
+                        - generic [ref=e1001]: Network Management
+                        - generic [ref=e1002]: API Management
+                        - generic [ref=e1003]: Windows software development
+                        - generic [ref=e1004]: Software Engineering
+                    - generic [ref=e1005]:
+                      - button "Analyse" [ref=e1006]
+                      - link "Open" [ref=e1007]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/network-software-engineer-we-plus-0eac629aa4ec1515f37e5d979f5fcfa1
+                      - 'button "{ } OKF" [ref=e1008]'
+                - generic [ref=e1009] [cursor=pointer]:
+                  - generic [ref=e1010]:
+                    - generic [ref=e1011]: C
+                    - generic "CAMBRIDGE CENTRE FOR ADVANCED RESEARCH AND EDUCATION IN SINGAPORE LTD." [ref=e1012]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2150]'
+                  - generic [ref=e1013]:
+                    - heading "Software Engineer" [level=3] [ref=e1014]
+                    - generic [ref=e1015]: 3 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2152]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1016]:
+                      - generic [ref=e1017]: S$5,000 - S$8,000 / month
+                      - generic [ref=e1018]: Full Time
+                    - paragraph [ref=e1019]: "Software development: Design, develop, and maintain knowledge-based software applications. Collaboration: Work closely with researchers to understand their needs and translate them into effective…"
+                    - generic [ref=e1020]:
+                      - generic [ref=e1021]: SKILLSETS
+                      - generic [ref=e1022]:
+                        - generic [ref=e1023]: Scalability
+                        - generic [ref=e1024]: Pipelines
+                        - generic [ref=e1025]: Public Health
+                        - generic [ref=e1026]: Population Health
+                        - generic [ref=e1027]: Software Engineering
+                    - generic [ref=e1028]:
+                      - button "Analyse" [ref=e1029]
+                      - link "Open" [ref=e1030]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-cambridge-centre-advanced-research-education-singapore-7d8ef6d131939d76782454baad2d0f43
+                      - 'button "{ } OKF" [ref=e1031]'
+                - generic [ref=e1032] [cursor=pointer]:
+                  - generic [ref=e1033]:
+                    - generic [ref=e1034]: D
+                    - generic "DENSELIGHT SEMICONDUCTORS PTE LTD" [ref=e1035]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2153]'
+                  - generic [ref=e1036]:
+                    - heading "Software Engineer" [level=3] [ref=e1037]
+                    - generic [ref=e1038]: 4 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2155]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1039]:
+                      - generic [ref=e1040]: S$4,000 - S$6,000 / month
+                      - generic [ref=e1041]: Full Time
+                    - paragraph [ref=e1042]: "& Requirements Software Engineer We are looking for a skilled Software Engineer with extensive experience in .NET C# programming, primarily in Blazor Technology."
+                    - generic [ref=e1043]:
+                      - generic [ref=e1044]: SKILLSETS
+                      - generic [ref=e1045]:
+                        - generic [ref=e1046]: MongoDB
+                        - generic [ref=e1047]: MVVM
+                        - generic [ref=e1048]: Design Patterns
+                        - generic [ref=e1049]: Software Engineering
+                        - generic [ref=e1050]: MySQL
+                    - generic [ref=e1051]:
+                      - button "Analyse" [ref=e1052]
+                      - link "Open" [ref=e1053]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/information-technology/software-engineer-denselight-semiconductors-df5d56363b79b28dafcc43a8b1848656
+                      - 'button "{ } OKF" [ref=e1054]'
+                - generic [ref=e1055] [cursor=pointer]:
+                  - generic [ref=e1056]:
+                    - generic [ref=e1057]: G
+                    - generic "GNA ENGINEERING PTE. LTD." [ref=e1058]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2156]'
+                  - generic [ref=e1059]:
+                    - heading "Software Engineer" [level=3] [ref=e1060]
+                    - generic [ref=e1061]: 4 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2158]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1062]:
+                      - generic [ref=e1063]: S$3,500 - S$4,500 / month
+                      - generic [ref=e1064]: Contract
+                    - paragraph [ref=e1065]: Develop and implement software modules for AI-based surveillance systems in accordance with IEEE software engineering standards and internal development guidelines.
+                    - generic [ref=e1066]:
+                      - generic [ref=e1067]: SKILLSETS
+                      - generic [ref=e1068]:
+                        - generic [ref=e1069]: Git
+                        - generic [ref=e1070]: Pipelines
+                        - generic [ref=e1071]: Architect
+                        - generic [ref=e1072]: Software Engineering
+                        - generic [ref=e1073]: Computer Vision
+                    - generic [ref=e1074]:
+                      - button "Analyse" [ref=e1075]
+                      - link "Open" [ref=e1076]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-gna-engineering-11d448f9c46aeaa409e7dc324d78bf5c
+                      - 'button "{ } OKF" [ref=e1077]'
+                - generic [ref=e1078] [cursor=pointer]:
+                  - generic [ref=e1079]:
+                    - generic [ref=e1080]: V
+                    - generic "VSTECS (SINGAPORE) PTE. LTD." [ref=e1081]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2159]'
+                  - generic [ref=e1082]:
+                    - heading "Software Engineer (Database)" [level=3] [ref=e1083]
+                    - generic [ref=e1084]: 6 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2161]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1085]:
+                      - generic [ref=e1086]: S$4,000 - S$6,000 / month
+                      - generic [ref=e1087]: Permanent
+                    - paragraph [ref=e1088]: role VSTECS (SINGAPORE) PTE. LTD. is seeking a talented Software Engineer (Database) to join our team in the Lavender Central Region.
+                    - generic [ref=e1089]:
+                      - generic [ref=e1090]: SKILLSETS
+                      - generic [ref=e1091]:
+                        - generic [ref=e1092]: Troubleshooting
+                        - generic [ref=e1093]: Analytical Skills
+                        - generic [ref=e1094]: PostgreSQL
+                        - generic [ref=e1095]: MySQL
+                        - generic [ref=e1096]: JavaScript
+                    - generic [ref=e1097]:
+                      - button "Analyse" [ref=e1098]
+                      - link "Open" [ref=e1099]:
+                        - /url: https://www.mycareersfuture.gov.sg/job/engineering/software-engineer-vstecs-e9c60e7f8f426dcbcf14b74111b8d030
+                      - 'button "{ } OKF" [ref=e1100]'
+            - generic [ref=e1101]:
+              - generic [ref=e1102]:
+                - generic [ref=e1104]: careers.gov.sg
+                - generic [ref=e1105]: "50"
+              - generic [ref=e1106]:
+                - generic [ref=e1107] [cursor=pointer]:
+                  - generic [ref=e1108]:
+                    - generic [ref=e1109]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e1110]
+                  - generic [ref=e1111]:
+                    - heading "Lead Engineer / Engineer - Software Engineering, AI Products" [level=3] [ref=e1112]
+                    - generic [ref=e1113]: 4 days ago
+                    - generic [ref=e1114]:
+                      - generic [ref=e1115]: Salary on application
+                      - generic [ref=e1116]: Permanent/Contract
+                    - paragraph [ref=e1117]: Develop full stack, reactive web apps that can be delivered either on desktop or on Cloud (AWS, MS Azure or GCP) Work with UX/UI designer to develop responsive front end user interfaces using HTML,…
+                    - generic [ref=e1118]:
+                      - button "Analyse" [ref=e1119]
+                      - link "Open" [ref=e1120]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753679/005056a3-53e2-1fd1-9ca2-f97663bf73ff
+                      - 'button "{ } OKF" [ref=e1121]'
+                - generic [ref=e1122] [cursor=pointer]:
+                  - generic [ref=e1123]:
+                    - generic [ref=e1124]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e1125]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2162]'
+                  - generic [ref=e1126]:
+                    - heading "Deputy Director, AI Software Engineering, AI Products" [level=3] [ref=e1127]
+                    - generic [ref=e1128]: 4 days ago
+                    - generic "LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS" [ref=e2164]: SSOC 26542 · LEGAL, SOCIAL, RELIGIOUS AND CULTURAL PROFESSIONALS
+                    - generic [ref=e1129]:
+                      - generic [ref=e1130]: Salary on application
+                      - generic [ref=e1131]: Permanent/Contract
+                    - paragraph [ref=e1132]: Develop technology roadmap for HTxAI Products team(s), lead the team(s) in customising and developing platform, products and solutions across in various AI domains.
+                    - generic [ref=e1133]:
+                      - button "Analyse" [ref=e1134]
+                      - link "Open" [ref=e1135]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753430/005056a3-53e2-1fd1-9ca2-860cecea13ff
+                      - 'button "{ } OKF" [ref=e1136]'
+                - generic [ref=e1137] [cursor=pointer]:
+                  - generic [ref=e1138]:
+                    - generic [ref=e1139]: H
+                    - generic "Home Team Science and Technology Agency (HTX)" [ref=e1140]
+                  - generic [ref=e1141]:
+                    - heading "Head (AI Software Engineering), AI Products" [level=3] [ref=e1142]
+                    - generic [ref=e1143]: 4 days ago
+                    - generic [ref=e1144]:
+                      - generic [ref=e1145]: Salary on application
+                      - generic [ref=e1146]: Permanent/Contract
+                    - paragraph [ref=e1147]: "As the Head, Engineering, you will be required to: Lead the software engineering, quality assurance and devsecops technical functions in product team(s)."
+                    - generic [ref=e1148]:
+                      - button "Analyse" [ref=e1149]
+                      - link "Open" [ref=e1150]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17753199/005056a3-53e2-1fd1-9ca2-09d87f0b53ff
+                      - 'button "{ } OKF" [ref=e1151]'
+                - generic [ref=e1152] [cursor=pointer]:
+                  - generic [ref=e1153]:
+                    - generic [ref=e1154]: L
+                    - generic "Land Transport Authority" [ref=e1155]
+                  - generic [ref=e1156]:
+                    - heading "[LTA-ITCD] PRINCIPAL / SENIOR / EXECUTIVE SOFTWARE ENGINEER" [level=3] [ref=e1157]
+                    - generic [ref=e1158]: 5 days ago
+                    - generic [ref=e1159]:
+                      - generic [ref=e1160]: Salary on application
+                      - generic [ref=e1161]: Fixed Terms
+                    - paragraph [ref=e1162]: You will be responsible for developing, implementing and maintaining IT applications systems . Skills required include software development, understanding of Agile principles , DevSecOps ,…
+                    - generic [ref=e1163]:
+                      - button "Analyse" [ref=e1164]
+                      - link "Open" [ref=e1165]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17278619/005056a3-d347-1fe1-99d3-83edecbbe2a9
+                      - 'button "{ } OKF" [ref=e1166]'
+                - generic [ref=e1167] [cursor=pointer]:
+                  - generic [ref=e1168]:
+                    - generic [ref=e1169]: G
+                    - generic "Government Technology Agency" [ref=e1170]
+                  - generic [ref=e1171]:
+                    - heading "Senior Software Engineer-Digital Products & Platforms, STB" [level=3] [ref=e1172]
+                    - generic [ref=e1173]: 5 days ago
+                    - generic [ref=e1175]: Salary on application
+                    - paragraph [ref=e1176]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1177]:
+                      - button "Analyse" [ref=e1178]
+                      - link "Open" [ref=e1179]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004458201?gh_jid=4004458201
+                      - 'button "{ } OKF" [ref=e1180]'
+                - generic [ref=e1181] [cursor=pointer]:
+                  - generic [ref=e1182]:
+                    - generic [ref=e1183]: G
+                    - generic "Government Technology Agency" [ref=e1184]
+                  - generic [ref=e1185]:
+                    - heading "Engineer / Senior Software Engineer, AI Products & Platform, Ministry of Education" [level=3] [ref=e1186]
+                    - generic [ref=e1187]: 5 days ago
+                    - generic [ref=e1189]: Salary on application
+                    - paragraph [ref=e1190]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1191]:
+                      - button "Analyse" [ref=e1192]
+                      - link "Open" [ref=e1193]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004456201?gh_jid=4004456201
+                      - 'button "{ } OKF" [ref=e1194]'
+                - generic [ref=e1195] [cursor=pointer]:
+                  - generic [ref=e1196]:
+                    - generic [ref=e1197]: G
+                    - generic "Government Technology Agency" [ref=e1198]
+                  - generic [ref=e1199]:
+                    - heading "Principal / Software Engineer, Developer Productivity & Services Programme" [level=3] [ref=e1200]
+                    - generic [ref=e1201]: 5 days ago
+                    - generic [ref=e1203]: Salary on application
+                    - paragraph [ref=e1204]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1205]:
+                      - button "Analyse" [ref=e1206]
+                      - link "Open" [ref=e1207]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004429201?gh_jid=4004429201
+                      - 'button "{ } OKF" [ref=e1208]'
+                - generic [ref=e1209] [cursor=pointer]:
+                  - generic [ref=e1210]:
+                    - generic [ref=e1211]: G
+                    - generic "Government Technology Agency" [ref=e1212]
+                  - generic [ref=e1213]:
+                    - heading "Senior / Software Engineer, Developer Productivity & Services Programme" [level=3] [ref=e1214]
+                    - generic [ref=e1215]: 5 days ago
+                    - generic [ref=e1217]: Salary on application
+                    - paragraph [ref=e1218]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1219]:
+                      - button "Analyse" [ref=e1220]
+                      - link "Open" [ref=e1221]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004423201?gh_jid=4004423201
+                      - 'button "{ } OKF" [ref=e1222]'
+                - generic [ref=e1223] [cursor=pointer]:
+                  - generic [ref=e1224]:
+                    - generic [ref=e1225]: M
+                    - generic "MINDEF" [ref=e1226]
+                  - generic [ref=e1227]:
+                    - heading "Senior Software Engineer - DIS" [level=3] [ref=e1228]
+                    - generic [ref=e1229]: 6 days ago
+                    - generic [ref=e1230]:
+                      - generic [ref=e1231]: Salary on application
+                      - generic [ref=e1232]: Permanent
+                    - paragraph [ref=e1233]: "- Build and maintain relationships with stakeholders and agencies - Manage roadmaps for new and existing digital products - Understand the operational needs and challenges of users across the…"
+                    - generic [ref=e1234]:
+                      - button "Analyse" [ref=e1235]
+                      - link "Open" [ref=e1236]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17173337/005056a3-d347-1fe1-9bf0-2314feb702ad
+                      - 'button "{ } OKF" [ref=e1237]'
+                - generic [ref=e1238] [cursor=pointer]:
+                  - generic [ref=e1239]:
+                    - generic [ref=e1240]: G
+                    - generic "Government Technology Agency" [ref=e1241]
+                  - generic [ref=e1242]:
+                    - heading "Software Engineer, CDA" [level=3] [ref=e1243]
+                    - generic [ref=e1244]: 6 days ago
+                    - generic [ref=e1246]: Salary on application
+                    - paragraph [ref=e1247]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1248]:
+                      - button "Analyse" [ref=e1249]
+                      - link "Open" [ref=e1250]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004399201?gh_jid=4004399201
+                      - 'button "{ } OKF" [ref=e1251]'
+                - generic [ref=e1252] [cursor=pointer]:
+                  - generic [ref=e1253]:
+                    - generic [ref=e1254]: L
+                    - generic "Land Transport Authority" [ref=e1255]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2165]'
+                  - generic [ref=e1256]:
+                    - heading "[LTA-T&ID] PRINCIPAL / SENIOR / EXECUTIVE SOFTWARE ENGINEER, SYSTEMS" [level=3] [ref=e1257]
+                    - generic [ref=e1258]: 1 week ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2167]: SSOC 21526 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1259]:
+                      - generic [ref=e1260]: Salary on application
+                      - generic [ref=e1261]: Fixed Terms
+                    - paragraph [ref=e1262]: At Centre for Autonomous Mobility (CAM), You will build the digital products that make safe autonomous vehicle deployments possible in Singapore, at scale.
+                    - generic [ref=e1263]:
+                      - button "Analyse" [ref=e1264]
+                      - link "Open" [ref=e1265]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17729863/005056a3-d347-1fe1-9bcf-00a84f96c2ad
+                      - 'button "{ } OKF" [ref=e1266]'
+                - generic [ref=e1267] [cursor=pointer]:
+                  - generic [ref=e1268]:
+                    - generic [ref=e1269]: G
+                    - generic "Government Technology Agency" [ref=e1270]
+                  - generic [ref=e1271]:
+                    - heading "Software Engineer, Digital Products & Platforms (STB)" [level=3] [ref=e1272]
+                    - generic [ref=e1273]: 1 week ago
+                    - generic [ref=e1275]: Salary on application
+                    - paragraph [ref=e1276]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1277]:
+                      - button "Analyse" [ref=e1278]
+                      - link "Open" [ref=e1279]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004385201?gh_jid=4004385201
+                      - 'button "{ } OKF" [ref=e1280]'
+                - generic [ref=e1281] [cursor=pointer]:
+                  - generic [ref=e1282]:
+                    - generic [ref=e1283]: G
+                    - generic "Government Technology Agency" [ref=e1284]
+                  - generic [ref=e1285]:
+                    - heading "Software Engineer, IPOS" [level=3] [ref=e1286]
+                    - generic [ref=e1287]: 1 week ago
+                    - generic [ref=e1289]: Salary on application
+                    - paragraph [ref=e1290]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1291]:
+                      - button "Analyse" [ref=e1292]
+                      - link "Open" [ref=e1293]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004356201?gh_jid=4004356201
+                      - 'button "{ } OKF" [ref=e1294]'
+                - generic [ref=e1295] [cursor=pointer]:
+                  - generic [ref=e1296]:
+                    - generic [ref=e1297]: G
+                    - generic "Government Technology Agency" [ref=e1298]
+                    - 'generic "AI exposure: Full automation" [ref=e2168]'
+                  - generic [ref=e1299]:
+                    - heading "Software Engineer, Data Programme" [level=3] [ref=e1300]
+                    - generic [ref=e1301]: 1 week ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2170]: SSOC 25291 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1303]: Salary on application
+                    - paragraph [ref=e1304]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1305]:
+                      - button "Analyse" [ref=e1306]
+                      - link "Open" [ref=e1307]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004128201?gh_jid=4004128201
+                      - 'button "{ } OKF" [ref=e1308]'
+                - generic [ref=e1309] [cursor=pointer]:
+                  - generic [ref=e1310]:
+                    - generic [ref=e1311]: M
+                    - generic "Monetary Authority of Singapore" [ref=e1312]
+                  - generic [ref=e1313]:
+                    - heading "Software Engineer - App Security & SRE (Contract)" [level=3] [ref=e1314]
+                    - generic [ref=e1315]: 2 weeks ago
+                    - generic [ref=e1316]:
+                      - generic [ref=e1317]: Salary on application
+                      - generic [ref=e1318]: Fixed Terms
+                    - paragraph [ref=e1319]: Application support & monitoring - Monitor and maintain production application health, investigating errors, exceptions, and system alerts to ensure service availability - Define and implement…
+                    - generic [ref=e1320]:
+                      - button "Analyse" [ref=e1321]
+                      - link "Open" [ref=e1322]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17220673/005056a3-53e2-1fd1-9a9e-f9c557c193fd
+                      - 'button "{ } OKF" [ref=e1323]'
+                - generic [ref=e1324] [cursor=pointer]:
+                  - generic [ref=e1325]:
+                    - generic [ref=e1326]: L
+                    - generic "Land Transport Authority" [ref=e1327]
+                  - generic [ref=e1328]:
+                    - heading "[LTA-ITCD] LEAD / PRINCIPAL / SENIOR SOFTWARE ENGINEER" [level=3] [ref=e1329]
+                    - generic [ref=e1330]: 2 weeks ago
+                    - generic [ref=e1331]:
+                      - generic [ref=e1332]: Salary on application
+                      - generic [ref=e1333]: Fixed Terms
+                    - paragraph [ref=e1334]: You will be responsible for designing, developing, and optimizing cloud-based software solutions while leading a team of engineers.
+                    - generic [ref=e1335]:
+                      - button "Analyse" [ref=e1336]
+                      - link "Open" [ref=e1337]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17691820/005056a3-d347-1fe1-99d3-871b976302a9
+                      - 'button "{ } OKF" [ref=e1338]'
+                - generic [ref=e1339] [cursor=pointer]:
+                  - generic [ref=e1340]:
+                    - generic [ref=e1341]: G
+                    - generic "Government Technology Agency" [ref=e1342]
+                  - generic [ref=e1343]:
+                    - heading "Software Engineer, GovTech Innovation Office" [level=3] [ref=e1344]
+                    - generic [ref=e1345]: 2 weeks ago
+                    - generic [ref=e1347]: Salary on application
+                    - paragraph [ref=e1348]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1349]:
+                      - button "Analyse" [ref=e1350]
+                      - link "Open" [ref=e1351]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004219201?gh_jid=4004219201
+                      - 'button "{ } OKF" [ref=e1352]'
+                - generic [ref=e1353] [cursor=pointer]:
+                  - generic [ref=e1354]:
+                    - generic [ref=e1355]: L
+                    - generic "Land Transport Authority" [ref=e1356]
+                  - generic [ref=e1357]:
+                    - heading "[LTA-TRO] SENIOR/ EXECUTIVE/ SOFTWARE ENGINEER, TRAFFIC & ROAD IT" [level=3] [ref=e1358]
+                    - generic [ref=e1359]: 2 weeks ago
+                    - generic [ref=e1360]:
+                      - generic [ref=e1361]: Salary on application
+                      - generic [ref=e1362]: Fixed Terms
+                    - paragraph [ref=e1363]: "- You will be responsible for leading the development of cloud-based software solutions with a focus on AI-driven applications and agile delivery methodologies. - Combine hands-on technical…"
+                    - generic [ref=e1364]:
+                      - button "Analyse" [ref=e1365]
+                      - link "Open" [ref=e1366]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17197027/005056a3-53e2-1fd1-9a9e-f820eb0513fd
+                      - 'button "{ } OKF" [ref=e1367]'
+                - generic [ref=e1368] [cursor=pointer]:
+                  - generic [ref=e1369]:
+                    - generic [ref=e1370]: G
+                    - generic "Government Technology Agency" [ref=e1371]
+                  - generic [ref=e1372]:
+                    - heading "Software Engineer, DevOps, Salesforce CoE" [level=3] [ref=e1373]
+                    - generic [ref=e1374]: 3 weeks ago
+                    - generic "INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS" [ref=e2172]: SSOC 25125 · INFORMATION AND COMMUNICATIONS TECHNOLOGY (ICT) PROFESSIONALS
+                    - generic [ref=e1376]: Salary on application
+                    - paragraph [ref=e1377]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1378]:
+                      - button "Analyse" [ref=e1379]
+                      - link "Open" [ref=e1380]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004155201?gh_jid=4004155201
+                      - 'button "{ } OKF" [ref=e1381]'
+                - generic [ref=e1382] [cursor=pointer]:
+                  - generic [ref=e1383]:
+                    - generic [ref=e1384]: G
+                    - generic "Government Technology Agency" [ref=e1385]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2173]'
+                  - generic [ref=e1386]:
+                    - heading "Software Engineer (MUIS)" [level=3] [ref=e1387]
+                    - generic [ref=e1388]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2175]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1390]: Salary on application
+                    - paragraph [ref=e1391]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1392]:
+                      - button "Analyse" [ref=e1393]
+                      - link "Open" [ref=e1394]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004118201?gh_jid=4004118201
+                      - 'button "{ } OKF" [ref=e1395]'
+                - generic [ref=e1396] [cursor=pointer]:
+                  - generic [ref=e1397]:
+                    - generic [ref=e1398]: D
+                    - generic "Defence Science and Technology Agency" [ref=e1399]
+                  - generic [ref=e1400]:
+                    - heading "Modelling & Simulation Software Engineer" [level=3] [ref=e1401]
+                    - generic [ref=e1402]: 3 weeks ago
+                    - generic [ref=e1403]:
+                      - generic [ref=e1404]: Salary on application
+                      - generic [ref=e1405]: Permanent
+                    - paragraph [ref=e1406]: Once here you will Collaborate closely with product managers, UX designers, developers and other stakeholders to deliver valuable and impactful software that serves a suite of use cases.
+                    - generic [ref=e1407]:
+                      - button "Analyse" [ref=e1408]
+                      - link "Open" [ref=e1409]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17655340/005056a3-d347-1fe1-97f8-5f82b3c442a7
+                      - 'button "{ } OKF" [ref=e1410]'
+                - generic [ref=e1411] [cursor=pointer]:
+                  - generic [ref=e1412]:
+                    - generic [ref=e1413]: G
+                    - generic "Government Technology Agency" [ref=e1414]
+                  - generic [ref=e1415]:
+                    - heading "Senior Software Engineer (Reimagine Engineering), Software Engineering Practice" [level=3] [ref=e1416]
+                    - generic [ref=e1417]: 3 weeks ago
+                    - generic [ref=e1419]: Salary on application
+                    - paragraph [ref=e1420]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1421]:
+                      - button "Analyse" [ref=e1422]
+                      - link "Open" [ref=e1423]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004091201?gh_jid=4004091201
+                      - 'button "{ } OKF" [ref=e1424]'
+                - generic [ref=e1425] [cursor=pointer]:
+                  - generic [ref=e1426]:
+                    - generic [ref=e1427]: G
+                    - generic "Government Technology Agency" [ref=e1428]
+                  - generic [ref=e1429]:
+                    - heading "Staff / Senior Software Engineer, eGreenGov" [level=3] [ref=e1430]
+                    - generic [ref=e1431]: 3 weeks ago
+                    - generic [ref=e1433]: Salary on application
+                    - paragraph [ref=e1434]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1435]:
+                      - button "Analyse" [ref=e1436]
+                      - link "Open" [ref=e1437]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004088201?gh_jid=4004088201
+                      - 'button "{ } OKF" [ref=e1438]'
+                - generic [ref=e1439] [cursor=pointer]:
+                  - generic [ref=e1440]:
+                    - generic [ref=e1441]: C
+                    - generic "Centre for Strategic Infocomm Technologies" [ref=e1442]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2176]'
+                  - generic [ref=e1443]:
+                    - heading "Software Engineer (Network Systems)" [level=3] [ref=e1444]
+                    - generic [ref=e1445]: 3 weeks ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2178]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1446]:
+                      - generic [ref=e1447]: Salary on application
+                      - generic [ref=e1448]: Permanent
+                    - paragraph [ref=e1449]: Identify and prototype new products that enhance existing capabilities or provide new opportunities Design, develop, test, deploy, maintain and improve software solutions in accordance with best…
+                    - generic [ref=e1450]:
+                      - button "Analyse" [ref=e1451]
+                      - link "Open" [ref=e1452]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17652390/005056a3-d347-1fe1-97e5-fabf10bae2a7
+                      - 'button "{ } OKF" [ref=e1453]'
+                - generic [ref=e1454] [cursor=pointer]:
+                  - generic [ref=e1455]:
+                    - generic [ref=e1456]: L
+                    - generic "Land Transport Authority" [ref=e1457]
+                  - generic [ref=e1458]:
+                    - heading "[LTA-TRO] SOFTWARE ENGINEER – TRAFFIC LIGHT MGMT & SENSORS" [level=3] [ref=e1459]
+                    - generic [ref=e1460]: 3 weeks ago
+                    - generic [ref=e1461]:
+                      - generic [ref=e1462]: Salary on application
+                      - generic [ref=e1463]: Fixed Terms
+                    - paragraph [ref=e1464]: You will be at the forefront of developing the Next Generation Traffic Light Control System . This is a mission-critical project focused on optimizing traffic flow and enhancing road safety across…
+                    - generic [ref=e1465]:
+                      - button "Analyse" [ref=e1466]
+                      - link "Open" [ref=e1467]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17196975/005056a3-53e2-1fd1-97d8-1c0a515893fa
+                      - 'button "{ } OKF" [ref=e1468]'
+                - generic [ref=e1469] [cursor=pointer]:
+                  - generic [ref=e1470]:
+                    - generic [ref=e1471]: G
+                    - generic "Government Technology Agency" [ref=e1472]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2179]'
+                  - generic [ref=e1473]:
+                    - heading "Senior / Software Engineer (PA)" [level=3] [ref=e1474]
+                    - generic [ref=e1475]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2181]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1477]: Salary on application
+                    - paragraph [ref=e1478]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1479]:
+                      - button "Analyse" [ref=e1480]
+                      - link "Open" [ref=e1481]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003994201?gh_jid=4003994201
+                      - 'button "{ } OKF" [ref=e1482]'
+                - generic [ref=e1483] [cursor=pointer]:
+                  - generic [ref=e1484]:
+                    - generic [ref=e1485]: G
+                    - generic "Government Technology Agency" [ref=e1486]
+                  - generic [ref=e1487]:
+                    - heading "Software Engineer, Ministry of Law" [level=3] [ref=e1488]
+                    - generic [ref=e1489]: 1 month ago
+                    - generic [ref=e1491]: Salary on application
+                    - paragraph [ref=e1492]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1493]:
+                      - button "Analyse" [ref=e1494]
+                      - link "Open" [ref=e1495]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003973201?gh_jid=4003973201
+                      - 'button "{ } OKF" [ref=e1496]'
+                - generic [ref=e1497] [cursor=pointer]:
+                  - generic [ref=e1498]:
+                    - generic [ref=e1499]: C
+                    - generic "Centre for Strategic Infocomm Technologies" [ref=e1500]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2182]'
+                  - generic [ref=e1501]:
+                    - heading "Software Engineer (Data Processing and Management)" [level=3] [ref=e1502]
+                    - generic [ref=e1503]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2184]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1504]:
+                      - generic [ref=e1505]: Salary on application
+                      - generic [ref=e1506]: Permanent
+                    - paragraph [ref=e1507]: Write high-quality code with comprehensive unit, functional, and end-to-end tests. Design, build, and deploy applications and APIs for data processing and management.
+                    - generic [ref=e1508]:
+                      - button "Analyse" [ref=e1509]
+                      - link "Open" [ref=e1510]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17616133/005056a3-53e2-1fd1-9681-7debc131d3f7
+                      - 'button "{ } OKF" [ref=e1511]'
+                - generic [ref=e1512] [cursor=pointer]:
+                  - generic [ref=e1513]:
+                    - generic [ref=e1514]: G
+                    - generic "Government Technology Agency" [ref=e1515]
+                  - generic [ref=e1516]:
+                    - heading "Senior/ Staff Software Engineer, Judiciary" [level=3] [ref=e1517]
+                    - generic [ref=e1518]: 1 month ago
+                    - generic [ref=e1520]: Salary on application
+                    - paragraph [ref=e1521]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1522]:
+                      - button "Analyse" [ref=e1523]
+                      - link "Open" [ref=e1524]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003955201?gh_jid=4003955201
+                      - 'button "{ } OKF" [ref=e1525]'
+                - generic [ref=e1526] [cursor=pointer]:
+                  - generic [ref=e1527]:
+                    - generic [ref=e1528]: G
+                    - generic "Government Technology Agency" [ref=e1529]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2185]'
+                  - generic [ref=e1530]:
+                    - heading "Senior / Software Engineer (MCCY)" [level=3] [ref=e1531]
+                    - generic [ref=e1532]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2187]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1534]: Salary on application
+                    - paragraph [ref=e1535]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1536]:
+                      - button "Analyse" [ref=e1537]
+                      - link "Open" [ref=e1538]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003943201?gh_jid=4003943201
+                      - 'button "{ } OKF" [ref=e1539]'
+                - generic [ref=e1540] [cursor=pointer]:
+                  - generic [ref=e1541]:
+                    - generic [ref=e1542]: G
+                    - generic "Government Technology Agency" [ref=e1543]
+                  - generic [ref=e1544]:
+                    - heading "Software Engineer - eGreenGov" [level=3] [ref=e1545]
+                    - generic [ref=e1546]: 1 month ago
+                    - generic [ref=e1548]: Salary on application
+                    - paragraph [ref=e1549]: GovTech is the lead agency driving Singapore's Smart Nation initiative and public sector digital transformation.
+                    - generic [ref=e1550]:
+                      - button "Analyse" [ref=e1551]
+                      - link "Open" [ref=e1552]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003897201?gh_jid=4003897201
+                      - 'button "{ } OKF" [ref=e1553]'
+                - generic [ref=e1554] [cursor=pointer]:
+                  - generic [ref=e1555]:
+                    - generic [ref=e1556]: G
+                    - generic "Government Technology Agency" [ref=e1557]
+                  - generic [ref=e1558]:
+                    - heading "Software Engineer (DevOps), TIC" [level=3] [ref=e1559]
+                    - generic [ref=e1560]: 1 month ago
+                    - generic [ref=e1562]: Salary on application
+                    - paragraph [ref=e1563]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1564]:
+                      - button "Analyse" [ref=e1565]
+                      - link "Open" [ref=e1566]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003804201?gh_jid=4003804201
+                      - 'button "{ } OKF" [ref=e1567]'
+                - generic [ref=e1568] [cursor=pointer]:
+                  - generic [ref=e1569]:
+                    - generic [ref=e1570]: G
+                    - generic "Government Technology Agency" [ref=e1571]
+                  - generic [ref=e1572]:
+                    - heading "Software Engineer, TIC" [level=3] [ref=e1573]
+                    - generic [ref=e1574]: 1 month ago
+                    - generic [ref=e1576]: Salary on application
+                    - paragraph [ref=e1577]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1578]:
+                      - button "Analyse" [ref=e1579]
+                      - link "Open" [ref=e1580]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003802201?gh_jid=4003802201
+                      - 'button "{ } OKF" [ref=e1581]'
+                - generic [ref=e1582] [cursor=pointer]:
+                  - generic [ref=e1583]:
+                    - generic [ref=e1584]: D
+                    - generic "Defence Science and Technology Agency" [ref=e1585]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2188]'
+                  - generic [ref=e1586]:
+                    - heading "Software Engineer (Data Services and Applications)" [level=3] [ref=e1587]
+                    - generic [ref=e1588]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2190]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1589]:
+                      - generic [ref=e1590]: Salary on application
+                      - generic [ref=e1591]: Permanent
+                    - paragraph [ref=e1592]: "Solution Design: Design and develop data pipelines designed to efficiently collect, aggregate and disseminate data across multiple systems."
+                    - generic [ref=e1593]:
+                      - button "Analyse" [ref=e1594]
+                      - link "Open" [ref=e1595]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17544444/005056a3-53e2-1fd1-92c0-39f22dab93f3
+                      - 'button "{ } OKF" [ref=e1596]'
+                - generic [ref=e1597] [cursor=pointer]:
+                  - generic [ref=e1598]:
+                    - generic [ref=e1599]: D
+                    - generic "Defence Science and Technology Agency" [ref=e1600]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2191]'
+                  - generic [ref=e1601]:
+                    - heading "Software Engineer (Intelligence Analysis Applications Development)" [level=3] [ref=e1602]
+                    - generic [ref=e1603]: 1 month ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2193]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1604]:
+                      - generic [ref=e1605]: Salary on application
+                      - generic [ref=e1606]: Permanent
+                    - paragraph [ref=e1607]: "Solution Design: Translate complex use cases into robust solution designs and detailed technical specifications."
+                    - generic [ref=e1608]:
+                      - button "Analyse" [ref=e1609]
+                      - link "Open" [ref=e1610]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/15719225/005056a3-53e2-1fd1-8ccb-dfc510ecb3ec
+                      - 'button "{ } OKF" [ref=e1611]'
+                - generic [ref=e1612] [cursor=pointer]:
+                  - generic [ref=e1613]:
+                    - generic [ref=e1614]: G
+                    - generic "Government Technology Agency" [ref=e1615]
+                  - generic [ref=e1616]:
+                    - heading "Senior / Staff Software Engineer, Healthcare-Tech" [level=3] [ref=e1617]
+                    - generic [ref=e1618]: 1 month ago
+                    - generic [ref=e1620]: Salary on application
+                    - paragraph [ref=e1621]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1622]:
+                      - button "Analyse" [ref=e1623]
+                      - link "Open" [ref=e1624]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003411201?gh_jid=4003411201
+                      - 'button "{ } OKF" [ref=e1625]'
+                - generic [ref=e1626] [cursor=pointer]:
+                  - generic [ref=e1627]:
+                    - generic [ref=e1628]: G
+                    - generic "Government Technology Agency" [ref=e1629]
+                  - generic [ref=e1630]:
+                    - heading "Software Engineer, Ministry of Education (Geospatial)" [level=3] [ref=e1631]
+                    - generic [ref=e1632]: 1 month ago
+                    - generic [ref=e1634]: Salary on application
+                    - paragraph [ref=e1635]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1636]:
+                      - button "Analyse" [ref=e1637]
+                      - link "Open" [ref=e1638]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003407201?gh_jid=4003407201
+                      - 'button "{ } OKF" [ref=e1639]'
+                - generic [ref=e1640] [cursor=pointer]:
+                  - generic [ref=e1641]:
+                    - generic [ref=e1642]: "N"
+                    - generic "Nanyang Polytechnic" [ref=e1643]
+                    - 'generic "AI exposure: Full automation" [ref=e2194]'
+                  - generic [ref=e1644]:
+                    - heading "Software Engineer - School of Information Technology" [level=3] [ref=e1645]
+                    - generic [ref=e1646]: 2 months ago
+                    - generic "PRODUCTION AND SPECIALISED SERVICES MANAGERS" [ref=e2196]: SSOC 13301 · PRODUCTION AND SPECIALISED SERVICES MANAGERS
+                    - generic [ref=e1647]:
+                      - generic [ref=e1648]: Salary on application
+                      - generic [ref=e1649]: Fixed Terms
+                    - paragraph [ref=e1650]: "- Undertake industry and R&D project design and development. - Work with project manager/lead to fulfil the required project deliverables. - Supervise students in their final year projects. -…"
+                    - generic [ref=e1651]:
+                      - button "Analyse" [ref=e1652]
+                      - link "Open" [ref=e1653]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17514848/005056a3-53e2-1fd1-988a-651d4a5353fb
+                      - 'button "{ } OKF" [ref=e1654]'
+                - generic [ref=e1655] [cursor=pointer]:
+                  - generic [ref=e1656]:
+                    - generic [ref=e1657]: C
+                    - generic "Centre for Strategic Infocomm Technologies" [ref=e1658]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2197]'
+                  - generic [ref=e1659]:
+                    - heading "Software Engineer (Real-time Collaborative Platform – Full Stack)" [level=3] [ref=e1660]
+                    - generic [ref=e1661]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2199]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1662]:
+                      - generic [ref=e1663]: Salary on application
+                      - generic [ref=e1664]: Permanent
+                    - paragraph [ref=e1665]: Implement and enhance real-time collaboration features, including multi-user editing, conflict resolution, and state synchronization across distributed systems Engineer interactive content…
+                    - generic [ref=e1666]:
+                      - button "Analyse" [ref=e1667]
+                      - link "Open" [ref=e1668]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17511813/005056a3-53e2-1fd1-918c-f22424a9b3ef
+                      - 'button "{ } OKF" [ref=e1669]'
+                - generic [ref=e1670] [cursor=pointer]:
+                  - generic [ref=e1671]:
+                    - generic [ref=e1672]: C
+                    - generic "Centre for Strategic Infocomm Technologies" [ref=e1673]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2200]'
+                  - generic [ref=e1674]:
+                    - heading "Senior Software Engineer (Real-time Collaborative Platform – Full Stack)" [level=3] [ref=e1675]
+                    - generic [ref=e1676]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2202]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1677]:
+                      - generic [ref=e1678]: Salary on application
+                      - generic [ref=e1679]: Permanent
+                    - paragraph [ref=e1680]: Lead the design and implementation of a real-time collaboration platform, including multi-user editing, conflict resolution, and state synchronization across distributed systems Drive and engineer…
+                    - generic [ref=e1681]:
+                      - button "Analyse" [ref=e1682]
+                      - link "Open" [ref=e1683]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17511776/005056a3-53e2-1fd1-918c-d60efa0433ef
+                      - 'button "{ } OKF" [ref=e1684]'
+                - generic [ref=e1685] [cursor=pointer]:
+                  - generic [ref=e1686]:
+                    - generic [ref=e1687]: G
+                    - generic "Government Technology Agency" [ref=e1688]
+                  - generic [ref=e1689]:
+                    - heading "Software Engineer, Core Engineering Products" [level=3] [ref=e1690]
+                    - generic [ref=e1691]: 2 months ago
+                    - generic [ref=e1693]: Salary on application
+                    - paragraph [ref=e1694]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1695]:
+                      - button "Analyse" [ref=e1696]
+                      - link "Open" [ref=e1697]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003300201?gh_jid=4003300201
+                      - 'button "{ } OKF" [ref=e1698]'
+                - generic [ref=e1699] [cursor=pointer]:
+                  - generic [ref=e1700]:
+                    - generic [ref=e1701]: H
+                    - generic "Housing and Development Board" [ref=e1702]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2203]'
+                  - generic [ref=e1703]:
+                    - heading "Software Engineer (Cloud Application)" [level=3] [ref=e1704]
+                    - generic [ref=e1705]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2205]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1706]:
+                      - generic [ref=e1707]: Salary on application
+                      - generic [ref=e1708]: Contract
+                    - paragraph [ref=e1709]: You will be part of an established team in HDB's Information Services Group that has successfully embraced DevSecOps culture and practices for application development.
+                    - generic [ref=e1710]:
+                      - button "Analyse" [ref=e1711]
+                      - link "Open" [ref=e1712]:
+                        - /url: https://jobs.careers.gov.sg/jobs/hrp/17219388/005056a3-d347-1fe1-97cd-d2148d3822a7
+                      - 'button "{ } OKF" [ref=e1713]'
+                - generic [ref=e1714] [cursor=pointer]:
+                  - generic [ref=e1715]:
+                    - generic [ref=e1716]: G
+                    - generic "Government Technology Agency" [ref=e1717]
+                  - generic [ref=e1718]:
+                    - heading "Senior Software Engineer, AI Infrastructure & Operations, AI Practice" [level=3] [ref=e1719]
+                    - generic [ref=e1720]: 2 months ago
+                    - generic [ref=e1722]: Salary on application
+                    - paragraph [ref=e1723]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1724]:
+                      - button "Analyse" [ref=e1725]
+                      - link "Open" [ref=e1726]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003193201?gh_jid=4003193201
+                      - 'button "{ } OKF" [ref=e1727]'
+                - generic [ref=e1728] [cursor=pointer]:
+                  - generic [ref=e1729]:
+                    - generic [ref=e1730]: G
+                    - generic "Government Technology Agency" [ref=e1731]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2206]'
+                  - generic [ref=e1732]:
+                    - heading "Senior Software Engineer (MDDI)" [level=3] [ref=e1733]
+                    - generic [ref=e1734]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2208]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1736]: Salary on application
+                    - paragraph [ref=e1737]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1738]:
+                      - button "Analyse" [ref=e1739]
+                      - link "Open" [ref=e1740]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003222201?gh_jid=4003222201
+                      - 'button "{ } OKF" [ref=e1741]'
+                - generic [ref=e1742] [cursor=pointer]:
+                  - generic [ref=e1743]:
+                    - generic [ref=e1744]: G
+                    - generic "Government Technology Agency" [ref=e1745]
+                  - generic [ref=e1746]:
+                    - heading "Software Engineer - HealthCare Tech" [level=3] [ref=e1747]
+                    - generic [ref=e1748]: 2 months ago
+                    - generic [ref=e1750]: Salary on application
+                    - paragraph [ref=e1751]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1752]:
+                      - button "Analyse" [ref=e1753]
+                      - link "Open" [ref=e1754]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003220201?gh_jid=4003220201
+                      - 'button "{ } OKF" [ref=e1755]'
+                - generic [ref=e1756] [cursor=pointer]:
+                  - generic [ref=e1757]:
+                    - generic [ref=e1758]: G
+                    - generic "Government Technology Agency" [ref=e1759]
+                  - generic [ref=e1760]:
+                    - heading "Staff / Principal Software Engineer, Consulting Practice" [level=3] [ref=e1761]
+                    - generic [ref=e1762]: 2 months ago
+                    - generic [ref=e1764]: Salary on application
+                    - paragraph [ref=e1765]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1766]:
+                      - button "Analyse" [ref=e1767]
+                      - link "Open" [ref=e1768]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001903201?gh_jid=4001903201
+                      - 'button "{ } OKF" [ref=e1769]'
+                - generic [ref=e1770] [cursor=pointer]:
+                  - generic [ref=e1771]:
+                    - generic [ref=e1772]: G
+                    - generic "Government Technology Agency" [ref=e1773]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2209]'
+                  - generic [ref=e1774]:
+                    - heading "Senior / Software Engineer (DOS)" [level=3] [ref=e1775]
+                    - generic [ref=e1776]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2211]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1778]: Salary on application
+                    - paragraph [ref=e1779]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1780]:
+                      - button "Analyse" [ref=e1781]
+                      - link "Open" [ref=e1782]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001803201?gh_jid=4001803201
+                      - 'button "{ } OKF" [ref=e1783]'
+                - generic [ref=e1784] [cursor=pointer]:
+                  - generic [ref=e1785]:
+                    - generic [ref=e1786]: G
+                    - generic "Government Technology Agency" [ref=e1787]
+                    - 'generic "AI exposure: AI-augmented" [ref=e2212]'
+                  - generic [ref=e1788]:
+                    - heading "Software Engineer (MSF)" [level=3] [ref=e1789]
+                    - generic [ref=e1790]: 2 months ago
+                    - generic "SCIENCE AND ENGINEERING PROFESSIONALS" [ref=e2214]: SSOC 21471 · SCIENCE AND ENGINEERING PROFESSIONALS
+                    - generic [ref=e1792]: Salary on application
+                    - paragraph [ref=e1793]: "About Government Technology Agency: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation."
+                    - generic [ref=e1794]:
+                      - button "Analyse" [ref=e1795]
+                      - link "Open" [ref=e1796]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003143201?gh_jid=4003143201
+                      - 'button "{ } OKF" [ref=e1797]'
+                - generic [ref=e1798] [cursor=pointer]:
+                  - generic [ref=e1799]:
+                    - generic [ref=e1800]: G
+                    - generic "Government Technology Agency" [ref=e1801]
+                  - generic [ref=e1802]:
+                    - heading "Senior Software Engineer, Managed Agencies (ELD)" [level=3] [ref=e1803]
+                    - generic [ref=e1804]: 2 months ago
+                    - generic [ref=e1806]: Salary on application
+                    - paragraph [ref=e1807]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1808]:
+                      - button "Analyse" [ref=e1809]
+                      - link "Open" [ref=e1810]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003166201?gh_jid=4003166201
+                      - 'button "{ } OKF" [ref=e1811]'
+                - generic [ref=e1812] [cursor=pointer]:
+                  - generic [ref=e1813]:
+                    - generic [ref=e1814]: G
+                    - generic "Government Technology Agency" [ref=e1815]
+                  - generic [ref=e1816]:
+                    - heading "Software Engineer, AI Programme" [level=3] [ref=e1817]
+                    - generic [ref=e1818]: 2 months ago
+                    - generic [ref=e1820]: Salary on application
+                    - paragraph [ref=e1821]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation.
+                    - generic [ref=e1822]:
+                      - button "Analyse" [ref=e1823]
+                      - link "Open" [ref=e1824]:
+                        - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001340201?gh_jid=4001340201
+                      - 'button "{ } OKF" [ref=e1825]'

@@ -1,0 +1,248 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e1280]:
+        - generic [ref=e1281]:
+          - button "Postings" [ref=e1282] [cursor=pointer]: ← Postings
+          - generic [ref=e1283]:
+            - generic [ref=e1284]:
+              - generic [ref=e1285]: REVIEWING
+              - generic [ref=e1286]: ● from MCF
+            - generic [ref=e1287]: Accountant
+          - generic [ref=e1289]: 0 duties · 26 skills
+        - generic [ref=e1290]:
+          - generic [ref=e1291]:
+            - generic [ref=e1292]: REVIEW
+            - generic [ref=e1293]:
+              - button "Read clean" [pressed] [ref=e1294] [cursor=pointer]
+              - button "Suggestions" [ref=e1295] [cursor=pointer]
+              - button "Comments" [ref=e1296] [cursor=pointer]
+              - button "Dissect" [ref=e1297] [cursor=pointer]
+          - generic [ref=e1298]:
+            - generic [ref=e1299]: VISUALS
+            - generic [ref=e1300]:
+              - button "Job graph" [pressed] [ref=e1301] [cursor=pointer]
+              - button "AI trace" [ref=e1302] [cursor=pointer]
+              - button "Workflow" [ref=e1303] [cursor=pointer]
+              - button "Value stream" [ref=e1304] [cursor=pointer]
+              - button "Org map" [ref=e1305] [cursor=pointer]
+          - generic [ref=e1306]:
+            - generic [ref=e1307]: EVIDENCE
+            - generic [ref=e1308]:
+              - button "Observed" [ref=e1309] [cursor=pointer]
+              - button "Interpreted" [ref=e1310] [cursor=pointer]
+              - button "Applied" [ref=e1311] [cursor=pointer]
+              - button "Withheld" [ref=e1312] [cursor=pointer]
+              - button "Provenance" [ref=e1313] [cursor=pointer]
+          - generic [ref=e1314]:
+            - generic [ref=e1315]: OUTPUT
+            - generic [ref=e1316]:
+              - button "Cover letter" [ref=e1317] [cursor=pointer]
+              - button "Resume notes" [ref=e1318] [cursor=pointer]
+              - button "Interview pack" [ref=e1319] [cursor=pointer]
+              - button "Print / PDF" [ref=e1320] [cursor=pointer]
+        - generic [ref=e1321]:
+          - navigation [ref=e1322]:
+            - button "Collapse rail" [ref=e1323] [cursor=pointer]: «
+            - button "Sources" [ref=e1324] [cursor=pointer]:
+              - generic [ref=e1325]: ▤
+              - text: Sources
+            - button "Trace" [ref=e1326] [cursor=pointer]:
+              - generic [ref=e1327]: ⋔
+              - text: Trace
+            - button "Skilling" [ref=e1328] [cursor=pointer]:
+              - generic [ref=e1329]: ◇
+              - text: Skilling
+            - button "Advisory" [ref=e1330] [cursor=pointer]:
+              - generic [ref=e1331]: ✦
+              - text: Advisory
+            - button "Cover letter" [ref=e1332] [cursor=pointer]:
+              - generic [ref=e1333]: ✎
+              - text: Cover letter
+            - button "Boards" [ref=e1334] [cursor=pointer]:
+              - generic [ref=e1335]: ▦
+              - text: Boards
+            - button "Saved" [ref=e1336] [cursor=pointer]:
+              - generic [ref=e1337]: ⤓
+              - text: Saved
+            - generic [ref=e1338]: local + cloud
+          - generic [ref=e1340]:
+            - generic [ref=e1341]: MANUSCRIPT · LIVE POSTING
+            - heading "Accountant" [level=1] [ref=e1342]
+            - generic [ref=e1344]: ● from MCF · verbatim
+            - heading "Skills the posting asks for" [level=2] [ref=e1345]
+            - generic [ref=e1346]:
+              - generic [ref=e1347]: Explain Accounting Records
+              - generic [ref=e1348]: Prepare Financial Statements
+              - generic [ref=e1349]: Accounting Techniques
+              - generic [ref=e1350]: Calculate Tax
+              - generic [ref=e1351]: Statistics
+              - generic [ref=e1352]: Financial Department Processes
+              - generic [ref=e1353]: Follow the Statutory Obligations
+              - generic [ref=e1354]: Tax Legislation
+              - generic [ref=e1355]: Prepare Trial Accounting Balances
+              - generic [ref=e1356]: Check Accounting Records
+              - generic [ref=e1357]: Draft Accounting Procedures
+              - generic [ref=e1358]: Bookkeeping Regulations
+              - generic [ref=e1359]: Manage Accounts
+              - generic [ref=e1360]: Perform Balance Sheet Operations
+              - generic [ref=e1361]: Depreciation
+              - generic [ref=e1362]: Interpret Financial Statements
+              - generic [ref=e1363]: Accounting Department Processes
+              - generic [ref=e1364]: Financial Statements
+              - generic [ref=e1365]: Fraud Detection
+              - generic [ref=e1366]: Attach Accounting Certificates to Accounting Transactions
+              - generic [ref=e1367]: Commercial Law
+              - generic [ref=e1368]: Identify Accounting Errors
+              - generic [ref=e1369]: Accounting Entries
+              - generic [ref=e1370]: Ensure Compliance with Accounting Conventions
+            - paragraph [ref=e1371]: The analysed posting did not yield responsibilities text to render as a manuscript.
+          - complementary [ref=e1372]:
+            - generic [ref=e1373]: VISUAL INTELLIGENCE
+            - generic [ref=e1374]:
+              - button "Job graph" [pressed] [ref=e1375] [cursor=pointer]
+              - button "AI trace" [ref=e1376] [cursor=pointer]
+              - button "Workflow" [ref=e1377] [cursor=pointer]
+              - button "Value stream" [ref=e1378] [cursor=pointer]
+              - button "Org map" [ref=e1379] [cursor=pointer]
+            - generic [ref=e1380]:
+              - paragraph [ref=e1381]: What shape is this role - duties, skills, adjacency?
+              - generic [ref=e1383]:
+                - generic [ref=e1384]:
+                  - generic [ref=e1385]: Knowledge graph - wired structure of the role
+                  - heading "Accountant" [level=1] [ref=e1386]
+                  - generic [ref=e1387]: 28 nodes - 26 edges - 2 cluster lanes present - KG version kg1
+                - generic [ref=e1388]:
+                  - generic [ref=e1389]: ● from MCF
+                  - generic [ref=e1390]: ✓ computed
+                  - generic [ref=e1391]: ≈ inferred
+                  - generic [ref=e1392]: "? unverified"
+                - generic [ref=e1393]:
+                  - generic "Force-directed graph. Use +/- to zoom, arrow keys to pan, or drag and scroll. Switch to Lanes for keyboard navigation." [ref=e1394]:
+                    - generic [ref=e1395]:
+                      - img:
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                        - generic:
+                          - generic: informs
+                      - 'button "role: Accountant. Tap to read in full." [ref=e1396] [cursor=pointer]': Accountant
+                      - 'button "skill: Accounting Department Processes. Tap to read in full." [ref=e1397] [cursor=pointer]': Accounting Department Processes
+                      - 'button "skill: Prepare Tax Returns Forms. Tap to read in full." [ref=e1398] [cursor=pointer]': Prepare Tax Returns Forms
+                      - 'button "skill: Calculate Tax. Tap to read in full." [ref=e1399] [cursor=pointer]': Calculate Tax
+                      - 'button "skill: Bookkeeping Regulations. Tap to read in full." [ref=e1400] [cursor=pointer]': Bookkeeping Regulations
+                      - 'button "skill: Financial Department Processes. Tap to read in full." [ref=e1401] [cursor=pointer]': Financial Department Processes
+                      - 'button "skill: Financial Statements. Tap to read in full." [ref=e1402] [cursor=pointer]': Financial Statements
+                      - 'button "skill: Fraud Detection. Tap to read in full." [ref=e1403] [cursor=pointer]': Fraud Detection
+                      - 'button "skill: Perform Balance Sheet Operations. Tap to read in full." [ref=e1404] [cursor=pointer]': Perform Balance Sheet Operations
+                      - 'button "skill: Interpret Financial Statements. Tap to read in full." [ref=e1405] [cursor=pointer]': Interpret Financial Statements
+                      - 'button "skill: Check Accounting Records. Tap to read in full." [ref=e1406] [cursor=pointer]': Check Accounting Records
+                      - 'button "skill: Prepare Financial Statements. Tap to read in full." [ref=e1407] [cursor=pointer]': Prepare Financial Statements
+                      - 'button "skill: Depreciation. Tap to read in full." [ref=e1408] [cursor=pointer]': Depreciation
+                      - 'button "skill: Statistics. Tap to read in full." [ref=e1409] [cursor=pointer]': Statistics
+                      - 'button "skill: Follow the Statutory Obligations. Tap to read in full." [ref=e1410] [cursor=pointer]': Follow the Statutory Obligations
+                      - 'button "skill: Accounting Techniques. Tap to read in full." [ref=e1411] [cursor=pointer]': Accounting Techniques
+                      - 'button "skill: Identify Accounting Errors. Tap to read in full." [ref=e1412] [cursor=pointer]': Identify Accounting Errors
+                      - 'button "skill: Analyse Financial Performance of a Company. Tap to read in full." [ref=e1413] [cursor=pointer]': Analyse Financial Performance of a Company
+                      - 'button "skill: Accounting Entries. Tap to read in full." [ref=e1414] [cursor=pointer]': Accounting Entries
+                      - 'button "skill: Draft Accounting Procedures. Tap to read in full." [ref=e1415] [cursor=pointer]': Draft Accounting Procedures
+                      - 'button "skill: Explain Accounting Records. Tap to read in full." [ref=e1416] [cursor=pointer]': Explain Accounting Records
+                      - 'button "skill: Commercial Law. Tap to read in full." [ref=e1417] [cursor=pointer]': Commercial Law
+                      - 'button "skill: Tax Legislation. Tap to read in full." [ref=e1418] [cursor=pointer]': Tax Legislation
+                      - 'button "skill: Ensure Compliance with Accounting Conventions. Tap to read in full." [ref=e1419] [cursor=pointer]': Ensure Compliance with Accounting Conventions
+                      - 'button "skill: Manage Accounts. Tap to read in full." [ref=e1420] [cursor=pointer]': Manage Accounts
+                      - 'button "skill: Attach Accounting Certificates to Accounting Transactions. Tap to read in full." [ref=e1421] [cursor=pointer]': Attach Accounting Certificates to Accounting Transactions
+                      - 'button "skill: Prepare Trial Accounting Balances. Tap to read in full." [ref=e1422] [cursor=pointer]': Prepare Trial Accounting Balances
+                      - 'button "occupation: accountant. Tap to read in full." [ref=e1423] [cursor=pointer]': accountant
+                    - generic [ref=e1424]:
+                      - button "Zoom in" [ref=e1425] [cursor=pointer]: +
+                      - button "Zoom out" [ref=e1426] [cursor=pointer]: "-"
+                      - button "Reset and fit graph to view" [ref=e1427] [cursor=pointer]: fit
+                      - generic [ref=e1428]: 100%
+                  - paragraph [ref=e1429]:
+                    - text: Neural graph -
+                    - strong [ref=e1430]: tap a node to expand it and read the full text
+                    - text: (tap again to collapse). Tap also traces its connections. Wheel/pinch or +/- to zoom; drag or arrow keys to pan. Prefer reading? Switch to
+                    - strong [ref=e1431]: Cards
+                    - text: .
+                - button "Verb-labelled edges (26 total)" [ref=e1433] [cursor=pointer]:
+                  - generic [ref=e1434]: Verb-labelled edges (26 total)
+                  - generic [ref=e1435]: show
+                - generic [ref=e1436]:
+                  - generic [ref=e1437]: "? Withheld (not faked)"
+                  - list [ref=e1438]:
+                    - listitem [ref=e1439]: "organisation: hiring organisation not named in posting metadata"
+                    - listitem [ref=e1440]: "competition: no computed mirror-role data in result"
+                    - listitem [ref=e1441]: "department: no function/team marker found - role node kept in department cluster by position"
+                - generic [ref=e1442]:
+                  - generic [ref=e1443]: "Source: duties from MCF posting (verbatim); skills from ESCO; occupation from ESCO/ISCO-08. Confidence: high = verified; medium = inferred from ESCO overlap; low = sparse evidence. Time-window: snapshot of the analysed posting."
+                  - generic [ref=e1444]: "AI-assisted; human decides. Knowledge graph is computed deterministically from the MCF posting data - no LLM authoring any node, edge, verb, or cluster. Version: kg1. Generated: 2026-06-30."
+                  - generic [ref=e1445]: "Withheld: organisation: hiring organisation not named in posting metadata; competition: no computed mirror-role data in result; department: no function/team marker found - role node kept in department cluster by position."
+            - generic [ref=e1446]: every node ← source span
+        - generic [ref=e1447]:
+          - generic [ref=e1448]: Review Studio · local + cloud
+          - generic [ref=e1449]: AI-assisted · human decides
