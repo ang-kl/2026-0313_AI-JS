@@ -20,3 +20,9 @@ P.S. This is a side hobby - built in spare moments out of genuine curiosity abou
 Adrian K. L. Ang - linkedin.com/in/angadrian - feedback@takearoundabout.com
 
 *Sometimes the scenic route is the right one.*
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0.
+
+See [LICENSE.md](./LICENSE.md) for details.
