@@ -9,6 +9,7 @@
     "api/careers.js": { "maxDuration": 30  },
     "api/datagov.js": { "maxDuration": 30  },
     "api/ssic.js":    { "maxDuration": 60  },
+    "api/geocode.js": { "maxDuration": 15  },
     "api/anatomy.js": { "maxDuration": 15  },
     "api/engine.js":  { "maxDuration": 15  }
   },
