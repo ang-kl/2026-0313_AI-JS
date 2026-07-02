@@ -10,6 +10,12 @@
 // Postgres is optional: `action:"seed"` mirrors the JSON into an ssic_index
 // table for other queries; the classify path is in-memory (5.4k terms) so it
 // works with or without a database, exactly like ssoc.js's classify path.
+//
+// `action:"lookup"` is a separate, authoritative path: it reads the real
+// registered SSIC for a company from `acra_entities` (seeded offline via
+// scripts/seed-acra.mjs from the ACRA "Information on Corporate Entities"
+// A-Z export) - falling back to the text classifier only when ACRA has no
+// exact match for the given name/UEN.
 
 if (!process.env.POSTGRES_URL) {
   process.env.POSTGRES_URL = process.env.SSOC_POSTGRES_URL
@@ -22,6 +28,7 @@ if (!process.env.POSTGRES_URL) {
 }
 
 import { readFileSync } from 'node:fs';
+import { sql as vercelSql } from '@vercel/postgres';
 
 export const config = { api: { bodyParser: true }, maxDuration: 60 };
 
@@ -177,6 +184,160 @@ async function seedDatabase() {
   });
 }
 
+// ── ACRA entity lookup (authoritative: name/UEN -> registered SSIC) ─────────
+// Distinct from classifyText: this reads the actual registered SSIC for a
+// known entity out of `acra_entities` (seeded via scripts/seed-acra.mjs from
+// the ACRA "Information on Corporate Entities" A-Z export) rather than
+// guessing from free text. source:"acra" (authoritative) vs the classifier's
+// source:"derived" (inferred) - never conflate the two confidence levels.
+function normEntityName(s) {
+  return String(s || '')
+    .toUpperCase()
+    .replace(/\(([^)]*)\)/g, ' ')
+    .replace(/\b(PTE|PRIVATE|LTD|LIMITED|LLP|LLC|INC|CORP|CORPORATION|CO|COMPANY|SINGAPORE|SG|HOLDINGS?)\b\.?/g, ' ')
+    .replace(/[^A-Z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isUen(s) {
+  return /^[0-9]{8,10}[A-Z]$/i.test(String(s || '').trim());
+}
+
+// The Postgres mirror stores ACRA's "na" marker as SQL NULL (see
+// scripts/seed-acra.mjs), but the live data.gov.sg datastore returns it as
+// the literal string "na" - normalise both paths here so a stray "na" never
+// reaches the UI looking like a real value.
+function naToNull(v) {
+  return (v == null || String(v).trim().toLowerCase() === 'na' || String(v).trim() === '') ? null : v;
+}
+
+function mapAcraRow(r) {
+  return {
+    uen: naToNull(r.uen),
+    entityName: naToNull(r.entity_name),
+    entityType: naToNull(r.entity_type_description),
+    status: naToNull(r.entity_status_description),
+    registeredSince: naToNull(r.registration_incorporation_date),
+    primarySsicCode: naToNull(r.primary_ssic_code),
+    primarySsicDescription: naToNull(r.primary_ssic_description),
+    secondarySsicCode: naToNull(r.secondary_ssic_code),
+    secondarySsicDescription: naToNull(r.secondary_ssic_description),
+    street: naToNull(r.street_name),
+    building: naToNull(r.building_name),
+    postal: naToNull(r.postal_code),
+  };
+}
+
+// Uses @vercel/postgres (not the raw `pg` client below) - same driver as
+// api/anatomy.js, the codebase's proven Postgres pattern. It verifies TLS
+// certs against Vercel's CA out of the box, so no rejectUnauthorized bypass
+// is needed for this path.
+async function acraDbLookup(rawQuery) {
+  if (!process.env.POSTGRES_URL) return { matched: 'none', reason: 'no_database' };
+  try {
+    const query = String(rawQuery || '').trim();
+    if (isUen(query)) {
+      const { rows } = await withTimeout(vercelSql`SELECT * FROM acra_entities WHERE uen = ${query.toUpperCase()} LIMIT 1`, 'acra lookup');
+      if (rows.length) return { matched: 'exact', source: 'acra', ...mapAcraRow(rows[0]) };
+      return { matched: 'none', reason: 'no_match' };
+    }
+    const norm = normEntityName(query);
+    if (norm.length < 3) return { matched: 'none', reason: 'name_too_short' };
+    const { rows } = await withTimeout(vercelSql`SELECT * FROM acra_entities WHERE entity_name ILIKE ${`%${norm}%`} LIMIT 20`, 'acra lookup');
+    const hits = rows.filter((r) => normEntityName(r.entity_name) === norm);
+    if (!hits.length) return { matched: 'none', reason: 'no_exact_match' };
+    const live = hits.find((r) => /live/i.test(r.entity_status_description || ''));
+    const r = live || hits[0];
+    return { matched: 'exact', source: 'acra', namesakes: hits.length - 1, ...mapAcraRow(r) };
+  } catch (err) {
+    console.error('[ssic] acra lookup:', err && err.message);
+    return { matched: 'none', reason: 'db_error' };
+  }
+}
+
+// ── ACRA live lookup (data.gov.sg collection 2, no Postgres needed) ─────────
+// "ACRA Information on Corporate Entities" - 27 A-Z datasets + "Others",
+// updated monthly (collection_id=2). Each dataset's datasetId doubles as its
+// datastore_search resource_id directly - no separate resource lookup. Split
+// by first letter of entity_name; queried live, so this works with zero DB
+// setup. Same fields as acra_entities (primary/secondary SSIC, status, dates).
+const ACRA_LIVE_BASE = 'https://data.gov.sg/api/action/datastore_search';
+const ACRA_LIVE_TIMEOUT_MS = 7000;
+const ACRA_LIVE_RESOURCE_BY_LETTER = {
+  A: 'd_8575e84912df3c28995b8e6e0e05205a', B: 'd_3a3807c023c61ddfba947dc069eb53f2',
+  C: 'd_c0650f23e94c42e7a20921f4c5b75c24', D: 'd_acbc938ec77af18f94cecc4a7c9ec720',
+  E: 'd_124a9bd407c7a25f8335b93b86e50fdd', F: 'd_4526d47d6714d3b052eed4a30b8b1ed6',
+  G: 'd_b58303c68e9cf0d2ae93b73ffdbfbfa1', H: 'd_fa2ed456cf2b8597bb7e064b08fc3c7c',
+  I: 'd_85518d970b8178975850457f60f1e738', J: 'd_478f45a9c541cbe679ca55d1cd2b970b',
+  K: 'd_5573b0db0575db32190a2ad27919a7aa', L: 'd_a2141adf93ec2a3c2ec2837b78d6d46e',
+  M: 'd_9af9317c646a1c881bb5591c91817cc6', N: 'd_67e99e6eabc4aad9b5d48663b579746a',
+  O: 'd_5c4ef48b025fdfbc80056401f06e3df9', P: 'd_181005ca270b45408b4cdfc954980ca2',
+  Q: 'd_4130f1d9d365d9f1633536e959f62bb7', R: 'd_2b8c54b2a490d2fa36b925289e5d9572',
+  S: 'd_df7d2d661c0c11a7c367c9ee4bf896c1', T: 'd_72f37e5c5d192951ddc5513c2b134482',
+  U: 'd_0cc5f52a1f298b916f317800251057f3', V: 'd_e97e8e7fc55b85a38babf66b0fa46b73',
+  W: 'd_af2042c77ffaf0db5d75561ce9ef5688', X: 'd_1cd970d8351b42be4a308d628a6dd9d3',
+  Y: 'd_31af23fdb79119ed185c256f03cb5773', Z: 'd_4e3db8955fdcda6f9944097bef3d2724',
+};
+const ACRA_LIVE_OTHERS_RESOURCE = 'd_300ddc8da4e8f7bdc1bfc62d0d99e2e7';
+const acraLiveCache = new Map(); // normName -> { value, expiresAt }
+const ACRA_LIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function acraResourceForName(entityName) {
+  const first = String(entityName || '').trim().toUpperCase()[0];
+  return ACRA_LIVE_RESOURCE_BY_LETTER[first] || ACRA_LIVE_OTHERS_RESOURCE;
+}
+
+async function fetchWithTimeout(url, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { headers: { accept: 'application/json' }, signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (_) {
+    clearTimeout(timer);
+    return null;
+  }
+}
+
+async function acraLiveLookup(rawQuery) {
+  const query = String(rawQuery || '').trim();
+  if (isUen(query)) {
+    // UEN alone doesn't tell us which A-Z dataset holds it - query all 28 is
+    // too slow for one request, so UEN-only lookups need the DB path.
+    return { matched: 'none', reason: 'uen_needs_database' };
+  }
+  const norm = normEntityName(query);
+  if (norm.length < 3) return { matched: 'none', reason: 'name_too_short' };
+  const cached = acraLiveCache.get(norm);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const resourceId = acraResourceForName(query);
+  const exactFilter = encodeURIComponent(JSON.stringify({ entity_name: query.toUpperCase().trim().slice(0, 120) }));
+  let json = await fetchWithTimeout(`${ACRA_LIVE_BASE}?resource_id=${resourceId}&filters=${exactFilter}&limit=5`, ACRA_LIVE_TIMEOUT_MS);
+  let records = json?.result?.records || [];
+  if (!records.length) {
+    const q = query.replace(/[^A-Za-z0-9 &-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+    if (q.length >= 3) {
+      json = await fetchWithTimeout(`${ACRA_LIVE_BASE}?resource_id=${resourceId}&q=${encodeURIComponent(q)}&limit=20`, ACRA_LIVE_TIMEOUT_MS);
+      records = json?.result?.records || [];
+    }
+  }
+  const hits = records.filter((r) => normEntityName(r.entity_name) === norm);
+  if (!hits.length) {
+    const out = { matched: 'none', reason: 'no_exact_match' };
+    acraLiveCache.set(norm, { value: out, expiresAt: Date.now() + ACRA_LIVE_CACHE_TTL_MS });
+    return out;
+  }
+  const live = hits.find((r) => /live/i.test(r.entity_status_description || ''));
+  const r = live || hits[0];
+  const out = { matched: 'exact', source: 'acra', namesakes: hits.length - 1, ...mapAcraRow(r) };
+  acraLiveCache.set(norm, { value: out, expiresAt: Date.now() + ACRA_LIVE_CACHE_TTL_MS });
+  return out;
+}
+
 // ── handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -194,6 +355,21 @@ export default async function handler(req, res) {
     catch (err) { console.error('[ssic] seed:', err && err.message); return res.status(200).json({ ok: false, reason: 'db_error' }); }
   }
 
+  if (action === 'lookup') {
+    // Authoritative first: exact ACRA registration match by UEN or name.
+    // Order: Postgres mirror (fast, if seeded) -> live data.gov.sg datastore
+    // (always available, no DB needed) -> text classifier only as a last
+    // resort when ACRA has no exact record. The three are never blended into
+    // one confidence score - each response says exactly which one answered.
+    const query = String(body.query || body.name || body.uen || '');
+    if (!query.trim()) return res.status(400).json({ error: 'Required: action="lookup", query=string (company name or UEN)' });
+    let acra = await acraDbLookup(query);
+    if (acra.matched !== 'exact') acra = await acraLiveLookup(query);
+    if (acra.matched === 'exact') return res.status(200).json({ version: VERSION, ...acra });
+    const fallback = classifyText(query, Number(body.limit) || 5);
+    return res.status(200).json({ version: VERSION, acra, fallback: { source: 'derived', ...fallback } });
+  }
+
   if (action === 'classify') {
     // Single text, or batch: { texts:[...] } -> one classification each.
     if (Array.isArray(body.texts)) {
@@ -205,5 +381,5 @@ export default async function handler(req, res) {
     return res.status(200).json({ version: VERSION, ...classifyText(text, Number(body.limit) || 5) });
   }
 
-  return res.status(400).json({ error: 'Invalid action. Use classify | seed | status' });
+  return res.status(400).json({ error: 'Invalid action. Use classify | lookup | seed | status' });
 }
