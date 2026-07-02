@@ -1452,6 +1452,11 @@ import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
 import { computeEngine } from "../engine-data/engine-core.js";
 
+// Single source for the visible build tag shown in Step 2 / Step 3 footers.
+// Bump alongside package.json - not read from it (build-time JSON import
+// would pull in the whole file); keep the two in sync by hand each release.
+const APP_VERSION = "3.0.183";
+
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
 const STEP2_BANDS = {
@@ -11671,7 +11676,7 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
   const n = selected.length;
   return (
     <div style={{ position: "relative", flex: "none" }}>
-      <button type="button" onClick={onOpen} aria-expanded={open} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: n ? "#eef2ff" : "#fff", color: n ? "#142a8e" : "#3a4456", border: "1px solid " + (n ? "#cdd9ff" : "#e2e0d8"), borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+      <button type="button" onClick={onOpen} aria-expanded={open} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: n ? "#eef2ff" : "#fff", color: n ? "#142a8e" : "#3a4456", border: "1px solid " + (n ? "#cdd9ff" : "#e2e0d8"), borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>
         {label}{n ? " " + String.fromCharCode(0x00b7) + " " + n : ""} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span>
       </button>
       {open && (
@@ -11954,7 +11959,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
             </div>
           )}
           <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
-            <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 36 }}>Analyse</button>
+            <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 44 }}>Analyse</button>
             {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
             <button onClick={(e) => { e.stopPropagation(); setOkf({ kind: "posting", id: c.id }); }} title="View OKF concept document" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 7px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
           </div>
@@ -11996,18 +12001,18 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           {ssocFilter && (
             <span title={"Step 1 SSOC filter: " + ssocFilter.code + " " + (ssocFilter.title || "")} style={{ display:"inline-flex", alignItems:"center", gap:6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#142a8e", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 6, padding: "4px 9px" }}>
               SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}
-              {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} aria-label="Clear SSOC filter" style={{ background:"none", border:"none", color:"#142a8e", cursor:"pointer", padding:0, fontSize: "0.75rem", lineHeight:1 }}>{String.fromCharCode(0x2715)}</button>}
+              {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} aria-label="Clear SSOC filter" title="Clear SSOC filter" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background:"none", border:"none", color:"#142a8e", cursor:"pointer", fontSize: "0.75rem", lineHeight:1, padding: 16, margin: -16 }}>{String.fromCharCode(0x2715)}</button>}
             </span>
           )}
           {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and sector withheld. Use the Sector filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
-          <button type="button" onClick={() => setOkf({ kind: "index" })} style={{ cursor: "pointer", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
+          <button type="button" onClick={() => setOkf({ kind: "index" })} title="Open the OKF concept index for this result" style={{ cursor: "pointer", minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
       </div>
 
       <div ref={barRef} style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
-        <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 36 }} />
+        <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" title="Search postings by title, employer or keyword" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 44 }} />
         <div style={{ position: "relative", flex: "none" }}>
-          <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
+          <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
           {openFacet === "sort" && (
             <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
               {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
@@ -12015,7 +12020,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           )}
         </div>
         {STEP2_FACETS.map((f) => (<Step2Facet key={f.key} label={f.label} options={facetOptions[f.key]} selected={facets[f.key]} onToggle={(v) => toggleFacet(f.key, v)} open={openFacet === f.key} onOpen={() => setOpenFacet(openFacet === f.key ? null : f.key)} />))}
-        {hasFilters && <button type="button" onClick={clearFilters} style={{ flex: "none", minHeight: 36, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
+        {hasFilters && <button type="button" onClick={clearFilters} title="Clear all Step 2 filters" style={{ flex: "none", minHeight: 44, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
       </div>
 
       {/* Step 1 -> Step 2 progress banner. Real, deterministic stages:
@@ -12220,7 +12225,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
                 <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 7px" }}>OKF v0.1</span>
                 <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>{okfDoc.path}</span>
               </div>
-              <button onClick={() => setOkf(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
+              <button onClick={() => setOkf(null)} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
             </div>
             <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
@@ -12251,7 +12256,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
                   <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#8a8274", letterSpacing: ".03em" }}>{fullAd.company}{fullAd.age ? "  " + DOT + "  " + fullAd.age : ""}</div>
                   <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.25rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.2 }}>{j.title}</h3>
                 </div>
-                <button onClick={() => setFullAd(null)} aria-label="Close" style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
+                <button onClick={() => setFullAd(null)} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
               </div>
               <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
@@ -12269,14 +12274,21 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
                 {lines.length ? lines.map((ln, i) => (<p key={i} style={{ margin: ln.charAt(0) === String.fromCharCode(0x2022) ? "0 0 3px 6px" : "0 0 9px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.55 }}>{ln}</p>)) : <p style={{ color: "#94a0b0", fontSize: "0.85rem" }}>No description text in this posting.</p>}
               </div>
               <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "12px 20px", borderTop: "1px solid #eceae2", background: "#fbfaf8" }}>
-                <button onClick={() => { onAnalysePosting(j); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer" }}>Analyse this posting</button>
-                {j.mcfUrl && <a href={j.mcfUrl} target="_blank" rel="noreferrer" style={{ fontSize: "0.8125rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open on source</a>}
-                <button onClick={() => { setOkf({ kind: "posting", id: fullAd.id }); setFullAd(null); }} style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "6px 9px", cursor: "pointer" }}>{"{ } OKF"}</button>
+                <button onClick={() => { onAnalysePosting(j); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer", minHeight: 44 }}>Analyse this posting</button>
+                {j.mcfUrl && <a href={j.mcfUrl} target="_blank" rel="noreferrer" style={{ fontSize: "0.8125rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2, display: "inline-flex", alignItems: "center", minHeight: 44 }}>Open on source</a>}
+                <button onClick={() => { setOkf({ kind: "posting", id: fullAd.id }); setFullAd(null); }} title="View OKF concept document" style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "6px 9px", cursor: "pointer", minHeight: 44 }}>{"{ } OKF"}</button>
               </div>
             </div>
           </div>
         );
       })()}
+
+      {/* Footer: same honesty contract as Step 3 (Source/Confidence/Time-window)
+          plus the build tag, so both steps read as one system. */}
+      <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings){ssocFilter ? " + Step 1 SSOC filter" : ""}. Confidence: named-source facts. Time-window: this result.</p>
+        <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#b3ab9c", flex: "none" }}>v{APP_VERSION}</span>
+      </div>
     </div>
   );
 }
@@ -16065,6 +16077,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} />}
               band={null}
               onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              version={APP_VERSION}
             />
           );
           // eslint-disable-next-line no-unreachable

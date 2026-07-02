@@ -120,7 +120,7 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version }) {
   const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
@@ -362,7 +362,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a9b6ee" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
+          {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8595d6" }}>v{version}</span>}
+        </div>
       </div>
     </div>
   );
