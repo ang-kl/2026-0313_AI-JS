@@ -1455,7 +1455,7 @@ import { computeEngine } from "../engine-data/engine-core.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.183";
+const APP_VERSION = "3.0.184";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -11622,6 +11622,67 @@ function step2Salary(lo, hi) {
 function step2SalK(mid) { return mid != null ? "S$" + (Math.round(mid / 100) / 10) + "k" : ""; }
 function step2IsFresh(j) { return j && j.minimumYearsExperience != null && Number(j.minimumYearsExperience) < 4; }
 
+// EMP3: normalised employer key for the client-side "same employer" count -
+// lower-case, trim, collapse whitespace, mirroring the "title|employer" sig
+// discipline in mergeJobSources (this is a client-only key over
+// state.jobs.employer; server-only normEntityName in api/ssic.js is not
+// imported here per EMP3).
+function step2EmployerKey(job) {
+  return String((job && job.employer) || "").toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+// EMP4a: thin client wrapper for POST /api/ssic { action:"lookup" }. Reuses
+// the already-shipped lookup path byte-identically (frozen door). Module-scope
+// cache + in-flight de-dup keyed by normalised employer name so re-opening the
+// same posting's full-ad view does not re-hit the endpoint. Always resolves -
+// never throws to render.
+const empRegCache = new Map(); // normName -> response envelope
+const empRegInFlight = new Map(); // normName -> Promise
+async function fetchEmployerRegistration(employerName) {
+  const key = step2EmployerKey({ employer: employerName });
+  if (!key) return { matched: "none", reason: "empty_name" };
+  if (empRegCache.has(key)) return empRegCache.get(key);
+  if (empRegInFlight.has(key)) return empRegInFlight.get(key);
+  const p = fetch("/api/ssic", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "lookup", query: employerName }) })
+    .then((r) => r.json())
+    .then((d) => {
+      // Envelope shape (api/ssic.js action:"lookup"): on exact match the ACRA
+      // fields are spread at top level (matched:"exact", source:"acra", ...);
+      // on no match, response nests { acra:{matched:"none",...}, fallback:{...} }.
+      // Never surface `fallback` (source:"derived" classifier) as an address.
+      const out = (d && d.matched === "exact") ? d : (d && d.acra) ? d.acra : { matched: "none", reason: "bad_response" };
+      empRegCache.set(key, out);
+      return out;
+    })
+    .catch(() => {
+      const out = { matched: "none", reason: "fetch_error" };
+      empRegCache.set(key, out);
+      return out;
+    })
+    .finally(() => { empRegInFlight.delete(key); });
+  empRegInFlight.set(key, p);
+  return p;
+}
+
+// EMP5a: thin client wrapper for POST /api/geocode { action:"locate", postal }.
+// Same posture as fetchEmployerRegistration - module cache + in-flight de-dup,
+// always resolves, never throws to render.
+const empGeoCache = new Map();
+const empGeoInFlight = new Map();
+async function fetchEmployerGeocode(postal) {
+  const key = String(postal || "").trim();
+  if (!key) return { matched: "none", reason: "no_postal" };
+  if (empGeoCache.has(key)) return empGeoCache.get(key);
+  if (empGeoInFlight.has(key)) return empGeoInFlight.get(key);
+  const p = fetch("/api/geocode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "locate", postal: key }) })
+    .then((r) => r.json())
+    .then((d) => { const out = d || { matched: "none", reason: "bad_response" }; empGeoCache.set(key, out); return out; })
+    .catch(() => { const out = { matched: "none", reason: "fetch_error" }; empGeoCache.set(key, out); return out; })
+    .finally(() => { empGeoInFlight.delete(key); });
+  empGeoInFlight.set(key, p);
+  return p;
+}
+
 // buildOkf: render one posting as an OKF v0.1 document (YAML frontmatter + markdown body).
 function step2BuildOkf(job, cl) {
   const band = cl && cl.band ? STEP2_BANDS[cl.band] : null;
@@ -11776,6 +11837,8 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
   const [fullAd, setFullAd] = useState(null);
+  const [empReg, setEmpReg] = useState(null); // { status:"loading"|"done", data } for the open fullAd's employer
+  const [empGeo, setEmpGeo] = useState(null); // { status:"loading"|"done", data } for the open fullAd's map pin
   const barRef = useRef(null);
 
   useEffect(() => {
@@ -11821,6 +11884,25 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
     return () => { cancelled = true; };
   }, [state.jobs]);
 
+  // EMP4b: fires lazily when a posting's full-ad view opens (one ACRA lookup
+  // per opened posting, not per card). EMP5: chained geocode fetch only when
+  // the ACRA match is exact and carries a postal code.
+  useEffect(() => {
+    if (!fullAd) { setEmpReg(null); setEmpGeo(null); return undefined; }
+    let cancelled = false;
+    setEmpReg({ status: "loading", data: null });
+    setEmpGeo(null);
+    fetchEmployerRegistration(fullAd.company).then((data) => {
+      if (cancelled) return;
+      setEmpReg({ status: "done", data, retrievedAt: new Date().toISOString() });
+      if (data && data.matched === "exact" && data.postal) {
+        setEmpGeo({ status: "loading", data: null });
+        fetchEmployerGeocode(data.postal).then((geo) => { if (!cancelled) setEmpGeo({ status: "done", data: geo }); });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [fullAd]);
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") { setOkf(null); setOpenFacet(null); setFullAd(null); } };
     const onDown = (e) => { if (openFacet && barRef.current && !barRef.current.contains(e.target)) setOpenFacet(null); };
@@ -11831,11 +11913,22 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
 
   const baseJobs = useMemo(() => (freshGrad ? state.jobs.filter(step2IsFresh) : state.jobs), [state.jobs, freshGrad]);
 
+  // EMP3: same-employer counts over the FULL merged result set (state.jobs -
+  // this search, both platforms, live postings), not the freshGrad-filtered
+  // baseJobs - the count's scope is the search result, stated verbatim in the
+  // footer, never "total openings". Pure function of state.jobs -> deterministic.
+  const employerKeyCounts = useMemo(() => {
+    const m = new Map();
+    state.jobs.forEach((j) => { const k = step2EmployerKey(j); m.set(k, (m.get(k) || 0) + 1); });
+    return m;
+  }, [state.jobs]);
+
   // decorate each job with its classification + display fields (stable id by index)
   const cards = useMemo(() => baseJobs.map((j, i) => {
     const id = step2JobId(j, i);
     const c = cls[id] || {};
     const band = c.band ? STEP2_BANDS[c.band] : null;
+    const sameEmployerCount = (employerKeyCounts.get(step2EmployerKey(j)) || 1) - 1;
     return {
       id, job: j, cl: c,
       band, bandKey: c.band || null,
@@ -11855,8 +11948,9 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       meta: [step2Salary(j.salaryMin, j.salaryMax), step2TypeOf(j), j.minimumYearsExperience != null && Number(j.minimumYearsExperience) > 0 ? Number(j.minimumYearsExperience) + "+ yrs" : null].filter(Boolean),
       tags: Array.isArray(j.skills) ? j.skills.filter(Boolean).slice(0, 3) : [],
       age: step2Days(j.postedDate),
+      sameEmployerCount,
     };
-  }), [baseJobs, cls]);
+  }), [baseJobs, cls, employerKeyCounts]);
 
   // Facet options with per-value counts. "Unclassified" is kept so the user can see
   // (and filter on) the SSOC-withheld portion of the result set; it's sorted last.
@@ -11938,6 +12032,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
         <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 11px", background: "#f4f6fa", borderBottom: "1px solid #e6e3db" }}>
           <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 4, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 9, lineHeight: "16px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
           <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
+          {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount}</span>}
           {band && <span title={"AI exposure: " + band.label} style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
         </div>
         <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
@@ -12270,6 +12365,49 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.map((s, i) => (<span key={i} style={{ fontSize: "0.75rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "3px 10px" }}>{s}</span>))}</div>
                   </div>
                 )}
+
+                {/* EMP0/EMP3/EMP4: Registered employer block - additive, inside the
+                    existing full-ad modal. Address only on matched:"exact" (never
+                    the derived SSIC fallback); count is over the current result set. */}
+                <div style={{ marginBottom: 14, padding: "10px 12px", background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 9 }}>
+                  <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 7 }}>REGISTERED EMPLOYER</div>
+
+                  {empReg && empReg.status === "loading" && (
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a0b0" }}>Checking ACRA registration{ELL}</p>
+                  )}
+
+                  {empReg && empReg.status === "done" && empReg.data && empReg.data.matched === "exact" && (() => {
+                    const d = empReg.data;
+                    const addrLines = [d.building, d.street, d.postal].filter(Boolean);
+                    return (
+                      <div>
+                        {addrLines.length > 0
+                          ? <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5 }}>{addrLines.join(", ")}</p>
+                          : <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: "#94a0b0" }}>ACRA match found but no address fields on record.</p>}
+                        {d.namesakes > 0 && <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#7a5a17" }}>ACRA lists +{d.namesakes} other {d.namesakes === 1 ? "entity" : "entities"} with this name; showing the LIVE-status match.</p>}
+                        {d.postal && (
+                          empGeo && empGeo.status === "done" && empGeo.data && empGeo.data.matched === "single"
+                            ? <img src={"/api/geocode?action=render&postal=" + encodeURIComponent(d.postal)} alt={"Map pin near postal " + d.postal} onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "100%", maxWidth: 320, height: 160, objectFit: "cover", borderRadius: 7, border: "1px solid #e3e8ef", marginBottom: 6, display: "block" }} />
+                            : empGeo && empGeo.status === "loading"
+                              ? <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Locating map pin{ELL}</p>
+                              : <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Map unavailable for this postal code.</p>
+                        )}
+                        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved: {empReg.retrievedAt}</p>
+                      </div>
+                    );
+                  })()}
+
+                  {empReg && empReg.status === "done" && (!empReg.data || empReg.data.matched !== "exact") && (
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a0b0" }}>No exact ACRA registration match for "{fullAd.company}".</p>
+                  )}
+
+                  <p style={{ margin: "8px 0 0", fontSize: "0.75rem", color: "#3a4456" }}>
+                    {fullAd.sameEmployerCount > 0
+                      ? fullAd.sameEmployerCount + " other live posting" + (fullAd.sameEmployerCount === 1 ? "" : "s") + " from this employer"
+                      : "Only live posting from this employer"} in this result set (this search, MyCareersFuture + careers.gov.sg, live postings).
+                  </p>
+                </div>
+
                 <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
                 {lines.length ? lines.map((ln, i) => (<p key={i} style={{ margin: ln.charAt(0) === String.fromCharCode(0x2022) ? "0 0 3px 6px" : "0 0 9px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.55 }}>{ln}</p>)) : <p style={{ color: "#94a0b0", fontSize: "0.85rem" }}>No description text in this posting.</p>}
               </div>
