@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.204";
+const APP_VERSION = "3.0.205";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1497,6 +1497,12 @@ function ssocChangeTypeLabel(changeType) {
   if (!changeType) return "";
   return String(changeType).split(";").map((code) => SSOC_CHANGE_TYPE_LEGEND[code.trim()] || code.trim()).filter(Boolean).join(" + ");
 }
+
+// FLOW-1a: same regex as api/ssoc.js's scoreSsocCandidate NEC de-emphasis (PR #269) -
+// residual "not elsewhere classified / n.e.c." titles sink to the bottom of the
+// *display* list only (presentation-order penalty; the endpoint's own order is
+// preserved for all other rows - the client mints no score).
+const SSOC_NEC_RX = /not elsewhere classified|\bn\.?e\.?c\.?\b/i;
 
 // Builds the SSOC chip's tooltip: base is the sub-major group title (existing behaviour),
 // plus (E7) a section 2.10/2.19-2.20 change-vs-2020 disclosure when the node carries one,
@@ -14262,6 +14268,15 @@ export default function App({ initialSearchMode } = {}) {
   const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
   const [persona,   setPersona]   = useState(null);
   const [occs,      setOccs]      = useState([]);
+  // FLOW-1a: SSOC 2024 query-text suggestions for jobs/company modes (R012 - writes only
+  // the query string, never gates submission, never filters Step 2/company results).
+  const [ssocOccs,  setSsocOccs]  = useState([]);
+  const [ssocQuery, setSsocQuery] = useState("");
+  const [ssocSuggestLoading, setSsocSuggestLoading] = useState(false);
+  // Orphaned since PR #271 removed the hard-gate SSOC picker; kept only so the mode-switch
+  // reset at L16069 (approx) does not throw. Always null - no path sets it. Scheduled for
+  // removal in FLOW-polish.
+  const [ssocFilter, setSsocFilter] = useState(null);
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
   const [pickerFullLoading, setPickerFullLoading] = useState(false);
   const [pickerFullError, setPickerFullError] = useState(false); // v1.3.0: background full search
@@ -14384,6 +14399,7 @@ export default function App({ initialSearchMode } = {}) {
   const queueBannerRef = useRef(null);
   const comparisonsRef = useRef([]);
   const debounceRef    = useRef(null); // v6: debounce timer for picker
+  const ssocDebounceRef = useRef(null); // FLOW-1a: debounce timer for SSOC query suggestions
   const pickerCancelRef = useRef(false); // v1.4.0: cancel in-flight background full search
 
   // URL param auto-trigger - handles ?role=RoleName from "Explore similar role" in SkillExpertOverlay
@@ -14487,6 +14503,36 @@ export default function App({ initialSearchMode } = {}) {
       if (!cancelled) setPickerLoading(false);
     }, 280);
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
+  }, [query, step, searchMode]);
+
+  // FLOW-1a: SSOC 2024 query-text suggestions - jobs/company modes only. Rewrites the
+  // typed query text on tap (R012); never gates submission, never filters Step 2/company
+  // results. Triggers on a short (1-2 word, >= 3 char) query, idle/error step only.
+  useEffect(() => {
+    if (step !== "idle" && step !== "error") { setSsocOccs([]); return; }
+    if (searchMode !== "jobs" && searchMode !== "company") { setSsocOccs([]); return; }
+    const q = query.trim();
+    const words = q ? q.split(/\s+/).filter(Boolean) : [];
+    if (!q || q.length < 3 || words.length > 2) { setSsocOccs([]); setSsocSuggestLoading(false); return; }
+    setSsocSuggestLoading(true);
+    clearTimeout(ssocDebounceRef.current);
+    let cancelled = false;
+    ssocDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/ssoc", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "search", query: q, limit: 8 }),
+        });
+        const data = await res.json();
+        const results = Array.isArray(data.results) ? data.results : [];
+        // Judgment call (spec left open): only occupation-level (5-digit) suggestions -
+        // a broad group title as query text would make the MCF keyword search worse.
+        const occupationsOnly = results.filter((n) => n.kind === "occupation");
+        if (!cancelled) setSsocOccs(occupationsOnly);
+      } catch (_) { if (!cancelled) setSsocOccs([]); }
+      if (!cancelled) setSsocSuggestLoading(false);
+    }, 280);
+    return () => { cancelled = true; clearTimeout(ssocDebounceRef.current); };
   }, [query, step, searchMode]);
 
   const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setAnalysingPosting(null); };
@@ -16095,6 +16141,40 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
+              {/* FLOW-1a: SSOC 2024 query-text suggestions - jobs/company modes only.
+                  Tapping a row rewrites the query string only (R012) - never gates
+                  submission, never filters Step 2/company results. */}
+              {(searchMode === "jobs" || searchMode === "company") && query.trim().length >= 3 && query.trim().split(/\s+/).filter(Boolean).length <= 2 && (step === "idle" || step === "error") && !ssocSuggestLoading && ssocOccs.length > 0 && (() => {
+                const rows = ssocOccs
+                  .map((n, i) => ({ n, i, residual: SSOC_NEC_RX.test(n.title || "") }))
+                  .sort((a, b) => (a.residual === b.residual ? a.i - b.i : (a.residual ? 1 : -1)))
+                  .slice(0, 6);
+                return (
+                  <div style={{ marginTop:8 }} role="listbox" aria-label="SSOC 2024 suggestions">
+                    {rows.map(({ n, residual }) => (
+                      <button type="button" key={n.code} role="option" aria-selected="false"
+                        onClick={() => {
+                          setQuery(n.title);
+                          setSsocOccs([]);
+                          document.getElementById("job-title-search")?.focus();
+                        }}
+                        style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
+                          minHeight:44, textAlign:"left", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6,
+                          padding:"8px 12px", marginBottom:4, cursor:"pointer", font:"inherit",
+                          opacity: residual ? 0.6 : 1 }}>
+                        <span style={{ fontSize:"0.8125rem", fontWeight:600, color:C.text }}>{toTitleCase(n.title)}</span>
+                        <span style={{ display:"inline-flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                          {residual && <span style={{ fontSize:"0.625rem", fontWeight:700, color:C.muted, border:`1px solid ${C.border}`, borderRadius:10, padding:"2px 6px" }}>residual</span>}
+                          <span style={{ fontFamily:"'Spline Sans Mono',monospace", fontSize:"0.6875rem", color:C.muted }}>{n.code} {String.fromCharCode(0x00b7)} {n.kind}</span>
+                        </span>
+                      </button>
+                    ))}
+                    <p style={{ margin:"2px 0 0", fontSize:"0.625rem", color:C.muted, lineHeight:1.5 }}>
+                      Suggestions from SSOC 2024 - tap to use as your search term. Picking one only changes the text you typed - it does not filter results.
+                    </p>
+                  </div>
+                );
+              })()}
               {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
               {searchMode === "role" && query.trim().length >= 3 && (step === "idle" || step === "error") && (
                 <div style={{ marginTop:8 }}>
