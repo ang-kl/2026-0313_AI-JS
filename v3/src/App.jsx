@@ -1456,7 +1456,7 @@ import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.197";
+const APP_VERSION = "3.0.198";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -2146,30 +2146,6 @@ Return ${count} ESCO v1.2 occupations matching this term, ordered by relevance.
   });
 }
 
-// SSOC typeahead: deterministic Singapore Standard Occupational Classification
-// suggestions, served by /api/ssoc action:"search" (DB-backed with in-memory
-// fallback). Used by the Step 1 input when the user is in "jobs" or "company"
-// mode - the picked SSOC code becomes a filter seeded into Step 2 so the SG-
-// classified posting cards can pre-filter to the chosen occupation family. No LLM.
-async function searchSsoc(query, limit = 8) {
-  const q = String(query || "").trim();
-  if (q.length < 2) return [];
-  try {
-    const res = await fetch("/api/ssoc", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "search", query: q, limit }),
-    });
-    const data = await res.json();
-    const rows = Array.isArray(data.results) ? data.results : [];
-    // Bias towards specific occupations over broad groups, then alphabetical.
-    return rows
-      .filter(r => r && r.code && r.title)
-      .sort((a, b) => (b.level - a.level) || a.title.localeCompare(b.title))
-      .slice(0, limit)
-      .map(r => ({ code: String(r.code), title: String(r.title), level: r.level, kind: r.kind || "" }));
-  } catch (_) { return []; }
-}
 
 async function getEscoSkills(title, skillPhrases) {
   // v2: fetch canonical ESCO essential skills via api/esco proxy
@@ -14217,15 +14193,6 @@ export default function App({ initialSearchMode } = {}) {
   const [noExactMatch, setNoExactMatch] = useState(null);
   const [escoCoherenceStatus, setEscoCoherenceStatus] = useState(null);
   const [functionKeywordNotice, setFunctionKeywordNotice] = useState(null); // { keyword, suggestions } | null
-  // SSOC typeahead state. Mode 2 (jobs) reads its query off the main `query` state;
-  // Mode 3 (company) keeps the company name in `query` and uses `ssocQuery` for the
-  // optional second "filter by occupation" field. `ssocFilter` is the picked node
-  // ({ code, title, level }) - it survives the input and is passed to Step 2 / the
-  // company panel so the SG-classified posting cards pre-filter to that family.
-  const [ssocOccs, setSsocOccs] = useState([]);
-  const [ssocPickerLoading, setSsocPickerLoading] = useState(false);
-  const [ssocFilter, setSsocFilter] = useState(null);
-  const [ssocQuery, setSsocQuery] = useState("");
   const [sel,       setSel]       = useState(null);
   const [result,    setResult]    = useState(null);
   const [step,      setStep]      = useState("idle");
@@ -14447,49 +14414,7 @@ export default function App({ initialSearchMode } = {}) {
     return () => { cancelled = true; clearTimeout(debounceRef.current); };
   }, [query, step, searchMode]);
 
-  // SSOC typeahead debounce. Mode 2 ("jobs") types into `query`; Mode 3 ("company")
-  // types its OCCUPATION filter into `ssocQuery` (the company name stays in `query`).
-  // Both feed /api/ssoc action:"search" - deterministic, no LLM.
-  const ssocDebounceRef = useRef(null);
-  useEffect(() => {
-    if (step !== "idle" && step !== "error") return;
-    if (searchMode !== "jobs" && searchMode !== "company") { setSsocOccs([]); setSsocPickerLoading(false); return; }
-    // If an SSOC pick is already locked in, the dropdown is gated off (`!ssocFilter`)
-    // so calling /api/ssoc would be wasted work - skip until the user clears the pill.
-    if (ssocFilter) { setSsocOccs([]); setSsocPickerLoading(false); return; }
-    const raw = searchMode === "jobs" ? query : ssocQuery;
-    const q = String(raw || "").trim();
-    if (q.length < 2) { setSsocOccs([]); setSsocPickerLoading(false); return; }
-    setSsocPickerLoading(true);
-    clearTimeout(ssocDebounceRef.current);
-    let cancelled = false;
-    ssocDebounceRef.current = setTimeout(async () => {
-      try {
-        const res = await searchSsoc(q, 8);
-        if (!cancelled) setSsocOccs(res);
-      } catch (_) { if (!cancelled) setSsocOccs([]); }
-      if (!cancelled) setSsocPickerLoading(false);
-    }, 220);
-    return () => { cancelled = true; clearTimeout(ssocDebounceRef.current); };
-  }, [query, ssocQuery, step, searchMode, ssocFilter]);
-
-  // Picking an SSOC: stash the node so Step 2 / CompanyPanel can pre-filter on it.
-  // Mode 2 leaves `query` ALONE - we used to overwrite it with the SSOC title, but
-  // MCF doesn't index taxonomy labels like "Database Designers, Administrators and
-  // Data Engineers" so the verbatim search returned ~0 postings. Keeping the user's
-  // typed keyword (e.g. "data") in the MCF call, then filtering the classified
-  // results by the picked SSOC code, gives the user a real result set to choose from.
-  // Mode 3's SSOC field is separate from the company name, so setting ssocQuery to
-  // the picked title there is still the right thing.
-  const pickSsoc = (node) => {
-    if (!node) return;
-    setSsocFilter({ code: node.code, title: node.title, level: node.level });
-    setSsocOccs([]);
-    if (searchMode === "company") setSsocQuery(node.title);
-  };
-  const clearSsocFilter = () => { setSsocFilter(null); setSsocQuery(""); setSsocOccs([]); };
-
-  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setSsocOccs([]); setSsocFilter(null); setSsocQuery(""); setAnalysingPosting(null); };
+  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setAnalysingPosting(null); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -14540,51 +14465,26 @@ export default function App({ initialSearchMode } = {}) {
   // v3.2: "Browse MyCareersFuture jobs" mode - skip ESCO resolution; go straight
   // to the standalone job list for the typed term. Each card can still "Analyse
   // this posting" (-> full results screen) or "+ Compare".
-  // SSOC parity with Mode 1 (doSearch): when SSOC suggestions are present, the user
-  // must pick one before MCF fires - exactly-1 auto-picks; multiple blocks until the
-  // user clicks one (or clears the suggestions by editing the query).
   const startJobsBrowse = useCallback(() => {
     if (!query.trim()) return;
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }
-    if (!ssocFilter && ssocPickerLoading) return; // mid-load, ignore submit
-    if (!ssocFilter && ssocOccs.length === 1) {
-      // exactly one SSOC match - auto-pick it (Mode 1 parity for single result)
-      track("ssoc_picked", { code: ssocOccs[0].code, mode: "jobs", auto: true });
-      pickSsoc(ssocOccs[0]);
-    } else if (!ssocFilter && ssocOccs.length > 1) {
-      // multiple SSOC matches - require the user to choose from the dropdown
-      setErr("Pick one of the SSOC occupations above to continue (or edit the search to clear the suggestions for a raw text search).");
-      setStep("error");
-      return;
-    }
     setErr(""); setSel(null); setResult(null); setOccs([]);
-    track("jobs_browse_started", { q: query.trim().slice(0, 60), ssoc: (ssocFilter && ssocFilter.code) || null });
+    track("jobs_browse_started", { q: query.trim().slice(0, 60) });
     setStep("mcf_browse");
-  }, [query, ssocFilter, ssocOccs, ssocPickerLoading]);
+  }, [query]);
 
   // CO1: company-name search mode. Mirrors startJobsBrowse; transitions to
   // mcf_company step where CompanyPanel does the fetch + resolution + render.
-  // Mode 3's SSOC field is OPTIONAL - we only enforce pick/parity when the user
-  // typed something into it AND suggestions are showing without a pick.
   const startCompanySearch = useCallback(() => {
     if (!query.trim()) return;
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }
-    if (ssocQuery.trim() && !ssocFilter && ssocPickerLoading) return;
-    if (ssocQuery.trim() && !ssocFilter && ssocOccs.length === 1) {
-      track("ssoc_picked", { code: ssocOccs[0].code, mode: "company", auto: true });
-      pickSsoc(ssocOccs[0]);
-    } else if (ssocQuery.trim() && !ssocFilter && ssocOccs.length > 1) {
-      setErr("Pick one of the SSOC occupations above to filter by - or clear that field to search the employer's full posting list.");
-      setStep("error");
-      return;
-    }
     setErr(""); setSel(null); setResult(null); setOccs([]);
     setCompanyResult(null);
-    track("company_search_started", { q: query.trim().slice(0, 60), ssoc: (ssocFilter && ssocFilter.code) || null });
+    track("company_search_started", { q: query.trim().slice(0, 60) });
     setStep("mcf_company");
-  }, [query, ssocQuery, ssocFilter, ssocOccs, ssocPickerLoading]);
+  }, [query]);
 
   // WIKI1: Career WikiGraph mode. A wiki-mode search runs the SAME resolve +
   // analyse pipeline as Analyse role; a destination ref (survives the async ESCO
@@ -16114,104 +16014,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
-              {/* SSOC: Mode 3 - optional second field for "filter by occupation" alongside
-                  the company name. Empty by default; picking an SSOC pre-filters the
-                  employer's posting list to that occupation family in CompanyPanel. */}
-              {searchMode === "company" && (
-                <div style={{ marginTop:10 }}>
-                  <label htmlFor="ssoc-filter-input" style={{ display:"block", margin:"0 0 6px", fontSize: "0.75rem", fontWeight:700, color:C.text }}>
-                    Filter by occupation (SSOC) <span style={{ fontWeight:400, color:C.muted }}>- optional</span>
-                  </label>
-                  <input type="search" id="ssoc-filter-input" name="ssoc-filter" autoComplete="off" className="lux-focus"
-                    aria-label="Filter by SSOC occupation"
-                    value={ssocQuery} onChange={e=>{ setSsocQuery(e.target.value); if (ssocFilter) setSsocFilter(null); }}
-                    placeholder="e.g. Software Engineer, Accountant, Nurse"
-                    style={{ width:"100%", boxSizing:"border-box", background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6, color:C.text, padding: "10px 12px", fontSize: "0.875rem", fontFamily:"inherit" }} />
-                </div>
-              )}
-              {/* SSOC: picked-filter pill (with clear button). Shows whenever a SSOC node
-                  is locked in for either Mode 2 or Mode 3 - the same code rides through to
-                  the downstream panel so the user can see the filter is real. */}
-              {ssocFilter && (searchMode === "jobs" || searchMode === "company") && (
-                <div style={{ marginTop:8, display:"flex", alignItems:"center", gap:6 }}>
-                  <span style={{ display:"inline-flex", alignItems:"center", gap:6, fontFamily:"'Spline Sans Mono',monospace", fontSize: "0.6875rem", color:"#5b4bbd", background:"#f1eefc", border:"1px solid #ddd5f6", borderRadius: 6, padding: "3px 9px" }}>
-                    <span style={{ fontWeight:700 }}>SSOC {ssocFilter.code}</span> {String.fromCharCode(0x00b7)} {ssocFilter.title}
-                    <button type="button" onClick={clearSsocFilter} aria-label="Clear SSOC filter"
-                      style={{ background:"none", border:"none", color:"#5b4bbd", cursor:"pointer", padding:0, fontSize: "0.75rem", lineHeight:1 }}>{String.fromCharCode(0x2715)}</button>
-                  </span>
-                </div>
-              )}
-              {/* SSOC: typeahead dropdown for Mode 2 (jobs - reads `query`) and Mode 3
-                  (company - reads `ssocQuery`). Deterministic suggestions from the bundled
-                  SSOC 2024 hierarchy; picking one seeds `ssocFilter` for the next step. */}
-              {(searchMode === "jobs" || searchMode === "company") && !ssocFilter && (step === "idle" || step === "error") && (ssocPickerLoading || ssocOccs.length > 0) && (
-                <div style={{ marginTop:8 }}>
-                  {ssocPickerLoading && ssocOccs.length === 0 && (
-                    <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"4px 0" }}>Finding SSOC occupations...</p>
-                  )}
-                  {ssocOccs.length > 0 && (() => {
-                    // SSOC hierarchy from most specific to broadest. Group the suggestions
-                    // by kind so the user can see "specific occupation" matches separately
-                    // from broader cluster matches, and pick the right level of granularity.
-                    const SSOC_KINDS = [
-                      { key:"occupation",      label:"Specific occupations", help:"A single named job role - what an individual actually does day-to-day." },
-                      { key:"unit_group",      label:"Unit groups",          help:"A small cluster of closely related occupations (4-digit SSOC code)." },
-                      { key:"minor_group",     label:"Minor groups",         help:"A broader family containing several unit groups (3-digit SSOC code)." },
-                      { key:"sub_major_group", label:"Sub-major groups",     help:"A wide grouping of related minor groups (2-digit SSOC code)." },
-                      { key:"major_group",     label:"Major groups",         help:"The widest occupational families (1-digit SSOC code)." },
-                    ];
-                    // De-emphasise catch-all "Not Elsewhere Classified" buckets: a short/generic
-                    // query (e.g. "data") can match one of these broad NEC groups alongside
-                    // several specific occupations - picking the NEC one is a dead end more
-                    // often (it is a residual bucket, not a real job title), so it sorts to the
-                    // end of its tier and is visually flagged rather than looking like a normal
-                    // equal choice. Never hidden or removed - still a valid, real SSOC match.
-                    const NEC_RX = /not elsewhere classified|\bn\.?e\.?c\.?\b/i;
-                    const buckets = SSOC_KINDS.map((k) => ({ ...k, items: ssocOccs.filter((o) => (o.kind || "") === k.key).sort((a, b) => (NEC_RX.test(a.title) === NEC_RX.test(b.title)) ? a.title.localeCompare(b.title) : (NEC_RX.test(a.title) ? 1 : -1)) })).filter((g) => g.items.length > 0);
-                    // Anything with an unrecognised kind drops into a tail bucket so we
-                    // never silently lose results.
-                    const knownCodes = new Set(SSOC_KINDS.map((k) => k.key));
-                    const tail = ssocOccs.filter((o) => !knownCodes.has(o.kind || ""));
-                    if (tail.length) buckets.push({ key:"other", label:"Other matches", help:"Items whose SSOC level is not classified.", items: tail });
-                    const cardStyle = { background:C.surface, border:`1px solid ${C.border}`, borderRadius: 6, padding: "8px 12px", cursor:"pointer", transition:"all 0.12s", minWidth:0 };
-                    return (
-                      <div>
-                        <p style={{ fontSize: "0.6875rem", color:C.muted, margin:"0 0 8px" }}>
-                          {ssocOccs.length} SSOC match{ssocOccs.length===1?"":"es"} for "{(searchMode === "jobs" ? query : ssocQuery).trim()}" - {searchMode === "jobs"
-                            ? "select one to continue (required)."
-                            : "select one to filter the employer's postings, or clear this field to skip the SSOC filter."}
-                        </p>
-                        {buckets.map((g) => (
-                          <div key={g.key} style={{ marginBottom:10 }}>
-                            <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, margin:"0 0 4px" }}>
-                              <p style={{ margin:0, fontSize: "0.6875rem", fontWeight:700, color:C.accent, letterSpacing:".04em", textTransform:"uppercase" }}>{g.label} <span style={{ color:C.mutedLight, fontWeight:600 }}>({g.items.length})</span></p>
-                              <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, lineHeight:1.4, textAlign:"right", maxWidth:"68%" }}>{g.help}</p>
-                            </div>
-                            <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0, 1fr))", gap:6 }}>
-                              {g.items.map((o) => {
-                                const isNec = NEC_RX.test(o.title);
-                                return (
-                                <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode, catchAll: isNec }); pickSsoc(o); }}
-                                  title={isNec ? "A broad catch-all category, not a specific job title - may match few or no live postings. Try a specific occupation above if one fits better." : undefined}
-                                  style={isNec ? { ...cardStyle, borderStyle:"dashed", background:C.bg } : cardStyle}
-                                  onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
-                                  onMouseLeave={e=>{ e.currentTarget.style.background=isNec ? C.bg : C.surface; e.currentTarget.style.borderColor=C.border; }}>
-                                  <p title={o.title} style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color: isNec ? C.muted : C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.title}</p>
-                                  <p style={{ margin:0, display:"flex", alignItems:"center", gap:5, fontSize: "0.625rem", color:C.muted, fontFamily:"'Spline Sans Mono',monospace" }}>
-                                    SSOC {o.code}
-                                    {isNec && <span style={{ fontFamily:"'Spline Sans',sans-serif", fontWeight:700, letterSpacing:".02em", color:"#8a6d1f", background:"#fdf3d8", border:"1px solid #f0e0a8", borderRadius:4, padding:"0 4px" }}>catch-all</span>}
-                                  </p>
-                                </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </div>
-              )}
               {/* v6: progressive picker - shows as user types, before pressing Analyse (role mode only) */}
               {searchMode === "role" && query.trim().length >= 3 && (step === "idle" || step === "error") && (
                 <div style={{ marginTop:8 }}>
@@ -16287,8 +16089,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <PostingEvidencePicker
               query={query.trim()}
               freshGrad={freshGrad}
-              ssocFilter={ssocFilter}
-              onClearSsocFilter={clearSsocFilter}
               onAnalysePosting={handleAnalysePosting}
               onNewSearch={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
             />
@@ -16311,8 +16111,6 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             </button>
             <CompanyPanel
               companyQuery={query.trim()}
-              ssocFilter={ssocFilter}
-              onClearSsocFilter={clearSsocFilter}
               onAnalysePosting={handleAnalysePosting}
               onQueuePosting={handleQueuePosting}
               queueCount={comparisons.length}
