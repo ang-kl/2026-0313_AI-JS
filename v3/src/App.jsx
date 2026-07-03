@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.206";
+const APP_VERSION = "3.0.207";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12064,7 +12064,7 @@ function step2BuildOkfLog(query, counts) {
   return { front, body };
 }
 
-function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter, onAnalysePosting, onNewSearch }) {
+function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
   // Real-time progress for the Step 1 -> Step 2 banner. Each fetch updates its
@@ -12224,21 +12224,13 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
 
   const filtered = useMemo(() => {
     const q = findText.trim().toLowerCase();
-    const ssocCode = ssocFilter && ssocFilter.code ? String(ssocFilter.code) : "";
     return cards.filter((c) => {
-      // SSOC seed (from Step 1 pick): keep only postings whose classified SSOC falls
-      // under the picked node. Prefix-match handles parent-level picks (e.g. picking
-      // sub-major group 25 keeps every 251x/252x posting).
-      if (ssocCode) {
-        const cs = c.ssoc ? String(c.ssoc) : "";
-        if (!cs || !cs.startsWith(ssocCode)) return false;
-      }
       for (const f of STEP2_FACETS) { const sel = facets[f.key]; if (sel.length && (!c[f.key] || !sel.includes(c[f.key]))) return false; }
       if (!q) return true;
       const hay = [c.job.title, c.company, c.sector, c.department, c.func, c.ssoc, c.matchTier, (c.tags || []).join(" ")].join(" ").toLowerCase();
       return hay.includes(q);
     });
-  }, [cards, findText, facets, ssocFilter]);
+  }, [cards, findText, facets]);
 
   const sorted = useMemo(() => {
     const w = filtered.slice();
@@ -12251,7 +12243,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
 
   const activeFacetCount = STEP2_FACETS.reduce((n, f) => n + facets[f.key].length, 0);
   const hasFilters = activeFacetCount > 0 || findText.trim().length > 0;
-  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); if (onClearSsocFilter) onClearSsocFilter(); };
+  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); };
   const toggleFacet = (key, val) => setFacets((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : f[key].concat(val) }));
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
@@ -12353,12 +12345,6 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{sorted.length} of {baseJobs.length}</span>
-          {ssocFilter && (
-            <span title={"Step 1 SSOC filter: " + ssocFilter.code + " " + (ssocFilter.title || "")} style={{ display:"inline-flex", alignItems:"center", gap:6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#142a8e", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 6, padding: "4px 9px" }}>
-              SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}
-              {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} aria-label="Clear SSOC filter" title="Clear SSOC filter" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background:"none", border:"none", color:"#142a8e", cursor:"pointer", fontSize: "0.75rem", lineHeight:1, padding: 16, margin: -16 }}>{String.fromCharCode(0x2715)}</button>}
-            </span>
-          )}
           {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} title="Open the OKF concept index for this result" style={{ cursor: "pointer", minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
@@ -12393,7 +12379,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           <div role="status" aria-live="polite" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, padding: "12px 14px", margin: "0 0 14px", boxShadow: "0 1px 3px rgba(20,32,46,.06)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
               <p style={{ margin: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e" }}>
-                Curating evidence for {Q1}{query}{Q2}{ssocFilter ? <> {String.fromCharCode(0x00b7)} <span style={{ color: "#142a8e" }}>SSOC {ssocFilter.code}</span></> : null}
+                Curating evidence for {Q1}{query}{Q2}
               </p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
             </div>
@@ -12441,13 +12427,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           so the SSOC filter falsely shows zero matches before the real answer exists). */}
       {!state.loading && progress.classifyStatus !== "loading" && baseJobs.length > 0 && sorted.length === 0 && (
         <div style={{ background: "#fbfaf8", border: "1px dashed #e4e2da", borderRadius: 10, padding: "16px 18px", margin: "10px 0" }}>
-          {ssocFilter ? (
-            <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>
-              None of the {baseJobs.length} live posting{baseJobs.length === 1 ? "" : "s"} matching {Q1}{query}{Q2} classified under <strong>SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title}</strong>. {onClearSsocFilter && <>The SSOC family is a narrow filter - try{" "}<button type="button" onClick={onClearSsocFilter} style={{ background: "none", border: "none", padding: 0, color: "#1a56db", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem", textDecoration: "underline" }}>clearing the SSOC filter</button> to see all {baseJobs.length} posting{baseJobs.length === 1 ? "" : "s"}, or </>}<button type="button" onClick={clearFilters} style={{ background: "none", border: "none", padding: 0, color: "#1a56db", cursor: "pointer", fontWeight: 600, fontSize: "0.875rem", textDecoration: "underline" }}>clear all filters</button>.
-            </p>
-          ) : (
-            <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456" }}>No postings match the current filters. <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#1a56db", cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline" }}>Clear all</button></p>
-          )}
+          <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456" }}>No postings match the current filters. <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#1a56db", cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline" }}>Clear all</button></p>
         </div>
       )}
 
@@ -12701,7 +12681,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           visible throughout rather than flickering in only once loading ends. */}
       <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         {!state.loading
-          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings){ssocFilter ? " + Step 1 SSOC filter" : ""}. Confidence: named-source facts. Time-window: this result.</p>
+          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings). Confidence: named-source facts. Time-window: this result.</p>
           : <span />}
         <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#b3ab9c", flex: "none" }}>v{APP_VERSION}</span>
       </div>
@@ -13867,15 +13847,11 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 // Deterministic: no LLM, no invented number. Counts and names are verbatim
 // pass-through from MyCareersFuture via /api/mcf action:"company".
 // R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
-function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePosting, onQueuePosting, queueCount }) {
+function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
   const [csgState, setCsgState] = useState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
-  // SSOC filter: classify postings lazily (only when a Step 1 SSOC filter is set) so
-  // the no-filter path stays as-is. Map keyed by job.uuid -> { ssoc, sector }. The
-  // /api/ssoc classifyTitles endpoint is deterministic, no LLM.
-  const [postingCls, setPostingCls] = useState({});
   // CO2: agents panel state
   const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
   const [agentsModel, setAgentsModel] = useState(null);
@@ -14007,48 +13983,6 @@ function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePo
   const activeMatch = state.ambiguous && chosenKey
     ? state.matches.find(function(m) { return m.key === chosenKey; })
     : (!state.ambiguous && state.matches.length === 1 ? state.matches[0] : null);
-
-  // SSOC filter: classify the rendered postings (MCF active match + careers.gov.sg)
-  // ONLY when a Step 1 SSOC filter is in play. Skip the API call otherwise so the
-  // default browse path keeps its current zero-classification cost.
-  const ssocCode = ssocFilter && ssocFilter.code ? String(ssocFilter.code) : "";
-  useEffect(() => {
-    if (!ssocCode) { setPostingCls({}); return undefined; }
-    const mcfJobs = (activeMatch && Array.isArray(activeMatch.jobs)) ? activeMatch.jobs : [];
-    const csgJobs = Array.isArray(csgState.jobs) ? csgState.jobs : [];
-    const all = [...mcfJobs, ...csgJobs].filter((j) => j && j.uuid);
-    if (!all.length) { setPostingCls({}); return undefined; }
-    let cancelled = false;
-    fetch("/api/ssoc", {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "classifyTitles", jobs: all.slice(0, 100).map((j) => ({
-        id: String(j.uuid),
-        title: j.title || "",
-        skills: Array.isArray(j.skills) ? j.skills : [],
-        categories: Array.isArray(j.categories) ? j.categories : [],
-        description: j.description || j.responsibilitiesText || "",
-      })) }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (cancelled) return;
-        const out = {};
-        (Array.isArray(data.classifications) ? data.classifications : []).forEach((cl) => {
-          if (!cl || !cl.id) return;
-          const node = cl.status === "classified" ? cl.node : null;
-          out[cl.id] = { ssoc: node ? node.code : null };
-        });
-        setPostingCls(out);
-      })
-      .catch(() => { if (!cancelled) setPostingCls({}); });
-    return () => { cancelled = true; };
-  }, [ssocCode, activeMatch && activeMatch.key, csgState.jobs]);
-
-  const passesSsoc = (job) => {
-    if (!ssocCode) return true;
-    const c = postingCls[String(job && job.uuid || "")] || {};
-    return c.ssoc ? String(c.ssoc).startsWith(ssocCode) : false;
-  };
 
   if (state.loading) {
     return (
@@ -14267,37 +14201,17 @@ function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePo
               </div>
             )}
 
-            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (() => {
-              const visible = activeMatch.jobs.filter(passesSsoc);
-              return (
-                <>
-                  {ssocCode && (
-                    <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.muted }}>
-                      Filtered by SSOC {ssocFilter.code} {String.fromCharCode(0x00b7)} {ssocFilter.title} - {visible.length} of {activeMatch.jobs.length} posting{activeMatch.jobs.length === 1 ? "" : "s"} match.
-                    </p>
-                  )}
-                  {visible.length === 0 && ssocCode ? (
-                    <div style={{ background: C.surface, border: "1px dashed " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-                      <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
-                        None of this employer's MyCareersFuture postings classified under SSOC {ssocFilter.code}. Try a broader SSOC level (e.g. just the major group){onClearSsocFilter ? " or " : " or clear the filter."}
-                        {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} style={{ background: "none", border: "none", padding: 0, color: C.accent, cursor: "pointer", fontWeight: 700, fontSize: "0.8125rem", textDecoration: "underline" }}>clear the SSOC filter</button>}
-                        {onClearSsocFilter && "."}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mcf-grid">
-                      {visible.map(function(job) {
-                        return (
-                          <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                            seen={undefined} fmtSeenDate={undefined}
-                            onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
+            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+              <div className="mcf-grid">
+                {activeMatch.jobs.map(function(job) {
+                  return (
+                    <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                      seen={undefined} fmtSeenDate={undefined}
+                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                  );
+                })}
+              </div>
+            )}
 
             <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
               Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
@@ -14332,27 +14246,15 @@ function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePo
           </div>
         ) : (
           <>
-            {(() => {
-              const visibleCsg = csgState.jobs.filter(passesSsoc);
-              return (
-                <>
-                  {ssocCode && (
-                    <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.muted }}>
-                      Filtered by SSOC {ssocFilter.code} - {visibleCsg.length} of {csgState.jobs.length} careers.gov.sg posting{csgState.jobs.length === 1 ? "" : "s"} match.
-                    </p>
-                  )}
-                  <div className="mcf-grid">
-                    {visibleCsg.slice(0, 10).map(function(job) {
-                      return (
-                        <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
-                          seen={undefined} fmtSeenDate={undefined}
-                          onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })()}
+            <div className="mcf-grid">
+              {csgState.jobs.slice(0, 10).map(function(job) {
+                return (
+                  <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                    seen={undefined} fmtSeenDate={undefined}
+                    onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                );
+              })}
+            </div>
             {csgState.total > 10 && (
               <p style={{ margin: "10px 0 0", fontSize: "0.75rem", color: C.textSub }}>
                 {"+" + (csgState.total - 10) + " more on careers.gov.sg - visit "}
@@ -14382,10 +14284,7 @@ export default function App({ initialSearchMode } = {}) {
   const [ssocOccs,  setSsocOccs]  = useState([]);
   const [ssocQuery, setSsocQuery] = useState("");
   const [ssocSuggestLoading, setSsocSuggestLoading] = useState(false);
-  // Orphaned since PR #271 removed the hard-gate SSOC picker; kept only so the mode-switch
-  // reset at L16069 (approx) does not throw. Always null - no path sets it. Scheduled for
-  // removal in FLOW-polish.
-  const [ssocFilter, setSsocFilter] = useState(null);
+  const ssocOptionRefs = useRef([]); // FLOW-polish: roving keyboard focus across suggestion rows
   const [pickerLoading, setPickerLoading] = useState(false); // v6: progressive picker
   const [pickerFullLoading, setPickerFullLoading] = useState(false);
   const [pickerFullError, setPickerFullError] = useState(false); // v1.3.0: background full search
@@ -16196,7 +16095,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 border/shadow live in .lux-search so :focus-within can light the ring. */}
             <div className="lux-search lux-rise" style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", borderRadius:14, padding:16, marginBottom:12 }}>
               <span id="search-hint" style={{ position:"absolute", width:1, height:1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>
-                Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture and careers.gov.sg.
+                Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture and careers.gov.sg. In Browse and Search-by-employer modes, SSOC 2024 suggestions may appear under the search box to help refine your search words.
               </span>
               <div style={{ marginBottom:12 }}>
                 <h2 className="t-heading" style={{ margin:"0 0 6px", fontSize: "1.5rem", fontWeight:800, color:C.text, lineHeight:1.18, letterSpacing:"-0.03em", textWrap:"balance" }}>
@@ -16221,7 +16120,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
                       background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
-                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); setSsocOccs([]); setSsocFilter(null); setSsocQuery(""); wikiDestRef.current = (m.k === "wiki"); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
+                      onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); setSsocOccs([]); setSsocQuery(""); wikiDestRef.current = (m.k === "wiki"); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
                       style={{ textAlign:"left", padding: "8px 12px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
                       <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
                       {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
@@ -16239,7 +16138,13 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   aria-label={searchMode === "company" ? "Company name" : "Job title or role"} aria-describedby="search-hint"
                   role="searchbox"
                   value={query} onChange={e=>{ setQuery(e.target.value); }}
-                  onKeyDown={e=>{ if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else if(searchMode==="wiki"){ wikiDestRef.current = true; doSearch(); } else { wikiDestRef.current = false; doSearch(); } } }}
+                  onKeyDown={e=>{
+                    if (e.key === "ArrowDown" && ssocOccs.length > 0 && ssocOptionRefs.current[0]) {
+                      e.preventDefault(); ssocOptionRefs.current[0].focus(); return;
+                    }
+                    if (e.key === "Escape" && ssocOccs.length > 0) { setSsocOccs([]); return; }
+                    if(e.key==="Enter"){ if(searchMode==="company"){ startCompanySearch(); } else if(searchMode==="jobs"){ startJobsBrowse(); } else if(searchMode==="wiki"){ wikiDestRef.current = true; doSearch(); } else { wikiDestRef.current = false; doSearch(); } }
+                  }}
                   placeholder={searchMode === "company" ? "e.g. DBS Bank, Ministry of Health, LTA" : "e.g. Data Analyst, Operations Manager, HR Executive"}
                   style={{ flex:1, background:C.surface, border:`2px solid ${C.accent}`, borderRadius: 6, color:C.text, padding: "12px 14px", fontSize: "1rem", fontFamily:"inherit" }} autoFocus />
                 <button className="lux-cta lux-focus"
@@ -16258,14 +16163,34 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   .map((n, i) => ({ n, i, residual: SSOC_NEC_RX.test(n.title || "") }))
                   .sort((a, b) => (a.residual === b.residual ? a.i - b.i : (a.residual ? 1 : -1)))
                   .slice(0, 6);
+                ssocOptionRefs.current = [];
+                const selectSuggestion = (title) => {
+                  setQuery(title);
+                  setSsocOccs([]);
+                  document.getElementById("job-title-search")?.focus();
+                };
                 return (
                   <div style={{ marginTop:8 }} role="listbox" aria-label="SSOC 2024 suggestions">
-                    {rows.map(({ n, residual }) => (
+                    {rows.map(({ n, residual }, idx) => (
                       <button type="button" key={n.code} role="option" aria-selected="false"
-                        onClick={() => {
-                          setQuery(n.title);
-                          setSsocOccs([]);
-                          document.getElementById("job-title-search")?.focus();
+                        ref={(el) => { ssocOptionRefs.current[idx] = el; }}
+                        onClick={() => selectSuggestion(n.title)}
+                        onKeyDown={(e) => {
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            const next = ssocOptionRefs.current[idx + 1];
+                            if (next) next.focus();
+                          } else if (e.key === "ArrowUp") {
+                            e.preventDefault();
+                            const prev = ssocOptionRefs.current[idx - 1];
+                            if (prev) prev.focus(); else document.getElementById("job-title-search")?.focus();
+                          } else if (e.key === "Escape") {
+                            setSsocOccs([]);
+                            document.getElementById("job-title-search")?.focus();
+                          } else if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            selectSuggestion(n.title);
+                          }
                         }}
                         style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8, width:"100%",
                           minHeight:44, textAlign:"left", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6,
@@ -16279,7 +16204,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       </button>
                     ))}
                     <p style={{ margin:"2px 0 0", fontSize:"0.625rem", color:C.muted, lineHeight:1.5 }}>
-                      Suggestions from SSOC 2024 - tap to use as your search term. Picking one only changes the text you typed - it does not filter results.
+                      Suggestions from SSOC 2024 (SingStat) to refine your search words - use arrow keys to move, Enter to pick, Escape to close. Picking one only changes the text you typed - it does not filter results.
                     </p>
                   </div>
                 );
