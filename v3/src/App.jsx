@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.203";
+const APP_VERSION = "3.0.204";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -4456,7 +4456,9 @@ Good example: suggesting "Training Coordinator" as a crossover for an Operations
   const raw = await claudeCall(
 `Current role: ${title}
 Core transferable skills: ${topSkills}
-Return exactly 5 crossover roles in different sectors where these skills transfer directly. Apply Singapore and ASEAN context - use job titles and sectors that are active in this market.`, 660, 1, SYSTEM_CROSS);
+Return exactly 5 crossover roles in different sectors where these skills transfer directly. Apply Singapore and ASEAN context - use job titles and sectors that are active in this market.`, 1100, 1, SYSTEM_CROSS);
+  // 660 -> 1100: 5 items x 4 fields truncated mid-JSON at 660 on the proxy's
+  // current provider (seen live as "Could not parse JSON for crossover").
   const arr = extractJSON(raw, "crossover");
   if (!Array.isArray(arr)) throw new Error("Crossover: expected array");
   return arr.map(x => ({ role:toTitleCase(x.r||x.role||""), sector:x.sector||"", bridge:x.bridge||"", newSkills:(x.new||x.newSkills||[]).map(s => toTitleCase(s)) }));
@@ -14791,11 +14793,17 @@ export default function App({ initialSearchMode } = {}) {
       } catch (_) { occExposure = null; }
       let ratings, progressionData, crossoverData, contextData;
       try {
+        // Only rateSkills is ESSENTIAL (Skill Analysis is the result page's core).
+        // Progression/crossover/context are supplementary tabs - a single flaky
+        // narration response (e.g. truncated JSON: "Could not parse JSON for
+        // crossover", seen live killing the WHOLE analysis) must degrade that
+        // one tab to its empty state, never fail the entire run. Consumers
+        // already null-guard (crossoverData || [], !result.progressionData).
         [ratings, progressionData, crossoverData, contextData] = await Promise.all([
           rateSkills(occ.title, skills, occExposure),
-          getProgressionPaths(occ.title, occ.iscoGroup),
-          getCrossoverRoles(occ.title, skills),
-          getRoleContext(occ.title, skills, occ.iscoGroup),
+          getProgressionPaths(occ.title, occ.iscoGroup).catch((e) => { logStep("progression", "degraded", 0, e && e.message); return null; }),
+          getCrossoverRoles(occ.title, skills).catch((e) => { logStep("crossover", "degraded", 0, e && e.message); return null; }),
+          getRoleContext(occ.title, skills, occ.iscoGroup).catch((e) => { logStep("context", "degraded", 0, e && e.message); return null; }),
         ]);
         logStep("core_llm", "ok", _msSince(_tCore), `${(ratings || []).length} rated`);
       } catch (e) { logStep("core_llm", "error", _msSince(_tCore), e && e.message); throw e; }
