@@ -1456,7 +1456,7 @@ import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.196";
+const APP_VERSION = "3.0.197";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12277,7 +12277,11 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       })()}
       {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
       {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
-      {!state.loading && baseJobs.length > 0 && sorted.length === 0 && (
+      {/* Gated on classifyStatus !== "loading" too, not just !state.loading - otherwise
+          this declared "none match" while SSOC classification was still assigning
+          codes to the fetched postings (every card reads unclassified mid-classify,
+          so the SSOC filter falsely shows zero matches before the real answer exists). */}
+      {!state.loading && progress.classifyStatus !== "loading" && baseJobs.length > 0 && sorted.length === 0 && (
         <div style={{ background: "#fbfaf8", border: "1px dashed #e4e2da", borderRadius: 10, padding: "16px 18px", margin: "10px 0" }}>
           {ssocFilter ? (
             <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>
@@ -12532,9 +12536,15 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       })()}
 
       {/* Footer: same honesty contract as Step 3 (Source/Confidence/Time-window)
-          plus the build tag, so both steps read as one system. */}
+          plus the build tag, so both steps read as one system. The fact-claim
+          text is gated on !state.loading - otherwise it stated "MyCareersFuture
+          (0 postings)" as fact while the fetch was still in flight, before the
+          real count existed. The version tag isn't data-dependent, so it stays
+          visible throughout rather than flickering in only once loading ends. */}
       <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings){ssocFilter ? " + Step 1 SSOC filter" : ""}. Confidence: named-source facts. Time-window: this result.</p>
+        {!state.loading
+          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings){ssocFilter ? " + Step 1 SSOC filter" : ""}. Confidence: named-source facts. Time-window: this result.</p>
+          : <span />}
         <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#b3ab9c", flex: "none" }}>v{APP_VERSION}</span>
       </div>
     </div>
