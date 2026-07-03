@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.200";
+const APP_VERSION = "3.0.201";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12553,7 +12553,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
                             ? <img src={"/api/geocode?action=render&postal=" + encodeURIComponent(d.postal)} alt={"Map pin near postal " + d.postal} onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "100%", maxWidth: 320, height: 160, objectFit: "cover", borderRadius: 7, border: "1px solid #e3e8ef", marginBottom: 6, display: "block" }} />
                             : empGeo && empGeo.status === "loading"
                               ? <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Locating map pin{ELL}</p>
-                              : <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Map unavailable for this postal code.</p>
+                              : <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Map preview not available - the registered address above is the verified fact.</p>
                         )}
                         <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved: {empReg.retrievedAt}</p>
                       </div>

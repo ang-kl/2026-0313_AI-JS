@@ -75,10 +75,24 @@ async function onemapLocate(postal) {
     return out;
   }
   const results = Array.isArray(json && json.results) ? json.results : [];
-  // Exact-match guard: accept only a single high-confidence hit for this
-  // postal code. Multiple or zero results -> withhold, never a fuzzy centroid.
+  // Exact-match guard: a Singapore postal code identifies exactly ONE building,
+  // but OneMap returns one row per NAMED POI at that building (e.g. postal
+  // 408942 -> "INNOVATE @ UBI" the building itself AND a preschool inside it) -
+  // so multiple exact-postal rows are normal, not ambiguity. Accept when every
+  // exact-postal row sits at the same spot (within ~100m, generous for one
+  // building) and use the first; withhold only if exact-postal rows genuinely
+  // disagree on location (a real data conflict) or there is no exact-postal row
+  // at all. Never a fuzzy centroid.
   const exact = results.filter((r) => String(r.POSTAL || '').trim() === postal);
-  const hits = exact.length === 1 ? exact : (results.length === 1 ? results : []);
+  let hits = [];
+  if (exact.length === 1) hits = exact;
+  else if (exact.length > 1) {
+    const lats = exact.map((r) => Number(r.LATITUDE)), lngs = exact.map((r) => Number(r.LONGITUDE));
+    const spreadOk = lats.every(Number.isFinite) && lngs.every(Number.isFinite)
+      && (Math.max(...lats) - Math.min(...lats)) < 0.001
+      && (Math.max(...lngs) - Math.min(...lngs)) < 0.001;
+    if (spreadOk) hits = [exact[0]];
+  } else if (results.length === 1) hits = results;
   if (hits.length !== 1) {
     const out = { matched: 'none', reason: results.length === 0 ? 'no_result' : 'ambiguous' };
     geocodeCache.set(postal, { value: out, expiresAt: Date.now() + GEOCODE_CACHE_TTL_MS });
