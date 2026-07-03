@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.207";
+const APP_VERSION = "3.0.208";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12079,7 +12079,11 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   });
   const [selectedId, setSelectedId] = useState(null);
   const [sort, setSort] = useState("match");
-  const [facets, setFacets] = useState({ sector: [], company: [], department: [], func: [], exp: [], type: [] });
+  // Derived from STEP2_FACETS so adding a facet key can never again miss the
+  // state init (FLOW-1b added matchTier to STEP2_FACETS but not here - the
+  // filter loop then read undefined.length and crashed the whole app the
+  // moment Step 2 rendered).
+  const [facets, setFacets] = useState(() => Object.fromEntries(STEP2_FACETS.map((f) => [f.key, []])));
   const [openFacet, setOpenFacet] = useState(null);
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
@@ -12243,7 +12247,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
   const activeFacetCount = STEP2_FACETS.reduce((n, f) => n + facets[f.key].length, 0);
   const hasFilters = activeFacetCount > 0 || findText.trim().length > 0;
-  const clearFilters = () => { setFacets({ sector: [], company: [], department: [], func: [], exp: [], type: [] }); setFindText(""); };
+  const clearFilters = () => { setFacets(Object.fromEntries(STEP2_FACETS.map((f) => [f.key, []]))); setFindText(""); };
   const toggleFacet = (key, val) => setFacets((f) => ({ ...f, [key]: f[key].includes(val) ? f[key].filter((x) => x !== val) : f[key].concat(val) }));
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
