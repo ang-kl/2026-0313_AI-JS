@@ -202,9 +202,17 @@ export default async function handler(req, res) {
   let client;
   try {
     client = createClient({ connectionString: process.env.POSTGRES_URL });
-    await client.connect();
+    // Bounded connect: the configured Postgres (db.prisma.io) is Accelerate-only
+    // and rejects this driver's WebSocket (seen live as "Unexpected server
+    // response: 404") - without a timeout every request stalled on the doomed
+    // connect attempt before degrading. 2.5s cap matches api/ssoc.js/ssic.js.
+    await Promise.race([
+      client.connect(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('connect timeout')), 2500)),
+    ]);
   } catch (err) {
     console.error('[anatomy] connect:', err && err.message);
+    try { if (client) await client.end(); } catch (_) {}
     client = null;
   }
   try {
