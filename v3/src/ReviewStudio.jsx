@@ -124,7 +124,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
-  const [railOpen, setRailOpen] = useState(true); // icon rail expanded (labels) vs collapsed
+  // Rail starts collapsed on narrow viewports (phones) - open by default on
+  // desktop is fine there, but on an iPhone the 150px expanded rail alone eats
+  // over a third of the screen before the manuscript/margin panes are even
+  // considered. Lazy-init so this reads the real viewport once, not on every render.
+  const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
 
@@ -163,6 +167,25 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
   return (
+    <>
+    {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
+        margin) has no shrink floor - manuscript alone won't go below clamp(340px,...)
+        and the margin/drawer panes are flex:none at 300-312px, so on a phone the row
+        summed to 700px+ and silently overflowed (mobile browsers hide the scrollbar,
+        so that content was effectively unreachable, not just visually clipped). Below
+        860px: the manuscript takes full width, and the drawer/margin panes become
+        fixed-position slide-over panels instead of flex siblings that push it aside. */}
+    <style>{`
+      @media (max-width: 860px) {
+        .wis-manuscript { flex: 1 1 100% !important; min-width: 0 !important; }
+        .wis-drawer, .wis-margin {
+          position: fixed !important; top: 50px; right: 0; bottom: 0; z-index: 60;
+          width: min(88vw, 340px) !important;
+          box-shadow: -8px 0 24px rgba(20,32,46,.18);
+        }
+        .wis-margin-close { display: inline-flex !important; align-items: center; justify-content: center; }
+      }
+    `}</style>
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
       {/* Sub-header (fixed, does not scroll) */}
       <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 18, padding: "11px 18px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
@@ -209,7 +232,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
         {/* Drawer (floats over the canvas; collapses to the rail) */}
         {rail && (
-          <aside className="wis-scroll" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
+          <aside className="wis-scroll wis-drawer" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>{(RAIL.find((r) => r.key === rail) || {}).label?.toUpperCase()}</div>
               <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
@@ -220,7 +243,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         )}
 
         {/* Left: manuscript (spans) or O-I-A dissection */}
-        <div className="wis-scroll" style={{ flex: showDissect ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
+        <div className="wis-scroll wis-manuscript" style={{ flex: showDissect ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
           {showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
@@ -294,10 +317,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
         {/* Comment margin (Suggestions / Comments modes) */}
         {showMargin && (
-          <aside className="wis-scroll" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
+          <aside className="wis-scroll wis-margin" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
+              {/* Mobile-only: this panel becomes a fixed overlay below 860px (see the
+                  .wis-margin media query above) - it needs its own close affordance
+                  there since the desktop dismissal (switch ribbon tabs) sits under it. */}
+              <button onClick={() => setMarkup("clean")} aria-label="Close reviewer comments" title="Close" className="wis-margin-close" style={{ display: "none", marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
             </div>
             {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
             {marginComments.map((c) => {
@@ -368,6 +395,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
       </div>
     </div>
+    </>
   );
 }
 
