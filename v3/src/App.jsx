@@ -12116,7 +12116,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
   );
 
   return (
-    <div style={{ position: "relative", width: "96vw", maxWidth: 1720, left: "50%", marginLeft: "max(-48vw, -860px)", padding: "0 0 60px" }}>
+    <div style={{ position: "relative", width: "100vw", left: "50%", marginLeft: "-50vw", padding: "0 24px 60px", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
