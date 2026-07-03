@@ -1456,7 +1456,7 @@ import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.195";
+const APP_VERSION = "3.0.196";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -16150,7 +16150,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                       { key:"sub_major_group", label:"Sub-major groups",     help:"A wide grouping of related minor groups (2-digit SSOC code)." },
                       { key:"major_group",     label:"Major groups",         help:"The widest occupational families (1-digit SSOC code)." },
                     ];
-                    const buckets = SSOC_KINDS.map((k) => ({ ...k, items: ssocOccs.filter((o) => (o.kind || "") === k.key).sort((a, b) => a.title.localeCompare(b.title)) })).filter((g) => g.items.length > 0);
+                    // De-emphasise catch-all "Not Elsewhere Classified" buckets: a short/generic
+                    // query (e.g. "data") can match one of these broad NEC groups alongside
+                    // several specific occupations - picking the NEC one is a dead end more
+                    // often (it is a residual bucket, not a real job title), so it sorts to the
+                    // end of its tier and is visually flagged rather than looking like a normal
+                    // equal choice. Never hidden or removed - still a valid, real SSOC match.
+                    const NEC_RX = /not elsewhere classified|\bn\.?e\.?c\.?\b/i;
+                    const buckets = SSOC_KINDS.map((k) => ({ ...k, items: ssocOccs.filter((o) => (o.kind || "") === k.key).sort((a, b) => (NEC_RX.test(a.title) === NEC_RX.test(b.title)) ? a.title.localeCompare(b.title) : (NEC_RX.test(a.title) ? 1 : -1)) })).filter((g) => g.items.length > 0);
                     // Anything with an unrecognised kind drops into a tail bucket so we
                     // never silently lose results.
                     const knownCodes = new Set(SSOC_KINDS.map((k) => k.key));
@@ -16171,17 +16178,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                               <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, lineHeight:1.4, textAlign:"right", maxWidth:"68%" }}>{g.help}</p>
                             </div>
                             <div style={{ display:"grid", gridTemplateColumns:"repeat(2, minmax(0, 1fr))", gap:6 }}>
-                              {g.items.map((o) => (
-                                <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode }); pickSsoc(o); }}
-                                  style={cardStyle}
+                              {g.items.map((o) => {
+                                const isNec = NEC_RX.test(o.title);
+                                return (
+                                <div key={o.code} onClick={() => { track("ssoc_picked", { code: o.code, mode: searchMode, catchAll: isNec }); pickSsoc(o); }}
+                                  title={isNec ? "A broad catch-all category, not a specific job title - may match few or no live postings. Try a specific occupation above if one fits better." : undefined}
+                                  style={isNec ? { ...cardStyle, borderStyle:"dashed", background:C.bg } : cardStyle}
                                   onMouseEnter={e=>{ e.currentTarget.style.background=C.accentSoft; e.currentTarget.style.borderColor=C.accent; }}
-                                  onMouseLeave={e=>{ e.currentTarget.style.background=C.surface; e.currentTarget.style.borderColor=C.border; }}>
-                                  <p title={o.title} style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color:C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.title}</p>
-                                  <p style={{ margin:0, fontSize: "0.625rem", color:C.muted, fontFamily:"'Spline Sans Mono',monospace" }}>
+                                  onMouseLeave={e=>{ e.currentTarget.style.background=isNec ? C.bg : C.surface; e.currentTarget.style.borderColor=C.border; }}>
+                                  <p title={o.title} style={{ margin:"0 0 2px", fontSize: "0.8125rem", fontWeight:600, color: isNec ? C.muted : C.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.title}</p>
+                                  <p style={{ margin:0, display:"flex", alignItems:"center", gap:5, fontSize: "0.625rem", color:C.muted, fontFamily:"'Spline Sans Mono',monospace" }}>
                                     SSOC {o.code}
+                                    {isNec && <span style={{ fontFamily:"'Spline Sans',sans-serif", fontWeight:700, letterSpacing:".02em", color:"#8a6d1f", background:"#fdf3d8", border:"1px solid #f0e0a8", borderRadius:4, padding:"0 4px" }}>catch-all</span>}
                                   </p>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </div>
                         ))}
