@@ -14,8 +14,14 @@ if (!process.env.POSTGRES_URL) {
 }
 
 import { readFileSync } from 'node:fs';
-// pg is lazy-loaded inside withDb so the in-memory classify/correspondence paths
-// (the only ones Step 2 uses) work without the optional `pg` dependency installed.
+import { createClient } from '@vercel/postgres';
+// @vercel/postgres (not raw `pg`) - matches api/anatomy.js and api/ssic.js's proven
+// pattern. Vercel's bundler does not include `pg` (it's only a transitive dependency
+// of @vercel/postgres, not a declared one), so importing it directly 500s in
+// production ("Cannot find package 'pg'") - this endpoint silently fell back to its
+// in-memory dataset because of that bug. createClient() (not the `sql` tagged
+// template) because POSTGRES_URL from `vercel env pull` is a direct, non-pooled
+// connection string - see scripts/seed-acra.mjs for the same finding.
 
 export const config = { api: { bodyParser: true }, maxDuration: 300 };
 
@@ -41,11 +47,7 @@ function withTimeout(promise, label = 'db') {
 }
 
 async function withDb(fn, label = 'ssoc db') {
-  const pg = (await import('pg')).default;
-  const client = new pg.Client({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
-  });
+  const client = createClient({ connectionString: process.env.POSTGRES_URL });
   await withTimeout(client.connect(), `${label} connect`);
   const db = {
     sql(strings, ...values) {
