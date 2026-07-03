@@ -4,7 +4,8 @@
 // Visual Intelligence stack (the Role Graph + doctrine visuals). Phase 1: shell +
 // manuscript (Read clean) + Role Graph. Dissection (O-I-A), comment margin and the
 // extra visuals land in later phases. Doctrine tokens only; "AI-assisted; human decides".
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 const BANDS = {
@@ -131,6 +132,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
+  // Drives whether the drawer/comment-margin panes portal to document.body (mobile
+  // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
+  // Needed because <main className="main-content"> (App.jsx) sets position:relative
+  // + z-index:1, which traps any position:fixed descendant's stacking order inside
+  // it - no z-index value on the fixed panel can ever rise above the app's own
+  // header as a result. A portal to document.body is the standard fix; it must be
+  // conditional so the desktop flex layout (no portal) is untouched.
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== "undefined" && window.innerWidth < 860);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 860px)");
+    const onChange = () => setIsNarrow(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   const dissection = useMemo(() => buildDissection(result), [result]);
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
@@ -234,17 +249,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           {railOpen && <div style={{ marginTop: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8b0bd", lineHeight: 1.5, padding: "8px 6px 2px" }}>local + cloud</div>}
         </nav>
 
-        {/* Drawer (floats over the canvas; collapses to the rail) */}
-        {rail && (
-          <aside className="wis-scroll wis-drawer" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>{(RAIL.find((r) => r.key === rail) || {}).label?.toUpperCase()}</div>
-              <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-            </div>
-            <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>This drawer fills in the next build phase. Each note will cite the manuscript line that triggered it - it helps you decide, it never decides for you.</p>
-            <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
-          </aside>
-        )}
+        {/* Drawer (floats over the canvas; collapses to the rail). Portals to
+            document.body on mobile - see the isNarrow comment above for why. */}
+        {rail && (() => {
+          const drawer = (
+            <aside className="wis-scroll wis-drawer" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>{(RAIL.find((r) => r.key === rail) || {}).label?.toUpperCase()}</div>
+                <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+              </div>
+              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>This drawer fills in the next build phase. Each note will cite the manuscript line that triggered it - it helps you decide, it never decides for you.</p>
+              <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
+            </aside>
+          );
+          return isNarrow ? createPortal(drawer, document.body) : drawer;
+        })()}
 
         {/* Left: manuscript (spans) or O-I-A dissection */}
         <div className="wis-scroll wis-manuscript" style={{ flex: showDissect ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
@@ -320,7 +339,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
 
         {/* Comment margin (Suggestions / Comments modes) */}
-        {showMargin && (
+        {showMargin && (() => {
+          const margin = (
           <aside className="wis-scroll wis-margin" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
@@ -366,7 +386,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               );
             })}
           </aside>
-        )}
+          );
+          return isNarrow ? createPortal(margin, document.body) : margin;
+        })()}
 
         {/* Right: Role Graph + analysis (~66%, the dominant pane) */}
         <div className="wis-scroll" style={{ flex: 1, minWidth: 0, background: "#fbfaf8", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 18px 50px" }}>
