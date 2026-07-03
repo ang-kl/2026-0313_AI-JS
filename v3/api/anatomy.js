@@ -23,7 +23,13 @@
 if (!process.env.POSTGRES_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
 }
-import { sql } from '@vercel/postgres';
+// @vercel/postgres's `sql` tagged template needs a POOLED connection string;
+// POSTGRES_URL here is a direct one (confirmed live in production logs:
+// VercelPostgresError 'invalid_connection_string' - same finding as
+// scripts/seed-acra.mjs and api/ssoc.js). createClient() is the direct-
+// connection variant with the same tagged-template `.sql` API - one client
+// is opened per request and closed in the handler's finally block below.
+import { createClient } from '@vercel/postgres';
 
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
@@ -157,27 +163,27 @@ function sanitiseProfile(body) {
 }
 
 let _tableEnsured = false;
-async function ensureTables() {
+async function ensureTables(client) {
   if (_tableEnsured) return;
-  await sql`CREATE TABLE IF NOT EXISTS anatomy_runs (
+  await client.sql`CREATE TABLE IF NOT EXISTS anatomy_runs (
     id BIGSERIAL PRIMARY KEY, role_key TEXT NOT NULL, role_display TEXT NOT NULL, version TEXT NOT NULL,
     source TEXT, ad_uuids JSONB, ad_count INT, ai_resilience_score INT, automatability_index INT,
     layer_mix JSONB, anatomy JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
-  await sql`CREATE INDEX IF NOT EXISTS anatomy_runs_lookup ON anatomy_runs (role_key, version, created_at DESC)`;
-  await sql`CREATE TABLE IF NOT EXISTS screening_profiles (
+  await client.sql`CREATE INDEX IF NOT EXISTS anatomy_runs_lookup ON anatomy_runs (role_key, version, created_at DESC)`;
+  await client.sql`CREATE TABLE IF NOT EXISTS screening_profiles (
     id BIGSERIAL PRIMARY KEY, role_key TEXT NOT NULL, role_display TEXT NOT NULL, version TEXT NOT NULL,
     source TEXT, must_have JSONB, nice_to_have JSONB, knockouts JSONB, ai_dimensions JSONB,
     seniority TEXT, tools JSONB, duty_keywords JSONB, narrative JSONB, tiers JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`;
-  await sql`ALTER TABLE screening_profiles ADD COLUMN IF NOT EXISTS tiers JSONB`;
-  await sql`CREATE INDEX IF NOT EXISTS screening_profiles_lookup ON screening_profiles (role_key, version, created_at DESC)`;
-  await sql`CREATE TABLE IF NOT EXISTS screen_keyword_gaps (
+  await client.sql`ALTER TABLE screening_profiles ADD COLUMN IF NOT EXISTS tiers JSONB`;
+  await client.sql`CREATE INDEX IF NOT EXISTS screening_profiles_lookup ON screening_profiles (role_key, version, created_at DESC)`;
+  await client.sql`CREATE TABLE IF NOT EXISTS screen_keyword_gaps (
     role_key TEXT NOT NULL, version TEXT NOT NULL, kw TEXT NOT NULL,
     miss_count INT NOT NULL DEFAULT 0, check_count INT NOT NULL DEFAULT 0, last_seen TIMESTAMPTZ NOT NULL DEFAULT now(),
     PRIMARY KEY (role_key, version, kw))`;
-  await sql`CREATE TABLE IF NOT EXISTS pipeline_logs (
+  await client.sql`CREATE TABLE IF NOT EXISTS pipeline_logs (
     id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(),
     session TEXT, role_key TEXT, source TEXT, step TEXT NOT NULL, status TEXT NOT NULL, ms INT, detail TEXT)`;
-  await sql`CREATE INDEX IF NOT EXISTS pipeline_logs_ts ON pipeline_logs (ts DESC)`;
+  await client.sql`CREATE INDEX IF NOT EXISTS pipeline_logs_ts ON pipeline_logs (ts DESC)`;
   _tableEnsured = true;
 }
 
@@ -188,12 +194,43 @@ export default async function handler(req, res) {
   const roleKey = str(body.role, 140).toLowerCase();
   const version = str(body.version, 24);
 
+  // One client per request, closed in the finally below - every action's DB
+  // access already has its own try/catch that degrades to a graceful empty
+  // result, so a connect failure here still needs its own guard (an action
+  // whose try/catch never runs, e.g. because connect() itself throws, would
+  // otherwise 500 instead of degrading the same way as every other DB error).
+  let client;
+  try {
+    client = createClient({ connectionString: process.env.POSTGRES_URL });
+    await client.connect();
+  } catch (err) {
+    console.error('[anatomy] connect:', err && err.message);
+    client = null;
+  }
+  try {
+    return await runAction();
+  } finally {
+    if (client) { try { await client.end(); } catch (_) {} }
+  }
+
+  async function runAction() {
+  if (!client) {
+    // No DB - every action degrades to the same empty/graceful shape its own
+    // catch block would produce, without pretending ensureTables() succeeded.
+    if (action === 'get') return res.status(200).json({ hit: null });
+    if (action === 'put') return res.status(200).json({ ok: false, reason: 'db' });
+    if (action === 'getProfile') return res.status(200).json({ profile: null, keywordGaps: [] });
+    if (action === 'putProfile' || action === 'recordGap' || action === 'log') return res.status(200).json({ ok: false, reason: 'db' });
+    if (action === 'recentLogs') return res.status(200).json({ logs: [] });
+    return res.status(400).json({ error: 'Invalid action' });
+  }
+
   // ---- Job Anatomy cache ----
   if (action === 'get') {
     if (!roleKey) return res.status(200).json({ hit: null });
     try {
-      await ensureTables();
-      const { rows } = await sql`SELECT anatomy, created_at FROM anatomy_runs WHERE role_key=${roleKey} AND version=${version || "ja1"} AND created_at > now() - ${ANATOMY_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
+      await ensureTables(client);
+      const { rows } = await client.sql`SELECT anatomy, created_at FROM anatomy_runs WHERE role_key=${roleKey} AND version=${version || "ja1"} AND created_at > now() - ${ANATOMY_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
       if (!rows.length) return res.status(200).json({ hit: null });
       const a = rows[0].anatomy;
       if (a && Array.isArray(a.duties) && a.duties.length >= 4) {
@@ -216,8 +253,8 @@ export default async function handler(req, res) {
     const roleDisplay = str(body.roleDisplay || body.role, 140) || roleKey;
     const anatomy = { fallback: false, ...scores, orgContext, adCount, duties, narrative };
     try {
-      await ensureTables();
-      const { rows } = await sql`INSERT INTO anatomy_runs (role_key, role_display, version, source, ad_uuids, ad_count, ai_resilience_score, automatability_index, layer_mix, anatomy)
+      await ensureTables(client);
+      const { rows } = await client.sql`INSERT INTO anatomy_runs (role_key, role_display, version, source, ad_uuids, ad_count, ai_resilience_score, automatability_index, layer_mix, anatomy)
         VALUES (${roleKey}, ${roleDisplay}, ${version || "ja1"}, ${source}, ${JSON.stringify(adUuids)}, ${adCount}, ${scores.aiResilienceScore}, ${scores.automatabilityIndex}, ${JSON.stringify(scores.layerMix)}, ${JSON.stringify(anatomy)}) RETURNING id`;
       return res.status(200).json({ ok: true, id: rows[0] && rows[0].id });
     } catch (err) { console.error('[anatomy] put:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
@@ -227,11 +264,11 @@ export default async function handler(req, res) {
   if (action === 'getProfile') {
     if (!roleKey) return res.status(200).json({ profile: null, keywordGaps: [] });
     try {
-      await ensureTables();
+      await ensureTables(client);
       const v = version || "sp2";
-      const { rows } = await sql`SELECT must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers, created_at FROM screening_profiles WHERE role_key=${roleKey} AND version=${v} AND created_at > now() - ${PROFILE_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
+      const { rows } = await client.sql`SELECT must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers, created_at FROM screening_profiles WHERE role_key=${roleKey} AND version=${v} AND created_at > now() - ${PROFILE_TTL}::interval ORDER BY created_at DESC LIMIT 1`;
       let gaps = [];
-      try { const g = await sql`SELECT kw, miss_count, check_count FROM screen_keyword_gaps WHERE role_key=${roleKey} AND version=${v} AND check_count >= 2 ORDER BY miss_count DESC, kw ASC LIMIT 8`; gaps = g.rows.map(r => ({ kw: r.kw, miss: r.miss_count, of: r.check_count })); } catch (_) {}
+      try { const g = await client.sql`SELECT kw, miss_count, check_count FROM screen_keyword_gaps WHERE role_key=${roleKey} AND version=${v} AND check_count >= 2 ORDER BY miss_count DESC, kw ASC LIMIT 8`; gaps = g.rows.map(r => ({ kw: r.kw, miss: r.miss_count, of: r.check_count })); } catch (_) {}
       if (!rows.length) return res.status(200).json({ profile: null, keywordGaps: gaps });
       const r = rows[0];
       const t = r.tiers || {};
@@ -246,8 +283,8 @@ export default async function handler(req, res) {
     const roleDisplay = str(body.roleDisplay || body.role, 140) || roleKey;
     const tiers = { exactTitle: p.exactTitle, requiredQuals: p.requiredQuals };
     try {
-      await ensureTables();
-      await sql`INSERT INTO screening_profiles (role_key, role_display, version, source, must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers)
+      await ensureTables(client);
+      await client.sql`INSERT INTO screening_profiles (role_key, role_display, version, source, must_have, nice_to_have, knockouts, ai_dimensions, seniority, tools, duty_keywords, narrative, tiers)
         VALUES (${roleKey}, ${roleDisplay}, ${version || "sp2"}, ${source}, ${JSON.stringify(p.hardSkills)}, ${JSON.stringify(p.softSkills)}, ${JSON.stringify(p.knockouts)}, ${JSON.stringify(p.aiDimensions)}, ${p.seniority}, ${JSON.stringify(p.tools)}, ${JSON.stringify(p.dutyKeywords)}, ${JSON.stringify(p.narrative)}, ${JSON.stringify(tiers)})`;
       return res.status(200).json({ ok: true });
     } catch (err) { console.error('[anatomy] putProfile:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
@@ -260,8 +297,8 @@ export default async function handler(req, res) {
     if (!roleKey || !all.length) return res.status(200).json({ ok: false, reason: 'invalid' });
     const v = version || "sp1";
     try {
-      await ensureTables();
-      await Promise.all(all.map(kw => sql`INSERT INTO screen_keyword_gaps (role_key, version, kw, miss_count, check_count)
+      await ensureTables(client);
+      await Promise.all(all.map(kw => client.sql`INSERT INTO screen_keyword_gaps (role_key, version, kw, miss_count, check_count)
         VALUES (${roleKey}, ${v}, ${kw}, ${missing.has(kw) ? 1 : 0}, 1)
         ON CONFLICT (role_key, version, kw) DO UPDATE SET miss_count = screen_keyword_gaps.miss_count + EXCLUDED.miss_count, check_count = screen_keyword_gaps.check_count + 1, last_seen = now()`));
       return res.status(200).json({ ok: true });
@@ -282,12 +319,12 @@ export default async function handler(req, res) {
     const session = str(body.session, 40);
     const source = lbl(body.source);
     try {
-      await ensureTables();
+      await ensureTables(client);
       for (const e of entries) {
-        await sql`INSERT INTO pipeline_logs (session, role_key, source, step, status, ms, detail)
+        await client.sql`INSERT INTO pipeline_logs (session, role_key, source, step, status, ms, detail)
           VALUES (${session || null}, ${roleKey || null}, ${source || null}, ${e.step}, ${e.status}, ${e.ms}, ${e.detail || null})`;
       }
-      if (Math.random() < 0.01) { try { await sql`DELETE FROM pipeline_logs WHERE ts < now() - interval '14 days'`; } catch (_) {} }
+      if (Math.random() < 0.01) { try { await client.sql`DELETE FROM pipeline_logs WHERE ts < now() - interval '14 days'`; } catch (_) {} }
       return res.status(200).json({ ok: true });
     } catch (err) { console.error('[anatomy] log:', err && err.message); return res.status(200).json({ ok: false, reason: 'db' }); }
   }
@@ -296,15 +333,16 @@ export default async function handler(req, res) {
     const limit = Math.max(1, Math.min(400, Number(body.limit) || 120));
     const sess = body.session ? String(body.session).replace(/[^a-z0-9]/gi, '').slice(0, 40) : null; // debug-mode (dmm) session filter
     try {
-      await ensureTables();
+      await ensureTables(client);
       const { rows } = sess
-        ? await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE session=${sess} ORDER BY ts DESC LIMIT ${limit}`
+        ? await client.sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE session=${sess} ORDER BY ts DESC LIMIT ${limit}`
         : roleKey
-        ? await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE role_key=${roleKey} ORDER BY ts DESC LIMIT ${limit}`
-        : await sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs ORDER BY ts DESC LIMIT ${limit}`;
+        ? await client.sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs WHERE role_key=${roleKey} ORDER BY ts DESC LIMIT ${limit}`
+        : await client.sql`SELECT ts, session, role_key, source, step, status, ms, detail FROM pipeline_logs ORDER BY ts DESC LIMIT ${limit}`;
       return res.status(200).json({ logs: rows.map(r => ({ ts: r.ts, session: r.session, role: r.role_key, source: r.source, step: r.step, status: r.status, ms: r.ms, detail: r.detail })) });
     } catch (err) { console.error('[anatomy] recentLogs:', err && err.message); return res.status(200).json({ logs: [] }); }
   }
 
   return res.status(400).json({ error: 'Invalid action' });
+  }
 }
