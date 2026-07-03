@@ -103,3 +103,41 @@ export function classifySkillLevel(skill, occExposure) {
 export const SKILL_HUMAN_RULES = HUMAN_GATE;
 export const OFFICE_CAP_RULE = OFFICE_RULE;
 export { BAND_TO_LEVEL };
+
+// classifyResponsibilityLevel(text, occExposure) -> same shape as classifySkillLevel, but for a
+// free-text job DUTY (from live postings via getResponsibilities) rather than an ESCO skill
+// object. No reuseLevel/type/escoDescription signal exists for duty text, so this is a 3-rule
+// classifier (SLE-C): HUMAN gate (hard) -> office-suite cap (hard) -> occupation-band prior
+// (soft). No ESCO-modifier step (Rule 4 in classifySkillLevel) - there is no per-duty ESCO
+// signal to modify with. Withhold (null) when no occupation exposure is available at all -
+// a duty description alone is not enough signal to guess a band.
+export function classifyResponsibilityLevel(text, occExposure) {
+  const t = String(text || '').toLowerCase();
+
+  // Rule 1: HUMAN gate (hard, wins over everything else) - same regex as classifySkillLevel.
+  if (SKILL_HUMAN_RULES.test(t)) {
+    return { level: 'HUMAN', toolHint: 'NA', confidence: 'high', basis: 'human-gate' };
+  }
+
+  const hasOccExposure = !!(occExposure && occExposure.band && BAND_TO_LEVEL[occExposure.band]);
+
+  // No ESCO-equivalent fallback for duty text - withhold outright when there is no occupation
+  // exposure to lean on (never guess a band from the duty text alone).
+  if (!hasOccExposure) {
+    return { level: null, toolHint: null, confidence: 'withheld', basis: 'withheld' };
+  }
+
+  // Rule 3: occupation-band prior. Confidence capped at 'moderate' - this is an occupation-level
+  // read applied to a specific duty, never a truly duty-specific measurement.
+  let level = BAND_TO_LEVEL[occExposure.band];
+  const confidence = occExposure.confidence === 'high' ? 'moderate' : (occExposure.confidence || 'moderate');
+  let basis = 'occupation-band';
+
+  // Rule 2: office-suite cap (hard) - same regex as classifySkillLevel.
+  if (OFFICE_CAP_RULE.test(t)) {
+    if (level === 'HIGH') level = 'MEDIUM';
+    basis = 'office-cap';
+  }
+
+  return { level, toolHint: null, confidence, basis };
+}

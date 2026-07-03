@@ -1451,12 +1451,12 @@ import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
 import { computeEngine, exposureForIsco } from "../engine-data/engine-core.js";
-import { classifySkillLevel } from "../engine-data/skill-level.js";
+import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
 
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.194";
+const APP_VERSION = "3.0.195";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -4032,32 +4032,47 @@ Return pt exactly as assigned above. Do not substitute a different technique.`;
 
   return allResults;
 }
-// Compact rating for comparison runs - skips prompt/prep/twoStep/readiness to reduce tokens and latency
-async function rateSkillsCompact(title, skills) {
-  const SYSTEM_COMPACT =
-`You are a senior AI workforce analyst. Rate how AI affects each occupational skill. Apply Singapore and ASEAN context.
-Return ONLY a JSON array with exactly the same number of items as skills provided. No text before or after.
-Format: [{"n":1,"l":"HIGH","a":"LLM","h":"how AI helps under 8 words","st":"technical"}]
-Automation levels (rate against TODAY'S frontier, where AI agents run multi-step workflows): HIGH=Full Automation (AI/agent completes it end-to-end, human reviews the outcome), MEDIUM=AI-Augmented (AI does the heavy lifting, human directs each step), LOW=AI-Assisted (AI supports, human judgment leads), HUMAN=Human-Led (accountability, presence or physical action AI cannot hold)
-AI tools: LLM, AGENT, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
-CRITICAL: If a=NA then l MUST be HUMAN. Physical, tactile, and face-to-face skills are always HUMAN + NA.
-OFFICE SUITE RULE: Skills named "Microsoft Office", "Office Suite", "Spreadsheets", "Excel", "Word", "PowerPoint" or similar general productivity suite skills must be rated MEDIUM at most - never HIGH.`;
+// Compact rating for comparison runs - skips prompt/prep/twoStep/readiness to reduce tokens and
+// latency.
+// SLE-B: the automation LEVEL is no longer authored by the LLM here either - decided
+// deterministically by classifySkillLevel() (engine-data/skill-level.js), same as rateSkills
+// (SLE-A). Claude/Haiku narrates ONLY how + the advisory tool hint, reacting to the
+// already-decided level - it cannot overrule it. See v3-skill-level-engine-spec.md SLE8.
+async function rateSkillsCompact(title, skills, occExposure) {
+  // Decide each skill's level deterministically first - the LLM never sees an undecided level.
+  const decided = skills.map(s => ({ n: s.n, skill: s.skill, ...classifySkillLevel(s, occExposure) }));
+  const decidedByN = new Map(decided.map(d => [d.n, d]));
 
-  const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
-  // Scale with skill count so a long ESCO list does not truncate (compact = 4 fields,
+  const SYSTEM_COMPACT =
+`You are a senior AI workforce analyst. For each occupational skill you are GIVEN the automation LEVEL already decided by the engine (deterministic - do not change it, do not re-derive it). Write only the narration for that decided level. Apply Singapore and ASEAN context.
+Return ONLY a JSON array with exactly the same number of items as skills provided. No text before or after.
+Format: [{"n":1,"a":"LLM","h":"how AI helps under 8 words","st":"technical"}]
+Levels you will be given (for context only, so your narration matches):
+- HIGH = Full Automation: AI/agent completes it end-to-end, human reviews the outcome
+- MEDIUM = AI-Augmented: AI does the heavy lifting, human directs each step
+- LOW = AI-Assisted: AI supports, human judgment leads
+- HUMAN = Human-Led: accountability, presence or physical action AI cannot hold
+- NOT_CLASSIFIED = no engine signal available; narrate LOW-style (AI as support) but do not claim a level
+AI tools (use exact code): LLM, AGENT, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
+CRITICAL: if the GIVEN level is HUMAN, a MUST be NA.`;
+
+  const skillList = decided.map(d => `${d.n}:${d.skill} [level=${d.level || "NOT_CLASSIFIED"}]`).join(" | ");
+  // Scale with skill count so a long ESCO list does not truncate (compact = 3 fields now,
   // ~29 output tokens/skill worst case). Was a flat 2200 tuned for 25 skills.
   const compactTokens = Math.min(5000, 1100 + skills.length * 45);
   const raw = await claudeCall(
 `Occupation: ${title}
-Skills to rate: ${skillList}`, compactTokens, 2, SYSTEM_COMPACT);
+Skills to narrate, given their already-decided level: ${skillList}`, compactTokens, 2, SYSTEM_COMPACT);
   const arr = extractJSON(raw, "compact-ratings");
   if (!Array.isArray(arr)) throw new Error("compact-ratings: expected array");
-  const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
   return arr.map(x => {
-    const tool = x.a || "NA";
-    const rawLevel = levelMap[x.l] || "HUMAN";
-    const level = (tool === "NA" && rawLevel !== "HUMAN") ? "HUMAN" : rawLevel;
-    return { n:x.n, level, tool, how:x.h||"", skillType:x.st||"technical",
+    const d = decidedByN.get(x.n) || {};
+    // Engine wins, always - the LLM's own l for the level is never read here.
+    const level = d.level || null;
+    const toolFromLlm = x.a || "NA";
+    const tool = level === "HUMAN" ? "NA" : (d.toolHint || toolFromLlm);
+    return { n:x.n, level, confidence: d.confidence || "withheld", basis: d.basis || "withheld",
+             tool, how:x.h||"", skillType:x.st||"technical",
              kickstart:"", prompt:"", prep:"", twoStep:false, readiness:"ready" };
   });
 }
@@ -4694,35 +4709,47 @@ Extract the real responsibilities for this occupation from the corpus above.`, 2
   return { summary: String(obj.summary || "").replace(/"/g, "").trim(), responsibilities: valid };
 }
 
-async function rateResponsibilities(title, responsibilities) {
+// SLE-C: the automation LEVEL is no longer authored by the LLM here either - decided
+// deterministically by classifyResponsibilityLevel() (engine-data/skill-level.js), the sibling of
+// classifySkillLevel for free-text duty descriptions (no ESCO signal available, so no ESCO-
+// modifier step - see that function's comment). Claude/Haiku narrates ONLY how/kickstart,
+// reacting to the already-decided level - it cannot overrule it. See v3-skill-level-engine-spec.md SLE8.
+async function rateResponsibilities(title, responsibilities, occExposure) {
+  // Decide each responsibility's level deterministically first - the LLM never sees an
+  // undecided level.
+  const decided = responsibilities.map(r => ({ n: r.n, ...classifyResponsibilityLevel(r.text, occExposure) }));
+  const decidedByN = new Map(decided.map(d => [d.n, d]));
+
   const SYSTEM_RR =
-`You are a senior AI workforce analyst. Rate how today's AI affects each job responsibility. Apply Singapore and ASEAN context.
+`You are a senior AI workforce analyst. For each job responsibility you are GIVEN the automation LEVEL already decided by the engine (deterministic - do not change it, do not re-derive it). Write only the narration for that decided level. Apply Singapore and ASEAN context.
 Return ONLY a JSON array with exactly the same number of items as responsibilities provided. No text before or after. No markdown fences.
-Format: [{"n":1,"l":"MEDIUM","a":"DOCS","h":"how AI engages - 12 words max","k":"one step to try this week - 12 words max"}]
-Automation levels (rate against TODAY'S frontier, where AI agents plan, use tools and iterate across steps):
+Format: [{"n":1,"a":"DOCS","h":"how AI engages - 12 words max","k":"one step to try this week - 12 words max"}]
+Levels you will be given (for context only, so your narration matches):
 - HIGH = Full Automation: AI completes this duty end-to-end - including an AI agent running the multi-step workflow - the human reviews the outcome, not each step
 - MEDIUM = AI-Augmented: AI does the heavy lifting; a human directs and signs off each step
 - LOW = AI-Assisted: AI supports parts of it but human judgment leads throughout
 - HUMAN = Human-Led: legal accountability, moral liability, presence, relationships or physical action mean AI cannot hold this
+- NOT_CLASSIFIED = no engine signal available; narrate LOW-style (AI as support) but do not claim a level
 AI tool codes (use exact code): LLM, AGENT, COPILOT, SEARCH, IMAGE, VOICE, DATA, AUTO, CODE, DOCS, SLIDES, VISION, RESEARCH, VIDEO, NA
 Field rules:
-- h: calibrated to the level - for HIGH describe the delegation (what the agent runs, what the human reviews); otherwise name the human/AI split. No generic phrases.
+- h: calibrated to the GIVEN level - for HIGH describe the delegation (what the agent runs, what the human reviews); otherwise name the human/AI split. No generic phrases.
 - k: one specific achievable action this week. Do not name specific AI products.
-OFFICE SUITE RULE: drafting in Word/Excel/PowerPoint or spreadsheets = MEDIUM at most. Never HIGH.
-CRITICAL: if a=NA then l MUST be HUMAN.`;
-  const list = responsibilities.map(r => `${r.n}:${r.text}`).join(" | ");
+- a: if the GIVEN level is HUMAN, a MUST be NA.`;
+  const list = decided.map(d => `${d.n}:${responsibilities.find(r => r.n === d.n)?.text || ""} [level=${d.level || "NOT_CLASSIFIED"}]`).join(" | ");
   const raw = await claudeCall(
 `Occupation: ${title}
-Rate each responsibility for AI automation impact. Singapore and ASEAN context applies.
-Responsibilities to rate: ${list}`, 2600, 1, SYSTEM_RR);
+Narrate how AI engages each responsibility, given its already-decided level. Singapore and ASEAN context applies.
+Responsibilities to narrate: ${list}`, 2600, 1, SYSTEM_RR);
   const arr = extractJSON(raw, "resp-ratings");
   if (!Array.isArray(arr)) throw new Error("resp-ratings: expected array");
-  const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
   return arr.map(x => {
-    const tool = x.a || x.tool || "NA";
-    const rawLevel = levelMap[x.l] || levelMap[x.level] || "HUMAN";
-    const level = (tool === "NA" && rawLevel !== "HUMAN") ? "HUMAN" : rawLevel;
-    return { n: x.n, level, tool, how: x.h || x.how || "", kickstart: x.k || x.kickstart || "" };
+    const d = decidedByN.get(x.n) || {};
+    // Engine wins, always - the LLM's own l/level for the level is never read here.
+    const level = d.level || null;
+    const toolFromLlm = x.a || x.tool || "NA";
+    const tool = level === "HUMAN" ? "NA" : (d.toolHint || toolFromLlm);
+    return { n: x.n, level, confidence: d.confidence || "withheld", basis: d.basis || "withheld",
+             tool, how: x.h || x.how || "", kickstart: x.k || x.kickstart || "" };
   });
 }
 
@@ -4835,7 +4862,9 @@ Pick the 6 responsibilities this persona should focus on building first.`, 900, 
 }
 
 // Orchestrator: returns the full responsibilitiesData blob (or a fallback marker).
-async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona, preJobs) {
+// occExposure (SLE-C): occupation-level AIOE exposure, fed into classifyResponsibilityLevel()
+// inside rateResponsibilities(). May be null/undefined - the withhold path handles that.
+async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGroup, persona, preJobs, occExposure) {
   let jobsRes;
   if (Array.isArray(preJobs) && preJobs.length) {
     jobsRes = { jobs: preJobs, tier: 1, approximate: false };
@@ -4860,7 +4889,7 @@ async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGrou
   if (!base.responsibilities.length) return { fallback: true, reason: "empty_analysis", jobCount, jobs, tier: jobsRes.tier, approximate: jobsRes.approximate };
 
   const [ratings, respProgression, respCrossover, respContext, foundationResp] = await Promise.all([
-    rateResponsibilities(title, base.responsibilities).catch(() => []),
+    rateResponsibilities(title, base.responsibilities, occExposure).catch(() => []),
     getRespProgression(title, base.responsibilities, iscoGroup).catch(() => null),
     getRespCrossover(title, base.responsibilities).catch(() => []),
     getRespContext(title, base.responsibilities, iscoGroup).catch(() => null),
@@ -4868,7 +4897,9 @@ async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGrou
   ]);
   const responsibilities = base.responsibilities.map(r => {
     const rt = ratings.find(x => x.n === r.n) || {};
-    return { ...r, level: rt.level || "HUMAN", tool: rt.tool || "NA", how: rt.how || "", kickstart: rt.kickstart || "" };
+    // SLE-C: rt.level is the engine-decided level (classifyResponsibilityLevel), may be null
+    // (withheld) - never silently coerced to a fabricated "HUMAN" default.
+    return { ...r, level: rt.level ?? null, levelConfidence: rt.confidence || "withheld", levelBasis: rt.basis || "withheld", tool: rt.tool || "NA", how: rt.how || "", kickstart: rt.kickstart || "" };
   });
   return {
     summary: base.summary,
@@ -7762,7 +7793,9 @@ function TaskCard({ r, skillByN }) {
         style={{ width: "100%", minHeight: 44, display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left", borderRadius: 10 }}
       >
         <span style={{ flex: 1, minWidth: 0, fontSize: "0.8125rem", fontWeight: 600, color: C.text, lineHeight: 1.5 }}>{r.text}</span>
-        <Tag level={r.level || "HUMAN"} small />
+        {/* SLE-C: r.level can be null (withheld) - Tag already renders the neutral
+            "Not classified" state; never coerce to a fabricated "HUMAN" default. */}
+        <Tag level={r.level} small />
         <span
           aria-hidden="true"
           style={{ fontSize: "0.6875rem", color: C.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", marginLeft: 4 }}
@@ -10991,7 +11024,9 @@ function RespFreqBadge({ freq }) {
 // carries a coloured left accent + a bottom hairline (unless it is the last).
 function ResponsibilityCard({ r, skillByN, autoOpen, last }) {
   const [open, setOpen] = useState(!!autoOpen);
-  const lv = LEVELS[r.level] || LEVELS.HUMAN;
+  // SLE-C: r.level can be null (withheld) - fall back to the neutral LEVEL_WITHHELD style,
+  // never to LEVELS.HUMAN (that would fabricate a level colour/label).
+  const lv = LEVELS[r.level] || LEVEL_WITHHELD;
   const mapped = (r.sk || []).map(n => skillByN[n]).filter(Boolean);
   const hasMore = (r.level !== "HUMAN" && (r.how || r.kickstart));
   return (
@@ -11095,6 +11130,9 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
           { key:"LOW",    ...LEVELS.LOW,    sub:"AI can support these duties, but you stay in control." },
           { key:"MEDIUM", ...LEVELS.MEDIUM, sub:"AI markedly speeds these up; a human still directs and signs off." },
           { key:"HIGH",   ...LEVELS.HIGH,   sub:"An AI agent can run these end-to-end today; the human reviews the outcome." },
+          // SLE-C: withheld duties (classifyResponsibilityLevel found no occupation exposure to
+          // lean on) - shown honestly in their own group, never folded into Human-Led.
+          { key:null,     ...LEVEL_WITHHELD, sub:"No occupation-exposure signal was available to estimate this one - shown as-is rather than guessed." },
         ];
         const firstAiKey = ["LOW","MEDIUM","HIGH"].find(k => resps.some(r => r.level === k));
         return (
@@ -11110,7 +11148,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
               const items = sortedResps.filter(r => r.level === m.key);
               if (!items.length) return null;
               return (
-                <div key={m.key} style={{ marginBottom:16 }}>
+                <div key={m.key ?? "NONE"} style={{ marginBottom:16 }}>
                   <div style={{ display:"flex", alignItems:"baseline", gap:8, marginBottom:6, paddingBottom:5, borderBottom:`2px solid ${m.border}` }}>
                     <span style={{ fontSize: "0.75rem", fontWeight:800, color:m.color }}>{m.label}</span>
                     <span style={{ fontSize: "0.6875rem", color:C.muted }}>({items.length})</span>
@@ -11133,13 +11171,16 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
       {active === "categories" && (() => {
         const byCat = {}; RESP_CATEGORIES.forEach(c => { byCat[c] = []; });
         resps.forEach(r => { (byCat[r.cat] || (byCat[r.cat] = [])).push(r); });
-        const byLevel = { HUMAN:[], LOW:[], MEDIUM:[], HIGH:[] };
-        resps.forEach(r => { (byLevel[r.level] || byLevel.HUMAN).push(r); });
+        // SLE-C: withheld duties (r.level === null) get their own "NONE" bucket, never
+        // silently folded into HUMAN - that would fabricate a level.
+        const byLevel = { HUMAN:[], LOW:[], MEDIUM:[], HIGH:[], NONE:[] };
+        resps.forEach(r => { (byLevel[r.level ?? "NONE"] || byLevel.NONE).push(r); });
         const levelMeta = [
           { key:"HUMAN",  ...LEVELS.HUMAN },
           { key:"LOW",    ...LEVELS.LOW },
           { key:"MEDIUM", ...LEVELS.MEDIUM },
           { key:"HIGH",   ...LEVELS.HIGH },
+          { key:"NONE",   ...LEVEL_WITHHELD },
         ];
         return (
           <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
@@ -14858,7 +14899,7 @@ export default function App({ initialSearchMode } = {}) {
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
       { let _tR; try { _tR = performance.now(); } catch (_) { _tR = 0; }
-      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined)
+      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined, occExposure)
         .then(rd => {
           if (analysisCancelRef.current !== cancelId) return;
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
@@ -15254,12 +15295,32 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           if (skills === null) skills = await getSkills(compEscoFetchTitle, occ.iscoGroup || "", occ.iscoCode || "");
         }
         logStep(`Rating ${skills.length} skills for ${roleLabel} against AI...`);
+        // SLE-B: same occupation-level AIOE exposure lookup as doAnalyse's main flow (SLE-A),
+        // fed into classifySkillLevel() inside rateSkillsCompact() as the honest numeric anchor
+        // for each skill's level. Withheld (null) when occ.iscoCode is unavailable (e.g. the
+        // posting branch above never resolves an iscoCode) or unscored - never faked.
+        let occExposure = null;
+        try {
+          if (occ.iscoCode) {
+            const exp = exposureForIsco(occ.iscoCode);
+            if (exp) {
+              occExposure = {
+                index: exp.index,
+                band: exp.band,
+                zRange: exp.zRange,
+                confidence: (exp.socsWithScore === exp.socs.length) ? "high" : "medium",
+              };
+            }
+          }
+        } catch (_) { occExposure = null; }
         // Use compact rater for comparison - skips prompt/prep/twoStep to reduce latency ~40%
-        const ratings = await rateSkillsCompact(occ.title, skills);
+        const ratings = await rateSkillsCompact(occ.title, skills, occExposure);
         const merged = skills.map(s => {
           const r = ratings.find(x => x.n === s.n) || {};
           // H2 fix: ESCO skillType takes precedence over Claude rating - same as primary merge
-          return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:"", prompt:"", skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:"", twoStep:false, readiness:"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
+          // SLE-B: r.level is the engine-decided level (classifySkillLevel), may be null
+          // (withheld) - never silently coerced to a fabricated "HUMAN" default.
+          return { n:s.n, skill:s.skill, type:s.type, level:r.level ?? null, levelConfidence:r.confidence||"withheld", levelBasis:r.basis||"withheld", tool:r.tool||"NA", how:r.how||"", kickstart:"", prompt:"", skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:"", twoStep:false, readiness:"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
         });
         logStep(`Mapping career paths for ${roleLabel}...`);
         // Skip progression/crossover/context if role already has full result data
@@ -15276,7 +15337,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             getRoleContext(occ.title, merged, occ.iscoGroup),
           ]);
         }
-        return { title: c.title, result: { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, progressionData, crossoverData, contextData, escoOccupation: escoResult ? escoResult.escoOccupation : null, source: c.posting ? "posting" : "esco", postingMeta: c.posting ? { uuid:c.posting.uuid, employer:c.posting.employer, mcfUrl:c.posting.mcfUrl } : null } };
+        // SLE-C: occExposure carried on the result so the responsibilities pass below (which
+        // only has r.result, not occ) can reuse the SAME already-computed value rather than
+        // re-deriving it or guessing - genuine data, not an invented field.
+        return { title: c.title, result: { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, progressionData, crossoverData, contextData, escoOccupation: escoResult ? escoResult.escoOccupation : null, source: c.posting ? "posting" : "esco", postingMeta: c.posting ? { uuid:c.posting.uuid, employer:c.posting.employer, mcfUrl:c.posting.mcfUrl } : null, occExposure } };
       } catch(e) {
         return { title: c.title, result: null };
       }
@@ -15295,7 +15359,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       // shows up in the Compare row (non-blocking - runs after the comparison renders).
       const respTitle = c.posting ? (c.posting.title || c.title.split(" — ")[0] || c.title) : c.title;
       if (r.result && (!c.result || !c.result.responsibilitiesData)) {
-        buildResponsibilitiesData(respTitle, r.result.escoOccupation || null, r.result.skills, r.result.iscoGroup, null)
+        buildResponsibilitiesData(respTitle, r.result.escoOccupation || null, r.result.skills, r.result.iscoGroup, null, undefined, r.result.occExposure)
           .then(rd => patchComparisonResult(c.title, { responsibilitiesData: rd }))
           .catch(() => {});
       } else if (r.result && c.result && c.result.responsibilitiesData) {
