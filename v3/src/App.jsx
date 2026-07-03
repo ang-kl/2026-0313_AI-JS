@@ -1450,12 +1450,13 @@ import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } fro
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
-import { computeEngine } from "../engine-data/engine-core.js";
+import { computeEngine, exposureForIsco } from "../engine-data/engine-core.js";
+import { classifySkillLevel } from "../engine-data/skill-level.js";
 
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.185";
+const APP_VERSION = "3.0.187";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3704,36 +3705,42 @@ function getKnowledgeGraph(result, title) {
 
 // scoreCVFit, scoreTrueFit, fairnessAudit, narrateCVFit, ingestCV removed (PL1)
 
-async function rateSkills(title, skills) {
-  // Lean structural rating on Haiku - fast, fits within token limit
+// SLE-A: the automation LEVEL (l) is no longer authored by the LLM. It is decided
+// deterministically by classifySkillLevel() (engine-data/skill-level.js) BEFORE this call, from
+// the occupation's AIOE exposure band + ESCO signals + the hard HUMAN/office rules that used to
+// live only inside this prompt. Claude/Haiku now narrates ONLY how/kickstart, reacting to the
+// already-decided level - it cannot overrule it. `a` (tool) stays an LLM advisory hint, rendered
+// with the "~ AI estimate" chip, never presented as fact. See v3-skill-level-engine-spec.md.
+async function rateSkills(title, skills, occExposure) {
+  // Decide each skill's level deterministically first - the LLM never sees an undecided level.
+  const decided = skills.map(s => ({ n: s.n, skill: s.skill, ...classifySkillLevel(s, occExposure) }));
+  const decidedByN = new Map(decided.map(d => [d.n, d]));
+
   const SYSTEM_RATE =
-`You are a senior AI workforce analyst. Rate how AI affects each occupational skill. Apply Singapore and ASEAN context.
+`You are a senior AI workforce analyst. For each occupational skill you are GIVEN the automation LEVEL already decided by the engine (deterministic - do not change it, do not re-derive it). Write only the narration for that decided level. Apply Singapore and ASEAN context.
 Return ONLY a JSON array with exactly the same number of items as skills provided. No text before or after. No markdown fences.
-Format: [{"n":1,"l":"HIGH","a":"LLM","h":"how AI engages - 12 words max","k":"kickstart this week - 12 words max","st":"technical","pr":"","tw":false,"rd":"ready"}]
-Automation levels (rate against TODAY'S frontier, where AI agents plan, use tools and iterate across steps):
+Format: [{"n":1,"a":"LLM","h":"how AI engages - 12 words max","k":"kickstart this week - 12 words max","st":"technical","pr":"","tw":false,"rd":"ready"}]
+Levels you will be given (for context only, so your narration matches):
 - HIGH = Full Automation: AI completes the work end-to-end - including an AI agent running the multi-step workflow - the human reviews the OUTCOME, not each step
 - MEDIUM = AI-Augmented: AI does the heavy lifting; a human directs and signs off each step
 - LOW = AI-Assisted: AI informs and supports; human judgment leads throughout
 - HUMAN = Human-Led: legal accountability, moral liability, presence, empathy or physical action required - the governance node AI cannot hold
+- NOT_CLASSIFIED = no engine signal available; narrate LOW-style (AI as support) but do not claim a level
 AI tools (use exact code):
 LLM=AI language tool, AGENT=AI agent tool, COPILOT=Microsoft Copilot, SEARCH=AI search tool, IMAGE=AI image tool, VOICE=AI voice tool, DATA=AI data analysis tool, AUTO=AI automation tool, CODE=AI coding tool, DOCS=AI document tool, SLIDES=AI presentation tool, VISION=AI vision tool, RESEARCH=AI research tool, VIDEO=AI video tool, NA=Not applicable
 Field rules:
-- h: calibrated to level. HIGH: describe the delegation e.g. "An AI agent runs the monitor-and-report workflow; human reviews the output" or "Agent drafts, checks and files the documentation end-to-end". MEDIUM: describe the human-AI split e.g. "Human sets criteria, AI evaluates the options for sign-off". LOW: frame AI as support e.g. "AI surfaces the evidence; human applies judgment to the decision". HUMAN: explain why e.g. "Requires physical presence and emotional attunement". No generic phrases.
+- h: calibrated to the GIVEN level. HIGH: describe the delegation e.g. "An AI agent runs the monitor-and-report workflow; human reviews the output" or "Agent drafts, checks and files the documentation end-to-end". MEDIUM: describe the human-AI split e.g. "Human sets criteria, AI evaluates the options for sign-off". LOW: frame AI as support e.g. "AI surfaces the evidence; human applies judgment to the decision". HUMAN: explain why e.g. "Requires physical presence and emotional attunement". No generic phrases.
 - k: one specific achievable action this week (for HIGH it may be setting up an agent run with a checkpoint). Do not name specific AI products.
 - pr: if prompt needs real data first, start with "Have your..." or "Open your..." - else empty string
 - tw: true only if multi-turn approach genuinely helps
 - rd: "ready" if usable today, "prepare" if setup needed
-OFFICE SUITE RULE: Microsoft Office, Excel, Word, PowerPoint, Spreadsheets = MEDIUM at most. Never HIGH. (Agents can drive these apps, but the SKILL is the human competency, not the app operation.)
-CRITICAL: If a=NA then l MUST be HUMAN. No exceptions.
-Bad example: "Patient Empathy" as LOW with LLM - must be HUMAN + NA
-Good example: "Clinical Documentation" as MEDIUM with DOCS - AI drafts, clinician reviews
-Good example: "Routine Compliance Reporting" as HIGH with AGENT - an agent compiles, checks and files the report; human reviews the outcome`;
+- a: if the GIVEN level is HUMAN, a MUST be NA. No exceptions.`;
 
-  const skillList = skills.map(s => `${s.n}:${s.skill}`).join(" | ");
+  const skillList = decided.map(d => `${d.n}:${d.skill} [level=${d.level || "NOT_CLASSIFIED"}]`).join(" | ");
   const userMsg =
 `Occupation: ${title}
-Rate each skill for AI automation impact. Singapore and ASEAN context applies.
-Skills to rate: ${skillList}`;
+Narrate how AI engages each skill, given its already-decided level. Singapore and ASEAN context applies.
+Skills to narrate: ${skillList}`;
   // Token budget MUST scale with the skill count, or a long ESCO list (seen: 36 skills)
   // overflows the cap, the JSON response truncates, and extractJSON throws "Could not
   // parse JSON for ratings" - which kills the whole analysis. Audit: ~69 output tokens
@@ -3751,14 +3758,18 @@ Skills to rate: ${skillList}`;
     arr = extractJSON(raw2, "ratings");
   }
   if (!Array.isArray(arr)) throw new Error("ratings: expected array");
-  const levelMap = { HIGH:"HIGH", MEDIUM:"MEDIUM", LOW:"LOW", HUMAN:"HUMAN" };
   return arr.map(x => {
-    const tool = x.a || x.tool || "NA";
-    const rawLevel = levelMap[x.l] || levelMap[x.level] || "HUMAN";
-    const level = (tool === "NA" && rawLevel !== "HUMAN") ? "HUMAN" : rawLevel;
+    const d = decidedByN.get(x.n) || {};
+    // Engine wins, always - the LLM's own l/a for the level are ignored (never read here).
+    // a=NA <-> HUMAN is preserved as a deterministic invariant on the engine-decided level.
+    const level = d.level || null;
+    const toolFromLlm = x.a || x.tool || "NA";
+    const tool = level === "HUMAN" ? "NA" : (d.toolHint || toolFromLlm);
     return {
       n:         x.n,
       level,
+      confidence: d.confidence || "withheld",
+      basis:      d.basis || "withheld",
       tool,
       how:       x.how || x.h || "",
       kickstart: x.kickstart || x.k || "",
@@ -4060,6 +4071,10 @@ const LEVELS = {
   LOW:   { label:"AI-Assisted",     color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"●"  },
   HUMAN: { label:"Human-Led",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"♦"  },
 };
+// SLE-A: neutral "not classified" style for a withheld skill level (classifySkillLevel returned
+// null - no occupation exposure and no ESCO signal to lean on). Never fall back to a band colour
+// - that would fabricate a level. Mirrors ReviewStudio's SPAN_STYLE_WITHHELD posture.
+const LEVEL_WITHHELD = { label:"Not classified", color:"#5b6878", bg:"#f5f7fa", border:"#dde3ec", icon:"?" };
 
 // PW4 (stewardship arc): the pro-worker lens. Acemoglu, Autor & Johnson 2026 (NBER w34854,
 // "Building Pro-Worker AI") name five categories of technological change - labor-augmenting,
@@ -4085,6 +4100,9 @@ const PROV = {
   ai:         { label:"AI estimate",         short:"AI estimate", icon:"~", color:"#b45309", bg:"#fffbeb", border:"#fde68a", tip:"An AI (LLM) judgement, not a measurement. It can vary between runs - treat as advisory, not fact." },
   derived:    { label:"derived",             short:"derived",    icon:"◐", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", tip:"Derived analysis: computed from the sampled ads shown. Reproducible for this sample, but not a verbatim posting fact." },
   unverified: { label:"unverified",          short:"unverified", icon:"?", color:"#5b6878", bg:"#f5f7fa", border:"#dde3ec", tip:"A claim without a checked source." },
+  // SLE-A: the per-skill automation level is rule-derived from the occupation's AIOE band, not a
+  // table lookup - so it is NOT "computed" fact. Distinct from "derived" (sampled-ad analysis).
+  estimated:  { label:"estimated",           short:"estimated",  icon:"◐", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", tip:"Estimated from the occupation's AI-exposure band (AIOE) plus ESCO signals - not a per-skill measurement. Withheld when unsupported." },
 };
 function Prov({ kind, small }) {
   const p = PROV[kind]; if (!p) return null;
@@ -4869,7 +4887,9 @@ async function buildResponsibilitiesData(title, escoOccupation, skills, iscoGrou
 }
 
 function Tag({ level, small }) {
-  const c = LEVELS[level] || LEVELS.HUMAN;
+  // SLE-A: level can be null (withheld - classifySkillLevel found no signal) - render the
+  // neutral "Not classified" state rather than silently defaulting to Human-Led.
+  const c = level ? (LEVELS[level] || LEVEL_WITHHELD) : LEVEL_WITHHELD;
   return (
     <span style={{ display:"inline-flex", alignItems:"center", gap:3, padding:small?"2px 7px":"3px 9px", borderRadius: 16, fontSize: small ? "0.625rem" : "0.6875rem", fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, whiteSpace:"nowrap", flexShrink:0 }}>
       {c.icon} {c.label}
@@ -8558,7 +8578,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
     if (isFirstBlink) { setBlinkActive(true); }
     else { setBlinkActive(false); }
   }, [isFirstBlink]);
-  const c = LEVELS[item.level] || LEVELS.HUMAN;
+  const c = item.level ? (LEVELS[item.level] || LEVEL_WITHHELD) : LEVEL_WITHHELD;
   return (
     <>
       {showExperts && (
@@ -8597,6 +8617,10 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             </div>
           </div>
           <Tag level={item.level} small />
+          {/* SLE-A: the level itself is rule-derived from the occupation AIOE band + ESCO
+              signals, not a table lookup - "estimated", never "computed". Withheld skills carry
+              no chip (the neutral Tag label already says "Not classified"). */}
+          {item.level && <Prov kind="estimated" small />}
           <span style={{ display:"flex", alignItems:"center", gap:4, flexShrink:0 }}>
             {autoOpen && open && <span style={{ fontSize: "0.625rem", color:C.accent, fontStyle:"italic", opacity:0.8 }}>tap any skill to explore</span>}
             <span style={{ fontSize: "0.625rem", color:C.mutedLight }}>{open ? "▲" : "▼"}</span>
@@ -8635,14 +8659,19 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"1 1 110px" }}>
                 <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase" }}>AI Tool</p>
-                <p style={{ margin:0, fontSize: "0.75rem", color:C.accent, fontWeight:600 }}>{item.tool}</p>
+                <p style={{ margin:0, fontSize: "0.75rem", color:C.accent, fontWeight:600, display:"flex", alignItems:"center", gap:5, flexWrap:"wrap" }}>
+                  {item.tool}
+                  {/* Tool code is an LLM advisory hint (SLE3 Q1) - never presented as fact, except
+                      the a=NA <-> HUMAN pairing, which is deterministic. */}
+                  {item.tool !== "NA" && <Prov kind="ai" small />}
+                </p>
               </div>
               <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding: "6px 12px", flex:"3 1 200px" }}>
                 <p style={{ margin:"0 0 2px", fontSize: "0.625rem", color:C.muted, textTransform:"uppercase" }}>Approach</p>
                 <p style={{ margin:0, fontSize: "0.75rem", color:C.textSub }}>{item.how}</p>
               </div>
             </div>
-            {item.level !== "HUMAN" && (
+            {item.level && item.level !== "HUMAN" && (
               item.promptLoading
                 ? <div style={{ marginTop:8, padding: "10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -9663,7 +9692,7 @@ function ResultFooter() {
     <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
         <p style={{ margin:0, fontSize: "0.75rem", color:C.mutedLight }}>
-          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Powered by AI (OpenAI primary; Gemini fallback).
+          ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Skills taxonomy: ESCO v1.2 (CC BY 4.0). Exposure index: AIOE (Felten et al. 2021). AI is used for narration only.
         </p>
         <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
           <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
@@ -9691,7 +9720,7 @@ function ResultFooter() {
             <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
           </div>
           <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
-            Results are AI-generated and indicative only. They do not constitute professional career, legal, employment, or HR advice. The builder accepts no liability for decisions made based on these outputs.
+            Results are computed from public labour-market data and research indices, and are indicative only. They do not constitute professional career, legal, employment, or HR advice. The builder accepts no liability for decisions made based on these outputs.
           </p>
           <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Singapore</strong> - governed by Singapore law. No personal data collected. Aligns with IMDA Model AI Governance Framework.
@@ -9715,16 +9744,19 @@ function ResultFooter() {
             <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
           </div>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
-            <strong style={{ color:C.text }}>Data source</strong> - Skills are drawn directly from the ESCO v1.2 REST API - the official European Classification of Skills, Competences, Qualifications and Occupations, published by the European Commission DG Employment, Social Affairs and Inclusion. Licensed CC BY 4.0. Skills marked ESCO v1.2 are canonical taxonomy entries, citable by URI. AI rates each skill and generates prompts - it does not generate skill names.
+            <strong style={{ color:C.text }}>Data source</strong> - Roles and skills are drawn from live Singapore labour-market sources: job postings from MyCareersFuture and the public sector via careers.gov.sg, classified to SSOC 2024 and SSIC 2020, with employer records from ACRA. Skill labels are canonical ESCO v1.2 taxonomy entries - the official European Classification of Skills, Competences, Qualifications and Occupations, published by the European Commission DG Employment, Social Affairs and Inclusion, licensed CC BY 4.0 - citable by URI. The engine reads these sources; it does not invent role or skill names.
           </p>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Occupation codes (ISCO-08)</strong> - Each occupation in this tool is mapped to an ISCO-08 code - the International Standard Classification of Occupations (2008 revision), published by the International Labour Organization (ILO). ISCO-08 classifies all jobs globally into a four-level hierarchy of 10 major groups, 43 sub-major groups, 130 minor groups, and 436 unit groups. The codes displayed in this tool are sourced via the ESCO API, which maps each ESCO occupation to exactly one ISCO-08 unit group. ISCO-08 codes are used for reference and cross-referencing only - they indicate the occupational group from which skills are drawn, not a formal classification of the user&apos;s specific role. © 2012 International Labour Organization.
           </p>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
-            <strong style={{ color:C.text }}>How ratings are generated</strong> - Each skill is assessed by an OpenAI model, with Gemini used only as a fallback when the primary provider is unavailable, against current AI capability research. This is AI-generated analysis, not a lookup from a fixed classification table. Results reflect general occupational patterns and will vary between searches.
+            <strong style={{ color:C.text }}>How exposure is scored</strong> - AI-exposure figures are computed deterministically, not written by a language model. Each occupation is crosswalked SSOC to ISCO-08 to SOC 2010 to the AI Occupational Exposure (AIOE) index of Felten, Raj and Seamans (2021, Strategic Management Journal 42(12):2195-2217), and expressed as a 0-100 percentile among 774 occupations. The raw z-mean and z-range are carried for fidelity. The same input always yields the same score.
           </p>
           <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
-            <strong style={{ color:C.text }}>Known limitations</strong> - Ratings reflect broad occupational trends, not your specific organisation, industry sector, or seniority level. The tool may carry anchoring bias - the first rating seen tends to anchor subsequent interpretation. Results are most useful as a structured starting point for reflection, not as a definitive assessment.
+            <strong style={{ color:C.text }}>Where AI is used</strong> - AI is advisory only. A language model may narrate or phrase guidance, but it never authors the exposure score, a ranking, or a verdict. Where a source is missing, the tool withholds the claim rather than guessing.
+          </p>
+          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+            <strong style={{ color:C.text }}>Known limitations</strong> - Exposure reflects occupational-group research, not your specific employer, sector, or seniority. The tool may carry anchoring bias - the first figure seen tends to anchor subsequent interpretation. Results are most useful as a structured starting point for reflection, not as a definitive assessment.
           </p>
           <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
             For authoritative occupation and skills data, refer to <a href="https://esco.ec.europa.eu" target="_blank" rel="noreferrer" style={{ color:C.accent }}>esco.ec.europa.eu</a>
@@ -14676,10 +14708,30 @@ export default function App({ initialSearchMode } = {}) {
       // Progression/crossover/context only need the title and group - no dependency on ratings
       setSub(`${skills.length} skills confirmed - analysing automation exposure and mapping career paths...`); setSubStep(2);
       let _tCore; try { _tCore = performance.now(); } catch (_) { _tCore = 0; }
+      // SLE-A: occupation-level AIOE exposure (deterministic, engine-core.js, frozen/read-only),
+      // fed into classifySkillLevel() inside rateSkills() as the honest numeric anchor for each
+      // skill's level. iscoCode is already resolved above; withheld (null) when unavailable or
+      // when no SOC under that ISCO carries an AIOE score - never faked.
+      let occExposure = null;
+      try {
+        if (occ.iscoCode) {
+          const exp = exposureForIsco(occ.iscoCode);
+          if (exp) {
+            occExposure = {
+              index: exp.index,
+              band: exp.band,
+              zRange: exp.zRange,
+              // Mirrors computeEngine's ssoc-path confidence rule (engine-core.js): a single
+              // fully-scored ISCO group reads 'high', else 'medium'. Never invented.
+              confidence: (exp.socsWithScore === exp.socs.length) ? "high" : "medium",
+            };
+          }
+        }
+      } catch (_) { occExposure = null; }
       let ratings, progressionData, crossoverData, contextData;
       try {
         [ratings, progressionData, crossoverData, contextData] = await Promise.all([
-          rateSkills(occ.title, skills),
+          rateSkills(occ.title, skills, occExposure),
           getProgressionPaths(occ.title, occ.iscoGroup),
           getCrossoverRoles(occ.title, skills),
           getRoleContext(occ.title, skills, occ.iscoGroup),
@@ -14690,7 +14742,9 @@ export default function App({ initialSearchMode } = {}) {
       if (analysisCancelRef.current !== cancelId) return;
       const merged = skills.map(s => {
         const r = ratings.find(x => x.n === s.n) || {};
-        return { n:s.n, skill:s.skill, type:s.type, level:r.level||"HUMAN", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
+        // SLE-A: r.level is the engine-decided level (classifySkillLevel), may be null
+        // (withheld) - never silently coerced to a fabricated "HUMAN" default.
+        return { n:s.n, skill:s.skill, type:s.type, level:r.level ?? null, levelConfidence:r.confidence||"withheld", levelBasis:r.basis||"withheld", tool:r.tool||"NA", how:r.how||"", kickstart:r.kickstart||"", prompt:"", promptTech:"", nextPhase:"", promptLoading:r.level && r.level !== "HUMAN", promptFailed:false, skillType:s.escoUri ? s.type : (r.skillType||"technical"), prep:r.prep||"", twoStep:r.twoStep||false, readiness:r.readiness||"ready", escoUri:s.escoUri||"", escoDescription:s.escoDescription||"", reuseLevel:s.reuseLevel||"", narrowerSkills:s.narrowerSkills||[], broaderConcept:s.broaderConcept||"", altLabels:s.altLabels||[], relevanceScore:0 };
       });
       // MON: skills_resolved trace - surfaces the resolved skill list size and any
       // duplicate skills (keyed by escoUri, else skill name, lowercased) for later
@@ -15336,6 +15390,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { level:"LOW",    label:"AI-Assisted",     sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"\u{1F535}" },
       { level:"MEDIUM", label:"AI-Augmented",    sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"\u{1F7E1}" },
       { level:"HIGH",   label:"Full Automation", sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa", icon:"\u{1F7E7}" },
+      // SLE-A: withheld skills (classifySkillLevel found no occupation exposure and no ESCO
+      // signal) - shown honestly, never folded into a fabricated band.
+      { level:null,     label:"Not classified", sub:"No occupation-exposure or skill signal was available to estimate this one - shown as-is rather than guessed.", color:"#5b6878", bg:"#f5f7fa", border:"#dde3ec", icon:"\u{26AA}" },
     ];
     return groupDef.map(g => ({ ...g, skills: (result.skills||[]).filter(s => s.level === g.level) })).filter(g => g.skills.length > 0);
   }
