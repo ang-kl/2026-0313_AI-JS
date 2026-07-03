@@ -258,7 +258,14 @@ async function acraDbLookup(rawQuery) {
     console.error('[ssic] acra lookup:', err && err.message);
     return { matched: 'none', reason: 'db_error' };
   } finally {
-    if (client) { try { await client.end(); } catch (_) {} }
+    // Bounded close: never await end() unboundedly - on a failed connect the
+    // neon driver's end() can wait on the never-completing connection and hang
+    // the handler until Vercel's maxDuration kill (seen live in api/anatomy).
+    if (client) {
+      try {
+        await Promise.race([client.end(), new Promise((r) => setTimeout(r, 1500))]);
+      } catch (_) {}
+    }
   }
 }
 

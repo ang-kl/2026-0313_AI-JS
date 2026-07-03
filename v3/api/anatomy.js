@@ -212,13 +212,23 @@ export default async function handler(req, res) {
     ]);
   } catch (err) {
     console.error('[anatomy] connect:', err && err.message);
-    try { if (client) await client.end(); } catch (_) {}
+    // Fire-and-forget: NEVER await end() on a client whose connect failed -
+    // the neon driver's end() can wait on the never-completing connection,
+    // hanging the handler until Vercel's maxDuration kill (seen live as
+    // "Task timed out after 15 seconds" right after the connect error).
+    if (client) { try { client.end().catch(() => {}); } catch (_) {} }
     client = null;
   }
   try {
     return await runAction();
   } finally {
-    if (client) { try { await client.end(); } catch (_) {} }
+    // Bounded close on the happy path too - a response must never wait on
+    // connection teardown.
+    if (client) {
+      try {
+        await Promise.race([client.end(), new Promise((r) => setTimeout(r, 1500))]);
+      } catch (_) {}
+    }
   }
 
   async function runAction() {
