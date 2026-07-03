@@ -1456,7 +1456,7 @@ import { classifySkillLevel } from "../engine-data/skill-level.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.187";
+const APP_VERSION = "3.0.188";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12116,7 +12116,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
   );
 
   return (
-    <div style={{ position: "relative", width: "100vw", left: "50%", marginLeft: "-50vw", padding: "0 24px 60px", boxSizing: "border-box" }}>
+    <div className="step2-bleed" style={{ position: "relative", padding: "0 24px 60px", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
@@ -15695,6 +15695,13 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width: 2560px) { :root { --base-font: 18px; --root-fs: 125%; } }
       .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
+      /* Step 2 edge-to-edge bleed: cancels .main-content's own horizontal padding via
+         negative margin (mirrors its breakpoints exactly) instead of a 100vw/-50vw
+         trick - vw includes the scrollbar's width, so that approach overflows past the
+         true viewport and gets clipped by #root/body's overflow-x: clip (the bug fixed
+         here: content was cut off on both edges, not actually bleeding to them). */
+      .step2-bleed { width: calc(100% + 32px); margin: 0 -16px; }
+      @media (min-width: 600px) { .step2-bleed { width: calc(100% + 2 * var(--content-pad)); margin: 0 calc(-1 * var(--content-pad)); } }
       /* MCF postings list: explicit column tiers - 1 / 2 / 3 / 4 by viewport width
          (phone portrait / phone-landscape & iPad-mini / iPad-landscape & notebook / wide). */
       .mcf-grid { display:grid; grid-template-columns:1fr; gap:10px; align-items:start; }
