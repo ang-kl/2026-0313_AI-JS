@@ -1456,7 +1456,7 @@ import { classifySkillLevel } from "../engine-data/skill-level.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.193";
+const APP_VERSION = "3.0.194";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5128,6 +5128,7 @@ function SceneRotator({ posting }) {
   const render = SCENE_LIST[i].render;
   return (
     <div style={{ marginTop: 16, background: "rgba(255,255,255,0.94)", border: "1px solid " + C.border, borderRadius: 12, boxShadow: "0 1px 3px rgba(15,40,105,0.06)", overflow: "hidden", minHeight: 290 }}>
+      <p style={{ margin: 0, padding: "10px 12px 0", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Preview - what the analysis is assembling</p>
       <div key={SCENE_LIST[i].key} style={{ animation: "fadeInUp 0.4s ease both" }}>
         {render(posting)}
       </div>
@@ -5137,6 +5138,41 @@ function SceneRotator({ posting }) {
         ))}
       </div>
     </div>
+  );
+}
+
+// Pure-presentational staged checklist. Derives all 3 rows only from the real
+// `step` (=subStep) and `skillCount` (=loadingSkills.length) props Spinner
+// already receives - never from SceneRotator's own decorative interval state.
+// Ticks therefore cannot outrun the deterministic milestones (BSW8 B1/B3).
+function StageChecklist({ step, skillCount }) {
+  const items = [
+    { done: step >= 2, doneLabel: "Role resolved in ESCO v1.2", activeLabel: "Resolving role in ESCO v1.2..." },
+    { done: skillCount > 0, doneLabel: `${skillCount} essential skill${skillCount === 1 ? "" : "s"} mapped from the ESCO taxonomy`, activeLabel: "Mapping skills from the ESCO taxonomy..." },
+    { done: step >= 3, doneLabel: "AI-exposure computed and career paths mapped", activeLabel: "Computing AI-exposure and mapping career paths..." },
+  ];
+  const currentIdx = items.findIndex((it) => !it.done);
+  return (
+    <ol style={{ listStyle: "none", margin: "14px 0 0", padding: 0, textAlign: "left", display: "flex", flexDirection: "column", gap: 7 }}>
+      {items.map((it, i) => {
+        const state = it.done ? "done" : i === currentIdx ? "active" : "pending";
+        return (
+          <li key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.75rem", fontWeight: state === "done" ? 700 : state === "active" ? 600 : 500, color: state === "pending" ? C.muted : C.text }}>
+            <span aria-hidden="true" className={state === "active" ? "ldx" : undefined} style={{
+              flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", width: 17, height: 17, borderRadius: "50%",
+              background: state === "done" ? C.accent : "transparent",
+              border: `1.5px solid ${state === "pending" ? C.border : C.accent}`,
+              color: state === "done" ? "#fff" : C.accent,
+              fontSize: "0.5625rem", fontWeight: 800, lineHeight: 1,
+              animation: state === "active" ? "ldxBreathe 1.3s ease-in-out infinite" : "none",
+            }}>
+              {state === "done" ? "✓" : state === "active" ? "●" : "○"}
+            </span>
+            <span>{it.done ? it.doneLabel : it.activeLabel}</span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -5211,6 +5247,7 @@ function Spinner({ label, step, total, firstTime, skills, posting }) {
             </div>
           )}
         </div>
+      {determinate && <StageChecklist step={step} skillCount={list.length} />}
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
           <p style={{ margin:"0 0 8px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
@@ -14701,7 +14738,7 @@ export default function App({ initialSearchMode } = {}) {
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live SG postings` : `AI-generated`;
-      setSub(`${skills.length} essential skills found (${escoSource}) - rating each against current AI capability...`); setSubStep(2);
+      setSub(`${skills.length} essential skills found (${escoSource}) - crosswalking each to the AIOE exposure index...`); setSubStep(2);
       setLoadingSkills(Array.isArray(skills) ? skills : []); // surface the resolved list openly during the wait
 
       // Fire rateSkills and progression/crossover/context in parallel after getSkills
