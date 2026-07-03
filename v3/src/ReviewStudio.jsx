@@ -178,8 +178,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     <style>{`
       @media (max-width: 860px) {
         .wis-manuscript { flex: 1 1 100% !important; min-width: 0 !important; }
+        /* top:0/bottom:0/z-index:999 matches the drawer pattern already established
+           elsewhere in the app (App.jsx's CV-fit drawer) - covers the sticky headers
+           entirely rather than guessing their combined height, which is how an
+           earlier version of this fix hid its own close button behind them. */
         .wis-drawer, .wis-margin {
-          position: fixed !important; top: 50px; right: 0; bottom: 0; z-index: 60;
+          position: fixed !important; top: 0; right: 0; bottom: 0; z-index: 999;
           width: min(88vw, 340px) !important;
           box-shadow: -8px 0 24px rgba(20,32,46,.18);
         }
