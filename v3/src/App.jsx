@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.199";
+const APP_VERSION = "3.0.200";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1468,6 +1468,45 @@ const STEP2_BANDS = {
   auto:      { key: "auto",      label: "Full automation", dot: "#c2410c", bg: "#fde6da", ink: "#9a3412", border: "#f6c6ac" },
 };
 const STEP2_BAND_ORDER = ["human", "assisted", "augmented", "auto"];
+
+// SSOC 2024 report section 2.7 table: Broad Job Level per major group. This is a
+// major-group ATTRIBUTE (section 2.14 - every occupation in the group shares it), not a
+// per-occupation measurement, and it is deliberately absent for major groups 1 and X
+// (section 2.8: management/policy function matters more than level for MG1; MG X is the
+// residual "not elsewhere classified" group). Keyed by major-group code, verbatim from
+// the report table - no invention.
+const SSOC_BROAD_JOB_LEVEL = {
+  "1": "Not applicable",
+  "2": "4, possibly 3",
+  "3": "3, possibly 4",
+  "4": "2",
+  "5": "2",
+  "6": "2",
+  "7": "2",
+  "8": "2",
+  "9": "1",
+  "X": "Not applicable",
+};
+
+// E7: SSOC 2024 "Type of Change at Occupational Level" legend, verbatim from the source
+// workbook's header row ("Z= No Change, C = Code Number Change, T = Title Change,
+// D = Definition Content Change, N= New Code"). change_type values can combine letters
+// (e.g. "T;D") - each letter is expanded and joined, never paraphrased beyond this legend.
+const SSOC_CHANGE_TYPE_LEGEND = { Z: "No Change", C: "Code Number Change", T: "Title Change", D: "Definition Content Change", N: "New Code" };
+function ssocChangeTypeLabel(changeType) {
+  if (!changeType) return "";
+  return String(changeType).split(";").map((code) => SSOC_CHANGE_TYPE_LEGEND[code.trim()] || code.trim()).filter(Boolean).join(" + ");
+}
+
+// Builds the SSOC chip's tooltip: base is the sub-major group title (existing behaviour),
+// plus (E7) a section 2.10/2.19-2.20 change-vs-2020 disclosure when the node carries one,
+// plus (E5) a section 2.8/2.11 residual-group note when the posting lands in major group X.
+function step2SsocChipTitle(c) {
+  let title = c.sector || "";
+  if (c.changeType) title += (title ? ". " : "") + "SSOC 2024 change vs 2020: " + ssocChangeTypeLabel(c.changeType) + " (SSOC 2024 sec. 2.10, 2.19-2.20).";
+  if (c.departmentCode === "X") title += (title ? " " : "") + "Residual group - Workers Not Elsewhere Classified, deliberately without job-level association (SSOC 2024 sec. 2.8, 2.11).";
+  return title;
+}
 
 // Deterministic AIOE exposure index (0-100) -> 4-level band.
 function aioeToBand(index) {
@@ -1540,9 +1579,17 @@ async function classifyPostings(jobs) {
         }
       } catch (_) {}
     }
+    // E4/E5: major-group code drives Broad Job Level (section 2.7) and honest MG X
+    // ("Workers Not Elsewhere Classified", section 2.8/2.11) handling. E7: change_type
+    // (section 2.10/2.19-2.20) is carried verbatim from the classified node for the SSOC
+    // chip's tooltip - it's a codes-reused-between-editions disclosure, not a paraphrase.
+    const deptCode = dept ? dept.code : null;
     out[cl.id] = {
       ssoc,
       department: dept ? dept.title : (node ? "Uncategorised" : null),
+      departmentCode: deptCode,
+      jobLevel: deptCode ? (SSOC_BROAD_JOB_LEVEL[deptCode] || null) : null,
+      changeType: node ? (node.change_type || "") : "",
       sector: sect ? sect.title : (node ? "Uncategorised" : null),
       func: fn ? fn.title : (node ? null : null),
       sectorCode: sect ? sect.code : (ssoc || ""),
@@ -12044,7 +12091,10 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       short: step2Short(j.title),
       ssoc: c.ssoc || null,
       company: j.employer || "Unknown employer",
-      department: c.department || "Unclassified",
+      department: c.department ? toTitleCase(c.department) : "Unclassified",
+      departmentCode: c.departmentCode || null,
+      jobLevel: c.jobLevel || null,
+      changeType: c.changeType || "",
       sector: c.sector || "Unclassified",
       func: c.func || null,
       exp: step2ExpBand(j),
@@ -12150,7 +12200,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
             {(c.age === "today" || c.age === "yesterday") && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".06em", fontWeight: 700, color: "#fff", background: "#1a56db", borderRadius: 3, padding: "1px 4px" }}>NEW</span>}
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: (c.age === "today" || c.age === "yesterday") ? "#1a56db" : "#8a8274", fontWeight: (c.age === "today" || c.age === "yesterday") ? 600 : 400 }}>{c.age || ""}</span>
           </div>
-          {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={c.sector} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}</div>}
+          {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={step2SsocChipTitle(c)} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}{c.jobLevel && c.jobLevel !== "Not applicable" && <span title={"Broad Job Level (SSOC 2024 sec. 2.6-2.7): complexity/range of tasks typical of this major group - 4 is most complex. A major-group attribute shared by every occupation in the group, not a per-occupation measurement (sec. 2.14)."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".02em", color: "#3a4456", background: "#f4f2ec", border: "1px solid #e2e0d8", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>Job level {c.jobLevel}</span>}</div>}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
             {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
           </div>

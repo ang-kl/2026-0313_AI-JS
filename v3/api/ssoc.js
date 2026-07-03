@@ -404,6 +404,17 @@ function scoreSsocCandidate(job, node) {
   if (node.kind === 'occupation') score += 6;
   if (node.kind === 'unit_group') score -= 8;
 
+  // SSOC 2024 report section 2.16: trailing-9/"n.e.c." titles are residual buckets for
+  // occupations "not significant enough to justify a separate code". Small tie-break
+  // penalty only - a genuinely strong n.e.c. match (e.g. exact title, +120 above) still
+  // wins; this just stops a residual bucket beating a specific occupation on a near-tie.
+  // Same regex as the Step 1a NEC de-emphasis (PR #269).
+  const NEC_RX = /not elsewhere classified|\bn\.?e\.?c\.?\b/i;
+  if (NEC_RX.test(node.title || '')) {
+    score -= 5;
+    reasons.push('residual (n.e.c.) tie-break');
+  }
+
   return {
     score: Math.round(score),
     reasons,
