@@ -1450,13 +1450,14 @@ import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } fro
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
-import { computeEngine, exposureForIsco } from "../engine-data/engine-core.js";
+import { exposureForIsco } from "../engine-data/engine-core.js";
 import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
+import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.198";
+const APP_VERSION = "3.0.199";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1516,12 +1517,29 @@ async function classifyPostings(jobs) {
     const node = cl.status === "classified" ? cl.node : null;
     const ssoc = node ? node.code : null;
     const h = cl.hierarchy || {};
-    // The 3 real SSOC levels -> Department (major) / Sector (sub-major) / Function (minor).
+    // The 3 real SSOC levels -> Group (major) / Field (sub-major) / Function (minor) in the
+    // Step 2 facet UI (display labels only; internal keys stay department/sector/func - see
+    // STEP2_FACETS comment). SSOC sub-major groups are occupation families, not industry
+    // sectors, and major groups aren't organisational departments.
     const dept = h.major_group || null;
     const sect = h.sub_major_group || h.major_group || null;
     const fn = h.minor_group || h.sub_major_group || null;
     let band = null;
-    if (ssoc) { try { const eng = computeEngine({ ssoc, title: cl.title }); if (eng && eng.ok && eng.exposure) band = aioeToBand(eng.exposure.index); } catch (_) {} }
+    // SSOC 2024 report section 2.10: five-digit codes are REUSED between the 2020 and 2024
+    // editions for different occupations. api/ssoc.js classifies against 2024, so the 2024
+    // code must be resolved via ssoc2024-isco.js (SSOC2024 -> ISCO-08), never via the 2020-only
+    // ssoc-isco.js table baked into computeEngine (engine-core.js, frozen) - a 2024 code fed to
+    // computeEngine({ssoc}) can silently resolve to the wrong occupation and thus the wrong band.
+    if (ssoc) {
+      try {
+        const mappings = SSOC2024_ISCO[ssoc] || [];
+        const pick = mappings.find((m) => !m.partial) || mappings[0] || null;
+        if (pick && pick.isco) {
+          const exp = exposureForIsco(pick.isco);
+          if (exp) band = aioeToBand(exp.index);
+        }
+      } catch (_) {}
+    }
     out[cl.id] = {
       ssoc,
       department: dept ? dept.title : (node ? "Uncategorised" : null),
@@ -11809,10 +11827,15 @@ function step2TypeOf(j) {
   const t = (Array.isArray(j.employmentTypes) && j.employmentTypes[0]) || j.employmentType || (Array.isArray(j.positionLevels) && j.positionLevels[0]) || null;
   return t ? String(t) : null;
 }
+// Labels here are occupation-truthful, not industry terms: SSOC sub-major groups (e.g. "Science
+// and Engineering Professionals") are occupation families, not industry sectors - "Sector" is an
+// SSIC (industry) concept elsewhere in this app, so reusing it here was misleading. Major groups
+// (e.g. "PROFESSIONALS") aren't organisational departments either. Internal state/facet KEYS
+// (sector, department) are left unchanged deliberately - this is a display-label-only fix.
 const STEP2_FACETS = [
-  { key: "sector", label: "Sector" },
+  { key: "sector", label: "Field" },
   { key: "company", label: "Company" },
-  { key: "department", label: "Department" },
+  { key: "department", label: "Group" },
   { key: "func", label: "Function" },
   { key: "exp", label: "Experience" },
   { key: "type", label: "Type of work" },
@@ -12185,7 +12208,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
               {onClearSsocFilter && <button type="button" onClick={onClearSsocFilter} aria-label="Clear SSOC filter" title="Clear SSOC filter" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", background:"none", border:"none", color:"#142a8e", cursor:"pointer", fontSize: "0.75rem", lineHeight:1, padding: 16, margin: -16 }}>{String.fromCharCode(0x2715)}</button>}
             </span>
           )}
-          {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and sector withheld. Use the Sector filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
+          {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} title="Open the OKF concept index for this result" style={{ cursor: "pointer", minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
       </div>

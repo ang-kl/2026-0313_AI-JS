@@ -345,6 +345,13 @@ function hierarchyFor(node, byCode) {
   };
 }
 
+// scoreSsocCandidate: title stays the primary signal (SSOC 2024 report section 2.18 sanctions
+// title-based coding via the alphabetical index), but duties/context can carry a posting to
+// 'low' confidence on their own when the match is strong - SSOC sections 3.3 ("classification is
+// by type of work performed") and 3.4 ("principal tasks and duties take priority over the broad
+// job level in determining where to classify"). The strong-context tier below (+48) lets a
+// contextOverlap >= 0.5 match alone clear the classifyConfidence 'low' floor (48) even with a
+// weak/absent title match - it does not touch the withhold floor or any other threshold.
 function scoreSsocCandidate(job, node) {
   const title = safe(job.title, 300);
   const categories = arr(job.categories, 12).join(' ');
@@ -383,7 +390,10 @@ function scoreSsocCandidate(job, node) {
   }
 
   const contextOverlap = tokenOverlapScore(context, nodeContext);
-  if (contextOverlap >= 0.35) {
+  if (contextOverlap >= 0.5) {
+    score += 48;
+    reasons.push('strong responsibility/context match');
+  } else if (contextOverlap >= 0.35) {
     score += 24;
     reasons.push('responsibility/context match');
   } else if (contextOverlap >= 0.2) {
