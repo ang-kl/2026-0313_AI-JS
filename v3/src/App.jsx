@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.205";
+const APP_VERSION = "3.0.206";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -11790,6 +11790,88 @@ function step2EmployerKey(job) {
   return String((job && job.employer) || "").toLowerCase().trim().replace(/\s+/g, " ");
 }
 
+// FLOW-1b: per-card match-tier classifier. Client-side, deterministic - no LLM,
+// no minted score shown to the user (the badge is a label, not a quality score).
+// Mirrors the normaliseForMatch/tokenOverlapScore idiom at api/ssoc.js L288-314
+// byte-for-byte (that file is frozen; this is a client-side mirror, not an import).
+const STEP2_MATCH_STOP = new Set([
+  "and", "the", "for", "with", "from", "into", "onto", "this", "that", "role", "roles",
+  "job", "jobs", "senior", "junior", "lead", "principal", "assistant", "associate",
+  "executive", "officer", "specialist", "manager", "director", "head", "vice", "president",
+  "svp", "avp", "vp", "contract", "permanent", "temporary", "intern", "trainee",
+  "singapore", "regional", "global", "apac", "asia", "bank", "group", "team", "business",
+]);
+function step2NormaliseForMatch(value) {
+  return String(value || "").slice(0, 2000)
+    .toLowerCase()
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\b(?:wd|jr|req|job)[-\s]?\d+\b/gi, " ")
+    .replace(/&amp;/g, " and ")
+    .replace(/[/+_-]/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function step2Tokens(value) {
+  return step2NormaliseForMatch(value)
+    .split(" ")
+    .filter((t) => t.length > 2 && !STEP2_MATCH_STOP.has(t));
+}
+function step2TokenOverlapScore(left, right) {
+  const a = new Set(step2Tokens(left));
+  const b = new Set(step2Tokens(right));
+  if (!a.size || !b.size) return 0;
+  let hits = 0;
+  a.forEach((t) => { if (b.has(t)) hits += 1; });
+  return hits / Math.max(a.size, b.size);
+}
+// Tier labels, in disclosure order (also the Match facet's option order when present).
+const STEP2_MATCH_TIERS = ["exact title", "title variant", "nuance", "R&R match", "related"];
+function step2MatchTier(job, query) {
+  const q = String(query || "").trim();
+  const title = (job && job.title) || "";
+  if (!q || !title) return "related";
+  const qNorm = step2NormaliseForMatch(q);
+  const tNorm = step2NormaliseForMatch(title);
+  if (qNorm && tNorm && qNorm === tNorm) return "exact title";
+  const overlap = step2TokenOverlapScore(q, title);
+  // whole-word prefix/wildcard: the shorter normalised string is a whole-word
+  // leading segment of the longer one (e.g. query "data" vs title "data engineer").
+  const wholeWordPrefix = !!(qNorm && tNorm && (
+    tNorm === qNorm || tNorm.startsWith(qNorm + " ") || qNorm.startsWith(tNorm + " ")
+  ));
+  if (overlap >= 0.66 || wholeWordPrefix) return "title variant";
+  if (overlap >= 0.4) return "nuance";
+  const qTokens = step2Tokens(q);
+  if (qTokens.length) {
+    const rrText = String((job && job.responsibilitiesText) || (job && job.description) || "");
+    const rrTokens = new Set(step2Tokens(rrText));
+    const hits = qTokens.filter((t) => rrTokens.has(t)).length;
+    if (hits / qTokens.length >= 0.66) return "R&R match";
+  }
+  return "related";
+}
+// FLOW-1b: set-level "widened search" disclosure. Reads the frozen api/mcf.js
+// cascade's own tier/approximate return verbatim - this does not reinvent the
+// ladder, it surfaces it. tier:1 not-approximate is the narrowest scope (no
+// note); tier:2 covers the title-variant/ESCO-skills widen; tier:3/approximate
+// is the weighted-keyword (R&R) widen; tier:0 means no scope found anything.
+function step2WidenNote(tier, approximate) {
+  if (tier === 3 || (tier === 2 && approximate)) return "Widened search to role & responsibility keywords (approximate) - no exact-title postings found.";
+  if (tier === 2) return "Widened search to title variants and related skills.";
+  if (tier === 0) return "No matching postings at any scope - there may be no such role live right now.";
+  return null; // tier 1, not approximate: exact scope satisfied, no note
+}
+// Honest tooltip per tier - states the match BASIS, never a quality score.
+function step2MatchTierTitle(tier) {
+  if (tier === "exact title") return "Matched by exact posting title";
+  if (tier === "title variant") return "Matched by a close title variant (most title words in common)";
+  if (tier === "nuance") return "Matched by a partial title overlap (some title words in common)";
+  if (tier === "R&R match") return "Matched by responsibilities/description text, not the job title";
+  return "Surfaced because the search scope was widened; no strong title or text overlap with your query";
+}
+
 // EMP4a: thin client wrapper for POST /api/ssic { action:"lookup" }. Reuses
 // the already-shipped lookup path byte-identically (frozen door). Module-scope
 // cache + in-flight de-dup keyed by normalised employer name so re-opening the
@@ -11894,6 +11976,7 @@ const STEP2_FACETS = [
   { key: "func", label: "Function" },
   { key: "exp", label: "Experience" },
   { key: "type", label: "Type of work" },
+  { key: "matchTier", label: "Match" },
 ];
 
 // LinkedIn-style multi-select facet dropdown.
@@ -11982,7 +12065,7 @@ function step2BuildOkfLog(query, counts) {
 }
 
 function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter, onAnalysePosting, onNewSearch }) {
-  const [state, setState] = useState({ loading: true, jobs: [], error: null });
+  const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
   // Real-time progress for the Step 1 -> Step 2 banner. Each fetch updates its
   // own status independently so the banner reflects what actually happened (and
@@ -12007,7 +12090,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
 
   useEffect(() => {
     let cancelled = false;
-    setState({ loading: true, jobs: [], error: null });
+    setState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
     setProgress({ mcfStatus: "loading", mcfCount: null, csgStatus: "loading", csgCount: null, classifyStatus: "idle", classifyTotal: 0, classifyDone: 0, startedAt: Date.now(), classifyFinishedAt: 0 });
     async function doFetch() {
       const title = String(query || "");
@@ -12022,14 +12105,17 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
         .catch((e) => { if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "error", csgCount: 0 })); throw e; });
       const [mcfSettled, csgSettled] = await Promise.allSettled([mcfFetch, csgPromise]);
       if (cancelled) return;
-      const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [] };
+      const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0 };
       const csg = csgSettled.status === "fulfilled" ? csgSettled.value : [];
       const mcfList = (Array.isArray(data.jobs) ? data.jobs : []).map((j) => ({ ...j, source: j.source || "MyCareersFuture" }));
       const csgList = (Array.isArray(csg) ? csg : []).map((j) => ({ ...j, source: j.source || "careers.gov.sg" }));
       const merged = sortAndTagJobSearchMatches([...mcfList, ...csgList], title);
-      setState({ loading: false, jobs: merged, error: null });
+      // FLOW-1b: surface the frozen mcf.js cascade's set-level tier/approximate
+      // verbatim - this IS the auto-widen guarantee (Tier 1 title -> Tier 2 ESCO
+      // skills -> Tier 3 weighted keyword). We do not reinvent the ladder here.
+      setState({ loading: false, jobs: merged, error: null, tier: data.tier || 0, approximate: !!data.approximate });
     }
-    doFetch().catch((err) => { if (!cancelled) setState({ loading: false, jobs: [], error: err.message }); });
+    doFetch().catch((err) => { if (!cancelled) setState({ loading: false, jobs: [], error: err.message, tier: 0, approximate: false }); });
     return () => { cancelled = true; };
   }, [query]);
 
@@ -12096,6 +12182,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
     return {
       id, job: j, cl: c,
       band, bandKey: c.band || null,
+      matchTier: step2MatchTier(j, query),
       short: step2Short(j.title),
       ssoc: c.ssoc || null,
       company: j.employer || "Unknown employer",
@@ -12117,7 +12204,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       age: step2Days(j.postedDate),
       sameEmployerCount,
     };
-  }), [baseJobs, cls, employerKeyCounts]);
+  }), [baseJobs, cls, employerKeyCounts, query]);
 
   // Facet options with per-value counts. "Unclassified" is kept so the user can see
   // (and filter on) the SSOC-withheld portion of the result set; it's sorted last.
@@ -12148,7 +12235,7 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
       }
       for (const f of STEP2_FACETS) { const sel = facets[f.key]; if (sel.length && (!c[f.key] || !sel.includes(c[f.key]))) return false; }
       if (!q) return true;
-      const hay = [c.job.title, c.company, c.sector, c.department, c.func, c.ssoc, (c.tags || []).join(" ")].join(" ").toLowerCase();
+      const hay = [c.job.title, c.company, c.sector, c.department, c.func, c.ssoc, c.matchTier, (c.tags || []).join(" ")].join(" ").toLowerCase();
       return hay.includes(q);
     });
   }, [cards, findText, facets, ssocFilter]);
@@ -12200,6 +12287,12 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
           <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 4, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 9, lineHeight: "16px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
           <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
           {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount}</span>}
+          {/* FLOW-1b: per-card match-tier badge - states the MATCH BASIS, not a
+              quality score. Shape (glyph) + label distinguish tiers, not colour alone. */}
+          <span title={step2MatchTierTitle(c.matchTier)} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: "#5b6878", background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>
+            <span aria-hidden="true">{c.matchTier === "exact title" ? "=" : c.matchTier === "title variant" ? "~" : c.matchTier === "nuance" ? "^" : c.matchTier === "R&R match" ? "#" : "?"}</span>
+            {c.matchTier}
+          </span>
           {band && <span title={"AI exposure: " + band.label} style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
         </div>
         <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
@@ -12333,6 +12426,14 @@ function PostingEvidencePicker({ query, freshGrad, ssocFilter, onClearSsocFilter
         );
       })()}
       {!state.loading && state.error && <p style={{ color: "#a13a3a", fontSize: "0.875rem", padding: "20px 2px" }}>Could not load postings: {state.error}</p>}
+      {/* FLOW-1b: set-level widen note - the frozen mcf.js cascade already auto-widened
+          server-side; we only disclose the scope it settled on. Never presented per-card
+          as exact (that's step2MatchTier's job, below). */}
+      {!state.loading && !state.error && step2WidenNote(state.tier, state.approximate) && (
+        <p role="status" style={{ margin: "0 0 12px", fontSize: "0.75rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 8, padding: "8px 12px" }}>
+          {step2WidenNote(state.tier, state.approximate)}
+        </p>
+      )}
       {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
       {/* Gated on classifyStatus !== "loading" too, not just !state.loading - otherwise
           this declared "none match" while SSOC classification was still assigning
@@ -13993,6 +14094,11 @@ function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePo
                   </h2>
                   <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
                     <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    {/* FLOW-1b: org disclosure chip - queryKey === matchKey means the typed
+                        query resolved to exactly one employer key; no new fuzzy matching. */}
+                    {state.queryKey && state.queryKey === activeMatch.key && (
+                      <span title="The typed company name resolved to exactly one MyCareersFuture employer key" style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted, marginRight: 8 }}>= Exact employer match</span>
+                    )}
                     Company name and posting count are verbatim from MyCareersFuture.
                   </p>
                 </>
@@ -14003,6 +14109,9 @@ function CompanyPanel({ companyQuery, ssocFilter, onClearSsocFilter, onAnalysePo
                   </h2>
                   <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: C.textSub }}>
                     <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    {state.ambiguous && (
+                      <span title="Several employer keys matched the typed name - pick the one you meant" style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted, marginRight: 8 }}>~ Closest employer matches - pick one</span>
+                    )}
                     Select one employer to view their postings. Counts are verbatim from MyCareersFuture.
                   </p>
                   <div role="list" aria-label="Matched employers - select one to view postings">
