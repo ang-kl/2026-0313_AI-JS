@@ -189,25 +189,64 @@ function rsForensicReversal(adText) {
   }
   return out;
 }
-function buildCriticalRead(result) {
+// §6.8 Falsification (deterministic): before trusting the read, ask if the posting is a
+// template, a role mash-up, or compliance-only. Computed from the posting's own duty spans +
+// title - counts, not opinions. The "is demand real?" / "is the advice self-serving?" questions
+// need judgement and belong to the batched LLM pass (PR3), not here.
+function rsClip(s) { const t = String(s || "").trim(); return t.length > 52 ? t.slice(0, 50) + String.fromCharCode(0x2026) : t; }
+const RS_VAGUE_DUTY = /\b(?:ad-?hoc|various|other duties|as (?:assigned|required|needed)|miscellaneous|support the team|any other|from time to time|when required|where necessary)\b/i;
+const RS_COMPLIANCE = /\b(?:compl(?:y|iance|ies)|adhere|conform|in accordance with|as per (?:the )?(?:policy|policies|guidelines|sop)|regulatory|statutory|ensure (?:all )?(?:compliance|adherence))\b/i;
+function rsFalsification(spans, title, adText) {
+  const out = [];
+  const n = (spans || []).length;
+  if (!n) return out;
+  const DQ = String.fromCharCode(0x201c), DQE = String.fromCharCode(0x201d);
+  const vague = spans.filter((s) => RS_VAGUE_DUTY.test(s.text));
+  if (vague.length >= 2 && vague.length / n >= 0.25) {
+    out.push({ id: "fal-template", tag: "template?",
+      obs: vague.length + " of " + n + " duties are generic filler (e.g. " + DQ + rsClip(vague[0].text) + DQE + ")",
+      interp: "A high share of boilerplate duties - the ad reads template-y, not written for one specific role.",
+      appl: "Ask: is this an always-open req? Which 3 duties actually define this job?" });
+  }
+  const bundled = spans.filter((s) => / and /i.test(s.text) && s.text.length > 70);
+  const titleMash = /[/&]|\band\b/i.test(String(title || "")) && String(title || "").length > 12;
+  if (bundled.length >= 2 || titleMash) {
+    out.push({ id: "fal-mashup", tag: "role mash-up?",
+      obs: titleMash ? "The title joins distinct functions: " + DQ + String(title) + DQE : bundled.length + " duties bundle two work clusters with " + DQ + " and " + DQE,
+      interp: "Two roles may be packed into one hire - common when a team is understaffed.",
+      appl: "Ask: which of these is the real priority, and would a larger org split it into two?" });
+  }
+  const comp = spans.filter((s) => RS_COMPLIANCE.test(s.text));
+  if (comp.length >= 2 && comp.length / n >= 0.3) {
+    out.push({ id: "fal-compliance", tag: "compliance-only?",
+      obs: comp.length + " of " + n + " duties are compliance / governance framed",
+      interp: "Heavily compliance-shaped - may be a box-ticking or audit-driven seat rather than a build role.",
+      appl: "Ask: is there real scope to change things, or only to keep the process running?" });
+  }
+  return out;
+}
+function buildCriticalRead(result, spans, title) {
   const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
   const adText = rsAdText(firstJob);
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(spans, title, adText) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
-function CritCard({ tag, obs, interp, appl }) {
+function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
+  const ac = accent || "#a13a3a";
+  const who = persona || "SIGNAL AUDITOR";
+  const oc = obsChip || "from posting";
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#a13a3a", borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>SIGNAL AUDITOR</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{who}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
           <div style={oiaKick}>OBSERVATION</div>
           <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{obs}{String.fromCharCode(0x201d)}</p>
-          <Chip kind="from posting">from posting</Chip>
+          <Chip kind={oc}>{oc}</Chip>
         </div>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
           <div style={oiaKick}>INTERPRETATION</div>
@@ -256,7 +295,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   }, []);
 
   const dissection = useMemo(() => buildDissection(result), [result]);
-  const critical = useMemo(() => buildCriticalRead(result), [result]);
+  const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title), [result, dissection.spans, title]);
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
@@ -396,7 +435,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
                 {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter} />)}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing or inflated language flagged." : "No posting text available to run the plain-language check."}</p>}
+              {critical.falsification.length > 0 && <>
+                <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
+                {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed" />)}
+              </>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
