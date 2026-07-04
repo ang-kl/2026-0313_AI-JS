@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.215";
+const APP_VERSION = "3.0.216";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -4605,6 +4605,55 @@ Identify 5 to 6 sectors where this role is commonly found in Singapore and ASEAN
       skills: Array.isArray(s.skills) ? s.skills : []
     })),
     department: obj.department||""
+  };
+}
+
+// Critical Read (W1, PR3): ONE batched advisory LLM pass that CHALLENGES the analysis rather
+// than describing it - blueprint's unbuilt Skeptic persona (§5.5) under the Falsification lens
+// (§6.8), plus Vacancy Teleology (§6.1) and the Pro-Worker AI Test (§6.9), and the other-side-
+// of-the-table hiring notes. ADVISORY ONLY: it authors no number, changes no engine score - it
+// argues. Grounded on the engine's own conclusions (band + verbatim duties + skills), not the
+// raw corpus. Same shape/contract as getRoleContext. Consumers null-guard; caller .catch -> drop.
+async function getCriticalRead(title, band, duties, skills) {
+  const dutyList = (Array.isArray(duties) ? duties : []).slice(0, 8).map((d, i) => `${i + 1}. ${d}`).join("\n");
+  const skillList = (Array.isArray(skills) ? skills : []).slice(0, 10).join(", ");
+  const SYSTEM_CRIT =
+`You are a skeptical labour-market analyst running a "critical read" on a Singapore job posting, protecting a candidate from weak evidence and false hope. You NEVER invent or change a number, score or band - you only challenge and interpret. Singapore and ASEAN context. Plain, humble, specific - no hype.
+Return ONLY a JSON object. No text before or after. No markdown fences.
+Format:
+{
+  "devilsAdvocate": { "challenges": ["short, concrete doubt about THIS posting or read, under 18 words", ...], "counterCase": "the strongest case that this read is wrong or over-confident, one paragraph under 55 words" },
+  "realDemand": "is this demand real, or a template or always-open req - one line under 24 words",
+  "teleology": { "whyExists": "why this job really exists now, under 20 words", "problem": "the underlying problem it is hired to solve, under 20 words" },
+  "proWorker": { "verdict": "protects", "reasoning": "does this role protect or squeeze the worker, grounded in the given AI-exposure band, under 28 words" },
+  "hiring": { "recruiter": "what a recruiter screens for first, under 20 words", "hiringManager": "what the manager actually needs on day one, under 20 words", "interviewCoach": "one question worth preparing for, under 20 words" }
+}
+Rules:
+- challenges: 2 to 4, each a distinct concrete doubt. Attack over-confidence, template ads, role mash-ups, false or always-open demand, self-serving hype.
+- Never output a number, percentage or score anywhere.
+- proWorker.verdict must be exactly one of: protects, mixed, squeezes.
+- No quote characters inside any string value.`;
+  const raw = await claudeCall(
+`Role title: ${title}
+Engine AI-exposure band for the role: ${band || "not classified"}
+Skills (from the analysis): ${skillList || "none listed"}
+Duties (verbatim from the posting):
+${dutyList || "none extracted"}
+
+Run the critical read: challenge the analysis, test whether the demand is real, say why the job exists, judge whether it protects or squeezes the worker, and give the other-side-of-the-table hiring notes.`,
+    900, 1, SYSTEM_CRIT);
+  const o = extractJSON(raw, "critical-read");
+  if (!o) throw new Error("Critical read: invalid response");
+  const s = (x, n) => String(x == null ? "" : x).replace(/"/g, "").trim().slice(0, n || 300);
+  const arr = (x, n) => Array.isArray(x) ? x.map((v) => s(v, 140)).filter(Boolean).slice(0, n) : [];
+  const da = o.devilsAdvocate || {}, tel = o.teleology || {}, pw = o.proWorker || {}, hi = o.hiring || {};
+  const verdict = ["protects", "mixed", "squeezes"].includes(String(pw.verdict || "").toLowerCase()) ? String(pw.verdict).toLowerCase() : null;
+  return {
+    devilsAdvocate: { challenges: arr(da.challenges, 4), counterCase: s(da.counterCase, 420) },
+    realDemand: s(o.realDemand, 220),
+    teleology: { whyExists: s(tel.whyExists, 200), problem: s(tel.problem, 200) },
+    proWorker: { verdict, reasoning: s(pw.reasoning, 260) },
+    hiring: { recruiter: s(hi.recruiter, 200), hiringManager: s(hi.hiringManager, 200), interviewCoach: s(hi.interviewCoach, 200) },
   };
 }
 
@@ -14951,6 +15000,22 @@ export default function App({ initialSearchMode } = {}) {
                 logStep("rolegraph", rg && rg.fallback ? "thin_input" : "ok", _msSince(_tRG), rg && rg.fallback ? rg.reason : `${rg && rg.iscoCandidates ? rg.iscoCandidates.length : 0} candidates`);
               })
               .catch(e => { logStep("rolegraph", "error", _msSince(_tRG), e && e.message); });
+          }
+          // Background: Critical Read (W1/PR3) - one batched advisory LLM pass now that the
+          // verbatim duties exist. Advisory only, authors no number. .catch -> null so a flaky
+          // or killed call just drops the block, never fails the analysis (mirrors crossover).
+          if (rd && Array.isArray(rd.responsibilities) && rd.responsibilities.length) {
+            let _tC; try { _tC = performance.now(); } catch (_) { _tC = 0; }
+            const _crDuties = rd.responsibilities.map(r => (typeof r === "string" ? r : r.text)).filter(Boolean);
+            const _crSkills = merged.map(s => s.skill).filter(Boolean);
+            getCriticalRead(occ.title, occExposure && occExposure.band, _crDuties, _crSkills)
+              .then(cr => {
+                if (analysisCancelRef.current !== cancelId) return;
+                setResult(prev => prev ? { ...prev, criticalRead: cr } : prev);
+                patchComparisonResult(comparisonKey, { criticalRead: cr });
+                logStep("criticalread", "ok", _msSince(_tC), `${cr && cr.devilsAdvocate ? cr.devilsAdvocate.challenges.length : 0} challenges`);
+              })
+              .catch(e => { logStep("criticalread", "error", _msSince(_tC), e && e.message); });
           }
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); logStep("responsibilities", "error", _msSince(_tR), e && e.message); }); }
