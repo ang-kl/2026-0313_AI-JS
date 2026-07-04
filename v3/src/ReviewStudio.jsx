@@ -217,6 +217,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
           </div>
           <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{title || "this role"}</div>
+          {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
+              mapped to a canonical ESCO title for the skills fetch - that disclosure must
+              not silently vanish by Step 3. */}
+          {result && result.escoCanonicalTitle && (
+            <div style={{ fontSize: "0.6875rem", color: "#8a8274", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Skills resolved via the closest ESCO term: <strong style={{ color: "#5a5548" }}>{result.escoCanonicalTitle}</strong></div>
+          )}
         </div>
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
           {bandTok && <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 6, padding: "4px 9px" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: bandTok.dot }} />{bandTok.label}</span>}
