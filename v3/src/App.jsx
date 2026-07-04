@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.212";
+const APP_VERSION = "3.0.213";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -13653,6 +13653,18 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force" | "workflow"
   const [tapNodeId, setTapNodeId] = useState(null); // side-panel open state
   const [agentsError, setAgentsError] = useState("");
+  // EMP: registered-employer facts (ACRA address/UEN + map) - reuses the same
+  // fetchEmployerRegistration/fetchEmployerGeocode wrappers the Browse-SG-jobs
+  // full-ad modal uses. Fixes audit finding #9: a user who explicitly searched
+  // for an employer saw none of that employer's own registry facts.
+  const [empReg, setEmpReg] = useState(null);
+  const [empGeo, setEmpGeo] = useState(null);
+  // Fixes audit finding #10: a large single-employer result set had no way to sort
+  // or filter, unlike Browse SG Jobs' 7-facet PostingEvidencePicker. Kept deliberately
+  // small (sort + 2 facets) rather than porting the full facet system - this screen
+  // is already narrowed to one employer, so most of those facets would be moot.
+  const [mcfSort, setMcfSort] = useState("recent");
+  const [mcfFacets, setMcfFacets] = useState({ level: [], type: [] });
 
   const fmtSalary = (lo, hi) => {
     if (lo == null && hi == null) return "Salary on application";
@@ -13778,6 +13790,64 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     ? state.matches.find(function(m) { return m.key === chosenKey; })
     : (!state.ambiguous && state.matches.length === 1 ? state.matches[0] : null);
 
+  // careers.gov.sg has no resolveCompany-style key resolution (that's an MCF-only
+  // step) - group the already-fetched, already-score-sorted jobs by their verbatim
+  // agency name so a broad query (e.g. "Ministry") discloses that several distinct
+  // agencies are mixed in, instead of an unlabelled flat list. Fixes audit finding #8.
+  const csgGroups = useMemo(function() {
+    const m = new Map();
+    csgState.jobs.forEach(function(j) {
+      const k = (j && j.employer) || "Unknown agency";
+      if (!m.has(k)) m.set(k, []);
+      m.get(k).push(j);
+    });
+    return Array.from(m, function([name, jobs]) { return { name: name, jobs: jobs }; });
+  }, [csgState.jobs]);
+
+  // EMP: one ACRA lookup per confirmed employer (not per posting - this screen is
+  // already scoped to one employer). Chains a geocode fetch only on an exact match
+  // carrying a postal code, same posture as the Browse-jobs full-ad modal.
+  useEffect(function() {
+    if (!activeMatch) { setEmpReg(null); setEmpGeo(null); return undefined; }
+    let cancelled = false;
+    setEmpReg({ status: "loading", data: null });
+    setEmpGeo(null);
+    fetchEmployerRegistration(activeMatch.displayName).then(function(data) {
+      if (cancelled) return;
+      setEmpReg({ status: "done", data: data, retrievedAt: new Date().toISOString() });
+      if (data && data.matched === "exact" && data.postal) {
+        setEmpGeo({ status: "loading", data: null });
+        fetchEmployerGeocode(data.postal).then(function(geo) { if (!cancelled) setEmpGeo({ status: "done", data: geo }); });
+      }
+    });
+    return function() { cancelled = true; };
+  }, [activeMatch && activeMatch.displayName]);
+
+  const activeJobs = (activeMatch && activeMatch.jobs) || [];
+  const mcfFacetOptions = useMemo(function() {
+    const levels = new Map(), types = new Map();
+    activeJobs.forEach(function(j) {
+      const lvl = (Array.isArray(j.positionLevels) && j.positionLevels[0]) || null;
+      if (lvl) levels.set(lvl, (levels.get(lvl) || 0) + 1);
+      if (j.employmentType) types.set(j.employmentType, (types.get(j.employmentType) || 0) + 1);
+    });
+    const toOpts = function(m) { return Array.from(m, function([v, n]) { return { v: v, n: n }; }).sort(function(a, b) { return b.n - a.n || a.v.localeCompare(b.v); }); };
+    return { level: toOpts(levels), type: toOpts(types) };
+  }, [activeJobs]);
+  const mcfFilteredSorted = useMemo(function() {
+    let w = activeJobs.filter(function(j) {
+      if (mcfFacets.level.length && !mcfFacets.level.includes((Array.isArray(j.positionLevels) && j.positionLevels[0]) || null)) return false;
+      if (mcfFacets.type.length && !mcfFacets.type.includes(j.employmentType || null)) return false;
+      return true;
+    });
+    w = w.slice();
+    if (mcfSort === "salary") w.sort(function(a, b) { return (b.salaryMax || b.salaryMin || 0) - (a.salaryMax || a.salaryMin || 0); });
+    else if (mcfSort === "title") w.sort(function(a, b) { return (a.title || "").localeCompare(b.title || ""); });
+    else w.sort(function(a, b) { return (Date.parse(b.postedDate || "") || 0) - (Date.parse(a.postedDate || "") || 0); });
+    return w;
+  }, [activeJobs, mcfFacets, mcfSort]);
+  const mcfToggleFacet = function(key, val) { setMcfFacets(function(f) { return { ...f, [key]: f[key].includes(val) ? f[key].filter(function(x) { return x !== val; }) : f[key].concat(val) }; }); };
+
   if (state.loading) {
     return (
       <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
@@ -13858,6 +13928,44 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                 </>
               )}
             </div>
+
+            {/* EMP: Registered employer block - the ACRA address/UEN facts about the very
+                employer this screen is scoped to. Was previously only shown per-posting in
+                Browse SG Jobs' full-ad modal, never here where it's most directly relevant. */}
+            {activeMatch && (
+              <div style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
+                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>REGISTERED EMPLOYER</div>
+
+                {empReg && empReg.status === "loading" && (
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>Checking ACRA registration...</p>
+                )}
+
+                {empReg && empReg.status === "done" && empReg.data && empReg.data.matched === "exact" && (() => {
+                  const d = empReg.data;
+                  const addrLines = [d.building, d.street, d.postal].filter(Boolean);
+                  return (
+                    <div>
+                      {addrLines.length > 0
+                        ? <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{addrLines.join(", ")}</p>
+                        : <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: C.muted }}>ACRA match found but no address fields on record.</p>}
+                      {d.namesakes > 0 && <p style={{ margin: "0 0 6px", fontSize: "0.75rem", color: "#7a5a17" }}>ACRA lists +{d.namesakes} other {d.namesakes === 1 ? "entity" : "entities"} with this name; showing the LIVE-status match.</p>}
+                      {d.postal && (
+                        empGeo && empGeo.status === "done" && empGeo.data && empGeo.data.matched === "single"
+                          ? <img src={"/api/geocode?action=render&postal=" + encodeURIComponent(d.postal)} alt={"Map pin near postal " + d.postal} onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "100%", maxWidth: 320, height: 160, objectFit: "cover", borderRadius: 7, border: "1px solid " + C.border, marginBottom: 6, display: "block" }} />
+                          : empGeo && empGeo.status === "loading"
+                            ? <p style={{ margin: "0 0 6px", fontSize: "0.75rem", color: C.muted }}>Locating map pin...</p>
+                            : <p style={{ margin: "0 0 6px", fontSize: "0.75rem", color: C.muted }}>Map preview not available - the registered address above is the verified fact.</p>
+                      )}
+                      <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) &middot; Match: exact &middot; Retrieved: {empReg.retrievedAt}</p>
+                    </div>
+                  );
+                })()}
+
+                {empReg && empReg.status === "done" && (!empReg.data || empReg.data.matched !== "exact") && (
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>No exact ACRA registration match for "{activeMatch.displayName}".</p>
+                )}
+              </div>
+            )}
 
             {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
             {activeMatch && agentsView === "off" && (
@@ -13995,15 +14103,53 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
+            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 3 && (mcfFacetOptions.level.length > 1 || mcfFacetOptions.type.length > 1) && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
+                <select value={mcfSort} onChange={function(e) { setMcfSort(e.target.value); }} aria-label="Sort postings"
+                  style={{ minHeight: 36, fontSize: "0.8125rem", color: C.text, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "5px 8px" }}>
+                  <option value="recent">Sort: Most recent</option>
+                  <option value="salary">Sort: Salary high-low</option>
+                  <option value="title">Sort: Title A-Z</option>
+                </select>
+                {mcfFacetOptions.level.length > 1 && mcfFacetOptions.level.map(function(o) {
+                  const on = mcfFacets.level.includes(o.v);
+                  return (
+                    <button key={o.v} type="button" aria-pressed={on} onClick={function() { mcfToggleFacet("level", o.v); }}
+                      style={{ minHeight: 36, fontSize: "0.75rem", fontWeight: on ? 700 : 400, color: on ? "#0e7490" : C.textSub, background: on ? C.tealBg : C.surface, border: "1px solid " + (on ? C.tealBdr : C.border), borderRadius: 16, padding: "5px 12px", cursor: "pointer" }}>
+                      {o.v} ({o.n})
+                    </button>
+                  );
+                })}
+                {mcfFacetOptions.type.length > 1 && mcfFacetOptions.type.map(function(o) {
+                  const on = mcfFacets.type.includes(o.v);
+                  return (
+                    <button key={o.v} type="button" aria-pressed={on} onClick={function() { mcfToggleFacet("type", o.v); }}
+                      style={{ minHeight: 36, fontSize: "0.75rem", fontWeight: on ? 700 : 400, color: on ? "#1a56db" : C.textSub, background: on ? "#eff6ff" : C.surface, border: "1px solid " + (on ? "#bfdbfe" : C.border), borderRadius: 16, padding: "5px 12px", cursor: "pointer" }}>
+                      {o.v} ({o.n})
+                    </button>
+                  );
+                })}
+                {(mcfFacets.level.length > 0 || mcfFacets.type.length > 0) && (
+                  <button type="button" onClick={function() { setMcfFacets({ level: [], type: [] }); }}
+                    style={{ minHeight: 36, fontSize: "0.75rem", color: C.muted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            )}
+
             {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
               <div className="mcf-grid">
-                {activeMatch.jobs.map(function(job) {
+                {mcfFilteredSorted.map(function(job) {
                   return (
                     <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                       seen={undefined} fmtSeenDate={undefined}
                       onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
                   );
                 })}
+                {mcfFilteredSorted.length === 0 && (
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>No postings match the selected filters.</p>
+                )}
               </div>
             )}
 
@@ -14038,6 +14184,37 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               <span style={{ fontWeight: 700 }}>&#10003; computed</span> - agency filter applied to live careers.gov.sg dump.
             </p>
           </div>
+        ) : csgGroups.length > 1 ? (
+          <>
+            {/* Multiple distinct agencies matched (e.g. "Ministry" hits several ministries) -
+                disclose the split instead of interleaving them unlabelled. Mirrors the MCF
+                column's exact/closest-match chips, adapted to careers.gov.sg's flat-list API. */}
+            <p style={{ margin: "0 0 10px", fontSize: "0.75rem" }}>
+              <span title="Several agency names matched - postings are grouped below by agency" style={{ display: "inline-block", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted }}>{"~ " + csgGroups.length + " agencies matched - grouped below"}</span>
+            </p>
+            {csgGroups.map(function(g) {
+              return (
+                <div key={g.name} style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: C.text, marginBottom: 6 }}>{g.name} <span style={{ fontWeight: 400, color: C.muted }}>({g.jobs.length} posting{g.jobs.length === 1 ? "" : "s"})</span></div>
+                  <div className="mcf-grid">
+                    {g.jobs.slice(0, 3).map(function(job) {
+                      return (
+                        <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
+                          seen={undefined} fmtSeenDate={undefined}
+                          onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                      );
+                    })}
+                  </div>
+                  {g.jobs.length > 3 && (
+                    <p style={{ margin: "6px 0 0", fontSize: "0.75rem", color: C.textSub }}>{"+" + (g.jobs.length - 3) + " more from " + g.name}</p>
+                  )}
+                </div>
+              );
+            })}
+            <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted }}>
+              <span style={{ fontWeight: 700 }}>&#10003; computed</span> - agency name matched from careers.gov.sg dump (MIT-licensed, opengovsg). Counts are real posting totals, not estimated.
+            </p>
+          </>
         ) : (
           <>
             <div className="mcf-grid">
