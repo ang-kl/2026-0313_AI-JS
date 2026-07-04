@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.208";
+const APP_VERSION = "3.0.209";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3201,8 +3201,32 @@ function _respNum(nodeId) { const m = /^resp:r(\d+)$/.exec(String(nodeId || ""))
 function _respHue(n) { return _RG_LINK_HUES[((Number(n) || 1) - 1) % _RG_LINK_HUES.length]; }
 function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
 
+// Verbatim duty-like lines pulled straight from the analysed posting's own text -
+// used only when the aggregate MCF corpus for this title comes back too thin to
+// build the Job Graph, so a posting-mode analysis still resolves to real duties
+// instead of an avoidable "not enough data" stall on an ad that has plenty.
+function postingStatementsFromText(posting) {
+  const raw = String((posting && posting.text) || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&amp;|&quot;|&#39;/g, " ")
+    .replace(/[•·●▪‣⁃|]/g, "\n")
+    .replace(/\r/g, "");
+  const seen = new Set();
+  const out = [];
+  raw.split(/[\n.;]+/)
+    .map((s) => s.replace(/\s+/g, " ").trim())
+    .filter((s) => s.length >= 18 && s.length <= 160 && /[a-z]/i.test(s) && /\s/.test(s))
+    .forEach((line, i) => {
+      const key = line.toLowerCase().slice(0, 60);
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push({ id: "p" + i, text: line, cat: "posting", level: "HUMAN", sk: [] });
+    });
+  return out.slice(0, 12);
+}
+
 // 1) deterministic: pull the itemised responsibility statements the rest of the analysis already produced
-function gatherStatements(result) {
+function gatherStatements(result, posting) {
   const rd = result && result.responsibilitiesData;
   const ja = result && result.jobAnatomy;
   let resp = [];
@@ -3210,6 +3234,10 @@ function gatherStatements(result) {
     resp = rd.responsibilities.map((r, i) => ({ id: "r" + (r.n != null ? r.n : i), text: String(r.text || "").trim(), cat: r.cat || "", level: r.level || "HUMAN", sk: Array.isArray(r.sk) ? r.sk : [] })).filter(r => r.text);
   } else if (ja && !ja.fallback && Array.isArray(ja.duties) && ja.duties.length) {
     resp = ja.duties.map((d, i) => ({ id: "d" + (d.n != null ? d.n : i), text: String(d.text || "").trim(), cat: d.layer || "", level: d.exposureNow || "HUMAN", sk: [] })).filter(r => r.text);
+  }
+  if (resp.length < 3 && posting && posting.text) {
+    const fromAd = postingStatementsFromText(posting);
+    if (fromAd.length) resp = fromAd;
   }
   return { responsibilities: resp.slice(0, 22) };
 }
@@ -3373,14 +3401,16 @@ No quote characters inside any string value.`;
 // orchestrator. onStep(n) (optional) is called before each of the 6 advertised
 // pipeline steps (1..6) and once more (7) when the graph + card are assembled - see
 // _RG_STEPS / RoleGraphStepCard for the labels surfaced to the user.
-async function buildRoleGraph(result, title, onStep) {
+async function buildRoleGraph(result, title, onStep, posting) {
   const step = n => { try { onStep && onStep(n); } catch (_) {} };
   const roleKey = String(title || "").trim().toLowerCase();
-  const cacheKey = `${roleKey}|${(result && result.source) || "esco"}|${ROLE_GRAPH_VERSION}`;
+  // Cache key includes the posting uuid (when present) - two different ads under the
+  // same title must not silently share a graph built from one ad's fallback duties.
+  const cacheKey = `${roleKey}|${(result && result.source) || "esco"}|${ROLE_GRAPH_VERSION}|${(posting && posting.uuid) || ""}`;
   if (_roleGraphCache.has(cacheKey)) { step(7); return _roleGraphCache.get(cacheKey); }
   const skills = (result && result.skills) || [];
   step(1);                                                  // ingest posting + extract responsibilities/requirements/quals/competencies
-  const { responsibilities } = gatherStatements(result || {});
+  const { responsibilities } = gatherStatements(result || {}, posting);
   step(2);                                                  // structure into itemised responsibility/requirement statements
   if (!skills.length || responsibilities.length < 3) return { fallback: true, reason: "thin_input" }; // not cached - responsibilities/anatomy may still be loading
   step(3);                                                  // analyse each statement -> infer activities/tasks/skills/competency signals
@@ -3445,7 +3475,7 @@ function _kgContainsAny(text, stems) {
   return stems.some(s => t.includes(s));
 }
 
-function buildKnowledgeGraph(result, title) {
+function buildKnowledgeGraph(result, title, posting) {
   const generatedAt = new Date().toISOString();
 
   // ── 1. Entity extraction ──────────────────────────────────────────────────
@@ -3462,7 +3492,7 @@ function buildKnowledgeGraph(result, title) {
   };
 
   // 1b. Duty nodes from gatherStatements (verbatim text from MCF/analysis)
-  const { responsibilities: duties } = gatherStatements(result || {});
+  const { responsibilities: duties } = gatherStatements(result || {}, posting);
   const dutyNodes = duties.map((d) => ({
     id: "duty:" + d.id,
     type: "duty",
@@ -3738,11 +3768,13 @@ function buildKnowledgeGraph(result, title) {
 // Thin cached accessor - mirrors the _roleGraphCache idiom.
 // Cache key: KG_GRAPH_VERSION + role key + result.source
 // The cache holds the full payload; generatedAt is regenerated on cache miss only.
-function getKnowledgeGraph(result, title) {
+function getKnowledgeGraph(result, title, posting) {
   const roleKey = String(title || "").trim().toLowerCase();
-  const cacheKey = KG_GRAPH_VERSION + "|" + roleKey + "|" + ((result && result.source) || "esco");
+  // Cache key includes the posting uuid (when present) - two different ads under the
+  // same title must not silently share a graph built from one ad's fallback duties.
+  const cacheKey = KG_GRAPH_VERSION + "|" + roleKey + "|" + ((result && result.source) || "esco") + "|" + ((posting && posting.uuid) || "");
   if (_kgGraphCache.has(cacheKey)) return _kgGraphCache.get(cacheKey);
-  const payload = buildKnowledgeGraph(result, title);
+  const payload = buildKnowledgeGraph(result, title, posting);
   _kgGraphCache.set(cacheKey, payload);
   return payload;
 }
@@ -4982,249 +5014,9 @@ function Tag({ level, small }) {
 // on the rail is shape+label (filled+check / outlined+pulse / muted), never
 // colour alone. role=status announces label changes; prefers-reduced-motion
 // disables every animation via the scoped .ldx rule.
-// AI-building theatre during the loading interstitial. Three short cycling scenes
-// preview what Step 3 (ReviewStudio) will assemble: (1) a job-ad manuscript with
-// duties getting highlighted by AI-involvement band, (2) the Role Graph being
-// drawn node-by-node, (3) two persona reviewer comments typing in. All cosmetic -
-// the real pipeline label + stage rail above stay authoritative.
-const SCENE_BANDS = {
-  auto:      { ink: "#7c3aed", bg: "#f3e8ff", label: "Full Automation" },
-  augmented: { ink: "#1a56db", bg: "#e8f0fe", label: "AI-Augmented" },
-  assisted:  { ink: "#0e7490", bg: "#ecfeff", label: "AI-Assisted" },
-  human:     { ink: "#b45309", bg: "#fffbeb", label: "Human-Led" },
-};
-const SCENE_MANUSCRIPT_DUTIES = [
-  { text: "Analyse customer transaction data using SQL",       band: "augmented" },
-  { text: "Generate weekly performance summaries automatically", band: "auto" },
-  { text: "Design dashboards for executive review",            band: "assisted" },
-  { text: "Mentor junior analysts and run training",           band: "human" },
-  { text: "Coordinate quarterly planning with stakeholders",   band: "human" },
-];
-// Pull up to 5 short duty lines from a real posting's responsibilities text.
-// Strips HTML/bullet glyphs; favours sentence-like fragments. Falls back to the
-// generic Data Analyst mockup when no posting is in flight (role-mode analyses).
-function sceneDutiesFromPosting(posting) {
-  if (!posting || !posting.text) return null;
-  const raw = String(posting.text || "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&amp;|&quot;|&#39;/g, " ")
-    .replace(/[•·●▪‣⁃|]/g, "\n")
-    .replace(/\r/g, "");
-  const candidates = raw.split(/[\n.;]+/)
-    .map((s) => s.replace(/\s+/g, " ").trim())
-    .filter((s) => s.length >= 18 && s.length <= 130 && /[a-z]/.test(s) && /\s/.test(s));
-  const seen = new Set();
-  const out = [];
-  // The 4 SSOC-derived involvement bands cycled over real lines - the bands
-  // shown are illustrative until classifyDuties returns, so they rotate evenly
-  // rather than misrepresent a specific classification.
-  const bands = ["augmented", "auto", "assisted", "human"];
-  for (const line of candidates) {
-    const key = line.toLowerCase().slice(0, 60);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ text: line, band: bands[out.length % bands.length] });
-    if (out.length >= 5) break;
-  }
-  return out.length ? out : null;
-}
-function SceneManuscript({ posting }) {
-  const [i, setI] = useState(0);
-  const realDuties = sceneDutiesFromPosting(posting);
-  const duties = realDuties || SCENE_MANUSCRIPT_DUTIES;
-  const heading = posting && posting.title ? posting.title : "Data Analyst, Singapore";
-  const subheading = posting && posting.employer ? posting.employer : "the role will:";
-  useEffect(() => {
-    setI(0);
-    const t = setInterval(() => setI((x) => (x + 1) % duties.length), 620);
-    return () => clearInterval(t);
-  }, [duties.length]);
-  return (
-    <div style={{ padding: "14px 18px" }}>
-      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
-        ★ Highlighting duties by AI involvement {realDuties && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>live posting</span>}
-      </div>
-      <div style={{ fontFamily: "'Newsreader',serif", fontSize: "0.875rem", color: C.text, lineHeight: 1.5 }}>
-        <span style={{ fontWeight: 700 }}>{heading}</span>{posting && posting.employer ? <span style={{ color: C.muted, fontWeight: 400 }}> {String.fromCharCode(0x2014)} {subheading}</span> : <> {String.fromCharCode(0x2014)} {subheading}</>}
-        <ul style={{ listStyle: "none", padding: 0, margin: "8px 0 0" }}>
-          {duties.map((d, k) => {
-            const active = k === i;
-            const band = SCENE_BANDS[d.band] || SCENE_BANDS.assisted;
-            return (
-              <li key={k} style={{
-                padding: "4px 9px",
-                margin: "0 0 2px",
-                borderRadius: 6,
-                background: active ? band.bg : "transparent",
-                color: active ? band.ink : C.text,
-                opacity: active ? 1 : (k < i ? 0.7 : 0.42),
-                borderLeft: "3px solid " + (active ? band.ink : "transparent"),
-                transition: "all 0.3s ease",
-                fontWeight: active ? 600 : 400,
-                fontSize: "0.8125rem",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}>
-                {d.text}
-                {active && <span style={{ marginLeft: 8, fontSize: "0.6875rem", fontWeight: 700, opacity: 0.8 }}>{String.fromCharCode(0x00b7)} {band.label}</span>}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-const SCENE_GRAPH_NODES = [
-  { x: 280, y: 50,  label: "SQL" },
-  { x: 330, y: 110, label: "Dashboards" },
-  { x: 320, y: 180, label: "Reporting" },
-  { x: 260, y: 225, label: "Mentoring" },
-  { x: 150, y: 225, label: "Stakeholders" },
-  { x: 80,  y: 180, label: "Planning" },
-  { x: 70,  y: 110, label: "Python" },
-  { x: 130, y: 50,  label: "Modelling" },
-];
-function SceneRoleGraph({ posting }) {
-  // Use the posting's actual skills (capped at the geometry's 8 satellite slots)
-  // and shorten long labels to keep the graph readable.
-  const realSkills = posting && Array.isArray(posting.skills) ? posting.skills.filter(Boolean).slice(0, SCENE_GRAPH_NODES.length) : [];
-  const nodes = SCENE_GRAPH_NODES.map((n, k) => {
-    const label = realSkills[k] != null ? String(realSkills[k]) : n.label;
-    const short = label.length > 16 ? label.slice(0, 14) + String.fromCharCode(0x2026) : label;
-    return { ...n, label: short, fullLabel: label };
-  });
-  const centreLabel = (() => {
-    const t = posting && posting.title ? String(posting.title) : "Role";
-    return t.length > 14 ? t.slice(0, 12) + String.fromCharCode(0x2026) : t;
-  })();
-  return (
-    <div style={{ padding: "10px 18px 14px", textAlign: "center" }}>
-      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 8 }}>
-        {String.fromCharCode(0x25C9)} Drawing the Role Graph {realSkills.length > 0 && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>posting skills</span>}
-      </div>
-      <style>{`
-        @keyframes scNodePop{0%{opacity:0;transform:scale(.45)}65%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
-        @keyframes scEdgeDraw{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
-        @keyframes scCenterPulse{0%,100%{r:22}50%{r:26}}
-        .sc-node{transform-origin:center;transform-box:fill-box;animation:scNodePop .55s ease both}
-        .sc-edge{stroke-dasharray:200;stroke-dashoffset:200;animation:scEdgeDraw .8s ease both}
-        .sc-center{animation:scCenterPulse 1.6s ease-in-out infinite}
-        @media (prefers-reduced-motion: reduce){.sc-node,.sc-edge,.sc-center{animation:none !important}}
-      `}</style>
-      <svg viewBox="0 0 400 270" style={{ width: "100%", maxWidth: 400, height: 210 }} aria-hidden="true">
-        {nodes.map((n, k) => (
-          <line key={"e" + k} className="sc-edge" x1={200} y1={135} x2={n.x} y2={n.y} stroke="#cdd9ff" strokeWidth={1.5} style={{ animationDelay: (0.45 + k * 0.09) + "s" }} />
-        ))}
-        <circle className="sc-center" cx={200} cy={135} r={22} fill={C.accent} />
-        <text x={200} y={139} textAnchor="middle" fill="#fff" fontSize={10} fontWeight={800}>{centreLabel}</text>
-        {nodes.map((n, k) => (
-          <g key={"n" + k} className="sc-node" style={{ animationDelay: (0.12 + k * 0.09) + "s" }}>
-            <circle cx={n.x} cy={n.y} r={9} fill={C.accentSoft} stroke={C.accent} strokeWidth={1.5} />
-            <text x={n.x} y={n.y - 14} textAnchor="middle" fontSize={10} fill={C.text} fontWeight={600}>{n.label}</text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
-
-const SCENE_REVIEWERS = [
-  { glyph: "AI", name: "AI Exposure Reviewer",  ink: "#7c3aed", bg: "#f3e8ff", text: "This duty is dominated by AI - consider where the human edge actually sits." },
-  { glyph: "EA", name: "Evidence Auditor",      ink: "#b45309", bg: "#fffbeb", text: '"Familiar with" is weak - ask the employer to specify a measurable threshold.' },
-];
-function SceneReviewers({ posting }) {
-  // Build the persona comments from real duties when a posting is in flight, so
-  // the user sees the reviewer text reference what was in their actual ad.
-  const realDuties = sceneDutiesFromPosting(posting);
-  const reviewers = (() => {
-    if (!realDuties || !realDuties.length) return SCENE_REVIEWERS;
-    const dutyAi = realDuties.find((d) => d.band === "auto" || d.band === "augmented") || realDuties[0];
-    const dutyHuman = realDuties.find((d) => d.band === "human") || realDuties[realDuties.length - 1];
-    const trim = (s) => { const t = String(s || "").trim(); return t.length > 80 ? t.slice(0, 78) + String.fromCharCode(0x2026) : t; };
-    return [
-      { glyph: "AI", name: "AI Exposure Reviewer", ink: SCENE_BANDS.auto.ink,  bg: SCENE_BANDS.auto.bg,  text: '"' + trim(dutyAi.text) + '" - this is dominated by AI. Where will the human edge sit?' },
-      { glyph: "EA", name: "Evidence Auditor",     ink: SCENE_BANDS.human.ink, bg: SCENE_BANDS.human.bg, text: '"' + trim(dutyHuman.text) + '" - human-led. Make the accountability + decision rights explicit.' },
-    ];
-  })();
-  const [typed, setTyped] = useState(["", ""]);
-  const [showActions, setShowActions] = useState([false, false]);
-  useEffect(() => {
-    setTyped(["", ""]); setShowActions([false, false]);
-    const handles = [];
-    reviewers.forEach((r, idx) => {
-      let i = 0;
-      const start = setTimeout(function step() {
-        i += 1;
-        setTyped((prev) => { const nx = prev.slice(); nx[idx] = r.text.slice(0, i); return nx; });
-        if (i < r.text.length) handles.push(setTimeout(step, 22));
-        else handles.push(setTimeout(() => setShowActions((p) => { const n = p.slice(); n[idx] = true; return n; }), 220));
-      }, idx * 700 + 150);
-      handles.push(start);
-    });
-    return () => handles.forEach(clearTimeout);
-  }, [reviewers]);
-  return (
-    <div style={{ padding: "10px 18px 14px" }}>
-      <div style={{ fontSize: "0.625rem", fontWeight: 700, color: C.muted, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 10 }}>
-        {String.fromCharCode(0x270D)} Drafting reviewer comments {realDuties && <span style={{ marginLeft: 6, color: C.teal, background: C.tealBg, border: "1px solid " + C.tealBdr, borderRadius: 4, padding: "1px 5px", fontSize: "0.5rem", letterSpacing: ".05em" }}>citing the live posting</span>}
-      </div>
-      {reviewers.map((r, idx) => (
-        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: idx === reviewers.length - 1 ? 0 : 10 }}>
-          <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: "50%", background: r.bg, color: r.ink, fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800, fontSize: "0.6875rem", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid " + r.ink + "33" }}>{r.glyph}</div>
-          <div style={{ flex: 1, minWidth: 0, background: "#fff", border: "1px solid " + C.border, borderRadius: 8, padding: "8px 11px" }}>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: r.ink, marginBottom: 3 }}>{r.name}</div>
-            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.text, lineHeight: 1.5, minHeight: "1.5em" }}>
-              {typed[idx]}
-              {typed[idx].length < r.text.length && <span style={{ display: "inline-block", width: 6, height: 12, background: r.ink, marginLeft: 2, verticalAlign: "middle", animation: "ldxBreathe 0.7s ease-in-out infinite" }} />}
-            </p>
-            {showActions[idx] && (
-              <div style={{ marginTop: 6, display: "flex", gap: 5, animation: "fadeInUp 0.3s ease both" }}>
-                {["Accept", "Reject", "Ask why"].map((a) => (
-                  <span key={a} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: C.muted, background: C.accentSoft, border: "1px solid " + C.border, borderRadius: 5, padding: "2px 6px" }}>{a}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const SCENE_LIST = [
-  { key: "manuscript", title: "Manuscript", render: (posting) => <SceneManuscript posting={posting} /> },
-  { key: "graph",      title: "Role Graph", render: (posting) => <SceneRoleGraph posting={posting} /> },
-  { key: "reviewers",  title: "Reviewers",  render: (posting) => <SceneReviewers posting={posting} /> },
-];
-function SceneRotator({ posting }) {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % SCENE_LIST.length), 4200);
-    return () => clearInterval(t);
-  }, []);
-  const render = SCENE_LIST[i].render;
-  return (
-    <div style={{ marginTop: 16, background: "rgba(255,255,255,0.94)", border: "1px solid " + C.border, borderRadius: 12, boxShadow: "0 1px 3px rgba(15,40,105,0.06)", overflow: "hidden", minHeight: 290 }}>
-      <p style={{ margin: 0, padding: "10px 12px 0", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Preview - what the analysis is assembling</p>
-      <div key={SCENE_LIST[i].key} style={{ animation: "fadeInUp 0.4s ease both" }}>
-        {render(posting)}
-      </div>
-      <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 0 12px" }}>
-        {SCENE_LIST.map((s, k) => (
-          <span key={s.key} title={s.title} style={{ width: k === i ? 18 : 6, height: 6, borderRadius: 3, background: k === i ? C.accent : C.border, transition: "all 0.3s ease" }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // Pure-presentational staged checklist. Derives all 3 rows only from the real
 // `step` (=subStep) and `skillCount` (=loadingSkills.length) props Spinner
-// already receives - never from SceneRotator's own decorative interval state.
-// Ticks therefore cannot outrun the deterministic milestones (BSW8 B1/B3).
+// already receives - so ticks cannot outrun the deterministic milestones (BSW8 B1/B3).
 function StageChecklist({ step, skillCount }) {
   const items = [
     { done: step >= 2, doneLabel: "Role resolved in ESCO v1.2", activeLabel: "Resolving role in ESCO v1.2..." },
@@ -5346,12 +5138,6 @@ function Spinner({ label, step, total, firstTime, skills, posting }) {
           </div>
         </div>
       )}
-      {/* AI-building theatre: three cycling scenes that preview Step 3's assembly.
-          Replaces the prior static intro card so every analysis (not just the first)
-          gets the entertaining wait. When `posting` is set (Step 2 -> Step 3 path),
-          the scenes pull live data straight from it - real duties, real skills,
-          real employer - so the user can see the system reading their actual ad. */}
-      <SceneRotator posting={posting} />
       </div>
     </div>
   );
@@ -10560,7 +10346,7 @@ function RoleGraphStepCard({ step }) {
     </div>
   );
 }
-function RoleGraphPanel({ result, title }) {
+function RoleGraphPanel({ result, title, posting }) {
   const [graphState, setGraphState] = useState({ status: "loading" });
   const [hoveredId, setHoveredId] = useState(null);
   const [showJson, setShowJson] = useState(false);
@@ -10809,7 +10595,7 @@ function RoleGraphPanel({ result, title }) {
 
       {/* KG1: knowledge graph mode - synchronous, no loading state needed */}
       {graphMode === "knowledge" && (() => {
-        const kg = getKnowledgeGraph(result, title);
+        const kg = getKnowledgeGraph(result, title, posting);
         const thin = !kg || !kg.nodes || kg.nodes.length <= 1;
         if (thin) {
           return (
@@ -14971,14 +14757,16 @@ export default function App({ initialSearchMode } = {}) {
           // Background: Role Graph - for a single MCF posting, run the 6-step
           // pipeline now (so the "🕸 Role Graph" tab's step card is already
           // advancing by the time the user opens it). gatherStatements prefers
-          // rd.responsibilities, so no need to wait on Job Anatomy.
+          // rd.responsibilities; if that independent title-search comes back too
+          // thin, it falls back to this posting's own verbatim duty lines instead
+          // of stalling on "not enough data" for an ad that actually has plenty.
           if (posting) {
             let _tRG; try { _tRG = performance.now(); } catch (_) { _tRG = 0; }
             setResult(prev => prev ? { ...prev, roleGraphProgress: 1 } : prev);
             buildRoleGraph({ skills: merged, source: newResult.source, responsibilitiesData: rd }, occ.title, n => {
               if (analysisCancelRef.current !== cancelId) return;
               setResult(prev => prev ? { ...prev, roleGraphProgress: n } : prev);
-            })
+            }, posting)
               .then(rg => {
                 if (analysisCancelRef.current !== cancelId) return;
                 setResult(prev => prev ? { ...prev, roleGraphData: rg, roleGraphProgress: 7 } : prev);
@@ -15785,7 +15573,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       );
     }
     if (key === "rolegraph") {
-      return <RoleGraphPanel key="rolegraph" result={result} title={sel?.title || ""} />;
+      return <RoleGraphPanel key="rolegraph" result={result} title={sel?.title || ""} posting={analysingPosting} />;
     }
     if (key === "wikigraph") {
       return <WikiGraphView key="wikigraph" embedded nodes={wikiKgPayload.nodes || []} edges={wikiKgPayload.edges || []} title={sel?.title || query.trim()} result={result} />;
@@ -16396,7 +16184,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               title={toTitleCase(sel?.title || "")}
               employer={result?.employer || ""}
               source="from MCF"
-              rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} />}
+              rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
               band={null}
               onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               version={APP_VERSION}
