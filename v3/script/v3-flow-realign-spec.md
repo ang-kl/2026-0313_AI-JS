@@ -5,8 +5,9 @@
 
 > **Target repo path:** `v3/script/v3-flow-realign-spec.md` (build docs live in `v3/script/`).
 > **Proposed versions:** FLOW-1a -> **v3.0.205**, FLOW-1b -> **v3.0.206**, FLOW-2 -> **v3.0.207**, FLOW-polish -> **v3.0.208**. Flat patch line; never roll the minor (per `v3-version-scheme`). One PR per slice, version bump + journal entry each.
+> **Actually shipped (reconciled 2026-07-04, per audit finding #7):** FLOW-1a landed as v3.0.205, FLOW-1b as v3.0.206, FLOW-polish as v3.0.207 (took FLOW-2's slot, not v3.0.208 as originally proposed). **FLOW-2 was never built - Tier A (SVG scatter) included, not just Tier B.** There is no map-toggle state, no `Step2MapView`, and no FLOW-2 commit anywhere in history. Treat FLOW-2 as still fully open, not "in progress" or "staged."
 > **G1 gate:** this spec is the gate. Build starts per-PR only when that PR's STATUS reads READY_FOR_BUILD and its open questions are cleared.
-> **Status:** FLOW-1a **READY_FOR_BUILD**; FLOW-1b **READY_FOR_BUILD**; FLOW-2 **PARTIAL - staged**: the SVG-scatter tier is READY_FOR_BUILD, the real-tile tier is **ADDITIVE-BLOCKED** on `ONEMAP_TOKEN` (FLOW-Q3); FLOW-polish **READY_FOR_BUILD** after 1a/1b/2 land.
+> **Status:** FLOW-1a **SHIPPED**; FLOW-1b **SHIPPED**; FLOW-polish **SHIPPED**; FLOW-2 **NOT BUILT** - Tier A (SVG scatter, no token needed) remains READY_FOR_BUILD whenever picked back up; Tier B (real OneMap tiles) stays **ADDITIVE-BLOCKED** on `ONEMAP_TOKEN` (FLOW-Q3).
 > **Contract alignment:** locked v3 contract governs every line - deterministic = control, LLM = advisory only (no LLM authors a suggestion rank, a match tier, a count, or a coordinate); non-inventive (every rendered token maps to a real source and is withheld over guessed); faithful fidelity (a fuzzy/widened match is disclosed as such, never dressed as exact). Frozen door (`v3-result-engine-spec.md` §1) and house rules (`doc/CLAUDE-FULL.md` R001-R011, gates G1-G4, HDR blocks) bind this spec. Red/green never load-bearing; 44px targets; ASCII-only JSX; honesty footers.
 > **Reader priority:** (1) `result-engine-builder`, (2) Human Lead.
 
@@ -207,5 +208,5 @@ PR #271 (v3.0.198) removed the old Step 1a SSOC picker because it was a **hard g
 
 ---
 
-**STATUS: READY_FOR_BUILD** for FLOW-1a, FLOW-1b, and FLOW-2 Tier A (SVG scatter) + FLOW-polish. **BLOCKED:** FLOW-2 Tier B (real OneMap tiles) pending FLOW-Q3.
-**Next agent:** `result-engine-builder`.
+**STATUS (reconciled 2026-07-04):** FLOW-1a, FLOW-1b, and FLOW-polish **SHIPPED** (v3.0.205-207). **FLOW-2 NOT BUILT** - Tier A (SVG scatter) is still READY_FOR_BUILD, no code or commit exists for it yet. Tier B (real OneMap tiles) stays **BLOCKED** pending FLOW-Q3 (`ONEMAP_TOKEN` provisioning).
+**Next agent:** `result-engine-builder`, to pick up FLOW-2 Tier A when directed.

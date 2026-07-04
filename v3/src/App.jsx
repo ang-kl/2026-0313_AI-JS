@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.211";
+const APP_VERSION = "3.0.212";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12027,7 +12027,11 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     if (sort === "title") w.sort((a, b) => a.short.localeCompare(b.short));
     else if (sort === "salary") w.sort((a, b) => (b.salaryMid || 0) - (a.salaryMid || 0));
     else if (sort === "recent") w.sort((a, b) => new Date(b.job.postedDate || 0) - new Date(a.job.postedDate || 0));
-    // "match" keeps the ranked input order
+    // "match" orders by the SAME step2MatchTier classifier that drives each card's visible
+    // badge and the Match facet - it used to just keep the coarse fetch-time bucket order
+    // (title/responsibility/segment/other), which could disagree with the badge a card
+    // actually showed. Recency breaks ties within a tier.
+    else w.sort((a, b) => (STEP2_MATCH_TIERS.indexOf(a.matchTier) - STEP2_MATCH_TIERS.indexOf(b.matchTier)) || (new Date(b.job.postedDate || 0) - new Date(a.job.postedDate || 0)));
     return w;
   }, [filtered, sort]);
 
@@ -15951,6 +15955,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   <span className="lux-arrow" aria-hidden="true" style={{ fontSize: "0.9375rem", lineHeight:1 }}>&#8594;</span>
                 </button>
               </div>
+              {/* freshGrad filters Step 2 (PostingEvidencePicker) to postings needing < 4 years'
+                  experience. The toggle that set it was dropped from an earlier redesign (HDR
+                  #046), leaving the filter, its counts and its captions permanently inert -
+                  restored here rather than removing the (otherwise complete) filter machinery. */}
+              {searchMode === "jobs" && (
+                <label style={{ display:"flex", alignItems:"center", gap:8, marginTop:10, minHeight:44, cursor:"pointer", width:"fit-content" }}>
+                  <input type="checkbox" checked={freshGrad} onChange={(e) => setFreshGrad(e.target.checked)}
+                    style={{ width:18, height:18, accentColor:C.accent, cursor:"pointer" }} />
+                  <span style={{ fontSize: "0.8125rem", color:C.text }}>Fresh graduates only <span style={{ color:C.textSub }}>(&lt; 4 years&rsquo; experience)</span></span>
+                </label>
+              )}
               {/* FLOW-1a: SSOC 2024 query-text suggestions - jobs/company modes only.
                   Tapping a row rewrites the query string only (R012) - never gates
                   submission, never filters Step 2/company results. */}
