@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.218";
+const APP_VERSION = "3.0.219";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3822,8 +3822,15 @@ async function buildSsocGraph(result, title, posting) {
   });
   escoSkills.forEach((s, i) => { const id = "ssocskill:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + i); nodes.push({ id, type: "skill", cluster: "individual", label: String(s.skill || ""), source: "esco", confidence: "medium", ref: { escoUri: s.escoUri || "" } }); edges.push({ source: roleId, target: id, kind: "role-skill" }); });
   duties.slice(0, 14).forEach((d) => { const id = "ssocduty:" + d.id; nodes.push({ id, type: "duty", cluster: "individual", label: d.text, source: "mcf", confidence: "high", level: d.level || "HUMAN" }); edges.push({ source: roleId, target: id, kind: "role-duty" }); });
-  const kg = { version: "ssoc1", nodes, edges, generatedAt: new Date().toISOString(),
-    stats: { roles: 1, occupations: nodes.filter((n) => n.type === "occupation").length, skills: escoSkills.length, responsibilities: Math.min(duties.length, 14), edges: edges.length } };
+  // KGGraph requires kg.clusters (it does kg.clusters.filter) + stats.{nodes,edges,clustersPresent}
+  // + a withheld array - match the buildKnowledgeGraph payload shape exactly, or the render crashes.
+  const clusters = [
+    { id: "department", label: "Occupation", present: true },
+    { id: "individual", label: "Skills & duties", present: nodes.some((n) => n.cluster === "individual") },
+  ];
+  const kg = { version: "ssoc1", nodes, edges, clusters, generatedAt: new Date().toISOString(),
+    stats: { nodes: nodes.length, edges: edges.length, clustersPresent: clusters.filter((c) => c.present).length, skills: escoSkills.length },
+    withheld: [] };
   return { fallback: false, code: node.code, title: toTitleCase(node.title || ""), definition: node.definition || "", confidence: cls.confidence || "medium",
     iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, kg };
 }
