@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.210";
+const APP_VERSION = "3.0.211";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5048,7 +5048,7 @@ function StageChecklist({ step, skillCount }) {
   );
 }
 
-function Spinner({ label, step, total, firstTime, skills, posting }) {
+function Spinner({ label, step, total, firstTime, skills }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
@@ -14115,9 +14115,6 @@ export default function App({ initialSearchMode } = {}) {
   const [comparisons, setComparisons] = useState([]); // [{title, result}] max 3
   const [compareCue, setCompareCue] = useState(false);
   const [toast, setToast]           = useState(null);   // { msg, action? }
-  // CO1: company-search result. Set by CompanyPanel after the /api/mcf action:"company" fetch.
-  // Shape: { matches, query, queryKey, ambiguous, totalPostings, pagesPolled, source } | null.
-  const [companyResult, setCompanyResult] = useState(null);
   const [showBackTop, setShowBackTop] = useState(false);
   useEffect(() => {
     const onScroll = () => setShowBackTop(window.scrollY > 400);
@@ -14400,7 +14397,6 @@ export default function App({ initialSearchMode } = {}) {
     const validationErr = validateJobTitleInput(query);
     if (validationErr) { setErr(validationErr); setStep("error"); return; }
     setErr(""); setSel(null); setResult(null); setOccs([]);
-    setCompanyResult(null);
     track("company_search_started", { q: query.trim().slice(0, 60) });
     setStep("mcf_company");
   }, [query]);
@@ -14861,7 +14857,10 @@ export default function App({ initialSearchMode } = {}) {
         if (analysisCancelRef.current !== cancelId) return;
         const isTimeout = e.message === "prompt_timeout";
         console.warn("[generatePrompts] background enrichment", isTimeout ? "timed out" : "failed:", e.message);
-        if (isTimeout) track("prompt_timeout", { occupation: occ.title, actionableSkills: actionable.length });
+        // `actionable` belongs to generatePrompts' own closure, not this scope - referencing it
+        // here threw a ReferenceError on every real timeout, before the setResult below could run,
+        // leaving promptLoading stuck true forever. Recompute the same non-HUMAN filter locally.
+        if (isTimeout) track("prompt_timeout", { occupation: occ.title, actionableSkills: ratings.filter(s => s.level !== "HUMAN").length });
         setResult(prev => {
           if (!prev) return prev;
           return { ...prev, skills: prev.skills.map(s => ({
@@ -14941,8 +14940,9 @@ export default function App({ initialSearchMode } = {}) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       setResult(null); setOccs([]); setErr("");
       setActiveTab("skills");
-      // Surface the live posting to the loading interstitial so its scenes
-      // narrate THIS posting, not a generic mockup.
+      // Surface the live posting so Step 3 (loading screen + result header +
+      // CompanyBackground's posted-vs-hiring check) can reference THIS posting,
+      // not a generic mockup.
       setAnalysingPosting({
         title: tidy,
         employer: job.employer || "",
@@ -14951,7 +14951,11 @@ export default function App({ initialSearchMode } = {}) {
       });
       track("mcf_posting_analyse", { uuid: job.uuid });
       doAnalyse({ title: tidy, iscoCode: "", iscoGroup: "", description: "" }, {
-        posting: { uuid: job.uuid, title: tidy, employer: job.employer || "", mcfUrl: job.mcfUrl || "", skills: job.skills || [], text: job.responsibilitiesText || job.description || "" },
+        // postedCompanyName/hiringCompanyName/source carried through so
+        // CompanyBackground's outsourced-recruiter check and the Step 3 source
+        // chip aren't silently starved of data the posting already has.
+        posting: { uuid: job.uuid, title: tidy, employer: job.employer || "", mcfUrl: job.mcfUrl || "", skills: job.skills || [], text: job.responsibilitiesText || job.description || "",
+          postedCompanyName: job.postedCompanyName || "", hiringCompanyName: job.hiringCompanyName || "", source: job.source || "" },
       });
     };
     confirmIfComparing(doIt);
@@ -16136,7 +16140,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} posting={analysingPosting} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
@@ -16178,12 +16182,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           // Step 3 = Review Studio (v3-ui-blueprint S4). Replaces the legacy tabbed result page.
           // Right pane = the ORIGINAL Role Graph (RoleGraphPanel: layered role graph + ISCO
           // ranking + skill-analysis) - the "role graph and other analysis", unchanged.
+          // Header chip must name the true source - a pure-ESCO analysis never touched a
+          // live posting, so it must not read "from MCF" (was hardcoded regardless of source).
+          const reviewSource = result.source === "posting"
+            ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
+            : result.source === "corpus" ? "from live SG postings" : "from ESCO";
           return (
             <ReviewStudio
               result={result}
               title={toTitleCase(sel?.title || "")}
               employer={result?.employer || ""}
-              source="from MCF"
+              source={reviewSource}
               rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
               band={null}
               onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
