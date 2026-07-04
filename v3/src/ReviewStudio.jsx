@@ -225,10 +225,30 @@ function rsFalsification(spans, title, adText) {
   }
   return out;
 }
+// Hiring Filter Analyst (deterministic, §5.5): the hard gates that auto-reject a candidate
+// before a human reads the CV - years of experience, formal qualification, named credential.
+// Verbatim from the posting + the job's own minimumYearsExperience field. The other side of
+// the table, stated plainly so the reader can self-assess honestly.
+function rsHiringFilter(adText, job) {
+  const out = [], t = String(adText || "");
+  const yrs = (job && Number(job.minimumYearsExperience)) || (() => {
+    const m = t.match(/\b(?:minimum(?:\s+of)?\s+)?(\d{1,2})\+?\s*(?:years?|yrs?)\b[^.?!\n]{0,24}\bexperience\b/i);
+    return m ? Number(m[1]) : null;
+  })();
+  if (yrs && yrs > 0) out.push({ id: "hf-yrs", label: "experience gate", obs: yrs + "+ years of experience",
+    why: "Below this, most ATS filters and recruiters screen the CV out before a human reads it." });
+  const deg = t.match(/\b(?:bachelor'?s?|master'?s?|ph\.?d|doctorate|degree|diploma)\b[^.?!\n]{0,44}/i);
+  if (deg && /\b(?:degree|diploma|bachelor|master|ph\.?d|doctorate)\b/i.test(deg[0])) out.push({ id: "hf-deg", label: "qualification gate", obs: deg[0].replace(/\s+/g, " ").trim(),
+    why: "A formal-qualification bar - check whether it says 'or equivalent experience' before ruling yourself out." });
+  const cert = t.match(/\b(?:certified|certification|licen[sc]ed|registered|chartered|\bcpa\b|\bcfa\b|\bpmp\b|\bacca\b)\b[^.?!\n]{0,44}/i);
+  if (cert) out.push({ id: "hf-cert", label: "credential gate", obs: cert[0].replace(/\s+/g, " ").trim(),
+    why: "A named credential - often non-negotiable for regulated or professional roles." });
+  return out;
+}
 function buildCriticalRead(result, spans, title) {
   const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
   const adText = rsAdText(firstJob);
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(spans, title, adText) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(spans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -484,7 +504,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   </AdvisoryCard>
                 )}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
+              {(critical.hiringFilter.length > 0 || (cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach))) && <>
+                <h3 style={critH3}>The other side of the table</h3>
+                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip="from posting" />)}
+                {cr && cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
+                {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
+                {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
+              </>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
