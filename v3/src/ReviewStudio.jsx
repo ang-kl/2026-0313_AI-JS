@@ -29,6 +29,7 @@ const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
 const PERSONA = {
   "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
   "Role Analyst": "#1d4ed8", "Candidate Advocate": "#2f7d4f", "Evidence Auditor": "#64748b",
+  "Signal Auditor": "#a13a3a",
 };
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
 const SPAN_STYLE = {
@@ -40,7 +41,7 @@ const SPAN_STYLE = {
 // Withheld span (engine did not classify): a neutral dashed "general note", no band claim.
 const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
 const RIBBON = [
-  { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"]] },
+  { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"], ["critical", "Critical read"]] },
   { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"]] },
   { group: "Evidence", key: null, items: [["observed", "Observed"], ["interpreted", "Interpreted"], ["applied", "Applied"], ["withheld", "Withheld"], ["provenance", "Provenance"]] },
   { group: "Output", key: null, items: [["cover", "Cover letter"], ["resume", "Resume notes"], ["interview", "Interview pack"], ["print", "Print / PDF"]] },
@@ -118,6 +119,111 @@ function rsComments(spans) {
   return out.slice(0, 6);
 }
 
+// ── Critical Read: plain-language / hype audit (deterministic, verbatim-only). §6.3 Forensic
+// Reversal + "word noodles". Scans the FULL ad copy - empty phrasing lives in the intro/benefits/
+// salary lines, not the duty spans. Every finding is a verbatim substring of the posting; when
+// there is no text, we render nothing (withhold over guess). No LLM. ─────────────────────────
+const RS_DOT = String.fromCharCode(0x00b7);
+function rsAdText(job) {
+  let h = String((job && (job.description || job.responsibilitiesText)) || "");
+  return h
+    .replace(/<\s*(?:br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*>/gi, "\n")
+    .replace(/<\s*li[^>]*>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
+    .replace(/[ \t]+/g, " ");
+}
+// Each: a regex that captures the empty phrase + a little trailing context, a category, a plain
+// interpretation, and a "question-mark move" counter built from the verbatim phrase.
+const RS_NOODLES = [
+  { rx: /\b(?:up to|as low as|as much as|as little as|starting (?:at|from)|from only)\b[^.?!\n]{0,44}/gi,
+    cat: "unbounded figure", why: "A ceiling or floor, not the typical - technically true even if almost no one reaches it.",
+    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - up to what, and what is the actual median?" },
+  { rx: /\b(?:competitive|market[-\s]?leading|world[-\s]?class|best[-\s]?in[-\s]?class|industry[-\s]?leading|cutting[-\s]?edge|second to none|unparalleled|unrivalled|unlike anything)\b[^.?!\n]{0,44}/gi,
+    cat: "vague superlative", why: "A shiny word with no benchmark - the reader fills the gap with an assumption.",
+    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - competitive vs what benchmark, measured how?" },
+  { rx: /\b(?:fast[-\s]?paced|dynamic environment|rock ?star|ninja|guru|wizard|wear(?:s|ing)? many hats|work hard,? play hard|hit the ground running|self[-\s]?starter|go[-\s]?getter|(?:like (?:a|one)|we are) (?:a )?(?:big )?family|passionate)\b[^.?!\n]{0,44}/gi,
+    cat: "culture code", why: "Culture shorthand that often stands in for real expectations - hours, scope, or churn.",
+    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - which specific hours, hats or expectations does this hide?" },
+];
+function rsSignalNoise(adText) {
+  const t = String(adText || "");
+  if (t.length < 40) return [];
+  const out = [], seen = new Set();
+  RS_NOODLES.forEach((n, ni) => {
+    const rx = new RegExp(n.rx.source, n.rx.flags);
+    let m;
+    while ((m = rx.exec(t)) !== null && out.length < 8) {
+      const phrase = m[0].replace(/\s+/g, " ").trim();
+      const key = phrase.toLowerCase().slice(0, 40);
+      if (phrase.length < 3 || seen.has(key)) continue;
+      seen.add(key);
+      out.push({ id: "noodle-" + ni + "-" + out.length, cat: n.cat, phrase, why: n.why, counter: n.counter(phrase) });
+    }
+  });
+  return out.slice(0, 6);
+}
+// §6.3 Forensic Reversal: separate evidence from aspiration. Flag sentences that describe intent
+// ("will help drive", "play a key role", "responsible for") or inflated abstractions with no
+// concrete, measurable object.
+const RS_ASPIRATION = /\b(?:will (?:help|support|contribute|assist|drive|enable|facilitate|foster|champion|spearhead|leverage|empower)|to (?:help|support|contribute|drive|enable|foster)|play (?:a|an) (?:key|central|pivotal|critical|vital|integral) role|responsible for|passion(?:ate)? (?:for|about)|committed to)\b/i;
+const RS_INFLATED = /\b(?:synerg(?:y|ies|istic)|paradigm|holistic|thought leadership|value[-\s]?add|best practices|stakeholder alignment|strategic initiatives|transformational|impactful|robust solutions|end[-\s]?to[-\s]?end solutions|move the needle)\b/i;
+function rsForensicReversal(adText) {
+  const t = String(adText || "");
+  if (t.length < 40) return [];
+  const sentences = t.split(/(?:[.?!]\s+)|\n+/).map((s) => s.replace(/\s+/g, " ").trim())
+    .filter((s) => s.length >= 30 && s.length <= 220 && /[a-z]/i.test(s));
+  const out = [], seen = new Set();
+  for (const s of sentences) {
+    if (out.length >= 5) break;
+    const inf = RS_INFLATED.test(s), asp = RS_ASPIRATION.test(s);
+    if (!inf && !asp) continue;
+    const key = s.toLowerCase().slice(0, 50);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ id: "forensic-" + out.length, phrase: s,
+      why: inf ? "Inflated abstraction with no concrete object - aspiration dressed as a duty."
+               : "Describes intent, not a measurable action - the evidence and the aspiration are tangled.",
+      counter: "Strip it to the real verb: what specific output, produced how, measured by what?" });
+  }
+  return out;
+}
+function buildCriticalRead(result) {
+  const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
+  const adText = rsAdText(firstJob);
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText) };
+}
+// One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
+// Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
+function CritCard({ tag, obs, interp, appl }) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#a13a3a", borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>SIGNAL AUDITOR</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+        <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+          <div style={oiaKick}>OBSERVATION</div>
+          <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{obs}{String.fromCharCode(0x201d)}</p>
+          <Chip kind="from posting">from posting</Chip>
+        </div>
+        <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+          <div style={oiaKick}>INTERPRETATION</div>
+          <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{interp}</p>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {RS_DOT} rule (deterministic) {RS_DOT} conf moderate</span>
+        </div>
+        <div style={{ padding: "12px 13px" }}>
+          <div style={oiaKick}>APPLICATION</div>
+          <p style={{ fontSize: "0.8125rem", color: "#16202e", fontWeight: 600, lineHeight: 1.5, margin: "0 0 8px" }}>{appl}</p>
+          <Chip kind="derived">derived</Chip>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
@@ -150,6 +256,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   }, []);
 
   const dissection = useMemo(() => buildDissection(result), [result]);
+  const critical = useMemo(() => buildCriticalRead(result), [result]);
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
@@ -157,6 +264,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const footerConf = dissection.spans.length === 0 ? "withheld" : _classified === dissection.spans.length ? "high (engine-classified)" : _classified === 0 ? "withheld" : _classified + " of " + dissection.spans.length + " duties classified";
   const showClean = markup === "clean";
   const showDissect = markup === "dissect";
+  const showCritical = markup === "critical";
   const showMargin = markup === "suggestions" || markup === "comments";
   const marginComments = markup === "comments" ? dissection.comments.filter((c) => c.type === "comment" || c.type === "withhold claim") : dissection.comments;
 
@@ -273,9 +381,24 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           return isNarrow ? createPortal(drawer, document.body) : drawer;
         })()}
 
-        {/* Left: manuscript (spans) or O-I-A dissection */}
-        <div className="wis-scroll wis-manuscript" style={{ flex: showDissect ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
-          {showDissect ? (
+        {/* Left: manuscript (spans), O-I-A dissection, or Critical Read */}
+        <div className="wis-scroll wis-manuscript" style={{ flex: (showDissect || showCritical) ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
+          {showCritical ? (
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>CRITICAL READ {RS_DOT} PLAIN-LANGUAGE CHECK</div>
+              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>What the ad says {String.fromCharCode(0x2192)} what it leaves empty</h2>
+              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Deterministic and verbatim-only: every flag is a phrase lifted straight from the posting. Empty or inflated wording gets a plain-language counter - the &quot;question-mark move&quot;.</p>
+              {critical.noodles.length > 0 && <>
+                <h3 style={critH3}>Word noodles {RS_DOT} shiny but empty</h3>
+                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter} />)}
+              </>}
+              {critical.forensic.length > 0 && <>
+                <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
+                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter} />)}
+              </>}
+              {!critical.noodles.length && !critical.forensic.length && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing or inflated language flagged." : "No posting text available to run the plain-language check."}</p>}
+            </div>
+          ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
@@ -431,3 +554,4 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 const manuH2 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#16202e", margin: "0 0 9px" };
 const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 18px" };
 const oiaKick = { fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 600, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 };
+const critH3 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#16202e", margin: "18px 0 10px" };
