@@ -262,6 +262,20 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
     </div>
   );
 }
+// Advisory (LLM) card for the batched Critical Read pass - devil's advocate, teleology,
+// pro-worker, real-demand. Clearly tagged "AI estimate - advisory": it challenges, it never
+// authors a number or overrides the engine's read.
+function AdvisoryCard({ persona, children }) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
+        <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
+      </div>
+      <div style={{ padding: "12px 14px" }}>{children}</div>
+    </div>
+  );
+}
 
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
@@ -296,6 +310,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
   const dissection = useMemo(() => buildDissection(result), [result]);
   const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title), [result, dissection.spans, title]);
+  const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
@@ -439,7 +454,37 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
                 {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed" />)}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged." : "No posting text available to run the plain-language check."}</p>}
+              {cr && (
+                (cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length))) ||
+                cr.realDemand || (cr.teleology && (cr.teleology.whyExists || cr.teleology.problem)) ||
+                (cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning))
+              ) && <>
+                <h3 style={critH3}>Deep read {RS_DOT} challenged</h3>
+                {cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0)) && (
+                  <AdvisoryCard persona="SKEPTIC / DEVIL'S ADVOCATE">
+                    {cr.devilsAdvocate.counterCase && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.devilsAdvocate.counterCase}</p>}
+                    {cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0 && <ul style={{ margin: 0, paddingLeft: 18 }}>{cr.devilsAdvocate.challenges.map((c, i) => <li key={i} style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, marginBottom: 4 }}>{c}</li>)}</ul>}
+                  </AdvisoryCard>
+                )}
+                {cr.realDemand && (
+                  <AdvisoryCard persona="FALSIFICATION / REAL DEMAND">
+                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.realDemand}</p>
+                  </AdvisoryCard>
+                )}
+                {cr.teleology && (cr.teleology.whyExists || cr.teleology.problem) && (
+                  <AdvisoryCard persona="VACANCY TELEOLOGY">
+                    {cr.teleology.whyExists && <p style={{ margin: "0 0 6px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}><strong style={{ color: "#16202e" }}>Why this job exists:</strong> {cr.teleology.whyExists}</p>}
+                    {cr.teleology.problem && <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}><strong style={{ color: "#16202e" }}>Problem it solves:</strong> {cr.teleology.problem}</p>}
+                  </AdvisoryCard>
+                )}
+                {cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning) && (
+                  <AdvisoryCard persona="PRO-WORKER TEST">
+                    {cr.proWorker.verdict && <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>verdict {RS_DOT} <strong style={{ textTransform: "uppercase", letterSpacing: ".04em" }}>{cr.proWorker.verdict}</strong></p>}
+                    {cr.proWorker.reasoning && <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.proWorker.reasoning}</p>}
+                  </AdvisoryCard>
+                )}
+              </>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
