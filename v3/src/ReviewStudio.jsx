@@ -1,9 +1,11 @@
 // v3 Step 3 - Review Studio (v3-ui-blueprint.md S4; v3-blueprint.md S5/S7/S10).
 // A reviewable workspace: fixed header + sub-header, ribbon, a docked collapsible
 // icon rail/drawer, a manuscript canvas (the job ad as an editorial page) and a right
-// Visual Intelligence stack (the Role Graph + doctrine visuals). Phase 1: shell +
-// manuscript (Read clean) + Role Graph. Dissection (O-I-A), comment margin and the
-// extra visuals land in later phases. Doctrine tokens only; "AI-assisted; human decides".
+// Visual Intelligence stack. Only the Job graph ships today - the other four visual
+// types named in blueprint S10.3 (AI trace, Workflow, Value stream, Org map) were
+// removed rather than left as placeholder tabs; add them back only once each is
+// actually wired to real deterministic engine output. Doctrine tokens only;
+// "AI-assisted; human decides".
 import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -39,7 +41,7 @@ const SPAN_STYLE = {
 const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"]] },
-  { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"], ["aioe", "AI trace"], ["workflow", "Workflow"], ["value", "Value stream"], ["org", "Org map"]] },
+  { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"]] },
   { group: "Evidence", key: null, items: [["observed", "Observed"], ["interpreted", "Interpreted"], ["applied", "Applied"], ["withheld", "Withheld"], ["provenance", "Provenance"]] },
   { group: "Output", key: null, items: [["cover", "Cover letter"], ["resume", "Resume notes"], ["interview", "Interview pack"], ["print", "Print / PDF"]] },
 ];
@@ -401,12 +403,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             </div>
           </div>
           <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, minHeight: "64vh" }}>
-            {visual === "jobgraph" && (rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
-            {visual !== "jobgraph" && (
-              <p style={{ fontSize: "0.875rem", color: "#64748b", lineHeight: 1.6, maxWidth: 560 }}>
-                <strong style={{ color: "#16202e" }}>{(RIBBON[1].items.find((i) => i[0] === visual) || [])[1]}</strong> renders in the next build phase, wired to the deterministic engine output (per blueprint S10.3). The <strong style={{ color: "#16202e" }}>Job graph</strong> is live now - switch back to it.
-              </p>
-            )}
+            {rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>}
           </div>
           <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", marginTop: 8 }}>every node {String.fromCharCode(0x2190)} source span</div>
         </div>
