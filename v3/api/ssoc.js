@@ -365,7 +365,14 @@ function scoreSsocCandidate(job, node) {
   const reasons = [];
 
   if (titleNorm && nodeTitle && titleNorm === nodeTitle) {
-    score += 120;
+    // 200, not 120: an exact normalised-title match must always outrank a merely-
+    // partial one. The else branch below can stack a title-overlap bucket (<=96)
+    // with ONE substring bonus (<=50 - both directions can never fire together,
+    // since a.includes(b) && b.includes(a) implies a===b, which would have hit
+    // this branch instead) plus the kind bonus (+6) plus context (<=48) = 200
+    // worst case. E.g. "Auxiliary Police Officer" exact-matched 54123 but used to
+    // lose to 33552 "Auxiliary police officer supervisor" (72+50+6=128 > 126).
+    score += 200;
     reasons.push('exact title');
   } else {
     const titleOverlap = tokenOverlapScore(title, node.title);
