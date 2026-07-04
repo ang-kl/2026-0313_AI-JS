@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.217";
+const APP_VERSION = "3.0.218";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3779,6 +3779,54 @@ function getKnowledgeGraph(result, title, posting) {
   return payload;
 }
 // ── End KG1 ─────────────────────────────────────────────────────────────────
+
+// ── SSOCRG: SSOC-grounded SECOND role-graph (deterministic; Singapore-first; NO LLM in this path).
+// The ESCO layered/knowledge graphs (frozen) resolve by a blind ESCO title top-hit and mis-map SG
+// roles (live: "Sales Assistant Manager" -> ISCO "Communication Scientist" + academic-research
+// skills). This additive graph instead resolves the occupation via the deterministic SSOC 2024
+// classifier (api/ssoc classifyTitles - the fixed one that nailed Auxiliary Police Officer 54123),
+// crosswalks SSOC -> ISCO -> ESCO for skills anchored on the RIGHT occupation, reuses the verbatim
+// MCF duties, and renders via the existing KGGraph as an opt-in third graphMode. See
+// v3-ssoc-rolegraph-spec.md. Withhold over guess; every node keeps its source.
+async function fetchSsocOccupation(title) {
+  try {
+    const res = await fetch("/api/ssoc", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "classifyTitles", jobs: [{ id: "role", title: String(title || "") }] }) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (Array.isArray(data.classifications) && data.classifications[0]) || null;
+  } catch (_) { return null; }
+}
+async function buildSsocGraph(result, title, posting) {
+  const cls = await fetchSsocOccupation(title);
+  if (!cls || cls.status !== "classified" || !cls.node) return { fallback: true, reason: (cls && cls.reason) || "ssoc_withheld" };
+  const node = cls.node, hier = cls.hierarchy || {};
+  // SSOC -> ISCO -> ESCO, anchored on the ISCO occupation NAME (clean, ESCO-aligned), not the noisy
+  // job title. Accept ONLY a real ESCO resolution (occupationUri present); if ESCO missed
+  // (getEscoSkills -> null, which would otherwise let the CALLER fall back to the LLM getSkills),
+  // withhold - no LLM-authored skills enter this "deterministic" graph.
+  const iscoMap = SSOC2024_ISCO[node.code] || [];
+  const pick = iscoMap.find((m) => !m.partial) || iscoMap[0] || null;
+  const iscoTitle = pick ? pick.title : null, iscoCode = pick ? pick.isco : null;
+  let escoResult = null;
+  if (iscoTitle) { try { escoResult = await getEscoSkills(iscoTitle); } catch (_) { escoResult = null; } }
+  const escoSkills = (escoResult && escoResult.occupationUri && Array.isArray(escoResult.skills)) ? escoResult.skills.slice(0, 18) : [];
+  let band = null;
+  try { const exp = iscoCode ? exposureForIsco(iscoCode) : null; band = exp ? exp.band : null; } catch (_) { band = null; }
+  const { responsibilities: duties } = gatherStatements(result || {}, posting);
+  const roleId = "ssocrole:" + node.code;
+  const nodes = [{ id: roleId, type: "role", cluster: "department", label: toTitleCase(node.title || title || "this role"), source: "ssoc", confidence: cls.confidence || "medium" }];
+  const edges = [];
+  [hier.sub_major_group, hier.minor_group].forEach((h) => {
+    if (h && h.title) { const id = "ssocfam:" + (h.code || _rgSlug(h.title)); if (!nodes.find((n) => n.id === id)) { nodes.push({ id, type: "occupation", cluster: "department", label: toTitleCase(h.title), source: "ssoc", confidence: "high" }); edges.push({ source: roleId, target: id, kind: "role-family" }); } }
+  });
+  escoSkills.forEach((s, i) => { const id = "ssocskill:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + i); nodes.push({ id, type: "skill", cluster: "individual", label: String(s.skill || ""), source: "esco", confidence: "medium", ref: { escoUri: s.escoUri || "" } }); edges.push({ source: roleId, target: id, kind: "role-skill" }); });
+  duties.slice(0, 14).forEach((d) => { const id = "ssocduty:" + d.id; nodes.push({ id, type: "duty", cluster: "individual", label: d.text, source: "mcf", confidence: "high", level: d.level || "HUMAN" }); edges.push({ source: roleId, target: id, kind: "role-duty" }); });
+  const kg = { version: "ssoc1", nodes, edges, generatedAt: new Date().toISOString(),
+    stats: { roles: 1, occupations: nodes.filter((n) => n.type === "occupation").length, skills: escoSkills.length, responsibilities: Math.min(duties.length, 14), edges: edges.length } };
+  return { fallback: false, code: node.code, title: toTitleCase(node.title || ""), definition: node.definition || "", confidence: cls.confidence || "medium",
+    iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, kg };
+}
 
 // --- CV ingress removed (PL1) ---
 
@@ -10640,7 +10688,54 @@ function RoleGraphPanel({ result, title, posting }) {
         <button type="button" aria-pressed={graphMode === "knowledge"} onClick={handleSetKnowledge} style={graphToggleBtn(graphMode === "knowledge")}>
           Knowledge graph
         </button>
+        {/* SSOCRG: opt-in second graph, grounded in SSOC 2024 (SG-first) instead of a blind ESCO title match */}
+        <button type="button" aria-pressed={graphMode === "ssoc"} onClick={() => setGraphMode("ssoc")} style={graphToggleBtn(graphMode === "ssoc")}>
+          {String.fromCodePoint(0x1f1f8, 0x1f1ec)} SSOC graph
+        </button>
       </div>
+
+      {/* SSOCRG: SSOC-grounded second graph (opt-in). Populated in the background by doAnalyse. */}
+      {graphMode === "ssoc" && (() => {
+        const sg = result && result.ssocGraph;
+        if (!sg) {
+          return (
+            <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "24px 20px", textAlign: "center" }}>
+              <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Resolving this role in SSOC 2024 (SingStat)…</p>
+            </div>
+          );
+        }
+        if (sg.fallback) {
+          return (
+            <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "16px 18px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>No confident SSOC 2024 match for this role</p>
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The SSOC classifier could not resolve {String.fromCharCode(0x201c)}{toTitleCase(title || "this role")}{String.fromCharCode(0x201d)} to an occupation above the governance threshold, so this graph is withheld rather than guessed. The ESCO graphs above still apply.</p>
+            </div>
+          );
+        }
+        const kg = sg.kg;
+        const thin = !kg || !kg.nodes || kg.nodes.length <= 1;
+        return (
+          <div>
+            <div style={{ background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", fontWeight: 800, color: "#2f7d4f", textTransform: "uppercase", letterSpacing: "0.06em" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} SSOC 2024 · SingStat</p>
+              <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: C.text, lineHeight: 1.35 }}>{sg.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: C.muted }}>SSOC {sg.code}</span></h3>
+              <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
+                Singapore-first: the role is resolved in SSOC 2024 (confidence: {sg.confidence}){sg.iscoTitle ? <>, then crosswalked to ISCO-08 <strong>{sg.iscoTitle}</strong>{sg.partial ? " (partial mapping)" : ""} for ESCO skills</> : " (no ISCO crosswalk available)"}. This avoids the blind ESCO title match that can mis-resolve SG roles.
+              </p>
+              {sg.skillsWithheld && <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: "#78350f" }}>ESCO skills withheld — the crosswalked occupation did not resolve to a confident ESCO skill set.</p>}
+            </div>
+            {thin ? (
+              <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "16px 18px" }}>
+                <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The SSOC occupation resolved, but there are not yet enough crosswalked skills or duties to draw the graph. It fills in as the responsibilities load.</p>
+              </div>
+            ) : <KGGraph kg={kg} />}
+            <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: C.muted, lineHeight: 1.6 }}>
+              <span style={{ fontWeight: 700 }}>Prov:</span> occupation + family <span style={{ fontWeight: 700 }}>from SSOC 2024</span>; skills <span style={{ fontWeight: 700 }}>from ESCO</span> (crosswalked via ISCO-08); duties <span style={{ fontWeight: 700 }}>from MCF</span> (verbatim). No LLM in this graph. AI-assisted · human decides.
+            </p>
+          </div>
+        );
+      })()}
 
       {/* KG1: knowledge graph mode - synchronous, no loading state needed */}
       {graphMode === "knowledge" && (() => {
@@ -15017,6 +15112,17 @@ export default function App({ initialSearchMode } = {}) {
               })
               .catch(e => { logStep("criticalread", "error", _msSince(_tC), e && e.message); });
           }
+          // Background: SSOCRG - the SSOC-grounded SECOND role-graph (deterministic, SG-first).
+          // .catch -> the SSOC toggle simply stays hidden; never breaks the panel.
+          { let _tS; try { _tS = performance.now(); } catch (_) { _tS = 0; }
+          buildSsocGraph({ responsibilitiesData: rd, source: newResult.source }, occ.title, posting)
+            .then(sg => {
+              if (analysisCancelRef.current !== cancelId) return;
+              setResult(prev => prev ? { ...prev, ssocGraph: sg } : prev);
+              patchComparisonResult(comparisonKey, { ssocGraph: sg });
+              logStep("ssocgraph", sg && sg.fallback ? "withheld" : "ok", _msSince(_tS), sg && sg.fallback ? sg.reason : `${sg.code} ${sg.kg ? sg.kg.stats.skills : 0} skills`);
+            })
+            .catch(e => { logStep("ssocgraph", "error", _msSince(_tS), e && e.message); }); }
         })
         .catch(e => { track("responsibilities_error", { reason: (e.message||"").slice(0,60) }); logStep("responsibilities", "error", _msSince(_tR), e && e.message); }); }
 
