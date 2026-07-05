@@ -42,8 +42,10 @@ const KG_TYPE_STYLE = {
   // CO2: agent candidate node type (additive)
   agent:            { color: "#0369a1", bg: "#e0f2fe", border: "#7dd3fc", label: "Agent candidate" },
 };
-// KG source -> PROV key mapping
-const KG_SRC_PROV = { mcf: "mcf", esco: "computed", computed: "computed", derived: "inferred" };
+// KG source -> PROV key mapping. "ssoc" = a deterministic SSOC 2024 classification (the
+// SSOC-grounded second graph) -> "computed", not "unverified"; the section header/footer name
+// SSOC 2024 explicitly as the source.
+const KG_SRC_PROV = { mcf: "mcf", esco: "computed", computed: "computed", derived: "inferred", ssoc: "computed" };
 // KG cluster lane colours (blue/orange/cyan -- no red/green)
 const KG_CLUSTER_COLOR = {
   individual:   { color: "#0e7490", bg: "#ecfeff", border: "#67e8f9" },
