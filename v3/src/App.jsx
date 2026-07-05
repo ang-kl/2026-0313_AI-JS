@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.223";
+const APP_VERSION = "3.0.224";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3832,8 +3832,38 @@ async function buildSsocGraph(result, title, posting) {
   const kg = { version: "ssoc1", nodes, edges, clusters, generatedAt: new Date().toISOString(),
     stats: { nodes: nodes.length, edges: edges.length, clustersPresent: clusters.filter((c) => c.present).length, skills: escoSkills.length },
     withheld: [] };
+  // SSOCRG-3: ALSO emit a renderGraph-shaped payload so the SSOC lens draws the SAME wired
+  // force-graph (role hub · occupation · ESCO skills · MCF duties, curved edges + tap-to-trace)
+  // as the ESCO "Layered" view - not a card listing. Deterministic, no LLM. Occupation column is
+  // the SSOC->ISCO crosswalk (primary) plus the SSOC family groups; skills are the ISCO
+  // occupation's own ESCO skills; skill<->duty links are token-overlap (computed association, not
+  // invented meaning). Same 4-typed-column schema buildGraphStructure emits (renderGraph consumes).
+  const gRoleId = "role:" + _rgSlug(node.title || title || "role");
+  const gNodes = [{ id: gRoleId, type: "mcfRole", label: toTitleCase(node.title || title || "this role"), source: "ssoc" }];
+  const gEdges = [];
+  const gOcc = [];
+  if (iscoTitle) gOcc.push({ id: "isco:" + (iscoCode || _rgSlug(iscoTitle)), label: iscoTitle, code: iscoCode || "", primary: true });
+  [hier.sub_major_group, hier.minor_group].forEach((h) => { if (h && h.title) gOcc.push({ id: "ssococc:" + (h.code || _rgSlug(h.title)), label: toTitleCase(h.title), code: h.code || "", primary: false }); });
+  gOcc.forEach((o) => { gNodes.push({ id: o.id, type: "iscoOccupation", label: o.label, code: o.code, score: null }); gEdges.push({ source: gRoleId, target: o.id, weight: 0.9, kind: "role-occupation" }); });
+  const gPrimaryOccId = (gOcc.find((o) => o.primary) || gOcc[0] || {}).id;
+  const gSkills = escoSkills.map((s, i) => ({ id: "esco:" + (s.escoUri ? _rgSlug(String(s.escoUri).split("/").pop()) : "n" + i), label: String(s.skill || ""), escoUri: s.escoUri || "", toks: _phraseToks(s.skill) }));
+  gSkills.forEach((s) => { gNodes.push({ id: s.id, type: "escoSkill", label: s.label, escoUri: s.escoUri }); if (gPrimaryOccId) gEdges.push({ source: gPrimaryOccId, target: s.id, weight: 1, kind: "occupation-skill" }); });
+  const gDuties = duties.slice(0, 14).map((d) => ({ id: "resp:" + d.id, label: d.text, level: d.level || "HUMAN", toks: _phraseToks(d.text) }));
+  gDuties.forEach((d) => { gNodes.push({ id: d.id, type: "responsibility", label: d.label, level: d.level }); gEdges.push({ source: gRoleId, target: d.id, weight: d.level === "HIGH" ? 1 : d.level === "MEDIUM" ? 0.8 : 0.65, kind: "role-responsibility" }); });
+  // skill<->duty: link each skill to up to 2 duties that share a meaningful token, so the
+  // resonance web reads at a glance (the ESCO graph gets this from mapStatementsToEsco; here it
+  // is a lightweight deterministic token overlap - honest "computed", never LLM-authored).
+  gSkills.forEach((s) => {
+    if (!s.toks.length) return;
+    const sset = new Set(s.toks);
+    gDuties.map((d) => ({ id: d.id, ov: d.toks.reduce((n2, t) => n2 + (sset.has(t) ? 1 : 0), 0) }))
+      .filter((x) => x.ov > 0).sort((a, b) => b.ov - a.ov).slice(0, 2)
+      .forEach((x) => gEdges.push({ source: s.id, target: x.id, weight: Math.min(1, 0.5 + x.ov * 0.25), kind: "skill-responsibility" }));
+  });
+  const graph = { nodes: gNodes, edges: gEdges, columns: ["responsibility", "mcfRole", "iscoOccupation", "escoSkill"], version: "ssoc1", generatedAt: new Date().toISOString(),
+    stats: { roles: 1, occupations: gOcc.length, skills: gSkills.length, responsibilities: gDuties.length, edges: gEdges.length } };
   return { fallback: false, code: node.code, title: toTitleCase(node.title || ""), definition: node.definition || "", confidence: cls.confidence || "medium",
-    iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, bandIndex: (bandIndex == null ? null : bandIndex), kg };
+    iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, bandIndex: (bandIndex == null ? null : bandIndex), kg, graph };
 }
 
 // --- CV ingress removed (PL1) ---
@@ -10515,7 +10545,7 @@ function RoleGraphPanel({ result, title, posting }) {
   const lvlColor = lv => (LEVELS[lv] || LEVELS.HUMAN).color;
 
   // --- layered SVG graph layout ---
-  const renderGraph = (graph) => {
+  const renderGraph = (graph, opts) => {
     // centre-rooted: R&R (from MCF) on the LEFT, the role title in the MIDDLE, the ISCO/ESCO analysis on the RIGHT
     const cols = [
       { type: "responsibility", x: 16, w: 336 },
@@ -10571,7 +10601,7 @@ function RoleGraphPanel({ result, title, posting }) {
     if (hoveredId && pos[hoveredId]) { hi = new Set([hoveredId]); drawn.forEach(e => { if (e.source === hoveredId) hi.add(e.target); if (e.target === hoveredId) hi.add(e.source); }); }
     const edgeVisible = e => !hi || (hi.has(e.source) && hi.has(e.target));
     const nodeDim = id => hi && !hi.has(id);
-    const HEADS = ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
+    const HEADS = (opts && Array.isArray(opts.heads) && opts.heads.length === 4) ? opts.heads : ["Roles & responsibilities (from MCF)", "🇸🇬 MyCareersFuture role", "ISCO-08 candidates ← our analysis →", "ESCO skills"];
     return (
       <div ref={graphScrollRef} style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 10, background: "#fbfdff" }}>
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" style={{ display: "block", width: "100%", height: "auto", minWidth: 880 }} role="img" aria-label="Role-skill graph">
@@ -10721,8 +10751,8 @@ function RoleGraphPanel({ result, title, posting }) {
             </div>
           );
         }
-        const kg = sg.kg;
-        const thin = !kg || !kg.nodes || kg.nodes.length <= 1;
+        const gr = sg.graph;
+        const thin = !gr || !gr.nodes || gr.nodes.length <= 1 || (gr.stats && gr.stats.skills === 0 && gr.stats.responsibilities === 0);
         return (
           <div>
             <div style={{ background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 10, padding: "12px 16px", marginBottom: 12 }}>
@@ -10745,7 +10775,15 @@ function RoleGraphPanel({ result, title, posting }) {
               <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "16px 18px" }}>
                 <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The SSOC occupation resolved, but there are not yet enough crosswalked skills or duties to draw the graph. It fills in as the responsibilities load.</p>
               </div>
-            ) : <KGGraph kg={kg} />}
+            ) : (
+              <div>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
+                  <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>{gr.stats.occupations} occupation{gr.stats.occupations === 1 ? "" : "s"} · {gr.stats.skills} skills · {gr.stats.responsibilities} responsibilities · {gr.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace"}</span>
+                </div>
+                {/* SSOCRG-3: same wired force-graph as ESCO Layered, but SG-first headers make the taxonomy honest. */}
+                {renderGraph(gr, { heads: ["Roles & responsibilities (from MCF)", String.fromCodePoint(0x1f1f8, 0x1f1ec) + " Role · SSOC 2024", "SSOC → ISCO-08 occupation", "ESCO skills (via crosswalk)"] })}
+              </div>
+            )}
             {/* Compare note: help the reader understand why there are two graphs and when each is
                 more trustworthy. */}
             <div style={{ margin: "12px 0 0", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 13px" }}>
