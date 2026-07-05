@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.222";
+const APP_VERSION = "3.0.223";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3812,8 +3812,8 @@ async function buildSsocGraph(result, title, posting) {
   let escoResult = null;
   if (iscoTitle) { try { escoResult = await getEscoSkills(iscoTitle); } catch (_) { escoResult = null; } }
   const escoSkills = (escoResult && escoResult.occupationUri && Array.isArray(escoResult.skills)) ? escoResult.skills.slice(0, 18) : [];
-  let band = null;
-  try { const exp = iscoCode ? exposureForIsco(iscoCode) : null; band = exp ? exp.band : null; } catch (_) { band = null; }
+  let band = null, bandIndex = null;
+  try { const exp = iscoCode ? exposureForIsco(iscoCode) : null; if (exp) { band = exp.band; bandIndex = exp.index; } } catch (_) { band = null; bandIndex = null; }
   const { responsibilities: duties } = gatherStatements(result || {}, posting);
   const roleId = "ssocrole:" + node.code;
   const nodes = [{ id: roleId, type: "role", cluster: "department", label: toTitleCase(node.title || title || "this role"), source: "ssoc", confidence: cls.confidence || "medium" }];
@@ -3833,7 +3833,7 @@ async function buildSsocGraph(result, title, posting) {
     stats: { nodes: nodes.length, edges: edges.length, clustersPresent: clusters.filter((c) => c.present).length, skills: escoSkills.length },
     withheld: [] };
   return { fallback: false, code: node.code, title: toTitleCase(node.title || ""), definition: node.definition || "", confidence: cls.confidence || "medium",
-    iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, kg };
+    iscoTitle: iscoTitle || "", iscoCode: iscoCode || "", partial: pick ? !!pick.partial : false, skillsWithheld: !!(iscoTitle && !escoSkills.length), band: band || null, bandIndex: (bandIndex == null ? null : bandIndex), kg };
 }
 
 // --- CV ingress removed (PL1) ---
@@ -10729,8 +10729,16 @@ function RoleGraphPanel({ result, title, posting }) {
               <p style={{ margin: "0 0 3px", fontSize: "0.6875rem", fontWeight: 800, color: "#2f7d4f", textTransform: "uppercase", letterSpacing: "0.06em" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} SSOC 2024 · SingStat</p>
               <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: C.text, lineHeight: 1.35 }}>{sg.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: C.muted }}>SSOC {sg.code}</span></h3>
               <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
-                Singapore-first: the role is resolved in SSOC 2024 (confidence: {sg.confidence}){sg.iscoTitle ? <>, then crosswalked to ISCO-08 <strong>{sg.iscoTitle}</strong>{sg.partial ? " (partial mapping)" : ""} for ESCO skills</> : " (no ISCO crosswalk available)"}. This avoids the blind ESCO title match that can mis-resolve SG roles.
+                Singapore-first: the role is resolved in SSOC 2024 (confidence: {sg.confidence}){sg.iscoTitle ? <>, then crosswalked to ISCO-08 <strong>{sg.iscoTitle}</strong>{sg.partial ? " (partial mapping - the SSOC code maps to more than one ISCO occupation; showing the primary)" : ""} for ESCO skills</> : " (no ISCO crosswalk available - skills withheld)"}. This avoids the blind ESCO title match that can mis-resolve SG roles.
               </p>
+              {/* AIOE band for the SSOC-mapped ISCO occupation (deterministic engine), or withheld. */}
+              <div style={{ marginTop: 7, display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b6878" }}>AI-exposure (AIOE):</span>
+                {sg.band
+                  ? <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 5, padding: "2px 7px" }}>{sg.band}{sg.bandIndex != null ? " · " + sg.bandIndex + "/100" : ""}</span>
+                  : <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#9a6113", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 5, padding: "2px 7px" }}>withheld</span>}
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#94a0b0" }}>engine · SSOC{String.fromCharCode(0x2192)}ISCO{String.fromCharCode(0x2192)}SOC{String.fromCharCode(0x2192)}AIOE</span>
+              </div>
               {sg.skillsWithheld && <p style={{ margin: "5px 0 0", fontSize: "0.75rem", color: "#78350f" }}>ESCO skills withheld — the crosswalked occupation did not resolve to a confident ESCO skill set.</p>}
             </div>
             {thin ? (
@@ -10738,8 +10746,15 @@ function RoleGraphPanel({ result, title, posting }) {
                 <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>The SSOC occupation resolved, but there are not yet enough crosswalked skills or duties to draw the graph. It fills in as the responsibilities load.</p>
               </div>
             ) : <KGGraph kg={kg} />}
+            {/* Compare note: help the reader understand why there are two graphs and when each is
+                more trustworthy. */}
+            <div style={{ margin: "12px 0 0", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 13px" }}>
+              <p style={{ margin: 0, fontSize: "0.6875rem", color: "#475569", lineHeight: 1.6 }}>
+                <span style={{ fontWeight: 700, color: "#334155" }}>Two graphs, two lenses.</span> The <strong>Layered</strong> / <strong>Knowledge</strong> graphs resolve via ESCO (EU taxonomy) - richer skill-transfer detail when they resolve cleanly, but they can mis-map Singapore-specific roles (e.g. a sales manager read as a research scientist). This <strong>SSOC graph</strong> resolves the occupation Singapore-first, so it is the more reliable read for local roles. Switch between them to compare.
+              </p>
+            </div>
             <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: C.muted, lineHeight: 1.6 }}>
-              <span style={{ fontWeight: 700 }}>Prov:</span> occupation + family <span style={{ fontWeight: 700 }}>from SSOC 2024</span>; skills <span style={{ fontWeight: 700 }}>from ESCO</span> (crosswalked via ISCO-08); duties <span style={{ fontWeight: 700 }}>from MCF</span> (verbatim). No LLM in this graph. AI-assisted · human decides.
+              <span style={{ fontWeight: 700 }}>Prov:</span> occupation + family <span style={{ fontWeight: 700 }}>from SSOC 2024</span>; skills <span style={{ fontWeight: 700 }}>from ESCO</span> (crosswalked via ISCO-08); duties <span style={{ fontWeight: 700 }}>from MCF</span> (verbatim); AI-exposure from the deterministic AIOE engine. No LLM in this graph. AI-assisted · human decides.
             </p>
           </div>
         );

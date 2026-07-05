@@ -90,5 +90,5 @@ LLM-authored skill list into the "deterministic" SSOC graph. Each PR: bump `v3.0
 
 ---
 
-**STATUS: DRAFT** - clear SSOCRG-Q1 + SSOCRG-Q2, then READY_FOR_BUILD for SSOCRG-1..4.
-**Next agent:** `result-engine-builder`, once the Human Lead sets the two decisions.
+**STATUS (reconciled 2026-07-06): SHIPPED.** SSOCRG-1 landed as v3.0.218 (crash hotfix v3.0.219, node-provenance polish v3.0.221) and SSOCRG-2 as v3.0.223 (compare-note vs the ESCO graphs, AIOE band surfaced, sharper partial-crosswalk + no-ISCO disclosure). Live-verified: "Data Engineer" resolves to SSOC 25213 -> ISCO "Database designers and administrators" -> real data skills. The SSOC-grounded second role-graph arc is complete.
+**Next agent:** none pending for this arc.
