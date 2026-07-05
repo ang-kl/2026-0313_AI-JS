@@ -1457,7 +1457,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.219";
+const APP_VERSION = "3.0.220";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -16564,6 +16564,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               employer={result?.employer || ""}
               source={reviewSource}
               rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
+              posting={analysingPosting}
               band={null}
               onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               version={APP_VERSION}

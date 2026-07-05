@@ -245,10 +245,23 @@ function rsHiringFilter(adText, job) {
     why: "A named credential - often non-negotiable for regulated or professional roles." });
   return out;
 }
-function buildCriticalRead(result, spans, title) {
+function buildCriticalRead(result, spans, title, posting) {
   const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
-  const adText = rsAdText(firstJob);
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(spans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob) };
+  let adText = rsAdText(firstJob);
+  // Fallback to the analysed posting's own verbatim text when the aggregate result.jobs is thin -
+  // single-posting analyses often have an empty result.jobs even though the clicked ad has full
+  // text, which used to leave Critical Read showing "no posting text". Same posture as the Job
+  // Graph posting-text fallback (PR #282).
+  if ((!adText || adText.trim().length < 40) && posting && posting.text) adText = rsAdText({ description: posting.text });
+  // Falsification needs duty-like spans; when the engine's dissection is thin (0 job-anatomy
+  // duties), derive lightweight verbatim spans from the ad copy so the lens still runs.
+  let effSpans = spans;
+  if ((!effSpans || effSpans.length < 3) && adText) {
+    effSpans = adText.split(/(?:[.?!]\s+)|\n+/).map((s) => s.replace(/\s+/g, " ").trim())
+      .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
+      .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
+  }
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -302,7 +315,7 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting }) {
   const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
@@ -329,7 +342,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   }, []);
 
   const dissection = useMemo(() => buildDissection(result), [result]);
-  const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title), [result, dissection.spans, title]);
+  const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting), [result, dissection.spans, title, posting]);
   const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
