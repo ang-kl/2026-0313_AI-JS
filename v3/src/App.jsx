@@ -1447,6 +1447,7 @@
 // graph payload is built lazily when the tab is open. buildKnowledgeGraph consumed read-only; all
 // frozen symbols + api/mcf.js untouched. G1 (v3.0.118 -> v3.0.119).
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
@@ -1457,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.221";
+const APP_VERSION = "3.0.222";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12509,7 +12510,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       )}
 
-      {okf && okfDoc && (
+      {okf && okfDoc && createPortal(
         <div role="dialog" aria-modal="true" aria-label="OKF document" onClick={() => setOkf(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: 560, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
             <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #e2e0d8", background: "#fff" }}>
@@ -12531,7 +12532,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {DOT} just files {DOT} just YAML frontmatter</span>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {fullAd && (() => {
@@ -12540,7 +12542,11 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         h = h.replace(/<\s*(br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*>/gi, "\n").replace(/<\s*li[^>]*>/gi, "\n" + String.fromCharCode(0x2022) + " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#39;/g, "'").replace(/&quot;/g, '"');
         const lines = h.split(/\n+/).map((s) => s.replace(/\s+/g, " ").trim()).filter((s) => s.length > 0);
         const skills = Array.isArray(j.skills) ? j.skills.filter(Boolean) : [];
-        return (
+        // Portal to document.body: the modal is a descendant of <main className="main-content">
+        // (position:relative; z-index:1), which traps its z-index so the app header painted over
+        // the modal's title. Portaling escapes that stacking context so zIndex:1300 truly sits on
+        // top (same fix as the ReviewStudio drawer).
+        return createPortal(
           <div role="dialog" aria-modal="true" aria-label="Full job posting" onClick={() => setFullAd(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.36)", display: "flex", alignItems: "center", justifyContent: "center", padding: 28 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: 660, maxWidth: "100%", maxHeight: "88vh", overflow: "hidden", background: "#fff", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
               <div style={{ flex: "none", padding: "16px 20px", borderBottom: "1px solid #eceae2", display: "flex", alignItems: "flex-start", gap: 12 }}>
@@ -12614,7 +12620,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 <button onClick={() => { setOkf({ kind: "posting", id: fullAd.id }); setFullAd(null); }} title="View OKF concept document" style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "6px 9px", cursor: "pointer", minHeight: 44 }}>{"{ } OKF"}</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         );
       })()}
 
