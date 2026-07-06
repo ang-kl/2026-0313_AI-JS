@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.224";
+const APP_VERSION = "3.0.225";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -10632,9 +10632,16 @@ function RoleGraphPanel({ result, title, posting }) {
           {byCol.map(c => c.nodes.map(n => {
             const p = pos[n.id]; const st = RG_NODE_STYLE[n.type]; const dim = nodeDim(n.id);
             const lvl = n.level && LEVELS[n.level] ? n.level : null; const active = hoveredId === n.id;
+            // A11y: keyboard users must be able to run the "tap a node to trace" interaction, and the
+            // hover-only <title> detail must also live in the aria-label (screen readers + keyboard).
+            const nodeDetail = `${n.label}${n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}${n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}${lvl ? ` · AI exposure ${LEVELS[lvl].label}` : ""}`;
+            const toggleNode = () => setHoveredId(h => h === n.id ? null : n.id);
             return (
-              <g key={n.id} onClick={() => setHoveredId(h => h === n.id ? null : n.id)} style={{ cursor: "pointer", opacity: dim ? 0.18 : 1 }}>
-                <title>{n.label}{n.type === "iscoOccupation" && n.code ? ` · ISCO ${n.code}` : ""}{n.type === "iscoOccupation" && n.score != null ? ` · score ${n.score}/100` : ""}{lvl ? ` · AI exposure ${LEVELS[lvl].label}` : ""}</title>
+              <g key={n.id} onClick={toggleNode} tabIndex={0} role="button"
+                aria-label={`${nodeDetail}. ${active ? "Tap to clear trace." : "Tap to trace connections."}`} aria-pressed={active}
+                onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleNode(); } }}
+                style={{ cursor: "pointer", opacity: dim ? 0.18 : 1 }}>
+                <title>{nodeDetail}</title>
                 <foreignObject x={p.x} y={p.yTop} width={p.w} height={p.h}>
                   <div xmlns="http://www.w3.org/1999/xhtml" style={{ boxSizing: "border-box", width: "100%", height: "100%", display: "flex", alignItems: "center", gap: 6, background: st.bg, border: `${active ? 2 : 1}px solid ${active ? st.color : st.border}`, borderLeft: `${lvl ? 4 : (active ? 2 : 1)}px solid ${lvl ? lvlColor(lvl) : (active ? st.color : st.border)}`, borderRadius: 6, padding: `${PAD_V - 1}px ${PAD_X}px`, fontFamily: "inherit", overflow: "hidden" }}>
                     {n.type === "responsibility" && _respNum(n.id) != null && (
@@ -12315,7 +12322,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   };
 
   const okfRow = (indent, label, color, onClick, bold) => (
-    <button key={label} type="button" onClick={onClick} disabled={!onClick} style={{ display: "block", width: "100%", textAlign: "left", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", lineHeight: 1.7, whiteSpace: "pre", color, background: "none", border: "none", padding: 0, cursor: onClick ? "pointer" : "default", fontWeight: bold ? 700 : 400 }}>{indent}{label}</button>
+    <button key={label} type="button" onClick={onClick} disabled={!onClick} style={{ display: "flex", alignItems: "center", width: "100%", minHeight: onClick ? 44 : undefined, textAlign: "left", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", lineHeight: 1.7, whiteSpace: "pre", color, background: "none", border: "none", padding: onClick ? "6px 0" : 0, cursor: onClick ? "pointer" : "default", fontWeight: bold ? 700 : 400 }}>{indent}{label}</button>
   );
   const TR = String.fromCharCode(0x251c, 0x2500, 0x2500) + " ";
   const TL = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";

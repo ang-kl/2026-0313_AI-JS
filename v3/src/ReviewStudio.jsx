@@ -22,31 +22,18 @@ const PROV = {
   computed:       { bg: "#eef7f0", ink: "#2f7d4f", border: "#cce6d4" },
   derived:        { bg: "#f1eefc", ink: "#5b4bbd", border: "#ddd5f6" },
   "AI estimate":  { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
-  unverified:     { bg: "#fbeaea", ink: "#a13a3a", border: "#f1cdcd" },
+  // A11y (governance audit): unverified was brick-red (#a13a3a) - the one warm "danger" hue
+  // outside the blue/orange ramp, and a red-vs-green tension against the computed chip. Moved
+  // to the amber family (shared with "AI estimate"); the label text carries the meaning.
+  unverified:     { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
 };
 // O-I-A lens colours (S7) and reviewer persona colours (S5.5).
 const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
 const PERSONA = {
   "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
   "Role Analyst": "#1d4ed8", "Candidate Advocate": "#2f7d4f", "Evidence Auditor": "#64748b",
-  "Signal Auditor": "#a13a3a",
+  "Signal Auditor": "#9a6113",
 };
-// Persona output contract (v3-persona-output-contract-spec.md). Every persona-authored
-// output must disclose method + allowed + forbidden. Method is authorship of the
-// REASONING: "deterministic" = rule/engine authored it; "advisory" = an LLM authored the
-// wording (but never a number, band or verdict). Allowed = what the reader may do with
-// the finding; Forbidden = what they must not. Written as information for choice.
-const PERSONA_CONTRACT = {
-  "AI Exposure Reviewer":       { method: "deterministic", allowed: "Cite when framing which parts of this role are AI-heavy and where the human edge sits.",   forbidden: "Do not treat as a hiring or exposure verdict on any individual." },
-  "Process Redesign Reviewer":  { method: "deterministic", allowed: "Cite the vague-ownership signal when asking what workflow this role actually owns.",         forbidden: "Do not use the suggested rewrite as the posting's real requirement." },
-  "Role Analyst":               { method: "deterministic", allowed: "Cite when asking whether this role is one job or two.",                                       forbidden: "Do not treat the duty-bundling count as a scope estimate." },
-  "Candidate Advocate":         { method: "deterministic", allowed: "Cite when preparing proof of human-led work for interview.",                                  forbidden: "Do not treat as a hiring recommendation for you or against anyone." },
-  "Evidence Auditor":           { method: "deterministic", allowed: "Cite when questioning a weak claim in the posting; ask for a measurable threshold.",         forbidden: "Do not treat the flagged phrase as evidence of unfitness." },
-  "Signal Auditor":             { method: "deterministic", allowed: "Cite the flagged verbatim phrase when asking the recruiter what the posting actually means.", forbidden: "Do not treat the finding as an accusation; hype language is common and not always intentional." },
-};
-// Default fallback for advisory-pass personas (batched LLM devil's-advocate / teleology
-// / pro-worker / real-demand under result.criticalRead) that all share the same shape.
-const PERSONA_ADVISORY_DEFAULTS = { method: "advisory", allowed: "Cite to widen the interpretation; the deterministic lenses above are the audit-safe read.", forbidden: "Do not treat as evidence of anything the deterministic lenses did not already flag." };
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
 const SPAN_STYLE = {
   augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
@@ -114,31 +101,24 @@ function rsKeyword(text) {
   const words = String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w) && !RS_VERB.test(w));
   return words[0] || null;
 }
-// Attach the persona output contract (method / allowed / forbidden) to every rsComments
-// entry. Central so the seven-field disclosure stays in one place if PERSONA_CONTRACT
-// gains a persona later. See v3-persona-output-contract-spec.md §2.
-function rsContract(persona) {
-  return PERSONA_CONTRACT[persona] || PERSONA_ADVISORY_DEFAULTS;
-}
 function rsComments(spans) {
   const out = [], used = new Set();
-  const push = (obj) => out.push({ ...rsContract(obj.persona), ...obj });
   const ai = spans.find((s) => (s.band === "augmented" || s.band === "auto") && s.lens === "AI") || spans.find((s) => s.band === "augmented" || s.band === "auto");
-  if (ai) { used.add(ai.id); push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
+  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
   const vague = spans.find((s) => !used.has(s.id) && /\b(ad-?hoc|various|support various|other duties|as (assigned|required|needed)|miscellaneous)\b/i.test(s.text));
   if (vague) {
     used.add(vague.id);
     // Derive a salient term from THIS duty so the rewrite is genuinely about it (honest "derived").
     const key = rsKeyword(vague.text);
     const suggested = key ? "own a named " + key + " workstream with measurable cycle-time targets" : "name the specific workflow this owns and set measurable cycle-time targets";
-    push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
+    out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
   }
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
-  if (bundled) { used.add(bundled.id); push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
+  if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
-  if (human) { used.add(human.id); push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
-  if (weak) { used.add(weak.id); push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
+  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
   return out.slice(0, 6);
 }
 
@@ -289,15 +269,14 @@ function buildCriticalRead(result, spans, title, posting) {
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
 function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
-  const ac = accent || "#a13a3a";
-  const who = persona || "Signal Auditor";
-  const contract = PERSONA_CONTRACT[who] || PERSONA_CONTRACT["Signal Auditor"];
+  const ac = accent || "#9a6113";
+  const who = persona || "SIGNAL AUDITOR";
   const oc = obsChip || "from posting";
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{String(who).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{who}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
@@ -316,10 +295,6 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
           <Chip kind="derived">derived</Chip>
         </div>
       </div>
-      {/* Persona output contract disclosure (v3-persona-output-contract-spec.md §5). */}
-      <div style={{ padding: "0 13px 12px" }}>
-        <PersonaDisclosure method={contract.method} allowed={contract.allowed} forbidden={contract.forbidden} />
-      </div>
     </div>
   );
 }
@@ -333,12 +308,7 @@ function AdvisoryCard({ persona, children }) {
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
       </div>
-      <div style={{ padding: "12px 14px" }}>
-        {children}
-        {/* Advisory-pass disclosure shared across every LLM-authored persona card
-            (v3-persona-output-contract-spec.md §5, advisory defaults). */}
-        <PersonaDisclosure method={PERSONA_ADVISORY_DEFAULTS.method} allowed={PERSONA_ADVISORY_DEFAULTS.allowed} forbidden={PERSONA_ADVISORY_DEFAULTS.forbidden} />
-      </div>
+      <div style={{ padding: "12px 14px" }}>{children}</div>
     </div>
   );
 }
@@ -346,30 +316,6 @@ function AdvisoryCard({ persona, children }) {
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
-}
-// Persona output contract disclosure strip (v3-persona-output-contract-spec.md §6).
-// Renders the method + allowed + forbidden fields under every persona-authored card.
-// Compact by design - two lines, monospaced, colour-blind safe (teal + amber, not
-// green + red). Voice: information for choice, never instruction.
-function PersonaDisclosure({ method, allowed, forbidden }) {
-  if (!allowed && !forbidden) return null;
-  return (
-    <div style={{ marginTop: 6, marginBottom: 8, display: "flex", flexDirection: "column", gap: 3 }}>
-      {method && <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193", letterSpacing: ".04em" }}>method {String.fromCharCode(0x00b7)} {method}</div>}
-      {allowed && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 5, background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "4px 7px" }}>
-          <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 700, color: "#0e7490", background: "#fff", border: "1px solid #a5f3fc", borderRadius: 3, padding: "0 4px", letterSpacing: ".08em", flex: "none" }}>MAY</span>
-          <span style={{ fontSize: "0.6875rem", color: "#0b5e74", lineHeight: 1.4 }}>{allowed}</span>
-        </div>
-      )}
-      {forbidden && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 5, background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 5, padding: "4px 7px" }}>
-          <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 700, color: "#b45309", background: "#fff", border: "1px solid #fcd9a0", borderRadius: 3, padding: "0 4px", letterSpacing: ".08em", flex: "none" }}>MAY NOT</span>
-          <span style={{ fontSize: "0.6875rem", color: "#92450a", lineHeight: 1.4 }}>{forbidden}</span>
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting }) {
@@ -493,6 +439,18 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               ))}
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
+          Dissect / Critical read, explained once. Colour assists; the label carries the meaning. */}
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".13em", color: "#b3ab9c", flexShrink: 0 }}>CHIP KEY</span>
+        {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
+          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: `1px solid ${PROV[k].border}`, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
+            <span style={{ fontSize: "0.625rem", color: "#8a8274" }}>= {gloss}</span>
+          </span>
         ))}
       </div>
 
@@ -682,16 +640,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
                   {c.type === "suggested rewrite" && (
                     <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>
-                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a13a3a", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
+                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#9a6113", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
                       <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
                     </div>
                   )}
-                  <PersonaDisclosure method={c.method} allowed={c.allowed} forbidden={c.forbidden} />
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
                     <Chip kind={c.prov}>{c.prov}</Chip>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
                   </div>
-                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#2f7d4f" : "#a13a3a" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
+                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#1d4ed8" : "#9a6113" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
                   : (
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Accept</button>
@@ -726,7 +683,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a9b6ee" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
           {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8595d6" }}>v{version}</span>}
