@@ -80,6 +80,76 @@ function rsFirstSentence(s) {
   if (out.length < t.length && !/[.!?]$/.test(out)) out = out.replace(/\s+\S*$/, "") + String.fromCharCode(0x2026);
   return out;
 }
+
+// Deterministic verbatim extractor. Strips HTML from the posting text, splits by
+// blank lines and heading regexes, returns { overview, responsibilities, requirements }
+// with the posting's OWN words - no LLM in this path. Trust-loop rule 4: what the panel
+// labels "verbatim" must genuinely be verbatim. See v3-persona-output-contract.md and
+// v3/api/claude.js SYSTEM_RESP (which authors the corpus synthesis - a different source).
+function rsHtmlStrip(s) {
+  return String(s || "")
+    .replace(/<\s*(br|\/p|\/li|\/div|\/tr|\/h[1-6]|\/section)\s*\/?\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/&#39;|&apos;|&rsquo;/gi, "'").replace(/&quot;|&ldquo;|&rdquo;/gi, '"')
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+const RS_RESP_RE = /^(key\s+)?(responsibilit|duties|the\s+role|role\s+(overview|description|scope)|what\s+you|day\s+to\s+day|accountabilit|your\s+role|job\s+(scope|summary|description))/i;
+const RS_REQ_RE = /^(requirement|qualification|pre-?requisite|requisite|who\s+(you|we)|skills?\b|competenc|experience|education|the\s+ideal|ideal\s+candidate|minimum|preferred|nice\s+to\s+have|what\s+we\s+(look|need))/i;
+const RS_HEAD_RE = /^(about|the role|role overview|role description|role scope|what you|who you|responsibilit|key responsibilit|requirement|qualification|pre-?requisite|requisite|capabilit|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer|job scope|job summary|job description)/i;
+function rsIsBullet(l) { return /^([-•*▪◦]|\d+[.)])\s+/.test(l); }
+function rsExtractVerbatim(text) {
+  const stripped = rsHtmlStrip(text);
+  if (!stripped) return { overview: "", responsibilities: [], requirements: [] };
+  const lines = stripped.split(/\n/).map((l) => l.trim()).filter(Boolean);
+  const sections = { intro: [], responsibilities: [], requirements: [] };
+  let cur = "intro";
+  for (const raw of lines) {
+    const clean = raw.replace(/^([-•*▪◦]|\d+[.)])\s+/, "").trim();
+    // Heading: short line, no ending sentence punctuation, matches known JD section words.
+    const isHead = raw.length < 70 && !/[.!?]$/.test(raw) && RS_HEAD_RE.test(clean);
+    if (isHead) {
+      cur = RS_RESP_RE.test(clean) ? "responsibilities" : RS_REQ_RE.test(clean) ? "requirements" : "intro";
+      continue;
+    }
+    if (rsIsBullet(raw)) {
+      if (cur === "intro") cur = "responsibilities";
+      sections[cur].push(clean);
+    } else {
+      sections[cur].push(clean);
+    }
+  }
+  const overviewChunks = sections.intro.slice(0, 4);
+  return {
+    overview: overviewChunks.join(" ").replace(/\s+/g, " ").trim(),
+    responsibilities: sections.responsibilities.filter((l) => l.length > 6),
+    requirements: sections.requirements.filter((l) => l.length > 6),
+  };
+}
+// Build a regex over the role's own multi-word skill phrases so we can underline them in
+// the verbatim ad without rewording - the same "underline key words" the Job Ad Drawer uses.
+function rsSkillTermRe(result) {
+  const skills = (result && Array.isArray(result.skills)) ? result.skills : [];
+  const terms = Array.from(new Set(skills.map((s) => String(s.skill || s || "").trim()).filter((t) => t.split(/\s+/).length >= 2 && t.length >= 6)));
+  if (!terms.length) return null;
+  terms.sort((a, b) => b.length - a.length);
+  const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try { return new RegExp("(\\b(?:" + terms.slice(0, 40).map(esc).join("|") + ")\\b)", "gi"); } catch (_) { return null; }
+}
+// Underline the role's own multi-word skill phrases where they appear verbatim in the
+// ad text - a non-arbitrary bridge from posting to analysis (no reword; the text stays
+// verbatim, only the emphasis is layered on).
+function rsUnderlineSkillTerms(text, re) {
+  const s = String(text || "");
+  if (!re) return s;
+  const parts = s.split(re);
+  if (parts.length < 2) return s;
+  return parts.map((p, i) => (i % 2 === 1)
+    ? <u key={"u" + i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
+    : p);
+}
 const RS_EXP_BAND = { HIGH: "auto", MEDIUM: "augmented", LOW: "assisted", HUMAN: "human" };
 function rsDominantBand(duties) {
   const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
@@ -420,8 +490,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const duties = dutyObjs.map((d) => (typeof d === "string" ? d : d.text)).filter(Boolean);
   const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
-  const overview = (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
+  // Trust-loop rule 4: the manuscript's "verbatim" chip must not label LLM-authored
+  // prose as verbatim. Prefer the posting's OWN text (parsed deterministically) when a
+  // specific job was picked in Step 2; fall back to the corpus summary but relabel the
+  // chip so nothing lies about its origin.
+  const verbatimSourceText = (posting && posting.text) || (firstJob && (firstJob.description || firstJob.responsibilitiesText)) || "";
+  const verbatim = useMemo(() => rsExtractVerbatim(verbatimSourceText), [verbatimSourceText]);
+  const hasVerbatim = !!(verbatim.overview || verbatim.responsibilities.length);
+  const overview = hasVerbatim ? verbatim.overview : (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
+  const overviewSource = hasVerbatim ? "verbatim" : "synthesis";
   const skills = (Array.isArray(result && result.skills) ? result.skills : []).map((s) => s.skill || s).filter(Boolean);
+  const skillTermRe = useMemo(() => rsSkillTermRe(result), [result]);
   const derivedBand = rsDominantBand(dutyObjs);
   const bandKey = (band && BANDS[band]) ? band : derivedBand;
   const bandTok = bandKey && BANDS[bandKey] ? BANDS[bandKey] : null;
@@ -620,31 +699,58 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} verbatim</Chip>
+                {/* Chip tells the truth: 'verbatim' only when the paragraphs below are the
+                    posting's own words. On corpus-synthesis fallback (no single posting anchor)
+                    the chip becomes 'synthesis · AI-authored across corpus' - trust-loop rule 4. */}
+                <Chip kind={hasVerbatim ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} {hasVerbatim ? "verbatim" : "synthesis · AI-authored across corpus"}</Chip>
                 {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
               </div>
               {overview && <>
                 <h2 style={manuH2}>Role overview</h2>
-                <p style={manuP}>{overview}</p>
+                <p style={manuP}>{overviewSource === "verbatim" ? rsUnderlineSkillTerms(overview, skillTermRe) : overview}</p>
               </>}
-              {dissection.spans.length > 0 && <>
-                <h2 style={manuH2}>Responsibilities</h2>
-                <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                  {dissection.spans.map((s) => {
-                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
-                    const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
-                    return (
-                      <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
-                        <span role="button" tabIndex={0} aria-pressed={on}
-                          title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
-                          onClick={() => setActiveSpan(on ? null : s.id)}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>}
+              {hasVerbatim && verbatim.responsibilities.length > 0 ? (
+                <>
+                  <h2 style={manuH2}>Responsibilities</h2>
+                  <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                    {verbatim.responsibilities.map((line, i) => (
+                      <li key={"vresp-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
+                    ))}
+                  </ul>
+                  {verbatim.requirements.length > 0 && (
+                    <>
+                      <h2 style={manuH2}>Requirements</h2>
+                      <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                        {verbatim.requirements.map((line, i) => (
+                          <li key={"vreq-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </>
+              ) : dissection.spans.length > 0 && (
+                <>
+                  {/* Corpus-synthesis path: the bullets below are LLM-authored across many
+                      postings, not verbatim from a single ad. Provenance chip makes that
+                      explicit right above the list so the eye can't miss it. */}
+                  <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#a13a3a", background: "#fdf1f1", border: "1px solid #f0d3d3", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>synthesis · not verbatim</span></h2>
+                  <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                    {dissection.spans.map((s) => {
+                      if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
+                      const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
+                      return (
+                        <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
+                          <span role="button" tabIndex={0} aria-pressed={on}
+                            title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
+                            onClick={() => setActiveSpan(on ? null : s.id)}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
+                            style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              )}
               {skills.length > 0 && <>
                 <h2 style={manuH2}>Skills the posting asks for</h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
