@@ -16638,17 +16638,24 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
             : result.source === "corpus" ? "from live SG postings" : "from ESCO";
           return (
-            <ReviewStudio
-              result={result}
-              title={toTitleCase(sel?.title || "")}
-              employer={result?.employer || ""}
-              source={reviewSource}
-              rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
-              posting={analysingPosting}
-              band={null}
-              onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              version={APP_VERSION}
-            />
+            <>
+              <ReviewStudio
+                result={result}
+                title={toTitleCase(sel?.title || "")}
+                employer={result?.employer || ""}
+                source={reviewSource}
+                rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
+                posting={analysingPosting}
+                band={null}
+                onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                version={APP_VERSION}
+              />
+              {/* Step 3: mount the same Job-Ad FAB the plain result view carries, so the posting
+                  picked in Step 2 is one tap away in the Review Studio too. Uses the app-level
+                  drawer state so the FAB and drawer stay in sync across step transitions. */}
+              {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); }} />}
+              <JobAdDrawer result={result} open={adDrawerOpen} onClose={() => setAdDrawerOpen(false)} />
+            </>
           );
           // eslint-disable-next-line no-unreachable
           const tabs = buildTabs(result);
