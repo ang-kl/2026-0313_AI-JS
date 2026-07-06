@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:build": "vite build",
+    "verify:snapshot": "node script/verify-snapshot.mjs",
+    "verify": "npm run verify:build && npm run verify:snapshot"
   },
   "dependencies": {
     "@vercel/analytics": "1.3.1",
