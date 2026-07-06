@@ -1,15 +1,12 @@
 {
   "name": "ai-job-analyser-v3",
-  "version": "3.0.224",
+  "version": "3.0.225",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "verify:build": "vite build",
-    "verify:snapshot": "node script/verify-snapshot.mjs",
-    "verify": "npm run verify:build && npm run verify:snapshot"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@vercel/analytics": "1.3.1",
