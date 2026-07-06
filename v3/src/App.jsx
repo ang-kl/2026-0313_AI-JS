@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.225";
+const APP_VERSION = "3.0.226";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12256,8 +12256,14 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const csgCards = sorted.filter((c) => isCsg(c.job));
   const sectorsPresent = [...new Set(sorted.map((c) => c.sector).filter((s) => s && s !== "Unclassified"))].sort();
   const tocGroups = useMemo(() => {
+    // Index doctrine: groups ranked by posting count (biggest family first, Unclassified last);
+    // items ranked by the SAME deterministic order the cards use - match tier, then salary
+    // high-to-low as tiebreak - so the rail reads as a curated ranking, not raw fetch order.
     const by = {}; sorted.forEach((c) => { (by[c.sector || "Unclassified"] = by[c.sector || "Unclassified"] || []).push(c); });
-    return Object.keys(by).sort().map((s) => ({ sector: s, items: by[s] }));
+    const rank = (c) => STEP2_MATCH_TIERS.indexOf(c.matchTier);
+    return Object.keys(by)
+      .sort((x, y) => (x === "Unclassified") - (y === "Unclassified") || by[y].length - by[x].length || x.localeCompare(y))
+      .map((s) => ({ sector: s, items: [...by[s]].sort((a, b) => (rank(a) - rank(b)) || ((b.salaryMid || 0) - (a.salaryMid || 0))) }));
   }, [sorted]);
 
   const KICK = { fontFamily: "'Spline Sans Mono',monospace", fontWeight: 600, color: "#a8a193" };
@@ -12283,38 +12289,38 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       <div key={c.id} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 11px", background: "#f4f6fa", borderBottom: "1px solid #e6e3db" }}>
           <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 4, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 9, lineHeight: "16px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
-          <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
-          {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount}</span>}
+          <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
+          {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount}</span>}
           {/* FLOW-1b: per-card match-tier badge - states the MATCH BASIS, not a
               quality score. Shape (glyph) + label distinguish tiers, not colour alone. */}
-          <span title={step2MatchTierTitle(c.matchTier)} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: "#5b6878", background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>
+          <span title={step2MatchTierTitle(c.matchTier)} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#5b6878", background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>
             <span aria-hidden="true">{c.matchTier === "exact title" ? "=" : c.matchTier === "title variant" ? "~" : c.matchTier === "nuance" ? "^" : c.matchTier === "R&R match" ? "#" : "?"}</span>
             {c.matchTier}
           </span>
           {band && <span title={"AI exposure: " + band.label} style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
         </div>
         <div style={{ padding: "11px 12px 12px", display: "flex", flexDirection: "column", flex: 1 }}>
-          <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "0.92rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
+          <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "5px 0 7px" }}>
-            {(c.age === "today" || c.age === "yesterday") && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".06em", fontWeight: 700, color: "#fff", background: "#1a56db", borderRadius: 3, padding: "1px 4px" }}>NEW</span>}
+            {(c.age === "today" || c.age === "yesterday") && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".06em", fontWeight: 700, color: "#fff", background: "#1a56db", borderRadius: 3, padding: "1px 4px" }}>NEW</span>}
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: (c.age === "today" || c.age === "yesterday") ? "#1a56db" : "#8a8274", fontWeight: (c.age === "today" || c.age === "yesterday") ? 600 : 400 }}>{c.age || ""}</span>
           </div>
-          {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={step2SsocChipTitle(c)} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}{c.jobLevel && c.jobLevel !== "Not applicable" && <span title={"Broad Job Level (SSOC 2024 sec. 2.6-2.7): complexity/range of tasks typical of this major group - 4 is most complex. A major-group attribute shared by every occupation in the group, not a per-occupation measurement (sec. 2.14)."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", letterSpacing: ".02em", color: "#3a4456", background: "#f4f2ec", border: "1px solid #e2e0d8", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>Job level {c.jobLevel}</span>}</div>}
+          {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={step2SsocChipTitle(c)} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}{c.jobLevel && c.jobLevel !== "Not applicable" && <span title={"Broad Job Level (SSOC 2024 sec. 2.6-2.7): complexity/range of tasks typical of this major group - 4 is most complex. A major-group attribute shared by every occupation in the group, not a per-occupation measurement (sec. 2.14)."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".02em", color: "#3a4456", background: "#f4f2ec", border: "1px solid #e2e0d8", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>Job level {c.jobLevel}</span>}</div>}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
-            {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
+            {c.meta.slice(0, 2).map((m, i) => (<span key={i} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 6, padding: "2px 7px" }}>{m}</span>))}
           </div>
-          {synopsis && <p style={{ margin: "0 0 10px", fontSize: "0.75rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
+          {synopsis && <p style={{ margin: "0 0 10px", fontSize: "0.8125rem", color: "#52607a", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 6, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{synopsis}</p>}
           {(c.func || c.level || c.schemes.length > 0) && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
-              {c.func && <span title={c.func} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "2px 7px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>{String.fromCharCode(0x2192)} {c.func}</span>}
-              {c.level && <span title={"Position level: " + c.level} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{c.level}</span>}
-              {c.schemes.map((s, i) => (<span key={i} title={"Scheme: " + s} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{s}</span>))}
+              {c.func && <span title={c.func} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#475569", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "2px 7px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>{String.fromCharCode(0x2192)} {c.func}</span>}
+              {c.level && <span title={"Position level: " + c.level} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{c.level}</span>}
+              {c.schemes.map((s, i) => (<span key={i} title={"Scheme: " + s} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{s}</span>))}
             </div>
           )}
           <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 9, borderTop: "1px solid #f0eee7" }}>
-            <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.75rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 44 }}>Analyse</button>
-            {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
-            <button onClick={(e) => { e.stopPropagation(); setOkf({ kind: "posting", id: c.id }); }} title="View OKF concept document" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 7px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
+            <button onClick={(e) => { e.stopPropagation(); setSelectedId(c.id); onAnalysePosting(c.job); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "8px 12px", cursor: "pointer", minHeight: 44 }}>Analyse</button>
+            {c.job.mcfUrl && <a href={c.job.mcfUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: "0.8125rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2 }}>Open</a>}
+            <button onClick={(e) => { e.stopPropagation(); setOkf({ kind: "posting", id: c.id }); }} title="View OKF concept document" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "5px 7px", cursor: "pointer", marginLeft: "auto" }}>{"{ } OKF"}</button>
           </div>
         </div>
       </div>
@@ -12337,7 +12343,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       </div>
       {srcCards.length === 0
         ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 12, alignContent: "start" }}>{srcCards.map(renderCard)}</div>}
+        : <div className="step2-cards">{srcCards.map(renderCard)}</div>}
     </section>
   );
 
@@ -12519,22 +12525,27 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
       {!state.loading && sorted.length > 0 && (
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <aside style={{ flex: "none", width: 248, position: "sticky", top: 120, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 134px)", overflowY: "auto" }} className="wis-scroll">
+          <aside style={{ flex: "none", width: 276, position: "sticky", top: 120, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 134px)", overflowY: "auto" }} className="wis-scroll">
             <div>
-              <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", marginBottom: 8 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
-              <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+              <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", marginBottom: 3 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
+              {/* UI doctrine: state the ranking rule - the rail is a curated ranking, not raw order. */}
+              <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.4 }}>Ranked by match tier, then salary.</p>
+              <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 340, overflowY: "auto" }}>
                 {tocGroups.map((g, gi) => (
                   <div key={gi}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4, paddingBottom: 3, borderBottom: "1px solid #ece9e1" }}>
-                      <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.sector}</span>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", color: "#a8a193", flex: "none" }}>{g.items.length}</span>
+                    <div title={g.sector} style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4, paddingBottom: 3, borderBottom: "1px solid #ece9e1" }}>
+                      <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.sector}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", flex: "none" }}>{g.items.length}</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       {g.items.map((t) => { const s = selectedId === t.id; return (
-                        <button key={t.id} onClick={() => setSelectedId(t.id)} style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "5px 7px", width: "100%" }}>
-                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none" }} />
-                          <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: s ? "#142a8e" : "#3a4456", lineHeight: 1.2, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
-                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", color: "#a8a193", flex: "none" }}>{step2SalK(t.salaryMid)}</span>
+                        <button key={t.id} onClick={() => setSelectedId(t.id)} style={{ display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "6px 7px", width: "100%" }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none", marginTop: 5 }} />
+                          <span style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: s ? "#142a8e" : "#3a4456", fontWeight: s ? 600 : 500, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
+                            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.company || ""}</span>
+                          </span>
+                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", fontWeight: 600, flex: "none", marginTop: 2 }}>{step2SalK(t.salaryMid)}</span>
                         </button>
                       ); })}
                     </div>
@@ -16076,6 +16087,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
+      /* Step 2 evidence cards: 2 columns max (UI doctrine - was 3, too dense to read).
+         1 column on phones, 2 from 640px up. */
+      .step2-cards { display:grid; grid-template-columns:1fr; gap:14px; align-content:start; }
+      @media (min-width:640px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       /* CSG two-column browse: MyCareersFuture left, careers.gov.sg right; stacks below 1000px */
       .csg-cols { display:grid; grid-template-columns:1fr; gap:20px; align-items:start; }
       @media (min-width:1000px) { .csg-cols { grid-template-columns:3fr 2fr; } }
