@@ -276,43 +276,64 @@ export default async function handler(req, res) {
   // Log model and token budget for debugging. NO-PII invariant: log lengths, never content.
   console.log(`[proxy] requested_model=${model} anthropic_model=${anthropicModel} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${maxTokensNum} system_len=${instructions.length} input_len=${input.length} msg_count=${messages.length}`);
 
-  // Timeout: 280s (leaves 20s buffer inside Vercel 300s maxDuration)
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 280000);
+  // Wall-clock budget: 280s total across all provider attempts (20s buffer inside the
+  // Vercel 300s maxDuration). Each provider gets its OWN AbortController so a timeout on
+  // one does not poison the next; the fresh controller for the next call starts non-aborted.
+  // Codex review on PR #305 caught the previous shared-signal bug.
+  const deadline = Date.now() + 280000;
+  const runProvider = async (fn) => {
+    const remaining = deadline - Date.now();
+    if (remaining <= 2000) {
+      const err = new Error("Provider chain exhausted the 280s budget before this attempt");
+      err.name = "AbortError";
+      err.debug = "Budget exhausted before attempt";
+      throw err;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), remaining);
+    try {
+      return await fn({ signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
   const hasOpenAiFallback = Boolean(openAiKey);
+  // Track the highest-priority provider that was preferred but failed / skipped, for the
+  // fallback_from field. Anthropic wins over OpenAI wins over nothing.
+  let fallbackFrom = null;
 
   try {
     // Provider chain (spec §3): ANTHROPIC -> OPENAI -> GEMINI. Each fires only if configured;
-    // each failure falls through to the next configured provider.
+    // each failure falls through to the next configured provider with its own fresh signal.
     if (anthropicKey) {
       try {
-        const anthropicResult = await callAnthropic({ apiKey: anthropicKey, anthropicModel, instructions, messages, maxTokens: maxTokensNum, signal: controller.signal });
-        clearTimeout(timeout);
+        const anthropicResult = await runProvider(({ signal }) => callAnthropic({ apiKey: anthropicKey, anthropicModel, instructions, messages, maxTokens: maxTokensNum, signal }));
         return res.status(200).json(anthropicResult);
       } catch (anthropicErr) {
         console.error(`[proxy] Anthropic failed; ${hasOpenAiFallback ? "trying OpenAI fallback" : hasGeminiFallback ? "trying Gemini fallback" : "no fallback configured"}:`, anthropicErr.debug || anthropicErr.message);
         if (!hasOpenAiFallback && !hasGeminiFallback) throw anthropicErr;
+        fallbackFrom = "anthropic";
       }
     }
 
     if (openAiKey) {
       try {
-        const openAiResult = await callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: maxTokensNum, signal: controller.signal });
-        clearTimeout(timeout);
-        return res.status(200).json({ ...openAiResult, fallback_from: anthropicKey ? "anthropic" : undefined });
+        const openAiResult = await runProvider(({ signal }) => callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: maxTokensNum, signal }));
+        return res.status(200).json(fallbackFrom ? { ...openAiResult, fallback_from: fallbackFrom } : openAiResult);
       } catch (openAiErr) {
         console.error(`[proxy] OpenAI failed; ${hasGeminiFallback ? "trying Gemini fallback" : "no Gemini fallback configured"}:`, openAiErr.debug || openAiErr.message);
         if (!hasGeminiFallback) throw openAiErr;
+        // Preserve the highest-priority skip: keep "anthropic" if it was already the skip
+        // reason, otherwise mark openai as the fallback source for gemini's response.
+        if (!fallbackFrom) fallbackFrom = "openai";
       }
     }
 
-    const geminiResult = await callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: maxTokensNum, signal: controller.signal });
-    clearTimeout(timeout);
-    return res.status(200).json({ ...geminiResult, fallback_from: anthropicKey ? "anthropic" : (openAiKey ? "openai" : geminiResult.fallback_from) });
+    const geminiResult = await runProvider(({ signal }) => callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: maxTokensNum, signal }));
+    return res.status(200).json(fallbackFrom ? { ...geminiResult, fallback_from: fallbackFrom } : geminiResult);
 
   } catch (err) {
-    clearTimeout(timeout);
     const isTimeout = err.name === "AbortError";
     const status = err.status || 503;
     const provider = err.provider || "llm";
@@ -326,7 +347,7 @@ export default async function handler(req, res) {
     }
     return res.status(503).json({
       ...(isTimeout ? WARM_ERRORS.timeout : (status === 429 ? WARM_ERRORS.overload : WARM_ERRORS.server)),
-      debug: isTimeout ? "Request timed out after 280s" : (err.debug || err.message),
+      debug: isTimeout ? (err.debug || "Request timed out within the 280s budget") : (err.debug || err.message),
     });
   }
 }
