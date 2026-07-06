@@ -496,9 +496,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // chip so nothing lies about its origin.
   const verbatimSourceText = (posting && posting.text) || (firstJob && (firstJob.description || firstJob.responsibilitiesText)) || "";
   const verbatim = useMemo(() => rsExtractVerbatim(verbatimSourceText), [verbatimSourceText]);
-  const hasVerbatim = !!(verbatim.overview || verbatim.responsibilities.length);
-  const overview = hasVerbatim ? verbatim.overview : (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
-  const overviewSource = hasVerbatim ? "verbatim" : "synthesis";
+  // Two independent provenance decisions - one for the overview paragraph, one for the
+  // duty bullets - so a partial ad (verbatim intro but no explicit Responsibilities
+  // heading) never ships an LLM-authored bullet list under a "verbatim" chip.
+  const hasVerbatimOverview = !!verbatim.overview;
+  const hasVerbatimBullets = verbatim.responsibilities.length > 0;
+  const overview = hasVerbatimOverview ? verbatim.overview : (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
+  const overviewSource = hasVerbatimOverview ? "verbatim" : "synthesis";
   const skills = (Array.isArray(result && result.skills) ? result.skills : []).map((s) => s.skill || s).filter(Boolean);
   const skillTermRe = useMemo(() => rsSkillTermRe(result), [result]);
   const derivedBand = rsDominantBand(dutyObjs);
@@ -699,19 +703,22 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                {/* Chip tells the truth: 'verbatim' only when the paragraphs below are the
-                    posting's own words. On corpus-synthesis fallback (no single posting anchor)
-                    the chip becomes 'synthesis · AI-authored across corpus' - trust-loop rule 4. */}
-                <Chip kind={hasVerbatim ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} {hasVerbatim ? "verbatim" : "synthesis · AI-authored across corpus"}</Chip>
+                {/* Chip scopes to the overview paragraph only. The Responsibilities heading
+                    below carries its OWN provenance chip so a page mixing verbatim intro +
+                    synthesis bullets never lies about either half. Trust-loop rule 4. */}
+                <Chip kind={hasVerbatimOverview ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} overview {hasVerbatimOverview ? "verbatim" : "synthesis · AI-authored"}</Chip>
                 {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
               </div>
               {overview && <>
                 <h2 style={manuH2}>Role overview</h2>
                 <p style={manuP}>{overviewSource === "verbatim" ? rsUnderlineSkillTerms(overview, skillTermRe) : overview}</p>
               </>}
-              {hasVerbatim && verbatim.responsibilities.length > 0 ? (
+              {hasVerbatimBullets ? (
                 <>
-                  <h2 style={manuH2}>Responsibilities</h2>
+                  {/* Verbatim bullets extracted from the picked posting's own text - no
+                      reword. Skill-term underlining is layered on the verbatim string
+                      (rsUnderlineSkillTerms), which changes emphasis, not words. */}
+                  <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                     {verbatim.responsibilities.map((line, i) => (
                       <li key={"vresp-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
@@ -719,7 +726,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   </ul>
                   {verbatim.requirements.length > 0 && (
                     <>
-                      <h2 style={manuH2}>Requirements</h2>
+                      <h2 style={manuH2}>Requirements <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                       <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                         {verbatim.requirements.map((line, i) => (
                           <li key={"vreq-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
