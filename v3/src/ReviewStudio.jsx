@@ -56,11 +56,15 @@ const SPAN_STYLE = {
 };
 // Withheld span (engine did not classify): a neutral dashed "general note", no band claim.
 const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
+// Ribbon items are only rendered when their handler actually does something. The
+// prior version listed Evidence (observed/interpreted/applied/withheld/provenance) and
+// Output (resume/interview/print) as tappable pills with no onClick effect - a "tap
+// without working" violation the trust-loop canon forbids. Reintroduce those groups
+// when handlers exist, not before.
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"], ["critical", "Critical read"]] },
   { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"]] },
-  { group: "Evidence", key: null, items: [["observed", "Observed"], ["interpreted", "Interpreted"], ["applied", "Applied"], ["withheld", "Withheld"], ["provenance", "Provenance"]] },
-  { group: "Output", key: null, items: [["cover", "Cover letter"], ["resume", "Resume notes"], ["interview", "Interview pack"], ["print", "Print / PDF"]] },
+  { group: "Output", key: "output", items: [["cover", "Cover letter"]] },
 ];
 const RAIL = [
   { key: "sources", icon: String.fromCharCode(0x25a4), label: "Sources" },
@@ -206,7 +210,9 @@ function rsComments(spans) {
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
   if (bundled) { used.add(bundled.id); push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
-  if (human) { used.add(human.id); push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  // The reason line is a rule-authored coaching prompt, not a quote from the posting,
+  // so the chip is "computed" (rule output) not "from posting" (verbatim).
+  if (human) { used.add(human.id); push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
   if (weak) { used.add(weak.id); push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
   return out.slice(0, 6);
@@ -681,7 +687,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>OBSERVATION</div>
                       <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
-                      <Chip kind="from posting">from posting</Chip>
+                      {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
+                          from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
+                          verbatim posting text - so the chip must not say "from posting".
+                          Trust-loop rule 4. */}
+                      <Chip kind="derived">derived · AI-extracted</Chip>
                     </div>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>INTERPRETATION</div>
