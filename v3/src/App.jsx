@@ -10777,7 +10777,11 @@ function RoleGraphPanel({ result, title, posting }) {
               </div>
             ) : (
               <div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                  <button type="button" onClick={() => setRoleGraphFloat(true)} aria-label="Expand SSOC graph in floating window"
+                    style={{ minHeight: 44, padding: "8px 12px", borderRadius: 10, border: "1px solid #cce6d4", background: "#eef7f0", color: "#2f7d4f", fontWeight: 800, fontSize: "0.75rem", cursor: "pointer" }}>
+                    Expand floating graph
+                  </button>
                   <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>{gr.stats.occupations} occupation{gr.stats.occupations === 1 ? "" : "s"} · {gr.stats.skills} skills · {gr.stats.responsibilities} responsibilities · {gr.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace"}</span>
                 </div>
                 {/* SSOCRG-3: same wired force-graph as ESCO Layered, but SG-first headers make the taxonomy honest. */}
@@ -10919,37 +10923,53 @@ function RoleGraphPanel({ result, title, posting }) {
                 <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
               </div>}
               {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
-              {roleGraphFloat && (
-                <div role="dialog" aria-modal="true" aria-label="Floating role graph"
-                  onClick={() => setRoleGraphFloat(false)}
-                  style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
-                      width:"min(1120px, calc(100vw - 32px))", maxHeight:"calc(100vh - 96px)",
-                      resize:"both", overflow:"auto", background:C.bg, border:`1px solid ${C.border}`,
-                      borderRadius:16, padding:14, boxShadow:"0 18px 50px rgba(15,23,42,0.32)",
-                    }}
-                  >
+              {roleGraphFloat && (() => {
+                // RIN3+SSOCRG: one floating window, three lenses. The mode picks which graph
+                // (and which column headers) render inside — the drag/resize/close shell is
+                // shared. Notebook (~4:3) default aspect ratio; the corner still lets a user
+                // stretch either dimension freely.
+                const isSsoc = graphMode === "ssoc";
+                const sg = isSsoc ? (result && result.ssocGraph) : null;
+                const floatGraph = isSsoc ? (sg && sg.graph) : g.graph;
+                const floatHeads = isSsoc
+                  ? ["Roles & responsibilities (from MCF)", String.fromCodePoint(0x1f1f8, 0x1f1ec) + " Role · SSOC 2024", "SSOC → ISCO-08 occupation", "ESCO skills (via crosswalk)"]
+                  : undefined;
+                const floatTitle = isSsoc ? "Role Graph · SSOC" : (graphMode === "knowledge" ? "Role Graph · Knowledge" : "Role Graph · Layered");
+                return (
+                  <div role="dialog" aria-modal="true" aria-label={"Floating " + floatTitle.toLowerCase()}
+                    onClick={() => setRoleGraphFloat(false)}
+                    style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
                     <div
-                      onPointerDown={startRoleGraphDrag}
-                      onPointerMove={moveRoleGraphDrag}
-                      onPointerUp={stopRoleGraphDrag}
-                      onPointerCancel={stopRoleGraphDrag}
-                      style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
+                        width:"min(1120px, calc(100vw - 32px))", height:"min(840px, calc(100vh - 96px))",
+                        maxHeight:"calc(100vh - 96px)",
+                        resize:"both", overflow:"auto", background:C.bg, border:`1px solid ${C.border}`,
+                        borderRadius:16, padding:14, boxShadow:"0 18px 50px rgba(15,23,42,0.32)",
+                      }}
                     >
-                      <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>Role Graph</h3>
-                      <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
-                      <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
-                        style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
-                        Close
-                      </button>
+                      <div
+                        onPointerDown={startRoleGraphDrag}
+                        onPointerMove={moveRoleGraphDrag}
+                        onPointerUp={stopRoleGraphDrag}
+                        onPointerCancel={stopRoleGraphDrag}
+                        style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
+                      >
+                        <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>{floatTitle}</h3>
+                        <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
+                        <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
+                          style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
+                          Close
+                        </button>
+                      </div>
+                      {floatGraph
+                        ? renderGraph(floatGraph, floatHeads ? { heads: floatHeads } : undefined)
+                        : <p style={{ margin:0, fontSize:"0.8125rem", color:C.muted }}>This lens is still resolving. Close this window and try again in a moment.</p>}
                     </div>
-                    {renderGraph(g.graph)}
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </>
           )}
 
