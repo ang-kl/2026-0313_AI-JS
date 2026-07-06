@@ -1,5 +1,11 @@
 # v3 Step 3 — Blueprint × Code Reconciliation
 
+> **⚠ HISTORICAL AUDIT — not the current spec.**
+>
+> Written at v3.0.179 (2026-06-30) as Phase 0 of the trust-loop-first arc. Present-state canon lives at [`v3-step3-spec.md`](./v3-step3-spec.md); read *that* for what Step 3 does today.
+>
+> This file is preserved because the gap analysis it produced was the input to `v3-step3-spec.md` and to several later PRs that repaired the findings named below. Do not treat any verdict here as current. See §Post-audit repairs at the tail for what has since changed.
+
 **Status:** Phase 0, read-only audit. No code change. No spec change.
 **Date:** 2026-06-30.
 **Scope:** the Review Studio surface that renders after a user clicks **Analyse** on a Step 2 posting card. Implemented in `v3/src/ReviewStudio.jsx`.
@@ -174,5 +180,26 @@ In rough order of leverage per line of code:
 - It is not a spec. It does not pin any rule. It only puts blueprint and code next to each other.
 - It is not exhaustive on the blueprints — only the sections cited by the Step 3 code header (`S4 / S5 / S7 / S10`) and the cross-cutting honesty + agent contracts. Other v3 spec slices may be relevant later.
 - It does not prescribe the Phase 1 spec content. Phase 1 will be a separate PR that turns this priority list into pinned canon.
+
+---
+
+## Post-audit repairs (added 2026-07-06 as part of trust-loop-first PR 3)
+
+The rows below re-verdict each feature against the **current** code (`v3/src/ReviewStudio.jsx` at v3.0.224). The original verdicts above are historical.
+
+| # | Feature | Original verdict (v3.0.179) | Present verdict (v3.0.224) | Repair PR |
+|---|---|---|---|---|
+| 1 | Layout | MATCH (logical), PARTIAL (responsive) | **MATCH** — 860 px mobile breakpoint added; drawer/margin portalled; rail defaults collapsed narrow. Floatable right pane still parked. | #263 #264 #265 |
+| 2 | Manuscript | PARTIAL | **PARTIAL** — unchanged; track-change verb set still unbuilt. | — |
+| 3 | O-I-A dissection | MATCH (discipline), IMPROVISED (regex) | **MATCH** discipline; **canonised** — the 14 tokens are now pinned in `v3-step3-spec.md` §5, not undocumented. | this PR |
+| 4 | Per-duty bands | IMPROVISED + MISMATCH (`rsGuessBand` never withholds) | **FIXED** — `rsGuessBand` removed; withheld bands render as saffron dashed `SPAN_STYLE_WITHHELD`. `never silently convert missing exposure` now honoured. | #250 #284 |
+| 5 | Modes | PARTIAL (4 of 7) | **PARTIAL** — 5 of 7 now (added `critical`). Persona / Evidence / Risk still parked. | #287 |
+| 6 | Personas | PARTIAL (5 of 9), IMPROVISED (triggers + reason copy) | **PARTIAL improved** — 6 of 9 (added Signal Auditor via Critical Read); Process-Redesign suggested rewrite now genuinely derived from a keyword extracted from *that* duty via `rsKeyword`. | #250 #287 #290 |
+| 7 | Prov + confidence chips | MATCH vocab, MISMATCH on `derived` chip on hardcoded template | **FIXED** — `derived` chip now honest (drops to `unverified` when no keyword). Confidence set now matches blueprint 4-level. | #250 #284 |
+| 8 | Visual Intelligence stack | UNBUILT — 4 of 5 placeholder | **FIXED via deletion** — placeholder pills removed, only `jobgraph` ships. AIOE trace planned. | #282 |
+| 9 | Honesty contract | PARTIAL — 32px targets, footer missing S·C·TW | **FIXED** — 44 px on Accept/Reject/Ask-why; `Source · Confidence · Time-window` footer triple wired. Honest `withheld` overall confidence via `footerConf`. | #250 #257 |
+| 10 | Agent contracts | MATCH runtime; process gap | **MATCH runtime** unchanged; process gap being addressed by trust-loop-first PR 2 (verification.md wired agents to a single-source path). | PR #301 |
+
+**Also added since audit** — a whole new **Critical Read** arc that was not in the audit's scope: deterministic Word-Noodle finder, Forensic Reversal, Falsification (template? / role mash-up? / compliance-only?), Hiring Filter, and a batched LLM advisory pass tagged `AI estimate · advisory`. Documented in `v3-step3-spec.md` §6. (PRs #287 #288 #289 #290 #293)
 
 — end —
