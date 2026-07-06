@@ -1,7 +1,20 @@
+// LLM narration proxy. Contract + guardrails: v3/script/v3-llm-proxy-guardrails-spec.md.
+// Invariants (do not break without updating the spec):
+//   1. Engine computes, LLM narrates - this file never authors a number, band or verdict.
+//   2. No log line may include raw messages[*].content or system[*].text; only structural
+//      or numeric facts. Provider error strings are the one known trade-off (needed for
+//      diagnosis) and truncated to 300 chars via providerError().
+//   3. Three rejection caps below reject clearly-abusive shapes loud; the proxy never
+//      silently drops or truncates a caller's payload.
 export const config = {
   api: { bodyParser: true },
   maxDuration: 300,
 };
+
+// Rejection caps (v3-llm-proxy-guardrails-spec.md §4).
+const MAX_MESSAGES = 32;         // Any single call over 32 message turns is a caller-side loop.
+const MAX_OUTPUT_TOKENS = 8192;  // Any narration over 8K output tokens is a caller-side bug.
+const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K input tokens.
 
 function textFromSystem(system) {
   if (!system) return "";
@@ -178,13 +191,26 @@ export default async function handler(req, res) {
   if (!model || !max_tokens || !Array.isArray(messages) || !messages.length) {
     return res.status(400).json({ error: "Invalid request body", code: "BAD_REQUEST" });
   }
+  // Rejection caps (spec §4). Fail loud instead of silent truncation or dropped content.
+  if (messages.length > MAX_MESSAGES) {
+    return res.status(400).json({ error: `Too many messages (${messages.length} > ${MAX_MESSAGES})`, code: "BAD_REQUEST" });
+  }
+  const maxTokensNum = Number(max_tokens);
+  if (!Number.isInteger(maxTokensNum) || maxTokensNum <= 0 || maxTokensNum > MAX_OUTPUT_TOKENS) {
+    return res.status(400).json({ error: `max_tokens must be a positive integer <= ${MAX_OUTPUT_TOKENS}`, code: "BAD_TOKENS" });
+  }
 
   const openAiModel = openAiModelFor(model);
   const instructions = textFromSystem(system);
   const input = textFromMessages(messages);
+  // Assembled prompt cap - covers system + all message content, not just the raw body.
+  const promptLen = instructions.length + input.length;
+  if (promptLen > MAX_PROMPT_CHARS) {
+    return res.status(413).json({ error: `Prompt too large (${promptLen} > ${MAX_PROMPT_CHARS} chars)`, code: "TOO_LARGE" });
+  }
 
-  // Log model and token budget for debugging
-  console.log(`[proxy] provider=openai requested_model=${model} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${max_tokens} system_len=${instructions.length}`);
+  // Log model and token budget for debugging. NO-PII invariant: log lengths, never content.
+  console.log(`[proxy] provider=openai requested_model=${model} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${maxTokensNum} system_len=${instructions.length} input_len=${input.length} msg_count=${messages.length}`);
 
   // Timeout: 280s (leaves 20s buffer inside Vercel 300s maxDuration)
   const controller = new AbortController();
@@ -193,7 +219,7 @@ export default async function handler(req, res) {
   try {
     if (openAiKey) {
       try {
-        const openAiResult = await callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: max_tokens, signal: controller.signal });
+        const openAiResult = await callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: maxTokensNum, signal: controller.signal });
         clearTimeout(timeout);
         return res.status(200).json(openAiResult);
       } catch (openAiErr) {
@@ -202,7 +228,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const geminiResult = await callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: max_tokens, signal: controller.signal });
+    const geminiResult = await callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: maxTokensNum, signal: controller.signal });
     clearTimeout(timeout);
     return res.status(200).json(geminiResult);
 
