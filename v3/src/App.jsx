@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.226";
+const APP_VERSION = "3.0.227";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12290,11 +12290,10 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 11px", background: "#f4f6fa", borderBottom: "1px solid #e6e3db" }}>
           <span aria-hidden="true" style={{ width: 16, height: 16, borderRadius: 4, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 9, lineHeight: "16px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
           <span title={c.company} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
-          {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount}</span>}
+          {c.sameEmployerCount > 0 && <span title={c.sameEmployerCount + " other live posting" + (c.sameEmployerCount === 1 ? "" : "s") + " from this employer in this result set"} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{c.sameEmployerCount} from employer</span>}
           {/* FLOW-1b: per-card match-tier badge - states the MATCH BASIS, not a
               quality score. Shape (glyph) + label distinguish tiers, not colour alone. */}
           <span title={step2MatchTierTitle(c.matchTier)} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#5b6878", background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>
-            <span aria-hidden="true">{c.matchTier === "exact title" ? "=" : c.matchTier === "title variant" ? "~" : c.matchTier === "nuance" ? "^" : c.matchTier === "R&R match" ? "#" : "?"}</span>
             {c.matchTier}
           </span>
           {band && <span title={"AI exposure: " + band.label} style={{ marginLeft: "auto", width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
@@ -12574,9 +12573,15 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             </div>
           </aside>
 
-          <div style={{ flex: 1, minWidth: 0, display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Badge key: the card chips must explain themselves without hover (touch + honesty). */}
+            <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.5 }}>
+              <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
+            </p>
+            <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
             {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" })}
             {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" })}
+            </div>
           </div>
         </div>
       )}
@@ -12623,7 +12628,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               <div style={{ flex: "none", padding: "16px 20px", borderBottom: "1px solid #eceae2", display: "flex", alignItems: "flex-start", gap: 12 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#8a8274", letterSpacing: ".03em" }}>{fullAd.company}{fullAd.age ? "  " + DOT + "  " + fullAd.age : ""}</div>
-                  <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.25rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.2 }}>{j.title}</h3>
+                  <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.375rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.25 }}>{j.title}</h3>
                 </div>
                 <button onClick={() => setFullAd(null)} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
               </div>
@@ -12635,7 +12640,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 </div>
                 {skills.length > 0 && (
                   <div style={{ marginBottom: 14 }}>
-                    <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>SKILLSETS</div>
+                    <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>SKILLSETS</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.map((s, i) => (<span key={i} style={{ fontSize: "0.75rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "3px 10px" }}>{s}</span>))}</div>
                   </div>
                 )}
@@ -12644,7 +12649,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     existing full-ad modal. Address only on matched:"exact" (never
                     the derived SSIC fallback); count is over the current result set. */}
                 <div style={{ marginBottom: 14, padding: "10px 12px", background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 9 }}>
-                  <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 7 }}>REGISTERED EMPLOYER</div>
+                  <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 7 }}>REGISTERED EMPLOYER</div>
 
                   {empReg && empReg.status === "loading" && (
                     <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a0b0" }}>Checking ACRA registration{ELL}</p>
@@ -12666,7 +12671,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                               ? <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Locating map pin{ELL}</p>
                               : <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Map preview not available - the registered address above is the verified fact.</p>
                         )}
-                        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved: {empReg.retrievedAt}</p>
+                        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved {(() => { try { return new Date(empReg.retrievedAt).toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT"; } catch (_) { return empReg.retrievedAt; } })()}</p>
                       </div>
                     );
                   })()}
@@ -12682,8 +12687,16 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                   </p>
                 </div>
 
-                <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
-                {lines.length ? lines.map((ln, i) => (<p key={i} style={{ margin: ln.charAt(0) === String.fromCharCode(0x2022) ? "0 0 3px 6px" : "0 0 9px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.55 }}>{ln}</p>)) : <p style={{ color: "#94a0b0", fontSize: "0.85rem" }}>No description text in this posting.</p>}
+                <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
+                {lines.length ? lines.map((ln, i) => {
+                  const isBullet = ln.charAt(0) === String.fromCharCode(0x2022);
+                  // Heading heuristic (deterministic, verbatim text untouched): short line, no
+                  // sentence-ending punctuation, few words - the ad's own section titles
+                  // ("Roles & Responsibilities", "Governance & Quality") get real hierarchy.
+                  const isHeading = !isBullet && ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Z0-9]/.test(ln);
+                  if (isHeading) return <p key={i} style={{ margin: i === 0 ? "0 0 6px" : "16px 0 6px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.9375rem", fontWeight: 700, color: "#16202e", lineHeight: 1.35 }}>{ln}</p>;
+                  return <p key={i} style={{ margin: isBullet ? "0 0 5px 14px" : "0 0 10px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.6 }}>{ln}</p>;
+                }) : <p style={{ color: "#94a0b0", fontSize: "0.85rem" }}>No description text in this posting.</p>}
               </div>
               <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "12px 20px", borderTop: "1px solid #eceae2", background: "#fbfaf8" }}>
                 <button onClick={() => { onAnalysePosting(j); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", color: "#fff", background: "#142a8e", border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer", minHeight: 44 }}>Analyse this posting</button>
@@ -14185,7 +14198,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                             ? <p style={{ margin: "0 0 6px", fontSize: "0.75rem", color: C.muted }}>Locating map pin...</p>
                             : <p style={{ margin: "0 0 6px", fontSize: "0.75rem", color: C.muted }}>Map preview not available - the registered address above is the verified fact.</p>
                       )}
-                      <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) &middot; Match: exact &middot; Retrieved: {empReg.retrievedAt}</p>
+                      <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) &middot; Match: exact &middot; Retrieved {(() => { try { return new Date(empReg.retrievedAt).toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT"; } catch (_) { return empReg.retrievedAt; } })()}</p>
                     </div>
                   );
                 })()}
