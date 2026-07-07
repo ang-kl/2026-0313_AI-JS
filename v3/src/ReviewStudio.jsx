@@ -84,14 +84,28 @@ function rsLens(text) {
 }
 // Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
 // engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
-function buildDissection(result) {
+function buildDissection(result, posting) {
   const ja = result && result.jobAnatomy, rd = result && result.responsibilitiesData;
   const raw = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const spans = raw.slice(0, 14).map((d, i) => {
     const text = typeof d === "string" ? d : d.text; if (!text) return null;
     const expo = (d && d.exposureNow) || null;
-    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo };
+    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo, sec: "duty" };
   }).filter(Boolean);
+  // RS-SEC: Requirements/Benefits lines join the analysis as first-class spans. Exposure is
+  // WITHHELD (the engine classifies duties only - honesty contract), but the personas,
+  // Evidence Auditor weak-phrase check and the O-I-A dissect all read them now.
+  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+  const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
+  let adText = rsAdText(srcJob || {});
+  if ((!adText || adText.trim().length < 40) && posting && posting.text) adText = rsAdText({ description: posting.text });
+  let rq = 0;
+  rsAdSections(adText).filter((sec) => sec.canon === "Requirements" || sec.canon === "Benefits").forEach((sec) => {
+    sec.lines.forEach((ln) => {
+      if (rq >= 8 || ln.length < 12) return;
+      spans.push({ id: "q" + rq++, text: ln, band: null, lens: rsLens(ln), layer: sec.canon.toLowerCase(), exposure: null, sec: "req" });
+    });
+  });
   return { spans, comments: rsComments(spans) };
 }
 const RS_STOP = new Set(["the", "and", "for", "with", "into", "across", "various", "adhoc", "other", "duties", "support", "manage", "ensure", "provide", "drive", "deliver", "implement", "coordinate", "handle", "perform", "assist", "their", "this", "that", "from", "your", "our", "initiatives", "tasks", "work"]);
@@ -136,6 +150,42 @@ function rsAdText(job) {
     .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
     .replace(/[ \t]+/g, " ");
+}
+// RS-SEC: deterministic ad sectioniser (design ref: Work Intelligence Studio, 07-07 '26).
+// Splits the verbatim ad into its own sections via the same heading heuristic as the Step 2
+// modal (short line, few words, no terminal punctuation); canonical labels map common
+// phrasings so Requirements/Qualifications/Benefits surface in the manuscript AND the
+// analysis. Verbatim text is never rewritten - grouping only.
+const RS_SEC_MAP = [
+  [/^(about|overview|role overview|the role|about the role|purpose|summary|who we are|about us|company)/i, "Role overview"],
+  [/^(responsibilit|duties|what you.{0,3}ll do|what you will do|key accountabilit|the job|your role|job description|roles?\s*&?\s*responsibilit)/i, "Responsibilities"],
+  [/^(requirement|qualif|who you are|what (?:we.{0,3}re|we are) looking|skills?\s*(?:and|&)\s*experience|ideal candidate|must have|you (?:have|bring))/i, "Requirements"],
+  [/^(benefit|we offer|perks|what.{0,3}s in it|remuneration|package|why join)/i, "Benefits"],
+];
+function rsAdSections(adText) {
+  const lines = String(adText || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
+  const isHeading = (ln) => ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Za-z]/.test(ln) && !/^[-*\u2022]/.test(ln);
+  const secs = []; let cur = { title: null, lines: [] };
+  lines.forEach((ln) => {
+    if (isHeading(ln)) { if (cur.title || cur.lines.length) secs.push(cur); cur = { title: ln, lines: [] }; }
+    else cur.lines.push(ln);
+  });
+  if (cur.title || cur.lines.length) secs.push(cur);
+  return secs.map((sec) => {
+    const hit = sec.title ? RS_SEC_MAP.find(([rx]) => rx.test(sec.title)) : null;
+    return { title: sec.title, lines: sec.lines, canon: hit ? hit[1] : (sec.title ? null : "Role overview") };
+  });
+}
+// RS-NUC: phrase nucleus - the salient 3-5 word core of a line, so highlights are
+// phrase-level (design standard), not a wall of underlined whole lines. Deterministic:
+// first content word (>=4 chars, not a stock verb/stop word) starts the window.
+function rsNucleus(text) {
+  const words = String(text || "").split(/\s+/);
+  const start = words.findIndex((w) => { const c = w.toLowerCase().replace(/[^a-z0-9-]/g, ""); return c.length >= 4 && !RS_STOP.has(c) && !RS_VERB.test(c); });
+  if (start < 0 || words.length < 3) return null;
+  let end = Math.min(words.length, start + 5);
+  for (let k = start; k < end; k++) { if (/[.;:]$/.test(words[k])) { end = k + 1; break; } }
+  return { pre: words.slice(0, start).join(" "), phrase: words.slice(start, end).join(" "), post: words.slice(end).join(" ") };
 }
 // Each: a regex that captures the empty phrase + a little trailing context, a category, a plain
 // interpretation, and a "question-mark move" counter built from the verbatim phrase.
@@ -328,6 +378,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // considered. Lazy-init so this reads the real viewport once, not on every render.
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
+  const [adOpen, setAdOpen] = useState(false);   // ads FAB: verbatim source-ad overlay
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
   // Drives whether the drawer/comment-margin panes portal to document.body (mobile
   // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
@@ -344,7 +395,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  const dissection = useMemo(() => buildDissection(result), [result]);
+  const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
+  // RS-SEC: the parsed ad sections for the manuscript (same adText fallback as Critical Read).
+  const adSections = useMemo(() => {
+    const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+    const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
+    let t = rsAdText(srcJob || {});
+    if ((!t || t.trim().length < 40) && posting && posting.text) t = rsAdText({ description: posting.text });
+    return rsAdSections(t);
+  }, [result, posting]);
   const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting), [result, dissection.spans, title, posting]);
   const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
@@ -581,28 +640,60 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} verbatim</Chip>
                 {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
               </div>
-              {overview && <>
-                <h2 style={manuH2}>Role overview</h2>
-                <p style={manuP}>{overview}</p>
-              </>}
-              {dissection.spans.length > 0 && <>
+              {(() => {
+                const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
+                if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{ln}</p>)}</>;
+                return overview ? <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></> : null;
+              })()}
+              {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
                 <h2 style={manuH2}>Responsibilities</h2>
                 <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                  {dissection.spans.map((s) => {
+                  {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
+                    // RS-NUC (design standard): highlight the salient PHRASE, not the whole
+                    // line - a page of full-line underlines reads as noise and fake links.
+                    const nuc = rsNucleus(s.text);
+                    const mark = (
+                      <span role="button" tabIndex={0} aria-pressed={on}
+                        aria-label={s.text + ". " + (withheld ? "Exposure withheld." : (BANDS[s.band] ? "Exposure " + BANDS[s.band].label + "." : ""))}
+                        title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
+                        onClick={() => setActiveSpan(on ? null : s.id)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
+                        style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : s.text}</span>
+                    );
                     return (
                       <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
-                        <span role="button" tabIndex={0} aria-pressed={on}
-                          title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
-                          onClick={() => setActiveSpan(on ? null : s.id)}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
+                        {nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}
                       </li>
                     );
                   })}
                 </ul>
               </>}
+              {/* RS-SEC: the ad's OTHER sections (Requirements, Qualifications, Benefits, and any
+                  section the ad names itself) - verbatim, with the ad's own heading. Requirement
+                  lines that joined the analysis are tappable like duties (exposure withheld). */}
+              {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
+                <div key={"sec" + si}>
+                  <h2 style={manuH2}>{sec.canon || sec.title}</h2>
+                  <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                    {sec.lines.map((ln, li) => {
+                      const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
+                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{ln}</li>;
+                      const on = activeSpan === sp.id; const nuc = rsNucleus(ln); const st = SPAN_STYLE_WITHHELD;
+                      const mark = (
+                        <span role="button" tabIndex={0} aria-pressed={on}
+                          aria-label={ln + ". In the analysis; exposure withheld (requirements are not duty spans)."}
+                          title="In the analysis - exposure withheld (the engine classifies duties only)"
+                          onClick={() => setActiveSpan(on ? null : sp.id)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
+                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : ln}</span>
+                      );
+                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}</li>;
+                    })}
+                  </ul>
+                </div>
+              ))}
               {skills.length > 0 && <>
                 <h2 style={manuH2}>Skills the posting asks for</h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
@@ -684,6 +775,39 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
+      {/* Ads FAB (design ref: Work Intelligence Studio): the source ad is one tap away from
+          anywhere in Step 3 - verbatim, sectioned, read-only. */}
+      {createPortal(
+        <>
+          <button type="button" onClick={() => setAdOpen(true)} aria-label="Open the source job ad" title="Open the source job ad"
+            style={{ position: "fixed", right: 22, bottom: 74, zIndex: 1290, minWidth: 56, minHeight: 56, borderRadius: 28, border: "1px solid #c7d6ff", background: "#142a8e", color: "#fff", cursor: "pointer", boxShadow: "0 8px 24px rgba(20,42,142,.35)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "0 18px", fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem" }}>
+            <span aria-hidden="true" style={{ fontSize: "1rem" }}>{String.fromCodePoint(0x1f4c4)}</span> Ad
+          </button>
+          {adOpen && (
+            <div role="dialog" aria-modal="true" aria-label="Source job ad, verbatim" onClick={() => setAdOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 1310, background: "rgba(13,18,28,.36)", display: "flex", alignItems: "center", justifyContent: "center", padding: 26 }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: 640, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fff", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
+                <div style={{ flex: "none", display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 18px", borderBottom: "1px solid #eceae2" }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>SOURCE AD {RS_DOT} VERBATIM</div>
+                    <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.25rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.25 }}>{title || "this role"}</h3>
+                  </div>
+                  <button onClick={() => setAdOpen(false)} aria-label="Close" style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
+                </div>
+                <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+                  {adSections.length ? adSections.map((sec, i) => (
+                    <div key={i}>
+                      {sec.title && <p style={{ margin: i === 0 ? "0 0 6px" : "14px 0 6px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.9375rem", fontWeight: 700, color: "#16202e" }}>{sec.title}</p>}
+                      {sec.lines.map((ln, k) => <p key={k} style={{ margin: "0 0 8px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.6 }}>{ln}</p>)}
+                    </div>
+                  )) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a0b0" }}>No ad text available for this analysis.</p>}
+                  <p style={{ margin: "12px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Verbatim from {source || "MyCareersFuture"}; grouping only, no rewriting. AI-assisted {RS_DOT} human decides.</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>,
+        document.body
+      )}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
           {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8595d6" }}>v{version}</span>}
