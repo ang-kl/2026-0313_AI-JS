@@ -494,6 +494,40 @@ function rsContradictions(spans, title) {
   }
   return out;
 }
+// ── AI-3 (spec No.135): Structured Analytic Techniques, deterministic slice.
+// Quality-of-Information check: every requirement-ish claim graded verifiable /
+// vague / unfalsifiable by testable features of the text itself. Indicators &
+// signposts: in-result-set signals (repost multiplicity, salary disclosure rate)
+// computed from the sampled jobs - no external calls, no LLM. ─────────────────────
+function rsQoI(spans) {
+  const reqs = (spans || []).filter((x) => x.sec === "req");
+  if (!reqs.length) return [];
+  return reqs.map((r) => {
+    const t = r.text;
+    const hasNumber = /\d/.test(t);
+    const named = /\b(?:degree|diploma|bachelor|master|ph\.?d|certified|certification|licen[sc]e|python|sql|java|aws|azure|gcp|iso \d+)\b/i.test(t);
+    const weak = /\b(?:familiar|exposure to|awareness of|knowledge of|understanding of|good|strong|excellent|proven)\b/i.test(t);
+    const grade = (hasNumber || named) && !weak ? "verifiable" : weak && !(hasNumber || named) ? "unfalsifiable" : "vague";
+    return { id: "qoi-" + r.id, grade, text: t,
+      why: grade === "verifiable" ? "Carries a number or a named, checkable credential - it can be tested in screening." : grade === "vague" ? "Mixes a checkable element with subjective wording - pin the threshold before relying on it." : "No number, no named credential - this cannot be verified or failed, only asserted.",
+      move: grade === "verifiable" ? "Meet it or show the named equivalent." : "Ask: what threshold, measured how, by whom?" };
+  }).slice(0, 8);
+}
+function rsIndicators(result) {
+  const rdd = result && result.responsibilitiesData;
+  const jobs = (rdd && Array.isArray(rdd.jobs)) ? rdd.jobs : [];
+  if (jobs.length < 3) return [];
+  const out = [];
+  const key = (j) => (String(j.title || "").toLowerCase().trim() + "|" + String(j.postedCompany && j.postedCompany.name || j.companyName || "").toLowerCase().trim());
+  const dupes = {};
+  jobs.forEach((j) => { const k = key(j); dupes[k] = (dupes[k] || 0) + 1; });
+  const maxDupe = Math.max(...Object.values(dupes));
+  if (maxDupe >= 3) out.push({ id: "ind-repost", label: "repost pattern", obs: maxDupe + " near-identical ads (same title + employer) in the " + jobs.length + " sampled", why: "Repeated posting of the same role often signals churn, an always-open req, or pipeline building rather than one vacancy.", move: "Ask how long the position has been open and why." });
+  const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax || (j.salary && (j.salary.minimum || j.salary.maximum))).length;
+  const pct = Math.round((withSalary / jobs.length) * 100);
+  if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
+  return out;
+}
 function buildCriticalRead(result, spans, title, posting) {
   const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   let adText = rsAdText(firstJob);
@@ -510,7 +544,7 @@ function buildCriticalRead(result, spans, title, posting) {
       .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
       .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
   }
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -796,6 +830,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
                 {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
               </>}
+              {critical.qoi && critical.qoi.length > 0 && <>
+                <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
+                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
+              </>}
+              {critical.indicators && critical.indicators.length > 0 && <>
+                <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
+                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
+              </>}
               {critical.falsification.length > 0 && <>
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
                 {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed" />)}
@@ -837,7 +879,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
