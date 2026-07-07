@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.230";
+const APP_VERSION = "3.0.231";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12113,7 +12113,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
   const [fullAd, setFullAd] = useState(null);
-  const [folioId, setFolioId] = useState(null); // employer folio: card id whose header tab is expanded
+  const [folioId, setFolioId] = useState(null);   // employer folio: card id whose tab is expanded
+  const [folioTab, setFolioTab] = useState(null);  // which tab: "tier" (match basis) | "ads" (employer's other jobs)
   const [empReg, setEmpReg] = useState(null); // { status:"loading"|"done", data } for the open fullAd's employer
   const [empGeo, setEmpGeo] = useState(null); // { status:"loading"|"done", data } for the open fullAd's map pin
   const barRef = useRef(null);
@@ -12315,41 +12316,59 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
     return (
       <div key={c.id} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
-        {/* FOLIO: the header strip is a 44px tab - tap to expand the match basis and the
-            employer's other ads in this result set (Human Lead mockup, 07-07 '26). Company
-            name leads: bold, a size class up (doctrine T_HEAD 15px). */}
+        {/* FOLIO v2 (Human Lead, 07-07 '26): company leads row 1; row 2 is a folder-TAB
+            strip - [match tier] and [+N ads] are separate tabs, each opening its own panel
+            (tier -> what the match basis means; ads -> the employer's other jobs here). */}
         {(() => {
-          const open = folioId === c.id;
           const others = sorted.filter((x) => x.id !== c.id && step2EmployerKey(x.job) === step2EmployerKey(c.job));
+          const openTab = folioId === c.id ? folioTab : null;
+          const setTab = (t) => { if (openTab === t) { setFolioId(null); setFolioTab(null); } else { setFolioId(c.id); setFolioTab(t); } };
+          const tabStyle = (on) => ({
+            display: "inline-flex", alignItems: "center", gap: 5, minHeight: 36, padding: "5px 12px",
+            fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, whiteSpace: "nowrap",
+            color: on ? "#142a8e" : "#5b6878",
+            background: on ? "#fbfaf8" : "#eef1f5",
+            border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"),
+            borderBottom: on ? "1px solid #fbfaf8" : "1px solid #d9dee6",
+            borderRadius: "9px 9px 0 0", cursor: "pointer", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1,
+          });
           return (
             <>
-              <button type="button" aria-expanded={open}
-                aria-label={c.company + ". Match basis: " + c.matchTier + (others.length ? ". " + others.length + " more ad" + (others.length === 1 ? "" : "s") + " from this employer." : ".") + " Tap to " + (open ? "collapse." : "expand.")}
-                onClick={(e) => { e.stopPropagation(); setFolioId(open ? null : c.id); }}
-                style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, padding: "8px 11px", background: open ? "#eef2ff" : "#f4f6fa", border: "none", borderBottom: "1px solid " + (open ? "#cdd9ff" : "#e6e3db"), cursor: "pointer", textAlign: "left" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44, padding: "8px 11px 4px", background: "#f4f6fa" }}>
                 <span aria-hidden="true" style={{ width: 20, height: 20, borderRadius: 5, background: "#dbe2ea", color: "#52607a", fontFamily: "'Spline Sans',sans-serif", fontWeight: 800, fontSize: 11, lineHeight: "20px", textAlign: "center", flex: "none" }}>{(c.company || "?").slice(0, 1).toUpperCase()}</span>
                 <span title={c.company} style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.9375rem", fontWeight: 800, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.company}</span>
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#5b6878", background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>{c.matchTier}</span>
-                {others.length > 0 && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: "#7a4b0b", background: "#fdeed9", border: "1px solid #f0cd9e", borderRadius: 5, padding: "1px 6px", flex: "none", whiteSpace: "nowrap" }}>+{others.length} ads</span>}
                 {band && <span title={"AI exposure: " + band.label} style={{ width: 8, height: 8, borderRadius: "50%", background: band.dot, flex: "none" }} />}
-                <span aria-hidden="true" style={{ fontSize: "0.625rem", color: "#8a8274", flex: "none", transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }}>{String.fromCharCode(0x25bc)}</span>
-              </button>
-              {open && (
+              </div>
+              <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "flex-end", gap: 5, padding: "4px 11px 0", background: "#f4f6fa", borderBottom: "1px solid #d9dee6", cursor: "default" }}>
+                <button type="button" aria-expanded={openTab === "tier"}
+                  aria-label={"Match basis: " + c.matchTier + ". Tap to " + (openTab === "tier" ? "hide" : "show") + " what this means."}
+                  onClick={() => setTab("tier")} style={tabStyle(openTab === "tier")}>
+                  {c.matchTier} <span aria-hidden="true" style={{ fontSize: "0.5625rem", transform: openTab === "tier" ? "rotate(180deg)" : "none", transition: "transform .15s" }}>{String.fromCharCode(0x25be)}</span>
+                </button>
+                {others.length > 0 && (
+                  <button type="button" aria-expanded={openTab === "ads"}
+                    aria-label={others.length + " more ad" + (others.length === 1 ? "" : "s") + " from this employer in this result. Tap to " + (openTab === "ads" ? "hide" : "list") + " them."}
+                    onClick={() => setTab("ads")} style={{ ...tabStyle(openTab === "ads"), color: openTab === "ads" ? "#7a4b0b" : "#7a4b0b", background: openTab === "ads" ? "#fbfaf8" : "#fdeed9", border: "1px solid " + (openTab === "ads" ? "#f0cd9e" : "#f0cd9e"), borderBottom: openTab === "ads" ? "1px solid #fbfaf8" : "1px solid #d9dee6" }}>
+                    +{others.length} ads <span aria-hidden="true" style={{ fontSize: "0.5625rem", transform: openTab === "ads" ? "rotate(180deg)" : "none", transition: "transform .15s" }}>{String.fromCharCode(0x25be)}</span>
+                  </button>
+                )}
+              </div>
+              {openTab === "tier" && (
                 <div onClick={(e) => e.stopPropagation()} style={{ padding: "9px 12px", background: "#fbfaf8", borderBottom: "1px solid #e6e3db", cursor: "default" }}>
                   <p style={{ margin: 0, fontSize: "0.6875rem", color: "#52607a", lineHeight: 1.5 }}><span style={{ fontWeight: 700 }}>Match basis</span> {String.fromCharCode(0x00b7)} {step2MatchTierTitle(c.matchTier)}</p>
-                  {others.length > 0 && (
-                    <>
-                      <p style={{ margin: "8px 0 3px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>OTHER ADS {String.fromCharCode(0x00b7)} THIS EMPLOYER {String.fromCharCode(0x00b7)} THIS RESULT</p>
-                      {others.slice(0, 6).map((o) => (
-                        <button key={o.id} type="button" onClick={(e) => { e.stopPropagation(); setFolioId(null); setFullAd(o); }}
-                          style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, padding: "5px 7px", background: "transparent", border: "1px solid transparent", borderRadius: 6, cursor: "pointer", textAlign: "left" }}>
-                          <span style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#1a56db", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.job.title}</span>
-                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", flex: "none" }}>{step2SalK(o.salaryMid) || o.age || ""}</span>
-                        </button>
-                      ))}
-                      {others.length > 6 && <p style={{ margin: "3px 0 0", fontSize: "0.6875rem", color: "#8a8274" }}>+{others.length - 6} more - use the employer filter above.</p>}
-                    </>
-                  )}
+                </div>
+              )}
+              {openTab === "ads" && (
+                <div onClick={(e) => e.stopPropagation()} style={{ padding: "9px 12px", background: "#fbfaf8", borderBottom: "1px solid #e6e3db", cursor: "default" }}>
+                  <p style={{ margin: "0 0 3px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>OTHER ADS {String.fromCharCode(0x00b7)} THIS EMPLOYER {String.fromCharCode(0x00b7)} THIS RESULT</p>
+                  {others.slice(0, 6).map((o) => (
+                    <button key={o.id} type="button" onClick={(e) => { e.stopPropagation(); setFolioId(null); setFolioTab(null); setFullAd(o); }}
+                      style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, padding: "5px 7px", background: "transparent", border: "1px solid transparent", borderRadius: 6, cursor: "pointer", textAlign: "left" }}>
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#1a56db", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.job.title}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", flex: "none" }}>{step2SalK(o.salaryMid) || o.age || ""}</span>
+                    </button>
+                  ))}
+                  {others.length > 6 && <p style={{ margin: "3px 0 0", fontSize: "0.6875rem", color: "#8a8274" }}>+{others.length - 6} more - use the employer filter above.</p>}
                 </div>
               )}
             </>
