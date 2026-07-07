@@ -585,6 +585,11 @@ function buildCriticalRead(result, spans, title, posting) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
+// No.136 G1 (§7 explainability): every generated section declares WHY it appeared - the
+// triggering evidence + the governing spec section. Deterministic string, no LLM.
+function WhyLine({ why, sec }) {
+  return <p style={{ margin: "-6px 0 10px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>shown because {why} {RS_DOT} {sec}</p>;
+}
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
 function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
@@ -920,26 +925,32 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </>}
               {critical.blindSpots && critical.blindSpots.length > 0 && <>
                 <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
+                <WhyLine why={critical.blindSpots.length + " of 6 standard fields are absent from the ad text"} sec="spec No.135 AI-2" />
                 {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed" />)}
               </>}
               {critical.contradictions && critical.contradictions.length > 0 && <>
                 <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
+                <WhyLine why={critical.contradictions.length + " duty line" + (critical.contradictions.length === 1 ? " sits" : "s sit") + " outside the ad's majority domain"} sec="spec No.135 AI-2" />
                 {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
               </>}
               {critical.trajectory && <>
                 <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
+                <WhyLine why={"the engine classified enough duties to aggregate a trajectory"} sec="spec No.135 AI-4" />
                 <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
               </>}
               {critical.salaryPos && <>
                 <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
+                <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
                 <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
               </>}
               {critical.qoi && critical.qoi.length > 0 && <>
                 <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
+                <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
                 {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
               </>}
               {critical.indicators && critical.indicators.length > 0 && <>
                 <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
+                <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
                 {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
               </>}
               {critical.falsification.length > 0 && <>
