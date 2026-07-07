@@ -1448,6 +1448,7 @@
 // frozen symbols + api/mcf.js untouched. G1 (v3.0.118 -> v3.0.119).
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
+import { loadState, saveState } from "./persist.js";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio from "./ReviewStudio.jsx";
@@ -1458,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.231";
+const APP_VERSION = "3.0.233";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12109,6 +12110,25 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   // filter loop then read undefined.length and crashed the whole app the
   // moment Step 2 rendered).
   const [facets, setFacets] = useState(() => Object.fromEntries(STEP2_FACETS.map((f) => [f.key, []])));
+  // KV-1: step-2 browse prefs (sort + facet selections) persist across sessions/devices.
+  // prefsReady gates the save effect - without it the mount-time defaults would race the
+  // async load and clobber the stored prefs (debounced save can beat the KV round-trip).
+  const prefsReady = useRef(false);
+  useEffect(() => {
+    let done = false;
+    loadState("prefs", (v) => {
+      if (v && typeof v === "object") {
+        if (typeof v.sort === "string") setSort(v.sort);
+        if (v.facets && typeof v.facets === "object") setFacets((f) => ({ ...f, ...Object.fromEntries(Object.entries(v.facets).filter(([k, arr]) => k in f && Array.isArray(arr))) }));
+      }
+      if (!done) { done = true; setTimeout(() => { prefsReady.current = true; }, 0); }
+    });
+    // No stored value -> onValue never fires; open the gate after a grace window.
+    const t = setTimeout(() => { prefsReady.current = true; }, 2500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { if (prefsReady.current) saveState("prefs", { sort, facets }); }, [sort, facets]);
   const [openFacet, setOpenFacet] = useState(null);
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
