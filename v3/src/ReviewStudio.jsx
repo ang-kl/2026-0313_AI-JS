@@ -516,6 +516,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
   const [focusSkill, setFocusSkill] = useState(null); // AI-1 click-to-analyse: focused skill-pill index
+  // AI-1 fix: a span tap must take the focus card over from an open skill card - the card
+  // resolver prefers the skill, so clear it whenever a span becomes active (found live).
+  useEffect(() => { if (activeSpan) setFocusSkill(null); }, [activeSpan]);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
   // KV-1: review decisions persist per posting (cross-device via /api/state, localStorage
   // fallback). Keyed by the posting uuid so two ads never share decisions.
