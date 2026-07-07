@@ -1368,11 +1368,25 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // in its own layer - drag by header, resize by corner, click brings to front, close
   // returns it to its home strip. Arrangement persists per posting (KV "boards").
   const [floats, setFloats] = useState([]); // [{id,x,y,w,h,z}]
+  // U4-C: panel splitter (left panel % of the desk). U4-A: per-tab dock overrides (a
+  // window dragged onto a panel joins THAT side's strip). U4-B: windows pinned to the
+  // right edge (auto-hide; click slides them over the desk, ESC dismisses).
+  const [splitPct, setSplitPct] = useState(58);
+  const [overrides, setOverrides] = useState({}); // {tab: {winId: "left"|"right"}}
+  const [pinned, setPinned] = useState([]);       // [winId]
+  const [slideOpen, setSlideOpen] = useState(null); // pinned winId currently slid out
+  const [dockHover, setDockHover] = useState(null); // "left"|"right" while dragging a float
+  const splitDragRef = useRef(null);
+  const deskRef = useRef(null);
   const zTopRef = useRef(1400);
   const floatDragRef = useRef(null);
   useEffect(() => {
     if (!postingKey) return;
-    loadState("boards", (all) => { if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = 1400 + all.floats[postingKey].length; } });
+    loadState("boards", (all) => {
+      if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = 1400 + all.floats[postingKey].length; }
+      const d = all && all.desk && all.desk[postingKey];
+      if (d) { if (typeof d.splitPct === "number") setSplitPct(Math.max(30, Math.min(75, d.splitPct))); if (d.overrides) setOverrides(d.overrides); if (Array.isArray(d.pinned)) setPinned(d.pinned); }
+    });
   }, [postingKey]);
   const persistFloats = (next) => {
     if (!postingKey) return;
@@ -1381,6 +1395,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       const all = raw ? JSON.parse(raw) : {};
       all.floats = all.floats || {};
       all.floats[postingKey] = next.map(({ id, x, y, w, h, z }) => ({ id, x, y, w, h, z }));
+      all.desk = all.desk || {};
+      all.desk[postingKey] = { splitPct, overrides, pinned };
       saveState("boards", all);
     } catch (_) {}
   };
@@ -1392,6 +1408,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   });
   const dockBack = (id) => setFloats((prev) => { const next = prev.filter((f) => f.id !== id); persistFloats(next); return next; });
   const bringToFront = (id) => setFloats((prev) => { const next = prev.map((f) => f.id === id ? { ...f, z: ++zTopRef.current } : f); persistFloats(next); return next; });
+  useEffect(() => {
+    if (!slideOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setSlideOpen(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [slideOpen]);
+  useEffect(() => { persistFloats(floats); /* also captures splitPct/overrides/pinned via desk blob */ // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [splitPct, overrides, pinned]);
   const startFloatDrag = (e, id) => {
     if (e.target && e.target.closest && e.target.closest("button")) return;
     const f = floats.find((x) => x.id === id); if (!f) return;
@@ -1399,11 +1423,28 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     floatDragRef.current = { id, sx: e.clientX, sy: e.clientY, ox: f.x, oy: f.y };
     if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
   };
+  const dockSideAt = (clientX, clientY) => {
+    const desk = deskRef.current; if (!desk) return null;
+    const r = desk.getBoundingClientRect();
+    if (clientY < r.top || clientY > r.bottom || clientX < r.left || clientX > r.right) return null;
+    return clientX < r.left + (r.width * splitPct) / 100 ? "left" : "right";
+  };
   const moveFloatDrag = (e) => {
     const d = floatDragRef.current; if (!d) return;
+    setDockHover(dockSideAt(e.clientX, e.clientY));
     setFloats((prev) => prev.map((f) => f.id === d.id ? { ...f, x: Math.max(4, Math.min(window.innerWidth - 160, d.ox + e.clientX - d.sx)), y: Math.max(56, Math.min(window.innerHeight - 80, d.oy + e.clientY - d.sy)) } : f));
   };
-  const stopFloatDrag = () => { if (floatDragRef.current) { persistFloats(floats); floatDragRef.current = null; } };
+  const stopFloatDrag = (e) => {
+    const d = floatDragRef.current; if (!d) return;
+    const side = e && e.clientX != null ? dockSideAt(e.clientX, e.clientY) : null;
+    if (side) {
+      // U4-A: drop over a panel docks the window into THAT side's strip (as a tab).
+      setOverrides((prev) => { const next = { ...prev, [tab]: { ...(prev[tab] || {}), [d.id]: side } }; return next; });
+      setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: d.id } }));
+      dockBack(d.id);
+    } else { persistFloats(floats); }
+    setDockHover(null); floatDragRef.current = null;
+  };
   const renderWindow = (id) => (
     id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
     id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
@@ -1421,6 +1462,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         860px: the manuscript takes full width, and the drawer/margin panes become
         fixed-position slide-over panels instead of flex siblings that push it aside. */}
     <style>{`
+      @keyframes wisSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
       @media (max-width: 860px) {
         /* No.138: the desk stacks on phones - left panel above, right below, each
            keeping its own window tabs. */
@@ -1482,14 +1525,24 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
           the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
-      <div className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0 }}>
+      <div ref={deskRef} className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
+        {/* U4-C: draggable splitter sits between the mapped panels (absolute at splitPct). */}
+        <div role="separator" aria-orientation="vertical" aria-label="Resize panels" tabIndex={0}
+          onPointerDown={(e) => { splitDragRef.current = { sx: e.clientX, s0: splitPct }; if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId); }}
+          onPointerMove={(e) => { const d = splitDragRef.current; if (!d || !deskRef.current) return; const w = deskRef.current.getBoundingClientRect().width; setSplitPct(Math.max(30, Math.min(75, d.s0 + ((e.clientX - d.sx) / w) * 100))); }}
+          onPointerUp={() => { if (splitDragRef.current) { splitDragRef.current = null; persistFloats(floats); } }}
+          onKeyDown={(e) => { if (e.key === "ArrowLeft") setSplitPct((v) => Math.max(30, v - 2)); if (e.key === "ArrowRight") setSplitPct((v) => Math.min(75, v + 2)); }}
+          style={{ position: "absolute", top: 0, bottom: 0, left: "calc(" + splitPct + "% - 4px)", width: 8, cursor: "col-resize", zIndex: 6, background: "transparent", touchAction: "none" }} />
         {["left", "right"].map((side) => {
-          const winsAll = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
-          const wins = winsAll.filter((w) => !floats.some((f) => f.id === w));
+          const base = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
+          const ov = overrides[tab] || {};
+          const winsAll = base.filter((w) => !ov[w] || ov[w] === side)
+            .concat(Object.keys(ov).filter((w) => ov[w] === side && !base.includes(w)));
+          const wins = winsAll.filter((w) => !floats.some((f) => f.id === w) && !pinned.includes(w));
           const actPref = (activeWin[tab] && activeWin[tab][side]) || winsAll[0];
           const act = wins.includes(actPref) ? actPref : wins[0];
           return (
-            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "1.4 1 0" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3" }}>
+            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "0 0 " + splitPct + "%" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3", outline: dockHover === side ? "3px solid #1a56db" : "none", outlineOffset: -3, transition: "outline-color .1s" }}>
               <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
                 {wins.map((w) => { const on = act === w; return (
                   <button key={w} type="button" role="tab" aria-selected={on}
@@ -1503,8 +1556,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     style={{ flex: "none", minHeight: 40, minWidth: 40, border: "1px solid #e3e8ef", borderBottom: "1px solid #d9dee6", background: "#fff", color: "#5b6878", borderRadius: "9px 9px 0 0", marginBottom: -1, cursor: "pointer", fontSize: "0.8125rem" }}>{String.fromCharCode(0x29c9)}</button>
                 )}
               </div>
-              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px" }}>
-                {act ? renderWindow(act) : <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>All of this panel's windows are floating - close a floating window to dock it back here.</p>}
+              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px", position: "relative" }}>
+                {dockHover === side && <div aria-hidden="true" style={{ position: "sticky", top: 0, zIndex: 5, textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#1a56db", background: "#eaf0ff", border: "1px dashed #1a56db", borderRadius: 8, padding: "6px 10px", marginBottom: 8 }}>drop to dock here as a tab</div>}
+                {act ? renderWindow(act) : <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>All of this panel's windows are floating or pinned - close or unpin one to dock it back here.</p>}
               </div>
             </div>
           );
@@ -1520,12 +1574,36 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8", cursor: "move", touchAction: "none" }}>
             <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{WIN_LABELS[f.id]}</span>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", flex: "none" }}>drag {String.fromCharCode(0x00b7)} resize corner</span>
+            <button type="button" onClick={() => { setPinned((prev) => prev.includes(f.id) ? prev : prev.concat(f.id)); dockBack(f.id); }} aria-label={"Pin " + WIN_LABELS[f.id] + " to the right edge (auto-hide)"}
+              title="Pin to edge (auto-hide)"
+              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>pin</button>
             <button type="button" onClick={() => dockBack(f.id)} aria-label={"Close and dock " + WIN_LABELS[f.id] + " back to its panel"}
               style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
           </div>
           <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(f.id)}</div>
         </div>
       ))}
+
+      {/* U4-B: pinned edge strip (auto-hide) + the slide-over panel. */}
+      {pinned.length > 0 && (
+        <div style={{ position: "fixed", right: 0, top: "30%", zIndex: 1395, display: "flex", flexDirection: "column", gap: 4 }}>
+          {pinned.map((id) => (
+            <button key={id} type="button" onClick={() => setSlideOpen(slideOpen === id ? null : id)} aria-expanded={slideOpen === id}
+              aria-label={"Slide out pinned window: " + WIN_LABELS[id]}
+              style={{ writingMode: "vertical-rl", minWidth: 44, minHeight: 88, padding: "10px 6px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#142a8e", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRight: "none", borderRadius: "9px 0 0 9px", cursor: "pointer" }}>{WIN_LABELS[id]}</button>
+          ))}
+        </div>
+      )}
+      {slideOpen && (
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(460px, 92vw)", zIndex: 1396, background: "#fbfaf8", borderLeft: "1px solid #d9dee6", boxShadow: "-14px 0 40px rgba(15,23,42,.22)", display: "flex", flexDirection: "column", animation: "wisSlideIn .3s ease" }}>
+          <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8" }}>
+            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e" }}>{WIN_LABELS[slideOpen]}</span>
+            <button type="button" onClick={() => { setPinned((prev) => prev.filter((x) => x !== slideOpen)); setSlideOpen(null); }} aria-label="Unpin - dock this window back to its panel" style={{ flex: "none", minHeight: 32, padding: "0 10px", border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>unpin</button>
+            <button type="button" onClick={() => setSlideOpen(null)} aria-label="Slide the pinned window away (Esc)" style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+          </div>
+          <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(slideOpen)}</div>
+        </div>
+      )}
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
