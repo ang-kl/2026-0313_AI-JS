@@ -627,7 +627,7 @@ function buildCriticalRead(result, spans, title, posting) {
 // No.136 G1 (§7 explainability): every generated section declares WHY it appeared - the
 // triggering evidence + the governing spec section. Deterministic string, no LLM.
 function WhyLine({ why, sec }) {
-  return <p style={{ margin: "-6px 0 10px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>shown because {why} {RS_DOT} {sec}</p>;
+  return <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>shown because {why} {RS_DOT} {sec}</p>;
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -636,10 +636,10 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
   const who = persona || "SIGNAL AUDITOR";
   const oc = obsChip || "from posting";
   return (
-    <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+    <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{who}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>{who}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
@@ -671,7 +671,7 @@ function AdvisoryCard({ persona, children }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
       </div>
       <div style={{ padding: "12px 14px" }}>{children}</div>
@@ -705,16 +705,16 @@ function AITracePanel({ result }) {
       <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".12em", color: "#8a8274", marginBottom: 6 }}>AI TRACE {RS_DOT} OCCUPATION {String.fromCharCode(0x2192)} DUTIES {String.fromCharCode(0x2192)} SKILLS</div>
       {/* Occupation row */}
       <div style={{ background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 10, padding: "10px 13px", marginBottom: 14 }}>
-        <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>OCCUPATION EXPOSURE (AIOE ENGINE)</div>
+        <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>OCCUPATION EXPOSURE (AIOE ENGINE)</div>
         {occ && (occ.band || occ.index != null)
           ? <p style={{ margin: 0, fontSize: "0.875rem", color: "#16202e" }}><strong>{occ.band || "band withheld"}</strong>{occ.index != null ? " " + RS_DOT + " index " + occ.index + "/100" : ""} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>{RS_DOT} occupation{String.fromCharCode(0x2192)}SOC{String.fromCharCode(0x2192)}AIOE {RS_DOT} computed</span></p>
           : <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9a6113" }}>Occupation exposure withheld - the AIOE engine returned no score for this occupation.</p>}
       </div>
       {/* Duty track */}
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>DUTIES ON THE EXPOSURE TRACK (SLE-C ENGINE BANDS {RS_DOT} POSITION = BAND, NOT A SCORE)</div>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>DUTIES ON THE EXPOSURE TRACK (SLE-C ENGINE BANDS {RS_DOT} POSITION = BAND, NOT A SCORE)</div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) repeat(4, 74px)", gap: 0, alignItems: "center", border: "1px solid #eceae2", borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
-        <div style={{ padding: "6px 10px", background: "#f4f6fa", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>duty</div>
-        {AIT_STOPS.map((b) => <div key={b} style={{ padding: "6px 4px", background: "#f4f6fa", textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: BANDS[b].ink }}>{BANDS[b].label}</div>)}
+        <div style={{ padding: "6px 10px", background: "#f4f6fa", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>duty</div>
+        {AIT_STOPS.map((b) => <div key={b} style={{ padding: "6px 4px", background: "#f4f6fa", textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: BANDS[b].ink }}>{BANDS[b].label}</div>)}
         {dutyRows.map((d) => (
           <Fragment key={d.id}>
             <div title={d.text} style={{ padding: "7px 10px", borderTop: "1px solid #f0eee7", fontSize: "0.75rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.text}</div>
@@ -722,14 +722,14 @@ function AITracePanel({ result }) {
               <div key={b} style={{ borderTop: "1px solid #f0eee7", textAlign: "center", padding: "7px 0", background: d.band && ci === col(d.band) ? BANDS[b].bg : "transparent" }}>
                 {d.band && ci === col(d.band)
                   ? <span title={BANDS[b].label + (d.band2y && d.band2y !== d.band ? " - rising to " + (BANDS[d.band2y] ? BANDS[d.band2y].label : d.band2y) + " in ~2y" : "")} style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: BANDS[b].dot }} />
-                  : (ci === 0 && !d.band ? <span title="Exposure withheld - no engine signal" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#9a6113" }}>w/h</span> : null)}
+                  : (ci === 0 && !d.band ? <span title="Exposure withheld - no engine signal" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#9a6113" }}>w/h</span> : null)}
               </div>
             ))}
           </Fragment>
         ))}
       </div>
       {/* Skill mix */}
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>SKILL-LEVEL MIX ({skills.length} SKILLS {RS_DOT} SLE-A ENGINE)</div>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>SKILL-LEVEL MIX ({skills.length} SKILLS {RS_DOT} SLE-A ENGINE)</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
         {[["HIGH", "auto"], ["MEDIUM", "augmented"], ["LOW", "assisted"], ["HUMAN", "human"]].map(([lv, bk]) => (mix[lv] ? <span key={lv} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: BANDS[bk].ink, background: BANDS[bk].bg, border: "1px solid " + BANDS[bk].border, borderRadius: 6, padding: "3px 9px" }}>{BANDS[bk].label}: {mix[lv]}</span> : null))}
         {mix.unclassified ? <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 6, padding: "3px 9px" }}>withheld: {mix.unclassified}</span> : null}
@@ -842,7 +842,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
                 <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
                 {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
-              <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
     </>
@@ -854,7 +854,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
                 <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
                 <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
-              <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
     </>
@@ -866,7 +866,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
                 <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
                 {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
-              <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
     </>
@@ -878,7 +878,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
                 <WhyLine why={"the engine classified enough duties to aggregate a trajectory"} sec="spec No.135 AI-4" />
                 <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
-              <button type="button" onClick={() => setPanelHidden("trajectory", true)} aria-label={"Hide panel: " + G2_LABELS.trajectory} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("trajectory", true)} aria-label={"Hide panel: " + G2_LABELS.trajectory} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
     </>
@@ -943,7 +943,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 ].filter(Boolean).map((c, i) => (
                   <button key={i} type="button" onClick={() => setTab(c.k)} aria-label={c.kick + ": " + c.val + ". Open its tab."}
                     style={{ textAlign: "left", minHeight: 96, background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "14px 16px", cursor: "pointer", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>{c.kick}</div>
+                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>{c.kick}</div>
                     <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.125rem", color: "#16202e", marginBottom: 4 }}>{c.val}</div>
                     <div style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.45, marginBottom: 6 }}>{c.sub}</div>
                     <Chip kind={c.chipK}>{c.chipK}</Chip>
@@ -1003,9 +1003,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
               {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; return (
-                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
                     {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
@@ -1066,7 +1066,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
                 <WhyLine why={critical.blindSpots.length + " of 6 standard fields are absent from the ad text"} sec="spec No.135 AI-2" />
                 {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed" />)}
-              <button type="button" onClick={() => setPanelHidden("blindSpots", true)} aria-label={"Hide panel: " + G2_LABELS.blindSpots} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("blindSpots", true)} aria-label={"Hide panel: " + G2_LABELS.blindSpots} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
               <div style={{ order: g2Rank.contradictions, display: "flex", flexDirection: "column" }}>
@@ -1074,7 +1074,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
                 <WhyLine why={critical.contradictions.length + " duty line" + (critical.contradictions.length === 1 ? " sits" : "s sit") + " outside the ad's majority domain"} sec="spec No.135 AI-2" />
                 {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
-              <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
               
@@ -1138,7 +1138,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   );
   const winManuscript = (
 
-            <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "28px 30px 34px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
+            <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
@@ -1159,7 +1159,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
                 if (overview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></>;
                 const escoDesc = String((result && result.description) || "").trim();
-                if (escoDesc) return <><h2 style={manuH2}>Role overview <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · ESCO taxonomy</span></h2><p style={manuP}>{rsUnderlineSkillTerms(escoDesc, skillTermRe)}</p></>;
+                if (escoDesc) return <><h2 style={manuH2}>Role overview <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · ESCO taxonomy</span></h2><p style={manuP}>{rsUnderlineSkillTerms(escoDesc, skillTermRe)}</p></>;
                 return null;
               })()}
               {/* LOOP-1 diagnosis (Human Lead: "step 3 keeps having issues to show ads and
@@ -1190,7 +1190,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
                     text is AI-extracted (jobAnatomy normalise pass), so the heading chip says
                     so rather than claiming verbatim. Trust-loop rule 4. */}
-                <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>AI-extracted · tap a phrase</span></h2>
+                <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>AI-extracted · tap a phrase</span></h2>
                 <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                   {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
@@ -1222,7 +1222,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   lines that joined the analysis are tappable like duties (exposure withheld). */}
               {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
                 <div key={"sec" + si}>
-                  <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
+                  <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                     {sec.lines.map((ln, li) => {
                       const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
@@ -1245,9 +1245,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               ))}
               {skills.length > 0 && <>
-                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span>
+                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span>
                   {/* W2: say HOW the skill set was anchored - SG-first when SSOC steered it. */}
-                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
+                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
                 </h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
                   <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
@@ -1268,17 +1268,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               const so = (focusSkill != null && skillObjs[focusSkill]) ? skillObjs[focusSkill] : null;
               const f = so ? rsSkillFocus(so, dissection.spans) : (sp ? rsSpanFocus(sp, skillObjs, skillTermRe, skills) : null);
               if (!f) return null;
-              const chip = (k, label) => { const c = PROV[k] || PROV.unverified; return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: c.ink, background: c.bg, border: "1px solid " + c.border, borderRadius: 4, padding: "1px 6px" }}>{label || k}</span>; };
+              const chip = (k, label) => { const c = PROV[k] || PROV.unverified; return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: c.ink, background: c.bg, border: "1px solid " + c.border, borderRadius: 4, padding: "1px 6px" }}>{label || k}</span>; };
               return (
                 <div style={{ border: "1.5px solid #1a56db", background: "#f5f8ff", borderRadius: 10, padding: "12px 13px", marginBottom: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#142a8e" }}>{f.title.toUpperCase()} {RS_DOT} O-I-A</span>
                     <button onClick={() => { setActiveSpan(null); setFocusSkill(null); }} aria-label="Close analysis card" style={{ marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #cdd9ff", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
                   </div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>OBSERVATION</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>OBSERVATION</div>
                   <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 4px" }}>{String.fromCharCode(0x201c)}{f.obs}{String.fromCharCode(0x201d)}</p>
                   <div style={{ marginBottom: 9 }}>{chip(f.obsChip, f.obsChipLabel)}</div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>INTERPRETATION</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>INTERPRETATION</div>
                   {f.interp.map((ln, i) => <p key={i} style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 3px" }}>{ln}</p>)}
                   {/* Reciprocity (Human Lead): the card links BACK into the ad - each invoking
                       duty is a jump link that highlights its line in the manuscript. */}
@@ -1296,7 +1296,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     </div>
                   )}
                   <div style={{ margin: "3px 0 9px" }}>{chip(f.interpChip)}</div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>APPLICATION</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>APPLICATION</div>
                   <p style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 4px" }}>{f.appl}</p>
                   {chip(f.applChip)}
                 </div>
@@ -1309,7 +1309,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193" }}>{marginComments.length}</span>
       </div>
       {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this analysis yet.</p>}
             
@@ -1322,9 +1322,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                     <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
-                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }}>{c.type}</span>
+                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }}>{c.type}</span>
                   </div>
-                  {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
+                  {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
                   {anchorText && <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#52607a", borderLeft: "2px solid #d9d6cd", paddingLeft: 9, margin: "0 0 8px", lineHeight: 1.4 }}>{String.fromCharCode(0x201c)}{anchorText}{String.fromCharCode(0x201d)}</p>}
                   <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
                   {c.type === "suggested rewrite" && (
@@ -1335,7 +1335,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   )}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
                     <Chip kind={c.prov}>{c.prov}</Chip>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
                   </div>
                   {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#1d4ed8" : "#9a6113" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
                   : (
@@ -1390,14 +1390,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     `}</style>
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
       {/* Sub-header (fixed, does not scroll) */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 18, padding: "11px 18px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 12, padding: "5px 14px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274" }}>REVIEWING</span>
             <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
           </div>
-          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{title || "this role"}</div>
+          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
           {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
               mapped to a canonical ESCO title for the skills fetch - that disclosure must
               not silently vanish by Step 3. */}
@@ -1413,17 +1413,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
-      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "10px 14px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
+      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
         {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
           const on = tab === k;
           return (
             <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
-              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "8px 16px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
+              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 13px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
           );
         })}
       </div>
       {/* Row 3: the active tab's toolbar */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 52 }}>
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "4px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 44 }}>
         {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
         {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
           <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
@@ -1432,18 +1432,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
         {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
         {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
-      </div>
-
-      {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
-          Dissect / Critical read, explained once. Colour assists; the label carries the meaning. */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".13em", color: "#b3ab9c", flexShrink: 0 }}>CHIP KEY</span>
-        {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
-          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: `1px solid ${PROV[k].border}`, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
-            <span style={{ fontSize: "0.625rem", color: "#8a8274" }}>= {gloss}</span>
-          </span>
-        ))}
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>CHIP KEY</span>
+          {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
+            <span key={k} title={k + " = " + gloss} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: "1px solid " + PROV[k].border, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
+          ))}
+        </span>
       </div>
 
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
@@ -1454,14 +1448,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           const act = (activeWin[tab] && activeWin[tab][side]) || wins[0];
           return (
             <div key={side} className="wis-panel" style={{ flex: side === "left" ? "1.4 1 0" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3" }}>
-              <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "8px 12px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
+              <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
                 {wins.map((w) => { const on = act === w; return (
                   <button key={w} type="button" role="tab" aria-selected={on}
                     onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
-                    style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "7px 13px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
+                    style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 12px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
                 ); })}
               </div>
-              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 18px 60px" }}>
+              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px" }}>
                 {renderWindow(act)}
               </div>
             </div>
@@ -1483,6 +1477,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 }
 
 const manuH2 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#16202e", margin: "0 0 9px" };
-const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 18px" };
+const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 12px" };
 const oiaKick = { fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 600, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 };
-const critH3 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#16202e", margin: "18px 0 10px" };
+const critH3 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#16202e", margin: "8px 0 5px" };
