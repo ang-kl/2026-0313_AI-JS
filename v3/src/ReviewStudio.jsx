@@ -8,6 +8,7 @@
 // "AI-assisted; human decides".
 import { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { loadState, saveState } from "./persist.js";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 const BANDS = {
@@ -515,7 +516,28 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
   const [focusSkill, setFocusSkill] = useState(null); // AI-1 click-to-analyse: focused skill-pill index
+  // AI-1 fix: a span tap must take the focus card over from an open skill card - the card
+  // resolver prefers the skill, so clear it whenever a span becomes active (found live).
+  useEffect(() => { if (activeSpan) setFocusSkill(null); }, [activeSpan]);
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
+  // KV-1: review decisions persist per posting (cross-device via /api/state, localStorage
+  // fallback). Keyed by the posting uuid so two ads never share decisions.
+  const postingKey = (posting && posting.uuid) || (posting && posting.text ? "t" + String(posting.text.length) + String(title || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40) : null);
+  useEffect(() => {
+    if (!postingKey) return;
+    loadState("review", (all) => { if (all && all[postingKey]) setCommentStatus(all[postingKey]); });
+  }, [postingKey]);
+  useEffect(() => {
+    if (!postingKey || !Object.keys(commentStatus).length) return;
+    try {
+      const raw = localStorage.getItem("v3.state.review");
+      const all = raw ? JSON.parse(raw) : {};
+      all[postingKey] = commentStatus;
+      const keys = Object.keys(all);
+      if (keys.length > 40) delete all[keys[0]]; // cap the ledger; oldest key drops
+      saveState("review", all);
+    } catch (_) {}
+  }, [commentStatus, postingKey]);
   // Drives whether the drawer/comment-margin panes portal to document.body (mobile
   // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
   // Needed because <main className="main-content"> (App.jsx) sets position:relative
