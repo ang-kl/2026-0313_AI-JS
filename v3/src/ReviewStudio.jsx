@@ -43,11 +43,16 @@ const SPAN_STYLE = {
 };
 // Withheld span (engine did not classify): a neutral dashed "general note", no band claim.
 const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
+// Ribbon items are only rendered when their handler actually does something. The
+// prior version listed Evidence (observed/interpreted/applied/withheld/provenance)
+// plus Output (cover/resume/interview/print) as tappable pills - but their handlers
+// all opened the same rail placeholder ("This drawer fills in the next build phase"),
+// which is exactly the "tap without working" pattern the trust-loop canon forbids.
+// Reintroduce those groups when a real cover-letter / resume / evidence-filter
+// renderer exists, not before.
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"], ["critical", "Critical read"]] },
   { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"]] },
-  { group: "Evidence", key: null, items: [["observed", "Observed"], ["interpreted", "Interpreted"], ["applied", "Applied"], ["withheld", "Withheld"], ["provenance", "Provenance"]] },
-  { group: "Output", key: null, items: [["cover", "Cover letter"], ["resume", "Resume notes"], ["interview", "Interview pack"], ["print", "Print / PDF"]] },
 ];
 const RAIL = [
   { key: "sources", icon: String.fromCharCode(0x25a4), label: "Sources" },
@@ -66,6 +71,76 @@ function rsFirstSentence(s) {
   let out = m ? m[0].trim() : t.slice(0, 200);
   if (out.length < t.length && !/[.!?]$/.test(out)) out = out.replace(/\s+\S*$/, "") + String.fromCharCode(0x2026);
   return out;
+}
+
+// Deterministic verbatim extractor. Strips HTML from the posting text, splits by
+// blank lines and heading regexes, returns { overview, responsibilities, requirements }
+// with the posting's OWN words - no LLM in this path. Trust-loop rule 4: what the panel
+// labels "verbatim" must genuinely be verbatim. See v3-persona-output-contract.md and
+// v3/api/claude.js SYSTEM_RESP (which authors the corpus synthesis - a different source).
+function rsHtmlStrip(s) {
+  return String(s || "")
+    .replace(/<\s*(br|\/p|\/li|\/div|\/tr|\/h[1-6]|\/section)\s*\/?\s*>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/&#39;|&apos;|&rsquo;/gi, "'").replace(/&quot;|&ldquo;|&rdquo;/gi, '"')
+    .replace(/&[a-z#0-9]+;/gi, " ")
+    .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+const RS_RESP_RE = /^(key\s+)?(responsibilit|duties|the\s+role|role\s+(overview|description|scope)|what\s+you|day\s+to\s+day|accountabilit|your\s+role|job\s+(scope|summary|description))/i;
+const RS_REQ_RE = /^(requirement|qualification|pre-?requisite|requisite|who\s+(you|we)|skills?\b|competenc|experience|education|the\s+ideal|ideal\s+candidate|minimum|preferred|nice\s+to\s+have|what\s+we\s+(look|need))/i;
+const RS_HEAD_RE = /^(about|the role|role overview|role description|role scope|what you|who you|responsibilit|key responsibilit|requirement|qualification|pre-?requisite|requisite|capabilit|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer|job scope|job summary|job description)/i;
+function rsIsBullet(l) { return /^([-•*▪◦]|\d+[.)])\s+/.test(l); }
+function rsExtractVerbatim(text) {
+  const stripped = rsHtmlStrip(text);
+  if (!stripped) return { overview: "", responsibilities: [], requirements: [] };
+  const lines = stripped.split(/\n/).map((l) => l.trim()).filter(Boolean);
+  const sections = { intro: [], responsibilities: [], requirements: [] };
+  let cur = "intro";
+  for (const raw of lines) {
+    const clean = raw.replace(/^([-•*▪◦]|\d+[.)])\s+/, "").trim();
+    // Heading: short line, no ending sentence punctuation, matches known JD section words.
+    const isHead = raw.length < 70 && !/[.!?]$/.test(raw) && RS_HEAD_RE.test(clean);
+    if (isHead) {
+      cur = RS_RESP_RE.test(clean) ? "responsibilities" : RS_REQ_RE.test(clean) ? "requirements" : "intro";
+      continue;
+    }
+    if (rsIsBullet(raw)) {
+      if (cur === "intro") cur = "responsibilities";
+      sections[cur].push(clean);
+    } else {
+      sections[cur].push(clean);
+    }
+  }
+  const overviewChunks = sections.intro.slice(0, 4);
+  return {
+    overview: overviewChunks.join(" ").replace(/\s+/g, " ").trim(),
+    responsibilities: sections.responsibilities.filter((l) => l.length > 6),
+    requirements: sections.requirements.filter((l) => l.length > 6),
+  };
+}
+// Build a regex over the role's own multi-word skill phrases so we can underline them in
+// the verbatim ad without rewording - the same "underline key words" the Job Ad Drawer uses.
+function rsSkillTermRe(result) {
+  const skills = (result && Array.isArray(result.skills)) ? result.skills : [];
+  const terms = Array.from(new Set(skills.map((s) => String(s.skill || s || "").trim()).filter((t) => t.split(/\s+/).length >= 2 && t.length >= 6)));
+  if (!terms.length) return null;
+  terms.sort((a, b) => b.length - a.length);
+  const esc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try { return new RegExp("(\\b(?:" + terms.slice(0, 40).map(esc).join("|") + ")\\b)", "gi"); } catch (_) { return null; }
+}
+// Underline the role's own multi-word skill phrases where they appear verbatim in the
+// ad text - a non-arbitrary bridge from posting to analysis (no reword; the text stays
+// verbatim, only the emphasis is layered on).
+function rsUnderlineSkillTerms(text, re) {
+  const s = String(text || "");
+  if (!re) return s;
+  const parts = s.split(re);
+  if (parts.length < 2) return s;
+  return parts.map((p, i) => (i % 2 === 1)
+    ? <u key={"u" + i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
+    : p);
 }
 const RS_EXP_BAND = { HIGH: "auto", MEDIUM: "augmented", LOW: "assisted", HUMAN: "human" };
 function rsDominantBand(duties) {
@@ -95,10 +170,13 @@ function buildDissection(result, posting) {
   // RS-SEC: Requirements/Benefits lines join the analysis as first-class spans. Exposure is
   // WITHHELD (the engine classifies duties only - honesty contract), but the personas,
   // Evidence Auditor weak-phrase check and the O-I-A dissect all read them now.
+  // Posting-first (PR #306 trust-loop): when a specific ad was picked in Step 2, ITS text
+  // is the subject - the sampled corpus jobs are only a fallback. (The reverse order made
+  // the manuscript/FAB show a different employer's ad once the corpus loaded.)
   const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
   const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
-  let adText = rsAdText(srcJob || {});
-  if ((!adText || adText.trim().length < 40) && posting && posting.text) adText = rsAdText({ description: posting.text });
+  let adText = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
+  if (!adText || adText.trim().length < 40) adText = rsAdText(srcJob || {});
   let rq = 0;
   rsAdSections(adText).filter((sec) => sec.canon === "Requirements" || sec.canon === "Benefits").forEach((sec) => {
     sec.lines.forEach((ln) => {
@@ -130,7 +208,9 @@ function rsComments(spans) {
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
   if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
-  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "from posting", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  // The reason line is a rule-authored coaching prompt, not a quote from the posting,
+  // so the chip is "computed" (rule output) not "from posting" (verbatim).
+  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
   if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
   return out.slice(0, 6);
@@ -288,13 +368,19 @@ function rsHiringFilter(adText, job) {
     const m = t.match(/\b(?:minimum(?:\s+of)?\s+)?(\d{1,2})\+?\s*(?:years?|yrs?)\b[^.?!\n]{0,24}\bexperience\b/i);
     return m ? Number(m[1]) : null;
   })();
-  if (yrs && yrs > 0) out.push({ id: "hf-yrs", label: "experience gate", obs: yrs + "+ years of experience",
+  // hf-yrs `obs` is rule-authored ("N+ years of experience") - built from the numeric
+  // minimumYearsExperience field or a regex-captured digit; the exact phrase is not a
+  // verbatim substring of the ad, so the chip is "derived", not "from posting".
+  if (yrs && yrs > 0) out.push({ id: "hf-yrs", label: "experience gate", obs: yrs + "+ years of experience", obsChip: "derived",
     why: "Below this, most ATS filters and recruiters screen the CV out before a human reads it." });
+  // hf-deg `obs` is a verbatim substring of the ad text - regex captured `deg[0]`, then
+  // whitespace-normalised (whitespace normalisation preserves the words themselves).
   const deg = t.match(/\b(?:bachelor'?s?|master'?s?|ph\.?d|doctorate|degree|diploma)\b[^.?!\n]{0,44}/i);
-  if (deg && /\b(?:degree|diploma|bachelor|master|ph\.?d|doctorate)\b/i.test(deg[0])) out.push({ id: "hf-deg", label: "qualification gate", obs: deg[0].replace(/\s+/g, " ").trim(),
+  if (deg && /\b(?:degree|diploma|bachelor|master|ph\.?d|doctorate)\b/i.test(deg[0])) out.push({ id: "hf-deg", label: "qualification gate", obs: deg[0].replace(/\s+/g, " ").trim(), obsChip: "from posting",
     why: "A formal-qualification bar - check whether it says 'or equivalent experience' before ruling yourself out." });
+  // hf-cert `obs` is likewise a verbatim substring, whitespace-normalised.
   const cert = t.match(/\b(?:certified|certification|licen[sc]ed|registered|chartered|\bcpa\b|\bcfa\b|\bpmp\b|\bacca\b)\b[^.?!\n]{0,44}/i);
-  if (cert) out.push({ id: "hf-cert", label: "credential gate", obs: cert[0].replace(/\s+/g, " ").trim(),
+  if (cert) out.push({ id: "hf-cert", label: "credential gate", obs: cert[0].replace(/\s+/g, " ").trim(), obsChip: "from posting",
     why: "A named credential - often non-negotiable for regulated or professional roles." });
   return out;
 }
@@ -378,7 +464,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // considered. Lazy-init so this reads the real viewport once, not on every render.
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
-  const [adOpen, setAdOpen] = useState(false);   // ads FAB: verbatim source-ad overlay
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
   // Drives whether the drawer/comment-margin panes portal to document.body (mobile
   // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
@@ -398,10 +483,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
   // RS-SEC: the parsed ad sections for the manuscript (same adText fallback as Critical Read).
   const adSections = useMemo(() => {
+    // Posting-first (PR #306 trust-loop): the picked ad's own text leads; corpus fallback.
     const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
     const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
-    let t = rsAdText(srcJob || {});
-    if ((!t || t.trim().length < 40) && posting && posting.text) t = rsAdText({ description: posting.text });
+    let t = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
+    if (!t || t.trim().length < 40) t = rsAdText(srcJob || {});
     return rsAdSections(t);
   }, [result, posting]);
   const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting), [result, dissection.spans, title, posting]);
@@ -425,8 +511,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const duties = dutyObjs.map((d) => (typeof d === "string" ? d : d.text)).filter(Boolean);
   const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
-  const overview = (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
+  // Trust-loop rule 4: the manuscript's "verbatim" chip must not label LLM-authored
+  // prose as verbatim. Prefer the posting's OWN text (parsed deterministically) when a
+  // specific job was picked in Step 2; fall back to the corpus summary but relabel the
+  // chip so nothing lies about its origin.
+  const verbatimSourceText = (posting && posting.text) || (firstJob && (firstJob.description || firstJob.responsibilitiesText)) || "";
+  const verbatim = useMemo(() => rsExtractVerbatim(verbatimSourceText), [verbatimSourceText]);
+  // Two independent provenance decisions - one for the overview paragraph, one for the
+  // duty bullets - so a partial ad (verbatim intro but no explicit Responsibilities
+  // heading) never ships an LLM-authored bullet list under a "verbatim" chip.
+  const hasVerbatimOverview = !!verbatim.overview;
+  const hasVerbatimBullets = verbatim.responsibilities.length > 0;
+  const overview = hasVerbatimOverview ? verbatim.overview : (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
+  const overviewSource = hasVerbatimOverview ? "verbatim" : "synthesis";
   const skills = (Array.isArray(result && result.skills) ? result.skills : []).map((s) => s.skill || s).filter(Boolean);
+  const skillTermRe = useMemo(() => rsSkillTermRe(result), [result]);
   const derivedBand = rsDominantBand(dutyObjs);
   const bandKey = (band && BANDS[band]) ? band : derivedBand;
   const bandTok = bandKey && BANDS[bandKey] ? BANDS[bandKey] : null;
@@ -435,7 +534,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   function ribbonClick(groupKey, k) {
     if (groupKey === "markup") setMarkup(k);
     else if (groupKey === "visual") setVisual(k);
-    else if (k === "cover") { setRail("cover"); }
   }
 
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
@@ -593,7 +691,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </>}
               {(critical.hiringFilter.length > 0 || (cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach))) && <>
                 <h3 style={critH3}>The other side of the table</h3>
-                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip="from posting" />)}
+                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"} />)}
                 {cr && cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
@@ -615,7 +713,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>OBSERVATION</div>
                       <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
-                      <Chip kind="from posting">from posting</Chip>
+                      {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
+                          from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
+                          verbatim posting text - so the chip must not say "from posting".
+                          Trust-loop rule 4. */}
+                      <Chip kind="derived">derived · AI-extracted</Chip>
                     </div>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>INTERPRETATION</div>
@@ -637,16 +739,26 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} verbatim</Chip>
+                {/* Chip scopes to the overview paragraph only. The Responsibilities heading
+                    below carries its OWN provenance chip so a page mixing verbatim intro +
+                    synthesis bullets never lies about either half. Trust-loop rule 4. */}
+                <Chip kind={hasVerbatimOverview ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} overview {hasVerbatimOverview ? "verbatim" : "synthesis · AI-authored"}</Chip>
                 {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
               </div>
+              {/* Composite (PR #306 x v3.0.228): verbatim-first overview (trust-loop rule 4 -
+                  posting's own words when present, skill terms underlined for emphasis only),
+                  falling back to the sectioniser, then the corpus summary. */}
               {(() => {
+                if (hasVerbatimOverview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{rsUnderlineSkillTerms(overview, skillTermRe)}</p></>;
                 const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
-                if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{ln}</p>)}</>;
+                if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
                 return overview ? <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></> : null;
               })()}
               {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
-                <h2 style={manuH2}>Responsibilities</h2>
+                {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
+                    text is AI-extracted (jobAnatomy normalise pass), so the heading chip says
+                    so rather than claiming verbatim. Trust-loop rule 4. */}
+                <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>AI-extracted · tap a phrase</span></h2>
                 <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                   {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
@@ -671,15 +783,16 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </ul>
               </>}
               {/* RS-SEC: the ad's OTHER sections (Requirements, Qualifications, Benefits, and any
-                  section the ad names itself) - verbatim, with the ad's own heading. Requirement
+                  section the ad names itself) - verbatim, with the ad's own heading + a chip that
+                  says so; skill terms underlined for emphasis (words untouched). Requirement
                   lines that joined the analysis are tappable like duties (exposure withheld). */}
               {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
                 <div key={"sec" + si}>
-                  <h2 style={manuH2}>{sec.canon || sec.title}</h2>
+                  <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                     {sec.lines.map((ln, li) => {
                       const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
-                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{ln}</li>;
+                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(ln, skillTermRe)}</li>;
                       const on = activeSpan === sp.id; const nuc = rsNucleus(ln); const st = SPAN_STYLE_WITHHELD;
                       const mark = (
                         <span role="button" tabIndex={0} aria-pressed={on}
@@ -744,7 +857,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Accept</button>
                       <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "rejected" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#3a4456", background: "#fff", border: "1px solid #d9d6cd", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Reject</button>
-                      <button onClick={(e) => { e.stopPropagation(); setActiveSpan(c.anchor); setRail("advisory"); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#1a56db", background: "#eef2ff", border: "1px solid #cdd9ff", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Ask why</button>
+                      {/* "Ask why" removed - the button used to open the advisory rail
+                          which showed only a "next build phase" placeholder. The reason
+                          is already displayed on this card, and clicking the card body
+                          already highlights the anchor span. */}
                     </div>
                   )}
                 </div>
@@ -775,39 +891,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
-      {/* Ads FAB (design ref: Work Intelligence Studio): the source ad is one tap away from
-          anywhere in Step 3 - verbatim, sectioned, read-only. */}
-      {createPortal(
-        <>
-          <button type="button" onClick={() => setAdOpen(true)} aria-label="Open the source job ad" title="Open the source job ad"
-            style={{ position: "fixed", right: 22, bottom: 74, zIndex: 1290, minWidth: 56, minHeight: 56, borderRadius: 28, border: "1px solid #c7d6ff", background: "#142a8e", color: "#fff", cursor: "pointer", boxShadow: "0 8px 24px rgba(20,42,142,.35)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "0 18px", fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem" }}>
-            <span aria-hidden="true" style={{ fontSize: "1rem" }}>{String.fromCodePoint(0x1f4c4)}</span> Ad
-          </button>
-          {adOpen && (
-            <div role="dialog" aria-modal="true" aria-label="Source job ad, verbatim" onClick={() => setAdOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 1310, background: "rgba(13,18,28,.36)", display: "flex", alignItems: "center", justifyContent: "center", padding: 26 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ width: 640, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fff", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
-                <div style={{ flex: "none", display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 18px", borderBottom: "1px solid #eceae2" }}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>SOURCE AD {RS_DOT} VERBATIM</div>
-                    <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.25rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.25 }}>{title || "this role"}</h3>
-                  </div>
-                  <button onClick={() => setAdOpen(false)} aria-label="Close" style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
-                </div>
-                <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-                  {adSections.length ? adSections.map((sec, i) => (
-                    <div key={i}>
-                      {sec.title && <p style={{ margin: i === 0 ? "0 0 6px" : "14px 0 6px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.9375rem", fontWeight: 700, color: "#16202e" }}>{sec.title}</p>}
-                      {sec.lines.map((ln, k) => <p key={k} style={{ margin: "0 0 8px", fontSize: "0.85rem", color: "#3a4456", lineHeight: 1.6 }}>{ln}</p>)}
-                    </div>
-                  )) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a0b0" }}>No ad text available for this analysis.</p>}
-                  <p style={{ margin: "12px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Verbatim from {source || "MyCareersFuture"}; grouping only, no rewriting. AI-assisted {RS_DOT} human decides.</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </>,
-        document.body
-      )}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
           {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8595d6" }}>v{version}</span>}

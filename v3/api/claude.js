@@ -6,6 +6,8 @@
 //      diagnosis) and truncated to 300 chars via providerError().
 //   3. Three rejection caps below reject clearly-abusive shapes loud; the proxy never
 //      silently drops or truncates a caller's payload.
+import { kvAvailable, kvGet } from "../lib/admin/kv.js";
+
 export const config = {
   api: { bodyParser: true },
   maxDuration: 300,
@@ -15,6 +17,39 @@ export const config = {
 const MAX_MESSAGES = 32;         // Any single call over 32 message turns is a caller-side loop.
 const MAX_OUTPUT_TOKENS = 8192;  // Any narration over 8K output tokens is a caller-side bug.
 const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K input tokens.
+
+// Admin-configurable provider chain (v3-admin-module-spec.md). Read from Vercel KV at
+// request time with a short in-memory cache. Falls back to the built-in order when KV is
+// unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
+const KV_CONFIG_KEY = "v3:admin:llm-config";
+const CHAIN_CACHE_TTL_MS = 30_000;
+const DEFAULT_CHAIN = ["anthropic", "openai", "gemini"];
+const VALID_PROVIDERS = new Set(DEFAULT_CHAIN);
+let _chainCache = { value: null, at: 0 };
+async function loadAdminConfig() {
+  const now = Date.now();
+  if (_chainCache.value && (now - _chainCache.at) < CHAIN_CACHE_TTL_MS) return _chainCache.value;
+  const defaults = { chain: DEFAULT_CHAIN, overrides: {} };
+  if (!kvAvailable()) { _chainCache = { value: defaults, at: now }; return defaults; }
+  try {
+    const r = await kvGet(KV_CONFIG_KEY);
+    if (!r.ok || !r.value || typeof r.value !== "object") {
+      _chainCache = { value: defaults, at: now };
+      return defaults;
+    }
+    const chain = Array.isArray(r.value.chain)
+      ? r.value.chain.filter((p) => VALID_PROVIDERS.has(p))
+      : [];
+    const overrides = (r.value.overrides && typeof r.value.overrides === "object") ? r.value.overrides : {};
+    const value = { chain: chain.length ? chain : DEFAULT_CHAIN, overrides };
+    _chainCache = { value, at: now };
+    return value;
+  } catch (err) {
+    console.warn("[proxy] KV admin config read failed; using defaults:", err?.message || err);
+    _chainCache = { value: defaults, at: now };
+    return defaults;
+  }
+}
 
 function textFromSystem(system) {
   if (!system) return "";
@@ -37,36 +72,38 @@ function textFromMessages(messages) {
   }).filter(Boolean).join("\n\n");
 }
 
-function anthropicModelFor(requestedModel) {
+// Each *ModelFor helper accepts an optional `ov` (override object from KV admin config).
+// Precedence for defaults: kv override > env var > baked-in fallback. The verbatim
+// pass-through for a caller-supplied "correct-shape" id always wins first - callers who
+// know exactly which model they want get it, admin overrides are for the resolver defaults.
+function anthropicModelFor(requestedModel, ov = {}) {
   const requested = String(requestedModel || "");
-  // Pass any claude-* model id through verbatim.
   if (/^claude-/i.test(requested)) return requested;
-  const configured = process.env.ANTHROPIC_MODEL || "";
+  const configured = ov.model || process.env.ANTHROPIC_MODEL || "";
   if (configured) return configured;
-  // Fast tier: haiku family. Strong tier: opus / sonnet / fable family. Defaults reflect
-  // the currently-latest ids at time of authoring; overrides via ANTHROPIC_MODEL_* env.
   if (/haiku/i.test(requested)) {
-    return process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
+    return ov.fast || process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
   }
   if (/opus|sonnet|fable/i.test(requested)) {
-    return process.env.ANTHROPIC_MODEL_STRONG || "claude-opus-4-8";
+    return ov.strong || process.env.ANTHROPIC_MODEL_STRONG || "claude-opus-4-8";
   }
-  return process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
+  return ov.fast || process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
 }
 
-function openAiModelFor(requestedModel) {
+function openAiModelFor(requestedModel, ov = {}) {
   const requested = String(requestedModel || "");
   if (/^(gpt|o[0-9]|o-)/i.test(requested)) return requested;
-  const configured = process.env.OPENAI_MODEL || "";
+  const configured = ov.model || process.env.OPENAI_MODEL || "";
   if (configured) return configured;
   if (/opus|sonnet|fable/i.test(requested)) {
-    return process.env.OPENAI_MODEL_STRONG || "gpt-4.1";
+    return ov.strong || process.env.OPENAI_MODEL_STRONG || "gpt-4.1";
   }
-  return process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini";
+  return ov.fast || process.env.OPENAI_MODEL_FAST || "gpt-4.1-mini";
 }
 
-function geminiModelFor() {
-  return (process.env.GEMINI_MODEL || "").replace(/^models\//, "");
+function geminiModelFor(ov = {}) {
+  const raw = ov.model || process.env.GEMINI_MODEL || "";
+  return raw.replace(/^models\//, "");
 }
 
 function textFromAnthropic(data) {
@@ -241,10 +278,18 @@ export default async function handler(req, res) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
-  const geminiModel = geminiModelFor();
+  const admin = await loadAdminConfig();
+  const anthropicModel = anthropicModelFor(req.body?.model, admin.overrides.anthropic);
+  const openAiModel = openAiModelFor(req.body?.model, admin.overrides.openai);
+  const geminiModel = geminiModelFor(admin.overrides.gemini);
   const hasGeminiFallback = Boolean(geminiKey && geminiModel);
-  // Primary chain (spec §3): ANTHROPIC -> OPENAI -> GEMINI. At least one must be configured.
-  if (!anthropicKey && !openAiKey && !hasGeminiFallback) {
+  // Base availability per provider - a provider is only tried if its key(s) are present.
+  const configured = {
+    anthropic: Boolean(anthropicKey),
+    openai: Boolean(openAiKey),
+    gemini: hasGeminiFallback,
+  };
+  if (!configured.anthropic && !configured.openai && !configured.gemini) {
     console.error("[proxy] no LLM provider configured: ANTHROPIC_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing");
     return res.status(500).json({ ...WARM_ERRORS.server, debug: "No LLM provider configured (need one of ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY+GEMINI_MODEL)" });
   }
@@ -263,8 +308,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `max_tokens must be a positive integer <= ${MAX_OUTPUT_TOKENS}`, code: "BAD_TOKENS" });
   }
 
-  const anthropicModel = anthropicModelFor(model);
-  const openAiModel = openAiModelFor(model);
   const instructions = textFromSystem(system);
   const input = textFromMessages(messages);
   // Assembled prompt cap - covers system + all message content, not just the raw body.
@@ -273,8 +316,17 @@ export default async function handler(req, res) {
     return res.status(413).json({ error: `Prompt too large (${promptLen} > ${MAX_PROMPT_CHARS} chars)`, code: "TOO_LARGE" });
   }
 
+  // Effective provider order: admin.chain filtered to configured providers, then any
+  // remaining configured providers appended in their default order so we never silently
+  // skip a working key just because it was left out of the KV chain. Bugs / typos in KV
+  // never leave the caller with 500.
+  const activeOrder = [];
+  const seen = new Set();
+  for (const p of admin.chain) { if (configured[p] && !seen.has(p)) { activeOrder.push(p); seen.add(p); } }
+  for (const p of DEFAULT_CHAIN) { if (configured[p] && !seen.has(p)) { activeOrder.push(p); seen.add(p); } }
+
   // Log model and token budget for debugging. NO-PII invariant: log lengths, never content.
-  console.log(`[proxy] requested_model=${model} anthropic_model=${anthropicModel} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${maxTokensNum} system_len=${instructions.length} input_len=${input.length} msg_count=${messages.length}`);
+  console.log(`[proxy] requested_model=${model} chain=${activeOrder.join(">")} anthropic_model=${anthropicModel} openai_model=${openAiModel} gemini_model=${geminiModel} max_tokens=${maxTokensNum} system_len=${instructions.length} input_len=${input.length} msg_count=${messages.length}`);
 
   // Wall-clock budget: 280s total across all provider attempts (20s buffer inside the
   // Vercel 300s maxDuration). Each provider gets its OWN AbortController so a timeout on
@@ -298,41 +350,35 @@ export default async function handler(req, res) {
     }
   };
 
-  const hasOpenAiFallback = Boolean(openAiKey);
-  // Track the highest-priority provider that was preferred but failed / skipped, for the
-  // fallback_from field. Anthropic wins over OpenAI wins over nothing.
+  // fallback_from records the FIRST provider that was preferred but failed/skipped, so
+  // callers see who the user asked for even after a couple of jumps.
   let fallbackFrom = null;
+  let lastErr = null;
+
+  const callFor = {
+    anthropic: ({ signal }) => callAnthropic({ apiKey: anthropicKey, anthropicModel, instructions, messages, maxTokens: maxTokensNum, signal }),
+    openai:    ({ signal }) => callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: maxTokensNum, signal }),
+    gemini:    ({ signal }) => callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: maxTokensNum, signal }),
+  };
 
   try {
-    // Provider chain (spec §3): ANTHROPIC -> OPENAI -> GEMINI. Each fires only if configured;
-    // each failure falls through to the next configured provider with its own fresh signal.
-    if (anthropicKey) {
+    for (let i = 0; i < activeOrder.length; i++) {
+      const name = activeOrder[i];
+      const isLast = i === activeOrder.length - 1;
       try {
-        const anthropicResult = await runProvider(({ signal }) => callAnthropic({ apiKey: anthropicKey, anthropicModel, instructions, messages, maxTokens: maxTokensNum, signal }));
-        return res.status(200).json(anthropicResult);
-      } catch (anthropicErr) {
-        console.error(`[proxy] Anthropic failed; ${hasOpenAiFallback ? "trying OpenAI fallback" : hasGeminiFallback ? "trying Gemini fallback" : "no fallback configured"}:`, anthropicErr.debug || anthropicErr.message);
-        if (!hasOpenAiFallback && !hasGeminiFallback) throw anthropicErr;
-        fallbackFrom = "anthropic";
+        const result = await runProvider(callFor[name]);
+        return res.status(200).json(fallbackFrom ? { ...result, fallback_from: fallbackFrom } : result);
+      } catch (err) {
+        lastErr = err;
+        const nextName = activeOrder[i + 1] || null;
+        console.error(`[proxy] ${name} failed; ${nextName ? `trying ${nextName} fallback` : "no fallback remaining"}:`, err.debug || err.message);
+        if (isLast) throw err;
+        if (!fallbackFrom) fallbackFrom = name;
       }
     }
-
-    if (openAiKey) {
-      try {
-        const openAiResult = await runProvider(({ signal }) => callOpenAI({ apiKey: openAiKey, openAiModel, instructions, input, maxTokens: maxTokensNum, signal }));
-        return res.status(200).json(fallbackFrom ? { ...openAiResult, fallback_from: fallbackFrom } : openAiResult);
-      } catch (openAiErr) {
-        console.error(`[proxy] OpenAI failed; ${hasGeminiFallback ? "trying Gemini fallback" : "no Gemini fallback configured"}:`, openAiErr.debug || openAiErr.message);
-        if (!hasGeminiFallback) throw openAiErr;
-        // Preserve the highest-priority skip: keep "anthropic" if it was already the skip
-        // reason, otherwise mark openai as the fallback source for gemini's response.
-        if (!fallbackFrom) fallbackFrom = "openai";
-      }
-    }
-
-    const geminiResult = await runProvider(({ signal }) => callGemini({ apiKey: geminiKey, geminiModel, instructions, input, maxTokens: maxTokensNum, signal }));
-    return res.status(200).json(fallbackFrom ? { ...geminiResult, fallback_from: fallbackFrom } : geminiResult);
-
+    // Every provider skipped / errored without throwing (should not happen given `isLast`
+    // above, but be defensive).
+    throw lastErr || new Error("No provider succeeded and no error surfaced");
   } catch (err) {
     const isTimeout = err.name === "AbortError";
     const status = err.status || 503;

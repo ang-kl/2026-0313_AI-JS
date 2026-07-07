@@ -1458,7 +1458,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.229";
+const APP_VERSION = "3.0.230";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -10784,7 +10784,11 @@ function RoleGraphPanel({ result, title, posting }) {
               </div>
             ) : (
               <div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                  <button type="button" onClick={() => setRoleGraphFloat(true)} aria-label="Expand SSOC graph in floating window"
+                    style={{ minHeight: 44, padding: "8px 12px", borderRadius: 10, border: "1px solid #cce6d4", background: "#eef7f0", color: "#2f7d4f", fontWeight: 800, fontSize: "0.75rem", cursor: "pointer" }}>
+                    Expand floating graph
+                  </button>
                   <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>{gr.stats.occupations} occupation{gr.stats.occupations === 1 ? "" : "s"} · {gr.stats.skills} skills · {gr.stats.responsibilities} responsibilities · {gr.stats.edges} edges{hoveredId ? " · tap a node again to clear" : " · tap a node to trace"}</span>
                 </div>
                 {/* SSOCRG-3: same wired force-graph as ESCO Layered, but SG-first headers make the taxonomy honest. */}
@@ -10926,37 +10930,9 @@ function RoleGraphPanel({ result, title, posting }) {
                 <span style={{ fontSize: "0.6875rem", color: C.mutedLight }}>· left bar on a skill/responsibility = its AI-exposure level · ISCO node shows its score /100</span>
               </div>}
               {g.fpFallback && <p style={{ margin: "8px 0 0", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>ESCO occupation lookup was thin for this title, so the ISCO-08 column may be sparse.</p>}
-              {roleGraphFloat && (
-                <div role="dialog" aria-modal="true" aria-label="Floating role graph"
-                  onClick={() => setRoleGraphFloat(false)}
-                  style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
-                      width:"min(1120px, calc(100vw - 32px))", maxHeight:"calc(100vh - 96px)",
-                      resize:"both", overflow:"auto", background:C.bg, border:`1px solid ${C.border}`,
-                      borderRadius:16, padding:14, boxShadow:"0 18px 50px rgba(15,23,42,0.32)",
-                    }}
-                  >
-                    <div
-                      onPointerDown={startRoleGraphDrag}
-                      onPointerMove={moveRoleGraphDrag}
-                      onPointerUp={stopRoleGraphDrag}
-                      onPointerCancel={stopRoleGraphDrag}
-                      style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
-                    >
-                      <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>Role Graph</h3>
-                      <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
-                      <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
-                        style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
-                        Close
-                      </button>
-                    </div>
-                    {renderGraph(g.graph)}
-                  </div>
-                </div>
-              )}
+              {/* Floating role-graph dialog is hoisted to the panel's outer scope below so
+                  it renders regardless of graphMode - opening it from the SSOC or Knowledge
+                  toolbar buttons still shows a window, not silence. */}
             </>
           )}
 
@@ -11047,6 +11023,57 @@ function RoleGraphPanel({ result, title, posting }) {
         </>
       ))}
       </>}
+      {/* RIN3+SSOCRG: floating role-graph dialog lives at the panel's root scope so it
+          renders regardless of graphMode. Prior to this it sat inside the layered fragment
+          and the SSOC "Expand floating graph" button silently flipped state with no visible
+          window. Notebook (~4:3) default; corner resizes either dimension. */}
+      {roleGraphFloat && (() => {
+        const isSsoc = graphMode === "ssoc";
+        const isKnowledge = graphMode === "knowledge";
+        const sg = isSsoc ? (result && result.ssocGraph) : null;
+        const kg = isKnowledge ? getKnowledgeGraph(result, title, posting) : null;
+        const floatGraph = isSsoc ? (sg && sg.graph) : (isKnowledge ? null : g.graph);
+        const floatHeads = isSsoc
+          ? ["Roles & responsibilities (from MCF)", String.fromCodePoint(0x1f1f8, 0x1f1ec) + " Role · SSOC 2024", "SSOC → ISCO-08 occupation", "ESCO skills (via crosswalk)"]
+          : undefined;
+        const floatTitle = isSsoc ? "Role Graph · SSOC" : (isKnowledge ? "Role Graph · Knowledge" : "Role Graph · Layered");
+        return (
+          <div role="dialog" aria-modal="true" aria-label={"Floating " + floatTitle.toLowerCase()}
+            onClick={() => setRoleGraphFloat(false)}
+            style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(15,23,42,0.32)" }}>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position:"fixed", left:roleGraphFloatPos.x, top:roleGraphFloatPos.y,
+                width:"min(1120px, calc(100vw - 32px))", height:"min(840px, calc(100vh - 96px))",
+                maxHeight:"calc(100vh - 96px)",
+                resize:"both", overflow:"auto", background:C.bg, border:`1px solid ${C.border}`,
+                borderRadius:16, padding:14, boxShadow:"0 18px 50px rgba(15,23,42,0.32)",
+              }}
+            >
+              <div
+                onPointerDown={startRoleGraphDrag}
+                onPointerMove={moveRoleGraphDrag}
+                onPointerUp={stopRoleGraphDrag}
+                onPointerCancel={stopRoleGraphDrag}
+                style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10, cursor:"move", touchAction:"none" }}
+              >
+                <h3 style={{ margin:0, flex:1, fontSize:"0.9375rem", fontWeight:900, color:C.text }}>{floatTitle}</h3>
+                <span style={{ fontSize:"0.6875rem", color:C.muted }}>drag header · resize corner</span>
+                <button type="button" onClick={() => setRoleGraphFloat(false)} aria-label="Close floating role graph"
+                  style={{ minHeight:44, padding:"8px 12px", borderRadius:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontWeight:800, cursor:"pointer" }}>
+                  Close
+                </button>
+              </div>
+              {isKnowledge && kg
+                ? <KGGraph kg={kg} />
+                : floatGraph
+                  ? renderGraph(floatGraph, floatHeads ? { heads: floatHeads } : undefined)
+                  : <p style={{ margin:0, fontSize:"0.8125rem", color:C.muted }}>This lens is still resolving. Close this window and try again in a moment.</p>}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -16683,17 +16710,24 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
             : result.source === "corpus" ? "from live SG postings" : "from ESCO";
           return (
-            <ReviewStudio
-              result={result}
-              title={toTitleCase(sel?.title || "")}
-              employer={result?.employer || ""}
-              source={reviewSource}
-              rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
-              posting={analysingPosting}
-              band={null}
-              onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-              version={APP_VERSION}
-            />
+            <>
+              <ReviewStudio
+                result={result}
+                title={toTitleCase(sel?.title || "")}
+                employer={result?.employer || ""}
+                source={reviewSource}
+                rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
+                posting={analysingPosting}
+                band={null}
+                onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                version={APP_VERSION}
+              />
+              {/* Step 3: mount the same Job-Ad FAB the plain result view carries, so the posting
+                  picked in Step 2 is one tap away in the Review Studio too. Uses the app-level
+                  drawer state so the FAB and drawer stay in sync across step transitions. */}
+              {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); }} />}
+              <JobAdDrawer result={result} open={adDrawerOpen} onClose={() => setAdDrawerOpen(false)} />
+            </>
           );
           // eslint-disable-next-line no-unreachable
           const tabs = buildTabs(result);
