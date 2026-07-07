@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.233";
+const APP_VERSION = "3.0.234";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -10845,7 +10845,14 @@ function RoleGraphPanel({ result, title, posting }) {
       {!rgLoading && g && (g.fallback ? (
         <div style={{ background: C.amberBg, border: `1px solid ${C.amberBdr}`, borderRadius: 10, padding: "16px 18px" }}>
           <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", fontWeight: 700, color: "#78350f" }}>Not enough role data yet for the graph</p>
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills. Analyse a role with live SG job postings (MyCareersFuture + careers.gov.sg) - or a specific posting - and the graph will fill in.</p>
+          {/* LOOP-1: name the actual upstream reason instead of a generic shrug. */}
+          {(() => {
+            const rdd = result && result.responsibilitiesData;
+            const why = rdd && rdd.fallback
+              ? ({ no_jobs: "No live SG postings were found for this title, so there are no duty lines to wire.", mcf_error: "The live-postings fetch failed, so no duty lines arrived.", thin_corpus: "Live ads were found but too thin to analyse.", analysis_error: "The duty-analysis step failed.", empty_analysis: "The analysis returned no usable duty lines." })[rdd.reason]
+              : (rdd == null ? "The Responsibilities step is still loading - the graph fills in when it lands." : null);
+            return <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>{why || "This needs the role's responsibilities (from the Responsibilities / Job Anatomy step) plus its ESCO skills."} Analyse a role with live SG job postings - or a specific posting - and the graph will fill in.</p>;
+          })()}
         </div>
       ) : (
         <>
@@ -16748,6 +16755,16 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           const reviewSource = result.source === "posting"
             ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
             : result.source === "corpus" ? "from live SG postings" : "from ESCO";
+          // LOOP-1: retry for the live-postings pipeline. A transient MCF failure used to be
+          // permanent until a full re-analysis; everything the rebuild needs is on `result`.
+          const retryDuties = () => {
+            const t = sel?.title || "";
+            if (!t) return;
+            setResult((prev) => prev ? { ...prev, responsibilitiesData: null } : prev);
+            buildResponsibilitiesData(t, result.escoOccupation, result.skills || [], result.iscoGroup || "", null, undefined, result.occExposure)
+              .then((rd) => { setResult((prev) => prev ? { ...prev, responsibilitiesData: rd } : prev); track("responsibilities_retry", { occupation: t, ok: !(rd && rd.fallback), reason: (rd && rd.reason) || "" }); })
+              .catch(() => { setResult((prev) => prev ? { ...prev, responsibilitiesData: { fallback: true, reason: "mcf_error", jobCount: 0, jobs: [] } } : prev); });
+          };
           return (
             <>
               <ReviewStudio
@@ -16760,6 +16777,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 band={null}
                 onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 version={APP_VERSION}
+                onRetryDuties={retryDuties}
               />
               {/* Step 3: mount the same Job-Ad FAB the plain result view carries, so the posting
                   picked in Step 2 is one tap away in the Review Studio too. Uses the app-level
