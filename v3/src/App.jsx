@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.248";
+const APP_VERSION = "3.0.249";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12453,8 +12453,15 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     );
   };
 
+  // OKF tree rows (repaired 07-07 '26: whiteSpace:pre + 44px stretched the ASCII tree into
+  // a broken ladder and clipped names). Glyphs sit in a fixed pre column; the name gets a
+  // real flex cell with ellipsis + title; hit area stays 44px on clickable rows.
   const okfRow = (indent, label, color, onClick, bold) => (
-    <button key={label} type="button" onClick={onClick} disabled={!onClick} style={{ display: "flex", alignItems: "center", width: "100%", minHeight: onClick ? 44 : undefined, textAlign: "left", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", lineHeight: 1.7, whiteSpace: "pre", color, background: "none", border: "none", padding: onClick ? "6px 0" : 0, cursor: onClick ? "pointer" : "default", fontWeight: bold ? 700 : 400 }}>{indent}{label}</button>
+    <button key={label} type="button" onClick={onClick} disabled={!onClick} title={label}
+      style={{ display: "flex", alignItems: "center", gap: 0, width: "100%", minHeight: onClick ? 44 : 24, textAlign: "left", background: "none", border: "none", padding: 0, cursor: onClick ? "pointer" : "default" }}>
+      <span aria-hidden="true" style={{ flex: "none", whiteSpace: "pre", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#b3ab9c" }}>{indent}</span>
+      <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", lineHeight: 1.5, color, fontWeight: bold ? 700 : 400, textDecoration: onClick ? "underline" : "none", textUnderlineOffset: 2 }}>{label}</span>
+    </button>
   );
   const TR = String.fromCharCode(0x251c, 0x2500, 0x2500) + " ";
   const TL = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
@@ -12553,7 +12560,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       {/* FLOW-1b: set-level widen note - the frozen mcf.js cascade already auto-widened
           server-side; we only disclose the scope it settled on. Never presented per-card
           as exact (that's step2MatchTier's job, below). */}
-      {!state.loading && !state.error && step2WidenNote(state.tier, state.approximate) && (
+      {!state.loading && !state.error && !(state.tier === 0 && sorted.length > 0) && step2WidenNote(state.tier, state.approximate) && (
         <p role="status" style={{ margin: "0 0 12px", fontSize: "0.75rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 8, padding: "8px 12px" }}>
           {step2WidenNote(state.tier, state.approximate)}
         </p>
@@ -12631,15 +12638,20 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                     {topSectors.map(([name, n]) => (
-                      <div key={name} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 30px", gap: 8, alignItems: "center" }}>
-                        <div title={name} style={{ minWidth: 0 }}>
+                      <button key={name} type="button"
+                        onClick={() => toggleFacet("sector", name === "Unclassified" ? "Unclassified" : name)}
+                        aria-pressed={facets.sector.includes(name)}
+                        aria-label={"Filter postings to " + name + " (" + n + ")"}
+                        title={"Tap to " + (facets.sector.includes(name) ? "clear the" : "filter to this") + " family"}
+                        style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 30px", gap: 8, alignItems: "center", width: "100%", minHeight: 44, background: facets.sector.includes(name) ? "#eef2ff" : "transparent", border: "1px solid " + (facets.sector.includes(name) ? "#cdd9ff" : "transparent"), borderRadius: 8, padding: "4px 8px", cursor: "pointer", textAlign: "left" }}>
+                        <div style={{ minWidth: 0 }}>
                           <p style={{ margin: "0 0 2px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
                           <div style={{ position: "relative", height: 5, background: "#eceae2", borderRadius: 3, overflow: "hidden" }}>
                             <div style={{ position: "absolute", inset: 0, width: ((n / topMax) * 100) + "%", background: name === "Unclassified" ? "#cbd5e1" : "#1a56db", transition: "width .35s ease" }} />
                           </div>
                         </div>
                         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#16202e", fontWeight: 700, textAlign: "right" }}>{n}</span>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
