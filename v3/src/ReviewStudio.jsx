@@ -228,10 +228,10 @@ function rsTokens(text) {
 }
 const RS_ROUTE = { human: "candidate edge - bring proof you drove this to an outcome", auto: "governance check - who signs off the machine's output?", augmented: "AI-assist - human frames, verifies, owns", assisted: "AI-assist - human judgment leads" };
 const RS_HALF_LIFE = { HIGH: "eroding fast - end-to-end automation is plausible", MEDIUM: "eroding - heavy augmentation pressure", LOW: "durable near-term - AI informs, human leads", HUMAN: "durable - human-led (accountability, presence, empathy)" };
-function rsSpanFocus(sp, skillObjs) {
+function rsSpanFocus(sp, skillObjs, skillTermRe, skillNames) {
   const toks = new Set(rsTokens(sp.text));
   const invoked = skillObjs.map((o) => String(o.skill || o)).filter((n) => rsTokens(n).some((t) => toks.has(t))).slice(0, 3);
-  const nuc = rsNucleus(sp.text);
+  const ev = rsEvidencePhrase(sp.text, skillTermRe, skillNames);
   return {
     kind: "span", title: sp.sec === "req" ? "Requirement line" : "Duty span",
     obs: sp.text, obsChip: sp.sec === "req" ? "from posting" : "derived",
@@ -239,7 +239,7 @@ function rsSpanFocus(sp, skillObjs) {
     interp: [
       sp.layer ? "Layer: " + sp.layer : null,
       sp.band ? "Exposure: " + (BANDS[sp.band] ? BANDS[sp.band].label : sp.band) + " (engine rule)" : "Exposure: withheld - the engine did not classify this line",
-      nuc ? "Keywords: " + nuc.phrase : null,
+      ev ? "Evidence: " + String.fromCharCode(0x201c) + ev.phrase + String.fromCharCode(0x201d) + " (" + ev.why + ")" : null,
       invoked.length ? "Linked skills: " + invoked.join(", ") : null,
     ].filter(Boolean),
     interpChip: sp.band ? "computed" : "unverified",
@@ -252,7 +252,7 @@ function rsSpanFocus(sp, skillObjs) {
 function rsSkillFocus(o, spans) {
   const name = String(o.skill || o);
   const toks = new Set(rsTokens(name));
-  const invokedBy = (spans || []).filter((sp) => sp.sec !== "req" && rsTokens(sp.text).some((t) => toks.has(t))).slice(0, 2);
+  const invokedBy = (spans || []).filter((sp) => sp.sec !== "req" && rsTokens(sp.text).some((t) => toks.has(t))).slice(0, 3).map((sp) => ({ id: sp.id, text: sp.text }));
   const lvl = o.level || null;
   const hasNarration = !!(o.h || o.k);
   return {
@@ -262,11 +262,12 @@ function rsSkillFocus(o, spans) {
     interp: [
       lvl ? "AI-exposure level: " + lvl + " (engine)" : "AI-exposure level: withheld",
       lvl ? "Half-life read: " + (RS_HALF_LIFE[lvl] || "withheld") : null,
-      invokedBy.length ? "Invoked by: " + invokedBy.map((sp) => String.fromCharCode(0x201c) + sp.text.slice(0, 60) + (sp.text.length > 60 ? String.fromCharCode(0x2026) : "") + String.fromCharCode(0x201d)).join(" · ") : "Invoked by: no duty line matches this skill's terms in this ad",
+      invokedBy.length ? null : "Invoked by: no duty line matches this skill's terms in this ad",
     ].filter(Boolean),
     interpChip: lvl ? "computed" : "unverified",
     appl: hasNarration ? [o.h, o.k].filter(Boolean).join(" · ") : (lvl ? RS_HALF_LIFE[lvl] : "Withheld - no engine signal for this skill."),
     applChip: hasNarration ? "AI estimate" : "computed",
+    invokedBy,
   };
 }
 // ── Critical Read: plain-language / hype audit (deterministic, verbatim-only). §6.3 Forensic
@@ -295,12 +296,24 @@ const RS_SEC_MAP = [
   [/^(requirement|qualif|who you are|what (?:we.{0,3}re|we are) looking|skills?\s*(?:and|&)\s*experience|ideal candidate|must have|you (?:have|bring))/i, "Requirements"],
   [/^(benefit|we offer|perks|what.{0,3}s in it|remuneration|package|why join)/i, "Benefits"],
 ];
+// Strip emoji/pictographs (Human Lead: no emoji anywhere; ads use them as heading bullets -
+// "[clipboard] Key Responsibilities" must parse AND display as plain "Key Responsibilities").
+function rsStripEmoji(x) {
+  return String(x || "").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{FE0F}\u{200D}]/gu, "").replace(/\s{2,}/g, " ").trim();
+}
+// A working-hours / schedule line must never become a section heading (live bug:
+// "Friday: 8:30 AM - 5:30 PM" was promoted while the real Requirements heading was missed).
+const RS_TIME_LINE = /\d{1,2}[:.]\d{2}\s*(?:am|pm)?|\b(?:am|pm)\b|\bmon(?:day)?\b|\btue(?:sday)?\b|\bwed(?:nesday)?\b|\bthu(?:rsday)?\b|\bfri(?:day)?\b|\bsat(?:urday)?\b|\bsun(?:day)?\b|working hours/i;
 function rsAdSections(adText) {
   const lines = String(adText || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
-  const isHeading = (ln) => ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Za-z]/.test(ln) && !/^[-*\u2022]/.test(ln);
+  const isHeading = (raw) => {
+    const ln = rsStripEmoji(raw); // emoji-prefixed headings must still qualify
+    if (!ln || RS_TIME_LINE.test(ln)) return false;
+    return ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Za-z]/.test(ln) && !/^[-*\u2022]/.test(ln);
+  };
   const secs = []; let cur = { title: null, lines: [] };
   lines.forEach((ln) => {
-    if (isHeading(ln)) { if (cur.title || cur.lines.length) secs.push(cur); cur = { title: ln, lines: [] }; }
+    if (isHeading(ln)) { if (cur.title || cur.lines.length) secs.push(cur); cur = { title: rsStripEmoji(ln), lines: [] }; }
     else cur.lines.push(ln);
   });
   if (cur.title || cur.lines.length) secs.push(cur);
@@ -308,6 +321,32 @@ function rsAdSections(adText) {
     const hit = sec.title ? RS_SEC_MAP.find(([rx]) => rx.test(sec.title)) : null;
     return { title: sec.title, lines: sec.lines, canon: hit ? hit[1] : (sec.title ? null : "Role overview") };
   });
+}
+// RS-EV (Human Lead, 07-07 '26): a phrase earns a highlight ONLY when it is EVIDENCE for
+// a conclusion the engine drew - a skill match (why this skill is in the list), or a gate
+// (experience / qualification / credential line). Lines with no evidence-linked phrase
+// render fully plain - honest, quieter page; decoration is withheld like any other guess.
+const RS_GATES = [
+  { rx: /\b\d{1,2}\+?\s*(?:years?|yrs?)\b[^,.;\n]{0,30}/i, why: "gate: experience threshold" },
+  { rx: /\b(?:bachelor'?s?|master'?s?|ph\.?d|doctorate|degree|diploma)\b[^,.;\n]{0,40}/i, why: "gate: formal qualification" },
+  { rx: /\b(?:certified|certification|licen[sc]ed?|registered|chartered)\b[^,.;\n]{0,40}/i, why: "gate: named credential" },
+];
+function rsEvidencePhrase(text, skillTermRe, skillNames) {
+  const t = String(text || "");
+  for (const g of RS_GATES) {
+    const m = t.match(g.rx);
+    if (m) { const i = m.index; return { pre: t.slice(0, i).trimEnd(), phrase: m[0].trim(), post: t.slice(i + m[0].length), why: g.why }; }
+  }
+  if (skillTermRe) {
+    skillTermRe.lastIndex = 0;
+    const m = skillTermRe.exec(t);
+    if (m) {
+      const hit = (skillNames || []).find((n) => n.toLowerCase() === m[0].toLowerCase()) || m[0];
+      const i = m.index;
+      return { pre: t.slice(0, i).trimEnd(), phrase: m[0], post: t.slice(i + m[0].length), why: "matches skill: " + hit };
+    }
+  }
+  return null;
 }
 // RS-NUC: phrase nucleus - the salient 3-5 word core of a line, so highlights are
 // phrase-level (design standard), not a wall of underlined whole lines. Deterministic:
@@ -1165,21 +1204,23 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                   {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
+                    // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
+                    // no evidence -> the line renders fully plain (Human Lead doctrine).
+                    const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
+                    const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{s.text}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
-                    // RS-NUC (design standard): highlight the salient PHRASE, not the whole
-                    // line - a page of full-line underlines reads as noise and fake links.
-                    const nuc = rsNucleus(s.text);
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
-                        aria-label={s.text + ". " + (withheld ? "Exposure withheld." : (BANDS[s.band] ? "Exposure " + BANDS[s.band].label + "." : ""))}
-                        title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
+                        aria-label={s.text + ". " + ev.why + ". " + (withheld ? "Exposure withheld." : (BANDS[s.band] ? "Exposure " + BANDS[s.band].label + "." : ""))}
+                        title={ev.why + (withheld ? " - exposure withheld" : (BANDS[s.band] ? " - " + BANDS[s.band].label : "")) + " - click to analyse"}
                         onClick={() => setActiveSpan(on ? null : s.id)}
                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                        style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : s.text}</span>
+                        style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                     );
                     return (
-                      <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
-                        {nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}
+                      <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
+                        {ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}
                       </li>
                     );
                   })}
@@ -1195,17 +1236,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
                     {sec.lines.map((ln, li) => {
                       const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
-                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(ln, skillTermRe)}</li>;
-                      const on = activeSpan === sp.id; const nuc = rsNucleus(ln); const st = SPAN_STYLE_WITHHELD;
+                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{ln}</li>;
+                      // RS-EV: same doctrine as duties - evidence phrase or fully plain.
+                      const ev = rsEvidencePhrase(ln, skillTermRe, skills);
+                      if (!ev) return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ln}</li>;
+                      const on = activeSpan === sp.id; const st = SPAN_STYLE_WITHHELD;
                       const mark = (
                         <span role="button" tabIndex={0} aria-pressed={on}
-                          aria-label={ln + ". In the analysis; exposure withheld (requirements are not duty spans)."}
-                          title="In the analysis - exposure withheld (the engine classifies duties only)"
+                          aria-label={ln + ". " + ev.why + ". In the analysis; exposure withheld (requirements are not duty spans)."}
+                          title={ev.why + " - click to analyse"}
                           onClick={() => setActiveSpan(on ? null : sp.id)}
                           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
-                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : ln}</span>
+                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                       );
-                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}</li>;
+                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
                     })}
                   </ul>
                 </div>
@@ -1217,6 +1261,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
                   <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
+                    title={(skillObjs[i] && skillObjs[i].level ? "engine level " + skillObjs[i].level + " - " : "") + "click to analyse (O-I-A)"}
                     onClick={() => { setFocusSkill(on ? null : i); if (!on) setActiveSpan(null); }}
                     style={{ minHeight: 44, fontSize: "0.8125rem", fontFamily: "inherit", color: on ? "#fff" : "#0b5e74", background: on ? "#0e7490" : "#e3f5fb", border: "1px solid " + (on ? "#0e7490" : "#bce6f0"), borderRadius: 14, padding: "6px 12px", cursor: "pointer" }}>{s}</button>
                 ); })}</div>
@@ -1245,7 +1290,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             {(() => {
               const sp = activeSpan ? dissection.spans.find((x) => x.id === activeSpan) : null;
               const so = (focusSkill != null && skillObjs[focusSkill]) ? skillObjs[focusSkill] : null;
-              const f = so ? rsSkillFocus(so, dissection.spans) : (sp ? rsSpanFocus(sp, skillObjs) : null);
+              const f = so ? rsSkillFocus(so, dissection.spans) : (sp ? rsSpanFocus(sp, skillObjs, skillTermRe, skills) : null);
               if (!f) return null;
               const chip = (k, label) => { const c = PROV[k] || PROV.unverified; return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: c.ink, background: c.bg, border: "1px solid " + c.border, borderRadius: 4, padding: "1px 6px" }}>{label || k}</span>; };
               return (
@@ -1259,6 +1304,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <div style={{ marginBottom: 9 }}>{chip(f.obsChip, f.obsChipLabel)}</div>
                   <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>INTERPRETATION</div>
                   {f.interp.map((ln, i) => <p key={i} style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 3px" }}>{ln}</p>)}
+                  {/* Reciprocity (Human Lead): the card links BACK into the ad - each invoking
+                      duty is a jump link that highlights its line in the manuscript. */}
+                  {f.invokedBy && f.invokedBy.length > 0 && (
+                    <div style={{ margin: "2px 0 3px" }}>
+                      <span style={{ fontSize: "0.75rem", color: "#3a4456" }}>Invoked by: </span>
+                      {f.invokedBy.map((iv) => (
+                        <button key={iv.id} type="button"
+                          aria-label={"Jump to duty in the ad: " + iv.text.slice(0, 70)}
+                          onClick={() => { setActiveSpan(iv.id); const el = document.getElementById("li-" + iv.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+                          style={{ display: "block", width: "100%", textAlign: "left", minHeight: 44, background: "transparent", border: "1px solid transparent", borderRadius: 6, padding: "4px 6px", cursor: "pointer", fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2, lineHeight: 1.4 }}>
+                          {String.fromCharCode(0x201c)}{iv.text.slice(0, 70)}{iv.text.length > 70 ? String.fromCharCode(0x2026) : ""}{String.fromCharCode(0x201d)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <div style={{ margin: "3px 0 9px" }}>{chip(f.interpChip)}</div>
                   <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>APPLICATION</div>
                   <p style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 4px" }}>{f.appl}</p>
