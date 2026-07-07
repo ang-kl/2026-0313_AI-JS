@@ -6,7 +6,7 @@
 // removed rather than left as placeholder tabs; add them back only once each is
 // actually wired to real deterministic engine output. Doctrine tokens only;
 // "AI-assisted; human decides".
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 
