@@ -435,6 +435,65 @@ function rsHiringFilter(adText, job) {
     why: "A named credential - often non-negotiable for regulated or professional roles." });
   return out;
 }
+// ── AI-2 (spec No.135): Blind spots + contradictions. Deterministic; absence is the
+// finding ("the ad is silent on X"), so each check names what it looked for. Withhold
+// when there is no ad text at all - an absence claim needs a text to be absent FROM. ──
+const RS_BLIND_CHECKS = [
+  { id: "bs-salary", label: "salary", rx: /\b(?:s?\$\s?\d|salary|remuneration|per (?:month|annum)|\d+k\b)/i, ask: "What is the actual pay band? 'Competitive' is not a number." },
+  { id: "bs-report", label: "reporting line", rx: /\breport(?:s|ing)?\s+(?:directly\s+)?to\b/i, ask: "Who does this role report to - a named function or a vacuum?" },
+  { id: "bs-team", label: "team size", rx: /\bteam of\s+\d|\bteam size\b|\bjoin(?:ing)? (?:a|our) \d+/i, ask: "How many people share this work today?" },
+  { id: "bs-metrics", label: "success metrics", rx: /\b(?:kpi|okr|success (?:will be )?measured|measurable|targets?\b|quota)\b/i, ask: "How is success measured in the first year?" },
+  { id: "bs-growth", label: "growth path", rx: /\b(?:career (?:path|progression|development)|promotion|progression|advancement|learning budget|training)\b/i, ask: "Where does this role lead in 2-3 years?" },
+  { id: "bs-workmode", label: "work arrangement", rx: /\b(?:hybrid|remote|on-?site|work from home|wfh|office-based)\b/i, ask: "Hybrid, remote or on-site - why is it not stated?" },
+];
+function rsBlindSpots(adText, job) {
+  const t = String(adText || "");
+  if (t.trim().length < 80) return [];
+  const out = [];
+  RS_BLIND_CHECKS.forEach((c) => {
+    if (c.id === "bs-salary" && job && (job.salaryMin || job.salaryMax || (job.salary && job.salary.minimum))) return; // structured salary exists
+    if (!c.rx.test(t)) out.push({ id: c.id, label: c.label, ask: c.ask });
+  });
+  return out;
+}
+// Domain lexicons for the mash-up/contradiction scan - a duty line whose tokens belong to
+// a DIFFERENT domain than the ad's majority is flagged and the foreign domain is NAMED
+// (live example: ISO/cGMP facility-QA lines inside a Data Engineer ad).
+const RS_DOMAINS = {
+  "data engineering": ["data", "pipeline", "pipelines", "warehouse", "lake", "etl", "elt", "analytics", "database", "databases", "model", "models", "python", "streaming"],
+  "quality & compliance": ["iso", "cgmp", "gmp", "audit", "audits", "compliance", "sop", "sops", "quality", "regulatory", "validation", "documentation"],
+  "facilities & operations": ["facility", "facilities", "vendor", "vendors", "sla", "slas", "maintenance", "premises", "contractor", "fm"],
+  "sales & marketing": ["sales", "revenue", "clients", "accounts", "marketing", "campaign", "b2b", "quota", "leads"],
+  "people & hr": ["recruitment", "onboarding", "payroll", "talent", "employee", "employees", "hr"],
+};
+function rsDomainOf(text) {
+  const toks = new Set(rsTokens(text));
+  let best = null, bestN = 0;
+  for (const [dom, stems] of Object.entries(RS_DOMAINS)) {
+    const n = stems.reduce((a, st) => a + (toks.has(st) ? 1 : 0), 0);
+    if (n > bestN) { best = dom; bestN = n; }
+  }
+  return bestN >= 1 ? { dom: best, n: bestN } : null;
+}
+function rsContradictions(spans, title) {
+  const duty = (spans || []).filter((x) => x.sec !== "req");
+  if (duty.length < 4) return [];
+  const votes = {};
+  const perSpan = duty.map((sp) => { const d = rsDomainOf(sp.text); if (d) votes[d.dom] = (votes[d.dom] || 0) + 1; return { sp, d }; });
+  const major = Object.entries(votes).sort((a, b) => b[1] - a[1])[0];
+  if (!major || major[1] < 2) return [];
+  const out = [];
+  perSpan.forEach(({ sp, d }) => {
+    if (out.length >= 3 || !d || d.dom === major[0] || d.n < 2) return;
+    out.push({ id: "cx-" + sp.id, obs: sp.text, foreign: d.dom, majority: major[0] });
+  });
+  // seniority-of-duties vs junior framing
+  const senDuty = duty.find((sp) => /\b(approve|approves|own|owns|architect|define standards|sign[- ]off|accountable)\b/i.test(sp.text));
+  if (senDuty && /\b(junior|executive|assistant|intern|entry)\b/i.test(String(title || ""))) {
+    out.push({ id: "cx-seniority", obs: senDuty.text, foreign: "senior-ownership duty", majority: "a junior-framed title" });
+  }
+  return out;
+}
 function buildCriticalRead(result, spans, title, posting) {
   const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   let adText = rsAdText(firstJob);
@@ -451,7 +510,7 @@ function buildCriticalRead(result, spans, title, posting) {
       .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
       .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
   }
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -729,6 +788,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
                 {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter} />)}
               </>}
+              {critical.blindSpots && critical.blindSpots.length > 0 && <>
+                <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
+                {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed" />)}
+              </>}
+              {critical.contradictions && critical.contradictions.length > 0 && <>
+                <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
+                {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
+              </>}
               {critical.falsification.length > 0 && <>
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
                 {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed" />)}
@@ -770,7 +837,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
