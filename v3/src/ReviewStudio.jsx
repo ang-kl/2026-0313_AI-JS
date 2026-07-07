@@ -22,31 +22,18 @@ const PROV = {
   computed:       { bg: "#eef7f0", ink: "#2f7d4f", border: "#cce6d4" },
   derived:        { bg: "#f1eefc", ink: "#5b4bbd", border: "#ddd5f6" },
   "AI estimate":  { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
-  unverified:     { bg: "#fbeaea", ink: "#a13a3a", border: "#f1cdcd" },
+  // A11y (governance audit): unverified was brick-red (#a13a3a) - the one warm "danger" hue
+  // outside the blue/orange ramp, and a red-vs-green tension against the computed chip. Moved
+  // to the amber family (shared with "AI estimate"); the label text carries the meaning.
+  unverified:     { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
 };
 // O-I-A lens colours (S7) and reviewer persona colours (S5.5).
 const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
 const PERSONA = {
   "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
   "Role Analyst": "#1d4ed8", "Candidate Advocate": "#2f7d4f", "Evidence Auditor": "#64748b",
-  "Signal Auditor": "#a13a3a",
+  "Signal Auditor": "#9a6113",
 };
-// Persona output contract (v3-persona-output-contract-spec.md). Every persona-authored
-// output must disclose method + allowed + forbidden. Method is authorship of the
-// REASONING: "deterministic" = rule/engine authored it; "advisory" = an LLM authored the
-// wording (but never a number, band or verdict). Allowed = what the reader may do with
-// the finding; Forbidden = what they must not. Written as information for choice.
-const PERSONA_CONTRACT = {
-  "AI Exposure Reviewer":       { method: "deterministic", allowed: "Cite when framing which parts of this role are AI-heavy and where the human edge sits.",   forbidden: "Do not treat as a hiring or exposure verdict on any individual." },
-  "Process Redesign Reviewer":  { method: "deterministic", allowed: "Cite the vague-ownership signal when asking what workflow this role actually owns.",         forbidden: "Do not use the suggested rewrite as the posting's real requirement." },
-  "Role Analyst":               { method: "deterministic", allowed: "Cite when asking whether this role is one job or two.",                                       forbidden: "Do not treat the duty-bundling count as a scope estimate." },
-  "Candidate Advocate":         { method: "deterministic", allowed: "Cite when preparing proof of human-led work for interview.",                                  forbidden: "Do not treat as a hiring recommendation for you or against anyone." },
-  "Evidence Auditor":           { method: "deterministic", allowed: "Cite when questioning a weak claim in the posting; ask for a measurable threshold.",         forbidden: "Do not treat the flagged phrase as evidence of unfitness." },
-  "Signal Auditor":             { method: "deterministic", allowed: "Cite the flagged verbatim phrase when asking the recruiter what the posting actually means.", forbidden: "Do not treat the finding as an accusation; hype language is common and not always intentional." },
-};
-// Default fallback for advisory-pass personas (batched LLM devil's-advocate / teleology
-// / pro-worker / real-demand under result.criticalRead) that all share the same shape.
-const PERSONA_ADVISORY_DEFAULTS = { method: "advisory", allowed: "Cite to widen the interpretation; the deterministic lenses above are the audit-safe read.", forbidden: "Do not treat as evidence of anything the deterministic lenses did not already flag." };
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
 const SPAN_STYLE = {
   augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
@@ -172,14 +159,31 @@ function rsLens(text) {
 }
 // Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
 // engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
-function buildDissection(result) {
+function buildDissection(result, posting) {
   const ja = result && result.jobAnatomy, rd = result && result.responsibilitiesData;
   const raw = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const spans = raw.slice(0, 14).map((d, i) => {
     const text = typeof d === "string" ? d : d.text; if (!text) return null;
     const expo = (d && d.exposureNow) || null;
-    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo };
+    return { id: "s" + i, text, band: RS_EXP_BAND[expo] || null, lens: rsLens(text), layer: (d && d.layer) || null, exposure: expo, sec: "duty" };
   }).filter(Boolean);
+  // RS-SEC: Requirements/Benefits lines join the analysis as first-class spans. Exposure is
+  // WITHHELD (the engine classifies duties only - honesty contract), but the personas,
+  // Evidence Auditor weak-phrase check and the O-I-A dissect all read them now.
+  // Posting-first (PR #306 trust-loop): when a specific ad was picked in Step 2, ITS text
+  // is the subject - the sampled corpus jobs are only a fallback. (The reverse order made
+  // the manuscript/FAB show a different employer's ad once the corpus loaded.)
+  const jobs = (rd && Array.isArray(rd.jobs)) ? rd.jobs : [];
+  const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
+  let adText = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
+  if (!adText || adText.trim().length < 40) adText = rsAdText(srcJob || {});
+  let rq = 0;
+  rsAdSections(adText).filter((sec) => sec.canon === "Requirements" || sec.canon === "Benefits").forEach((sec) => {
+    sec.lines.forEach((ln) => {
+      if (rq >= 8 || ln.length < 12) return;
+      spans.push({ id: "q" + rq++, text: ln, band: null, lens: rsLens(ln), layer: sec.canon.toLowerCase(), exposure: null, sec: "req" });
+    });
+  });
   return { spans, comments: rsComments(spans) };
 }
 const RS_STOP = new Set(["the", "and", "for", "with", "into", "across", "various", "adhoc", "other", "duties", "support", "manage", "ensure", "provide", "drive", "deliver", "implement", "coordinate", "handle", "perform", "assist", "their", "this", "that", "from", "your", "our", "initiatives", "tasks", "work"]);
@@ -189,33 +193,26 @@ function rsKeyword(text) {
   const words = String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w) && !RS_VERB.test(w));
   return words[0] || null;
 }
-// Attach the persona output contract (method / allowed / forbidden) to every rsComments
-// entry. Central so the seven-field disclosure stays in one place if PERSONA_CONTRACT
-// gains a persona later. See v3-persona-output-contract-spec.md §2.
-function rsContract(persona) {
-  return PERSONA_CONTRACT[persona] || PERSONA_ADVISORY_DEFAULTS;
-}
 function rsComments(spans) {
   const out = [], used = new Set();
-  const push = (obj) => out.push({ ...rsContract(obj.persona), ...obj });
   const ai = spans.find((s) => (s.band === "augmented" || s.band === "auto") && s.lens === "AI") || spans.find((s) => s.band === "augmented" || s.band === "auto");
-  if (ai) { used.add(ai.id); push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
+  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
   const vague = spans.find((s) => !used.has(s.id) && /\b(ad-?hoc|various|support various|other duties|as (assigned|required|needed)|miscellaneous)\b/i.test(s.text));
   if (vague) {
     used.add(vague.id);
     // Derive a salient term from THIS duty so the rewrite is genuinely about it (honest "derived").
     const key = rsKeyword(vague.text);
     const suggested = key ? "own a named " + key + " workstream with measurable cycle-time targets" : "name the specific workflow this owns and set measurable cycle-time targets";
-    push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
+    out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
   }
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
-  if (bundled) { used.add(bundled.id); push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
+  if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
   // The reason line is a rule-authored coaching prompt, not a quote from the posting,
   // so the chip is "computed" (rule output) not "from posting" (verbatim).
-  if (human) { used.add(human.id); push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
-  if (weak) { used.add(weak.id); push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
+  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Evidence Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
   return out.slice(0, 6);
 }
 
@@ -233,6 +230,42 @@ function rsAdText(job) {
     .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
     .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
     .replace(/[ \t]+/g, " ");
+}
+// RS-SEC: deterministic ad sectioniser (design ref: Work Intelligence Studio, 07-07 '26).
+// Splits the verbatim ad into its own sections via the same heading heuristic as the Step 2
+// modal (short line, few words, no terminal punctuation); canonical labels map common
+// phrasings so Requirements/Qualifications/Benefits surface in the manuscript AND the
+// analysis. Verbatim text is never rewritten - grouping only.
+const RS_SEC_MAP = [
+  [/^(about|overview|role overview|the role|about the role|purpose|summary|who we are|about us|company)/i, "Role overview"],
+  [/^(responsibilit|duties|what you.{0,3}ll do|what you will do|key accountabilit|the job|your role|job description|roles?\s*&?\s*responsibilit)/i, "Responsibilities"],
+  [/^(requirement|qualif|who you are|what (?:we.{0,3}re|we are) looking|skills?\s*(?:and|&)\s*experience|ideal candidate|must have|you (?:have|bring))/i, "Requirements"],
+  [/^(benefit|we offer|perks|what.{0,3}s in it|remuneration|package|why join)/i, "Benefits"],
+];
+function rsAdSections(adText) {
+  const lines = String(adText || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
+  const isHeading = (ln) => ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Za-z]/.test(ln) && !/^[-*\u2022]/.test(ln);
+  const secs = []; let cur = { title: null, lines: [] };
+  lines.forEach((ln) => {
+    if (isHeading(ln)) { if (cur.title || cur.lines.length) secs.push(cur); cur = { title: ln, lines: [] }; }
+    else cur.lines.push(ln);
+  });
+  if (cur.title || cur.lines.length) secs.push(cur);
+  return secs.map((sec) => {
+    const hit = sec.title ? RS_SEC_MAP.find(([rx]) => rx.test(sec.title)) : null;
+    return { title: sec.title, lines: sec.lines, canon: hit ? hit[1] : (sec.title ? null : "Role overview") };
+  });
+}
+// RS-NUC: phrase nucleus - the salient 3-5 word core of a line, so highlights are
+// phrase-level (design standard), not a wall of underlined whole lines. Deterministic:
+// first content word (>=4 chars, not a stock verb/stop word) starts the window.
+function rsNucleus(text) {
+  const words = String(text || "").split(/\s+/);
+  const start = words.findIndex((w) => { const c = w.toLowerCase().replace(/[^a-z0-9-]/g, ""); return c.length >= 4 && !RS_STOP.has(c) && !RS_VERB.test(c); });
+  if (start < 0 || words.length < 3) return null;
+  let end = Math.min(words.length, start + 5);
+  for (let k = start; k < end; k++) { if (/[.;:]$/.test(words[k])) { end = k + 1; break; } }
+  return { pre: words.slice(0, start).join(" "), phrase: words.slice(start, end).join(" "), post: words.slice(end).join(" ") };
 }
 // Each: a regex that captures the empty phrase + a little trailing context, a category, a plain
 // interpretation, and a "question-mark move" counter built from the verbatim phrase.
@@ -372,15 +405,14 @@ function buildCriticalRead(result, spans, title, posting) {
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
 function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
-  const ac = accent || "#a13a3a";
-  const who = persona || "Signal Auditor";
-  const contract = PERSONA_CONTRACT[who] || PERSONA_CONTRACT["Signal Auditor"];
+  const ac = accent || "#9a6113";
+  const who = persona || "SIGNAL AUDITOR";
   const oc = obsChip || "from posting";
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{String(who).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>{who}</span>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
@@ -399,10 +431,6 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
           <Chip kind="derived">derived</Chip>
         </div>
       </div>
-      {/* Persona output contract disclosure (v3-persona-output-contract-spec.md §5). */}
-      <div style={{ padding: "0 13px 12px" }}>
-        <PersonaDisclosure method={contract.method} allowed={contract.allowed} forbidden={contract.forbidden} />
-      </div>
     </div>
   );
 }
@@ -416,12 +444,7 @@ function AdvisoryCard({ persona, children }) {
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
       </div>
-      <div style={{ padding: "12px 14px" }}>
-        {children}
-        {/* Advisory-pass disclosure shared across every LLM-authored persona card
-            (v3-persona-output-contract-spec.md §5, advisory defaults). */}
-        <PersonaDisclosure method={PERSONA_ADVISORY_DEFAULTS.method} allowed={PERSONA_ADVISORY_DEFAULTS.allowed} forbidden={PERSONA_ADVISORY_DEFAULTS.forbidden} />
-      </div>
+      <div style={{ padding: "12px 14px" }}>{children}</div>
     </div>
   );
 }
@@ -429,30 +452,6 @@ function AdvisoryCard({ persona, children }) {
 function Chip({ kind, children }) {
   const p = PROV[kind] || PROV.computed;
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
-}
-// Persona output contract disclosure strip (v3-persona-output-contract-spec.md §6).
-// Renders the method + allowed + forbidden fields under every persona-authored card.
-// Compact by design - two lines, monospaced, colour-blind safe (teal + amber, not
-// green + red). Voice: information for choice, never instruction.
-function PersonaDisclosure({ method, allowed, forbidden }) {
-  if (!allowed && !forbidden) return null;
-  return (
-    <div style={{ marginTop: 6, marginBottom: 8, display: "flex", flexDirection: "column", gap: 3 }}>
-      {method && <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193", letterSpacing: ".04em" }}>method {String.fromCharCode(0x00b7)} {method}</div>}
-      {allowed && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 5, background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "4px 7px" }}>
-          <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 700, color: "#0e7490", background: "#fff", border: "1px solid #a5f3fc", borderRadius: 3, padding: "0 4px", letterSpacing: ".08em", flex: "none" }}>MAY</span>
-          <span style={{ fontSize: "0.6875rem", color: "#0b5e74", lineHeight: 1.4 }}>{allowed}</span>
-        </div>
-      )}
-      {forbidden && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 5, background: "#fffbeb", border: "1px solid #fcd9a0", borderRadius: 5, padding: "4px 7px" }}>
-          <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 700, color: "#b45309", background: "#fff", border: "1px solid #fcd9a0", borderRadius: 3, padding: "0 4px", letterSpacing: ".08em", flex: "none" }}>MAY NOT</span>
-          <span style={{ fontSize: "0.6875rem", color: "#92450a", lineHeight: 1.4 }}>{forbidden}</span>
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting }) {
@@ -481,7 +480,16 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
-  const dissection = useMemo(() => buildDissection(result), [result]);
+  const dissection = useMemo(() => buildDissection(result, posting), [result, posting]);
+  // RS-SEC: the parsed ad sections for the manuscript (same adText fallback as Critical Read).
+  const adSections = useMemo(() => {
+    // Posting-first (PR #306 trust-loop): the picked ad's own text leads; corpus fallback.
+    const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+    const srcJob = jobs.find((j) => j && (j.description || j.responsibilitiesText));
+    let t = (posting && posting.text) ? rsAdText({ description: posting.text }) : "";
+    if (!t || t.trim().length < 40) t = rsAdText(srcJob || {});
+    return rsAdSections(t);
+  }, [result, posting]);
   const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting), [result, dissection.spans, title, posting]);
   const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
@@ -588,6 +596,18 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               ))}
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
+          Dissect / Critical read, explained once. Colour assists; the label carries the meaning. */}
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".13em", color: "#b3ab9c", flexShrink: 0 }}>CHIP KEY</span>
+        {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
+          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: `1px solid ${PROV[k].border}`, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
+            <span style={{ fontSize: "0.625rem", color: "#8a8274" }}>= {gloss}</span>
+          </span>
         ))}
       </div>
 
@@ -725,55 +745,68 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <Chip kind={hasVerbatimOverview ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} overview {hasVerbatimOverview ? "verbatim" : "synthesis · AI-authored"}</Chip>
                 {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
               </div>
-              {overview && <>
-                <h2 style={manuH2}>Role overview</h2>
-                <p style={manuP}>{overviewSource === "verbatim" ? rsUnderlineSkillTerms(overview, skillTermRe) : overview}</p>
+              {/* Composite (PR #306 x v3.0.228): verbatim-first overview (trust-loop rule 4 -
+                  posting's own words when present, skill terms underlined for emphasis only),
+                  falling back to the sectioniser, then the corpus summary. */}
+              {(() => {
+                if (hasVerbatimOverview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{rsUnderlineSkillTerms(overview, skillTermRe)}</p></>;
+                const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
+                if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
+                return overview ? <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></> : null;
+              })()}
+              {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
+                {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
+                    text is AI-extracted (jobAnatomy normalise pass), so the heading chip says
+                    so rather than claiming verbatim. Trust-loop rule 4. */}
+                <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>AI-extracted · tap a phrase</span></h2>
+                <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
+                  {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
+                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
+                    const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
+                    // RS-NUC (design standard): highlight the salient PHRASE, not the whole
+                    // line - a page of full-line underlines reads as noise and fake links.
+                    const nuc = rsNucleus(s.text);
+                    const mark = (
+                      <span role="button" tabIndex={0} aria-pressed={on}
+                        aria-label={s.text + ". " + (withheld ? "Exposure withheld." : (BANDS[s.band] ? "Exposure " + BANDS[s.band].label + "." : ""))}
+                        title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
+                        onClick={() => setActiveSpan(on ? null : s.id)}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
+                        style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : s.text}</span>
+                    );
+                    return (
+                      <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
+                        {nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}
+                      </li>
+                    );
+                  })}
+                </ul>
               </>}
-              {hasVerbatimBullets ? (
-                <>
-                  {/* Verbatim bullets extracted from the picked posting's own text - no
-                      reword. Skill-term underlining is layered on the verbatim string
-                      (rsUnderlineSkillTerms), which changes emphasis, not words. */}
-                  <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
+              {/* RS-SEC: the ad's OTHER sections (Requirements, Qualifications, Benefits, and any
+                  section the ad names itself) - verbatim, with the ad's own heading + a chip that
+                  says so; skill terms underlined for emphasis (words untouched). Requirement
+                  lines that joined the analysis are tappable like duties (exposure withheld). */}
+              {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
+                <div key={"sec" + si}>
+                  <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                    {verbatim.responsibilities.map((line, i) => (
-                      <li key={"vresp-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
-                    ))}
-                  </ul>
-                  {verbatim.requirements.length > 0 && (
-                    <>
-                      <h2 style={manuH2}>Requirements <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
-                      <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                        {verbatim.requirements.map((line, i) => (
-                          <li key={"vreq-" + i} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(line, skillTermRe)}</li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </>
-              ) : dissection.spans.length > 0 && (
-                <>
-                  {/* Corpus-synthesis path: the bullets below are LLM-authored across many
-                      postings, not verbatim from a single ad. Provenance chip makes that
-                      explicit right above the list so the eye can't miss it. */}
-                  <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#a13a3a", background: "#fdf1f1", border: "1px solid #f0d3d3", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>synthesis · not verbatim</span></h2>
-                  <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                    {dissection.spans.map((s) => {
-                      if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
-                      const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
-                      return (
-                        <li key={s.id} style={{ ...manuP, marginBottom: 8 }}>
-                          <span role="button" tabIndex={0} aria-pressed={on}
-                            title={withheld ? "Exposure withheld - the engine did not classify this duty" : (BANDS[s.band] ? BANDS[s.band].label : "")}
-                            onClick={() => setActiveSpan(on ? null : s.id)}
-                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                            style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{s.text}</span>
-                        </li>
+                    {sec.lines.map((ln, li) => {
+                      const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
+                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{rsUnderlineSkillTerms(ln, skillTermRe)}</li>;
+                      const on = activeSpan === sp.id; const nuc = rsNucleus(ln); const st = SPAN_STYLE_WITHHELD;
+                      const mark = (
+                        <span role="button" tabIndex={0} aria-pressed={on}
+                          aria-label={ln + ". In the analysis; exposure withheld (requirements are not duty spans)."}
+                          title="In the analysis - exposure withheld (the engine classifies duties only)"
+                          onClick={() => setActiveSpan(on ? null : sp.id)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
+                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{nuc ? nuc.phrase : ln}</span>
                       );
+                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{nuc ? <>{nuc.pre ? nuc.pre + " " : ""}{mark}{nuc.post ? " " + nuc.post : ""}</> : mark}</li>;
                     })}
                   </ul>
-                </>
-              )}
+                </div>
+              ))}
               {skills.length > 0 && <>
                 <h2 style={manuH2}>Skills the posting asks for</h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
@@ -811,16 +844,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
                   {c.type === "suggested rewrite" && (
                     <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>
-                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a13a3a", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
+                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#9a6113", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
                       <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
                     </div>
                   )}
-                  <PersonaDisclosure method={c.method} allowed={c.allowed} forbidden={c.forbidden} />
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
                     <Chip kind={c.prov}>{c.prov}</Chip>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
                   </div>
-                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#2f7d4f" : "#a13a3a" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
+                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#1d4ed8" : "#9a6113" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
                   : (
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Accept</button>
@@ -858,7 +890,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a9b6ee" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
           {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8595d6" }}>v{version}</span>}
