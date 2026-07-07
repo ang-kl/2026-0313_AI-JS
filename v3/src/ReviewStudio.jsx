@@ -1549,11 +1549,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
                     style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 12px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
                 ); })}
-                {/* U3: tear off the ACTIVE window into the float layer. */}
+                {/* U3: tear off the ACTIVE window into the float layer. Labelled - a bare glyph
+                    read as a meaningless dot (Human Lead, 07-07 '26: "so tiny, what are the
+                    purpose"). */}
                 {act && (
                   <button type="button" onClick={() => tearOff(act)} aria-label={"Float this window: " + WIN_LABELS[act]}
-                    title={"Tear off " + WIN_LABELS[act] + " into a floating window"}
-                    style={{ flex: "none", minHeight: 40, minWidth: 40, border: "1px solid #e3e8ef", borderBottom: "1px solid #d9dee6", background: "#fff", color: "#5b6878", borderRadius: "9px 9px 0 0", marginBottom: -1, cursor: "pointer", fontSize: "0.8125rem" }}>{String.fromCharCode(0x29c9)}</button>
+                    title={"Tear off " + WIN_LABELS[act] + " into a floating window you can move and resize"}
+                    style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 5, minHeight: 44, padding: "6px 12px", border: "1px solid #e3e8ef", borderBottom: "1px solid #d9dee6", background: "#fff", color: "#5b6878", borderRadius: "9px 9px 0 0", marginBottom: -1, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+                    <span aria-hidden="true" style={{ fontSize: "0.875rem" }}>{String.fromCharCode(0x29c9)}</span> Float
+                  </button>
                 )}
               </div>
               <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px", position: "relative" }}>
