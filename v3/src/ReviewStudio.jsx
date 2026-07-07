@@ -911,7 +911,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               ))}
               {skills.length > 0 && <>
-                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span></h2>
+                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span>
+                  {/* W2: say HOW the skill set was anchored - SG-first when SSOC steered it. */}
+                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#2f7d4f", background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
+                </h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
                   <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
                     onClick={() => { setFocusSkill(on ? null : i); if (!on) setActiveSpan(null); }}
