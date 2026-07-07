@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.237";
+const APP_VERSION = "3.0.239";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -15542,6 +15542,9 @@ export default function App({ initialSearchMode } = {}) {
         employer: job.employer || "",
         skills: Array.isArray(job.skills) ? job.skills.filter(Boolean) : [],
         text: job.responsibilitiesText || job.description || "",
+        // AI-5: the analysed ad's own salary band rides along so the competitive read
+        // can position it against the sampled market - deterministic, no lookup.
+        salaryMid: salaryMidOf(job),
       });
       track("mcf_posting_analyse", { uuid: job.uuid });
       doAnalyse({ title: tidy, iscoCode: "", iscoGroup: "", description: "" }, {
