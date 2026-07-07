@@ -1364,6 +1364,46 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     market: { left: ["graphs"], right: ["salary", "indicators", "inspector"] },
   };
   const [activeWin, setActiveWin] = useState({});
+  // No.138 U3: LAYERS. A torn-off window leaves its panel strip and floats above the desk
+  // in its own layer - drag by header, resize by corner, click brings to front, close
+  // returns it to its home strip. Arrangement persists per posting (KV "boards").
+  const [floats, setFloats] = useState([]); // [{id,x,y,w,h,z}]
+  const zTopRef = useRef(1400);
+  const floatDragRef = useRef(null);
+  useEffect(() => {
+    if (!postingKey) return;
+    loadState("boards", (all) => { if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = 1400 + all.floats[postingKey].length; } });
+  }, [postingKey]);
+  const persistFloats = (next) => {
+    if (!postingKey) return;
+    try {
+      const raw = localStorage.getItem("v3.state.boards");
+      const all = raw ? JSON.parse(raw) : {};
+      all.floats = all.floats || {};
+      all.floats[postingKey] = next.map(({ id, x, y, w, h, z }) => ({ id, x, y, w, h, z }));
+      saveState("boards", all);
+    } catch (_) {}
+  };
+  const tearOff = (id) => setFloats((prev) => {
+    if (prev.some((f) => f.id === id)) return prev;
+    const n = prev.length;
+    const next = prev.concat({ id, x: 90 + n * 32, y: 110 + n * 28, w: Math.min(640, window.innerWidth - 120), h: Math.min(520, window.innerHeight - 180), z: ++zTopRef.current });
+    persistFloats(next); return next;
+  });
+  const dockBack = (id) => setFloats((prev) => { const next = prev.filter((f) => f.id !== id); persistFloats(next); return next; });
+  const bringToFront = (id) => setFloats((prev) => { const next = prev.map((f) => f.id === id ? { ...f, z: ++zTopRef.current } : f); persistFloats(next); return next; });
+  const startFloatDrag = (e, id) => {
+    if (e.target && e.target.closest && e.target.closest("button")) return;
+    const f = floats.find((x) => x.id === id); if (!f) return;
+    bringToFront(id);
+    floatDragRef.current = { id, sx: e.clientX, sy: e.clientY, ox: f.x, oy: f.y };
+    if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const moveFloatDrag = (e) => {
+    const d = floatDragRef.current; if (!d) return;
+    setFloats((prev) => prev.map((f) => f.id === d.id ? { ...f, x: Math.max(4, Math.min(window.innerWidth - 160, d.ox + e.clientX - d.sx)), y: Math.max(56, Math.min(window.innerHeight - 80, d.oy + e.clientY - d.sy)) } : f));
+  };
+  const stopFloatDrag = () => { if (floatDragRef.current) { persistFloats(floats); floatDragRef.current = null; } };
   const renderWindow = (id) => (
     id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
     id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
@@ -1444,8 +1484,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
       <div className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0 }}>
         {["left", "right"].map((side) => {
-          const wins = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
-          const act = (activeWin[tab] && activeWin[tab][side]) || wins[0];
+          const winsAll = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
+          const wins = winsAll.filter((w) => !floats.some((f) => f.id === w));
+          const actPref = (activeWin[tab] && activeWin[tab][side]) || winsAll[0];
+          const act = wins.includes(actPref) ? actPref : wins[0];
           return (
             <div key={side} className="wis-panel" style={{ flex: side === "left" ? "1.4 1 0" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3" }}>
               <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
@@ -1454,14 +1496,36 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
                     style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 12px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
                 ); })}
+                {/* U3: tear off the ACTIVE window into the float layer. */}
+                {act && (
+                  <button type="button" onClick={() => tearOff(act)} aria-label={"Float this window: " + WIN_LABELS[act]}
+                    title={"Tear off " + WIN_LABELS[act] + " into a floating window"}
+                    style={{ flex: "none", minHeight: 40, minWidth: 40, border: "1px solid #e3e8ef", borderBottom: "1px solid #d9dee6", background: "#fff", color: "#5b6878", borderRadius: "9px 9px 0 0", marginBottom: -1, cursor: "pointer", fontSize: "0.8125rem" }}>{String.fromCharCode(0x29c9)}</button>
+                )}
               </div>
               <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px" }}>
-                {renderWindow(act)}
+                {act ? renderWindow(act) : <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>All of this panel's windows are floating - close a floating window to dock it back here.</p>}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* No.138 U3: the float layer - torn-off windows live here, above the desk. */}
+      {floats.map((f) => (
+        <div key={f.id} role="dialog" aria-label={WIN_LABELS[f.id] + " (floating window)"}
+          onPointerDown={() => bringToFront(f.id)}
+          style={{ position: "fixed", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: f.z, background: "#fbfaf8", border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", display: "flex", flexDirection: "column", resize: "both", overflow: "hidden", minWidth: 300, minHeight: 200 }}>
+          <div onPointerDown={(e) => startFloatDrag(e, f.id)} onPointerMove={moveFloatDrag} onPointerUp={stopFloatDrag} onPointerCancel={stopFloatDrag}
+            style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8", cursor: "move", touchAction: "none" }}>
+            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{WIN_LABELS[f.id]}</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", flex: "none" }}>drag {String.fromCharCode(0x00b7)} resize corner</span>
+            <button type="button" onClick={() => dockBack(f.id)} aria-label={"Close and dock " + WIN_LABELS[f.id] + " back to its panel"}
+              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+          </div>
+          <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(f.id)}</div>
+        </div>
+      ))}
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
