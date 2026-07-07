@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.235";
+const APP_VERSION = "3.0.236";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -15116,18 +15116,43 @@ export default function App({ initialSearchMode } = {}) {
       // tabs instead.
       let _tEsco; try { _tEsco = performance.now(); } catch (_) { _tEsco = 0; }
       let escoResult, skills;
+      // W2 (SSOC-first, spec No.135 context): resolve the occupation in SSOC 2024 FIRST
+      // (deterministic SG classifier), crosswalk SSOC->ISCO, and anchor the ESCO skill
+      // fetch on the clean ISCO occupation NAME - the blind title top-hit mis-maps SG
+      // roles (live: Sales Assistant Manager -> Communication Scientist). Only high/medium
+      // confidence classifications steer; anything else falls through to the existing
+      // title-match path byte-identically. The resolution route is stored on the result
+      // (ssocResolution) so the UI can say HOW the skills were anchored.
+      let ssocFirst = null;
+      if (!forceHybrid && !corpus) {
+        try {
+          const cls = await fetchSsocOccupation(escoFetchTitle);
+          if (cls && cls.status === "classified" && cls.node && (cls.confidence === "high" || cls.confidence === "medium")) {
+            const map = SSOC2024_ISCO[cls.node.code] || [];
+            const pick = map.find((m) => !m.partial) || map[0] || null;
+            if (pick && pick.title) ssocFirst = { code: cls.node.code, title: cls.node.title, iscoTitle: pick.title, iscoCode: pick.isco || "", confidence: cls.confidence };
+          }
+        } catch (_) { ssocFirst = null; }
+      }
       try {
         // Feed the live posting's real skills so the ESCO occupation is picked by
         // overlap, not a blind top-hit (stops generic titles inheriting ICT skills).
         const _escoPhrases = (posting && posting.skills) || (corpus && corpus.skills) || [];
-        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(escoFetchTitle, _escoPhrases);
+        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(ssocFirst ? ssocFirst.iscoTitle : escoFetchTitle, _escoPhrases);
+        // SSOC-anchored fetch missed in ESCO -> retry the original title path before any
+        // LLM fallback, so SSOC can only ever improve resolution, never lose it.
+        if (ssocFirst && !escoResult && !forceHybrid && !corpus) {
+          ssocFirst = { ...ssocFirst, missed: true };
+          escoResult = await getEscoSkills(escoFetchTitle, _escoPhrases);
+        }
         skills = escoResult ? escoResult.skills : null;
         if (skills === null && corpus) skills = await getSkillsFromPosting(occ.title, corpus.skills, corpus.text);
         if (skills === null) skills = await getSkills(occ.title, occ.iscoGroup || "", occ.iscoCode || "");
-        logStep("esco_skills", "ok", _msSince(_tEsco), `${(skills || []).length} skills ${escoResult ? `ESCO/${escoResult.disambiguatedBy || "top_hit"}` : corpus ? "corpus" : "AI"}`);
+        logStep("esco_skills", "ok", _msSince(_tEsco), `${(skills || []).length} skills ${escoResult ? `ESCO/${ssocFirst && !ssocFirst.missed ? "ssoc:" + ssocFirst.code : escoResult.disambiguatedBy || "top_hit"}` : corpus ? "corpus" : "AI"}`);
       } catch (e) { logStep("esco_skills", "error", _msSince(_tEsco), e && e.message); throw e; }
       let escoOccupationUri = escoResult ? escoResult.occupationUri : '';
       let escoOccupation = escoResult ? escoResult.escoOccupation : null;
+      const ssocResolution = (ssocFirst && !ssocFirst.missed && escoResult) ? ssocFirst : null; // W2: how the skills were anchored
       if (analysisCancelRef.current !== cancelId) return;
       const escoSource = escoResult ? `ESCO v1.2` : corpus ? `from ${corpus.jobs.length} live SG postings` : `AI-generated`;
       setSub(`${skills.length} essential skills found (${escoSource}) - crosswalking each to the AIOE exposure index...`); setSubStep(2);
@@ -15232,7 +15257,8 @@ export default function App({ initialSearchMode } = {}) {
           postedCompanyName: posting.postedCompanyName || "", hiringCompanyName: posting.hiringCompanyName || "",
           // CSG (v3.0.94): preserve the posting's source so the chip names the right platform
           postingSource: posting.source || "MyCareersFuture" } : null,
-        corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null };
+        corpusMeta: corpus ? { jobCount: corpus.jobs.length, jobTitles: (corpus.titles || []).slice(0, 8) } : null,
+        ssocResolution };
       const comparisonKey = posting ? `${toTitleCase(occ.title)} — ${posting.employer || "MCF"}` : corpus ? `${toTitleCase(occ.title)} — across SG ads` : toTitleCase(occ.title);
       setResult(newResult);
       track("analysis_completed", { occupation: occ.title, source: newResult.source });
