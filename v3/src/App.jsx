@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.241";
+const APP_VERSION = "3.0.242";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -2606,7 +2606,7 @@ function mergeAdFeatures(perAd) {
 }
 
 // C. duty classification (classification engine - labels & numbers only, no prose)
-async function classifyDuties(title, duties) {
+async function classifyDuties(title, duties, occExposure) {
   if (!duties.length) return [];
   const SYSTEM_CD =
 `ACT AS a workforce-AI classification engine. You are given a list of duties for one job role. For EACH duty output classification labels only - no prose, no explanations.
@@ -2630,17 +2630,32 @@ Calibration: most Activity duties are MEDIUM now and many are rising; Accountabi
     const raw = await claudeCall(`Role: ${title}\nDuties to classify:\n${duties.map((d,i)=>`${i+1}. [${d.kind}] ${d.text}`).join("\n")}\nClassify each.`, 2600, 1, SYSTEM_CD);
     const arr = extractJSON(raw, "duty-classification");
     if (!Array.isArray(arr)) return [];
-    const lvl = x => (["HUMAN","LOW","MEDIUM","HIGH"].includes(x) ? x : "MEDIUM");
+    // W4b (SLE-C parity): the exposure BAND is decided by the same deterministic engine
+    // that classifies the Responsibilities tab (classifyResponsibilityLevel), so Step 2 and
+    // Step 3 agree on one number source. The LLM keeps only the qualitative labels (layer,
+    // trajectory). Two prior fabrications removed: unknown LLM bands defaulted to "MEDIUM",
+    // and a failed call stamped EVERY duty "MEDIUM" - both now withhold (null) instead.
+    const lvl = x => (["HUMAN","LOW","MEDIUM","HIGH"].includes(x) ? x : null);
     const lay = x => (JOB_LAYERS[x] ? x : "Activity");
     const tj = x => (["stable","rising","sharp"].includes(x) ? x : "stable");
     return duties.map((d, i) => {
       const c = arr.find(x => x && x.n === d.n) || arr[i] || {};
-      const eNow = lvl(c.exposureNow), e2y = lvl(c.exposure2y || c.exposureNow);
+      let eng = null; try { eng = classifyResponsibilityLevel(d.text, occExposure); } catch (_) { eng = null; }
+      const eNow = (eng && eng.level) || null;               // engine decides; withhold over guess
+      const e2y = eNow ? (lvl(c.exposure2y) || eNow) : null; // 2y outlook only atop a real band
       let trj = tj(c.trajectory);
-      if (e2y === eNow) trj = "stable"; // keep trajectory consistent with the bands
-      return { ...d, layer: lay(c.layer), exposureNow: eNow, exposure2y: e2y, trajectory: trj, confidence: Math.max(0, Math.min(1, Number(c.confidence) || 0.6)) };
+      if (!eNow || e2y === eNow) trj = "stable";
+      return { ...d, layer: lay(c.layer), exposureNow: eNow, exposure2y: e2y, trajectory: trj, levelBasis: (eng && eng.basis) || "withheld", confidence: Math.max(0, Math.min(1, Number(c.confidence) || 0.6)) };
     });
-  } catch (_) { return duties.map(d => ({ ...d, layer:"Activity", exposureNow:"MEDIUM", exposure2y:"MEDIUM", trajectory:"stable", confidence:0.5 })); }
+  } catch (_) {
+    // LLM label pass failed: bands still come from the engine; layer defaults to Activity
+    // (a label, not a number); nothing is stamped "MEDIUM" any more.
+    return duties.map(d => {
+      let eng = null; try { eng = classifyResponsibilityLevel(d.text, occExposure); } catch (_) { eng = null; }
+      const eNow = (eng && eng.level) || null;
+      return { ...d, layer: "Activity", exposureNow: eNow, exposure2y: eNow, trajectory: "stable", levelBasis: (eng && eng.basis) || "withheld", confidence: eNow ? 0.5 : 0 };
+    });
+  }
 }
 
 // D. deterministic scoring (no LLM - same inputs -> same numbers)
@@ -2728,7 +2743,7 @@ Write the reflection grounded only in the above.`, 800, 1, SYSTEM_NA);
 // and a shared persistent cache via /api/anatomy keyed by role title + version
 // (cross-session / cross-user, ~7-day TTL) - which also logs every fresh run for
 // the longitudinal dataset. Reuses the live ads buildResponsibilitiesData fetched.
-async function buildJobAnatomy(jobs, title, source) {
+async function buildJobAnatomy(jobs, title, source, occExposure) {
   const ads = (jobs || []).filter(j => j && j.uuid);
   const cacheKey = `${ads.map(j => j.uuid).sort().join(",")}|${JOB_ANATOMY_VERSION}`;
   if (_jobAnatomyCache.has(cacheKey)) return _jobAnatomyCache.get(cacheKey);
@@ -2747,7 +2762,7 @@ async function buildJobAnatomy(jobs, title, source) {
   if (perAd.length < 2) return done({ fallback: true, reason: "extract_failed" });
   const merged = mergeAdFeatures(perAd);
   if (!merged.duties || merged.duties.length < 4) return done({ fallback: true, reason: "thin", orgContext: merged.orgContext, adCount: merged.adCount });
-  const classified = await classifyDuties(title, merged.duties);
+  const classified = await classifyDuties(title, merged.duties, occExposure);
   if (!classified.length) return done({ fallback: true, reason: "classify_failed" });
   const scores = scoreJobAnatomy(classified);
   const partial = { ...scores, orgContext: merged.orgContext, adCount: merged.adCount, duties: classified };
@@ -15316,7 +15331,7 @@ export default function App({ initialSearchMode } = {}) {
           // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
           if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
             let _tJ; try { _tJ = performance.now(); } catch (_) { _tJ = 0; }
-            buildJobAnatomy(rd.jobs, occ.title, corpus ? "corpus" : posting ? "posting" : "esco")
+            buildJobAnatomy(rd.jobs, occ.title, corpus ? "corpus" : posting ? "posting" : "esco", occExposure)
               .then(ja => {
                 if (analysisCancelRef.current !== cancelId) return;
                 setResult(prev => prev ? { ...prev, jobAnatomy: ja } : prev);
