@@ -744,7 +744,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
   const [markup, setMarkup] = useState("suggestions"); // The Ad toolbar: clean | suggestions | comments
   const [dutyView, setDutyView] = useState("oia");     // Duties toolbar: oia | aitrace
-  const [rail, setRail] = useState(null);      // open drawer key or null
   // Rail starts collapsed on narrow viewports (phones) - open by default on
   // desktop is fine there, but on an iPhone the 150px expanded rail alone eats
   // over a third of the screen before the manuscript/margin panes are even
@@ -928,122 +927,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
-  return (
-    <>
-    {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
-        margin) has no shrink floor - manuscript alone won't go below clamp(340px,...)
-        and the margin/drawer panes are flex:none at 300-312px, so on a phone the row
-        summed to 700px+ and silently overflowed (mobile browsers hide the scrollbar,
-        so that content was effectively unreachable, not just visually clipped). Below
-        860px: the manuscript takes full width, and the drawer/margin panes become
-        fixed-position slide-over panels instead of flex siblings that push it aside. */}
-    <style>{`
-      @media (max-width: 860px) {
-        .wis-manuscript { flex: 1 1 100% !important; min-width: 0 !important; }
-        /* top:0/bottom:0/z-index:999 matches the drawer pattern already established
-           elsewhere in the app (App.jsx's CV-fit drawer) - covers the sticky headers
-           entirely rather than guessing their combined height, which is how an
-           earlier version of this fix hid its own close button behind them. */
-        .wis-drawer, .wis-margin {
-          position: fixed !important; top: 0; right: 0; bottom: 0; z-index: 999;
-          width: min(88vw, 340px) !important;
-          box-shadow: -8px 0 24px rgba(20,32,46,.18);
-        }
-        .wis-margin-close { display: inline-flex !important; align-items: center; justify-content: center; }
-      }
-    `}</style>
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
-      {/* Sub-header (fixed, does not scroll) */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 18, padding: "11px 18px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274" }}>REVIEWING</span>
-            <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
-          </div>
-          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{title || "this role"}</div>
-          {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
-              mapped to a canonical ESCO title for the skills fetch - that disclosure must
-              not silently vanish by Step 3. */}
-          {result && result.escoCanonicalTitle && (
-            <div style={{ fontSize: "0.6875rem", color: "#8a8274", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Skills resolved via the closest ESCO term: <strong style={{ color: "#5a5548" }}>{result.escoCanonicalTitle}</strong></div>
-          )}
-        </div>
-        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
-          {bandTok && <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 6, padding: "4px 9px" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: bandTok.dot }} />{bandTok.label}</span>}
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#fff", border: "1px solid #e6e3db", borderRadius: 6, padding: "4px 9px" }}>{duties.length} duties {String.fromCharCode(0x00b7)} {skills.length} skills</span>
-        </div>
-      </div>
+  // ── No.138 U2: WINDOW RENDERERS - every sub-function is a window; panels host them. ──
+  const winVerdict = (
 
-      {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
-          its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
-      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "10px 14px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
-        {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
-          const on = tab === k;
-          return (
-            <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
-              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "8px 16px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
-          );
-        })}
-      </div>
-      {/* Row 3: the active tab's toolbar */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 52 }}>
-        {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
-        {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
-          <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
-        ))}
-        {tab === "duties" && [["oia", "O-I-A cards"], ["aitrace", "AI trace"]].map(([k, lbl]) => (
-          <button key={k} type="button" aria-pressed={dutyView === k} onClick={() => setDutyView(k)} style={pillStyle(dutyView === k)}>{lbl}</button>
-        ))}
-        {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
-        {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
-        {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
-      </div>
-
-      {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
-          Dissect / Critical read, explained once. Colour assists; the label carries the meaning. */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".13em", color: "#b3ab9c", flexShrink: 0 }}>CHIP KEY</span>
-        {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
-          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: `1px solid ${PROV[k].border}`, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
-            <span style={{ fontSize: "0.625rem", color: "#8a8274" }}>= {gloss}</span>
-          </span>
-        ))}
-      </div>
-
-      {/* Body */}
-      <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
-        {/* Left icon rail (docked, collapsible; does not move) */}
-        <nav style={{ flex: "none", width: railOpen ? 150 : 54, background: "#f4f6fa", borderRight: "1px solid #e2e0d8", padding: "12px 9px", display: "flex", flexDirection: "column", gap: 3, transition: "width .15s" }}>
-          <button onClick={() => setRailOpen((o) => !o)} aria-label={railOpen ? "Collapse rail" : "Expand rail"} style={{ alignSelf: railOpen ? "flex-end" : "center", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 8, cursor: "pointer", color: "#64748b", marginBottom: 4 }}>{railOpen ? String.fromCharCode(0x00ab) : String.fromCharCode(0x00bb)}</button>
-          {RAIL.map((r) => { const on = rail === r.key; return (
-            <button key={r.key} onClick={() => setRail(on ? null : r.key)} title={r.label} aria-pressed={on} style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: railOpen ? "flex-start" : "center", cursor: "pointer", textAlign: "left", background: on ? "#eef2ff" : "transparent", color: on ? "#142a8e" : "#5b6b7f", border: "1px solid " + (on ? "#cdd9ff" : "transparent"), borderRadius: 8, padding: "8px 10px", minHeight: 44, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 500 }}>
-              <span aria-hidden="true" style={{ fontSize: 15, width: 16, textAlign: "center", flex: "none" }}>{r.icon}</span>{railOpen && r.label}
-            </button>
-          ); })}
-          {railOpen && <div style={{ marginTop: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8b0bd", lineHeight: 1.5, padding: "8px 6px 2px" }}>local + cloud</div>}
-        </nav>
-
-        {/* Drawer (floats over the canvas; collapses to the rail). Portals to
-            document.body on mobile - see the isNarrow comment above for why. */}
-        {rail && (() => {
-          const drawer = (
-            <aside className="wis-scroll wis-drawer" style={{ flex: "none", width: 300, background: "#fbfaf8", borderRight: "1px solid #e2e0d8", padding: "16px 15px", overflowY: "auto" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>{(RAIL.find((r) => r.key === rail) || {}).label?.toUpperCase()}</div>
-                <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-              </div>
-              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>This drawer fills in the next build phase. Each note will cite the manuscript line that triggered it - it helps you decide, it never decides for you.</p>
-              <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#0e7490", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
-            </aside>
-          );
-          return isNarrow ? createPortal(drawer, document.body) : drawer;
-        })()}
-
-        {/* Centre: one thing per tab (No.137 T1). */}
-        <div className="wis-scroll wis-manuscript" style={{ flex: "1 1 0", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
-          {tab === "overview" ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>OVERVIEW {RS_DOT} THE 10-SECOND READ</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Verdict first {String.fromCharCode(0x2014)} every chip is a door</h2>
@@ -1068,7 +954,24 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <p style={manuP}>The verdict chips appear as the engines classify this role - nothing is summarised before it is computed.</p>
               )}
             </div>
-          ) : tab === "gates" ? (
+  );
+  const winShortcuts = (
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>WORKSPACE SHORTCUTS</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        {[["Sources", "ad", "the verbatim ad and its provenance"], ["Trace", "duties", "duty-by-duty O-I-A dissection"], ["Skilling", "duties", "skills and the AI trace"], ["Advisory", "critical", "the challenged deep read"]].map(([lbl, dest, gloss]) => (
+          <button key={lbl} type="button" onClick={() => setTab(dest)} aria-label={lbl + ": opens " + gloss}
+            style={{ minHeight: 44, textAlign: "left", background: "#fff", border: "1px solid #e6e3db", borderRadius: 10, padding: "10px 14px", cursor: "pointer" }}>
+            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e" }}>{lbl}</span>
+            <span style={{ display: "block", fontSize: "0.6875rem", color: "#8a8274" }}>{gloss}</span>
+          </button>
+        ))}
+      </div>
+      <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.5 }}>Cover letter, Boards and Saved retired from the rail - they were placeholder drawers; they return as real windows when built (trust-loop: no dead controls).</p>
+    </div>
+  );
+  const winGatesHard = (
+
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>REQUIREMENTS &amp; GATES {RS_DOT} WHAT FILTERS YOU OUT</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Can each claim be tested {String.fromCharCode(0x2014)} and what auto-rejects?</h2>
@@ -1076,26 +979,63 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Hard gates</h3>
                 {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"} />)}
               </>}
-              {secQoI}
               {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
             </div>
-          ) : tab === "market" ? (
-            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>MARKET {RS_DOT} WORTH YOUR TIME?</div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {secSalaryPos}
-                {secIndicators}
-              </div>
-              <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, marginTop: 12 }}>
+  );
+  const winQoI = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secQoI}</div>{!critical.qoi.length && <p style={manuP}>No gradeable requirement claims in this ad - nothing is graded that was not written.</p>}</div>);
+  const winGraphs = (<div style={{ maxWidth: 1100 }}><div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, marginTop: 12 }}>
                 {rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>}
-              </div>
-            </div>
-          ) : tab === "duties" && dutyView === "aitrace" ? (
+              </div></div>);
+  const winSalary = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secSalaryPos}</div>{!critical.salaryPos && <p style={manuP}>Withheld - this ad states no salary band, or too few comparable salary-stating ads were sampled.</p>}</div>);
+  const winIndicators = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secIndicators}</div>{!(critical.indicators && critical.indicators.length) && <p style={manuP}>Withheld - not enough sampled ads to compute market signals.</p>}</div>);
+  const winTrajectory = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>{!critical.trajectory && <p style={manuP}>Withheld - fewer than 4 engine-classified duties so far.</p>}</div>);
+  const winAitrace = (
+
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>
               <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16 }}><AITracePanel result={result} /></div>
             </div>
-          ) : showCritical ? (
+  );
+  const winOIA = (
+
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
+              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
+              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
+              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; return (
+                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
+                    {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+                      <div style={oiaKick}>OBSERVATION</div>
+                      <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
+                      {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
+                          from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
+                          verbatim posting text - so the chip must not say "from posting".
+                          Trust-loop rule 4. */}
+                      <Chip kind="derived">derived · AI-extracted</Chip>
+                    </div>
+                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
+                      <div style={oiaKick}>INTERPRETATION</div>
+                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>exposure <strong style={{ color: "#9a6113" }}>withheld</strong> - the engine did not classify this duty.</>}</p>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "none"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "withheld"}</span>
+                    </div>
+                    <div style={{ padding: "12px 13px" }}>
+                      <div style={oiaKick}>APPLICATION</div>
+                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{b ? <>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</> : <>AIOE withheld {String.fromCharCode(0x00b7)} no route emitted</>}</p>
+                      <Chip kind={b ? "computed" : "unverified"}>{b ? "computed" : "unverified"}</Chip>
+                    </div>
+                  </div>
+                </div>
+              ); })}
+              {!dissection.spans.length && <p style={manuP}>No duty spans to dissect yet.</p>}
+            </div>
+  );
+  const winCritical = (
+
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>CRITICAL READ {RS_DOT} PLAIN-LANGUAGE CHECK</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>What the ad says {String.fromCharCode(0x2192)} what it leaves empty</h2>
@@ -1195,44 +1135,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </>}
               {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !critical.trajectory && !critical.salaryPos && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
-          ) : showDissect ? (
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
-              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
-              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
-              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; return (
-                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
-                    {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-                      <div style={oiaKick}>OBSERVATION</div>
-                      <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
-                      {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
-                          from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
-                          verbatim posting text - so the chip must not say "from posting".
-                          Trust-loop rule 4. */}
-                      <Chip kind="derived">derived · AI-extracted</Chip>
-                    </div>
-                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-                      <div style={oiaKick}>INTERPRETATION</div>
-                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>exposure <strong style={{ color: "#9a6113" }}>withheld</strong> - the engine did not classify this duty.</>}</p>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "none"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "withheld"}</span>
-                    </div>
-                    <div style={{ padding: "12px 13px" }}>
-                      <div style={oiaKick}>APPLICATION</div>
-                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{b ? <>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</> : <>AIOE withheld {String.fromCharCode(0x00b7)} no route emitted</>}</p>
-                      <Chip kind={b ? "computed" : "unverified"}>{b ? "computed" : "unverified"}</Chip>
-                    </div>
-                  </div>
-                </div>
-              ); })}
-              {!dissection.spans.length && <p style={manuP}>No duty spans to dissect yet.</p>}
-            </div>
-          ) : (
+  );
+  const winManuscript = (
+
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "28px 30px 34px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
@@ -1353,24 +1258,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </>}
               {!overview && !dissection.spans.length && <p style={manuP}>The analysed posting did not yield responsibilities text to render as a manuscript.</p>}
             </div>
-          )}
-        </div>
-
-        {/* Comment margin (Suggestions / Comments modes). On narrow screens this pane is a
-            fixed overlay covering the manuscript - render it there ONLY when it has content
-            (comments or a focus card); an empty grey sheet over the page is worse than
-            nothing (live mobile report, 07-07 '26). */}
-        {showMargin && (!isNarrow || (tab === "ad" && marginComments.length > 0) || activeSpan || focusSkill != null) && (() => {
-          const margin = (
-          <aside className="wis-scroll wis-margin" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>INSPECTOR {RS_DOT} O-I-A</span>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
-              {/* Mobile-only: this panel becomes a fixed overlay below 860px (see the
-                  .wis-margin media query above) - it needs its own close affordance
-                  there since the desktop dismissal (switch ribbon tabs) sits under it. */}
-              <button onClick={() => setMarkup("clean")} aria-label="Close reviewer comments" title="Close" className="wis-margin-close" style={{ display: "none", marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-            </div>
+  );
+  const winInspector = (
+    <div>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274", marginBottom: 10 }}>INSPECTOR {RS_DOT} O-I-A</div>
             {/* AI-1: focused O-I-A card for the tapped span/pill - the "door" every element opens. */}
             {(() => {
               const sp = activeSpan ? dissection.spans.find((x) => x.id === activeSpan) : null;
@@ -1411,9 +1302,19 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               );
             })()}
-            {tab !== "ad" && marginComments.length > 0 && <p style={{ fontSize: "0.75rem", color: "#94a0b0" }}>{marginComments.length} reviewer comment{marginComments.length === 1 ? "" : "s"} on The Ad tab.</p>}
-            {tab === "ad" && marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
-            {(tab === "ad" ? marginComments : []).map((c) => {
+      {!activeSpan && focusSkill == null && <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Tap any skill pill, evidence phrase or duty line - its Observation {RS_DOT} Interpretation {RS_DOT} Application card opens here.</p>}
+    </div>
+  );
+  const winComments = (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
+      </div>
+      {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this analysis yet.</p>}
+            
+            
+            {marginComments.map((c) => {
               const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               return (
@@ -1450,13 +1351,122 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               );
             })}
-          </aside>
-          );
-          return isNarrow ? createPortal(margin, document.body) : margin;
-        })()}
+    </div>
+  );
+  // No.138 U2: the desk - window registry + per-tab panel assignment.
+  const WIN_LABELS = { verdict: "Verdict", shortcuts: "Shortcuts", manuscript: "Manuscript", comments: "Comments", oia: "O-I-A cards", aitrace: "AI trace", trajectory: "Trajectory", gates: "Hard gates", qoi: "Quality of information", critical: "Critical Read", graphs: "Graphs", salary: "Salary", indicators: "Indicators", inspector: "Inspector" };
+  const TAB_WINDOWS = {
+    overview: { left: ["verdict"], right: ["shortcuts", "inspector"] },
+    ad: { left: ["manuscript"], right: ["inspector", "comments"] },
+    duties: { left: ["oia", "aitrace"], right: ["inspector", "trajectory"] },
+    gates: { left: ["gates", "qoi"], right: ["inspector"] },
+    critical: { left: ["critical"], right: ["inspector"] },
+    market: { left: ["graphs"], right: ["salary", "indicators", "inspector"] },
+  };
+  const [activeWin, setActiveWin] = useState({});
+  const renderWindow = (id) => (
+    id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
+    id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
+    id === "trajectory" ? winTrajectory : id === "gates" ? winGatesHard : id === "qoi" ? winQoI :
+    id === "critical" ? winCritical : id === "graphs" ? winGraphs : id === "salary" ? winSalary :
+    id === "indicators" ? winIndicators : winInspector
+  );
+  return (
+    <>
+    {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
+        margin) has no shrink floor - manuscript alone won't go below clamp(340px,...)
+        and the margin/drawer panes are flex:none at 300-312px, so on a phone the row
+        summed to 700px+ and silently overflowed (mobile browsers hide the scrollbar,
+        so that content was effectively unreachable, not just visually clipped). Below
+        860px: the manuscript takes full width, and the drawer/margin panes become
+        fixed-position slide-over panels instead of flex siblings that push it aside. */}
+    <style>{`
+      @media (max-width: 860px) {
+        /* No.138: the desk stacks on phones - left panel above, right below, each
+           keeping its own window tabs. */
+        .wis-desk { flex-direction: column !important; }
+        .wis-panel { flex: 1 1 auto !important; min-height: 40vh; border-left: none !important; border-top: 1px solid #e2e0d8; }
+      }
+    `}</style>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
+      {/* Sub-header (fixed, does not scroll) */}
+      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 18, padding: "11px 18px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274" }}>REVIEWING</span>
+            <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
+          </div>
+          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{title || "this role"}</div>
+          {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
+              mapped to a canonical ESCO title for the skills fetch - that disclosure must
+              not silently vanish by Step 3. */}
+          {result && result.escoCanonicalTitle && (
+            <div style={{ fontSize: "0.6875rem", color: "#8a8274", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Skills resolved via the closest ESCO term: <strong style={{ color: "#5a5548" }}>{result.escoCanonicalTitle}</strong></div>
+          )}
+        </div>
+        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
+          {bandTok && <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 6, padding: "4px 9px" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: bandTok.dot }} />{bandTok.label}</span>}
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#fff", border: "1px solid #e6e3db", borderRadius: 6, padding: "4px 9px" }}>{duties.length} duties {String.fromCharCode(0x00b7)} {skills.length} skills</span>
+        </div>
+      </div>
 
-        {/* No.137 T1: the old always-on right graph pane is retired - graphs live on the
-            Market tab where their question lives; the right side is now the O-I-A inspector. */}
+      {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
+          its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
+      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "10px 14px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
+        {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
+          const on = tab === k;
+          return (
+            <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
+              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "8px 16px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
+          );
+        })}
+      </div>
+      {/* Row 3: the active tab's toolbar */}
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 52 }}>
+        {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
+        {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
+          <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
+        ))}
+        {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
+        {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
+        {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
+        {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
+      </div>
+
+      {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
+          Dissect / Critical read, explained once. Colour assists; the label carries the meaning. */}
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 6, padding: "5px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".13em", color: "#b3ab9c", flexShrink: 0 }}>CHIP KEY</span>
+        {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
+          <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: `1px solid ${PROV[k].border}`, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
+            <span style={{ fontSize: "0.625rem", color: "#8a8274" }}>= {gloss}</span>
+          </span>
+        ))}
+      </div>
+
+      {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
+          the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
+      <div className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0 }}>
+        {["left", "right"].map((side) => {
+          const wins = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
+          const act = (activeWin[tab] && activeWin[tab][side]) || wins[0];
+          return (
+            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "1.4 1 0" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3" }}>
+              <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "8px 12px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
+                {wins.map((w) => { const on = act === w; return (
+                  <button key={w} type="button" role="tab" aria-selected={on}
+                    onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
+                    style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "7px 13px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
+                ); })}
+              </div>
+              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 18px 60px" }}>
+                {renderWindow(act)}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Footer */}
