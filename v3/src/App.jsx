@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.236";
+const APP_VERSION = "3.0.237";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -15138,7 +15138,22 @@ export default function App({ initialSearchMode } = {}) {
         // Feed the live posting's real skills so the ESCO occupation is picked by
         // overlap, not a blind top-hit (stops generic titles inheriting ICT skills).
         const _escoPhrases = (posting && posting.skills) || (corpus && corpus.skills) || [];
-        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(ssocFirst ? ssocFirst.iscoTitle : escoFetchTitle, _escoPhrases);
+        // W2a (live regression, Data Scientist -> finance skills): anchor on the SSOC
+        // canonical occupation TITLE (precise: "Data scientist"), NOT the ISCO group
+        // label ("Mathematicians, actuaries and statisticians") - 4-digit group labels
+        // fuzzy-match ESCO to sibling occupations. ISCO label stays as second try.
+        escoResult = (forceHybrid || corpus) ? null : await getEscoSkills(ssocFirst ? ssocFirst.title : escoFetchTitle, _escoPhrases);
+        if (ssocFirst && !escoResult && !forceHybrid && !corpus) {
+          escoResult = await getEscoSkills(ssocFirst.iscoTitle, _escoPhrases);
+        }
+        // Coherence guard: if the resolved ESCO occupation label shares no meaningful
+        // token with the SSOC title OR the query, the anchor mis-fired - fall back.
+        if (ssocFirst && escoResult && escoResult.escoOccupation && escoResult.escoOccupation.preferredLabel) {
+          const _tok = (x) => String(x || "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+          const got = new Set(_tok(escoResult.escoOccupation.preferredLabel));
+          const want = _tok(ssocFirst.title).concat(_tok(escoFetchTitle));
+          if (!want.some((w) => got.has(w))) { ssocFirst = { ...ssocFirst, missed: true }; escoResult = null; }
+        }
         // SSOC-anchored fetch missed in ESCO -> retry the original title path before any
         // LLM fallback, so SSOC can only ever improve resolution, never lose it.
         if (ssocFirst && !escoResult && !forceHybrid && !corpus) {

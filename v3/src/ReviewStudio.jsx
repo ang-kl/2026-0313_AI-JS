@@ -993,8 +993,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           )}
         </div>
 
-        {/* Comment margin (Suggestions / Comments modes) */}
-        {showMargin && (() => {
+        {/* Comment margin (Suggestions / Comments modes). On narrow screens this pane is a
+            fixed overlay covering the manuscript - render it there ONLY when it has content
+            (comments or a focus card); an empty grey sheet over the page is worse than
+            nothing (live mobile report, 07-07 '26). */}
+        {showMargin && (!isNarrow || marginComments.length > 0 || activeSpan || focusSkill != null) && (() => {
           const margin = (
           <aside className="wis-scroll wis-margin" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
