@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.243";
+const APP_VERSION = "3.0.244";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -15207,8 +15207,13 @@ export default function App({ initialSearchMode } = {}) {
       // when no SOC under that ISCO carries an AIOE score - never faked.
       let occExposure = null;
       try {
-        if (occ.iscoCode) {
-          const exp = exposureForIsco(occ.iscoCode);
+        // W4a follow-through (found live): posting-path analyses carry NO occ.iscoCode, so
+        // occExposure was always null there - which (post-W4b) starved SLE-C of its anchor
+        // and withheld every duty band. The W2 SSOC resolution already holds the crosswalked
+        // ISCO code; use it as the second anchor. Same engine, same withhold rules.
+        const _expIsco = occ.iscoCode || (typeof ssocFirst !== "undefined" && ssocFirst && !ssocFirst.missed && ssocFirst.iscoCode) || "";
+        if (_expIsco) {
+          const exp = exposureForIsco(_expIsco);
           if (exp) {
             occExposure = {
               index: exp.index,
