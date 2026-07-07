@@ -1371,12 +1371,12 @@
 // Ecotone overlay realm strokes still apply over the new sizes. R007/R006 clean; no red/green; SVG
 // aria-label + keyboard nodes retained. G1 (v3.0.123 -> v3.0.124).
 // v3.0.123 - 2026-06-22 - HDR #161 - a11y palette: normalise the "Full Automation" / high-exposure
-// hue from burnt-orange #9a3412 to a clearer orange #c2410c app-wide (Human Lead, deuteranopia:
+// hue from burnt-orange #9a3412 to a clearer orange #d97706 app-wide (Human Lead, deuteranopia:
 // "shift to a clearer orange app-wide" - the prior hue sat near the red-orange boundary and could
 // read as red). Pure colour-token swap across all 43 usages in src/App.jsx (37), src/RoleGraph.jsx (1),
 // src/wiki/OrgJourney.jsx (2), src/wiki/CandidateJourney.jsx (3) - every "high / Full Automation /
 // thin / concern / boundary" state chip, the Activity job-layer, the role-graph link hue, capability
-// gap markers and score thresholds now share the single orange. #c2410c keeps WCAG AA on the #fff7ed /
+// gap markers and score thresholds now share the single orange. #d97706 keeps WCAG AA on the #fff7ed /
 // white backgrounds it pairs with; state stays encoded by label + icon, never colour alone (no red/green).
 // NO logic, number, verdict or structure changed - render-only. All ten frozen symbols
 // (searchOccupations, getSkills, getSkillsFromPosting, checkIscoCoherence, detectFunctionKeyword,
@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.255";
+const APP_VERSION = "3.0.256";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1467,7 +1467,7 @@ const STEP2_BANDS = {
   human:     { key: "human",     label: "Human-led",       dot: "#1d4ed8", bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
   assisted:  { key: "assisted",  label: "AI-assisted",     dot: "#0e7490", bg: "#e3f5fb", ink: "#0b5e74", border: "#bce6f0" },
   augmented: { key: "augmented", label: "AI-augmented",    dot: "#b45309", bg: "#fdf0dd", ink: "#92450a", border: "#f5d8a8" },
-  auto:      { key: "auto",      label: "Full automation", dot: "#c2410c", bg: "#fde6da", ink: "#9a3412", border: "#f6c6ac" },
+  auto:      { key: "auto",      label: "Full automation", dot: "#d97706", bg: "#fde6da", ink: "#9a3412", border: "#f6c6ac" },
 };
 const STEP2_BAND_ORDER = ["human", "assisted", "augmented", "auto"];
 
@@ -2354,7 +2354,7 @@ const _roleMixCache = new Map(); // `${uuid}|${ROLE_MIX_VERSION}` -> roleMix obj
 const ROLE_MIX_COHERENCE = {
   coherent: { label:"Coherent hybrid", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe" },
   mixed:    { label:"Mixed bundle",    color:"#b45309", bg:"#fffbeb", border:"#fcd9a0" },
-  grabbag:  { label:"Grab-bag",        color:"#c2410c", bg:"#fff7ed", border:"#fed7aa" },
+  grabbag:  { label:"Grab-bag",        color:"#d97706", bg:"#fff7ed", border:"#fed7aa" },
 };
 
 async function getRoleMixCandidates(title, skills, extraPhrases) {
@@ -3213,7 +3213,7 @@ const RG_EDGE_COLOR = { "role-responsibility":"#d97706", "role-occupation":"#636
 // The NUMBER [n] is the unique link key; colour is only a visual assist (it repeats past 6 items, which
 // is exactly why the number leads - honouring the red-green requirement). Same n -> same hue on both
 // the graph node badge and the JD-panel list, so a reader links by either.
-const _RG_LINK_HUES = ["#1e40af", "#c2410c", "#0e7490", "#4f46e5", "#b45309", "#0f766e"];
+const _RG_LINK_HUES = ["#1e40af", "#d97706", "#0e7490", "#4f46e5", "#b45309", "#0f766e"];
 function _respNum(nodeId) { const m = /^resp:r(\d+)$/.exec(String(nodeId || "")); return m ? Number(m[1]) : null; }
 function _respHue(n) { return _RG_LINK_HUES[((Number(n) || 1) - 1) % _RG_LINK_HUES.length]; }
 function _rgSlug(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "x"; }
@@ -4262,7 +4262,7 @@ Skills to narrate, given their already-decided level: ${skillList}`, compactToke
 // read as cool (Human-Led, blue) vs warm (Full Automation, orange); icons +
 // text labels carry the meaning independent of hue, ordered by automation level.
 const LEVELS = {
-  HIGH:  { label:"Full Automation", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa", icon:"⚡" },
+  HIGH:  { label:"Full Automation", color:"#d97706", bg:"#fff7ed", border:"#fed7aa", icon:"⚡" },
   MEDIUM:{ label:"AI-Augmented",    color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"~"  },
   LOW:   { label:"AI-Assisted",     color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"●"  },
   HUMAN: { label:"Human-Led",       color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"♦"  },
@@ -5328,7 +5328,7 @@ function DiagSteps() {
       {open && (
         <div style={{ marginTop: 6, fontFamily: "monospace", fontSize: "0.625rem", lineHeight: 1.7, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 6, padding: "6px 8px", maxHeight: 200, overflowY: "auto" }}>
           {steps.map((s, i) => (
-            <div key={i} style={{ color: isBad(s.status) ? "#c2410c" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            <div key={i} style={{ color: isBad(s.status) ? "#d97706" : C.muted, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
               {s.step} · {s.status}{s.ms != null ? ` · ${s.ms}ms` : ""}{s.detail ? ` · ${s.detail.slice(0, 120)}` : ""}
             </div>
           ))}
@@ -5364,7 +5364,7 @@ function ErrBox({ msg, query }) {
   if (isNotFound) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#c2410c" }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#d97706" }}>
           No match found for "{query}"
         </p>
         <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:"#78350f", lineHeight:1.65 }}>A few things that often help:</p>
@@ -5381,7 +5381,7 @@ function ErrBox({ msg, query }) {
   if (isInvalid || isTooLong) {
     return (
       <div style={{ background:"#fdecea", border:"1px solid #f5c6c2", borderRadius: 10, padding: "12px 16px", marginBottom:12 }}>
-        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#c2410c" }}>
+        <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:"#d97706" }}>
           {isTooLong ? "That job title is a little long" : "That does not quite look like a job title"}
         </p>
         <p style={{ margin:0, fontSize: "0.75rem", color:"#78350f", lineHeight:1.65 }}>
@@ -6018,7 +6018,7 @@ function SkillSegments({ skills, hasNoHuman, isOpen, onToggle, onSkillClick, fir
                   {present.map(lvl => { const c = LEVELS[lvl], p = PWAI_LENS[lvl]; return (
                     <div key={lvl} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
                       <span style={{ fontSize: "0.625rem", fontWeight:700, color:c.color, background:c.bg, border:`1px solid ${c.border}`, borderRadius: 6, padding: "2px 8px", whiteSpace:"nowrap", flexShrink:0 }}>{c.label}</span>
-                      <p style={{ margin:0, fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#c2410c" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
+                      <p style={{ margin:0, fontSize: "0.6875rem", color:C.textSub, lineHeight:1.5 }}><strong style={{ color: p.worker === "replaces" ? "#d97706" : "#1e40af" }}>{p.cat}</strong> ({p.worker} the worker) - {p.frame}</p>
                     </div>
                   ); })}
                 </div>
@@ -6759,7 +6759,7 @@ function BdfStewardship({ result, title }) {
           {bdf.status === "done" && (
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {bdf.read.boundary.length > 0 && (
-                <div>{sec("Boundary - do NOT own these (prevents scope creep)")}{bullets(bdf.read.boundary, "#c2410c", "#fff7ed", "#fed7aa")}</div>
+                <div>{sec("Boundary - do NOT own these (prevents scope creep)")}{bullets(bdf.read.boundary, "#d97706", "#fff7ed", "#fed7aa")}</div>
               )}
               {(bdf.read.upstream.length > 0 || bdf.read.downstream.length > 0) && (
                 <div>
@@ -6840,7 +6840,7 @@ function StewardshipShift({ result }) {
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:10 }}>
             {col("You keep", "the governance node: judgment, accountability, trust", keep, "#1e40af", "#eef2ff", "#c7d2fe", "No clearly human-only skills surfaced for this role - treat that as a flag, not a comfort.")}
-            {col("Hand to AI agents", "commoditised procedural execution", give, "#c2410c", "#fff7ed", "#fed7aa", "Nothing here is fully automatable yet - more of the role stays human-shaped.")}
+            {col("Hand to AI agents", "commoditised procedural execution", give, "#d97706", "#fff7ed", "#fed7aa", "Nothing here is fully automatable yet - more of the role stays human-shaped.")}
           </div>
           <p style={{ margin:"8px 0 0", fontSize: "0.6875rem", color:C.muted, lineHeight:1.5 }}>These are the two poles. The augmented middle - skills AI assists and duties it speeds up - sits in the panels above; that is where most of the role lives day to day.</p>
           <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic" }}>AI-assisted; human decides. Composed from this role's skill levels + work-layer mix (both AI-classified). Grounding: v3/goal protocol 3 (the human as the legal, moral and judgment node).</p>
@@ -6915,7 +6915,7 @@ const _DEMAND_VERDICT = {
               line:"Multiple recent postings in this sample. Demand looks real - but still verify the specific employer and seat." },
   moderate: { glyph:"◆", label:"Moderate demand", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc",
               line:"Some postings, but a thin or older sample. Treat it as a lead, not proof - verify before you over-invest in this one title." },
-  thin:     { glyph:"▽", label:"Thin / unproven", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa",
+  thin:     { glyph:"▽", label:"Thin / unproven", color:"#d97706", bg:"#fff7ed", border:"#fed7aa",
               line:"Demand is not proven from this sample. Default: do not over-invest in this single title - widen your search and confirm live openings first." },
 };
 
@@ -7022,7 +7022,7 @@ function DemandProof({ result }) {
 
           {/* Fair Consideration caveat - information only, NOT a per-post ghost label */}
           <div style={{ padding: "8px 12px", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius: 10, marginBottom:6 }}>
-            <p style={{ margin:0, fontSize: "0.6875rem", color:"#c2410c", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
+            <p style={{ margin:0, fontSize: "0.6875rem", color:"#d97706", lineHeight:1.5 }}><strong>Read with care.</strong> Under Singapore's Fair Consideration Framework, many roles must be advertised on MyCareersFuture for at least 14 days before an Employment Pass can be filed. This sample cannot tell a genuine opening from a compliance-only advert, so a thin or older sample is a reason for caution - not a sign that any single posting is fake.</p>
           </div>
 
           <p style={{ margin:"6px 0 0", fontSize: "0.625rem", color:C.textSub, fontStyle:"italic", lineHeight:1.5 }}>No AI in this read - every figure is counted or computed directly from the live MCF sample, and human decides. Source: MyCareersFuture ({dp.n} postings). Confidence: {dp.confidence} (driven by sample size). Time-window: {dp.dated > 0 ? "rolling, by posting date" : "posting dates not provided in this sample"}.</p>
@@ -7106,7 +7106,7 @@ function AdLanguageScan({ result }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🔎</span>
           <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: headColor }}>Fair-hiring language check (TGFEP)</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#c2410c" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#d97706" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${scan.flagged.length} to review` : "none flagged"}
           </span>
         </div>
@@ -7127,7 +7127,7 @@ function AdLanguageScan({ result }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {scan.flagged.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#c2410c", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>{f.dim}</span>
+                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#d97706", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>{f.dim}</span>
                   <span style={{ flex: 1, minWidth: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                     "{f.phrase}" <span style={{ color: C.muted }}>- looks like {f.note}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
@@ -7138,7 +7138,7 @@ function AdLanguageScan({ result }) {
           )}
 
           <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#c2410c" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
+            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#d97706" : C.textSub, lineHeight: 1.5 }}><strong>Advisory only.</strong> This is a prompt to look, not a finding of discrimination and not legal advice. Some flagged wording can be a legitimate job requirement (for example, a language genuinely needed for the role). Read each phrase against the Tripartite Guidelines on Fair Employment Practices and the Workforce Fairness Act 2025, and judge it in context.</p>
           </div>
 
           <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - phrases are matched verbatim from the live postings by a fixed pattern set, and human decides. Source: MyCareersFuture ({scan.scanned} postings scanned). Confidence: high-precision patterns (favours fewer, surer flags). Time-window: the postings currently in this result.</p>
@@ -7201,7 +7201,7 @@ function EmployerReality({ result }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🏢</span>
           <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Employer reality - who is really hiring?</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#c2410c" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: any ? "#d97706" : "#1e40af", background: any ? "#fff7ed" : "#eef2ff", border: `1px solid ${any ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{any ? "⚠" : "="}</span>{any ? `${cr.flagged.length} to check` : "direct employers"}
           </span>
         </div>
@@ -7222,7 +7222,7 @@ function EmployerReality({ result }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {cr.flagged.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#c2410c", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>agency?</span>
+                  <span style={{ flexShrink: 0, fontSize: "0.625rem", fontWeight: 800, color: "#d97706", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "2px 8px" }}>agency?</span>
                   <span style={{ flex: 1, minWidth: 0, fontSize: "0.75rem", color: C.text, lineHeight: 1.5 }}>
                     {f.company || "(unnamed)"} <span style={{ color: C.muted }}>- {f.why}{f.count > 1 ? `, in ${f.count} postings` : ""}.</span>
                     <Prov kind="mcf" small />
@@ -7233,7 +7233,7 @@ function EmployerReality({ result }) {
           )}
 
           <div style={{ padding: "8px 12px", background: any ? "#fff7ed" : C.surface, border: `1px solid ${any ? "#fed7aa" : C.border}`, borderRadius: 10, marginBottom: 6 }}>
-            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#c2410c" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
+            <p style={{ margin: 0, fontSize: "0.6875rem", color: any ? "#d97706" : C.textSub, lineHeight: 1.5 }}><strong>A heads-up, not a judgement.</strong> Many agency or staffing posts are genuine, well-paid roles. The point: check the <strong>actual employer and worksite</strong> before you assume the role matches the named company - a tech title at an outsourcer can be a client-site contract, not an in-house seat.</p>
           </div>
 
           <p style={{ margin: "6px 0 0", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - company names are matched verbatim from the live postings (poster vs hirer + a fixed name-stem list), and human decides. Source: MyCareersFuture ({cr.scanned} postings). Confidence: a name signal, not a registry check. Time-window: the postings in this result.</p>
@@ -7270,7 +7270,7 @@ function _AcraFacts({ label, name, rec, flagAgency }) {
       <p style={{ margin: "0 0 2px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
       <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", fontWeight: 700, color: C.text, overflowWrap: "anywhere" }}>
         {name}
-        {flagAgency && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#c2410c", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>reads as a staffing firm</span>}
+        {flagAgency && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#d97706", background: "#ffedd5", border: "1px solid #fed7aa", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>reads as a staffing firm</span>}
       </p>
       {!rec && <p style={{ margin: 0, fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Checking the ACRA register...</p>}
       {rec && rec.matched !== "exact" && (
@@ -7280,7 +7280,7 @@ function _AcraFacts({ label, name, rec, flagAgency }) {
         <div style={{ fontSize: "0.71875rem", color: C.textSub, lineHeight: 1.7 }}>
           <div><strong>UEN:</strong> {rec.uen}</div>
           <div><strong>Type:</strong> {rec.entityType || "-"}</div>
-          <div><strong>Status:</strong> {rec.status || "-"}{/de-?registered|struck/i.test(rec.status || "") && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#c2410c" }}>check before applying</span>}</div>
+          <div><strong>Status:</strong> {rec.status || "-"}{/de-?registered|struck/i.test(rec.status || "") && <span style={{ marginLeft: 6, fontSize: "0.625rem", fontWeight: 800, color: "#d97706" }}>check before applying</span>}</div>
           {rec.since && <div><strong>Registered since:</strong> {rec.since}</div>}
           {(rec.street || rec.postal) && <div><strong>Registered address:</strong> {[rec.street, rec.postal].filter(Boolean).join(", ")}</div>}
           {rec.namesakes > 0 && <div style={{ color: C.muted }}>{rec.namesakes} same-name entit{rec.namesakes === 1 ? "y" : "ies"} also on the register</div>}
@@ -7318,7 +7318,7 @@ function CompanyBackground({ result }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🗂️</span>
           <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Company background - the ACRA register</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: concern ? "#c2410c" : "#1e40af", background: concern ? "#fff7ed" : "#eef2ff", border: `1px solid ${concern ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: concern ? "#d97706" : "#1e40af", background: concern ? "#fff7ed" : "#eef2ff", border: `1px solid ${concern ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{concern ? "⚑" : "="}</span>{thirdParty ? "posted by a third party" : agencyPoster ? "staffing-firm name" : "direct posting"}
           </span>
         </div>
@@ -7328,7 +7328,7 @@ function CompanyBackground({ result }) {
         <div style={{ padding: "12px 14px 14px" }}>
           {thirdParty && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#c2410c", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#d97706", lineHeight: 1.55 }}>
                 <strong>This ad was posted by a different company than the named hirer.</strong> {techRole ? "For a tech/professional role that usually means a talent-search or outsourcing firm is in between - the seat, manager and worksite may belong to a client, not the poster. " : ""}Confirm the actual employer, worksite and reporting line before you invest.
               </p>
               <Prov kind="computed" small />
@@ -7336,7 +7336,7 @@ function CompanyBackground({ result }) {
           )}
           {!thirdParty && agencyPoster && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 10, padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10 }}>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#c2410c", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#d97706", lineHeight: 1.55 }}>
                 <strong>The company name reads as a recruitment / staffing firm.</strong> {techRole ? "A tech title at a staffing firm is often a client-site contract, not an in-house seat. " : ""}Ask which client the role sits with.
               </p>
               <Prov kind="derived" small />
@@ -8251,14 +8251,14 @@ function PromptBlock({ text, onSearch, prep, twoStep, readiness, promptTech, nex
     "output-contract":      { label:"Output contract",      desc:"Explicit output structure with field names, section headers, and word or count targets. Eliminates vague responses.", level:"L4-5", color:"#1e40af", bg:"#dbeafe", border:"#bfdbfe" },
     "skeleton-of-thought":  { label:"Skeleton of thought",  desc:"Generate a structured outline first, then expand each section. Faster for long structured documents where sections are independent.", level:"L4-5", color:"#1e40af", bg:"#eff6ff", border:"#bfdbfe" },
     "few-shot-anchor":      { label:"Few-shot anchor",       desc:"A worked example of ideal input-output is embedded before the task. AI calibrates to your quality standard, not its default.", level:"L5-6", color:"#4338ca", bg:"#eef2ff", border:"#c7d2fe" },
-    "multimodal-cot":       { label:"Multimodal CoT",        desc:"Combines image and text inputs with chain-of-thought reasoning. AI reasons across both modalities. Applicable when the task involves interpreting a visual alongside text.", level:"L5-6", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa" },
+    "multimodal-cot":       { label:"Multimodal CoT",        desc:"Combines image and text inputs with chain-of-thought reasoning. AI reasons across both modalities. Applicable when the task involves interpreting a visual alongside text.", level:"L5-6", color:"#d97706", bg:"#fff7ed", border:"#fed7aa" },
     "self-consistency":     { label:"Self-consistency",      desc:"Same prompt run multiple times; the most consistent answer selected. Best for high-stakes analytical tasks where a single answer may be unreliable.", level:"L5-6", color:"#6b21a8", bg:"#faf5ff", border:"#e9d5ff" },
     "meta-prompting":       { label:"Meta prompting",        desc:"Describe the shape and evaluation criteria of the ideal answer before asking. AI knows what good looks like before it starts.", level:"L6-7", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
     "tree-of-thoughts":     { label:"Tree of thoughts",      desc:"AI explores 2-3 reasoning branches before committing. Catches weak paths early. Good for complex decisions with multiple viable routes.", level:"L7-8", color:"#b45309", bg:"#fef3c7", border:"#fde68a" },
     "decomposition-scaffold":{ label:"Decomposition scaffold", desc:"Task broken into numbered sub-steps before execution. AI reasons across stages rather than in a single pass.", level:"L7-8", color:"#0369a1", bg:"#e0f2fe", border:"#bae6fd" },
     "reflexion":            { label:"Reflexion",             desc:"Generate output, reflect on what was weak or missing, then produce an improved version. Deeper than self-critique - evaluates reasoning, not just output.", level:"L7-8", color:"#7c3aed", bg:"#f3e8ff", border:"#d8b4fe" },
     "self-critique-loop":   { label:"Self-critique loop",    desc:"Generate, evaluate against 3 named criteria, revise, deliver. Removes one full review cycle from your workflow.", level:"L7-8", color:"#7c3aed", bg:"#f3e8ff", border:"#d8b4fe" },
-    "react":                { label:"ReAct",                 desc:"Alternate reason-then-act cycles. Each action informs the next reasoning step. Powerful for multi-step analytical tasks.", level:"L7-8", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa" },
+    "react":                { label:"ReAct",                 desc:"Alternate reason-then-act cycles. Each action informs the next reasoning step. Powerful for multi-step analytical tasks.", level:"L7-8", color:"#d97706", bg:"#fff7ed", border:"#fed7aa" },
     "prompt-chaining":      { label:"Prompt chaining",       desc:"Output of one prompt feeds the next. Each step refines the result. Enables complex multi-stage workflows.", level:"L9-10", color:"#be185d", bg:"#fdf2f8", border:"#fbcfe8" },
     "rag":                  { label:"RAG",                   desc:"Retrieval augmented generation. Retrieved documents or data are injected into the prompt before generating. Grounds AI in real source material, not training knowledge.", level:"L9-10", color:"#0f766e", bg:"#f0fdfa", border:"#99f6e4" },
     "agentic-task-spec":    { label:"Agentic task spec",     desc:"Full autonomous brief with decision rules, output verification, and escalation conditions. Designed to run without human initiation.", level:"L11-12", color:"#be185d", bg:"#fdf2f8", border:"#fbcfe8" },
@@ -8855,7 +8855,7 @@ function AutomationBar({ skills, small }) {
   skills.forEach(s => { if (counts[s.level] !== undefined) counts[s.level]++; });
   const total = skills.length || 1;
   const bars = [
-    { key:"HIGH",   label:"Full Automation", color:"#c2410c", bg:"#fff7ed" },
+    { key:"HIGH",   label:"Full Automation", color:"#d97706", bg:"#fff7ed" },
     { key:"MEDIUM", label:"AI-Augmented",color:"#b45309", bg:"#fffbeb" },
     { key:"LOW",    label:"AI-Assisted", color:"#0e7490", bg:"#ecfeff" },
     { key:"HUMAN",  label:"Human-Led",   color:"#1e40af", bg:"#eef2ff" },
@@ -8985,7 +8985,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
   }, [summaryKey]);
 
   const levelBar = [
-    { key:"HIGH",   color:"#c2410c", label:"Full Automation" },
+    { key:"HIGH",   color:"#d97706", label:"Full Automation" },
     { key:"MEDIUM", color:"#b45309", label:"AI-Augmented" },
     { key:"LOW",    color:"#0e7490", label:"AI-Assisted" },
     { key:"HUMAN",  color:"#1e40af", label:"Human-Led" },
@@ -9084,7 +9084,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
           );
         }
         const respLevelBar = [
-          { key:"HIGH",   color:"#c2410c", label:"Full Automation" },
+          { key:"HIGH",   color:"#d97706", label:"Full Automation" },
           { key:"MEDIUM", color:"#b45309", label:"AI-Augmented" },
           { key:"LOW",    color:"#0e7490", label:"AI-Assisted" },
           { key:"HUMAN",  color:"#1e40af", label:"Human-Led" },
@@ -10066,7 +10066,7 @@ function CompareWarningModal({ onConfirm, onCancel }) {
         </p>
         <div style={{ display:"flex", gap:8 }}>
           <button onClick={onConfirm}
-            style={{ flex:1, minHeight:44, padding: "8px 14px", fontSize: "0.8125rem", fontWeight:700, color:"#fff", background:"#c2410c", border:"none", borderRadius: 6, cursor:"pointer" }}>
+            style={{ flex:1, minHeight:44, padding: "8px 14px", fontSize: "0.8125rem", fontWeight:700, color:"#fff", background:"#d97706", border:"none", borderRadius: 6, cursor:"pointer" }}>
             Yes, start fresh
           </button>
           <button onClick={onCancel}
@@ -10132,7 +10132,7 @@ function WorkModeMix({ result }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontSize: "0.875rem" }} aria-hidden="true">🧮</span>
           <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: open ? "#fff" : C.text }}>Work-mode mix - boss, teammate, or solo?</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: wm.mixed ? "#c2410c" : "#1e40af", background: wm.mixed ? "#fff7ed" : "#eef2ff", border: `1px solid ${wm.mixed ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.6875rem", fontWeight: 700, color: wm.mixed ? "#d97706" : "#1e40af", background: wm.mixed ? "#fff7ed" : "#eef2ff", border: `1px solid ${wm.mixed ? "#fed7aa" : "#c7d2fe"}`, borderRadius: 999, padding: "2px 10px" }}>
             <span aria-hidden="true">{wm.mixed ? "⚑" : "="}</span>{wm.mixed ? "all three mixed" : `${_WORK_MODES[order.find(k => wm.counts[k] === Math.max(...order.map(o2 => wm.counts[o2])))].label.toLowerCase()} leads`}
           </span>
         </div>
@@ -10162,7 +10162,7 @@ function WorkModeMix({ result }) {
           </div>
           {wm.mixed && (
             <div style={{ padding: "8px 12px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, marginBottom: 10 }}>
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#c2410c", lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "#d97706", lineHeight: 1.55 }}>
                 <strong>This ad asks for a boss, a teammate AND a solo deliverer in one seat.</strong> A genuinely three-way mandate is rare; more often the role design is unsettled{coherence === "grabbag" ? " - and the Role-Mix read above already calls this bundle a grab-bag" : coherence === "mixed" ? " - consistent with the mixed bundle the Role-Mix read found" : ""}. Ask at interview: which mode fills most of the week, and which single mode is the job REALLY scored on?
               </p>
             </div>
@@ -10206,7 +10206,7 @@ function RoleMixPanel({ roleMix, skills, postingMeta, title }) {
   const nar = roleMix.narrative || {};
   const palette = ["#1a56db","#7c3aed","#0e7490","#b45309","#4a5568"];
   const levelBar = [
-    { key:"HIGH",   color:"#c2410c" },
+    { key:"HIGH",   color:"#d97706" },
     { key:"MEDIUM", color:"#b45309" },
     { key:"LOW",    color:"#0e7490" },
     { key:"HUMAN",  color:"#1e40af" },
@@ -10340,7 +10340,7 @@ function JobAnatomyView({ anatomy, title, view = "structure" }) {
   const a = anatomy;
   const nar = a.narrative || {};
   const score = a.aiResilienceScore;
-  const scoreColor = score >= 65 ? "#1e40af" : score >= 40 ? "#b45309" : "#c2410c";
+  const scoreColor = score >= 65 ? "#1e40af" : score >= 40 ? "#b45309" : "#d97706";
   const lvlOrd = { HUMAN:0, LOW:1, MEDIUM:2, HIGH:3 };
   const sortedDuties = [...a.duties].sort((x,y) => (y.count - x.count) || ((lvlOrd[x.exposureNow]??1)-(lvlOrd[y.exposureNow]??1)) || x.text.localeCompare(y.text));
   const trjSym = { stable:"→", rising:"↗", sharp:"⇈" };
@@ -10977,7 +10977,7 @@ function RoleGraphPanel({ result, title, posting }) {
                 {g.narrative.workPerformed.length > 0 && <div>{subHdr("Work performed")}{g.narrative.workPerformed.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#b45309" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
                 {g.narrative.skillsRequired.length > 0 && <div>{subHdr("Skills required")}{g.narrative.skillsRequired.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#0e7490" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
                 {g.narrative.adjacentRoles.length > 0 && <div>{subHdr("Adjacent roles")}{g.narrative.adjacentRoles.map((r, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#5b21b6" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}><strong>{r.role}</strong>{r.why ? ` — ${r.why}` : ""}</span></div>)}</div>}
-                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#c2410c" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
+                {g.narrative.capabilityGaps.length > 0 && <div>{subHdr("Common capability gaps")}{g.narrative.capabilityGaps.map((w, i) => <div key={i} style={{ display: "flex", gap: 6, marginBottom: 3 }}><span style={{ color: "#d97706" }}>▪</span><span style={{ fontSize: "0.75rem", color: C.textSub, lineHeight: 1.45 }}>{w}</span></div>)}</div>}
               </div>
             </>
           )}
@@ -10994,9 +10994,9 @@ function RoleGraphPanel({ result, title, posting }) {
                     <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#5b21b6" }}>{i + 1}. {c.label}</span>
                     {c.code ? <span style={{ fontSize: "0.6875rem", color: C.muted }}>ISCO {c.code}</span> : (c.iscoMajor != null ? <span style={{ fontSize: "0.6875rem", color: C.muted }}>ISCO major {c.iscoMajor}</span> : null)}
                     {c.isNominal && <span style={{ fontSize: "0.625rem", fontWeight: 700, color: "#1e40af", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 8px" }}>matches the posted title</span>}
-                    <span style={{ marginLeft: "auto", fontSize: "1rem", fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#c2410c" }}>{c.score}<span style={{ fontSize: "0.625rem", fontWeight: 600, color: C.muted }}>/100</span></span>
+                    <span style={{ marginLeft: "auto", fontSize: "1rem", fontWeight: 800, color: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#d97706" }}>{c.score}<span style={{ fontSize: "0.625rem", fontWeight: 600, color: C.muted }}>/100</span></span>
                   </div>
-                  <div style={{ display: "flex", height: 6, borderRadius: 6, overflow: "hidden", background: "#f5f7fa", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#c2410c" }} /></div>
+                  <div style={{ display: "flex", height: 6, borderRadius: 6, overflow: "hidden", background: "#f5f7fa", margin: "5px 0 6px" }}><div style={{ width: `${c.score}%`, background: c.score >= 60 ? "#1e40af" : c.score >= 35 ? "#b45309" : "#d97706" }} /></div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: c.matchedSkills.length ? 6 : 0 }}>
                     {[["skill-proximity", c.skillProximity], ["responsibility-overlap", c.responsibilityOverlap], ["confidence", c.confidence]].map(([lbl, v], j) => (
                       <span key={j} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.6875rem", color: C.muted }}><Term k={lbl}>{lbl}</Term><span style={{ display: "inline-block", width: 44, height: 5, borderRadius: 6, background: "#f5f7fa", overflow: "hidden" }}><span style={{ display: "block", width: `${v}%`, height: "100%", background: "#7c3aed" }} /></span><strong style={{ color: C.textSub }}>{v}%</strong></span>
@@ -11444,7 +11444,7 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
             </div>
             {Object.entries(grouped).map(([prio, items]) => items.length > 0 && (
               <div key={prio} style={{ marginBottom:16 }}>
-                <p style={{ margin:"0 0 8px", fontSize: "0.75rem", fontWeight:700, color: prio==="Must-Have"?"#c2410c":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
+                <p style={{ margin:"0 0 8px", fontSize: "0.75rem", fontWeight:700, color: prio==="Must-Have"?"#d97706":prio==="High"?C.amber:C.muted }}>{prio} <span style={{ fontWeight:400, color:C.muted }}>({items.length})</span></p>
                 {items.map((f, i) => (
                   <div key={i} style={{ border:`1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", marginBottom:8, background:C.surface }}>
                     <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:600, color:C.text, lineHeight:1.5 }}>{f.text}</p>
@@ -12419,7 +12419,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                       <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", flex: "none" }}>{step2SalK(o.salaryMid) || o.age || ""}</span>
                     </button>
                   ))}
-                  {others.length > 6 && <p style={{ margin: "3px 0 0", fontSize: "0.6875rem", color: "#8a8274" }}>+{others.length - 6} more - use the employer filter above.</p>}
+                  {others.length > 6 && <p style={{ margin: "3px 0 0", fontSize: "0.6875rem", color: "#6b6357" }}>+{others.length - 6} more - use the employer filter above.</p>}
                 </div>
               )}
             </>
@@ -12429,7 +12429,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           <h3 title={c.job.title} style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.0625rem", lineHeight: 1.24, color: "#16202e", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{c.job.title}</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 5, margin: "5px 0 7px" }}>
             {(c.age === "today" || c.age === "yesterday") && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".06em", fontWeight: 700, color: "#fff", background: "#1a56db", borderRadius: 3, padding: "1px 4px" }}>NEW</span>}
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: (c.age === "today" || c.age === "yesterday") ? "#1a56db" : "#8a8274", fontWeight: (c.age === "today" || c.age === "yesterday") ? 600 : 400 }}>{c.age || ""}</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", letterSpacing: ".03em", color: (c.age === "today" || c.age === "yesterday") ? "#1a56db" : "#6b6357", fontWeight: (c.age === "today" || c.age === "yesterday") ? 600 : 400 }}>{c.age || ""}</span>
           </div>
           {c.ssoc && <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4, marginBottom: 7 }}><span title={step2SsocChipTitle(c)} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "1px 6px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", boxSizing: "border-box" }}>SSOC {c.ssoc} {DOT} {c.sector}</span>{c.confidence && c.confidence !== "withheld" && <span title={"SSOC classification confidence: " + c.confidence} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".04em", textTransform: "uppercase", color: c.confidence === "high" ? "#15603a" : c.confidence === "medium" ? "#7a5a17" : "#a13a3a", background: c.confidence === "high" ? "#e6f4ec" : c.confidence === "medium" ? "#fdf3dc" : "#fbe7e7", border: "1px solid " + (c.confidence === "high" ? "#bcdfc9" : c.confidence === "medium" ? "#f0e1b3" : "#f0c2c2"), borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>{c.confidence}</span>}{c.jobLevel && c.jobLevel !== "Not applicable" && <span title={"Broad Job Level (SSOC 2024 sec. 2.6-2.7): complexity/range of tasks typical of this major group - 4 is most complex. A major-group attribute shared by every occupation in the group, not a per-occupation measurement (sec. 2.14)."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".02em", color: "#3a4456", background: "#f4f2ec", border: "1px solid #e2e0d8", borderRadius: 4, padding: "1px 5px", whiteSpace: "nowrap" }}>Job level {c.jobLevel}</span>}</div>}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 8 }}>
@@ -12485,7 +12485,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
-          <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".16em", color: "#8a8274" }}>STEP 2 {DOT} SELECT EVIDENCE</div>
+          <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".16em", color: "#6b6357" }}>STEP 2 {DOT} SELECT EVIDENCE</div>
           <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.3rem", color: "#16202e", margin: "1px 0 0", lineHeight: 1.2 }}>Posting evidence for {Q1}{query}{Q2}</h2>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -12526,7 +12526,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               <p style={{ margin: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e" }}>
                 Curating evidence for {Q1}{query}{Q2}
               </p>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
               {rows.map((r) => {
@@ -12544,7 +12544,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                       <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: "#16202e", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
                     </div>
                     <div style={{ marginTop: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456" }}>
-                      {idle && <span style={{ color: "#8a8274" }}>queued{ELL}</span>}
+                      {idle && <span style={{ color: "#6b6357" }}>queued{ELL}</span>}
                       {loading && <span>{r.key === "cls" && r.count > 0 ? <>classifying <strong>{r.count}</strong>{ELL}</> : <>fetching{ELL}</>}</span>}
                       {done && <span><strong style={{ color: "#15603a" }}>{Number(r.count || 0)}</strong> {r.countLabel}</span>}
                       {error && <span style={{ color: "#a13a3a" }}>could not reach</span>}
@@ -12602,8 +12602,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         return (
           <div style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#8a8274", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>computed from SSOC classifications</span>
+              <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#6b6357", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>computed from SSOC classifications</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(180px, 240px) 1fr", gap: 18, alignItems: "center" }}>
               {/* AI-exposure donut */}
@@ -12618,7 +12618,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     return (<circle key={s.key} cx={55} cy={55} r={R} fill="none" stroke={s.color} strokeWidth={12} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90 55 55)" style={{ transition: "stroke-dasharray .4s ease, stroke-dashoffset .4s ease" }} />);
                   })}
                   <text x={55} y={56} textAnchor="middle" dominantBaseline="middle" fontFamily="'Spline Sans',sans-serif" fontWeight={800} fontSize={18} fill="#16202e">{total}</text>
-                  <text x={55} y={72} textAnchor="middle" fontFamily="'Spline Sans Mono',monospace" fontSize={7} fill="#8a8274" letterSpacing=".06em">POSTINGS</text>
+                  <text x={55} y={72} textAnchor="middle" fontFamily="'Spline Sans Mono',monospace" fontSize={7} fill="#6b6357" letterSpacing=".06em">POSTINGS</text>
                 </svg>
                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
                   {bandSegs.map((s) => (
@@ -12632,9 +12632,9 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               </div>
               {/* Top SSOC families bar */}
               <div>
-                <p style={{ margin: "0 0 8px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".08em", color: "#8a8274", fontWeight: 700 }}>TOP SSOC FAMILIES</p>
+                <p style={{ margin: "0 0 8px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".08em", color: "#6b6357", fontWeight: 700 }}>TOP SSOC FAMILIES</p>
                 {topSectors.length === 0 ? (
-                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#8a8274" }}>SSOC families not yet classified.</p>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b6357" }}>SSOC families not yet classified.</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                     {topSectors.map(([name, n]) => (
@@ -12667,7 +12667,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <div>
               <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", marginBottom: 3 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               {/* UI doctrine: state the ranking rule - the rail is a curated ranking, not raw order. */}
-              <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.4 }}>Ranked by match tier, then salary.</p>
+              <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.4 }}>Ranked by match tier, then salary.</p>
               <div className="wis-scroll" style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 340, overflowY: "auto" }}>
                 {tocGroups.map((g, gi) => (
                   <div key={gi}>
@@ -12681,7 +12681,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none", marginTop: 5 }} />
                           <span style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: s ? "#142a8e" : "#3a4456", fontWeight: s ? 600 : 500, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
-                            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.company || ""}</span>
+                            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.company || ""}</span>
                           </span>
                           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", fontWeight: 600, flex: "none", marginTop: 2 }}>{step2SalK(t.salaryMid)}</span>
                         </button>
@@ -12714,7 +12714,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Badge key: the card chips must explain themselves without hover (touch + honesty). */}
-            <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#8a8274", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>
               <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
             </p>
             <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
@@ -12766,7 +12766,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <div onClick={(e) => e.stopPropagation()} style={{ width: 660, maxWidth: "100%", maxHeight: "88vh", overflow: "hidden", background: "#fff", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
               <div style={{ flex: "none", padding: "16px 20px", borderBottom: "1px solid #eceae2", display: "flex", alignItems: "flex-start", gap: 12 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#8a8274", letterSpacing: ".03em" }}>{fullAd.company}{fullAd.age ? "  " + DOT + "  " + fullAd.age : ""}</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#6b6357", letterSpacing: ".03em" }}>{fullAd.company}{fullAd.age ? "  " + DOT + "  " + fullAd.age : ""}</div>
                   <h3 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.375rem", color: "#16202e", margin: "3px 0 0", lineHeight: 1.25 }}>{j.title}</h3>
                 </div>
                 <button onClick={() => setFullAd(null)} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 8, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 15, flex: "none" }}>{String.fromCharCode(0x2715)}</button>
@@ -12810,7 +12810,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                               ? <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Locating map pin{ELL}</p>
                               : <p style={{ margin: "0 0 6px", fontSize: "0.6875rem", color: "#94a0b0" }}>Map preview not available - the registered address above is the verified fact.</p>
                         )}
-                        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved {(() => { try { return new Date(empReg.retrievedAt).toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT"; } catch (_) { return empReg.retrievedAt; } })()}</p>
+                        <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic" }}>Source: ACRA (data.gov.sg, Information on Corporate Entities) {DOT} Match: exact {DOT} Retrieved {(() => { try { return new Date(empReg.retrievedAt).toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT"; } catch (_) { return empReg.retrievedAt; } })()}</p>
                       </div>
                     );
                   })()}
@@ -12856,7 +12856,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           visible throughout rather than flickering in only once loading ends. */}
       <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         {!state.loading
-          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings). Confidence: named-source facts. Time-window: this result.</p>
+          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings). Confidence: named-source facts. Time-window: this result.</p>
           : <span />}
         <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#b3ab9c", flex: "none" }}>v{APP_VERSION}</span>
       </div>
@@ -13252,7 +13252,7 @@ export function PipelineLogsView() {
         <button onClick={load} style={{ fontSize: "0.75rem", padding: "4px 10px", cursor: "pointer" }}>refresh</button>
         <span style={{ color: C.muted }}>{state.status === "loading" ? "loading…" : `${state.logs.length} rows (newest first)`}</span>
       </div>
-      {state.status === "error" && <p style={{ color: "#c2410c" }}>Could not load - the store may be unavailable.</p>}
+      {state.status === "error" && <p style={{ color: "#d97706" }}>Could not load - the store may be unavailable.</p>}
       {state.status === "done" && !state.logs.length && <p style={{ color: C.muted }}>No log rows yet.</p>}
       {!!state.logs.length && (
         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.6875rem" }}>
@@ -15969,7 +15969,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       { level:"HUMAN",  label:"Human-Led",      sub:"Skills where human judgement, empathy, or presence remain essential - your distinct advantage.", color:"#1e40af", bg:"#eef2ff", border:"#c7d2fe", icon:"\u{1F7E6}" },
       { level:"LOW",    label:"AI-Assisted",     sub:"AI can support these skills but you remain in control. Good skills to use AI as a thinking partner.", color:"#0e7490", bg:"#ecfeff", border:"#a5f3fc", icon:"\u{1F535}" },
       { level:"MEDIUM", label:"AI-Augmented",    sub:"These skills are significantly shaped by AI today. Understanding the tools gives you an edge.", color:"#b45309", bg:"#fffbeb", border:"#fde68a", icon:"\u{1F7E1}" },
-      { level:"HIGH",   label:"Full Automation", sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#c2410c", bg:"#fff7ed", border:"#fed7aa", icon:"\u{1F7E7}" },
+      { level:"HIGH",   label:"Full Automation", sub:"An AI agent can run this end-to-end today - you review the outcome, not each step. Knowing this helps you focus your energy wisely.", color:"#d97706", bg:"#fff7ed", border:"#fed7aa", icon:"\u{1F7E7}" },
       // SLE-A: withheld skills (classifySkillLevel found no occupation exposure and no ESCO
       // signal) - shown honestly, never folded into a fabricated band.
       { level:null,     label:"Not classified", sub:"No occupation-exposure or skill signal was available to estimate this one - shown as-is rather than guessed.", color:"#5b6878", bg:"#f5f7fa", border:"#dde3ec", icon:"\u{26AA}" },
