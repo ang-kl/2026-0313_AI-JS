@@ -528,6 +528,43 @@ function rsIndicators(result) {
   if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
   return out;
 }
+// ── AI-4/5 (spec No.135): second-order + competitive reads, deterministic. ──────────
+// Around the corner: the duty-exposure mix -> where this role is headed. Uses ONLY the
+// engine's own per-duty bands; withheld when fewer than 4 duties carry a band.
+function rsTrajectory(spans) {
+  const duty = (spans || []).filter((x) => x.sec !== "req" && x.band);
+  if (duty.length < 4) return null;
+  const auto = duty.filter((x) => x.band === "auto").length;
+  const aug = duty.filter((x) => x.band === "augmented" || x.band === "assisted").length;
+  const human = duty.filter((x) => x.band === "human").length;
+  const n = duty.length;
+  const share = (auto + aug) / n;
+  const grade = share >= 0.7 ? "reshaping" : share >= 0.4 ? "splitting" : "durable";
+  return {
+    id: "traj", grade,
+    obs: auto + " of " + n + " classified duties read full-automation, " + aug + " AI-augmented/assisted, " + human + " human-led (engine bands)",
+    why: grade === "reshaping" ? "Most of the classified work is automatable or heavily augmentable - the role as advertised is being reshaped around the corner; the human core is thinner than the ad implies." : grade === "splitting" ? "The role splits: a machine-leaning half and a human-led half. Expect the job to be redefined around the human half within a review cycle or two." : "The classified core stays human-led - AI assists but the accountability and judgment stay with the person.",
+    move: grade === "reshaping" ? "Ask which duties will still need a person in 2 years - and negotiate for those." : grade === "splitting" ? "Position yourself on the human-led half; automate your own machine-leaning half first." : "Lead with the human-led duties as your durable value.",
+  };
+}
+// Competitive read: this ad's salary vs the sampled market (same result set) - a rank,
+// not a benchmark claim. Withheld without the ad's own band or <4 comparable ads.
+function rsSalaryPosition(posting, result) {
+  const mid = posting && posting.salaryMid;
+  if (!mid) return null;
+  const jobs = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : [];
+  const mids = jobs.map((j) => { const lo = j.salaryMin || (j.salary && j.salary.minimum) || null; const hi = j.salaryMax || (j.salary && j.salary.maximum) || null; return lo && hi ? (lo + hi) / 2 : lo || hi || null; }).filter((x) => x && x > 100);
+  if (mids.length < 4) return null;
+  const below = mids.filter((x) => x < mid).length;
+  const pct = Math.round((below / mids.length) * 100);
+  const fmtK = (v) => "S$" + (Math.round(v / 100) / 10) + "k";
+  return {
+    id: "salpos", pct,
+    obs: "This ad's midpoint " + fmtK(mid) + " sits above " + pct + "% of the " + mids.length + " salary-stating ads sampled for this role",
+    why: pct >= 70 ? "Pays in the upper band of the sampled market - expect the bar (or the bundle of duties) to be correspondingly higher." : pct >= 35 ? "Mid-market for the sampled set - room to negotiate on evidence." : "Below most of the sampled market - either the scope is lighter than advertised, or the band has headroom.",
+    move: "Quote the sampled range in negotiation - it is this search's own evidence, not a generic benchmark.",
+  };
+}
 function buildCriticalRead(result, spans, title, posting) {
   const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   let adText = rsAdText(firstJob);
@@ -544,7 +581,7 @@ function buildCriticalRead(result, spans, title, posting) {
       .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
       .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
   }
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
@@ -830,6 +867,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
                 {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
               </>}
+              {critical.trajectory && <>
+                <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
+                <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
+              </>}
+              {critical.salaryPos && <>
+                <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
+                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
+              </>}
               {critical.qoi && critical.qoi.length > 0 && <>
                 <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
                 {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
@@ -879,7 +924,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
               </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
+              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !critical.trajectory && !critical.salaryPos && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
