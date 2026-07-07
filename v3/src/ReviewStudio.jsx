@@ -216,6 +216,56 @@ function rsComments(spans) {
   return out.slice(0, 6);
 }
 
+// ── AI-1 click-to-analyse (spec No.135): every span/pill resolves to ONE focused O-I-A
+// card in the margin. All deterministic - keywords are nucleus tokens + matched skill
+// terms; routes map from the engine band; skill "how/kickstart" lines are the existing
+// LLM narration and stay chipped "AI estimate". Withhold over guess throughout. ──────────
+function rsTokens(text) {
+  return String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w));
+}
+const RS_ROUTE = { human: "candidate edge - bring proof you drove this to an outcome", auto: "governance check - who signs off the machine's output?", augmented: "AI-assist - human frames, verifies, owns", assisted: "AI-assist - human judgment leads" };
+const RS_HALF_LIFE = { HIGH: "eroding fast - end-to-end automation is plausible", MEDIUM: "eroding - heavy augmentation pressure", LOW: "durable near-term - AI informs, human leads", HUMAN: "durable - human-led (accountability, presence, empathy)" };
+function rsSpanFocus(sp, skillObjs) {
+  const toks = new Set(rsTokens(sp.text));
+  const invoked = skillObjs.map((o) => String(o.skill || o)).filter((n) => rsTokens(n).some((t) => toks.has(t))).slice(0, 3);
+  const nuc = rsNucleus(sp.text);
+  return {
+    kind: "span", title: sp.sec === "req" ? "Requirement line" : "Duty span",
+    obs: sp.text, obsChip: sp.sec === "req" ? "from posting" : "derived",
+    obsChipLabel: sp.sec === "req" ? "from posting" : "derived · AI-extracted",
+    interp: [
+      sp.layer ? "Layer: " + sp.layer : null,
+      sp.band ? "Exposure: " + (BANDS[sp.band] ? BANDS[sp.band].label : sp.band) + " (engine rule)" : "Exposure: withheld - the engine did not classify this line",
+      nuc ? "Keywords: " + nuc.phrase : null,
+      invoked.length ? "Linked skills: " + invoked.join(", ") : null,
+    ].filter(Boolean),
+    interpChip: sp.band ? "computed" : "unverified",
+    appl: sp.sec === "req"
+      ? "Gate line - meet it, show the equivalent, or expect an auto-reject before a human reads your CV."
+      : (sp.band ? RS_ROUTE[sp.band] : "No route emitted - withheld."),
+    applChip: "computed",
+  };
+}
+function rsSkillFocus(o, spans) {
+  const name = String(o.skill || o);
+  const toks = new Set(rsTokens(name));
+  const invokedBy = (spans || []).filter((sp) => sp.sec !== "req" && rsTokens(sp.text).some((t) => toks.has(t))).slice(0, 2);
+  const lvl = o.level || null;
+  const hasNarration = !!(o.h || o.k);
+  return {
+    kind: "skill", title: "Skill",
+    obs: name, obsChip: o.escoUri ? "computed" : "derived",
+    obsChipLabel: o.escoUri ? "ESCO-mapped" : "derived",
+    interp: [
+      lvl ? "AI-exposure level: " + lvl + " (engine)" : "AI-exposure level: withheld",
+      lvl ? "Half-life read: " + (RS_HALF_LIFE[lvl] || "withheld") : null,
+      invokedBy.length ? "Invoked by: " + invokedBy.map((sp) => String.fromCharCode(0x201c) + sp.text.slice(0, 60) + (sp.text.length > 60 ? String.fromCharCode(0x2026) : "") + String.fromCharCode(0x201d)).join(" · ") : "Invoked by: no duty line matches this skill's terms in this ad",
+    ].filter(Boolean),
+    interpChip: lvl ? "computed" : "unverified",
+    appl: hasNarration ? [o.h, o.k].filter(Boolean).join(" · ") : (lvl ? RS_HALF_LIFE[lvl] : "Withheld - no engine signal for this skill."),
+    applChip: hasNarration ? "AI estimate" : "computed",
+  };
+}
 // ── Critical Read: plain-language / hype audit (deterministic, verbatim-only). §6.3 Forensic
 // Reversal + "word noodles". Scans the FULL ad copy - empty phrasing lives in the intro/benefits/
 // salary lines, not the duty spans. Every finding is a verbatim substring of the posting; when
@@ -464,6 +514,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // considered. Lazy-init so this reads the real viewport once, not on every render.
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
+  const [focusSkill, setFocusSkill] = useState(null); // AI-1 click-to-analyse: focused skill-pill index
   const [commentStatus, setCommentStatus] = useState({}); // id -> 'accepted' | 'rejected'
   // Drives whether the drawer/comment-margin panes portal to document.body (mobile
   // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
@@ -524,7 +575,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const hasVerbatimBullets = verbatim.responsibilities.length > 0;
   const overview = hasVerbatimOverview ? verbatim.overview : (rd && rd.summary) || (firstJob ? rsFirstSentence(rsStrip(firstJob.description || firstJob.responsibilitiesText)) : "");
   const overviewSource = hasVerbatimOverview ? "verbatim" : "synthesis";
-  const skills = (Array.isArray(result && result.skills) ? result.skills : []).map((s) => s.skill || s).filter(Boolean);
+  const skillObjs = (Array.isArray(result && result.skills) ? result.skills : []).filter((s) => s && (s.skill || typeof s === "string"));
+  const skills = skillObjs.map((s) => s.skill || s).filter(Boolean);
   const skillTermRe = useMemo(() => rsSkillTermRe(result), [result]);
   const derivedBand = rsDominantBand(dutyObjs);
   const bandKey = (band && BANDS[band]) ? band : derivedBand;
@@ -808,8 +860,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               ))}
               {skills.length > 0 && <>
-                <h2 style={manuH2}>Skills the posting asks for</h2>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => <span key={i} style={{ fontSize: "0.8125rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 14, padding: "3px 11px" }}>{s}</span>)}</div>
+                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span></h2>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
+                  <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
+                    onClick={() => { setFocusSkill(on ? null : i); if (!on) setActiveSpan(null); }}
+                    style={{ minHeight: 44, fontSize: "0.8125rem", fontFamily: "inherit", color: on ? "#fff" : "#0b5e74", background: on ? "#0e7490" : "#e3f5fb", border: "1px solid " + (on ? "#0e7490" : "#bce6f0"), borderRadius: 14, padding: "6px 12px", cursor: "pointer" }}>{s}</button>
+                ); })}</div>
               </>}
               {!overview && !dissection.spans.length && <p style={manuP}>The analysed posting did not yield responsibilities text to render as a manuscript.</p>}
             </div>
@@ -828,6 +884,31 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   there since the desktop dismissal (switch ribbon tabs) sits under it. */}
               <button onClick={() => setMarkup("clean")} aria-label="Close reviewer comments" title="Close" className="wis-margin-close" style={{ display: "none", marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
             </div>
+            {/* AI-1: focused O-I-A card for the tapped span/pill - the "door" every element opens. */}
+            {(() => {
+              const sp = activeSpan ? dissection.spans.find((x) => x.id === activeSpan) : null;
+              const so = (focusSkill != null && skillObjs[focusSkill]) ? skillObjs[focusSkill] : null;
+              const f = so ? rsSkillFocus(so, dissection.spans) : (sp ? rsSpanFocus(sp, skillObjs) : null);
+              if (!f) return null;
+              const chip = (k, label) => { const c = PROV[k] || PROV.unverified; return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: c.ink, background: c.bg, border: "1px solid " + c.border, borderRadius: 4, padding: "1px 6px" }}>{label || k}</span>; };
+              return (
+                <div style={{ border: "1.5px solid #1a56db", background: "#f5f8ff", borderRadius: 10, padding: "12px 13px", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#142a8e" }}>{f.title.toUpperCase()} {RS_DOT} O-I-A</span>
+                    <button onClick={() => { setActiveSpan(null); setFocusSkill(null); }} aria-label="Close analysis card" style={{ marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #cdd9ff", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+                  </div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>OBSERVATION</div>
+                  <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 4px" }}>{String.fromCharCode(0x201c)}{f.obs}{String.fromCharCode(0x201d)}</p>
+                  <div style={{ marginBottom: 9 }}>{chip(f.obsChip, f.obsChipLabel)}</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>INTERPRETATION</div>
+                  {f.interp.map((ln, i) => <p key={i} style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 3px" }}>{ln}</p>)}
+                  <div style={{ margin: "3px 0 9px" }}>{chip(f.interpChip)}</div>
+                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#8a8274", marginBottom: 3 }}>APPLICATION</div>
+                  <p style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 4px" }}>{f.appl}</p>
+                  {chip(f.applChip)}
+                </div>
+              );
+            })()}
             {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
             {marginComments.map((c) => {
               const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
