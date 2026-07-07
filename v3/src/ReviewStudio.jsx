@@ -436,7 +436,7 @@ function rsHiringFilter(adText, job) {
   return out;
 }
 function buildCriticalRead(result, spans, title, posting) {
-  const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
+  const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   let adText = rsAdText(firstJob);
   // Fallback to the analysed posting's own verbatim text when the aggregate result.jobs is thin -
   // single-posting analyses often have an empty result.jobs even though the clicked ad has full
@@ -505,7 +505,7 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties }) {
   const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
   const [rail, setRail] = useState(null);      // open drawer key or null
@@ -583,7 +583,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const dutyObjs = (ja && Array.isArray(ja.duties) && ja.duties.length ? ja.duties
     : (rd && Array.isArray(rd.responsibilities) ? rd.responsibilities : []));
   const duties = dutyObjs.map((d) => (typeof d === "string" ? d : d.text)).filter(Boolean);
-  const firstJob = Array.isArray(result && result.jobs) ? result.jobs.find((j) => j && (j.description || j.responsibilitiesText)) : null;
+  const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   // Trust-loop rule 4: the manuscript's "verbatim" chip must not label LLM-authored
   // prose as verbatim. Prefer the posting's OWN text (parsed deterministically) when a
   // specific job was picked in Step 2; fall back to the corpus summary but relabel the
@@ -821,12 +821,41 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </div>
               {/* Composite (PR #306 x v3.0.228): verbatim-first overview (trust-loop rule 4 -
                   posting's own words when present, skill terms underlined for emphasis only),
-                  falling back to the sectioniser, then the corpus summary. */}
+                  falling back to the sectioniser, then the ESCO taxonomy description (verbatim,
+                  deterministic - the role path's real data when no live ads exist), then the
+                  corpus summary. */}
               {(() => {
                 if (hasVerbatimOverview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{rsUnderlineSkillTerms(overview, skillTermRe)}</p></>;
                 const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
                 if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
-                return overview ? <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></> : null;
+                if (overview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></>;
+                const escoDesc = String((result && result.description) || "").trim();
+                if (escoDesc) return <><h2 style={manuH2}>Role overview <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · ESCO taxonomy</span></h2><p style={manuP}>{rsUnderlineSkillTerms(escoDesc, skillTermRe)}</p></>;
+                return null;
+              })()}
+              {/* LOOP-1 diagnosis (Human Lead: "step 3 keeps having issues to show ads and
+                  diagnosis"): when the live-postings pipeline fell back, SAY WHY - the reason
+                  was previously swallowed and the page just went quiet. Deterministic reason
+                  map + retry, never a silent dead end. */}
+              {(() => {
+                const rdd = result && result.responsibilitiesData;
+                if (!rdd || !rdd.fallback) return null;
+                const REASONS = {
+                  no_jobs: "No live SG postings found for this title right now (MyCareersFuture + careers.gov.sg were searched).",
+                  mcf_error: "The live-postings fetch failed (network or source error).",
+                  thin_corpus: "Live ads were found, but their text was too thin to analyse" + (rdd.jobCount ? " (" + rdd.jobCount + " ad" + (rdd.jobCount === 1 ? "" : "s") + " sampled)" : "") + ".",
+                  analysis_error: "The duty-analysis step failed on the sampled ads.",
+                  empty_analysis: "The analysis returned no usable duty lines from the sampled ads.",
+                };
+                return (
+                  <div style={{ background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 10, padding: "12px 14px", margin: "0 0 18px" }}>
+                    <p style={{ margin: "0 0 4px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#7a5a17" }}>WHY THERE ARE NO DUTY LINES HERE</p>
+                    <p style={{ margin: "0 0 8px", fontSize: "0.8125rem", color: "#7a5a17", lineHeight: 1.55 }}>{REASONS[rdd.reason] || "The live-postings pipeline returned no duties (reason: " + (rdd.reason || "unknown") + ")."} The skills below and the taxonomy overview above are still real, named-source data.</p>
+                    {onRetryDuties && (
+                      <button type="button" onClick={onRetryDuties} style={{ minHeight: 44, padding: "8px 14px", borderRadius: 8, border: "1px solid #d9b96a", background: "#fff", color: "#7a5a17", fontWeight: 700, fontSize: "0.8125rem", cursor: "pointer" }}>Retry live postings</button>
+                    )}
+                  </div>
+                );
               })()}
               {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
                 {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
