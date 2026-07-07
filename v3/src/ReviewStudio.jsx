@@ -604,7 +604,10 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
           <div style={oiaKick}>INTERPRETATION</div>
           <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{interp}</p>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {RS_DOT} rule (deterministic) {RS_DOT} conf moderate</span>
+          {/* Audit fix: the confidence clause was a fixed "moderate" for every lens - an unearned,
+    non-varying claim. "rule (deterministic)" is true and sufficient; per-lens confidence
+    returns only if a lens actually computes one. */}
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b4bbd" }}>method {RS_DOT} rule (deterministic)</span>
         </div>
         <div style={{ padding: "12px 13px" }}>
           <div style={oiaKick}>APPLICATION</div>
