@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.240";
+const APP_VERSION = "3.0.241";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -4713,9 +4713,11 @@ Format:
   "realDemand": "is this demand real, or a template or always-open req - one line under 24 words",
   "teleology": { "whyExists": "why this job really exists now, under 20 words", "problem": "the underlying problem it is hired to solve, under 20 words" },
   "proWorker": { "verdict": "protects", "reasoning": "does this role protect or squeeze the worker, grounded in the given AI-exposure band, under 28 words" },
-  "hiring": { "recruiter": "what a recruiter screens for first, under 20 words", "hiringManager": "what the manager actually needs on day one, under 20 words", "interviewCoach": "one question worth preparing for, under 20 words" }
+  "hiring": { "recruiter": "what a recruiter screens for first, under 20 words", "hiringManager": "what the manager actually needs on day one, under 20 words", "interviewCoach": "one question worth preparing for, under 20 words" },
+  "ach": { "likely": "real vacancy", "read": "which hypothesis the duty evidence best supports and the one line of evidence, under 30 words", "hypotheses": [{ "name": "real vacancy", "signal": "the strongest sign FOR this hypothesis in the given duties, under 16 words" }, ...] }
 }
 Rules:
+- ach (Analysis of Competing Hypotheses): weigh EXACTLY these hypotheses - real vacancy, always-open pipeline, compliance posting, backfill, expansion. hypotheses: 2 to 4 entries drawn only from that list; ach.likely must be one of them.
 - challenges: 2 to 4, each a distinct concrete doubt. Attack over-confidence, template ads, role mash-ups, false or always-open demand, self-serving hype.
 - Never output a number, percentage or score anywhere.
 - proWorker.verdict must be exactly one of: protects, mixed, squeezes.
@@ -4741,6 +4743,13 @@ Run the critical read: challenge the analysis, test whether the demand is real, 
     teleology: { whyExists: s(tel.whyExists, 200), problem: s(tel.problem, 200) },
     proWorker: { verdict, reasoning: s(pw.reasoning, 260) },
     hiring: { recruiter: s(hi.recruiter, 200), hiringManager: s(hi.hiringManager, 200), interviewCoach: s(hi.interviewCoach, 200) },
+    ach: (() => {
+      const a = o.ach || {};
+      const ALLOWED = ["real vacancy", "always-open pipeline", "compliance posting", "backfill", "expansion"];
+      const likely = ALLOWED.includes(String(a.likely || "").toLowerCase()) ? String(a.likely).toLowerCase() : null;
+      const hyps = (Array.isArray(a.hypotheses) ? a.hypotheses : []).map((h) => ({ name: String(h && h.name || "").toLowerCase(), signal: s(h && h.signal, 140) })).filter((h) => ALLOWED.includes(h.name) && h.signal).slice(0, 4);
+      return likely ? { likely, read: s(a.read, 260), hypotheses: hyps } : null;
+    })(),
   };
 }
 

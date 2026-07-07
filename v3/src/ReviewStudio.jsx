@@ -20,7 +20,9 @@ const BANDS = {
 const PROV = {
   "from posting": { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
   "from MCF":     { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
-  computed:       { bg: "#eef7f0", ink: "#2f7d4f", border: "#cce6d4" },
+  // Audit (07-07 '26): computed was the one green swatch left in the chip vocabulary -
+  // moved to the blue family so all five prov chips sit inside blue/violet/amber.
+  computed:       { bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
   derived:        { bg: "#f1eefc", ink: "#5b4bbd", border: "#ddd5f6" },
   "AI estimate":  { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
   // A11y (governance audit): unverified was brick-red (#a13a3a) - the one warm "danger" hue
@@ -32,7 +34,7 @@ const PROV = {
 const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
 const PERSONA = {
   "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
-  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#2f7d4f", "Evidence Auditor": "#64748b",
+  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#0e7490", "Evidence Auditor": "#64748b",
   "Signal Auditor": "#9a6113",
 };
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
@@ -841,7 +843,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 <button onClick={() => setRail(null)} aria-label="Close drawer" style={{ minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
               </div>
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55 }}>This drawer fills in the next build phase. Each note will cite the manuscript line that triggered it - it helps you decide, it never decides for you.</p>
-              <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
+              <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#0e7490", marginTop: 12 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</p>
             </aside>
           );
           return isNarrow ? createPortal(drawer, document.body) : drawer;
@@ -900,6 +902,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <AdvisoryCard persona="SKEPTIC / DEVIL'S ADVOCATE">
                     {cr.devilsAdvocate.counterCase && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.devilsAdvocate.counterCase}</p>}
                     {cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0 && <ul style={{ margin: 0, paddingLeft: 18 }}>{cr.devilsAdvocate.challenges.map((c, i) => <li key={i} style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, marginBottom: 4 }}>{c}</li>)}</ul>}
+                  </AdvisoryCard>
+                )}
+                {cr.ach && cr.ach.likely && (
+                  <AdvisoryCard persona="COMPETING HYPOTHESES (ACH)">
+                    <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>most consistent with the evidence {RS_DOT} <strong style={{ textTransform: "uppercase", letterSpacing: ".04em" }}>{cr.ach.likely}</strong></p>
+                    {cr.ach.read && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.ach.read}</p>}
+                    {cr.ach.hypotheses && cr.ach.hypotheses.length > 0 && (
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {cr.ach.hypotheses.map((h, i) => <li key={i} style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, marginBottom: 4 }}><strong style={{ color: "#16202e" }}>{h.name}:</strong> {h.signal}</li>)}
+                      </ul>
+                    )}
                   </AdvisoryCard>
                 )}
                 {cr.realDemand && (
@@ -1070,7 +1083,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {skills.length > 0 && <>
                 <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span>
                   {/* W2: say HOW the skill set was anchored - SG-first when SSOC steered it. */}
-                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#2f7d4f", background: "#eef7f0", border: "1px solid #cce6d4", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
+                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
                 </h2>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
                   <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
@@ -1140,7 +1153,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   {c.type === "suggested rewrite" && (
                     <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>
                       <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#9a6113", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
-                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#2f7d4f", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
+                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#0e7490", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
                     </div>
                   )}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
