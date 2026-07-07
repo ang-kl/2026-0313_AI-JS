@@ -6,7 +6,7 @@
 // removed rather than left as placeholder tabs; add them back only once each is
 // actually wired to real deterministic engine output. Doctrine tokens only;
 // "AI-assisted; human decides".
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 
@@ -55,7 +55,7 @@ const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" 
 // renderer exists, not before.
 const RIBBON = [
   { group: "Review", key: "markup", items: [["clean", "Read clean"], ["suggestions", "Suggestions"], ["comments", "Comments"], ["dissect", "Dissect"], ["critical", "Critical read"]] },
-  { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"]] },
+  { group: "Visuals", key: "visual", items: [["jobgraph", "Job graph"], ["aitrace", "AI trace"]] },
 ];
 const RAIL = [
   { key: "sources", icon: String.fromCharCode(0x25a4), label: "Sources" },
@@ -640,6 +640,60 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
+// ── W4a slice 1 (blueprint §10.3 "AI trace"): the AIOE exposure trace, deterministic.
+// Occupation index (engine AIOE chain) -> per-duty engine bands on a labelled 4-stop
+// track (position = band, no fabricated numbers) -> skill-level mix. No LLM anywhere in
+// this visual; every row withholds when its engine signal is absent.
+const AIT_STOPS = ["human", "assisted", "augmented", "auto"];
+function AITracePanel({ result }) {
+  const occ = result && result.occExposure;
+  const duties = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties : [];
+  const skills = Array.isArray(result && result.skills) ? result.skills : [];
+  const dutyRows = duties.map((d, i) => ({ id: "t" + i, text: d.text, band: RS_EXP_BAND[d.exposureNow] || null, band2y: RS_EXP_BAND[d.exposure2y] || null, layer: d.layer || "", basis: d.levelBasis || "" })).slice(0, 14);
+  const classified = dutyRows.filter((d) => d.band);
+  const mix = {}; skills.forEach((sk) => { const k = sk.level || "unclassified"; mix[k] = (mix[k] || 0) + 1; });
+  if (!occ && !classified.length && !skills.length) {
+    return <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The AI trace appears once the engine classifies this role - no exposure signals yet, so nothing is drawn (withhold over guess).</p>;
+  }
+  const col = (b) => AIT_STOPS.indexOf(b);
+  return (
+    <div>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".12em", color: "#8a8274", marginBottom: 6 }}>AI TRACE {RS_DOT} OCCUPATION {String.fromCharCode(0x2192)} DUTIES {String.fromCharCode(0x2192)} SKILLS</div>
+      {/* Occupation row */}
+      <div style={{ background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 10, padding: "10px 13px", marginBottom: 14 }}>
+        <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>OCCUPATION EXPOSURE (AIOE ENGINE)</div>
+        {occ && (occ.band || occ.index != null)
+          ? <p style={{ margin: 0, fontSize: "0.875rem", color: "#16202e" }}><strong>{occ.band || "band withheld"}</strong>{occ.index != null ? " " + RS_DOT + " index " + occ.index + "/100" : ""} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274" }}>{RS_DOT} occupation{String.fromCharCode(0x2192)}SOC{String.fromCharCode(0x2192)}AIOE {RS_DOT} computed</span></p>
+          : <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9a6113" }}>Occupation exposure withheld - the AIOE engine returned no score for this occupation.</p>}
+      </div>
+      {/* Duty track */}
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>DUTIES ON THE EXPOSURE TRACK (SLE-C ENGINE BANDS {RS_DOT} POSITION = BAND, NOT A SCORE)</div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) repeat(4, 74px)", gap: 0, alignItems: "center", border: "1px solid #eceae2", borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
+        <div style={{ padding: "6px 10px", background: "#f4f6fa", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#8a8274" }}>duty</div>
+        {AIT_STOPS.map((b) => <div key={b} style={{ padding: "6px 4px", background: "#f4f6fa", textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: BANDS[b].ink }}>{BANDS[b].label}</div>)}
+        {dutyRows.map((d) => (
+          <Fragment key={d.id}>
+            <div title={d.text} style={{ padding: "7px 10px", borderTop: "1px solid #f0eee7", fontSize: "0.75rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.text}</div>
+            {AIT_STOPS.map((b, ci) => (
+              <div key={b} style={{ borderTop: "1px solid #f0eee7", textAlign: "center", padding: "7px 0", background: d.band && ci === col(d.band) ? BANDS[b].bg : "transparent" }}>
+                {d.band && ci === col(d.band)
+                  ? <span title={BANDS[b].label + (d.band2y && d.band2y !== d.band ? " - rising to " + (BANDS[d.band2y] ? BANDS[d.band2y].label : d.band2y) + " in ~2y" : "")} style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: BANDS[b].dot }} />
+                  : (ci === 0 && !d.band ? <span title="Exposure withheld - no engine signal" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#9a6113" }}>w/h</span> : null)}
+              </div>
+            ))}
+          </Fragment>
+        ))}
+      </div>
+      {/* Skill mix */}
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>SKILL-LEVEL MIX ({skills.length} SKILLS {RS_DOT} SLE-A ENGINE)</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+        {[["HIGH", "auto"], ["MEDIUM", "augmented"], ["LOW", "assisted"], ["HUMAN", "human"]].map(([lv, bk]) => (mix[lv] ? <span key={lv} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: BANDS[bk].ink, background: BANDS[bk].bg, border: "1px solid " + BANDS[bk].border, borderRadius: 6, padding: "3px 9px" }}>{BANDS[bk].label}: {mix[lv]}</span> : null))}
+        {mix.unclassified ? <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 6, padding: "3px 9px" }}>withheld: {mix.unclassified}</span> : null}
+      </div>
+      <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#8a8274", fontStyle: "italic" }}>All positions and counts from the deterministic engines (AIOE occupation index, SLE-C duty bands, SLE-A skill levels). No LLM in this visual. AI-assisted {RS_DOT} human decides.</p>
+    </div>
+  );
+}
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties }) {
   const [markup, setMarkup] = useState("suggestions");
   const [visual, setVisual] = useState("jobgraph");
@@ -1190,7 +1244,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             </div>
           </div>
           <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, minHeight: "64vh" }}>
-            {rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>}
+            {visual === "aitrace"
+              ? <AITracePanel result={result} />
+              : (rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
           </div>
           <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", marginTop: 8 }}>every node {String.fromCharCode(0x2190)} source span</div>
         </div>
