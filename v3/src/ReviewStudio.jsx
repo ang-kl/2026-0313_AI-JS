@@ -739,8 +739,11 @@ function AITracePanel({ result }) {
   );
 }
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties }) {
-  const [markup, setMarkup] = useState("suggestions");
-  const [visual, setVisual] = useState("jobgraph");
+  // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
+  // per-tab toolbar state; visual stays for the Market graphs.
+  const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
+  const [markup, setMarkup] = useState("suggestions"); // The Ad toolbar: clean | suggestions | comments
+  const [dutyView, setDutyView] = useState("oia");     // Duties toolbar: oia | aitrace
   const [rail, setRail] = useState(null);      // open drawer key or null
   // Rail starts collapsed on narrow viewports (phones) - open by default on
   // desktop is fine there, but on an iPhone the 150px expanded rail alone eats
@@ -830,16 +833,68 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     indicators: (critical.indicators && critical.indicators.length) ? 6 : 9,
   };
   const G2_LABELS = { contradictions: "Contradictions", trajectory: "Around the corner", salaryPos: "Competitive read", blindSpots: "Blind spots", qoi: "Quality of information", indicators: "Indicators" };
+  // No.137 T1 section moves: these render blocks live on their OWN tabs now (qoi ->
+  // Gates; salaryPos + indicators -> Market; trajectory -> Duties). Same data, same
+  // dismiss machinery - just placed where their reader-question lives.
+  const secQoI = (
+    <>
+<div style={{ order: g2Rank.qoi, display: "flex", flexDirection: "column" }}>
+              {critical.qoi && critical.qoi.length > 0 && !hiddenPanels.includes("qoi") && <>
+                <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
+                <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
+                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
+              <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              </>}
+              </div>
+    </>
+  );
+  const secSalaryPos = (
+    <>
+<div style={{ order: g2Rank.salaryPos, display: "flex", flexDirection: "column" }}>
+              {critical.salaryPos && !hiddenPanels.includes("salaryPos") && <>
+                <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
+                <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
+                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
+              <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              </>}
+              </div>
+    </>
+  );
+  const secIndicators = (
+    <>
+<div style={{ order: g2Rank.indicators, display: "flex", flexDirection: "column" }}>
+              {critical.indicators && critical.indicators.length > 0 && !hiddenPanels.includes("indicators") && <>
+                <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
+                <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
+                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
+              <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              </>}
+              </div>
+    </>
+  );
+  const secTrajectory = (
+    <>
+<div style={{ order: g2Rank.trajectory, display: "flex", flexDirection: "column" }}>
+              {critical.trajectory && !hiddenPanels.includes("trajectory") && <>
+                <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
+                <WhyLine why={"the engine classified enough duties to aggregate a trajectory"} sec="spec No.135 AI-4" />
+                <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
+              <button type="button" onClick={() => setPanelHidden("trajectory", true)} aria-label={"Hide panel: " + G2_LABELS.trajectory} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              </>}
+              </div>
+    </>
+  );
   const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
   const _classified = dissection.spans.filter((s) => s.band).length;
   const footerConf = dissection.spans.length === 0 ? "withheld" : _classified === dissection.spans.length ? "high (engine-classified)" : _classified === 0 ? "withheld" : _classified + " of " + dissection.spans.length + " duties classified";
-  const showClean = markup === "clean";
-  const showDissect = markup === "dissect";
-  const showCritical = markup === "critical";
-  const showMargin = markup === "suggestions" || markup === "comments";
+  const showClean = tab === "ad" && markup === "clean";
+  const showDissect = tab === "duties" && dutyView === "oia";
+  const showCritical = tab === "critical";
+  // Inspector (right) is persistent on every tab; the comments LIST joins it on The Ad tab.
+  const showMargin = true;
   const marginComments = markup === "comments" ? dissection.comments.filter((c) => c.type === "comment" || c.type === "withhold claim") : dissection.comments;
 
   const ja = result && result.jobAnatomy;
@@ -870,11 +925,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const bandKey = (band && BANDS[band]) ? band : derivedBand;
   const bandTok = bandKey && BANDS[bandKey] ? BANDS[bandKey] : null;
 
-  const ribbonActive = (groupKey, k) => (groupKey === "markup" && markup === k) || (groupKey === "visual" && visual === k);
-  function ribbonClick(groupKey, k) {
-    if (groupKey === "markup") setMarkup(k);
-    else if (groupKey === "visual") setVisual(k);
-  }
 
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
@@ -925,18 +975,29 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
       </div>
 
-      {/* Ribbon */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "stretch", padding: "8px 14px", background: "#fff", borderBottom: "1px solid #eceae2", overflowX: "auto" }}>
-        {RIBBON.map((g) => (
-          <div key={g.group} style={{ display: "flex", flexDirection: "column", gap: 5, padding: "0 16px", borderRight: "1px solid #f0eee7" }}>
-            <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".14em", color: "#b3ab9c" }}>{g.group.toUpperCase()}</div>
-            <div style={{ display: "flex", gap: 6 }}>
-              {g.items.map(([k, lbl]) => (
-                <button key={k} type="button" aria-pressed={ribbonActive(g.key, k)} onClick={() => ribbonClick(g.key, k)} style={pillStyle(ribbonActive(g.key, k))}>{lbl}</button>
-              ))}
-            </div>
-          </div>
+      {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
+          its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
+      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "10px 14px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
+        {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
+          const on = tab === k;
+          return (
+            <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
+              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, padding: "8px 16px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
+          );
+        })}
+      </div>
+      {/* Row 3: the active tab's toolbar */}
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 52 }}>
+        {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
+        {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
+          <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
         ))}
+        {tab === "duties" && [["oia", "O-I-A cards"], ["aitrace", "AI trace"]].map(([k, lbl]) => (
+          <button key={k} type="button" aria-pressed={dutyView === k} onClick={() => setDutyView(k)} style={pillStyle(dutyView === k)}>{lbl}</button>
+        ))}
+        {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
+        {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
+        {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8a8274" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
       </div>
 
       {/* Provenance legend (governance audit): the chip vocabulary used across Suggestions /
@@ -980,9 +1041,61 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           return isNarrow ? createPortal(drawer, document.body) : drawer;
         })()}
 
-        {/* Left: manuscript (spans), O-I-A dissection, or Critical Read */}
-        <div className="wis-scroll wis-manuscript" style={{ flex: (showDissect || showCritical) ? "1 1 0" : "0 0 clamp(340px, 36%, 640px)", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
-          {showCritical ? (
+        {/* Centre: one thing per tab (No.137 T1). */}
+        <div className="wis-scroll wis-manuscript" style={{ flex: "1 1 0", minWidth: 0, overflowY: "auto", padding: "22px 22px 60px", background: "#e9edf3" }}>
+          {tab === "overview" ? (
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>OVERVIEW {RS_DOT} THE 10-SECOND READ</div>
+              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Verdict first {String.fromCharCode(0x2014)} every chip is a door</h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px,100%), 1fr))", gap: 12 }}>
+                {[
+                  bandTok ? { k: "duties", kick: "AI EXPOSURE (ROLE READ)", val: bandTok.label, sub: duties.length + " duties " + RS_DOT + " " + skills.length + " skills", chipK: "computed" } : null,
+                  critical.trajectory ? { k: "duties", kick: "AROUND THE CORNER", val: critical.trajectory.grade, sub: critical.trajectory.obs.slice(0, 64) + String.fromCharCode(0x2026), chipK: "computed" } : null,
+                  critical.salaryPos ? { k: "market", kick: "MARKET POSITION", val: critical.salaryPos.pct + "th percentile", sub: "vs salary-stating ads in this result", chipK: "computed" } : null,
+                  (critical.qoi.length || critical.hiringFilter.length) ? { k: "gates", kick: "GATES", val: (critical.qoi.length + critical.hiringFilter.length) + " to clear", sub: critical.hiringFilter.map((h) => h.label).slice(0, 3).join(" " + RS_DOT + " ") || "requirement lines graded", chipK: "computed" } : null,
+                  (critical.contradictions.length || critical.blindSpots.length) ? { k: "critical", kick: "BIGGEST FLAG", val: critical.contradictions.length ? "role mash-up signals" : "silent on " + critical.blindSpots[0].label, sub: (critical.contradictions.length + critical.blindSpots.length) + " findings in Critical Read", chipK: "derived" } : null,
+                ].filter(Boolean).map((c, i) => (
+                  <button key={i} type="button" onClick={() => setTab(c.k)} aria-label={c.kick + ": " + c.val + ". Open its tab."}
+                    style={{ textAlign: "left", minHeight: 96, background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "14px 16px", cursor: "pointer", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
+                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>{c.kick}</div>
+                    <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.125rem", color: "#16202e", marginBottom: 4 }}>{c.val}</div>
+                    <div style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.45, marginBottom: 6 }}>{c.sub}</div>
+                    <Chip kind={c.chipK}>{c.chipK}</Chip>
+                  </button>
+                ))}
+              </div>
+              {!bandTok && !critical.trajectory && !critical.salaryPos && !critical.qoi.length && !critical.hiringFilter.length && !critical.contradictions.length && !critical.blindSpots.length && (
+                <p style={manuP}>The verdict chips appear as the engines classify this role - nothing is summarised before it is computed.</p>
+              )}
+            </div>
+          ) : tab === "gates" ? (
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>REQUIREMENTS &amp; GATES {RS_DOT} WHAT FILTERS YOU OUT</div>
+              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Can each claim be tested {String.fromCharCode(0x2014)} and what auto-rejects?</h2>
+              {critical.hiringFilter.length > 0 && <>
+                <h3 style={critH3}>Hard gates</h3>
+                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"} />)}
+              </>}
+              {secQoI}
+              {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
+            </div>
+          ) : tab === "market" ? (
+            <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>MARKET {RS_DOT} WORTH YOUR TIME?</div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {secSalaryPos}
+                {secIndicators}
+              </div>
+              <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, marginTop: 12 }}>
+                {rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>}
+              </div>
+            </div>
+          ) : tab === "duties" && dutyView === "aitrace" ? (
+            <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>
+              <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16 }}><AITracePanel result={result} /></div>
+            </div>
+          ) : showCritical ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>CRITICAL READ {RS_DOT} PLAIN-LANGUAGE CHECK</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>What the ad says {String.fromCharCode(0x2192)} what it leaves empty</h2>
@@ -1024,38 +1137,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
-              <div style={{ order: g2Rank.trajectory, display: "flex", flexDirection: "column" }}>
-              {critical.trajectory && !hiddenPanels.includes("trajectory") && <>
-                <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
-                <WhyLine why={"the engine classified enough duties to aggregate a trajectory"} sec="spec No.135 AI-4" />
-                <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
-              <button type="button" onClick={() => setPanelHidden("trajectory", true)} aria-label={"Hide panel: " + G2_LABELS.trajectory} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
-              <div style={{ order: g2Rank.salaryPos, display: "flex", flexDirection: "column" }}>
-              {critical.salaryPos && !hiddenPanels.includes("salaryPos") && <>
-                <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
-                <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
-                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
-              <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
-              <div style={{ order: g2Rank.qoi, display: "flex", flexDirection: "column" }}>
-              {critical.qoi && critical.qoi.length > 0 && !hiddenPanels.includes("qoi") && <>
-                <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
-                <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
-                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
-              <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
-              <div style={{ order: g2Rank.indicators, display: "flex", flexDirection: "column" }}>
-              {critical.indicators && critical.indicators.length > 0 && !hiddenPanels.includes("indicators") && <>
-                <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
-                <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
-                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
-              <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 28, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.625rem", cursor: "pointer", padding: "2px 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
+              
+              
+              
+              
               </div>
               {critical.falsification.length > 0 && <>
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
@@ -1102,9 +1187,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   </AdvisoryCard>
                 )}
               </>}
-              {(critical.hiringFilter.length > 0 || (cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach))) && <>
+              {(cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach)) && <>
                 <h3 style={critH3}>The other side of the table</h3>
-                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"} />)}
                 {cr && cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
                 {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
@@ -1113,6 +1197,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             </div>
           ) : showDissect ? (
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".16em", color: "#8a8274", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
@@ -1275,11 +1360,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             fixed overlay covering the manuscript - render it there ONLY when it has content
             (comments or a focus card); an empty grey sheet over the page is worse than
             nothing (live mobile report, 07-07 '26). */}
-        {showMargin && (!isNarrow || marginComments.length > 0 || activeSpan || focusSkill != null) && (() => {
+        {showMargin && (!isNarrow || (tab === "ad" && marginComments.length > 0) || activeSpan || focusSkill != null) && (() => {
           const margin = (
           <aside className="wis-scroll wis-margin" style={{ flex: "none", width: 312, background: "#f4f6fa", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 14px 40px" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>REVIEWER COMMENTS</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".13em", color: "#8a8274" }}>INSPECTOR {RS_DOT} O-I-A</span>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>{marginComments.length}</span>
               {/* Mobile-only: this panel becomes a fixed overlay below 860px (see the
                   .wis-margin media query above) - it needs its own close affordance
@@ -1326,8 +1411,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                 </div>
               );
             })()}
-            {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
-            {marginComments.map((c) => {
+            {tab !== "ad" && marginComments.length > 0 && <p style={{ fontSize: "0.75rem", color: "#94a0b0" }}>{marginComments.length} reviewer comment{marginComments.length === 1 ? "" : "s"} on The Ad tab.</p>}
+            {tab === "ad" && marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this view.</p>}
+            {(tab === "ad" ? marginComments : []).map((c) => {
               const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               return (
@@ -1369,23 +1455,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           return isNarrow ? createPortal(margin, document.body) : margin;
         })()}
 
-        {/* Right: Role Graph + analysis (~66%, the dominant pane) */}
-        <div className="wis-scroll" style={{ flex: 1, minWidth: 0, background: "#fbfaf8", borderLeft: "1px solid #e2e0d8", overflowY: "auto", padding: "16px 18px 50px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".14em", color: "#8a8274" }}>VISUAL INTELLIGENCE</span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {RIBBON[1].items.map(([k, lbl]) => (
-                <button key={k} type="button" aria-pressed={visual === k} onClick={() => setVisual(k)} style={pillStyle(visual === k)}>{lbl}</button>
-              ))}
-            </div>
-          </div>
-          <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, minHeight: "64vh" }}>
-            {visual === "aitrace"
-              ? <AITracePanel result={result} />
-              : (rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>)}
-          </div>
-          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", marginTop: 8 }}>every node {String.fromCharCode(0x2190)} source span</div>
-        </div>
+        {/* No.137 T1: the old always-on right graph pane is retired - graphs live on the
+            Market tab where their question lives; the right side is now the O-I-A inspector. */}
       </div>
 
       {/* Footer */}
