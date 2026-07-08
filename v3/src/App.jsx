@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.263";
+const APP_VERSION = "3.0.264";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12234,6 +12234,92 @@ function step2BuildOkfLog(query, counts) {
   return { front, body };
 }
 
+// OKF role.md: the Step 3 analysis result for the selected role - skills, exposure, duties,
+// and (if the LLM pass finished) the Critical Read challenge. Same discipline as the postings
+// bundle: deterministic engine output is stated as fact; the LLM section is clearly tagged
+// advisory so an agent reading this file never mistakes a challenge for a verdict.
+function step3BuildOkf(sel, result) {
+  const title = (sel && sel.title) || (result && result.escoOccupation && result.escoOccupation.preferredLabel) || "role";
+  const occ = result && result.occExposure;
+  const skills = Array.isArray(result && result.skills) ? result.skills : [];
+  const ja = result && result.jobAnatomy;
+  const duties = (ja && !ja.fallback && Array.isArray(ja.duties)) ? ja.duties : [];
+  const cr = result && result.criticalRead;
+  const mix = {}; skills.forEach((s) => { const k = s && s.level ? s.level : "unclassified"; mix[k] = (mix[k] || 0) + 1; });
+
+  const front = [
+    { k: "type", v: "role-analysis" },
+    { k: "title", v: toTitleCase(title) },
+    { k: "description", v: "AI-exposure analysis: " + skills.length + " skills, " + duties.length + " duties." },
+    { k: "resource", v: (result && result.escoOccupation && result.escoOccupation.uri) || "(ESCO occupation)" },
+    { k: "tags", v: "[" + [occ && occ.band ? slugify(occ.band) : "exposure-withheld", "role-analysis"].join(", ") + "]" },
+    { k: "timestamp", v: "(generated at view time)" },
+    { k: "exposure_band", v: (occ && occ.band) || "withheld" },
+    { k: "exposure_index", v: occ && occ.index != null ? String(occ.index) + "/100" : "withheld" },
+    { k: "skill_count", v: String(skills.length) },
+    { k: "duty_count", v: String(duties.length) },
+  ];
+
+  const body = [];
+  const push = (type, prefix, text) => body.push({ type, prefix, text });
+  push("h", "# ", "Role");
+  push("p", "", toTitleCase(title) + (result && result.employer ? " - " + result.employer : ""));
+  push("h", "# ", "Exposure");
+  push("p", "- ", occ && (occ.band || occ.index != null)
+    ? (occ.band || "band withheld") + (occ.index != null ? " - index " + occ.index + "/100" : "")
+    : "withheld - the AIOE engine returned no score for this occupation.");
+  if (duties.length) {
+    push("h", "# ", "Duties");
+    duties.slice(0, 14).forEach((d) => push("p", "- ", String(d.text || "") + (d.exposureNow ? " (" + d.exposureNow + ")" : "")));
+  }
+  if (skills.length) {
+    push("h", "# ", "Skills");
+    Object.entries(mix).forEach(([level, n]) => push("p", "- ", level + ": " + n));
+    skills.slice(0, 20).forEach((s) => push("p", "- ", String((s && s.skill) || s) + (s && s.level ? " (" + s.level + ")" : "")));
+  }
+  if (cr && Array.isArray(cr.skepticPoints) && cr.skepticPoints.length) {
+    push("h", "# ", "Critical Read (AI estimate, advisory - not a verdict)");
+    cr.skepticPoints.slice(0, 4).forEach((p) => push("p", "- ", String(p)));
+  }
+  push("h", "# ", "Provenance");
+  push("p", "- ", "Skills and duties: ESCO taxonomy + live posting evidence where available.");
+  push("p", "- ", "Exposure band and skill levels: computed deterministically (AIOE occupation index, SLE-C duty bands, SLE-A skill levels). No LLM.");
+  if (cr) push("p", "- ", "Critical Read section (if present above): LLM-authored, advisory only - it challenges the read, it does not change the exposure band or skill levels.");
+
+  return { front, body };
+}
+
+// Shared OKF v0.1 document viewer - one renderer for both the Step 2 postings bundle and
+// the Step 3 role-analysis export, so the two never drift into separate looks.
+function OkfModal({ doc, onClose }) {
+  const DOT = String.fromCharCode(0x00b7);
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label="OKF document" onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 560, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #e2e0d8", background: "#fff" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 7px" }}>OKF v0.1</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>{doc.path}</span>
+          </div>
+          <button onClick={onClose} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
+        </div>
+        <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
+          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
+            <div style={{ color: "#b3ab9c" }}>---</div>
+            {doc.front.map((f, i) => (<div key={i}><span style={{ color: "#5b4bbd" }}>{f.k}</span><span style={{ color: "#b3ab9c" }}>: </span><span style={{ color: "#16202e" }}>{f.v}</span></div>))}
+            <div style={{ color: "#b3ab9c", marginBottom: 10 }}>---</div>
+            {doc.body.map((l, i) => (<div key={i} style={{ margin: l.type === "h" ? "12px 0 3px" : "0", color: l.type === "h" ? "#142a8e" : l.type === "l" ? "#1a56db" : "#3a4456", fontWeight: l.type === "h" ? 700 : 400 }}>{l.prefix}{l.text}</div>))}
+          </div>
+        </div>
+        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 9, padding: "12px 20px", borderTop: "1px solid #e2e0d8", background: "#fff" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {DOT} just files {DOT} just YAML frontmatter</span>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
@@ -12838,31 +12924,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       )}
 
-      {okf && okfDoc && createPortal(
-        <div role="dialog" aria-modal="true" aria-label="OKF document" onClick={() => setOkf(null)} style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(13,18,28,.32)", display: "flex", alignItems: "center", justifyContent: "center", padding: 30 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 560, maxWidth: "100%", maxHeight: "86vh", overflow: "hidden", background: "#fbfaf8", borderRadius: 14, boxShadow: "0 24px 60px rgba(13,18,28,.4)", display: "flex", flexDirection: "column" }}>
-            <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #e2e0d8", background: "#fff" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 7px" }}>OKF v0.1</span>
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>{okfDoc.path}</span>
-              </div>
-              <button onClick={() => setOkf(null)} aria-label="Close" title="Close" style={{ width: 44, height: 44, borderRadius: 7, border: "1px solid #e2e0d8", background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 14 }}>{String.fromCharCode(0x2715)}</button>
-            </div>
-            <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
-                <div style={{ color: "#b3ab9c" }}>---</div>
-                {okfDoc.front.map((f, i) => (<div key={i}><span style={{ color: "#5b4bbd" }}>{f.k}</span><span style={{ color: "#b3ab9c" }}>: </span><span style={{ color: "#16202e" }}>{f.v}</span></div>))}
-                <div style={{ color: "#b3ab9c", marginBottom: 10 }}>---</div>
-                {okfDoc.body.map((l, i) => (<div key={i} style={{ margin: l.type === "h" ? "12px 0 3px" : "0", color: l.type === "h" ? "#142a8e" : l.type === "l" ? "#1a56db" : "#3a4456", fontWeight: l.type === "h" ? 700 : 400 }}>{l.prefix}{l.text}</div>))}
-              </div>
-            </div>
-            <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 9, padding: "12px 20px", borderTop: "1px solid #e2e0d8", background: "#fff" }}>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#64748b", flex: 1 }}>Just markdown {DOT} just files {DOT} just YAML frontmatter</span>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {okf && okfDoc && <OkfModal doc={okfDoc} onClose={() => setOkf(null)} />}
 
       {fullAd && (() => {
         const j = fullAd.job;
@@ -14800,6 +14862,7 @@ export default function App({ initialSearchMode } = {}) {
   const [sel,       setSel]       = useState(null);
   const [result,    setResult]    = useState(null);
   const [step,      setStep]      = useState("idle");
+  const [okfRole,   setOkfRole]   = useState(false); // Step 3 OKF export modal (role.md)
   // The resolved ESCO skills (name + description) shown openly DURING the analysis wait - the v2
   // "skills list" reading experience. Set the moment skills resolve; cleared when loading ends.
   const [loadingSkills, setLoadingSkills] = useState([]);
@@ -17018,7 +17081,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 version={APP_VERSION}
                 onRetryDuties={retryDuties}
+                onOpenOkf={() => setOkfRole(true)}
               />
+              {okfRole && <OkfModal doc={{ path: "role.md", ...step3BuildOkf(sel, result) }} onClose={() => setOkfRole(false)} />}
               {/* Step 3: mount the same Job-Ad FAB the plain result view carries, so the posting
                   picked in Step 2 is one tap away in the Review Studio too. Uses the app-level
                   drawer state so the FAB and drawer stay in sync across step transitions. */}
