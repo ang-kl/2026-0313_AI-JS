@@ -10,10 +10,21 @@
 //   overlap the posting - i.e. which occupations the ad is actually a blend of.
 //   Deterministic: ESCO search + cached essential-skill lookups + token overlap.
 
+import { kvGet, kvSetJson } from '../lib/admin/kv.js';
+
 const ESCO_BASE = 'https://ec.europa.eu/esco/api';
 const ESCO_VERSION = 'v1.2.0';
 const HYBRID_THRESHOLD = 8;
 const ESCO_TIMEOUT_MS = 15000;
+// The "skills" action with no live-posting skillPhrases resolves a title straight
+// off the static ESCO taxonomy (occupation search + essential skills + skill detail -
+// ~38 upstream round-trips to ec.europa.eu, observed 50s+ on less-common titles).
+// That result never changes for a given title + ESCO version, so it is safe to cache
+// for a long TTL. 30 days leaves room to notice an ESCO_VERSION bump without a redeploy.
+const SKILLS_CACHE_TTL_S = 30 * 24 * 60 * 60;
+function skillsCacheKey(trimmedTitle) {
+  return `esco:skills:${ESCO_VERSION}:${trimmedTitle.trim().toLowerCase()}`;
+}
 
 async function fetchWithTimeout(url, timeoutMs) {
   const controller = new AbortController();
@@ -411,6 +422,17 @@ export default async function handler(req, res) {
   const skillPhrases = (Array.isArray(req.body?.skillPhrases) ? req.body.skillPhrases : [])
     .map(p => String(p || '').trim()).filter(Boolean).slice(0, 30);
 
+  // Title-only lookups (no live posting to disambiguate against) resolve purely
+  // off the static ESCO taxonomy - cacheable. Posting-driven overlap lookups stay
+  // uncached: the disambiguation depends on that posting's own skill phrases.
+  const cacheable = skillPhrases.length === 0;
+  const cacheKey = cacheable ? skillsCacheKey(trimmedTitle) : null;
+
+  if (cacheKey) {
+    const cached = await kvGet(cacheKey);
+    if (cached.ok && cached.value) return res.status(200).json(cached.value);
+  }
+
   try {
     // When the posting's real skills are supplied, disambiguate by overlap so a
     // generic title does not collapse onto an IT-family occupation. Otherwise
@@ -434,7 +456,7 @@ export default async function handler(req, res) {
       altLabels:        details[i].altLabels        || [],
     }));
 
-    return res.status(200).json({
+    const payload = {
       skills: skillsWithDetail,
       occupationUri,
       escoVersion: ESCO_VERSION,
@@ -447,7 +469,11 @@ export default async function handler(req, res) {
         altLabels,
         iscoMajor,
       },
-    });
+    };
+
+    if (cacheKey) await kvSetJson(cacheKey, payload, SKILLS_CACHE_TTL_S);
+
+    return res.status(200).json(payload);
 
   } catch (err) {
     console.error('ESCO proxy error:', err.message);

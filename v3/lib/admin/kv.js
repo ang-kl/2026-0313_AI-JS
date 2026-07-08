@@ -37,12 +37,13 @@ export async function kvGet(key) {
   catch (_) { return { ok: true, value: r.result }; }
 }
 
-export async function kvSetJson(key, value) {
+export async function kvSetJson(key, value, ttlSeconds) {
   // The REST API's `set/<key>/<value>` path-parameter form is limited by URL length; for
   // JSON blobs we want the POST body form. Upstash / Vercel KV both accept a raw body POST.
   if (!kvAvailable()) return { ok: false, reason: "not_configured" };
   try {
-    const res = await fetch(`${BASE()}/set/${encodeURIComponent(key)}`, {
+    const qs = ttlSeconds ? `?EX=${Math.floor(ttlSeconds)}` : "";
+    const res = await fetch(`${BASE()}/set/${encodeURIComponent(key)}${qs}`, {
       method: "POST",
       headers: {
         "authorization": `Bearer ${TOKEN()}`,
