@@ -11,6 +11,15 @@ import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
+// TEMPORARY (Human Lead, 08-07 '26): honest build-status percentages for the strip
+// above the tabs - engineering-reported, updated by hand as workstreams ship. Delete
+// this const + its render block once every entry reads 100.
+const BUILD_STATUS = [
+  ["Ad Intelligence", 100],
+  ["Workspace Desk", 100],
+  ["Visual Grammar", 20],
+  ["Generative Panels", 5],
+];
 const BANDS = {
   human:     { key: "human",     label: "Human-led",       dot: "#1d4ed8", bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
   assisted:  { key: "assisted",  label: "AI-assisted",     dot: "#0e7490", bg: "#e3f5fb", ink: "#0b5e74", border: "#bce6f0" },
@@ -1364,6 +1373,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     market: { left: ["graphs"], right: ["salary", "indicators", "inspector"] },
   };
   const [activeWin, setActiveWin] = useState({});
+  const [showBuildStatus, setShowBuildStatus] = useState(true); // TEMPORARY - remove with the strip above
   // No.138 U3: LAYERS. A torn-off window leaves its panel strip and floats above the desk
   // in its own layer - drag by header, resize by corner, click brings to front, close
   // returns it to its home strip. Arrangement persists per posting (KV "boards").
@@ -1494,6 +1504,24 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
       </div>
 
+      {/* TEMPORARY (Human Lead, 08-07 '26): this page is still being built - say so
+          honestly instead of letting an unfinished page look finished. Cup-fill per
+          workstream, engineering-reported (not a fabricated user-facing metric).
+          Remove this strip once every cup reads 100%. */}
+      {showBuildStatus && (
+        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 14, padding: "6px 14px", background: "#fef3e0", borderBottom: "1px solid #f5d8a8", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".08em", color: "#8a4b0a", flexShrink: 0 }}>BUILDING THE BLUEPRINT</span>
+          {BUILD_STATUS.map(([label, pct]) => (
+            <span key={label} title={label + ": " + pct + "% built"} style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+              <span aria-hidden="true" style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", flexShrink: 0, background: `conic-gradient(#d97706 ${pct}%, #f5d8a8 ${pct}% 100%)` }} />
+              <span style={{ fontSize: "0.6875rem", color: "#8a4b0a", whiteSpace: "nowrap" }}>{label} {pct}%</span>
+            </span>
+          ))}
+          <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#8a4b0a", flexShrink: 0 }}>Some sections below are placeholders while this ships.</span>
+          <button type="button" onClick={() => setShowBuildStatus(false)} aria-label="Dismiss build-status strip" style={{ flex: "none", minHeight: 28, minWidth: 28, border: "1px solid #f5d8a8", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#8a4b0a", fontSize: "0.75rem" }}>{String.fromCharCode(0x2715)}</button>
+        </div>
+      )}
+
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
       <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
@@ -1549,14 +1577,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                     onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
                     style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 12px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
                 ); })}
-                {/* U3: tear off the ACTIVE window into the float layer. Labelled - a bare glyph
-                    read as a meaningless dot (Human Lead, 07-07 '26: "so tiny, what are the
-                    purpose"). */}
+                {/* U3: tear off the ACTIVE window into the float layer. Subtle by design
+                    (Human Lead, 08-07 '26): icon-only, muted, small footprint - the panel
+                    strip should not read as one more big tab. Meaning still carried via
+                    aria-label + title, not lost, just not shouting visually. */}
                 {act && (
                   <button type="button" onClick={() => tearOff(act)} aria-label={"Float this window: " + WIN_LABELS[act]}
-                    title={"Tear off " + WIN_LABELS[act] + " into a floating window you can move and resize"}
-                    style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 5, minHeight: 44, padding: "6px 12px", border: "1px solid #e3e8ef", borderBottom: "1px solid #d9dee6", background: "#fff", color: "#5b6878", borderRadius: "9px 9px 0 0", marginBottom: -1, cursor: "pointer", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-                    <span aria-hidden="true" style={{ fontSize: "0.875rem" }}>{String.fromCharCode(0x29c9)}</span> Float
+                    title={"Tear off " + WIN_LABELS[act] + " into a floating window"}
+                    style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, minWidth: 30, padding: "6px 6px", marginBottom: -1, border: "none", borderBottom: "1px solid transparent", background: "transparent", color: "#a8a193", cursor: "pointer", fontSize: "0.8125rem", opacity: 0.7 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = 1; e.currentTarget.style.color = "#5b6878"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.7; e.currentTarget.style.color = "#a8a193"; }}>
+                    <span aria-hidden="true">{String.fromCharCode(0x29c9)}</span>
                   </button>
                 )}
               </div>

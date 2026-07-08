@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.256";
+const APP_VERSION = "3.0.257";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5208,7 +5208,61 @@ function StageChecklist({ step, skillCount }) {
   );
 }
 
-function Spinner({ label, step, total, firstTime, skills }) {
+// Step2-3 wait screen (Human Lead, 08-07 '26): instead of a flat skill list, show a
+// live PREVIEW of how evidence-linking works while the real analysis runs - a duty
+// sentence from the ad, a phrase highlighting, then "assigned" to a skill-library pill.
+// Explicitly labelled PREVIEW: this is a presentational demo of the mechanism, not the
+// real O-I-A output (which only exists once the analysis completes) - never fabricate.
+function EvidencePreview({ text, skills }) {
+  const lines = useMemo(() => {
+    const raw = String(text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (!raw) return [];
+    return raw.split(/(?<=[.!?])\s+|\n+/).map((x) => x.trim()).filter((x) => x.length >= 30 && x.length <= 160).slice(0, 6);
+  }, [text]);
+  const [idx, setIdx] = useState(0);
+  const [phase, setPhase] = useState("read"); // read -> underline -> assign
+  useEffect(() => {
+    if (!lines.length) return;
+    const t1 = setTimeout(() => setPhase("underline"), 700);
+    const t2 = setTimeout(() => setPhase("assign"), 1500);
+    const t3 = setTimeout(() => { setPhase("read"); setIdx((i) => (i + 1) % lines.length); }, 2600);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [idx, lines.length]);
+  if (!lines.length || !skills.length) return null;
+  const line = lines[idx];
+  const words = line.split(" ");
+  const wStart = Math.max(0, Math.min(words.length - 3, (idx * 3) % Math.max(1, words.length - 2)));
+  const phrase = words.slice(wStart, wStart + 3).join(" ");
+  const skill = skills[idx % skills.length];
+  return (
+    <div className="ldx" style={{ marginTop: 16, animation: "fadeInUp 0.5s ease both", textAlign: "left" }}>
+      <p style={{ margin: "0 0 8px", fontSize: "0.625rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Preview - how evidence links to a skill (demo; the real read finishes below)</p>
+      <div style={{ background: "rgba(255,255,255,0.92)", border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.6 }}>
+          {words.map((w, i) => {
+            const inPhrase = i >= wStart && i < wStart + 3;
+            return <span key={i} style={{
+              background: inPhrase && phase !== "read" ? "#fef3e0" : "transparent",
+              borderBottom: inPhrase && phase !== "read" ? "2px solid #d97706" : "2px solid transparent",
+              borderRadius: 3, transition: "background .3s, border-color .3s",
+            }}>{w}{i < words.length - 1 ? " " : ""}</span>;
+          })}
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span aria-hidden="true" style={{ fontSize: "0.75rem", color: phase === "assign" ? "#d97706" : C.mutedLight, transition: "color .3s" }}>{"→"}</span>
+          <span style={{
+            fontSize: "0.75rem", fontWeight: 700, padding: "4px 10px", borderRadius: 12,
+            background: phase === "assign" ? "#fef3e0" : "transparent",
+            border: `1px solid ${phase === "assign" ? "#f5d8a8" : C.border}`,
+            color: phase === "assign" ? "#8a4b0a" : C.mutedLight,
+            opacity: phase === "assign" ? 1 : 0.5, transition: "all .3s",
+          }}>{(skill && skill.skill) || ""}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+function Spinner({ label, step, total, firstTime, skills, postingText }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
@@ -5296,6 +5350,7 @@ function Spinner({ label, step, total, firstTime, skills }) {
             </div>
           ))}
           </div>
+          <EvidencePreview text={postingText} skills={list} />
         </div>
       )}
       </div>
@@ -16793,7 +16848,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} postingText={(analysingPosting && analysingPosting.text) || ""} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
