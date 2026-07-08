@@ -9,7 +9,8 @@
 //   2. Authenticated - render the provider-chain reorder + per-provider model overrides.
 //      PUT to /api/admin/config on save.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 
 const PROVIDER_LABELS = { anthropic: "Anthropic", openai: "OpenAI", gemini: "Google Gemini" };
 const OVERRIDE_KEYS = {
@@ -27,26 +28,6 @@ const OVERRIDE_KEYS = {
     { key: "model", label: "Model", placeholder: "gemini-2.5-pro" },
   ],
 };
-
-function TelegramLoginWidget({ botUsername, onAuth }) {
-  const holderRef = useRef(null);
-  useEffect(() => {
-    if (!holderRef.current || !botUsername) return;
-    window._v3AdminOnAuth = (user) => onAuth(user);
-    const script = document.createElement("script");
-    script.async = true;
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", botUsername);
-    script.setAttribute("data-size", "large");
-    script.setAttribute("data-radius", "8");
-    script.setAttribute("data-request-access", "write");
-    script.setAttribute("data-onauth", "_v3AdminOnAuth(user)");
-    holderRef.current.innerHTML = "";
-    holderRef.current.appendChild(script);
-    return () => { try { delete window._v3AdminOnAuth; } catch (_) {} };
-  }, [botUsername, onAuth]);
-  return <div ref={holderRef} />;
-}
 
 function ProviderRow({ name, index, canUp, canDown, onUp, onDown }) {
   return (

@@ -9,17 +9,13 @@
 import { useState, useMemo, useEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
+import BLUEPRINT_STATUS from "./blueprint-status.json";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
-// TEMPORARY (Human Lead, 08-07 '26): honest build-status percentages for the strip
-// above the tabs - engineering-reported, updated by hand as workstreams ship. Delete
-// this const + its render block once every entry reads 100.
-const BUILD_STATUS = [
-  ["Ad Intelligence", 100],
-  ["Workspace Desk", 100],
-  ["Visual Grammar", 20],
-  ["Generative Panels", 5],
-];
+// Build-status percentages for the strip above the tabs now come from
+// blueprint-status.json - a real tracked record (single source of truth), not a
+// hand-edited array in this component. Edit the JSON file when a workstream ships.
+const BUILD_STATUS = (BLUEPRINT_STATUS.workstreams || []).map((w) => [w.name, w.pct]);
 const BANDS = {
   human:     { key: "human",     label: "Human-led",       dot: "#1d4ed8", bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
   assisted:  { key: "assisted",  label: "AI-assisted",     dot: "#0e7490", bg: "#e3f5fb", ink: "#0b5e74", border: "#bce6f0" },
