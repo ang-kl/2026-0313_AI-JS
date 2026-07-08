@@ -23,7 +23,7 @@ const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K in
 // unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
 const KV_CONFIG_KEY = "v3:admin:llm-config";
 const CHAIN_CACHE_TTL_MS = 30_000;
-const DEFAULT_CHAIN = ["anthropic", "openai", "gemini"];
+const DEFAULT_CHAIN = ["gemini", "anthropic", "openai"];
 const VALID_PROVIDERS = new Set(DEFAULT_CHAIN);
 let _chainCache = { value: null, at: 0 };
 async function loadAdminConfig() {
