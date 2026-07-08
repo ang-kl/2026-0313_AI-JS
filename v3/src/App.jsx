@@ -1459,7 +1459,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.257";
+const APP_VERSION = "3.0.258";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5213,6 +5213,46 @@ function StageChecklist({ step, skillCount }) {
 // sentence from the ad, a phrase highlighting, then "assigned" to a skill-library pill.
 // Explicitly labelled PREVIEW: this is a presentational demo of the mechanism, not the
 // real O-I-A output (which only exists once the analysis completes) - never fabricate.
+// Themed loading animation (Human Lead, 08-07 '26): step1a->2 reads as a SORTING
+// operation (classifying candidate roles into a shortlist - like a logistics sorter);
+// step2->3 reads as an ANALYST checking each item (writing, verifying). CSS-only,
+// no emoji, no data - purely decorative motion while the real fetch/analysis runs.
+function ProcessAnimation({ mode }) {
+  const sorting = mode === "sorting";
+  return (
+    <div aria-hidden="true" style={{ height: 64, margin: "0 auto 6px", maxWidth: 220, position: "relative" }}>
+      <style>{`
+        @keyframes pa-slide { 0% { transform: translateX(-100%); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translateX(280%); opacity: 0; } }
+        @keyframes pa-drop { 0%, 60% { transform: translateY(0); opacity: 0; } 70% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+        @keyframes pa-write { 0%, 100% { width: 0; } 50% { width: 100%; } }
+        @keyframes pa-check { 0%, 40% { opacity: 0; transform: scale(0.6); } 55% { opacity: 1; transform: scale(1.15); } 70%, 100% { opacity: 1; transform: scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .pa-anim { animation: none !important; } }
+      `}</style>
+      {sorting ? (
+        <>
+          {/* a lane with three labelled bins; small tags slide along and "sort" into one */}
+          <div style={{ position: "absolute", left: 0, right: 0, top: 8, height: 2, background: C.border }} />
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ position: "absolute", top: 0, left: `${18 + i * 32}%`, width: 26, height: 18, border: `1.5px solid ${C.border}`, borderTop: "none", borderRadius: "0 0 4px 4px", background: "#fff" }} />
+          ))}
+          {[0, 1].map((i) => (
+            <div key={i} className="pa-anim" style={{ position: "absolute", top: 2, left: 0, width: 20, height: 12, borderRadius: 3, background: C.accent, animation: `pa-slide 1.8s ${i * 0.9}s ease-in-out infinite` }} />
+          ))}
+        </>
+      ) : (
+        <>
+          {/* a document with a line "writing" itself, then a check mark confirms it - repeats */}
+          <div style={{ position: "absolute", left: "50%", top: 4, transform: "translateX(-50%)", width: 46, height: 56, border: `1.5px solid ${C.border}`, borderRadius: 5, background: "#fff", padding: "8px 6px" }}>
+            <div className="pa-anim" style={{ height: 3, borderRadius: 2, background: C.accent, animation: "pa-write 2.4s ease-in-out infinite" }} />
+            <div style={{ height: 3, marginTop: 5, borderRadius: 2, background: C.border, width: "70%" }} />
+            <div style={{ height: 3, marginTop: 5, borderRadius: 2, background: C.border, width: "45%" }} />
+          </div>
+          <div className="pa-anim" style={{ position: "absolute", left: "50%", top: 30, marginLeft: 14, width: 16, height: 16, borderRadius: "50%", background: C.teal, color: "#fff", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", animation: "pa-check 2.4s ease-in-out infinite" }}>{"✓"}</div>
+        </>
+      )}
+    </div>
+  );
+}
 function EvidencePreview({ text, skills }) {
   const lines = useMemo(() => {
     const raw = String(text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -5262,7 +5302,7 @@ function EvidencePreview({ text, skills }) {
     </div>
   );
 }
-function Spinner({ label, step, total, firstTime, skills, postingText }) {
+function Spinner({ label, step, total, firstTime, skills, postingText, processMode }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
@@ -5308,6 +5348,7 @@ function Spinner({ label, step, total, firstTime, skills, postingText }) {
               )}
             </div>
           </div>
+          {processMode && <ProcessAnimation mode={processMode} />}
           <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
           {/* gradient sweep bar */}
           <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
@@ -16781,7 +16822,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           </>
         )}
 
-        {step === "searching" && <Spinner label={`Searching for "${query}"...`} />}
+        {step === "searching" && <Spinner label={`Searching for "${query}"...`} processMode="sorting" />}
 
         {step === "mcf_browse" && (
           <div>
@@ -16848,7 +16889,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} postingText={(analysingPosting && analysingPosting.text) || ""} />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} postingText={(analysingPosting && analysingPosting.text) || ""} processMode="checking" />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
