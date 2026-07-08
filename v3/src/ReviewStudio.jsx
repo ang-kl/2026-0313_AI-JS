@@ -743,7 +743,7 @@ function AITracePanel({ result }) {
     </div>
   );
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1497,6 +1497,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
           {bandTok && <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 6, padding: "4px 9px" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: bandTok.dot }} />{bandTok.label}</span>}
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#fff", border: "1px solid #e6e3db", borderRadius: 6, padding: "4px 9px" }}>{duties.length} duties {String.fromCharCode(0x00b7)} {skills.length} skills</span>
+          {onOpenOkf && (
+            <button type="button" onClick={onOpenOkf} title="View this analysis as an OKF concept document" style={{ minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "0 9px", cursor: "pointer" }}>{"{ } OKF"}</button>
+          )}
         </div>
       </div>
 
