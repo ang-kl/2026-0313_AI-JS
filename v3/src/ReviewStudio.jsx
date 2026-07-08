@@ -1508,22 +1508,31 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           honestly instead of letting an unfinished page look finished. Cup-fill per
           workstream, engineering-reported (not a fabricated user-facing metric).
           Remove this strip once every cup reads 100%. */}
-      {showBuildStatus && (
+      {/* GATED (Human Lead, 08-07 '26): only workstreams below 100% show here - a
+          "finished" item has nothing left to report, so it is filtered out rather than
+          cluttering the strip. Bars are animated (moving stripe) so it reads as live
+          in-progress work, not a static screenshot. */}
+      {showBuildStatus && BUILD_STATUS.some(([, pct]) => pct < 100) && (
         <div style={{ flex: "none", padding: "10px 16px 12px", background: "#fef3e0", borderBottom: "2px solid #f5d8a8" }}>
+          <style>{`
+            @keyframes bs-stripe { to { background-position: 28px 0; } }
+            .bs-fill { background-image: linear-gradient(45deg, rgba(255,255,255,.35) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.35) 75%, transparent 75%, transparent); background-size: 14px 14px; animation: bs-stripe 0.7s linear infinite; }
+            @media (prefers-reduced-motion: reduce) { .bs-fill { animation: none !important; } }
+          `}</style>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.8125rem", fontWeight: 800, letterSpacing: ".06em", color: "#8a4b0a" }}>BUILDING THE BLUEPRINT</span>
-            <span style={{ fontSize: "0.75rem", color: "#8a4b0a" }}>Some sections below are placeholders while this ships.</span>
+            <span style={{ fontSize: "0.75rem", color: "#8a4b0a" }}>Still in progress - finished workstreams are not listed here.</span>
             <button type="button" onClick={() => setShowBuildStatus(false)} aria-label="Dismiss build-status strip" style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 30, border: "1px solid #f5d8a8", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#8a4b0a", fontSize: "0.8125rem" }}>{String.fromCharCode(0x2715)}</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "6px 18px" }}>
-            {BUILD_STATUS.map(([label, pct]) => (
+            {BUILD_STATUS.filter(([, pct]) => pct < 100).map(([label, pct]) => (
               <div key={label} title={label + ": " + pct + "% built"}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#7a4008", marginBottom: 3 }}>
                   <span style={{ fontWeight: 600 }}>{label}</span>
                   <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800 }}>{pct}%</span>
                 </div>
                 <div style={{ height: 10, borderRadius: 5, background: "#f5d8a8", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: pct + "%", borderRadius: 5, background: "#d97706" }} />
+                  <div className="bs-fill" style={{ height: "100%", width: pct + "%", borderRadius: 5, background: "#d97706" }} />
                 </div>
               </div>
             ))}
