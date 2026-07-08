@@ -12,7 +12,7 @@ export const config = {
 
 const KV_KEY = "v3:admin:llm-config";
 const VALID_PROVIDERS = ["anthropic", "openai", "gemini"];
-const DEFAULT_CHAIN = ["anthropic", "openai", "gemini"];
+const DEFAULT_CHAIN = ["gemini", "anthropic", "openai"];
 
 // Sanitise input from the admin panel. Chain must be an ordered array of unique known
 // providers; overrides are per-provider string overrides for model ids. Anything else is
