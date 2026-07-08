@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.261";
+const APP_VERSION = "3.0.262";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5308,6 +5308,17 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
   const ringMask = "radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px))";
+  // A single sub-step (e.g. the ESCO skill lookup) can genuinely take 30-60s+
+  // on a less common title, during which pct/step never move - it reads as
+  // frozen even though the request is still in flight. Surface elapsed time
+  // once a sub-step runs long, so the wait reads as "still working", not stuck.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    setElapsed(0);
+    const startedAt = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [step, label]);
   return (
     <div role="status" aria-live="polite" style={{ padding: "44px 0 32px", position:"relative" }}>
       <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}
@@ -5351,6 +5362,11 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
           </div>
           {processMode && <ProcessAnimation mode={processMode} />}
           <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
+          {elapsed >= 8 && (
+            <p aria-live="polite" style={{ color:C.muted, fontSize: "0.71875rem", margin:"6px auto 0", maxWidth:320, lineHeight:1.5 }}>
+              Still working ({elapsed}s) - less common titles can take up to a minute to look up.
+            </p>
+          )}
           {/* gradient sweep bar */}
           <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
             {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
