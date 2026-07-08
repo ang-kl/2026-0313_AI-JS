@@ -1448,6 +1448,7 @@
 // frozen symbols + api/mcf.js untouched. G1 (v3.0.118 -> v3.0.119).
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
+import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 import { loadState, saveState } from "./persist.js";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
@@ -1459,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.259";
+const APP_VERSION = "3.0.261";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -13384,6 +13385,47 @@ const UI_SCALE_LABELS = [0.92, 1, 1.12, 1.25];
 // notch / reset to 1 / increase one notch. Styled to match the header's V2 link
 // and New Search button (translucent white on C.eu). End states are encoded by
 // opacity + border (not colour alone) to satisfy the a11y contract.
+// Real user login (Human Lead, 08-07 '26 "fundamental persistence" request): a compact
+// header control - signed out shows the Telegram widget (small size, no label text to
+// save header space); signed in shows a name + sign-out. Reuses /api/login, /api/logout,
+// /api/whoami and the same bot already configured for the admin panel - no new secrets.
+// Not gating anything: signed-out visitors keep working exactly as before (device-key
+// persistence); this only adds the OPTION of cross-device persistence via a real login.
+function AccountControl() {
+  const [state, setState] = useState({ kind: "loading" }); // loading | signed-out | signed-in
+  const botUsername = (typeof import.meta !== "undefined" && import.meta.env?.VITE_TELEGRAM_BOT_USERNAME) || "";
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/whoami", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled) setState(d && d.ok ? { kind: "signed-in", name: d.userId } : { kind: "signed-out" }); })
+      .catch(() => { if (!cancelled) setState({ kind: "signed-out" }); });
+    return () => { cancelled = true; };
+  }, []);
+  const handleAuth = (user) => {
+    fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify(user) })
+      .then((r) => r.json())
+      .then((d) => { if (d && d.ok) setState({ kind: "signed-in", name: d.user.first_name || d.user.username || String(d.user.id) }); })
+      .catch(() => {});
+  };
+  const handleLogout = () => {
+    fetch("/api/logout", { method: "POST", credentials: "include" }).finally(() => setState({ kind: "signed-out" }));
+  };
+  if (state.kind === "loading") return null;
+  if (state.kind === "signed-in") {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+        <span style={{ color: "#fff", fontSize: "0.75rem", opacity: 0.9, whiteSpace: "nowrap" }} title="Signed in - your review decisions and layout follow you across devices">{state.name}</span>
+        <button type="button" onClick={handleLogout} aria-label="Sign out"
+          style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 6, color: "#fff", padding: "6px 10px", cursor: "pointer", fontSize: "0.75rem", minHeight: 44, whiteSpace: "nowrap" }}>
+          Sign out
+        </button>
+      </div>
+    );
+  }
+  if (!botUsername) return null; // not configured - degrade silently, device-key persistence still works
+  return <TelegramLoginWidget botUsername={botUsername} onAuth={handleAuth} size="small" radius={6} />;
+}
 function TextSizeControl({ uiTextScale, applyTextScale, steps }) {
   const arr = (Array.isArray(steps) && steps.length) ? steps : UI_SCALE_LABELS;
   // Snap current scale to the nearest known step index (tolerant of float drift).
@@ -16585,6 +16627,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         )}
         {/* Global text-size control: mounted once here so it shows in both wide and phone layouts */}
         <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} steps={UI_SCALE_STEPS} />
+        <AccountControl />
       </div>
 
       {/* Toast notification */}

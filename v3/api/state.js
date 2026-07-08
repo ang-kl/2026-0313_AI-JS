@@ -4,7 +4,10 @@
 // Identity, in order:
 //   1. A valid admin session cookie (Telegram-verified owner) -> uid "tg:<id>" - the same
 //      state follows the owner across devices.
-//   2. An `x-device-key` header carrying a client-generated UUID -> uid "dev:<uuid>" -
+//   2. A valid GENERAL user session cookie (any Telegram-verified visitor, /api/login) ->
+//      uid "tg:<id>" - real cross-device persistence for regular visitors, not just the
+//      owner (KV-2, Human Lead 08-07 '26: "go back to fundamental" persistence request).
+//   3. An `x-device-key` header carrying a client-generated UUID -> uid "dev:<uuid>" -
 //      per-device persistence for anonymous visitors (server-side localStorage, in effect).
 // No cookie AND no valid device key -> 400. Writes are size-capped and scope-allowlisted;
 // a scope is one JSON blob (last-write-wins - no merge semantics on the server).
@@ -13,6 +16,7 @@
 // quietly stays on its localStorage mirror - persistence degrades, never breaks.
 
 import { verifySession, readCookie } from "../lib/admin/session.js";
+import { verifyUserSession } from "../lib/user-session.js";
 import { kvAvailable, kvGet, kvSetJson } from "../lib/admin/kv.js";
 
 export const config = {
@@ -27,8 +31,10 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f
 function resolveUid(req) {
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (secret) {
-    const sess = verifySession(readCookie(req), secret);
-    if (sess.ok) return "tg:" + sess.userId;
+    const adminSess = verifySession(readCookie(req), secret);
+    if (adminSess.ok) return "tg:" + adminSess.userId;
+    const userSess = verifyUserSession(req, secret);
+    if (userSess.ok) return "tg:" + userSess.userId;
   }
   const dk = String(req.headers["x-device-key"] || "");
   if (UUID_RE.test(dk)) return "dev:" + dk.toLowerCase();
