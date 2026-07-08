@@ -1509,16 +1509,25 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           workstream, engineering-reported (not a fabricated user-facing metric).
           Remove this strip once every cup reads 100%. */}
       {showBuildStatus && (
-        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 14, padding: "6px 14px", background: "#fef3e0", borderBottom: "1px solid #f5d8a8", flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".08em", color: "#8a4b0a", flexShrink: 0 }}>BUILDING THE BLUEPRINT</span>
-          {BUILD_STATUS.map(([label, pct]) => (
-            <span key={label} title={label + ": " + pct + "% built"} style={{ display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-              <span aria-hidden="true" style={{ position: "relative", width: 16, height: 16, borderRadius: "50%", flexShrink: 0, background: `conic-gradient(#d97706 ${pct}%, #f5d8a8 ${pct}% 100%)` }} />
-              <span style={{ fontSize: "0.6875rem", color: "#8a4b0a", whiteSpace: "nowrap" }}>{label} {pct}%</span>
-            </span>
-          ))}
-          <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#8a4b0a", flexShrink: 0 }}>Some sections below are placeholders while this ships.</span>
-          <button type="button" onClick={() => setShowBuildStatus(false)} aria-label="Dismiss build-status strip" style={{ flex: "none", minHeight: 28, minWidth: 28, border: "1px solid #f5d8a8", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#8a4b0a", fontSize: "0.75rem" }}>{String.fromCharCode(0x2715)}</button>
+        <div style={{ flex: "none", padding: "10px 16px 12px", background: "#fef3e0", borderBottom: "2px solid #f5d8a8" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.8125rem", fontWeight: 800, letterSpacing: ".06em", color: "#8a4b0a" }}>BUILDING THE BLUEPRINT</span>
+            <span style={{ fontSize: "0.75rem", color: "#8a4b0a" }}>Some sections below are placeholders while this ships.</span>
+            <button type="button" onClick={() => setShowBuildStatus(false)} aria-label="Dismiss build-status strip" style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 30, border: "1px solid #f5d8a8", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#8a4b0a", fontSize: "0.8125rem" }}>{String.fromCharCode(0x2715)}</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "6px 18px" }}>
+            {BUILD_STATUS.map(([label, pct]) => (
+              <div key={label} title={label + ": " + pct + "% built"}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#7a4008", marginBottom: 3 }}>
+                  <span style={{ fontWeight: 600 }}>{label}</span>
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800 }}>{pct}%</span>
+                </div>
+                <div style={{ height: 10, borderRadius: 5, background: "#f5d8a8", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: pct + "%", borderRadius: 5, background: "#d97706" }} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
