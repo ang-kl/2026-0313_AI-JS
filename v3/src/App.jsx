@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.272";
+const APP_VERSION = "3.0.273";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3952,27 +3952,35 @@ Field rules:
 - rd: "ready" if usable today, "prepare" if setup needed
 - a: if the GIVEN level is HUMAN, a MUST be NA. No exceptions.`;
 
-  const skillList = decided.map(d => `${d.n}:${d.skill} [level=${d.level || "NOT_CLASSIFIED"}]`).join(" | ");
-  const userMsg =
+  // LLM-3 follow-through (live-verify: a single 24-skill call to Sonnet 5 took
+  // 28s - one giant unbatched generation gates the ENTIRE "2 of 3" step, since
+  // this is one of 4 calls in a Promise.all and the whole group waits for the
+  // slowest). Batch across skills the same way generatePrompts already does:
+  // several smaller concurrent generations finish faster in wall-clock than one
+  // huge one, even though total tokens generated is unchanged.
+  const RATE_BATCH_SIZE = 10;
+  const batches = [];
+  for (let i = 0; i < decided.length; i += RATE_BATCH_SIZE) batches.push(decided.slice(i, i + RATE_BATCH_SIZE));
+  // ~69 output tokens/skill worst case (audited); budget per batch, not per full
+  // skill count, capped at the proxy's 8192 max_tokens ceiling.
+  const ratingsTokens = n => Math.min(8000, 400 + n * 110);
+  const batchResults = await Promise.all(batches.map(async (batch) => {
+    const skillList = batch.map(d => `${d.n}:${d.skill} [level=${d.level || "NOT_CLASSIFIED"}]`).join(" | ");
+    const userMsg =
 `Occupation: ${title}
 Narrate how AI engages each skill, given its already-decided level. Singapore and ASEAN context applies.
 Skills to narrate: ${skillList}`;
-  // Token budget MUST scale with the skill count, or a long ESCO list (seen: 36 skills)
-  // overflows the cap, the JSON response truncates, and extractJSON throws "Could not
-  // parse JSON for ratings" - which kills the whole analysis. Audit: ~69 output tokens
-  // per rated skill worst case; budget = base + per-skill headroom, capped at the Haiku
-  // 8k output ceiling. (Was a flat 3500, tuned for 25 skills - it broke at 36.)
-  const ratingsTokens = n => Math.min(8000, 1600 + n * 110);
-  let arr;
-  try {
-    const raw = await claudeCall(userMsg, ratingsTokens(skills.length), 1, SYSTEM_RATE);
-    arr = extractJSON(raw, "ratings");
-  } catch (e) {
-    // One retry at the max budget before giving up - guards a rare truncation/format blip
-    // so a single flaky rating response does not error the entire result page.
-    const raw2 = await claudeCall(userMsg, 8000, 1, SYSTEM_RATE);
-    arr = extractJSON(raw2, "ratings");
-  }
+    try {
+      const raw = await claudeCall(userMsg, ratingsTokens(batch.length), 1, SYSTEM_RATE);
+      return extractJSON(raw, "ratings");
+    } catch (e) {
+      // One retry at the max budget before giving up - guards a rare truncation/format
+      // blip so a single flaky batch does not error the entire result page.
+      const raw2 = await claudeCall(userMsg, 8000, 1, SYSTEM_RATE);
+      return extractJSON(raw2, "ratings");
+    }
+  }));
+  const arr = batchResults.flat();
   if (!Array.isArray(arr)) throw new Error("ratings: expected array");
   return arr.map(x => {
     const d = decidedByN.get(x.n) || {};
