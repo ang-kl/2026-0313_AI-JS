@@ -227,9 +227,13 @@ async function callOpenAI({ apiKey, openAiModel, instructions, input, maxTokens,
 }
 
 async function callGemini({ apiKey, geminiModel, instructions, input, maxTokens, signal }) {
+  // Gemini "flash"/"pro" models think by default and thinking tokens count against
+  // maxOutputTokens - without disabling it, the model can burn the whole budget on
+  // internal reasoning and return MAX_TOKENS with zero visible text. This proxy is
+  // used for structured extraction/narration only, so the reasoning step is not needed.
   const body = {
     contents: [{ role: "user", parts: [{ text: input }] }],
-    generationConfig: { maxOutputTokens: maxTokens },
+    generationConfig: { maxOutputTokens: maxTokens, thinkingConfig: { thinkingBudget: 0 } },
   };
   if (instructions) body.systemInstruction = { parts: [{ text: instructions }] };
 
