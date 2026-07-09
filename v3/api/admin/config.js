@@ -12,7 +12,9 @@ export const config = {
 
 const KV_KEY = "v3:admin:llm-config";
 const VALID_PROVIDERS = ["anthropic", "openai", "gemini"];
-const DEFAULT_CHAIN = ["gemini", "anthropic", "openai"];
+// Human Lead directive (09-07 '26): Anthropic-only (Sonnet 5) until further notice -
+// matches api/claude.js's DEFAULT_CHAIN. Admin panel can still reorder/re-add providers.
+const DEFAULT_CHAIN = ["anthropic"];
 
 // Sanitise input from the admin panel. Chain must be an ordered array of unique known
 // providers; overrides are per-provider string overrides for model ids. Anything else is
