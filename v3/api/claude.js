@@ -23,8 +23,13 @@ const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K in
 // unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
 const KV_CONFIG_KEY = "v3:admin:llm-config";
 const CHAIN_CACHE_TTL_MS = 30_000;
-const DEFAULT_CHAIN = ["gemini", "anthropic", "openai"];
-const VALID_PROVIDERS = new Set(DEFAULT_CHAIN);
+// Human Lead directive (09-07 '26): use only Claude Sonnet 5 - Gemini/OpenAI free-tier
+// quotas proved too unreliable for the fan-out volume this app generates. Anthropic-only
+// until further notice; admin KV override can still reorder/add providers back later.
+const DEFAULT_CHAIN = ["anthropic"];
+// Keep all three valid for KV admin overrides even though the built-in default is
+// Anthropic-only now - an admin can still opt back into Gemini/OpenAI via the panel.
+const VALID_PROVIDERS = new Set(["anthropic", "gemini", "openai"]);
 let _chainCache = { value: null, at: 0 };
 async function loadAdminConfig() {
   const now = Date.now();
@@ -76,18 +81,15 @@ function textFromMessages(messages) {
 // Precedence for defaults: kv override > env var > baked-in fallback. The verbatim
 // pass-through for a caller-supplied "correct-shape" id always wins first - callers who
 // know exactly which model they want get it, admin overrides are for the resolver defaults.
+// Human Lead directive (09-07 '26): "use only sonnet 5" - every Anthropic call resolves
+// to Sonnet 5 regardless of the caller's requested tier (haiku/opus/fable) or the
+// verbatim claude-* pass-through this used to honour first. ANTHROPIC_MODEL still wins
+// if an operator explicitly sets it (admin override), for the rare case a different
+// pinned model is needed without a code change.
 function anthropicModelFor(requestedModel, ov = {}) {
-  const requested = String(requestedModel || "");
-  if (/^claude-/i.test(requested)) return requested;
   const configured = ov.model || process.env.ANTHROPIC_MODEL || "";
   if (configured) return configured;
-  if (/haiku/i.test(requested)) {
-    return ov.fast || process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
-  }
-  if (/opus|sonnet|fable/i.test(requested)) {
-    return ov.strong || process.env.ANTHROPIC_MODEL_STRONG || "claude-opus-4-8";
-  }
-  return ov.fast || process.env.ANTHROPIC_MODEL_FAST || "claude-haiku-4-5-20251001";
+  return "claude-sonnet-5";
 }
 
 function openAiModelFor(requestedModel, ov = {}) {
@@ -279,7 +281,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  // Vercel now stores this under CLAUDE_API_KEY (renamed 09-07 '26); ANTHROPIC_API_KEY
+  // kept as a fallback so a future rename back doesn't silently break the proxy.
+  const anthropicKey = process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const admin = await loadAdminConfig();
@@ -294,8 +298,8 @@ export default async function handler(req, res) {
     gemini: hasGeminiFallback,
   };
   if (!configured.anthropic && !configured.openai && !configured.gemini) {
-    console.error("[proxy] no LLM provider configured: ANTHROPIC_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing");
-    return res.status(500).json({ ...WARM_ERRORS.server, debug: "No LLM provider configured (need one of ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY+GEMINI_MODEL)" });
+    console.error("[proxy] no LLM provider configured: CLAUDE_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing");
+    return res.status(500).json({ ...WARM_ERRORS.server, debug: "No LLM provider configured (need one of CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY+GEMINI_MODEL)" });
   }
 
   // Validate body
@@ -389,7 +393,7 @@ export default async function handler(req, res) {
     const provider = err.provider || "llm";
     console.error(`[proxy] ${isTimeout ? "Timeout" : "Provider failure"} provider=${provider}:`, err.debug || err.message);
     if (status === 401 || status === 403) {
-      const keyName = provider === "gemini" ? "GEMINI_API_KEY" : provider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
+      const keyName = provider === "gemini" ? "GEMINI_API_KEY" : provider === "anthropic" ? "CLAUDE_API_KEY" : "OPENAI_API_KEY";
       return res.status(503).json({ code: "AUTH", message: `The AI service rejected the API key. Please check ${keyName} in this project's Vercel settings.`, debug: err.debug || err.message });
     }
     if (status >= 400 && status < 500 && status !== 429) {
