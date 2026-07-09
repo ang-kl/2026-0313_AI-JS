@@ -6,7 +6,7 @@
 // removed rather than left as placeholder tabs; add them back only once each is
 // actually wired to real deterministic engine output. Doctrine tokens only;
 // "AI-assisted; human decides".
-import { useState, useMemo, useEffect, useRef, Fragment } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 import BLUEPRINT_STATUS from "./blueprint-status.json";
@@ -1323,7 +1323,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               return (
-                <div key={c.id} onClick={() => setActiveSpan(c.anchor)} style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
+                <div key={c.id} data-comment-anchor={c.anchor} onClick={() => setActiveSpan(c.anchor)} style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                     <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
@@ -1386,6 +1386,34 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const deskRef = useRef(null);
   const zTopRef = useRef(1400);
   const floatDragRef = useRef(null);
+  // MVP connector line: a real SVG line from the active duty span (manuscript) to its
+  // matching reviewer comment card - both are read live off the DOM (getBoundingClientRect),
+  // never invented coordinates. Draws only when both endpoints are actually docked and
+  // visible side by side; if either is floated away, off the active tab, or scrolled out
+  // of the desk's viewport slice, no line is drawn rather than pointing at nothing.
+  const [connLine, setConnLine] = useState(null);
+  useLayoutEffect(() => {
+    const desk = deskRef.current;
+    if (!desk || !activeSpan) { setConnLine(null); return; }
+    const recompute = () => {
+      const deskRect = desk.getBoundingClientRect();
+      const srcEl = document.getElementById("li-" + activeSpan);
+      const dstEl = desk.querySelector('[data-comment-anchor="' + activeSpan + '"]');
+      if (!srcEl || !dstEl) { setConnLine(null); return; }
+      const sr = srcEl.getBoundingClientRect();
+      const dr = dstEl.getBoundingClientRect();
+      if (sr.bottom < deskRect.top || sr.top > deskRect.bottom || dr.bottom < deskRect.top || dr.top > deskRect.bottom) { setConnLine(null); return; }
+      setConnLine({
+        x1: sr.right - deskRect.left, y1: sr.top + sr.height / 2 - deskRect.top,
+        x2: dr.left - deskRect.left, y2: dr.top + dr.height / 2 - deskRect.top,
+      });
+    };
+    recompute();
+    const raf = requestAnimationFrame(recompute); // re-measure once layout has settled
+    window.addEventListener("resize", recompute);
+    desk.addEventListener("scroll", recompute, true); // capture: fires for the scrolling panel too
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", recompute); desk.removeEventListener("scroll", recompute, true); };
+  }, [activeSpan, tab, floats, pinned, overrides, activeWin]);
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => {
@@ -1571,6 +1599,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
           the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
       <div ref={deskRef} className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
+        {/* MVP connector line: real DOM-measured line, active duty -> its comment card. */}
+        {connLine && (
+          <svg aria-hidden="true" width="100%" height="100%" style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "visible" }}>
+            <path d={"M " + connLine.x1 + " " + connLine.y1 + " C " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y1 + ", " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y2 + ", " + connLine.x2 + " " + connLine.y2}
+              fill="none" stroke="#1a56db" strokeWidth={2} strokeDasharray="none" opacity={0.85} />
+            <circle cx={connLine.x1} cy={connLine.y1} r={4} fill="#1a56db" />
+            <circle cx={connLine.x2} cy={connLine.y2} r={4} fill="#1a56db" />
+          </svg>
+        )}
         {/* U4-C: draggable splitter sits between the mapped panels (absolute at splitPct). */}
         <div role="separator" aria-orientation="vertical" aria-label="Resize panels" tabIndex={0}
           onPointerDown={(e) => { splitDragRef.current = { sx: e.clientX, s0: splitPct }; if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId); }}
