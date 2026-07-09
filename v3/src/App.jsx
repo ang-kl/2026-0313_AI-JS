@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.271";
+const APP_VERSION = "3.0.272";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1806,14 +1806,20 @@ function Term({ k, children }) {
 
 // LLM-3 (live: doAnalyse's fan-out - core ratings + progression/crossover/context,
 // plus rateSkills' own per-batch calls - can burst 15-20 concurrent /api/claude
-// requests for one analysis). Free-tier Gemini rate-limits (429) well under that,
-// and with Anthropic/OpenAI credits also exhausted the fallback chain has nowhere
-// to land, so most of the burst fails. api/claude.js intentionally has no proxy-side
-// rate limiting (v3-llm-proxy-guardrails-spec.md §6 - "not adopted here, broader
+// requests for one analysis). api/claude.js intentionally has no proxy-side rate
+// limiting (v3-llm-proxy-guardrails-spec.md §6 - "not adopted here, broader
 // refactor"), so the fix lives caller-side: cap how many requests this client has
 // in flight at once. Excess calls queue FIFO and start as slots free up - callers
 // see no API change, just a bounded wait before their fetch begins.
-const CLAUDE_MAX_CONCURRENT = 4;
+//
+// Raised 4 -> 10 (09-07 '26): the cap of 4 was sized for Gemini's low free-tier
+// RPM. We're Anthropic Sonnet-5 only now (v3.0.269) - live-verify showed each
+// Sonnet-5 call taking ~5-10s (large-output prompt generation), so a cap of 4
+// forced 4-5 sequential waves, adding 30-50s of pure queueing on top of the
+// calls' own latency for a single analysis (Human Lead: "Step 2 and 3 stale,
+// >15s"). A single well-provisioned Anthropic key handles far more parallelism
+// than that; 10 lets nearly the whole fan-out run at once.
+const CLAUDE_MAX_CONCURRENT = 10;
 let _claudeInFlight = 0;
 const _claudeQueue = [];
 function _claudeAcquireSlot() {
