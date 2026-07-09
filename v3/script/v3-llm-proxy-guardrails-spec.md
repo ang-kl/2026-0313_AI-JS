@@ -24,14 +24,16 @@ The goal is not to lock down the file. The goal is to say plainly, in one place,
 
 Deterministic order:
 
-1. **Anthropic Messages API** — `POST https://api.anthropic.com/v1/messages`. Selected when `ANTHROPIC_API_KEY` is set. Model resolved by `anthropicModelFor(model)` — the caller's requested model id is preserved verbatim when it matches `claude-*`; otherwise `haiku` → `ANTHROPIC_MODEL_FAST` (default `claude-haiku-4-5-20251001`), `opus` / `sonnet` / `fable` → `ANTHROPIC_MODEL_STRONG` (default `claude-opus-4-8`), everything else → `ANTHROPIC_MODEL_FAST`. Auth via `x-api-key` + `anthropic-version: 2023-06-01` headers.
-2. **OpenAI Responses API** — `POST https://api.openai.com/v1/responses`. Selected when the Anthropic path throws or is not configured, AND `OPENAI_API_KEY` is set. Model resolved by `openAiModelFor(model)` — the caller's requested model name is preserved verbatim when it starts with `gpt` / `o0`–`o9`, otherwise mapped through `OPENAI_MODEL_STRONG` (default `gpt-4.1`) for `opus`/`sonnet`/`fable` names or `OPENAI_MODEL_FAST` (default `gpt-4.1-mini`) for everything else.
-3. **Google Gemini** — `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Selected when both prior paths throw or are not configured, AND `GEMINI_API_KEY` + `GEMINI_MODEL` are set. Model comes from `GEMINI_MODEL` env; `models/` prefix stripped.
-4. **No further fallback.** If every configured path fails, the client sees a `503` with a warm error message (`WARM_ERRORS.server` or `WARM_ERRORS.timeout` / `overload` as appropriate).
+1. **Anthropic Messages API** — `POST https://api.anthropic.com/v1/messages`. Selected when `CLAUDE_API_KEY` is set. Model resolved by `anthropicModelFor(model)` — always resolves to `claude-sonnet-5` regardless of the caller's requested tier, unless `ANTHROPIC_MODEL` is explicitly set (operator override). Auth via `x-api-key` + `anthropic-version: 2023-06-01` headers.
+2. **OpenAI Responses API** — `POST https://api.openai.com/v1/responses`. Not in the built-in default chain (Anthropic-only, see below) — only tried if an admin KV override re-adds it, AND `OPENAI_API_KEY` is set. Model resolved by `openAiModelFor(model)`.
+3. **Google Gemini** — `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`. Not in the built-in default chain either — only tried if an admin KV override re-adds it, AND `GEMINI_API_KEY` + `GEMINI_MODEL` are set. Model comes from `GEMINI_MODEL` env; `models/` prefix stripped.
+4. **No further fallback.** If every configured/enabled path fails, the client sees a `503` with a warm error message (`WARM_ERRORS.server` or `WARM_ERRORS.timeout` / `overload` as appropriate).
+
+**Built-in default chain (v3.0.269+): Anthropic only.** Human Lead directive 09-07 '26 — Gemini and OpenAI free-tier quotas proved too unreliable for this app's per-analysis call volume (confirmed live: Gemini genuinely quota-limited per its own error, OpenAI `insufficient_quota`). `VALID_PROVIDERS` still recognizes all three, so the Admin Panel can reorder/re-add Gemini or OpenAI as fallbacks without a code change.
 
 **Response envelope shape** stays constant regardless of which upstream served the call: `{ id, model, stop_reason, content: [{ type: "text", text }], provider, fallback_from? }`. The `provider` field names the upstream that actually served the response; `fallback_from` is present when a preferred provider was skipped or failed.
 
-**Cold-start correctness:** if `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and (`GEMINI_API_KEY` + `GEMINI_MODEL`) are all missing, the endpoint returns `500` immediately with the `No LLM provider configured` debug string. It does not silently accept requests it cannot serve.
+**Cold-start correctness:** if `CLAUDE_API_KEY`, `OPENAI_API_KEY`, and (`GEMINI_API_KEY` + `GEMINI_MODEL`) are all missing, the endpoint returns `500` immediately with the `No LLM provider configured` debug string. It does not silently accept requests it cannot serve.
 
 ## 4. Request limits
 
@@ -66,7 +68,7 @@ These are **rejection caps, not truncations.** The proxy will not silently drop 
 | `[proxy] status=<n> provider=anthropic content_blocks=<n>` | none — counts only |
 | `[proxy] status=<n> provider=openai output_blocks=<n>` | none — counts only |
 | `[proxy] status=<n> provider=gemini candidates=<n>` | none — counts only |
-| `[proxy] no LLM provider configured: ANTHROPIC_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing` | none — env state |
+| `[proxy] no LLM provider configured: CLAUDE_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing` | none — env state |
 | `[proxy] requested_model=<s> anthropic_model=<s> openai_model=<s> gemini_model=<s> max_tokens=<n> system_len=<n> input_len=<n> msg_count=<n>` | none — all lengths / model ids, no content |
 | `[proxy] Anthropic failed; ... :<err.debug>`, `[proxy] OpenAI failed; ... :<err.debug>` | risk: provider-side error string may echo request context; the proxy passes it through verbatim. Truncated to 300 chars by `providerError`. Known trade-off — needed for diagnosis. Treat these strings as sensitive. |
 | `[proxy] Timeout/Provider failure provider=<s>: <err.debug>` | same as above |
@@ -103,7 +105,7 @@ Callers should treat the following as the response contract:
 - **`500`** — env keys missing. `WARM_ERRORS.server` shape.
 - **`503`** — provider unreachable, empty response, timeout, auth failure, or 5xx from upstream. Uses `WARM_ERRORS.{server,overload,timeout}` shapes. The `debug` field is present but should be treated as internal.
 
-**Auth failures (`401`/`403` from upstream)** are converted to `503 AUTH` with a message that names the exact env var to check (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` depending on which provider failed). This is user-facing UX; it is safe because the message names the *variable*, not any *value*.
+**Auth failures (`401`/`403` from upstream)** are converted to `503 AUTH` with a message that names the exact env var to check (`CLAUDE_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY` depending on which provider failed). This is user-facing UX; it is safe because the message names the *variable*, not any *value*.
 
 ## 8. Verification
 
@@ -118,4 +120,5 @@ If a change introduces persistent logging, a rate-limit store, or an origin-chec
 ## 9. Change log
 
 - **2026-07-06 — initial canon.** Written as PR 5 of the trust-loop-first arc. Ships alongside three small guardrail additions to `claude.js`: assembled-prompt char cap (200,000), `max_tokens` cap (8192), `messages` count cap (32).
-- **2026-07-06 — Anthropic-first.** `callAnthropic()` added and wired as primary in the fallback chain. New order: **ANTHROPIC → OPENAI → GEMINI.** Env vars added: `ANTHROPIC_API_KEY`, optional `ANTHROPIC_MODEL`, `ANTHROPIC_MODEL_STRONG` (default `claude-opus-4-8`), `ANTHROPIC_MODEL_FAST` (default `claude-haiku-4-5-20251001`). Response envelope shape and cap set unchanged.
+- **2026-07-06 — Anthropic-first.** `callAnthropic()` added and wired as primary in the fallback chain. New order: **ANTHROPIC → OPENAI → GEMINI.** Env vars added: `CLAUDE_API_KEY` (named `ANTHROPIC_API_KEY` at the time), optional `ANTHROPIC_MODEL`, `ANTHROPIC_MODEL_STRONG` (default `claude-opus-4-8`), `ANTHROPIC_MODEL_FAST` (default `claude-haiku-4-5-20251001`). Response envelope shape and cap set unchanged.
+- **2026-07-09 — Anthropic-only, Sonnet 5 only, `CLAUDE_API_KEY` rename.** Human Lead directive: Gemini/OpenAI free-tier quotas proved too unreliable for this app's per-analysis call volume (confirmed live via server logs). `DEFAULT_CHAIN` → `["anthropic"]` only; Gemini/OpenAI stay configured but excluded unless an admin KV override re-adds them. `anthropicModelFor()` now always resolves to `claude-sonnet-5` regardless of the caller's requested tier (haiku/opus/fable), unless `ANTHROPIC_MODEL` is explicitly set. The Anthropic key env var was renamed in Vercel from `ANTHROPIC_API_KEY` to `CLAUDE_API_KEY`; the proxy and this spec were updated to match — `ANTHROPIC_API_KEY` is no longer read anywhere.
