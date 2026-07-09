@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.267";
+const APP_VERSION = "3.0.268";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -3995,7 +3995,11 @@ Skills to narrate: ${skillList}`;
   });
 }
 
-const PROMPT_BATCH_SIZE = 3;
+// LLM-3 follow-through: doubled from 3 - a 36-skill role fired 12 separate prompt-batch
+// calls alone, the single biggest contributor to the per-analysis call burst that
+// overruns Gemini's free-tier RPM (see App.jsx claudeCall's concurrency queue). Token
+// budget below scales with batch size, so this halves call count at no loss of content.
+const PROMPT_BATCH_SIZE = 6;
 
 // Technique taxonomy organised by automation level and skill type
 // Used for deterministic pre-assignment before batching
@@ -4117,7 +4121,9 @@ Rules:
 - Match the occupation context.
 - Never start with the skill name.`;
 
-  const BATCH_SIZE = 8;
+  // LLM-3 follow-through: doubled from 8 - fewer, larger batches reduce the per-analysis
+  // call burst that overruns Gemini's free-tier RPM. Token budget scales with batch size.
+  const BATCH_SIZE = 16;
   const batches = [];
   for (let i = 0; i < missing.length; i += BATCH_SIZE) {
     batches.push(missing.slice(i, i + BATCH_SIZE));
@@ -4126,9 +4132,10 @@ Rules:
   await Promise.allSettled(batches.map(async (batch) => {
     try {
       const skillList = batch.map(s => `${s.n}:${s.skill}`).join(" | ");
+      const descTokens = Math.min(8192, 150 + batch.length * 75);
       const raw = await claudeCall(
 `Occupation: ${title}
-Skills: ${skillList}`, 600, 1, SYSTEM_DESC);
+Skills: ${skillList}`, descTokens, 1, SYSTEM_DESC);
       const arr = extractJSON(raw, "descriptions");
       if (!Array.isArray(arr)) return;
       const patch = {};
@@ -4229,7 +4236,12 @@ ${batch.map(s => {
 Return pt exactly as assigned above. Do not substitute a different technique.`;
 
     try {
-      const raw = await claudeCall(batchMsg, 5500, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
+      // Scales with batch size (was a flat 5500 tuned for PROMPT_BATCH_SIZE=3); each
+      // skill can need a HIGH-level 280-440 word prompt plus a ~220 word nextPhase -
+      // budget generously per skill, capped at the proxy's 8192 max_tokens ceiling
+      // (v3-llm-proxy-guardrails-spec.md §4).
+      const batchTokens = Math.min(8192, 1000 + batch.length * 1500);
+      const raw = await claudeCall(batchMsg, batchTokens, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
       const arr = extractJSON(raw, "prompts-batch");
       if (Array.isArray(arr)) {
         allResults.push(...arr);
