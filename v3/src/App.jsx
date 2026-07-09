@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.266";
+const APP_VERSION = "3.0.267";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1804,7 +1804,31 @@ function Term({ k, children }) {
 }
 // ---------------------------------------------------------------------------
 
+// LLM-3 (live: doAnalyse's fan-out - core ratings + progression/crossover/context,
+// plus rateSkills' own per-batch calls - can burst 15-20 concurrent /api/claude
+// requests for one analysis). Free-tier Gemini rate-limits (429) well under that,
+// and with Anthropic/OpenAI credits also exhausted the fallback chain has nowhere
+// to land, so most of the burst fails. api/claude.js intentionally has no proxy-side
+// rate limiting (v3-llm-proxy-guardrails-spec.md §6 - "not adopted here, broader
+// refactor"), so the fix lives caller-side: cap how many requests this client has
+// in flight at once. Excess calls queue FIFO and start as slots free up - callers
+// see no API change, just a bounded wait before their fetch begins.
+const CLAUDE_MAX_CONCURRENT = 4;
+let _claudeInFlight = 0;
+const _claudeQueue = [];
+function _claudeAcquireSlot() {
+  if (_claudeInFlight < CLAUDE_MAX_CONCURRENT) { _claudeInFlight++; return Promise.resolve(); }
+  return new Promise((resolve) => { _claudeQueue.push(resolve); });
+}
+function _claudeReleaseSlot() {
+  const next = _claudeQueue.shift();
+  if (next) next(); else _claudeInFlight--;
+}
+
 async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
+  await _claudeAcquireSlot();
+  let _slotReleased = false;
+  const _releaseSlot = () => { if (!_slotReleased) { _slotReleased = true; _claudeReleaseSlot(); } };
   try {
     const body = {
       model,
@@ -1844,8 +1868,12 @@ async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, m
     const data = await res.json();
     const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("");
     if (!text) throw new Error("Empty response");
+    _releaseSlot();
     return text;
   } catch(err) {
+    // Release before any retry/backoff so a slow-retrying call doesn't hold a
+    // concurrency slot idle - the recursive claudeCall() below re-acquires its own.
+    _releaseSlot();
     // Retry only transient failures. The proxy maps overload/5xx/auth to 503 and
     // network/timeout errors carry no status; a 4xx (e.g. 404 unknown model, 400
     // bad request) is deterministic, so retrying it just wastes time and floods
