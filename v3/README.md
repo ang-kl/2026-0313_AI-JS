@@ -81,7 +81,7 @@ Node 22.x. See `v3/package.json`.
 
 The LLM proxy (`api/claude.js`) can dispatch to Anthropic, OpenAI, or Google Gemini depending on which key is present. The engine paths do not require any of them.
 
-- `ANTHROPIC_API_KEY` — enables Claude routing.
+- `CLAUDE_API_KEY` — enables Claude routing (primary/default provider). Optional `ANTHROPIC_MODEL` pins a specific model id; otherwise every call resolves to `claude-sonnet-5`.
 - `OPENAI_API_KEY` — enables OpenAI routing.
 - `OPENAI_MODEL`, `OPENAI_MODEL_STRONG`, `OPENAI_MODEL_FAST` — model overrides.
 - `GEMINI_API_KEY`, `GEMINI_MODEL` — enables Gemini routing.

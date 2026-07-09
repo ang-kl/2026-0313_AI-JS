@@ -281,9 +281,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Vercel now stores this under CLAUDE_API_KEY (renamed 09-07 '26); ANTHROPIC_API_KEY
-  // kept as a fallback so a future rename back doesn't silently break the proxy.
-  const anthropicKey = process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY;
+  // Vercel stores this under CLAUDE_API_KEY (renamed 09-07 '26).
+  const anthropicKey = process.env.CLAUDE_API_KEY;
   const openAiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const admin = await loadAdminConfig();
