@@ -13,7 +13,7 @@ import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 // One cubic-bezier path string (same curve family as the #358 single line).
 const bez = (l) => "M " + l.x1 + " " + l.y1 + " C " + ((l.x1 + l.x2) / 2) + " " + l.y1 + ", " + ((l.x1 + l.x2) / 2) + " " + l.y2 + ", " + l.x2 + " " + l.y2;
 
-export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
   // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
@@ -135,6 +135,13 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           const wins = winsAll.filter((w) => !floats.some((f) => f.id === w) && !pinned.includes(w));
           const actPref = (activeWin[tab] && activeWin[tab][side]) || winsAll[0];
           const act = wins.includes(actPref) ? actPref : wins[0];
+          // "+ Add panel" (design handoff / goal §6): any registry window can join this
+          // tab's strip via the existing overrides mechanism - no new state model. A
+          // window ADDED this way (not in the tab's base set) can be removed again.
+          const tabBase = TAB_WINDOWS[tab] || TAB_WINDOWS.overview;
+          const shownSet = new Set([...tabBase.left, ...tabBase.right, ...Object.keys(ov)]);
+          const addable = Object.keys(WIN_LABELS).filter((w) => !shownSet.has(w));
+          const actIsAdded = !!act && !base.includes(act) && ov[act] === side;
           return (
             <div key={side} className="wis-panel" style={{ flex: side === "left" ? "0 0 " + splitPct + "%" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#dedbd0" : "#e9e7e0", outline: dockHover === side ? "3px solid #1a56db" : "none", outlineOffset: -3, transition: "outline-color .1s" }}>
               <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
@@ -155,6 +162,24 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                     onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.7; e.currentTarget.style.color = "#a8a193"; }}>
                     <span aria-hidden="true">{String.fromCharCode(0x29c9)}</span>
                   </button>
+                )}
+                {actIsAdded && setOverrides && (
+                  <button type="button" aria-label={"Remove " + WIN_LABELS[act] + " from this tab (added panel)"}
+                    title={"Remove " + WIN_LABELS[act] + " from this tab"}
+                    onClick={() => { setOverrides((prev) => { const t = { ...(prev[tab] || {}) }; delete t[act]; return { ...prev, [tab]: t }; }); }}
+                    style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, minWidth: 30, padding: "6px 6px", marginBottom: -1, border: "none", borderBottom: "1px solid transparent", background: "transparent", color: "#586474", cursor: "pointer", fontSize: "0.875rem" }}>
+                    <span aria-hidden="true">{String.fromCharCode(0x00d7)}</span>
+                  </button>
+                )}
+                {addable.length > 0 && setOverrides && (
+                  <select value="" aria-label={"Add a panel to the " + (side === "left" ? "left" : "right") + " side"}
+                    onChange={(e) => { const w = e.target.value; if (!w) return;
+                      setOverrides((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [w]: side } }));
+                      setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } })); }}
+                    style={{ flex: "none", marginLeft: "auto", marginBottom: 3, minHeight: 36, maxWidth: 130, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#14204f", background: "transparent", border: "1px dashed #b9b3a4", borderRadius: 8, padding: "2px 6px", cursor: "pointer" }}>
+                    <option value="">+ Add panel</option>
+                    {addable.map((w) => <option key={w} value={w}>{WIN_LABELS[w]}</option>)}
+                  </select>
                 )}
               </div>
               <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px", position: "relative" }}>
