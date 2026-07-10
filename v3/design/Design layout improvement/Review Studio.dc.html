@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#e9e7e0;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+  a{color:#2a6fd6;text-decoration:none}
+  a:hover{color:#14204f}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:rgba(20,32,79,0.22);border-radius:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .dv-turn{padding:40px 44px 90px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 22px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#14204f;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#14204f}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+  .dv-oid{font:700 11px ui-monospace,Menlo,monospace;padding:3px 8px;background:rgba(20,32,79,0.1);color:#14204f;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 12px/1.3 system-ui,sans-serif;color:rgba(20,32,79,0.6)}
+  .dv-card{max-width:100%;background:#fff;border:1px solid rgba(20,32,79,0.14);border-radius:10px;box-shadow:0 8px 28px rgba(20,32,79,0.14);overflow:hidden}
+  .dv-opt:target .dv-oid{background:#2a6fd6;color:#fff}
+  .dv-next{margin:22px 0 0;font:13px/1.6 system-ui,sans-serif;color:rgba(20,32,79,0.62);max-width:960px}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Combining <a href="#1a">1a</a>'s connector lines with <a href="#1b">1b</a>'s workspace</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>TradingView workspace, with a live curved connector line from doc to whichever panel holds the active comment</div>
+      <div class="dv-card" style="width:1520px;height:920px;display:flex;flex-direction:column;font-family:system-ui,-apple-system,sans-serif">
+
+        <div style="height:52px;flex:none;background:#14204f;display:flex;align-items:center;gap:14px;padding:0 20px;color:#fff">
+          <div style="width:26px;height:26px;border-radius:6px;background:#f5a623;display:flex;align-items:center;justify-content:center;font:800 11px ui-monospace,Menlo,monospace;color:#14204f;flex:none">AI</div>
+          <div style="font-size:13.5px;font-weight:700;white-space:nowrap">AI Readiness across Skills &amp; Competences</div>
+          <div style="font:600 10px ui-monospace,Menlo,monospace;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.14);color:#fff">v3 · combined workspace</div>
+          <div style="flex:1"></div>
+          <div style="background:#fff;color:#14204f;font-size:12px;font-weight:700;padding:7px 14px;border-radius:6px;white-space:nowrap">New search</div>
+          <div style="font-size:11.5px;color:rgba(255,255,255,0.7);white-space:nowrap">AI-assisted · human decides</div>
+        </div>
+
+        <div style="height:54px;flex:none;background:#fff;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:14px;padding:0 20px">
+          <div style="font-size:12.5px;color:rgba(20,32,79,0.55);white-space:nowrap">← Postings</div>
+          <div style="width:1px;height:20px;background:rgba(20,32,79,0.14)"></div>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font:700 9.5px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5);letter-spacing:0.04em">REVIEWING</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#1f8a5b"><span style="width:6px;height:6px;border-radius:50%;background:#1f8a5b;display:inline-block"></span>from MCF</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#14204f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px">Associate, Strategic Initiatives Business Analyst, GOCC, Group COO (WD84916)</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(245,166,35,0.16);color:#a8660f;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:#f5a623;display:inline-block"></span>AI-augmented</div>
+          <div style="font-size:11.5px;color:rgba(20,32,79,0.5);white-space:nowrap">{{ cCommentCounts }}</div>
+        </div>
+
+        <div style="height:42px;flex:none;background:#f3f1ea;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:10px;padding:0 20px">
+          <div style="display:flex;background:#e7e4da;border-radius:7px;padding:3px;gap:2px">
+            <div style="{{ cTabReadCleanStyle }}" onClick="{{ onSetCViewModeClean }}">Read clean</div>
+            <div style="{{ cTabSuggestionsStyle }}" onClick="{{ onSetCViewModeSuggestions }}">Suggestions</div>
+            <div style="{{ cTabCommentsStyle }}" onClick="{{ onSetCViewModeComments }}">Comments</div>
+          </div>
+          <span style="font:700 10px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5)">WORKSPACE · {{ cPanelCountLabel }}</span>
+          <div style="flex:1"></div>
+          <div style="font-size:11.5px;color:rgba(20,32,79,0.5)">hover or click a highlighted duty, or a comment card, to trace the line</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;background:#14204f;padding:6px 12px;border-radius:6px;white-space:nowrap" onClick="{{ onAddPanelC }}">+ Add panel</div>
+        </div>
+
+        <div style="flex:1;display:flex;min-height:0;position:relative" ref="{{ setMainBodyRefC }}">
+          <div style="width:460px;flex:none;overflow-y:auto;background:#e9e7e0;padding:22px;border-right:1px solid rgba(20,32,79,0.1)">
+            <div style="background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(20,32,79,0.08);padding:36px 40px">
+              <sc-for list="{{ docBlocksC }}" as="block" hint-placeholder-count="10">
+                <sc-if value="{{ block.isEyebrow }}"><div style="font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:0.06em;color:rgba(20,32,79,0.45);margin-bottom:9px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH1 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:700;line-height:1.3;color:#14204f;margin-bottom:12px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isMeta }}"><div style="font-size:11.5px;color:rgba(20,32,79,0.55);margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(20,32,79,0.1)">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH2 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;font-weight:700;color:#14204f;margin:22px 0 10px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isP }}">
+                  <p style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.68;color:#232338;margin:0 0 12px">
+                    <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" ref="{{ run.ref }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                  </p>
+                </sc-if>
+                <sc-if value="{{ block.isLi }}">
+                  <div style="display:flex;gap:9px;margin:0 0 10px;padding-left:2px">
+                    <div style="width:5px;height:5px;border-radius:50%;background:#14204f;margin-top:9px;flex:none"></div>
+                    <div style="flex:1;font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.68;color:#232338">
+                      <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" ref="{{ run.ref }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:1;position:relative;overflow:auto;background:#dedbd0;padding:18px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start">
+              <sc-for list="{{ dockedPanelsC }}" as="p" hint-placeholder-count="3">
+                <div style="background:#fff;border-radius:8px;border:1px solid rgba(20,32,79,0.12);box-shadow:0 2px 8px rgba(20,32,79,0.08);display:flex;flex-direction:column;min-height:260px;max-height:340px">
+                  <div style="height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid rgba(20,32,79,0.08);background:rgba(20,32,79,0.03);cursor:grab" onMouseDown="{{ p.onDragStart }}">
+                    <select value="{{ p.type }}" onChange="{{ p.onTypeChange }}" style="font-size:11.5px;font-weight:700;color:#14204f;border:none;background:transparent;flex:1">
+                      <sc-for list="{{ panelTypeOptions }}" as="opt" hint-placeholder-count="7"><option value="{{ opt.key }}">{{ opt.label }}</option></sc-for>
+                    </select>
+                    <div style="font-size:13px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onFloatToggle }}">⤢</div>
+                    <div style="font-size:14px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onClose }}">×</div>
+                  </div>
+                  <div style="flex:1;overflow-y:auto;padding:12px">
+                    <dc-import name="EnginePanelBody" panel="{{ p }}" hint-size="100%,200px"></dc-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-for list="{{ floatingPanelsC }}" as="p" hint-placeholder-count="1">
+              <div style="{{ p.floatStyle }}">
+                <div style="height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid rgba(20,32,79,0.08);background:#f3f1ea;cursor:grab;border-radius:8px 8px 0 0" onMouseDown="{{ p.onDragStart }}">
+                  <select value="{{ p.type }}" onChange="{{ p.onTypeChange }}" style="font-size:11.5px;font-weight:700;color:#14204f;border:none;background:transparent;flex:1">
+                    <sc-for list="{{ panelTypeOptions }}" as="opt" hint-placeholder-count="7"><option value="{{ opt.key }}">{{ opt.label }}</option></sc-for>
+                  </select>
+                  <div style="font-size:13px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onFloatToggle }}">⤓</div>
+                  <div style="font-size:14px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onClose }}">×</div>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:12px">
+                  <dc-import name="EnginePanelBody" panel="{{ p }}" hint-size="100%,200px"></dc-import>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <svg style="position:absolute;inset:0;pointer-events:none;z-index:60" width="100%" height="100%">
+            <sc-if value="{{ hasConnectorC }}">
+              <path d="{{ connectorPathC }}" stroke="#f5a623" stroke-width="2.2" fill="none"></path>
+              <circle cx="{{ connectorX1C }}" cy="{{ connectorY1C }}" r="3.5" fill="#f5a623"></circle>
+            </sc-if>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "add a second floating comments panel to <a href="#2a">2a</a>" · "make the connector line snap straight instead of curved" · "let dragging a panel over the doc auto-dock it"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Step 3 — Review Studio, job ad on the left, engine-grounded right dock</span></div>
+  <div class="dv-opts">
+
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Word-style dock — single tabbed panel + pinned comments with connector lines</div>
+      <div class="dv-card" style="width:1520px;height:920px;display:flex;flex-direction:column;font-family:system-ui,-apple-system,sans-serif">
+
+        <!-- top bar -->
+        <div style="height:52px;flex:none;background:#14204f;display:flex;align-items:center;gap:14px;padding:0 20px;color:#fff">
+          <div style="width:26px;height:26px;border-radius:6px;background:#f5a623;display:flex;align-items:center;justify-content:center;font:800 11px ui-monospace,Menlo,monospace;color:#14204f;flex:none">AI</div>
+          <div style="font-size:13.5px;font-weight:700;white-space:nowrap">AI Readiness across Skills &amp; Competences</div>
+          <div style="font:600 10px ui-monospace,Menlo,monospace;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.14);color:#fff">v3 · review studio</div>
+          <div style="flex:1"></div>
+          <div style="background:#fff;color:#14204f;font-size:12px;font-weight:700;padding:7px 14px;border-radius:6px;white-space:nowrap">New search</div>
+          <div style="font-size:11.5px;color:rgba(255,255,255,0.7);white-space:nowrap">AI-assisted · human decides</div>
+        </div>
+
+        <!-- sub header -->
+        <div style="height:54px;flex:none;background:#fff;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:14px;padding:0 20px">
+          <div style="font-size:12.5px;color:rgba(20,32,79,0.55);white-space:nowrap">← Postings</div>
+          <div style="width:1px;height:20px;background:rgba(20,32,79,0.14)"></div>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font:700 9.5px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5);letter-spacing:0.04em">REVIEWING</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#1f8a5b"><span style="width:6px;height:6px;border-radius:50%;background:#1f8a5b;display:inline-block"></span>from MCF</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#14204f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px">Associate, Strategic Initiatives Business Analyst, GOCC, Group COO (WD84916)</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(245,166,35,0.16);color:#a8660f;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:#f5a623;display:inline-block"></span>AI-augmented</div>
+          <div style="font-size:11.5px;color:rgba(20,32,79,0.5);white-space:nowrap">{{ aCommentCounts }}</div>
+        </div>
+
+        <!-- toolbar -->
+        <div style="height:42px;flex:none;background:#f3f1ea;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:8px;padding:0 20px">
+          <div style="display:flex;background:#e7e4da;border-radius:7px;padding:3px;gap:2px">
+            <div style="{{ aTabReadCleanStyle }}" onClick="{{ onSetAViewModeClean }}">Read clean</div>
+            <div style="{{ aTabSuggestionsStyle }}" onClick="{{ onSetAViewModeSuggestions }}">Suggestions</div>
+            <div style="{{ aTabCommentsStyle }}" onClick="{{ onSetAViewModeComments }}">Comments</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="font-size:12px;font-weight:600;color:#14204f;padding:6px 12px;border:1px solid rgba(20,32,79,0.18);border-radius:6px;background:#fff;white-space:nowrap">Accept all</div>
+        </div>
+
+        <!-- main body -->
+        <div style="flex:1;display:flex;min-height:0;position:relative" ref="{{ setMainBodyRefA }}">
+
+          <!-- left icon rail -->
+          <div style="width:82px;flex:none;background:#fff;border-right:1px solid rgba(20,32,79,0.1);display:flex;flex-direction:column;padding:14px 0;gap:2px">
+            <sc-for list="{{ leftNav }}" as="item" hint-placeholder-count="6">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 4px;color:rgba(20,32,79,0.55)">
+                <div style="width:16px;height:16px;border-radius:4px;background:rgba(20,32,79,0.14)"></div>
+                <div style="font-size:9.5px;text-align:center;line-height:1.15">{{ item.label }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- document pane -->
+          <div style="flex:1;min-width:0;overflow-y:auto;background:#e9e7e0;padding:26px">
+            <div style="background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(20,32,79,0.08);padding:44px 52px;max-width:760px;margin:0 auto">
+              <sc-for list="{{ docBlocksA }}" as="block" hint-placeholder-count="10">
+                <sc-if value="{{ block.isEyebrow }}"><div style="font:700 11px ui-monospace,Menlo,monospace;letter-spacing:0.06em;color:rgba(20,32,79,0.45);margin-bottom:10px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH1 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:24px;font-weight:700;line-height:1.32;color:#14204f;margin-bottom:14px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isMeta }}"><div style="font-size:12.5px;color:rgba(20,32,79,0.55);margin-bottom:26px;padding-bottom:22px;border-bottom:1px solid rgba(20,32,79,0.1)">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH2 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:700;color:#14204f;margin:26px 0 12px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isP }}">
+                  <p style="font-family:'Source Serif 4',Georgia,serif;font-size:15.5px;line-height:1.7;color:#232338;margin:0 0 14px">
+                    <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" ref="{{ run.ref }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                  </p>
+                </sc-if>
+                <sc-if value="{{ block.isLi }}">
+                  <div style="display:flex;gap:10px;margin:0 0 12px;padding-left:2px">
+                    <div style="width:5px;height:5px;border-radius:50%;background:#14204f;margin-top:10px;flex:none"></div>
+                    <div style="flex:1;font-family:'Source Serif 4',Georgia,serif;font-size:15.5px;line-height:1.7;color:#232338">
+                      <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" ref="{{ run.ref }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- right dock -->
+          <div style="width:400px;flex:none;background:#fff;border-left:1px solid rgba(20,32,79,0.1);display:flex;flex-direction:column;min-height:0">
+            <div style="display:flex;flex-wrap:wrap;gap:2px;padding:10px 14px 8px;border-bottom:1px solid rgba(20,32,79,0.08)">
+              <sc-for list="{{ dockTabs }}" as="tab" hint-placeholder-count="6">
+                <div style="{{ tab.style }}" onClick="{{ tab.onClick }}">{{ tab.label }}</div>
+              </sc-for>
+            </div>
+
+            <div style="flex:1 1 54%;overflow-y:auto;padding:16px 18px;min-height:0">
+              <sc-if value="{{ dockIsExposure }}">
+                <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px">
+                  <div style="font-size:38px;font-weight:800;color:#14204f;font-family:ui-monospace,Menlo,monospace">{{ exposure.index }}</div>
+                  <div style="font-size:11.5px;color:rgba(20,32,79,0.5)">/ 100 percentile</div>
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(245,166,35,0.18);color:#a8660f;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;margin-bottom:14px">{{ exposure.bandLabel }}</div>
+                <div style="font-size:12.5px;color:rgba(20,32,79,0.7);line-height:1.6;margin-bottom:14px">{{ exposure.label }} — z-mean {{ exposure.zMean }}, range {{ exposure.zRange }}</div>
+                <div style="border:1px dashed rgba(20,32,79,0.22);border-radius:8px;padding:12px;margin-bottom:14px">
+                  <div style="font:700 9.5px ui-monospace,Menlo,monospace;letter-spacing:0.05em;color:rgba(20,32,79,0.45);margin-bottom:8px">SSOC → ISCO-08 → SOC → AIOE</div>
+                  <sc-for list="{{ exposure.trace }}" as="step" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:6px;font:12px ui-monospace,Menlo,monospace;color:#14204f;margin-bottom:4px"><span style="color:rgba(20,32,79,0.35)">→</span>{{ step }}</div>
+                  </sc-for>
+                </div>
+                <div style="display:inline-block;font:600 10.5px ui-monospace,Menlo,monospace;color:#a8660f;background:rgba(245,166,35,0.14);padding:3px 8px;border-radius:5px">AI estimate · conf {{ exposure.confidence }}</div>
+              </sc-if>
+
+              <sc-if value="{{ dockIsAnatomy }}">
+                <div style="font-size:12.5px;color:rgba(20,32,79,0.6);margin-bottom:12px">{{ anatomy.centreLine }}</div>
+                <sc-for list="{{ anatomy.rows }}" as="row" hint-placeholder-count="5">
+                  <div style="margin-bottom:10px">
+                    <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#14204f;margin-bottom:4px"><span style="font-weight:600">{{ row.name }}</span><span style="font-family:ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5)">{{ row.pctLabel }}</span></div>
+                    <div style="height:7px;background:rgba(20,32,79,0.08);border-radius:4px;overflow:hidden"><div style="{{ row.barStyle }}"></div></div>
+                  </div>
+                </sc-for>
+                <div style="display:flex;gap:10px;margin-top:16px">
+                  <div style="flex:1;background:#f3f1ea;border-radius:8px;padding:10px">
+                    <div style="font:700 9px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.45);margin-bottom:4px">RESILIENCE</div>
+                    <div style="font-size:20px;font-weight:800;color:#14204f;font-family:ui-monospace,Menlo,monospace">{{ anatomy.resilience }}</div>
+                  </div>
+                  <div style="flex:1;background:#f3f1ea;border-radius:8px;padding:10px">
+                    <div style="font:700 9px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.45);margin-bottom:4px">→ ~2027</div>
+                    <div style="font-size:20px;font-weight:800;color:#c1453b;font-family:ui-monospace,Menlo,monospace">{{ anatomy.resilience2y }}</div>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:rgba(20,32,79,0.6);line-height:1.55;margin-top:12px">{{ anatomy.trajectoryLine }}</div>
+                <div style="font:700 9.5px ui-monospace,Menlo,monospace;letter-spacing:0.05em;color:rgba(20,32,79,0.45);margin:16px 0 8px">DUTIES · hover to trace in text</div>
+                <sc-for list="{{ dutyChipsA }}" as="d" hint-placeholder-count="6">
+                  <div style="{{ d.chipStyle }}" onMouseEnter="{{ d.onEnter }}" onMouseLeave="{{ d.onLeave }}">
+                    <span style="{{ d.dotStyle }}"></span>{{ d.short }}
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ dockIsMirror }}">
+                <div style="font-size:12px;color:rgba(20,32,79,0.6);margin-bottom:12px">Adjacent roles by skill-fingerprint share — none fabricated, withheld where no AIOE score exists.</div>
+                <sc-for list="{{ mirrorRows }}" as="m" hint-placeholder-count="5">
+                  <div style="margin-bottom:12px">
+                    <div style="display:flex;justify-content:space-between;font-size:12.5px;color:#14204f;margin-bottom:4px"><span style="font-weight:600">{{ m.title }}</span><span style="font-family:ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5)">{{ m.sharePctLabel }}</span></div>
+                    <div style="height:6px;background:rgba(20,32,79,0.08);border-radius:3px;overflow:hidden;margin-bottom:4px"><div style="{{ m.barStyle }}"></div></div>
+                    <div style="font-size:10.5px;color:rgba(20,32,79,0.45);font-family:ui-monospace,Menlo,monospace">{{ m.bandLabel }} · z {{ m.z }}</div>
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ dockIsCoherence }}">
+                <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(193,69,59,0.14);color:#c1453b;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;margin-bottom:14px">⚠ conflict — sources disagree</div>
+                <div style="font-size:12.5px;color:#232338;line-height:1.65;margin-bottom:14px">The posting's SSOC tag reads as <b>{{ coherence.ssocLabel }}</b>. The skill-fingerprint evidence instead leans <b>{{ coherence.fpLabel }}</b>. Per the trust loop, skill evidence wins on conflict — the exposure index above already uses it, and confidence is capped at medium.</div>
+                <div style="border-top:1px solid rgba(20,32,79,0.1);padding-top:12px;font-size:11.5px;color:rgba(20,32,79,0.55);line-height:1.6">Treat the SSOC-based title as a lower-confidence prior, not a verdict.</div>
+              </sc-if>
+
+              <sc-if value="{{ dockIsGraph }}">
+                <svg viewBox="0 0 340 230" style="width:100%;height:230px">
+                  <line x1="170" y1="115" x2="60" y2="42" stroke="#f5a623" stroke-width="1.4"></line>
+                  <line x1="170" y1="115" x2="46" y2="115" stroke="#c1453b" stroke-width="1.4"></line>
+                  <line x1="170" y1="115" x2="60" y2="190" stroke="#2a6fd6" stroke-width="1.4"></line>
+                  <line x1="170" y1="115" x2="280" y2="42" stroke="rgba(20,32,79,0.35)" stroke-width="1.2"></line>
+                  <line x1="170" y1="115" x2="294" y2="90" stroke="rgba(20,32,79,0.35)" stroke-width="1.2"></line>
+                  <line x1="170" y1="115" x2="294" y2="140" stroke="rgba(20,32,79,0.35)" stroke-width="1.2"></line>
+                  <line x1="170" y1="115" x2="280" y2="190" stroke="rgba(20,32,79,0.35)" stroke-width="1.2"></line>
+                  <circle cx="170" cy="115" r="30" fill="#14204f"></circle>
+                  <text x="170" y="112" text-anchor="middle" fill="#fff" font-size="8" font-family="ui-monospace,Menlo,monospace" font-weight="700">GOCC</text>
+                  <text x="170" y="122" text-anchor="middle" fill="#fff" font-size="8" font-family="ui-monospace,Menlo,monospace" font-weight="700">Analyst</text>
+                  <circle cx="60" cy="42" r="5" fill="#f5a623"></circle>
+                  <text x="70" y="45" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">GenAI build</text>
+                  <circle cx="46" cy="115" r="5" fill="#c1453b"></circle>
+                  <text x="56" y="118" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">transform</text>
+                  <circle cx="60" cy="190" r="5" fill="#2a6fd6"></circle>
+                  <text x="70" y="193" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">stakeholder</text>
+                  <circle cx="280" cy="42" r="4" fill="rgba(20,32,79,0.5)"></circle>
+                  <text x="248" y="35" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">prompt eng</text>
+                  <circle cx="294" cy="90" r="4" fill="rgba(20,32,79,0.5)"></circle>
+                  <text x="266" y="83" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">agile</text>
+                  <circle cx="294" cy="140" r="4" fill="rgba(20,32,79,0.5)"></circle>
+                  <text x="256" y="147" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">biz analysis</text>
+                  <circle cx="280" cy="190" r="4" fill="rgba(20,32,79,0.5)"></circle>
+                  <text x="248" y="197" font-size="9.5" font-family="ui-monospace,Menlo,monospace" fill="#232338">ML eng</text>
+                </svg>
+                <div style="font-size:11.5px;color:rgba(20,32,79,0.5);line-height:1.6;border-top:1px solid rgba(20,32,79,0.1);padding-top:10px">Duty branch left, adjacent-role branch right. Every node links back to a source span.</div>
+              </sc-if>
+
+              <sc-if value="{{ dockIsOia }}">
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+                  <sc-for list="{{ oiaDutyChipsA }}" as="c" hint-placeholder-count="6"><div style="{{ c.style }}" onClick="{{ c.onClick }}">{{ c.short }}</div></sc-for>
+                </div>
+                <sc-if value="{{ oiaA.withheld }}"><div style="font-size:12.5px;color:rgba(20,32,79,0.5);font-style:italic">No O-I-A dissection authored yet for this duty — withheld rather than guessed.</div></sc-if>
+                <sc-if value="{{ oiaA.hasData }}">
+                  <div style="margin-bottom:14px"><div style="font:700 9.5px ui-monospace,Menlo,monospace;color:#2a6fd6;letter-spacing:0.05em;margin-bottom:5px">OBSERVATION</div><div style="font-size:12.5px;color:#232338;line-height:1.6">{{ oiaA.observation }}</div></div>
+                  <div style="margin-bottom:14px"><div style="font:700 9.5px ui-monospace,Menlo,monospace;color:#a8660f;letter-spacing:0.05em;margin-bottom:5px">INTERPRETATION</div><div style="font-size:12.5px;color:#232338;line-height:1.6">{{ oiaA.interpretation }}</div></div>
+                  <div><div style="font:700 9.5px ui-monospace,Menlo,monospace;color:#1f8a5b;letter-spacing:0.05em;margin-bottom:5px">APPLICATION</div><div style="font-size:12.5px;color:#232338;line-height:1.6">{{ oiaA.application }}</div></div>
+                </sc-if>
+              </sc-if>
+            </div>
+
+            <div style="flex:1 1 46%;display:flex;flex-direction:column;border-top:1px solid rgba(20,32,79,0.1);min-height:0">
+              <div style="padding:12px 18px 8px;display:flex;align-items:baseline;gap:8px;flex:none">
+                <span style="font:700 10px ui-monospace,Menlo,monospace;letter-spacing:0.05em;color:rgba(20,32,79,0.45)">REVIEWER COMMENTS</span>
+                <span style="font-size:11px;color:rgba(20,32,79,0.4)">{{ aCommentCounts }}</span>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:0 14px 14px">
+                <sc-for list="{{ aCommentsView }}" as="c" hint-placeholder-count="3">
+                  <div ref="{{ c.cardRef }}" style="{{ c.cardStyle }}" onMouseEnter="{{ c.onEnter }}" onMouseLeave="{{ c.onLeave }}">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+                      <span style="{{ c.dotStyle }}"></span>
+                      <span style="font-size:12px;font-weight:700;color:#14204f">{{ c.persona }}</span>
+                      <span style="flex:1"></span>
+                      <span style="font:9.5px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.4)">{{ c.tag }}</span>
+                    </div>
+                    <div style="font-family:'Source Serif 4',Georgia,serif;font-style:italic;font-size:12.5px;color:rgba(20,32,79,0.75);margin-bottom:6px">{{ c.quote }}</div>
+                    <div style="font-size:12px;color:#232338;line-height:1.55;margin-bottom:8px">{{ c.body }}</div>
+                    <sc-if value="{{ c.hasRewrite }}">
+                      <div style="background:#f3f1ea;border-radius:6px;padding:8px;margin-bottom:8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.6">
+                        <div style="color:#c1453b;text-decoration:line-through">{{ c.rewriteFrom }}</div>
+                        <div style="color:#1f8a5b">→ {{ c.rewriteTo }}</div>
+                      </div>
+                    </sc-if>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span style="font:9.5px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.4);flex:1">conf · {{ c.confidence }}</span>
+                      <div style="{{ c.acceptBtnStyle }}" onClick="{{ c.onAccept }}">Accept</div>
+                      <div style="{{ c.rejectBtnStyle }}" onClick="{{ c.onReject }}">Reject</div>
+                      <div style="font-size:11px;color:#2a6fd6;font-weight:600;cursor:pointer">Ask why</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <svg style="position:absolute;inset:0;pointer-events:none;z-index:40" width="100%" height="100%">
+            <sc-if value="{{ hasConnectorA }}">
+              <path d="{{ connectorPathA }}" stroke="#f5a623" stroke-width="2" fill="none"></path>
+              <circle cx="{{ connectorX1A }}" cy="{{ connectorY1A }}" r="3.5" fill="#f5a623"></circle>
+            </sc-if>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>TradingView-style workspace — dockable, floatable, swappable engine panels (up to 10)</div>
+      <div class="dv-card" style="width:1520px;height:920px;display:flex;flex-direction:column;font-family:system-ui,-apple-system,sans-serif">
+
+        <div style="height:52px;flex:none;background:#14204f;display:flex;align-items:center;gap:14px;padding:0 20px;color:#fff">
+          <div style="width:26px;height:26px;border-radius:6px;background:#f5a623;display:flex;align-items:center;justify-content:center;font:800 11px ui-monospace,Menlo,monospace;color:#14204f;flex:none">AI</div>
+          <div style="font-size:13.5px;font-weight:700;white-space:nowrap">AI Readiness across Skills &amp; Competences</div>
+          <div style="font:600 10px ui-monospace,Menlo,monospace;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.14);color:#fff">v3 · review workspace</div>
+          <div style="flex:1"></div>
+          <div style="background:#fff;color:#14204f;font-size:12px;font-weight:700;padding:7px 14px;border-radius:6px;white-space:nowrap">New search</div>
+          <div style="font-size:11.5px;color:rgba(255,255,255,0.7);white-space:nowrap">AI-assisted · human decides</div>
+        </div>
+
+        <div style="height:54px;flex:none;background:#fff;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:14px;padding:0 20px">
+          <div style="font-size:12.5px;color:rgba(20,32,79,0.55);white-space:nowrap">← Postings</div>
+          <div style="width:1px;height:20px;background:rgba(20,32,79,0.14)"></div>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font:700 9.5px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5);letter-spacing:0.04em">REVIEWING</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:#1f8a5b"><span style="width:6px;height:6px;border-radius:50%;background:#1f8a5b;display:inline-block"></span>from MCF</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:#14204f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px">Associate, Strategic Initiatives Business Analyst, GOCC, Group COO (WD84916)</div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(245,166,35,0.16);color:#a8660f;font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:#f5a623;display:inline-block"></span>AI-augmented</div>
+        </div>
+
+        <div style="height:42px;flex:none;background:#f3f1ea;border-bottom:1px solid rgba(20,32,79,0.1);display:flex;align-items:center;gap:10px;padding:0 20px">
+          <span style="font:700 10px ui-monospace,Menlo,monospace;color:rgba(20,32,79,0.5)">WORKSPACE · {{ bPanelCountLabel }}</span>
+          <div style="flex:1"></div>
+          <div style="font-size:11.5px;color:rgba(20,32,79,0.5)">drag any panel header to float it over the grid</div>
+          <div style="font-size:12px;font-weight:700;color:#fff;background:#14204f;padding:6px 12px;border-radius:6px;white-space:nowrap" onClick="{{ onAddPanelB }}">+ Add panel</div>
+        </div>
+
+        <div style="flex:1;display:flex;min-height:0">
+          <div style="width:460px;flex:none;overflow-y:auto;background:#e9e7e0;padding:22px;border-right:1px solid rgba(20,32,79,0.1)">
+            <div style="background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(20,32,79,0.08);padding:36px 40px">
+              <sc-for list="{{ docBlocksB }}" as="block" hint-placeholder-count="10">
+                <sc-if value="{{ block.isEyebrow }}"><div style="font:700 10.5px ui-monospace,Menlo,monospace;letter-spacing:0.06em;color:rgba(20,32,79,0.45);margin-bottom:9px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH1 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:700;line-height:1.3;color:#14204f;margin-bottom:12px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isMeta }}"><div style="font-size:11.5px;color:rgba(20,32,79,0.55);margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(20,32,79,0.1)">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isH2 }}"><div style="font-family:'Source Serif 4',Georgia,serif;font-size:14.5px;font-weight:700;color:#14204f;margin:22px 0 10px">{{ block.text }}</div></sc-if>
+                <sc-if value="{{ block.isP }}">
+                  <p style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.68;color:#232338;margin:0 0 12px">
+                    <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                  </p>
+                </sc-if>
+                <sc-if value="{{ block.isLi }}">
+                  <div style="display:flex;gap:9px;margin:0 0 10px;padding-left:2px">
+                    <div style="width:5px;height:5px;border-radius:50%;background:#14204f;margin-top:9px;flex:none"></div>
+                    <div style="flex:1;font-family:'Source Serif 4',Georgia,serif;font-size:14px;line-height:1.68;color:#232338">
+                      <sc-for list="{{ block.runs }}" as="run" hint-placeholder-count="3"><span style="{{ run.style }}" onMouseEnter="{{ run.onMouseEnter }}" onMouseLeave="{{ run.onMouseLeave }}" onClick="{{ run.onClick }}">{{ run.text }}</span></sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:1;position:relative;overflow:auto;background:#dedbd0;padding:18px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start">
+              <sc-for list="{{ dockedPanelsB }}" as="p" hint-placeholder-count="4">
+                <div style="background:#fff;border-radius:8px;border:1px solid rgba(20,32,79,0.12);box-shadow:0 2px 8px rgba(20,32,79,0.08);display:flex;flex-direction:column;min-height:260px;max-height:340px">
+                  <div style="height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid rgba(20,32,79,0.08);background:rgba(20,32,79,0.03);cursor:grab" onMouseDown="{{ p.onDragStart }}">
+                    <select value="{{ p.type }}" onChange="{{ p.onTypeChange }}" style="font-size:11.5px;font-weight:700;color:#14204f;border:none;background:transparent;flex:1">
+                      <sc-for list="{{ panelTypeOptions }}" as="opt" hint-placeholder-count="7"><option value="{{ opt.key }}">{{ opt.label }}</option></sc-for>
+                    </select>
+                    <div style="font-size:13px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onFloatToggle }}">⤢</div>
+                    <div style="font-size:14px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onClose }}">×</div>
+                  </div>
+                  <div style="flex:1;overflow-y:auto;padding:12px">
+                    <dc-import name="EnginePanelBody" panel="{{ p }}" hint-size="100%,200px"></dc-import>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-for list="{{ floatingPanelsB }}" as="p" hint-placeholder-count="0">
+              <div style="{{ p.floatStyle }}">
+                <div style="height:36px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;border-bottom:1px solid rgba(20,32,79,0.08);background:#f3f1ea;cursor:grab;border-radius:8px 8px 0 0" onMouseDown="{{ p.onDragStart }}">
+                  <select value="{{ p.type }}" onChange="{{ p.onTypeChange }}" style="font-size:11.5px;font-weight:700;color:#14204f;border:none;background:transparent;flex:1">
+                    <sc-for list="{{ panelTypeOptions }}" as="opt" hint-placeholder-count="7"><option value="{{ opt.key }}">{{ opt.label }}</option></sc-for>
+                  </select>
+                  <div style="font-size:13px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onFloatToggle }}">⤓</div>
+                  <div style="font-size:14px;color:rgba(20,32,79,0.4);cursor:pointer;padding:2px 5px" onClick="{{ p.onClose }}">×</div>
+                </div>
+                <div style="flex:1;overflow-y:auto;padding:12px">
+                  <dc-import name="EnginePanelBody" panel="{{ p }}" hint-size="100%,200px"></dc-import>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make <a href="#1a">1a</a>'s connector lines curved like Word" · "add a Cover Letter panel type to <a href="#1b">1b</a>'s workspace" · "combine — <a href="#1a">1a</a>'s pinned comments inside <a href="#1b">1b</a>'s floating panels"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DUTIES = [
+  { id: 'd1', short: 'GenAI chatbots', layer: 'Activity', exposureNow: 'HIGH', exposure2y: 'HIGH', trajectory: 'stable' },
+  { id: 'd2', short: 'Intelligent assistants', layer: 'Activity', exposureNow: 'HIGH', exposure2y: 'HIGH', trajectory: 'stable' },
+  { id: 'd3', short: 'Ad-hoc transformation', layer: 'Coordination', exposureNow: 'MEDIUM', exposure2y: 'MEDIUM', trajectory: 'stable' },
+  { id: 'd4', short: 'Chatbot workflows', layer: 'Activity', exposureNow: 'HIGH', exposure2y: 'HIGH', trajectory: 'stable' },
+  { id: 'd5', short: 'Stakeholder mgmt', layer: 'Relational', exposureNow: 'LOW', exposure2y: 'LOW', trajectory: 'stable' },
+  { id: 'd6', short: 'Requirement test cases', layer: 'Judgment', exposureNow: 'MEDIUM', exposure2y: 'HIGH', trajectory: 'rising' },
+];
+
+const BAND_BG = { HIGH: 'rgba(193,69,59,0.18)', MEDIUM: 'rgba(245,166,35,0.22)', LOW: 'rgba(31,138,91,0.16)' };
+const BAND_BG_ACTIVE = { HIGH: 'rgba(193,69,59,0.36)', MEDIUM: 'rgba(245,166,35,0.42)', LOW: 'rgba(31,138,91,0.34)' };
+const BAND_LINE = { HIGH: '#c1453b', MEDIUM: '#c9860f', LOW: '#1f8a5b' };
+const BAND_DOT = { HIGH: '#c1453b', MEDIUM: '#f5a623', LOW: '#1f8a5b' };
+
+const DOC_STRUCTURE = [
+  { kind: 'eyebrow', text: 'MANUSCRIPT · DBS BANK LTD.' },
+  { kind: 'h1', text: 'Associate, Strategic Initiatives Business Analyst, GOCC, Group COO (WD84916)' },
+  { kind: 'meta', text: '● from MCF · verbatim   S$4,000 – S$7,200 / month · Permanent · 3+ yrs' },
+  { kind: 'h2', text: 'Role overview' },
+  { kind: 'p', runs: [
+    { t: 'The Group Operations Capability Centre (GOCC) is hiring an Associate to ' },
+    { t: 'design, build and iterate GenAI chatbots', anchor: 'd1' },
+    { t: ' and ' },
+    { t: 'intelligent assistants that streamline internal banking operations', anchor: 'd2' },
+    { t: '. You will ' },
+    { t: 'support various ad-hoc transformation initiatives', anchor: 'd3' },
+    { t: ' across the Group COO function, partnering with operations teams to surface automation opportunities.' },
+  ] },
+  { kind: 'h2', text: 'Responsibilities' },
+  { kind: 'li', runs: [
+    { t: 'Develop and deploy conversational AI and ' },
+    { t: 'chatbot development workflows on approved enterprise tooling', anchor: 'd4' },
+    { t: ', with clear documentation of prompts, guardrails and review steps.' },
+  ] },
+  { kind: 'li', runs: [
+    { t: 'Drive ' },
+    { t: 'stakeholder management across business units', anchor: 'd5' },
+    { t: ' to scope, prioritise and land transformation initiatives.' },
+  ] },
+  { kind: 'li', runs: [
+    { t: 'Translate operational pain points into ' },
+    { t: 'requirement-based test cases', anchor: 'd6' },
+    { t: ' and iterate with engineering.' },
+  ] },
+  { kind: 'h2', text: 'Requirements' },
+  { kind: 'li', runs: [{ t: '3+ years of relevant experience in operations, business analysis or software implementation.' }] },
+  { kind: 'li', runs: [{ t: 'Familiarity with prompt engineering, GenAI platforms and agile delivery.' }] },
+  { kind: 'li', runs: [{ t: 'Strong written communication and creative, entrepreneurial problem-solving.' }] },
+];
+
+const COMMENTS_SEED = [
+  { id: 'c1', persona: 'AI Exposure Reviewer', dot: '#f5a623', quoteAnchor: 'd1', quote: '"design, build and iterate GenAI chatbots"',
+    body: 'Generative tooling does the drafting; the person frames the problem, curates prompts, and validates output. This reads AI-augmented, not full automation.',
+    tag: 'AI estimate', confidence: 'medium' },
+  { id: 'c2', persona: 'Process Redesign Reviewer', dot: '#2a6fd6', quoteAnchor: 'd3', quote: '"support various ad-hoc transformation initiatives"',
+    body: 'Vague ownership. "Ad-hoc" signals an unredesigned process — ask which workflow is actually being fixed before hiring.',
+    tag: 'derived', confidence: 'medium', rewriteFrom: 'support various ad-hoc transformation initiatives', rewriteTo: 'own a named transformation backlog with measurable cycle-time targets' },
+  { id: 'c3', persona: 'Role Analyst', dot: '#14204f', quoteAnchor: 'd4', quote: '"chatbot development workflows"',
+    body: 'Two duty clusters are bundled here: building assistants vs. governing & documenting them. Likely a role mash-up that could split across two people.',
+    tag: 'merge duties', confidence: 'medium' },
+  { id: 'c4', persona: 'Coherence Reviewer', dot: '#c1453b', quoteAnchor: 'd6', quote: '"requirement-based test cases"',
+    body: 'Skill evidence pulls this role toward GenAI engineering, not classic BA — the SSOC tag likely undercodes it. Treat the exposure index as a lower bound.',
+    tag: 'AI estimate', confidence: 'low' },
+];
+
+const MIRROR_ROLES = [
+  { title: 'Prompt Engineer / GenAI Specialist', sharePct: 34, band: 'high', z: '+0.61' },
+  { title: 'Business Analyst (Banking Ops)', sharePct: 27, band: 'moderate', z: '+0.11' },
+  { title: 'Agile Delivery Lead', sharePct: 18, band: 'low', z: '-0.24' },
+  { title: 'Applied ML Engineer', sharePct: 13, band: 'high', z: '+0.58' },
+  { title: 'QA / Test Engineer', sharePct: 8, band: 'moderate', z: '+0.09' },
+];
+
+const OIA_MAP = {
+  d1: { observation: 'Posting names "design, build and iterate" as first-person duties, not "operate."', interpretation: 'This is a builder role, not an approver — expect hands-on prompt and guardrail authorship.', application: 'Bring 2–3 shipped chatbot or prompt examples with before/after guardrail notes.' },
+  d3: { observation: 'The duty is framed as "support," with no named process or metric attached.', interpretation: 'Ownership is ambiguous; the hiring team may not have scoped this yet.', application: 'Ask in interview: which specific workflow, and what does success look like in 6 months?' },
+  d5: { observation: '"Stakeholder management across business units" is listed as a primary duty, not a soft-skill footnote.', interpretation: 'Relational work sits far from automatable duties — this is where the human premium lives.', application: 'Lead with a concrete cross-team negotiation story, not a tools list.' },
+};
+
+const PANEL_TYPES = [
+  { key: 'exposure', label: 'AI-Exposure Index' },
+  { key: 'anatomy', label: 'Job Anatomy' },
+  { key: 'mirror', label: 'Mirror Roles' },
+  { key: 'coherence', label: 'Coherence Check' },
+  { key: 'rolegraph', label: 'Role Graph' },
+  { key: 'comments', label: 'Reviewer Comments' },
+  { key: 'oia', label: 'O-I-A Dissection' },
+];
+
+const EXPOSURE = { index: 61, band: 'moderate', bandLabel: 'AI-augmented · moderate', label: 'Business & Systems Analyst (GenAI-adjacent)', zMean: '+0.15', zRange: '[-0.08, +0.52]', confidence: 'medium', trace: ['SSOC 25422', 'ISCO-08 2422', 'SOC 2010 13-1111', 'AIOE z +0.15'] };
+const ANATOMY = { rows: [ { name: 'Activity', pct: 47 }, { name: 'Coordination', pct: 13 }, { name: 'Relational', pct: 20 }, { name: 'Judgment', pct: 20 }, { name: 'Accountability', pct: 0 } ], resilience: 32, resilience2y: 26, centreLine: 'Most of this role is hands-on production work today (Activity, 47%).', trajectoryLine: '1 of 6 duties moves further into AI\u2019s reach within ~2 years — resilience ~32 → ~26 by ~2027.' };
+const COHERENCE = { ssocLabel: 'Administration / Business Analyst (SSOC 2422)', fpLabel: 'GenAI / Applications Engineering (ISCO 2519)' };
+
+function pctLabel(n) { return n + '%'; }
+
+class Component extends DCLogic {
+  state = {
+    aViewMode: 'suggestions',
+    aActiveTab: 'exposure',
+    aComments: COMMENTS_SEED.map((c) => ({ ...c, status: 'pending' })),
+    aActiveCommentId: null,
+    aHoverDuty: null,
+    aConnector: null,
+    aSelectedOia: 'd1',
+
+    bComments: COMMENTS_SEED.map((c) => ({ ...c, status: 'pending' })),
+    bHoverDuty: null,
+    bSelectedOia: 'd1',
+    bNextZ: 20,
+    bNextPanelNum: 7,
+    bPanels: [
+      { id: 'p1', type: 'exposure', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'p2', type: 'anatomy', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'p3', type: 'mirror', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'p4', type: 'coherence', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'p5', type: 'rolegraph', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'p6', type: 'comments', floating: false, x: 60, y: 60, z: 1 },
+    ],
+
+    cViewMode: 'suggestions',
+    cComments: COMMENTS_SEED.map((c) => ({ ...c, status: 'pending' })),
+    cActiveCommentId: null,
+    cHoverDuty: null,
+    cConnector: null,
+    cSelectedOia: 'd1',
+    cNextZ: 20,
+    cNextPanelNum: 6,
+    cPanels: [
+      { id: 'q1', type: 'exposure', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'q2', type: 'anatomy', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'q3', type: 'rolegraph', floating: false, x: 60, y: 60, z: 1 },
+      { id: 'q4', type: 'comments', floating: true, x: 640, y: 60, z: 5 },
+    ],
+  };
+
+  anchorRefsA = {};
+  cardRefsA = {};
+  mainBodyRefA = null;
+  _dragId = null;
+  _dragOffsetX = 0;
+  _dragOffsetY = 0;
+
+  componentDidMount() {
+    this._onMouseMove = (e) => {
+      if (this._dragId == null) return;
+      const nx = Math.max(0, e.clientX - this._dragOffsetX);
+      const ny = Math.max(0, e.clientY - this._dragOffsetY);
+      const scope = this._dragScope;
+      if (scope === 'c') {
+        this.setState((s) => ({ cPanels: s.cPanels.map((p) => (p.id === this._dragId ? { ...p, x: nx, y: ny } : p)) }), () => requestAnimationFrame(this.updateConnectorC));
+      } else {
+        this.setState((s) => ({ bPanels: s.bPanels.map((p) => (p.id === this._dragId ? { ...p, x: nx, y: ny } : p)) }));
+      }
+    };
+    this._onMouseUp = () => { this._dragId = null; };
+    window.addEventListener('mousemove', this._onMouseMove);
+    window.addEventListener('mouseup', this._onMouseUp);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('mousemove', this._onMouseMove);
+    window.removeEventListener('mouseup', this._onMouseUp);
+  }
+
+  updateConnectorA = () => {
+    const commentId = this.state.aActiveCommentId;
+    if (!commentId) { this.setState({ aConnector: null }); return; }
+    const comment = this.state.aComments.find((c) => c.id === commentId);
+    const container = this.mainBodyRefA;
+    const anchorEl = comment && this.anchorRefsA[comment.quoteAnchor];
+    const cardEl = this.cardRefsA[commentId];
+    if (!container || !anchorEl || !cardEl) { this.setState({ aConnector: null }); return; }
+    const cRect = container.getBoundingClientRect();
+    const aRect = anchorEl.getBoundingClientRect();
+    const dRect = cardEl.getBoundingClientRect();
+    const x1 = aRect.right - cRect.left;
+    const y1 = aRect.top - cRect.top + aRect.height / 2;
+    const x2 = dRect.left - cRect.left;
+    const y2 = dRect.top - cRect.top + 18;
+    const midX = (x1 + x2) / 2;
+    this.setState({ aConnector: { x1, y1, x2, y2, path: 'M ' + x1 + ' ' + y1 + ' C ' + midX + ' ' + y1 + ', ' + midX + ' ' + y2 + ', ' + x2 + ' ' + y2 } });
+  };
+
+  setActiveCommentA = (id) => { this.setState({ aActiveCommentId: id }, () => requestAnimationFrame(this.updateConnectorA)); };
+  clearActiveCommentA = () => { this.setState({ aActiveCommentId: null, aConnector: null }); };
+  setACommentStatus = (id, status) => { this.setState((s) => ({ aComments: s.aComments.map((c) => (c.id === id ? { ...c, status } : c)) })); };
+  setBCommentStatus = (id, status) => { this.setState((s) => ({ bComments: s.bComments.map((c) => (c.id === id ? { ...c, status } : c)) })); };
+  setHoverDutyA = (id) => this.setState({ aHoverDuty: id });
+  clearHoverDutyA = () => this.setState({ aHoverDuty: null });
+  setHoverDutyB = (id) => this.setState({ bHoverDuty: id });
+  clearHoverDutyB = () => this.setState({ bHoverDuty: null });
+  setAViewMode = (m) => this.setState({ aViewMode: m });
+  setATab = (t) => this.setState({ aActiveTab: t });
+  setAOia = (id) => this.setState({ aSelectedOia: id });
+  setBOia = (id) => this.setState({ bSelectedOia: id });
+
+  onPanelTypeChangeB = (id, type) => { this.setState((s) => ({ bPanels: s.bPanels.map((p) => (p.id === id ? { ...p, type } : p)) })); };
+  onPanelFloatToggleB = (id) => {
+    this.setState((s) => {
+      const idx = s.bPanels.findIndex((p) => p.id === id);
+      if (idx < 0) return null;
+      const p = s.bPanels[idx];
+      const willFloat = !p.floating;
+      const next = s.bPanels.slice();
+      next[idx] = willFloat ? { ...p, floating: true, x: 140 + idx * 26, y: 60 + idx * 22, z: s.bNextZ } : { ...p, floating: false };
+      return { bPanels: next, bNextZ: willFloat ? s.bNextZ + 1 : s.bNextZ };
+    });
+  };
+  onPanelCloseB = (id) => { this.setState((s) => ({ bPanels: s.bPanels.filter((p) => p.id !== id) })); };
+  onAddPanelB = () => {
+    this.setState((s) => {
+      if (s.bPanels.length >= 10) return null;
+      const used = new Set(s.bPanels.map((p) => p.type));
+      const free = PANEL_TYPES.find((t) => !used.has(t.key));
+      const type = free ? free.key : 'exposure';
+      return { bPanels: s.bPanels.concat([{ id: 'p' + s.bNextPanelNum, type, floating: false, x: 60, y: 60, z: 1 }]), bNextPanelNum: s.bNextPanelNum + 1 };
+    });
+  };
+  onPanelDragStartB = (id, e) => {
+    e.preventDefault();
+    const p = this.state.bPanels.find((x) => x.id === id);
+    if (!p || !p.floating) return;
+    this._dragId = id;
+    this._dragScope = 'b';
+    this._dragOffsetX = e.clientX - p.x;
+    this._dragOffsetY = e.clientY - p.y;
+    this.setState((s) => ({ bPanels: s.bPanels.map((x) => (x.id === id ? { ...x, z: s.bNextZ } : x)), bNextZ: s.bNextZ + 1 }));
+  };
+
+  getAnchorRefA = (id) => (el) => { this.anchorRefsA[id] = el; };
+  getCardRefA = (id) => (el) => { this.cardRefsA[id] = el; };
+  setMainBodyRefA = (el) => { this.mainBodyRefA = el; };
+
+  anchorRefsC = {};
+  cardRefsC = {};
+  mainBodyRefC = null;
+  getAnchorRefC = (id) => (el) => { this.anchorRefsC[id] = el; };
+  getCardRefC = (id) => (el) => { this.cardRefsC[id] = el; };
+  setMainBodyRefC = (el) => { this.mainBodyRefC = el; };
+
+  updateConnectorC = () => {
+    const commentId = this.state.cActiveCommentId;
+    if (!commentId) { this.setState({ cConnector: null }); return; }
+    const comment = this.state.cComments.find((c) => c.id === commentId);
+    const container = this.mainBodyRefC;
+    const anchorEl = comment && this.anchorRefsC[comment.quoteAnchor];
+    const cardEl = this.cardRefsC[commentId];
+    if (!container || !anchorEl || !cardEl) { this.setState({ cConnector: null }); return; }
+    const cRect = container.getBoundingClientRect();
+    const aRect = anchorEl.getBoundingClientRect();
+    const dRect = cardEl.getBoundingClientRect();
+    const x1 = aRect.right - cRect.left;
+    const y1 = aRect.top - cRect.top + aRect.height / 2;
+    const x2 = dRect.left - cRect.left;
+    const y2 = dRect.top - cRect.top + 18;
+    const midX = (x1 + x2) / 2;
+    this.setState({ cConnector: { x1, y1, x2, y2, path: 'M ' + x1 + ' ' + y1 + ' C ' + midX + ' ' + y1 + ', ' + midX + ' ' + y2 + ', ' + x2 + ' ' + y2 } });
+  };
+  setActiveCommentC = (id) => { this.setState({ cActiveCommentId: id }, () => requestAnimationFrame(this.updateConnectorC)); };
+  clearActiveCommentC = () => { this.setState({ cActiveCommentId: null, cConnector: null }); };
+  setCCommentStatus = (id, status) => { this.setState((s) => ({ cComments: s.cComments.map((c) => (c.id === id ? { ...c, status } : c)) })); };
+  setHoverDutyC = (id) => this.setState({ cHoverDuty: id });
+  clearHoverDutyC = () => this.setState({ cHoverDuty: null });
+  setCViewMode = (m) => this.setState({ cViewMode: m });
+  setCOia = (id) => this.setState({ cSelectedOia: id });
+
+  onPanelTypeChangeC = (id, type) => { this.setState((s) => ({ cPanels: s.cPanels.map((p) => (p.id === id ? { ...p, type } : p)) })); };
+  onPanelFloatToggleC = (id) => {
+    this.setState((s) => {
+      const idx = s.cPanels.findIndex((p) => p.id === id);
+      if (idx < 0) return null;
+      const p = s.cPanels[idx];
+      const willFloat = !p.floating;
+      const next = s.cPanels.slice();
+      next[idx] = willFloat ? { ...p, floating: true, x: 140 + idx * 26, y: 60 + idx * 22, z: s.cNextZ } : { ...p, floating: false };
+      return { cPanels: next, cNextZ: willFloat ? s.cNextZ + 1 : s.cNextZ };
+    }, () => requestAnimationFrame(this.updateConnectorC));
+  };
+  onPanelCloseC = (id) => { this.setState((s) => ({ cPanels: s.cPanels.filter((p) => p.id !== id) })); };
+  onAddPanelC = () => {
+    this.setState((s) => {
+      if (s.cPanels.length >= 10) return null;
+      const used = new Set(s.cPanels.map((p) => p.type));
+      const free = PANEL_TYPES.find((t) => !used.has(t.key));
+      const type = free ? free.key : 'exposure';
+      return { cPanels: s.cPanels.concat([{ id: 'q' + s.cNextPanelNum, type, floating: false, x: 60, y: 60, z: 1 }]), cNextPanelNum: s.cNextPanelNum + 1 };
+    });
+  };
+  onPanelDragStartC = (id, e) => {
+    e.preventDefault();
+    const p = this.state.cPanels.find((x) => x.id === id);
+    if (!p || !p.floating) return;
+    this._dragId = id;
+    this._dragScope = 'c';
+    this._dragOffsetX = e.clientX - p.x;
+    this._dragOffsetY = e.clientY - p.y;
+    this.setState((s) => ({ cPanels: s.cPanels.map((x) => (x.id === id ? { ...x, z: s.cNextZ } : x)), cNextZ: s.cNextZ + 1 }));
+  };
+
+  buildDoc(opts) {
+    const { comments, hoverDuty, activeCommentId, viewMode, onHoverDuty, onLeaveDuty, onSelectComment, getAnchorRef } = opts;
+    const commentByAnchor = {};
+    comments.forEach((c) => { commentByAnchor[c.quoteAnchor] = c; });
+    const dutyById = {};
+    DUTIES.forEach((d) => { dutyById[d.id] = d; });
+
+    return DOC_STRUCTURE.map((block, bi) => {
+      const out = { key: 'b' + bi, isEyebrow: block.kind === 'eyebrow', isH1: block.kind === 'h1', isMeta: block.kind === 'meta', isH2: block.kind === 'h2', isP: block.kind === 'p', isLi: block.kind === 'li' };
+      if (block.text) out.text = block.text;
+      if (block.runs) {
+        out.runs = block.runs.map((r, ri) => {
+          const duty = r.anchor ? dutyById[r.anchor] : null;
+          const comment = r.anchor ? commentByAnchor[r.anchor] : null;
+          const isActive = !!(comment && activeCommentId === comment.id);
+          const isHover = !!(duty && hoverDuty === duty.id);
+          let style = { transition: 'background-color .15s' };
+          if (duty && viewMode !== 'clean') {
+            const rejected = comment && comment.status === 'rejected';
+            style = {
+              backgroundColor: isHover || isActive ? (BAND_BG_ACTIVE[duty.exposureNow] || 'transparent') : (BAND_BG[duty.exposureNow] || 'transparent'),
+              borderBottom: rejected ? 'none' : ('2px dashed ' + (BAND_LINE[duty.exposureNow] || '#999')),
+              textDecoration: rejected ? 'line-through' : 'none',
+              opacity: rejected ? 0.5 : 1,
+              fontWeight: isHover || isActive ? 700 : 500,
+              cursor: comment ? 'pointer' : 'default',
+              borderRadius: '2px',
+              padding: '0 2px',
+              transition: 'background-color .15s, font-weight .15s',
+            };
+          }
+          return {
+            key: 'r' + bi + '_' + ri,
+            text: r.t,
+            style,
+            ref: duty && getAnchorRef ? getAnchorRef(duty.id) : null,
+            onMouseEnter: duty ? () => onHoverDuty(duty.id) : null,
+            onMouseLeave: duty ? () => onLeaveDuty() : null,
+            onClick: comment ? () => onSelectComment(comment.id) : null,
+          };
+        });
+      }
+      return out;
+    });
+  }
+
+  buildCommentsView(comments, activeCommentId, onEnter, onLeave, onAccept, onReject, cardRef) {
+    return comments.map((c) => {
+      const active = activeCommentId === c.id;
+      return {
+        id: c.id,
+        persona: c.persona,
+        quote: c.quote,
+        body: c.body,
+        tag: c.tag,
+        confidence: c.confidence,
+        hasRewrite: !!c.rewriteFrom,
+        rewriteFrom: c.rewriteFrom,
+        rewriteTo: c.rewriteTo,
+        cardRef: cardRef ? cardRef(c.id) : null,
+        dotStyle: { width: '8px', height: '8px', borderRadius: '50%', background: c.dot, display: 'inline-block', flex: 'none' },
+        cardStyle: {
+          background: c.status === 'rejected' ? '#f6f5f1' : (active ? '#fdf6ea' : '#fff'),
+          border: '1px solid ' + (active ? '#f5a623' : 'rgba(20,32,79,0.1)'),
+          borderRadius: '8px',
+          padding: '12px',
+          marginBottom: '10px',
+          opacity: c.status === 'rejected' ? 0.55 : 1,
+          transition: 'background .15s, border-color .15s',
+        },
+        onEnter: onEnter ? () => onEnter(c.id) : null,
+        onLeave: onLeave ? () => onLeave() : null,
+        onAccept: () => onAccept(c.id, c.status === 'accepted' ? 'pending' : 'accepted'),
+        onReject: () => onReject(c.id, c.status === 'rejected' ? 'pending' : 'rejected'),
+        acceptBtnStyle: { fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', background: c.status === 'accepted' ? '#14204f' : '#fff', color: c.status === 'accepted' ? '#fff' : '#14204f', border: '1px solid #14204f' },
+        rejectBtnStyle: { fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', background: c.status === 'rejected' ? '#c1453b' : '#fff', color: c.status === 'rejected' ? '#fff' : '#c1453b', border: '1px solid #c1453b' },
+      };
+    });
+  }
+
+  buildAnatomy() {
+    return {
+      centreLine: ANATOMY.centreLine,
+      resilience: ANATOMY.resilience,
+      resilience2y: ANATOMY.resilience2y,
+      trajectoryLine: ANATOMY.trajectoryLine,
+      rows: ANATOMY.rows.map((r) => ({ name: r.name, pctLabel: pctLabel(r.pct), barStyle: { width: r.pct + '%', height: '100%', background: '#14204f', borderRadius: '4px' } })),
+    };
+  }
+
+  buildMirrorRows() {
+    return MIRROR_ROLES.map((m) => ({
+      title: m.title, sharePctLabel: m.sharePct + '%', z: m.z,
+      bandLabel: m.band === 'high' ? 'high exposure' : m.band === 'moderate' ? 'moderate exposure' : 'low exposure',
+      barStyle: { width: m.sharePct + '%', height: '100%', background: BAND_DOT[m.band.toUpperCase()] || '#14204f', borderRadius: '3px' },
+    }));
+  }
+
+  buildDutyChips(hoverDuty, onEnter, onLeave) {
+    return DUTIES.map((d) => ({
+      short: d.short,
+      dotStyle: { width: '7px', height: '7px', borderRadius: '50%', background: BAND_DOT[d.exposureNow], display: 'inline-block', marginRight: '7px' },
+      chipStyle: { display: 'flex', alignItems: 'center', fontSize: '11.5px', color: '#232338', padding: '6px 8px', borderRadius: '6px', marginBottom: '3px', background: hoverDuty === d.id ? '#f3f1ea' : 'transparent', cursor: 'default' },
+      onEnter: () => onEnter(d.id),
+      onLeave: () => onLeave(),
+    }));
+  }
+
+  buildOiaChips(selected, onClick) {
+    return DUTIES.map((d) => ({
+      short: d.short,
+      style: { fontSize: '11px', fontWeight: 600, padding: '5px 9px', borderRadius: '14px', cursor: 'pointer', background: selected === d.id ? '#14204f' : '#f3f1ea', color: selected === d.id ? '#fff' : '#14204f' },
+      onClick: () => onClick(d.id),
+    }));
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const docBlocksA = this.buildDoc({
+      comments: s.aComments, hoverDuty: s.aHoverDuty, activeCommentId: s.aActiveCommentId, viewMode: s.aViewMode,
+      onHoverDuty: this.setHoverDutyA, onLeaveDuty: this.clearHoverDutyA, onSelectComment: this.setActiveCommentA, getAnchorRef: this.getAnchorRefA,
+    });
+    const docBlocksB = this.buildDoc({
+      comments: s.bComments, hoverDuty: s.bHoverDuty, activeCommentId: null, viewMode: 'suggestions',
+      onHoverDuty: this.setHoverDutyB, onLeaveDuty: this.clearHoverDutyB, onSelectComment: () => {}, getAnchorRef: null,
+    });
+
+    const aCommentsView = this.buildCommentsView(s.aComments, s.aActiveCommentId, this.setActiveCommentA, this.clearActiveCommentA, this.setACommentStatus, this.setACommentStatus, this.getCardRefA);
+    const acceptedCount = s.aComments.filter((c) => c.status === 'accepted').length;
+    const withheldCount = s.aComments.filter((c) => c.status === 'pending').length;
+    const aCommentCounts = s.aComments.length + ' comments · ' + acceptedCount + ' accepted · ' + withheldCount + ' pending';
+
+    const segBase = { fontSize: '11.5px', fontWeight: 600, padding: '6px 12px', borderRadius: '5px', cursor: 'pointer' };
+    const mkSeg = (active) => (active ? { ...segBase, background: '#14204f', color: '#fff' } : { ...segBase, background: 'transparent', color: 'rgba(20,32,79,0.6)' });
+
+    const tabBase = { fontSize: '11px', fontWeight: 600, padding: '6px 10px', borderRadius: '6px', cursor: 'pointer' };
+    const dockTabs = PANEL_TYPES.filter((t) => t.key !== 'comments').map((t) => ({
+      label: t.label, onClick: () => this.setATab(t.key),
+      style: s.aActiveTab === t.key ? { ...tabBase, background: '#14204f', color: '#fff' } : { ...tabBase, background: '#f3f1ea', color: '#14204f' },
+    }));
+
+    const oia = OIA_MAP[s.aSelectedOia];
+    const oiaA = oia ? { withheld: false, hasData: true, ...oia } : { withheld: true, hasData: false };
+
+    const connector = s.aConnector;
+
+    const leftNav = [{ label: 'Sources' }, { label: 'Trace' }, { label: 'Skilling' }, { label: 'Advisory' }, { label: 'Cover letter' }, { label: 'Saved' }];
+
+    // --- workspace B ---
+    const panelTypeOptions = PANEL_TYPES;
+    const makePanelVM = (p) => ({
+      id: p.id, type: p.type, floating: p.floating,
+      isExposure: p.type === 'exposure', isAnatomy: p.type === 'anatomy', isMirror: p.type === 'mirror',
+      isCoherence: p.type === 'coherence', isRolegraph: p.type === 'rolegraph', isComments: p.type === 'comments', isOia: p.type === 'oia',
+      onTypeChange: (e) => this.onPanelTypeChangeB(p.id, e.target ? e.target.value : e),
+      onFloatToggle: () => this.onPanelFloatToggleB(p.id),
+      onClose: () => this.onPanelCloseB(p.id),
+      onDragStart: (e) => this.onPanelDragStartB(p.id, e),
+      floatStyle: { position: 'absolute', left: p.x + 'px', top: p.y + 'px', width: '340px', maxHeight: '380px', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: '8px', border: '1px solid rgba(20,32,79,0.16)', boxShadow: '0 14px 34px rgba(20,32,79,0.28)', zIndex: p.z },
+      exposure: EXPOSURE, anatomy: this.buildAnatomy(), mirrorRows: this.buildMirrorRows(), coherence: COHERENCE,
+      dutyChips: this.buildDutyChips(s.bHoverDuty, this.setHoverDutyB, this.clearHoverDutyB),
+      oiaDutyChips: this.buildOiaChips(s.bSelectedOia, this.setBOia),
+      oia: (() => { const o = OIA_MAP[s.bSelectedOia]; return o ? { withheld: false, hasData: true, ...o } : { withheld: true, hasData: false }; })(),
+      commentsView: this.buildCommentsView(s.bComments, null, null, null, this.setBCommentStatus, this.setBCommentStatus, null),
+    });
+
+    const dockedPanelsB = s.bPanels.filter((p) => !p.floating).map(makePanelVM);
+    const floatingPanelsB = s.bPanels.filter((p) => p.floating).map(makePanelVM);
+
+    // --- combined workspace C: TradingView panels + Word-style connector lines ---
+    const docBlocksC = this.buildDoc({
+      comments: s.cComments, hoverDuty: s.cHoverDuty, activeCommentId: s.cActiveCommentId, viewMode: s.cViewMode,
+      onHoverDuty: this.setHoverDutyC, onLeaveDuty: this.clearHoverDutyC, onSelectComment: this.setActiveCommentC, getAnchorRef: this.getAnchorRefC,
+    });
+    const cAcceptedCount = s.cComments.filter((c) => c.status === 'accepted').length;
+    const cPendingCount = s.cComments.filter((c) => c.status === 'pending').length;
+    const cCommentCounts = s.cComments.length + ' comments · ' + cAcceptedCount + ' accepted · ' + cPendingCount + ' pending';
+
+    const makePanelVMC = (p) => ({
+      id: p.id, type: p.type, floating: p.floating,
+      isExposure: p.type === 'exposure', isAnatomy: p.type === 'anatomy', isMirror: p.type === 'mirror',
+      isCoherence: p.type === 'coherence', isRolegraph: p.type === 'rolegraph', isComments: p.type === 'comments', isOia: p.type === 'oia',
+      onTypeChange: (e) => this.onPanelTypeChangeC(p.id, e.target ? e.target.value : e),
+      onFloatToggle: () => this.onPanelFloatToggleC(p.id),
+      onClose: () => this.onPanelCloseC(p.id),
+      onDragStart: (e) => this.onPanelDragStartC(p.id, e),
+      floatStyle: { position: 'absolute', left: p.x + 'px', top: p.y + 'px', width: '340px', maxHeight: '380px', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: '8px', border: '1px solid rgba(20,32,79,0.16)', boxShadow: '0 14px 34px rgba(20,32,79,0.28)', zIndex: p.z },
+      exposure: EXPOSURE, anatomy: this.buildAnatomy(), mirrorRows: this.buildMirrorRows(), coherence: COHERENCE,
+      dutyChips: this.buildDutyChips(s.cHoverDuty, this.setHoverDutyC, this.clearHoverDutyC),
+      oiaDutyChips: this.buildOiaChips(s.cSelectedOia, this.setCOia),
+      oia: (() => { const o = OIA_MAP[s.cSelectedOia]; return o ? { withheld: false, hasData: true, ...o } : { withheld: true, hasData: false }; })(),
+      commentsView: this.buildCommentsView(s.cComments, s.cActiveCommentId, this.setActiveCommentC, this.clearActiveCommentC, this.setCCommentStatus, this.setCCommentStatus, this.getCardRefC),
+    });
+    const dockedPanelsC = s.cPanels.filter((p) => !p.floating).map(makePanelVMC);
+    const floatingPanelsC = s.cPanels.filter((p) => p.floating).map(makePanelVMC);
+    const connectorC = s.cConnector;
+    const segBaseC = { fontSize: '11.5px', fontWeight: 600, padding: '6px 12px', borderRadius: '5px', cursor: 'pointer' };
+    const mkSegC = (active) => (active ? { ...segBaseC, background: '#14204f', color: '#fff' } : { ...segBaseC, background: 'transparent', color: 'rgba(20,32,79,0.6)' });
+
+    return {
+      leftNav,
+      docBlocksA, docBlocksB,
+      aCommentsView, aCommentCounts,
+      aTabReadCleanStyle: mkSeg(s.aViewMode === 'clean'),
+      aTabSuggestionsStyle: mkSeg(s.aViewMode === 'suggestions'),
+      aTabCommentsStyle: mkSeg(s.aViewMode === 'comments'),
+      onSetAViewModeClean: () => this.setAViewMode('clean'),
+      onSetAViewModeSuggestions: () => this.setAViewMode('suggestions'),
+      onSetAViewModeComments: () => this.setAViewMode('comments'),
+      dockTabs,
+      dockIsExposure: s.aActiveTab === 'exposure',
+      dockIsAnatomy: s.aActiveTab === 'anatomy',
+      dockIsMirror: s.aActiveTab === 'mirror',
+      dockIsCoherence: s.aActiveTab === 'coherence',
+      dockIsGraph: s.aActiveTab === 'rolegraph',
+      dockIsOia: s.aActiveTab === 'oia',
+      exposure: EXPOSURE,
+      anatomy: this.buildAnatomy(),
+      mirrorRows: this.buildMirrorRows(),
+      coherence: COHERENCE,
+      dutyChipsA: this.buildDutyChips(s.aHoverDuty, this.setHoverDutyA, this.clearHoverDutyA),
+      oiaDutyChipsA: this.buildOiaChips(s.aSelectedOia, this.setAOia),
+      oiaA,
+      setMainBodyRefA: this.setMainBodyRefA,
+      hasConnectorA: !!connector,
+      connectorPathA: connector ? connector.path : '',
+      connectorX1A: connector ? connector.x1 : 0,
+      connectorY1A: connector ? connector.y1 : 0,
+
+      bPanelCountLabel: s.bPanels.length + ' / 10 panels',
+      onAddPanelB: this.onAddPanelB,
+      panelTypeOptions,
+      dockedPanelsB, floatingPanelsB,
+
+      docBlocksC,
+      cCommentCounts,
+      cPanelCountLabel: s.cPanels.length + ' / 10 panels',
+      onAddPanelC: this.onAddPanelC,
+      dockedPanelsC, floatingPanelsC,
+      setMainBodyRefC: this.setMainBodyRefC,
+      hasConnectorC: !!connectorC,
+      connectorPathC: connectorC ? connectorC.path : '',
+      connectorX1C: connectorC ? connectorC.x1 : 0,
+      connectorY1C: connectorC ? connectorC.y1 : 0,
+      cTabReadCleanStyle: mkSegC(s.cViewMode === 'clean'),
+      cTabSuggestionsStyle: mkSegC(s.cViewMode === 'suggestions'),
+      cTabCommentsStyle: mkSegC(s.cViewMode === 'comments'),
+      onSetCViewModeClean: () => this.setCViewMode('clean'),
+      onSetCViewModeSuggestions: () => this.setCViewMode('suggestions'),
+      onSetCViewModeComments: () => this.setCViewMode('comments'),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
