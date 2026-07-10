@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.295";
+const APP_VERSION = "3.0.296";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -9966,6 +9966,9 @@ function SiteFooter() {
           <button onClick={() => setOpen(o => o === "legal" ? false : "legal")} aria-expanded={open === "legal"} style={linkBtn}>
             Legal & privacy
           </button>
+          <button onClick={() => setOpen(o => o === "a11y" ? false : "a11y")} aria-expanded={open === "a11y"} style={linkBtn}>
+            Accessibility
+          </button>
           <a href="/terms.html" target="_blank" rel="noreferrer"
             style={{ fontSize: "0.825rem", color:C.textSub, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2, padding:"6px 8px", minHeight:44, display:"inline-flex", alignItems:"center" }}>
             Terms
@@ -10019,6 +10022,20 @@ function SiteFooter() {
           </p>
           <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
             For authoritative occupation and skills data, refer to <a href="https://esco.ec.europa.eu" target="_blank" rel="noreferrer" style={{ color:C.accent }}>esco.ec.europa.eu</a>
+          </p>
+        </div>
+      )}
+      {open === "a11y" && (
+        <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
+            <p style={{ margin:0, fontSize: "0.825rem", fontWeight:700, color:C.text }}>Accessibility statement</p>
+            <button onClick={() => setOpen(false)} aria-label="Close accessibility statement" style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0, minWidth:44, minHeight:44, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>×</button>
+          </div>
+          <p style={{ margin:"0 0 8px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
+            This tool aims to meet <strong style={{ color:C.text }}>WCAG 2.2 AA</strong>. In practice: text colours are checked for at least 4.5:1 contrast; red and green are never the only carriers of meaning (state is always paired with a label, icon or pattern - the palette leans blue/orange for colour-vision safety); touch targets are at least 44px; interactive elements are keyboard-reachable with visible focus; motion respects the reduced-motion system setting; and progress dialogs are announced to screen readers.
+          </p>
+          <p style={{ margin:0, fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
+            Found something hard to read or operate? Please say so via <a href="mailto:feedback@takearoundabout.com?subject=Accessibility feedback" style={{ color:C.accent }}>feedback@takearoundabout.com</a> - accessibility reports are treated as bugs, not suggestions.
           </p>
         </div>
       )}
