@@ -14,50 +14,32 @@ import BLUEPRINT_STATUS from "./blueprint-status.json";
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
 import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
+// PR 1 (Part B.4, v3-workflow-and-step3-remediation-spec.md): rules constants, shared
+// components/tokens, the desk layout engine, and the 14 window bodies now live under
+// ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
+import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP } from "./review/rs-rules.js";
+import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, critH3 } from "./review/shared.jsx";
+import Desk, { LINK_RULES } from "./review/Desk.jsx";
+import { renderWinVerdict } from "./review/windows/Verdict.jsx";
+import { renderWinShortcuts } from "./review/windows/Shortcuts.jsx";
+import { renderWinGatesHard } from "./review/windows/GatesHard.jsx";
+import { renderWinQoI } from "./review/windows/QoI.jsx";
+import { renderWinGraphs } from "./review/windows/Graphs.jsx";
+import { renderWinSalary } from "./review/windows/Salary.jsx";
+import { renderWinIndicators } from "./review/windows/Indicators.jsx";
+import { renderWinTrajectory } from "./review/windows/Trajectory.jsx";
+import { renderWinAitrace } from "./review/windows/Aitrace.jsx";
+import { renderWinOIA } from "./review/windows/OIA.jsx";
+import { renderWinCritical } from "./review/windows/Critical.jsx";
+import { renderWinManuscript } from "./review/windows/Manuscript.jsx";
+import { renderWinInspector } from "./review/windows/Inspector.jsx";
+import { renderWinComments } from "./review/windows/Comments.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
 // blueprint-status.json - a real tracked record (single source of truth), not a
 // hand-edited array in this component. Edit the JSON file when a workstream ships.
 const BUILD_STATUS = (BLUEPRINT_STATUS.workstreams || []).map((w) => [w.name, w.pct]);
-const BANDS = {
-  human:     { key: "human",     label: "Human-led",       dot: "#1d4ed8", bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
-  assisted:  { key: "assisted",  label: "AI-assisted",     dot: "#0e7490", bg: "#e3f5fb", ink: "#0b5e74", border: "#bce6f0" },
-  augmented: { key: "augmented", label: "AI-augmented",    dot: "#b45309", bg: "#fdf0dd", ink: "#92450a", border: "#f5d8a8" },
-  auto:      { key: "auto",      label: "Full automation", dot: "#d97706", bg: "#fef3e0", ink: "#8a4b0a", border: "#f7d4a0" },
-};
-const PROV = {
-  "from posting": { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
-  "from MCF":     { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
-  // PB1: employer facts pass through verbatim from ACRA (data.gov.sg) - same
-  // "sourced fact" family styling as "from posting"/"from MCF" (no red/green).
-  "from ACRA":    { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
-  // Audit (07-07 '26): computed was the one green swatch left in the chip vocabulary -
-  // moved to the blue family so all five prov chips sit inside blue/violet/amber.
-  computed:       { bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
-  derived:        { bg: "#f1eefc", ink: "#5b4bbd", border: "#ddd5f6" },
-  "AI estimate":  { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
-  // A11y (governance audit): unverified was brick-red (#a13a3a) - the one warm "danger" hue
-  // outside the blue/orange ramp, and a red-vs-green tension against the computed chip. Moved
-  // to the amber family (shared with "AI estimate"); the label text carries the meaning.
-  unverified:     { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
-};
-// O-I-A lens colours (S7) and reviewer persona colours (S5.5).
-const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
-const PERSONA = {
-  "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
-  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#0e7490", "Evidence Auditor": "#64748b",
-  "Signal Auditor": "#9a6113",
-};
-// Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
-const SPAN_STYLE = {
-  augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
-  auto:      { bg: "#fef3e0", under: "#d97706", color: "#7a4b0a" },
-  human:     { bg: "#eaf0ff", under: "#1d4ed8", color: "#1b3aa0" },
-  assisted:  { bg: "#e3f5fb", under: "#0e7490", color: "#0b4f60" },
-};
-// Withheld span (engine did not classify): a neutral dashed "general note", no band claim.
-const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
 // Ribbon items are only rendered when their handler actually does something. The
 // prior version listed Evidence (observed/interpreted/applied/withheld/provenance)
 // plus Output (cover/resume/interview/print) as tappable pills - but their handlers
@@ -103,9 +85,6 @@ function rsHtmlStrip(s) {
     .replace(/&[a-z#0-9]+;/gi, " ")
     .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
-const RS_RESP_RE = /^(key\s+)?(responsibilit|duties|the\s+role|role\s+(overview|description|scope)|what\s+you|day\s+to\s+day|accountabilit|your\s+role|job\s+(scope|summary|description))/i;
-const RS_REQ_RE = /^(requirement|qualification|pre-?requisite|requisite|who\s+(you|we)|skills?\b|competenc|experience|education|the\s+ideal|ideal\s+candidate|minimum|preferred|nice\s+to\s+have|what\s+we\s+(look|need))/i;
-const RS_HEAD_RE = /^(about|the role|role overview|role description|role scope|what you|who you|responsibilit|key responsibilit|requirement|qualification|pre-?requisite|requisite|capabilit|skills|leadership|soft skills|what we|why|benefits|your role|the opportunity|duties|experience|preferred|nice to have|we offer|job scope|job summary|job description)/i;
 function rsIsBullet(l) { return /^([-•*▪◦]|\d+[.)])\s+/.test(l); }
 function rsExtractVerbatim(text) {
   const stripped = rsHtmlStrip(text);
@@ -157,7 +136,6 @@ function rsUnderlineSkillTerms(text, re) {
     ? <u key={"u" + i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
     : p);
 }
-const RS_EXP_BAND = { HIGH: "auto", MEDIUM: "augmented", LOW: "assisted", HUMAN: "human" };
 function rsDominantBand(duties) {
   const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
   const keys = Object.keys(c); return keys.length ? keys.sort((a, b) => c[b] - c[a])[0] : null;
@@ -201,8 +179,6 @@ function buildDissection(result, posting) {
   });
   return { spans, comments: rsComments(spans) };
 }
-const RS_STOP = new Set(["the", "and", "for", "with", "into", "across", "various", "adhoc", "other", "duties", "support", "manage", "ensure", "provide", "drive", "deliver", "implement", "coordinate", "handle", "perform", "assist", "their", "this", "that", "from", "your", "our", "initiatives", "tasks", "work"]);
-const RS_VERB = /^(develop|build|design|support|manage|ensure|provide|drive|lead|own|deliver|implement|coordinat|handle|perform|assist|analy|prepar|maintain|monitor|review|conduct|execut|create|generat|configur|process|compil|liais|advis|engage)/;
 // Extract a salient noun-ish term from a duty so a suggested rewrite is genuinely derived from it.
 function rsKeyword(text) {
   const words = String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w) && !RS_VERB.test(w));
@@ -238,8 +214,6 @@ function rsComments(spans) {
 export function rsTokens(text) {
   return String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w));
 }
-const RS_ROUTE = { human: "candidate edge - bring proof you drove this to an outcome", auto: "governance check - who signs off the machine's output?", augmented: "AI-assist - human frames, verifies, owns", assisted: "AI-assist - human judgment leads" };
-const RS_HALF_LIFE = { HIGH: "eroding fast - end-to-end automation is plausible", MEDIUM: "eroding - heavy augmentation pressure", LOW: "durable near-term - AI informs, human leads", HUMAN: "durable - human-led (accountability, presence, empathy)" };
 function rsSpanFocus(sp, skillObjs, skillTermRe, skillNames) {
   const toks = new Set(rsTokens(sp.text));
   const invoked = skillObjs.map((o) => String(o.skill || o)).filter((n) => rsTokens(n).some((t) => toks.has(t))).slice(0, 3);
@@ -286,7 +260,6 @@ function rsSkillFocus(o, spans) {
 // Reversal + "word noodles". Scans the FULL ad copy - empty phrasing lives in the intro/benefits/
 // salary lines, not the duty spans. Every finding is a verbatim substring of the posting; when
 // there is no text, we render nothing (withhold over guess). No LLM. ─────────────────────────
-const RS_DOT = String.fromCharCode(0x00b7);
 function rsAdText(job) {
   let h = String((job && (job.description || job.responsibilitiesText)) || "");
   return h
@@ -302,12 +275,6 @@ function rsAdText(job) {
 // modal (short line, few words, no terminal punctuation); canonical labels map common
 // phrasings so Requirements/Qualifications/Benefits surface in the manuscript AND the
 // analysis. Verbatim text is never rewritten - grouping only.
-const RS_SEC_MAP = [
-  [/^(about|overview|role overview|the role|about the role|purpose|summary|who we are|about us|company)/i, "Role overview"],
-  [/^(responsibilit|duties|what you.{0,3}ll do|what you will do|key accountabilit|the job|your role|job description|roles?\s*&?\s*responsibilit)/i, "Responsibilities"],
-  [/^(requirement|qualif|who you are|what (?:we.{0,3}re|we are) looking|skills?\s*(?:and|&)\s*experience|ideal candidate|must have|you (?:have|bring))/i, "Requirements"],
-  [/^(benefit|we offer|perks|what.{0,3}s in it|remuneration|package|why join)/i, "Benefits"],
-];
 // Strip emoji/pictographs (Human Lead: no emoji anywhere; ads use them as heading bullets -
 // "[clipboard] Key Responsibilities" must parse AND display as plain "Key Responsibilities").
 function rsStripEmoji(x) {
@@ -315,7 +282,6 @@ function rsStripEmoji(x) {
 }
 // A working-hours / schedule line must never become a section heading (live bug:
 // "Friday: 8:30 AM - 5:30 PM" was promoted while the real Requirements heading was missed).
-const RS_TIME_LINE = /\d{1,2}[:.]\d{2}\s*(?:am|pm)?|\b(?:am|pm)\b|\bmon(?:day)?\b|\btue(?:sday)?\b|\bwed(?:nesday)?\b|\bthu(?:rsday)?\b|\bfri(?:day)?\b|\bsat(?:urday)?\b|\bsun(?:day)?\b|working hours/i;
 function rsAdSections(adText) {
   const lines = String(adText || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
   const isHeading = (raw) => {
@@ -338,11 +304,6 @@ function rsAdSections(adText) {
 // a conclusion the engine drew - a skill match (why this skill is in the list), or a gate
 // (experience / qualification / credential line). Lines with no evidence-linked phrase
 // render fully plain - honest, quieter page; decoration is withheld like any other guess.
-const RS_GATES = [
-  { rx: /\b\d{1,2}\+?\s*(?:years?|yrs?)\b[^,.;\n]{0,30}/i, why: "gate: experience threshold" },
-  { rx: /\b(?:bachelor'?s?|master'?s?|ph\.?d|doctorate|degree|diploma)\b[^,.;\n]{0,40}/i, why: "gate: formal qualification" },
-  { rx: /\b(?:certified|certification|licen[sc]ed?|registered|chartered)\b[^,.;\n]{0,40}/i, why: "gate: named credential" },
-];
 function rsEvidencePhrase(text, skillTermRe, skillNames) {
   const t = String(text || "");
   for (const g of RS_GATES) {
@@ -373,17 +334,6 @@ function rsNucleus(text) {
 }
 // Each: a regex that captures the empty phrase + a little trailing context, a category, a plain
 // interpretation, and a "question-mark move" counter built from the verbatim phrase.
-const RS_NOODLES = [
-  { rx: /\b(?:up to|as low as|as much as|as little as|starting (?:at|from)|from only)\b[^.?!\n]{0,44}/gi,
-    cat: "unbounded figure", why: "A ceiling or floor, not the typical - technically true even if almost no one reaches it.",
-    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - up to what, and what is the actual median?" },
-  { rx: /\b(?:competitive|market[-\s]?leading|world[-\s]?class|best[-\s]?in[-\s]?class|industry[-\s]?leading|cutting[-\s]?edge|second to none|unparalleled|unrivalled|unlike anything)\b[^.?!\n]{0,44}/gi,
-    cat: "vague superlative", why: "A shiny word with no benchmark - the reader fills the gap with an assumption.",
-    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - competitive vs what benchmark, measured how?" },
-  { rx: /\b(?:fast[-\s]?paced|dynamic environment|rock ?star|ninja|guru|wizard|wear(?:s|ing)? many hats|work hard,? play hard|hit the ground running|self[-\s]?starter|go[-\s]?getter|(?:like (?:a|one)|we are) (?:a )?(?:big )?family|passionate)\b[^.?!\n]{0,44}/gi,
-    cat: "culture code", why: "Culture shorthand that often stands in for real expectations - hours, scope, or churn.",
-    counter: (p) => String.fromCharCode(0x201c) + p + String.fromCharCode(0x201d, 0x003f) + " - which specific hours, hats or expectations does this hide?" },
-];
 function rsSignalNoise(adText) {
   const t = String(adText || "");
   if (t.length < 40) return [];
@@ -404,8 +354,6 @@ function rsSignalNoise(adText) {
 // §6.3 Forensic Reversal: separate evidence from aspiration. Flag sentences that describe intent
 // ("will help drive", "play a key role", "responsible for") or inflated abstractions with no
 // concrete, measurable object.
-const RS_ASPIRATION = /\b(?:will (?:help|support|contribute|assist|drive|enable|facilitate|foster|champion|spearhead|leverage|empower)|to (?:help|support|contribute|drive|enable|foster)|play (?:a|an) (?:key|central|pivotal|critical|vital|integral) role|responsible for|passion(?:ate)? (?:for|about)|committed to)\b/i;
-const RS_INFLATED = /\b(?:synerg(?:y|ies|istic)|paradigm|holistic|thought leadership|value[-\s]?add|best practices|stakeholder alignment|strategic initiatives|transformational|impactful|robust solutions|end[-\s]?to[-\s]?end solutions|move the needle)\b/i;
 function rsForensicReversal(adText) {
   const t = String(adText || "");
   if (t.length < 40) return [];
@@ -431,8 +379,6 @@ function rsForensicReversal(adText) {
 // title - counts, not opinions. The "is demand real?" / "is the advice self-serving?" questions
 // need judgement and belong to the batched LLM pass (PR3), not here.
 function rsClip(s) { const t = String(s || "").trim(); return t.length > 52 ? t.slice(0, 50) + String.fromCharCode(0x2026) : t; }
-const RS_VAGUE_DUTY = /\b(?:ad-?hoc|various|other duties|as (?:assigned|required|needed)|miscellaneous|support the team|any other|from time to time|when required|where necessary)\b/i;
-const RS_COMPLIANCE = /\b(?:compl(?:y|iance|ies)|adhere|conform|in accordance with|as per (?:the )?(?:policy|policies|guidelines|sop)|regulatory|statutory|ensure (?:all )?(?:compliance|adherence))\b/i;
 function rsFalsification(spans, title, adText) {
   const out = [];
   const n = (spans || []).length;
@@ -491,14 +437,6 @@ function rsHiringFilter(adText, job) {
 // ── AI-2 (spec No.135): Blind spots + contradictions. Deterministic; absence is the
 // finding ("the ad is silent on X"), so each check names what it looked for. Withhold
 // when there is no ad text at all - an absence claim needs a text to be absent FROM. ──
-const RS_BLIND_CHECKS = [
-  { id: "bs-salary", label: "salary", rx: /\b(?:s?\$\s?\d|salary|remuneration|per (?:month|annum)|\d+k\b)/i, ask: "What is the actual pay band? 'Competitive' is not a number." },
-  { id: "bs-report", label: "reporting line", rx: /\breport(?:s|ing)?\s+(?:directly\s+)?to\b/i, ask: "Who does this role report to - a named function or a vacuum?" },
-  { id: "bs-team", label: "team size", rx: /\bteam of\s+\d|\bteam size\b|\bjoin(?:ing)? (?:a|our) \d+/i, ask: "How many people share this work today?" },
-  { id: "bs-metrics", label: "success metrics", rx: /\b(?:kpi|okr|success (?:will be )?measured|measurable|targets?\b|quota)\b/i, ask: "How is success measured in the first year?" },
-  { id: "bs-growth", label: "growth path", rx: /\b(?:career (?:path|progression|development)|promotion|progression|advancement|learning budget|training)\b/i, ask: "Where does this role lead in 2-3 years?" },
-  { id: "bs-workmode", label: "work arrangement", rx: /\b(?:hybrid|remote|on-?site|work from home|wfh|office-based)\b/i, ask: "Hybrid, remote or on-site - why is it not stated?" },
-];
 function rsBlindSpots(adText, job) {
   const t = String(adText || "");
   if (t.trim().length < 80) return [];
@@ -512,13 +450,6 @@ function rsBlindSpots(adText, job) {
 // Domain lexicons for the mash-up/contradiction scan - a duty line whose tokens belong to
 // a DIFFERENT domain than the ad's majority is flagged and the foreign domain is NAMED
 // (live example: ISO/cGMP facility-QA lines inside a Data Engineer ad).
-const RS_DOMAINS = {
-  "data engineering": ["data", "pipeline", "pipelines", "warehouse", "lake", "etl", "elt", "analytics", "database", "databases", "model", "models", "python", "streaming"],
-  "quality & compliance": ["iso", "cgmp", "gmp", "audit", "audits", "compliance", "sop", "sops", "quality", "regulatory", "validation", "documentation"],
-  "facilities & operations": ["facility", "facilities", "vendor", "vendors", "sla", "slas", "maintenance", "premises", "contractor", "fm"],
-  "sales & marketing": ["sales", "revenue", "clients", "accounts", "marketing", "campaign", "b2b", "quota", "leads"],
-  "people & hr": ["recruitment", "onboarding", "payroll", "talent", "employee", "employees", "hr"],
-};
 function rsDomainOf(text) {
   const toks = new Set(rsTokens(text));
   let best = null, bestN = 0;
@@ -589,13 +520,6 @@ export function rsJaccard(aTokens, bTokens) {
 }
 // AI-3 (spec No.135), ET1 (v3-employment-type-signal-spec): fixed regex map, ordered so
 // "permanent" matches first (guards compound types like "Permanent, Full Time").
-const RS_EMPTYPE_MAP = [
-  { bucket: "permanent", re: /perm/i },
-  { bucket: "contract", re: /contract|temporary|fixed[- ]term|temp\b/i },
-  { bucket: "part-time", re: /part[- ]time/i },
-  { bucket: "internship", re: /intern|trainee/i },
-  { bucket: "freelance", re: /freelance|casual/i },
-];
 export function rsEmpTypeBucket(str) {
   const s = String(str || "");
   if (!s) return null;
@@ -716,230 +640,6 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-// No.136 G1 (§7 explainability): every generated section declares WHY it appeared - the
-// triggering evidence + the governing spec section. Deterministic string, no LLM.
-function WhyLine({ why, sec }) {
-  return <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>shown because {why} {RS_DOT} {sec}</p>;
-}
-// One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
-// Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
-function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onExpand }) {
-  const ac = accent || "#9a6113";
-  const who = persona || "SIGNAL AUDITOR";
-  const oc = obsChip || "from posting";
-  return (
-    <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{who}</span>
-        {onExpand && (
-          <button type="button" onClick={onExpand} aria-label={"Open " + who + " card in the detail drawer"} title="Open in drawer"
-            style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #e6e3db", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
-        )}
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-        <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-          <div style={oiaKick}>OBSERVATION</div>
-          <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{obs}{String.fromCharCode(0x201d)}</p>
-          <Chip kind={oc}>{oc}</Chip>
-        </div>
-        <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-          <div style={oiaKick}>INTERPRETATION</div>
-          <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{interp}</p>
-          {/* Audit fix: the confidence clause was a fixed "moderate" for every lens - an unearned,
-    non-varying claim. "rule (deterministic)" is true and sufficient; per-lens confidence
-    returns only if a lens actually computes one. */}
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd" }}>method {RS_DOT} rule (deterministic)</span>
-        </div>
-        <div style={{ padding: "12px 13px" }}>
-          <div style={oiaKick}>APPLICATION</div>
-          <p style={{ fontSize: "0.8125rem", color: "#16202e", fontWeight: 600, lineHeight: 1.5, margin: "0 0 8px" }}>{appl}</p>
-          <Chip kind="derived">derived</Chip>
-        </div>
-      </div>
-    </div>
-  );
-}
-// Advisory (LLM) card for the batched Critical Read pass - devil's advocate, teleology,
-// pro-worker, real-demand. Clearly tagged "AI estimate - advisory": it challenges, it never
-// authors a number or overrides the engine's read.
-function AdvisoryCard({ persona, children, onExpand }) {
-  return (
-    <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
-        <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
-        {onExpand && (
-          <button type="button" onClick={onExpand} aria-label={"Open " + persona + " card in the detail drawer"} title="Open in drawer"
-            style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #f5dcb0", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
-        )}
-      </div>
-      <div style={{ padding: "12px 14px" }}>{children}</div>
-    </div>
-  );
-}
-
-function Chip({ kind, children }) {
-  const p = PROV[kind] || PROV.computed;
-  return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
-}
-
-// ── PB1 (v3-preinterview-brief-spec.md): the pre-interview brief - assembly only,
-// no LLM, no new number. Every row is a sourced pass-through of a value already
-// computed elsewhere (engine occExposure/ssocResolution, Critical Read's own
-// indicators/salaryPos/blindSpots, and the shipped ACRA lookup). A row that has no
-// source in state is simply omitted - it never blocks, errors, or guesses (spec §8).
-function PbRow({ label, chip, children }) {
-  return (
-    <div style={{ padding: "9px 0", borderBottom: "1px solid #f0eee7" }}>
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".08em", color: "#b3ab9c", marginBottom: 4 }}>{String(label).toUpperCase()}</div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#16202e", lineHeight: 1.5, flex: "1 1 240px" }}>{children}</p>
-        <Chip kind={chip}>{chip}</Chip>
-      </div>
-    </div>
-  );
-}
-// Employer (ACRA) row - the one row with its own async fetch (module-cached,
-// always-resolves). Surfaces ONLY matched:"exact" fields; on "none" shows the
-// honest not-matched line, never the derived-classifier fallback (same guard the
-// shipped fetchEmployerRegistration already applies before this component sees it).
-function PbEmployerRow({ employerName }) {
-  const [emp, setEmp] = useState({ status: "idle", data: null });
-  useEffect(() => {
-    const name = String(employerName || "").trim();
-    if (!name) { setEmp({ status: "done", data: { matched: "none", reason: "no_employer" } }); return undefined; }
-    let cancelled = false;
-    setEmp({ status: "loading", data: null });
-    fetchEmployerRegistration(name).then((d) => { if (!cancelled) setEmp({ status: "done", data: d }); });
-    return () => { cancelled = true; };
-  }, [employerName]);
-  if (emp.status !== "done") {
-    return <PbRow label="Employer (ACRA)" chip="from ACRA">Checking ACRA registration{String.fromCharCode(0x2026)}</PbRow>;
-  }
-  const d = emp.data;
-  if (!d || d.matched !== "exact") {
-    return <PbRow label="Employer (ACRA)" chip="from ACRA">Not matched in the ACRA business register (may be a statutory board, agency, or a name variant ACRA does not carry).</PbRow>;
-  }
-  const parts = [d.entityType, d.status, d.registeredSince ? "registered " + d.registeredSince : null].filter(Boolean);
-  const ssic = d.primarySsicCode ? d.primarySsicCode + (d.primarySsicDescription ? " - " + d.primarySsicDescription : "") : null;
-  const ssic2 = d.secondarySsicCode ? d.secondarySsicCode + (d.secondarySsicDescription ? " - " + d.secondarySsicDescription : "") : null;
-  return (
-    <PbRow label="Employer (ACRA)" chip="from ACRA">
-      {parts.length ? parts.join(" " + RS_DOT + " ") : "ACRA match found but no entity fields on record."}
-      {ssic ? <span style={{ display: "block", marginTop: 3 }}>Primary SSIC: {ssic}</span> : null}
-      {ssic2 ? <span style={{ display: "block", marginTop: 2 }}>Secondary SSIC: {ssic2}</span> : null}
-      {d.namesakes > 0 ? <span style={{ display: "block", marginTop: 3, color: "#9a6113" }}>ACRA lists +{d.namesakes} other {d.namesakes === 1 ? "entity" : "entities"} with this name - showing the live-status match.</span> : null}
-    </PbRow>
-  );
-}
-function PreInterviewBrief({ result, title, employer, posting, critical }) {
-  const [open, setOpen] = useState(true);
-  const ssoc = result && result.ssocResolution;
-  const occ = result && result.occExposure;
-  const indicators = (critical && critical.indicators) || [];
-  const empType = indicators.find((x) => x.id === "ind-emptype");
-  const triage = indicators.filter((x) => x.id !== "ind-emptype");
-  const salaryPos = critical && critical.salaryPos;
-  const blindSpots = (critical && critical.blindSpots) || [];
-  const employerName = (posting && posting.employer) || employer || "";
-  return (
-    <div style={{ border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 16, background: "#fff" }}>
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
-        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 44, padding: "10px 14px", background: open ? "#142a8e" : "#fbfaf8", border: "none", cursor: "pointer", textAlign: "left" }}>
-        <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.875rem", fontWeight: 700, color: open ? "#fff" : "#16202e" }}>Pre-interview brief</span>
-        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#c7d6ff" : "#94a0b0", transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}>&#9660;</span>
-      </button>
-      {open && (
-        <div style={{ padding: "4px 14px 12px" }}>
-          <PbRow label="Role as classified" chip="computed">
-            {title || "role withheld"}{ssoc && ssoc.code ? " " + RS_DOT + " SSOC " + ssoc.code : ""}
-          </PbRow>
-          {(occ && (occ.band || occ.index != null)) ? (
-            <PbRow label="AI-exposure headline" chip="computed">
-              {occ.band || "band withheld"}{occ.index != null ? " " + RS_DOT + " AI-Exposure Index " + occ.index + "/100" : ""}
-              {Array.isArray(occ.zRange) ? " " + RS_DOT + " range " + occ.zRange[0] + " to " + occ.zRange[1] : ""}
-            </PbRow>
-          ) : null}
-          {empType ? <PbRow label="Engagement type" chip="from posting">{empType.obs}</PbRow> : null}
-          {salaryPos ? <PbRow label="Salary read" chip="computed">{salaryPos.obs}</PbRow> : null}
-          {triage.length > 0 ? (
-            <PbRow label="Demand / triage" chip="computed">{triage.map((t) => t.obs).join(" " + RS_DOT + " ")}</PbRow>
-          ) : null}
-          <PbEmployerRow employerName={employerName} />
-          {blindSpots.length > 0 ? (
-            <PbRow label="Missing facts" chip="computed">The ad is silent on: {blindSpots.map((b) => b.label).join(", ")}.</PbRow>
-          ) : null}
-          <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5, fontStyle: "italic" }}>AI-assisted; human decides. Structural facts from MyCareersFuture, careers.gov.sg and ACRA; interpretation is the candidate's.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-// ── W4a slice 1 (blueprint §10.3 "AI trace"): the AIOE exposure trace, deterministic.
-// Occupation index (engine AIOE chain) -> per-duty engine bands on a labelled 4-stop
-// track (position = band, no fabricated numbers) -> skill-level mix. No LLM anywhere in
-// this visual; every row withholds when its engine signal is absent.
-const AIT_STOPS = ["human", "assisted", "augmented", "auto"];
-function AITracePanel({ result }) {
-  const occ = result && result.occExposure;
-  const duties = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties)) ? result.jobAnatomy.duties : [];
-  const skills = Array.isArray(result && result.skills) ? result.skills : [];
-  const dutyRows = duties.map((d, i) => ({ id: "t" + i, text: d.text, band: RS_EXP_BAND[d.exposureNow] || null, band2y: RS_EXP_BAND[d.exposure2y] || null, layer: d.layer || "", basis: d.levelBasis || "" })).slice(0, 14);
-  const classified = dutyRows.filter((d) => d.band);
-  const mix = {}; skills.forEach((sk) => { const k = sk.level || "unclassified"; mix[k] = (mix[k] || 0) + 1; });
-  if (!occ && !classified.length && !skills.length) {
-    return <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The AI trace appears once the engine classifies this role - no exposure signals yet, so nothing is drawn (withhold over guess).</p>;
-  }
-  const col = (b) => AIT_STOPS.indexOf(b);
-  return (
-    <div>
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#6b6357", marginBottom: 6 }}>AI TRACE {RS_DOT} OCCUPATION {String.fromCharCode(0x2192)} DUTIES {String.fromCharCode(0x2192)} SKILLS</div>
-      {/* Occupation row */}
-      <div style={{ background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 10, padding: "10px 13px", marginBottom: 14 }}>
-        <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>OCCUPATION EXPOSURE (AIOE ENGINE)</div>
-        {occ && (occ.band || occ.index != null)
-          ? <p style={{ margin: 0, fontSize: "0.875rem", color: "#16202e" }}><strong>{occ.band || "band withheld"}</strong>{occ.index != null ? " " + RS_DOT + " index " + occ.index + "/100" : ""} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{RS_DOT} occupation{String.fromCharCode(0x2192)}SOC{String.fromCharCode(0x2192)}AIOE {RS_DOT} computed</span></p>
-          : <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9a6113" }}>Occupation exposure withheld - the AIOE engine returned no score for this occupation.</p>}
-      </div>
-      {/* Duty track */}
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>DUTIES ON THE EXPOSURE TRACK (SLE-C ENGINE BANDS {RS_DOT} POSITION = BAND, NOT A SCORE)</div>
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) repeat(4, 74px)", gap: 0, alignItems: "center", border: "1px solid #eceae2", borderRadius: 10, overflow: "hidden", marginBottom: 14 }}>
-        <div style={{ padding: "6px 10px", background: "#f4f6fa", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>duty</div>
-        {AIT_STOPS.map((b) => <div key={b} style={{ padding: "6px 4px", background: "#f4f6fa", textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: BANDS[b].ink }}>{BANDS[b].label}</div>)}
-        {dutyRows.map((d) => (
-          <Fragment key={d.id}>
-            <div title={d.text} style={{ padding: "7px 10px", borderTop: "1px solid #f0eee7", fontSize: "0.75rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.text}</div>
-            {AIT_STOPS.map((b, ci) => (
-              <div key={b} style={{ borderTop: "1px solid #f0eee7", textAlign: "center", padding: "7px 0", background: d.band && ci === col(d.band) ? BANDS[b].bg : "transparent" }}>
-                {d.band && ci === col(d.band)
-                  ? <span title={BANDS[b].label + (d.band2y && d.band2y !== d.band ? " - rising to " + (BANDS[d.band2y] ? BANDS[d.band2y].label : d.band2y) + " in ~2y" : "")} style={{ display: "inline-block", width: 10, height: 10, borderRadius: "50%", background: BANDS[b].dot }} />
-                  : (ci === 0 && !d.band ? <span title="Exposure withheld - no engine signal" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#9a6113" }}>w/h</span> : null)}
-              </div>
-            ))}
-          </Fragment>
-        ))}
-      </div>
-      {/* Skill mix */}
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c", marginBottom: 4 }}>SKILL-LEVEL MIX ({skills.length} SKILLS {RS_DOT} SLE-A ENGINE)</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-        {[["HIGH", "auto"], ["MEDIUM", "augmented"], ["LOW", "assisted"], ["HUMAN", "human"]].map(([lv, bk]) => (mix[lv] ? <span key={lv} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: BANDS[bk].ink, background: BANDS[bk].bg, border: "1px solid " + BANDS[bk].border, borderRadius: 6, padding: "3px 9px" }}>{BANDS[bk].label}: {mix[lv]}</span> : null))}
-        {mix.unclassified ? <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 6, padding: "3px 9px" }}>withheld: {mix.unclassified}</span> : null}
-      </div>
-      <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357", fontStyle: "italic" }}>All positions and counts from the deterministic engines (AIOE occupation index, SLE-C duty bands, SLE-A skill levels). No LLM in this visual. AI-assisted {RS_DOT} human decides.</p>
-    </div>
-  );
-}
-// Generalized connector registry (per Step-3 design spec, No.138 U-conn): the engine's
-// activeSpan/focusSkill remain the only truth source. A rule fires only when whenActive
-// returns a live id read off real state, so no connector line is ever manufactured for a
-// tab with no shared id (overview, gates, critical, market - no rule below, effect no-ops).
-const LINK_RULES = {
-  ad: { active: (s) => s.activeSpan, left: (id) => "#li-" + id,
-        right: (id) => '[data-comment-anchor="' + id + '"]' },
-  duties: { active: (s) => s.activeSpan, left: (id) => '[data-oia-anchor="' + id + '"]',
-            right: (id) => "#li-" + id }, // reciprocal to the manuscript's scrollIntoView target
-};
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
@@ -1144,454 +844,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
-  // ── No.138 U2: WINDOW RENDERERS - every sub-function is a window; panels host them. ──
-  const winVerdict = (
-
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>OVERVIEW {RS_DOT} THE 10-SECOND READ</div>
-              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Verdict first {String.fromCharCode(0x2014)} every chip is a door</h2>
-              <PreInterviewBrief result={result} title={title} employer={employer} posting={posting} critical={critical} />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px,100%), 1fr))", gap: 12 }}>
-                {[
-                  bandTok ? { k: "duties", kick: "AI EXPOSURE (ROLE READ)", val: bandTok.label, sub: duties.length + " duties " + RS_DOT + " " + skills.length + " skills", chipK: "computed" } : null,
-                  critical.trajectory ? { k: "duties", kick: "AROUND THE CORNER", val: critical.trajectory.grade, sub: critical.trajectory.obs.slice(0, 64) + String.fromCharCode(0x2026), chipK: "computed" } : null,
-                  critical.salaryPos ? { k: "market", kick: "MARKET POSITION", val: critical.salaryPos.pct + "th percentile", sub: "vs salary-stating ads in this result", chipK: "computed" } : null,
-                  (critical.qoi.length || critical.hiringFilter.length) ? { k: "gates", kick: "GATES", val: (critical.qoi.length + critical.hiringFilter.length) + " to clear", sub: critical.hiringFilter.map((h) => h.label).slice(0, 3).join(" " + RS_DOT + " ") || "requirement lines graded", chipK: "computed" } : null,
-                  (critical.contradictions.length || critical.blindSpots.length) ? { k: "critical", kick: "BIGGEST FLAG", val: critical.contradictions.length ? "role mash-up signals" : "silent on " + critical.blindSpots[0].label, sub: (critical.contradictions.length + critical.blindSpots.length) + " findings in Critical Read", chipK: "derived" } : null,
-                ].filter(Boolean).map((c, i) => (
-                  <button key={i} type="button" onClick={() => setTab(c.k)} aria-label={c.kick + ": " + c.val + ". Open its tab."}
-                    style={{ textAlign: "left", minHeight: 96, background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "14px 16px", cursor: "pointer", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>{c.kick}</div>
-                    <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.125rem", color: "#16202e", marginBottom: 4 }}>{c.val}</div>
-                    <div style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.45, marginBottom: 6 }}>{c.sub}</div>
-                    <Chip kind={c.chipK}>{c.chipK}</Chip>
-                  </button>
-                ))}
-              </div>
-              {!bandTok && !critical.trajectory && !critical.salaryPos && !critical.qoi.length && !critical.hiringFilter.length && !critical.contradictions.length && !critical.blindSpots.length && (
-                <p style={manuP}>The verdict chips appear as the engines classify this role - nothing is summarised before it is computed.</p>
-              )}
-            </div>
-  );
-  const winShortcuts = (
-    <div style={{ maxWidth: 720 }}>
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 8 }}>WORKSPACE SHORTCUTS</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {[["Sources", "ad", "the verbatim ad and its provenance"], ["Trace", "duties", "duty-by-duty O-I-A dissection"], ["Skilling", "duties", "skills and the AI trace"], ["Advisory", "critical", "the challenged deep read"]].map(([lbl, dest, gloss]) => (
-          <button key={lbl} type="button" onClick={() => setTab(dest)} aria-label={lbl + ": opens " + gloss}
-            style={{ minHeight: 44, textAlign: "left", background: "#fff", border: "1px solid #e6e3db", borderRadius: 10, padding: "10px 14px", cursor: "pointer" }}>
-            <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e" }}>{lbl}</span>
-            <span style={{ display: "block", fontSize: "0.6875rem", color: "#6b6357" }}>{gloss}</span>
-          </button>
-        ))}
-      </div>
-      <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>Cover letter, Boards and Saved retired from the rail - they were placeholder drawers; they return as real windows when built (trust-loop: no dead controls).</p>
-    </div>
-  );
-  const winGatesHard = (
-
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>REQUIREMENTS &amp; GATES {RS_DOT} WHAT FILTERS YOU OUT</div>
-              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Can each claim be tested {String.fromCharCode(0x2014)} and what auto-rejects?</h2>
-              {critical.hiringFilter.length > 0 && <>
-                <h3 style={critH3}>Hard gates</h3>
-                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"}
-                  onExpand={(e) => openSheet("Hard gates", "critcard", { tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", persona: "HIRING FILTER", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)} />)}
-              </>}
-              {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
-            </div>
-  );
-  const winQoI = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secQoI}</div>{!critical.qoi.length && <p style={manuP}>No gradeable requirement claims in this ad - nothing is graded that was not written.</p>}</div>);
-  const winGraphs = (<div style={{ maxWidth: 1100 }}><div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16, marginTop: 12 }}>
-                {rolePane || <p style={{ fontSize: "0.875rem", color: "#94a0b0" }}>The role graph appears once the role resolves duties and skills.</p>}
-              </div></div>);
-  const winSalary = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secSalaryPos}</div>{!critical.salaryPos && <p style={manuP}>Withheld - this ad states no salary band, or too few comparable salary-stating ads were sampled.</p>}</div>);
-  const winIndicators = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secIndicators}</div>{!(critical.indicators && critical.indicators.length) && <p style={manuP}>Withheld - not enough sampled ads to compute market signals.</p>}</div>);
-  const winTrajectory = (<div style={{ maxWidth: 880 }}><div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>{!critical.trajectory && <p style={manuP}>Withheld - fewer than 4 engine-classified duties so far.</p>}</div>);
-  const winAitrace = (
-
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>{secTrajectory}</div>
-              <div style={{ background: "#fff", border: "1px solid #eceae2", borderRadius: 12, padding: 16 }}><AITracePanel result={result} /></div>
-            </div>
-  );
-  const winOIA = (
-
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
-              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
-              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
-              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; const oiaOn = activeSpan === s.id; return (
-                <div key={s.id} data-oia-anchor={s.id} onClick={() => setActiveSpan(oiaOn ? null : s.id)}
-                  style={{ background: "#fff", border: "1px solid " + (oiaOn ? "#1a56db" : "#e6e3db"), borderRadius: 12, overflow: "hidden", marginBottom: 8, cursor: "pointer", ...(oiaOn ? { outline: "2px solid #c7d6ff", outlineOffset: 2 } : {}) }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
-                    {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-                      <div style={oiaKick}>OBSERVATION</div>
-                      <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
-                      {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
-                          from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
-                          verbatim posting text - so the chip must not say "from posting".
-                          Trust-loop rule 4. */}
-                      <Chip kind="derived">derived · AI-extracted</Chip>
-                    </div>
-                    <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
-                      <div style={oiaKick}>INTERPRETATION</div>
-                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>exposure <strong style={{ color: "#9a6113" }}>withheld</strong> - the engine did not classify this duty.</>}</p>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "none"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "withheld"}</span>
-                    </div>
-                    <div style={{ padding: "12px 13px" }}>
-                      <div style={oiaKick}>APPLICATION</div>
-                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{b ? <>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</> : <>AIOE withheld {String.fromCharCode(0x00b7)} no route emitted</>}</p>
-                      <Chip kind={b ? "computed" : "unverified"}>{b ? "computed" : "unverified"}</Chip>
-                    </div>
-                  </div>
-                </div>
-              ); })}
-              {!dissection.spans.length && <p style={manuP}>No duty spans to dissect yet.</p>}
-            </div>
-  );
-  const winCritical = (
-
-            <div style={{ maxWidth: 880, margin: "0 auto" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>CRITICAL READ {RS_DOT} PLAIN-LANGUAGE CHECK</div>
-              <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>What the ad says {String.fromCharCode(0x2192)} what it leaves empty</h2>
-              <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Deterministic and verbatim-only: every flag is a phrase lifted straight from the posting. Empty or inflated wording gets a plain-language counter - the &quot;question-mark move&quot;.</p>
-              {critical.noodles.length > 0 && <>
-                <h3 style={critH3}>Word noodles {RS_DOT} shiny but empty</h3>
-                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter}
-                  onExpand={(e) => openSheet("Word noodles", "critcard", { tag: n.cat, obs: n.phrase, interp: n.why, appl: n.counter }, e)} />)}
-              </>}
-              {critical.forensic.length > 0 && <>
-                <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
-                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter}
-                  onExpand={(e) => openSheet("Forensic reversal", "critcard", { tag: "aspiration", obs: f.phrase, interp: f.why, appl: f.counter }, e)} />)}
-              </>}
-              {/* No.136 G2: the six deterministic lenses render severity-first (flex order =
-                  deterministic rank) and are individually dismissible; hidden panels restore
-                  from the chip row below. */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-              {hiddenPanels.length > 0 && (
-                <div style={{ order: 0, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, margin: "0 0 10px" }}>
-                  <span style={{ fontFamily: "monospace", fontSize: "0.6875rem", color: "#6b6357" }}>hidden panels:</span>
-                  {hiddenPanels.map((k) => (
-                    <button key={k} type="button" onClick={() => setPanelHidden(k, false)} aria-label={"Restore panel: " + (G2_LABELS[k] || k)}
-                      style={{ minHeight: 44, fontFamily: "monospace", fontSize: "0.6875rem", color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 7, padding: "4px 10px", cursor: "pointer" }}>{(G2_LABELS[k] || k)} +</button>
-                  ))}
-                </div>
-              )}
-              <div style={{ order: g2Rank.blindSpots, display: "flex", flexDirection: "column" }}>
-              {critical.blindSpots && critical.blindSpots.length > 0 && !hiddenPanels.includes("blindSpots") && <>
-                <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
-                <WhyLine why={critical.blindSpots.length + " of 6 standard fields are absent from the ad text"} sec="spec No.135 AI-2" />
-                {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed"
-                  onExpand={(e) => openSheet("Blind spots", "critcard", { tag: b.label, obs: "The ad is silent on " + b.label + ".", interp: "Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable.", appl: b.ask, persona: "BLIND-SPOT SCAN", accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
-              <button type="button" onClick={() => setPanelHidden("blindSpots", true)} aria-label={"Hide panel: " + G2_LABELS.blindSpots} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
-              <div style={{ order: g2Rank.contradictions, display: "flex", flexDirection: "column" }}>
-              {critical.contradictions && critical.contradictions.length > 0 && !hiddenPanels.includes("contradictions") && <>
-                <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
-                <WhyLine why={critical.contradictions.length + " duty line" + (critical.contradictions.length === 1 ? " sits" : "s sit") + " outside the ad's majority domain"} sec="spec No.135 AI-2" />
-                {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived"
-                  onExpand={(e) => openSheet("Contradictions", "critcard", { tag: "mash-up", obs: x.obs, interp: "This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice.", appl: "Ask which of the two jobs the hire actually owns - and which one performance is judged on.", persona: "CONTRADICTION SCAN", accent: "#0e7490", obsChip: "derived" }, e)} />)}
-              <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
-              </>}
-              </div>
-              
-              
-              
-              
-              </div>
-              {critical.falsification.length > 0 && <>
-                <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
-                {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed"
-                  onExpand={(e) => openSheet("Falsification", "critcard", { tag: f.tag, obs: f.obs, interp: f.interp, appl: f.appl, persona: "FALSIFICATION LENS", accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
-              </>}
-              {cr && (
-                (cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length))) ||
-                cr.realDemand || (cr.teleology && (cr.teleology.whyExists || cr.teleology.problem)) ||
-                (cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning))
-              ) && <>
-                <h3 style={critH3}>Deep read {RS_DOT} challenged</h3>
-                {cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0)) && (
-                  <AdvisoryCard persona="SKEPTIC / DEVIL'S ADVOCATE">
-                    {cr.devilsAdvocate.counterCase && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.devilsAdvocate.counterCase}</p>}
-                    {cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0 && <ul style={{ margin: 0, paddingLeft: 18 }}>{cr.devilsAdvocate.challenges.map((c, i) => <li key={i} style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, marginBottom: 4 }}>{c}</li>)}</ul>}
-                  </AdvisoryCard>
-                )}
-                {cr.ach && cr.ach.likely && (
-                  <AdvisoryCard persona="COMPETING HYPOTHESES (ACH)">
-                    <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>most consistent with the evidence {RS_DOT} <strong style={{ textTransform: "uppercase", letterSpacing: ".04em" }}>{cr.ach.likely}</strong></p>
-                    {cr.ach.read && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.ach.read}</p>}
-                    {cr.ach.hypotheses && cr.ach.hypotheses.length > 0 && (
-                      <ul style={{ margin: 0, paddingLeft: 18 }}>
-                        {cr.ach.hypotheses.map((h, i) => <li key={i} style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, marginBottom: 4 }}><strong style={{ color: "#16202e" }}>{h.name}:</strong> {h.signal}</li>)}
-                      </ul>
-                    )}
-                  </AdvisoryCard>
-                )}
-                {cr.realDemand && (
-                  <AdvisoryCard persona="FALSIFICATION / REAL DEMAND">
-                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.realDemand}</p>
-                  </AdvisoryCard>
-                )}
-                {cr.teleology && (cr.teleology.whyExists || cr.teleology.problem) && (
-                  <AdvisoryCard persona="VACANCY TELEOLOGY">
-                    {cr.teleology.whyExists && <p style={{ margin: "0 0 6px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}><strong style={{ color: "#16202e" }}>Why this job exists:</strong> {cr.teleology.whyExists}</p>}
-                    {cr.teleology.problem && <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}><strong style={{ color: "#16202e" }}>Problem it solves:</strong> {cr.teleology.problem}</p>}
-                  </AdvisoryCard>
-                )}
-                {cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning) && (
-                  <AdvisoryCard persona="PRO-WORKER TEST">
-                    {cr.proWorker.verdict && <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#16202e" }}>verdict {RS_DOT} <strong style={{ textTransform: "uppercase", letterSpacing: ".04em" }}>{cr.proWorker.verdict}</strong></p>}
-                    {cr.proWorker.reasoning && <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.proWorker.reasoning}</p>}
-                  </AdvisoryCard>
-                )}
-              </>}
-              {(cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach)) && <>
-                <h3 style={critH3}>The other side of the table</h3>
-                {cr && cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
-                {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
-                {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="INTERVIEW COACH"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
-              </>}
-              {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !critical.trajectory && !critical.salaryPos && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
-            </div>
-  );
-  const winManuscript = (
-
-            <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
-              <h1 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
-                {/* Chip scopes to the overview paragraph only. The Responsibilities heading
-                    below carries its OWN provenance chip so a page mixing verbatim intro +
-                    synthesis bullets never lies about either half. Trust-loop rule 4. */}
-                <Chip kind={hasVerbatimOverview ? "from MCF" : "AI estimate"}>{String.fromCharCode(0x25cf)} {source || "from MCF"} {String.fromCharCode(0x00b7)} overview {hasVerbatimOverview ? "verbatim" : "synthesis · AI-authored"}</Chip>
-                {bandTok && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 5, padding: "2px 7px" }}>{bandTok.label}</span>}
-              </div>
-              {/* Composite (PR #306 x v3.0.228): verbatim-first overview (trust-loop rule 4 -
-                  posting's own words when present, skill terms underlined for emphasis only),
-                  falling back to the sectioniser, then the ESCO taxonomy description (verbatim,
-                  deterministic - the role path's real data when no live ads exist), then the
-                  corpus summary. */}
-              {(() => {
-                if (hasVerbatimOverview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{rsUnderlineSkillTerms(overview, skillTermRe)}</p></>;
-                const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
-                if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
-                if (overview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{overview}</p></>;
-                const escoDesc = String((result && result.description) || "").trim();
-                if (escoDesc) return <><h2 style={manuH2}>Role overview <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · ESCO taxonomy</span></h2><p style={manuP}>{rsUnderlineSkillTerms(escoDesc, skillTermRe)}</p></>;
-                return null;
-              })()}
-              {/* LOOP-1 diagnosis (Human Lead: "step 3 keeps having issues to show ads and
-                  diagnosis"): when the live-postings pipeline fell back, SAY WHY - the reason
-                  was previously swallowed and the page just went quiet. Deterministic reason
-                  map + retry, never a silent dead end. */}
-              {(() => {
-                const rdd = result && result.responsibilitiesData;
-                if (!rdd || !rdd.fallback) return null;
-                const REASONS = {
-                  no_jobs: "No live SG postings found for this title right now (MyCareersFuture + careers.gov.sg were searched).",
-                  mcf_error: "The live-postings fetch failed (network or source error).",
-                  thin_corpus: "Live ads were found, but their text was too thin to analyse" + (rdd.jobCount ? " (" + rdd.jobCount + " ad" + (rdd.jobCount === 1 ? "" : "s") + " sampled)" : "") + ".",
-                  analysis_error: "The duty-analysis step failed on the sampled ads.",
-                  empty_analysis: "The analysis returned no usable duty lines from the sampled ads.",
-                };
-                return (
-                  <div style={{ background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 10, padding: "12px 14px", margin: "0 0 18px" }}>
-                    <p style={{ margin: "0 0 4px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".1em", color: "#7a5a17" }}>WHY THERE ARE NO DUTY LINES HERE</p>
-                    <p style={{ margin: "0 0 8px", fontSize: "0.8125rem", color: "#7a5a17", lineHeight: 1.55 }}>{REASONS[rdd.reason] || "The live-postings pipeline returned no duties (reason: " + (rdd.reason || "unknown") + ")."} The skills below and the taxonomy overview above are still real, named-source data.</p>
-                    {onRetryDuties && (
-                      <button type="button" onClick={onRetryDuties} style={{ minHeight: 44, padding: "8px 14px", borderRadius: 8, border: "1px solid #d9b96a", background: "#fff", color: "#7a5a17", fontWeight: 700, fontSize: "0.8125rem", cursor: "pointer" }}>Retry live postings</button>
-                    )}
-                  </div>
-                );
-              })()}
-              {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
-                {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
-                    text is AI-extracted (jobAnatomy normalise pass), so the heading chip says
-                    so rather than claiming verbatim. Trust-loop rule 4. */}
-                <h2 style={manuH2}>Responsibilities <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>AI-extracted · tap a phrase</span></h2>
-                <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                  {dissection.spans.filter((x) => x.sec !== "req").map((s) => {
-                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{s.text}</li>;
-                    // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
-                    // no evidence -> the line renders fully plain (Human Lead doctrine).
-                    const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
-                    const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{s.text}</li>;
-                    const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
-                    const mark = (
-                      <span role="button" tabIndex={0} aria-pressed={on}
-                        aria-label={s.text + ". " + ev.why + ". " + (withheld ? "Exposure withheld." : (BANDS[s.band] ? "Exposure " + BANDS[s.band].label + "." : ""))}
-                        title={ev.why + (withheld ? " - exposure withheld" : (BANDS[s.band] ? " - " + BANDS[s.band].label : "")) + " - click to analyse"}
-                        onClick={() => setActiveSpan(on ? null : s.id)}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : s.id); } }}
-                        style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
-                    );
-                    return (
-                      <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
-                        {ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>}
-              {/* RS-SEC: the ad's OTHER sections (Requirements, Qualifications, Benefits, and any
-                  section the ad names itself) - verbatim, with the ad's own heading + a chip that
-                  says so; skill terms underlined for emphasis (words untouched). Requirement
-                  lines that joined the analysis are tappable like duties (exposure withheld). */}
-              {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
-                <div key={"sec" + si}>
-                  <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
-                  <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
-                    {sec.lines.map((ln, li) => {
-                      const sp = dissection.spans.find((x) => x.sec === "req" && x.text === ln);
-                      if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{ln}</li>;
-                      // RS-EV: same doctrine as duties - evidence phrase or fully plain.
-                      const ev = rsEvidencePhrase(ln, skillTermRe, skills);
-                      if (!ev) return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ln}</li>;
-                      const on = activeSpan === sp.id; const st = SPAN_STYLE_WITHHELD;
-                      const mark = (
-                        <span role="button" tabIndex={0} aria-pressed={on}
-                          aria-label={ln + ". " + ev.why + ". In the analysis; exposure withheld (requirements are not duty spans)."}
-                          title={ev.why + " - click to analyse"}
-                          onClick={() => setActiveSpan(on ? null : sp.id)}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
-                          style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
-                      );
-                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
-                    })}
-                  </ul>
-                </div>
-              ))}
-              {skills.length > 0 && <>
-                <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>tap a skill to analyse</span>
-                  {/* W2: say HOW the skill set was anchored - SG-first when SSOC steered it. */}
-                  {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}
-                </h2>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.slice(0, 24).map((s, i) => { const on = focusSkill === i; return (
-                  <button key={i} type="button" aria-pressed={on} aria-label={"Analyse skill: " + s}
-                    title={(skillObjs[i] && skillObjs[i].level ? "engine level " + skillObjs[i].level + " - " : "") + "click to analyse (O-I-A)"}
-                    onClick={() => { setFocusSkill(on ? null : i); if (!on) setActiveSpan(null); }}
-                    style={{ minHeight: 44, fontSize: "0.8125rem", fontFamily: "inherit", color: on ? "#fff" : "#0b5e74", background: on ? "#0e7490" : "#e3f5fb", border: "1px solid " + (on ? "#0e7490" : "#bce6f0"), borderRadius: 14, padding: "6px 12px", cursor: "pointer" }}>{s}</button>
-                ); })}</div>
-              </>}
-              {!overview && !dissection.spans.length && <p style={manuP}>The analysed posting did not yield responsibilities text to render as a manuscript.</p>}
-            </div>
-  );
-  const winInspector = (
-    <div>
-      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".13em", color: "#6b6357", marginBottom: 10 }}>INSPECTOR {RS_DOT} O-I-A</div>
-            {/* AI-1: focused O-I-A card for the tapped span/pill - the "door" every element opens. */}
-            {(() => {
-              const sp = activeSpan ? dissection.spans.find((x) => x.id === activeSpan) : null;
-              const so = (focusSkill != null && skillObjs[focusSkill]) ? skillObjs[focusSkill] : null;
-              const f = so ? rsSkillFocus(so, dissection.spans) : (sp ? rsSpanFocus(sp, skillObjs, skillTermRe, skills) : null);
-              if (!f) return null;
-              const chip = (k, label) => { const c = PROV[k] || PROV.unverified; return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: c.ink, background: c.bg, border: "1px solid " + c.border, borderRadius: 4, padding: "1px 6px" }}>{label || k}</span>; };
-              return (
-                <div style={{ border: "1.5px solid #1a56db", background: "#f5f8ff", borderRadius: 10, padding: "12px 13px", marginBottom: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".1em", color: "#142a8e" }}>{f.title.toUpperCase()} {RS_DOT} O-I-A</span>
-                    <button onClick={() => { setActiveSpan(null); setFocusSkill(null); }} aria-label="Close analysis card" style={{ marginLeft: "auto", minHeight: 44, minWidth: 44, border: "1px solid #cdd9ff", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-                  </div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#6b6357", marginBottom: 3 }}>OBSERVATION</div>
-                  <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 4px" }}>{String.fromCharCode(0x201c)}{f.obs}{String.fromCharCode(0x201d)}</p>
-                  <div style={{ marginBottom: 9 }}>{chip(f.obsChip, f.obsChipLabel)}</div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#6b6357", marginBottom: 3 }}>INTERPRETATION</div>
-                  {f.interp.map((ln, i) => <p key={i} style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 3px" }}>{ln}</p>)}
-                  {/* Reciprocity (Human Lead): the card links BACK into the ad - each invoking
-                      duty is a jump link that highlights its line in the manuscript. */}
-                  {f.invokedBy && f.invokedBy.length > 0 && (
-                    <div style={{ margin: "2px 0 3px" }}>
-                      <span style={{ fontSize: "0.75rem", color: "#3a4456" }}>Invoked by: </span>
-                      {f.invokedBy.map((iv) => (
-                        <button key={iv.id} type="button"
-                          aria-label={"Jump to duty in the ad: " + iv.text.slice(0, 70)}
-                          onClick={() => { setActiveSpan(iv.id); const el = document.getElementById("li-" + iv.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                          style={{ display: "block", width: "100%", textAlign: "left", minHeight: 44, background: "transparent", border: "1px solid transparent", borderRadius: 6, padding: "4px 6px", cursor: "pointer", fontSize: "0.75rem", color: "#1a56db", textDecoration: "underline", textUnderlineOffset: 2, lineHeight: 1.4 }}>
-                          {String.fromCharCode(0x201c)}{iv.text.slice(0, 70)}{iv.text.length > 70 ? String.fromCharCode(0x2026) : ""}{String.fromCharCode(0x201d)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ margin: "3px 0 9px" }}>{chip(f.interpChip)}</div>
-                  <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#6b6357", marginBottom: 3 }}>APPLICATION</div>
-                  <p style={{ fontSize: "0.75rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 4px" }}>{f.appl}</p>
-                  {chip(f.applChip)}
-                </div>
-              );
-            })()}
-      {!activeSpan && focusSkill == null && <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Tap any skill pill, evidence phrase or duty line - its Observation {RS_DOT} Interpretation {RS_DOT} Application card opens here.</p>}
-    </div>
-  );
-  const winComments = (
-    <div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".13em", color: "#6b6357" }}>REVIEWER COMMENTS</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#a8a193" }}>{marginComments.length}</span>
-      </div>
-      {marginComments.length === 0 && <p style={{ fontSize: "0.8125rem", color: "#94a0b0" }}>No comments for this analysis yet.</p>}
-            
-            
-            {marginComments.map((c) => {
-              const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
-              const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
-              return (
-                <div key={c.id} data-comment-anchor={c.anchor} role="button" tabIndex={0}
-                  aria-label={"Highlight the anchor for " + c.persona + "'s " + c.type + " comment"}
-                  onClick={() => setActiveSpan(c.anchor)}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(c.anchor); } }}
-                  style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
-                    <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
-                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }}>{c.type}</span>
-                  </div>
-                  {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
-                  {anchorText && <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#52607a", borderLeft: "2px solid #d9d6cd", paddingLeft: 9, margin: "0 0 8px", lineHeight: 1.4 }}>{String.fromCharCode(0x201c)}{anchorText}{String.fromCharCode(0x201d)}</p>}
-                  <p style={{ fontSize: "0.8rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{c.reason}</p>
-                  {c.type === "suggested rewrite" && (
-                    <div style={{ background: "#f6fbf7", border: "1px solid #d8ecdd", borderRadius: 8, padding: "8px 9px", marginBottom: 8 }}>
-                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#9a6113", textDecoration: "line-through", lineHeight: 1.4, marginBottom: 3 }}>{c.original}</div>
-                      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#0e7490", lineHeight: 1.4 }}>{String.fromCharCode(0x2192)} {c.suggested}</div>
-                    </div>
-                  )}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
-                    <Chip kind={c.prov}>{c.prov}</Chip>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
-                  </div>
-                  {st ? <div style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: st === "accepted" ? "#1d4ed8" : "#9a6113" }}>{st === "accepted" ? "Accepted " + String.fromCharCode(0x2713) : "Rejected " + String.fromCharCode(0x2717)}</div>
-                  : (
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "accepted" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: "#fff", background: "#142a8e", border: "none", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Accept</button>
-                      <button onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: "rejected" })); }} style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 600, color: "#3a4456", background: "#fff", border: "1px solid #d9d6cd", borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>Reject</button>
-                      {/* "Ask why" removed - the button used to open the advisory rail
-                          which showed only a "next build phase" placeholder. The reason
-                          is already displayed on this card, and clicking the card body
-                          already highlights the anchor span. */}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-    </div>
-  );
-  // No.138 U2: the desk - window registry + per-tab panel assignment.
-  const WIN_LABELS = { verdict: "Verdict", shortcuts: "Shortcuts", manuscript: "Manuscript", comments: "Comments", oia: "O-I-A cards", aitrace: "AI trace", trajectory: "Trajectory", gates: "Hard gates", qoi: "Quality of information", critical: "Critical Read", graphs: "Graphs", salary: "Salary", indicators: "Indicators", inspector: "Inspector" };
-  const TAB_WINDOWS = {
-    overview: { left: ["verdict"], right: ["shortcuts", "inspector"] },
-    ad: { left: ["manuscript"], right: ["inspector", "comments"] },
-    duties: { left: ["oia", "aitrace"], right: ["inspector", "trajectory"] },
-    gates: { left: ["gates", "qoi"], right: ["inspector"] },
-    critical: { left: ["critical"], right: ["inspector"] },
-    market: { left: ["graphs"], right: ["salary", "indicators", "inspector"] },
-  };
   const [activeWin, setActiveWin] = useState({});
   const [showBuildStatus, setShowBuildStatus] = useState(true); // TEMPORARY - remove with the strip above
   // No.138 U3: LAYERS. A torn-off window leaves its panel strip and floats above the desk
@@ -1737,6 +989,25 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     if (sh.kind === "node") return <div style={{ maxWidth: 880, margin: "0 auto" }}>{sh.payload.node}</div>;
     return null;
   };
+  // No.138 U2: WINDOW RENDERERS - bodies extracted verbatim to ./review/windows/*;
+  // winCtx is the component-state closure they used to capture. Built here, AFTER the
+  // layout-state block, because openSheet is a const declared above (TDZ) - the win*
+  // consts are only consumed by renderWindow below, so later construction is identical.
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus };
+  const winVerdict = renderWinVerdict(winCtx);
+  const winShortcuts = renderWinShortcuts(winCtx);
+  const winGatesHard = renderWinGatesHard(winCtx);
+  const winQoI = renderWinQoI(winCtx);
+  const winGraphs = renderWinGraphs(winCtx);
+  const winSalary = renderWinSalary(winCtx);
+  const winIndicators = renderWinIndicators(winCtx);
+  const winTrajectory = renderWinTrajectory(winCtx);
+  const winAitrace = renderWinAitrace(winCtx);
+  const winOIA = renderWinOIA(winCtx);
+  const winCritical = renderWinCritical(winCtx);
+  const winManuscript = renderWinManuscript(winCtx);
+  const winInspector = renderWinInspector(winCtx);
+  const winComments = renderWinComments(winCtx);
   const renderWindow = (id) => (
     id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
     id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
@@ -1874,125 +1145,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </span>
       </div>
 
-      {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
-          the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
-      <div ref={deskRef} className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
-        {/* MVP connector line: real DOM-measured line, active duty -> its comment card. */}
-        {connLine && (
-          <svg aria-hidden="true" width="100%" height="100%" style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "visible" }}>
-            <path d={"M " + connLine.x1 + " " + connLine.y1 + " C " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y1 + ", " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y2 + ", " + connLine.x2 + " " + connLine.y2}
-              fill="none" stroke="#1a56db" strokeWidth={2} strokeDasharray="none" opacity={0.85} />
-            <circle cx={connLine.x1} cy={connLine.y1} r={4} fill="#1a56db" />
-            <circle cx={connLine.x2} cy={connLine.y2} r={4} fill="#1a56db" />
-          </svg>
-        )}
-        {/* U4-C: draggable splitter sits between the mapped panels (absolute at splitPct). */}
-        <div role="separator" aria-orientation="vertical" aria-label="Resize panels" tabIndex={0}
-          onPointerDown={(e) => { splitDragRef.current = { sx: e.clientX, s0: splitPct }; if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId); }}
-          onPointerMove={(e) => { const d = splitDragRef.current; if (!d || !deskRef.current) return; const w = deskRef.current.getBoundingClientRect().width; setSplitPct(Math.max(30, Math.min(75, d.s0 + ((e.clientX - d.sx) / w) * 100))); }}
-          onPointerUp={() => { if (splitDragRef.current) { splitDragRef.current = null; persistFloats(floats); } }}
-          onKeyDown={(e) => { if (e.key === "ArrowLeft") setSplitPct((v) => Math.max(30, v - 2)); if (e.key === "ArrowRight") setSplitPct((v) => Math.min(75, v + 2)); }}
-          style={{ position: "absolute", top: 0, bottom: 0, left: "calc(" + splitPct + "% - 4px)", width: 8, cursor: "col-resize", zIndex: 6, background: "transparent", touchAction: "none" }} />
-        {["left", "right"].map((side) => {
-          const base = (TAB_WINDOWS[tab] || TAB_WINDOWS.overview)[side];
-          const ov = overrides[tab] || {};
-          const winsAll = base.filter((w) => !ov[w] || ov[w] === side)
-            .concat(Object.keys(ov).filter((w) => ov[w] === side && !base.includes(w)));
-          const wins = winsAll.filter((w) => !floats.some((f) => f.id === w) && !pinned.includes(w));
-          const actPref = (activeWin[tab] && activeWin[tab][side]) || winsAll[0];
-          const act = wins.includes(actPref) ? actPref : wins[0];
-          return (
-            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "0 0 " + splitPct + "%" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3", outline: dockHover === side ? "3px solid #1a56db" : "none", outlineOffset: -3, transition: "outline-color .1s" }}>
-              <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
-                {wins.map((w) => { const on = act === w; return (
-                  <button key={w} type="button" role="tab" aria-selected={on}
-                    onClick={() => setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: w } }))}
-                    style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 12px", background: on ? (side === "right" ? "#f4f6fa" : "#e9edf3") : "#fff", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid transparent" : "1px solid #d9dee6", borderRadius: "9px 9px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{WIN_LABELS[w]}</button>
-                ); })}
-                {/* U3: tear off the ACTIVE window into the float layer. Subtle by design
-                    (Human Lead, 08-07 '26): icon-only, muted, small footprint - the panel
-                    strip should not read as one more big tab. Meaning still carried via
-                    aria-label + title, not lost, just not shouting visually. */}
-                {act && (
-                  <button type="button" onClick={() => tearOff(act)} aria-label={"Float this window: " + WIN_LABELS[act]}
-                    title={"Tear off " + WIN_LABELS[act] + " into a floating window"}
-                    style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, minWidth: 30, padding: "6px 6px", marginBottom: -1, border: "none", borderBottom: "1px solid transparent", background: "transparent", color: "#a8a193", cursor: "pointer", fontSize: "0.8125rem", opacity: 0.7 }}
-                    onMouseEnter={(e) => { e.currentTarget.style.opacity = 1; e.currentTarget.style.color = "#5b6878"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.7; e.currentTarget.style.color = "#a8a193"; }}>
-                    <span aria-hidden="true">{String.fromCharCode(0x29c9)}</span>
-                  </button>
-                )}
-              </div>
-              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px 48px", position: "relative" }}>
-                {dockHover === side && <div aria-hidden="true" style={{ position: "sticky", top: 0, zIndex: 5, textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#1a56db", background: "#eaf0ff", border: "1px dashed #1a56db", borderRadius: 8, padding: "6px 10px", marginBottom: 8 }}>drop to dock here as a tab</div>}
-                {act ? renderWindow(act) : <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>All of this panel's windows are floating or pinned - close or unpin one to dock it back here.</p>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
+          slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
+          Option 1: all state stays here and passes down as props. */}
+      <Desk deskRef={deskRef} connLine={connLine} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} />
 
-      {/* No.138 U3: the float layer - torn-off windows live here, above the desk. */}
-      {floats.map((f) => (
-        <div key={f.id} role="dialog" aria-label={WIN_LABELS[f.id] + " (floating window)"}
-          onPointerDown={() => bringToFront(f.id)}
-          style={{ position: "fixed", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: f.z, background: "#fbfaf8", border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", display: "flex", flexDirection: "column", resize: "both", overflow: "hidden", minWidth: 300, minHeight: 200 }}>
-          <div onPointerDown={(e) => startFloatDrag(e, f.id)} onPointerMove={moveFloatDrag} onPointerUp={stopFloatDrag} onPointerCancel={stopFloatDrag}
-            style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8", cursor: "move", touchAction: "none" }}>
-            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{WIN_LABELS[f.id]}</span>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357", flex: "none" }}>drag {String.fromCharCode(0x00b7)} resize corner</span>
-            <button type="button" onClick={() => { setPinned((prev) => prev.includes(f.id) ? prev : prev.concat(f.id)); dockBack(f.id); }} aria-label={"Pin " + WIN_LABELS[f.id] + " to the right edge (auto-hide)"}
-              title="Pin to edge (auto-hide)"
-              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>pin</button>
-            <button type="button" onClick={() => dockBack(f.id)} aria-label={"Close and dock " + WIN_LABELS[f.id] + " back to its panel"}
-              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-          </div>
-          <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(f.id)}</div>
-        </div>
-      ))}
-
-      {/* U4-B: pinned edge strip (auto-hide) + the slide-over panel. */}
-      {pinned.length > 0 && (
-        <div style={{ position: "fixed", right: 0, top: "30%", zIndex: 1395, display: "flex", flexDirection: "column", gap: 4 }}>
-          {pinned.map((id) => (
-            <button key={id} type="button" onClick={() => setSlideOpen(slideOpen === id ? null : id)} aria-expanded={slideOpen === id}
-              aria-label={"Slide out pinned window: " + WIN_LABELS[id]}
-              style={{ writingMode: "vertical-rl", minWidth: 44, minHeight: 88, padding: "10px 6px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#142a8e", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRight: "none", borderRadius: "9px 0 0 9px", cursor: "pointer" }}>{WIN_LABELS[id]}</button>
-          ))}
-        </div>
-      )}
-      {slideOpen && (
-        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(460px, 92vw)", zIndex: 1396, background: "#fbfaf8", borderLeft: "1px solid #d9dee6", boxShadow: "-14px 0 40px rgba(15,23,42,.22)", display: "flex", flexDirection: "column", animation: "wisSlideIn .3s ease" }}>
-          <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8" }}>
-            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e" }}>{WIN_LABELS[slideOpen]}</span>
-            <button type="button" onClick={() => { setPinned((prev) => prev.filter((x) => x !== slideOpen)); setSlideOpen(null); }} aria-label="Unpin - dock this window back to its panel" style={{ flex: "none", minHeight: 32, padding: "0 10px", border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>unpin</button>
-            <button type="button" onClick={() => setSlideOpen(null)} aria-label="Slide the pinned window away (Esc)" style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-          </div>
-          <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(slideOpen)}</div>
-        </div>
-      )}
-
-      {/* Bottom drawer: cramped/overflow content (tables, long explain cards) with no
-          connector partner - mounted outside deskRef so it never perturbs connector
-          geometry. Sits below the pinned slide-over (1394 < 1395/1396) so both can be
-          open together; floats (high z) stay draggable above everything. Non-blocking
-          (aria-modal false) - the desk stays interactive underneath. */}
-      {sheet && (
-        <div role="dialog" aria-modal="false" aria-label={sheet.title}
-          style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 1394,
-            maxHeight: "min(60vh, 560px)", background: "#fbfaf8",
-            borderTop: "1px solid #d9dee6", borderRadius: "14px 14px 0 0",
-            boxShadow: "0 -14px 40px rgba(15,23,42,.22)",
-            display: "flex", flexDirection: "column", animation: "wisSlideUp .3s ease" }}>
-          <div style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8" }}>
-            <span aria-hidden="true" style={{ position: "absolute", left: "50%", top: 6, transform: "translateX(-50%)", width: 36, height: 4, borderRadius: 2, background: "#d9dee6" }} />
-            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", marginLeft: 6 }}>{sheet.title}</span>
-            <button type="button" ref={sheetCloseRef} onClick={() => setSheet(null)} aria-label="Close the detail drawer (Esc)"
-              style={{ flex: "none", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
-          </div>
-          <div style={{ overflowY: "auto", padding: "4px 16px 20px" }}>{renderSheet(sheet)}</div>
-        </div>
-      )}
 
       {/* Footer */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
@@ -2007,7 +1164,3 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   );
 }
 
-const manuH2 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#16202e", margin: "0 0 9px" };
-const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 12px" };
-const oiaKick = { fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 600, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 };
-const critH3 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#16202e", margin: "8px 0 5px" };
