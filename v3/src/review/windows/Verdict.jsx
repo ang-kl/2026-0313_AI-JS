@@ -32,6 +32,15 @@ export function renderWinVerdict(ctx) {
               {!bandTok && !critical.trajectory && !critical.salaryPos && !critical.qoi.length && !critical.hiringFilter.length && !critical.contradictions.length && !critical.blindSpots.length && (
                 <p style={manuP}>The verdict chips appear as the engines classify this role - nothing is summarised before it is computed.</p>
               )}
+              {/* Goal §2 (disclaimer treatment): the indicative-analysis qualifier sits
+                  NEXT TO the exposure verdict it qualifies - readable box, not faint
+                  text, not a tooltip; also carried in the site footer. */}
+              {bandTok && (
+                <div role="note" style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 14, background: "#eef2f9", border: "1px solid #c7d2e4", borderLeft: "4px solid #1a56db", borderRadius: 8, padding: "10px 14px" }}>
+                  <span aria-hidden="true" style={{ flexShrink: 0, fontSize: "0.875rem", lineHeight: 1.4 }}>{String.fromCharCode(0x24d8)}</span>
+                  <p style={{ margin: 0, fontSize: "0.8125rem", color: "#1a202c", lineHeight: 1.6 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
+                </div>
+              )}
             </div>
   );
 }

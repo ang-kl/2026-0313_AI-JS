@@ -638,6 +638,19 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [bgModalMin, setBgModalMin] = useState(false);
   const [bgErrDismissed, setBgErrDismissed] = useState(false);
   useEffect(() => { setBgErrDismissed(false); }, [bgError]);
+  // Goal §5: focus restoration - when the build modal closes (auto-settle, minimise
+  // or error dismissal), move focus to the first tab so keyboard users land on a
+  // stable, meaningful control instead of nowhere.
+  const tabsRef = useRef(null);
+  const bgModalOpen = (bgRunning && !bgModalMin) || (!!bgError && !bgErrDismissed);
+  const bgModalWasOpen = useRef(false);
+  useEffect(() => {
+    if (bgModalWasOpen.current && !bgModalOpen && tabsRef.current) {
+      const b = tabsRef.current.querySelector("button");
+      if (b) b.focus();
+    }
+    bgModalWasOpen.current = bgModalOpen;
+  }, [bgModalOpen]);
   const [markup, setMarkup] = useState("suggestions"); // The Ad toolbar: clean | suggestions | comments
   const [dutyView, setDutyView] = useState("oia");     // Duties toolbar: oia | aitrace
   // Rail starts collapsed on narrow viewports (phones) - open by default on
@@ -1066,14 +1079,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           bar is an indeterminate sweep, NOT a percentage: later stages are conditional,
           so a denominator would be invented (non-inventive contract). Auto-closes when
           the fan-out settles; a failure shows an error state + recovery instruction. */}
-      {((bgRunning && !bgModalMin) || (bgError && !bgErrDismissed)) && (
+      {bgModalOpen && (
         <div role="dialog" aria-modal="true" aria-label={bgError ? "Analysis build problem" : "Building the full analysis"}
           onKeyDown={(e) => {
             if (e.key === "Escape") { bgError ? setBgErrDismissed(true) : setBgModalMin(true); }
-            // Focus trap (WAI-ARIA dialog): the modal has exactly ONE focusable element
-            // (its action button), so Tab/Shift+Tab wrap to itself - keyboard focus can
-            // never land on the covered page behind the backdrop.
-            if (e.key === "Tab") e.preventDefault();
+            // Focus trap (WAI-ARIA dialog): Tab/Shift+Tab cycle among the dialog's
+            // own buttons - keyboard focus never lands on the covered page behind.
+            if (e.key === "Tab") {
+              e.preventDefault();
+              const btns = Array.from(e.currentTarget.querySelectorAll("button"));
+              if (!btns.length) return;
+              const i = btns.indexOf(document.activeElement);
+              const next = e.shiftKey ? (i <= 0 ? btns.length - 1 : i - 1) : (i < 0 || i === btns.length - 1 ? 0 : i + 1);
+              btns[next].focus();
+            }
           }}
           style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.modal, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.48)", padding: 16 }}>
           <style>{"@keyframes rsSweep{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}} @keyframes rsPulse{0%,100%{opacity:.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.rs-anim{animation:none !important}}"}</style>
@@ -1105,11 +1124,30 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", fontWeight: 700, letterSpacing: ".06em", color: "#92450a" }}>SOME SECTIONS DID NOT FINISH</span>
                 </div>
                 <p style={{ margin: "0 0 10px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.6 }}>{bgError} Everything that completed is already on the page below - nothing shown is affected.</p>
-                <p style={{ margin: "0 0 14px", fontSize: "0.8125rem", color: "#3d4a5c", lineHeight: 1.6 }}>To recover: use <strong>Retry live postings</strong> on The Ad tab for missing duty lines, or run the analysis again from <strong>New Search</strong>. If it keeps failing, wait a minute and retry - the source may be briefly busy.</p>
-                <button type="button" autoFocus onClick={() => setBgErrDismissed(true)}
-                  style={{ width: "100%", minHeight: 44, borderRadius: 9, border: "1px solid #f5d8a8", background: "#fdf0dd", color: "#92450a", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
-                  Close and keep reading
-                </button>
+                <p style={{ margin: "0 0 14px", fontSize: "0.8125rem", color: "#3d4a5c", lineHeight: 1.6 }}>If it keeps failing, wait a minute and retry - the source may be briefly busy.</p>
+                {/* Goal §5: real Retry + Return actions on failure - Retry re-runs the
+                    live-postings rebuild (the recoverable stage); Return goes back to
+                    the postings list. Close keeps the completed page. */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {onRetryDuties && (
+                    <button type="button" autoFocus onClick={() => { setBgErrDismissed(true); onRetryDuties(); setTab("ad"); }}
+                      style={{ width: "100%", minHeight: 44, borderRadius: 9, border: "none", background: "#142a8e", color: "#fff", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
+                      Retry live postings
+                    </button>
+                  )}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" autoFocus={!onRetryDuties} onClick={() => setBgErrDismissed(true)}
+                      style={{ flex: 1, minHeight: 44, borderRadius: 9, border: "1px solid #f5d8a8", background: "#fdf0dd", color: "#92450a", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
+                      Close and keep reading
+                    </button>
+                    {onBack && (
+                      <button type="button" onClick={onBack}
+                        style={{ flex: 1, minHeight: 44, borderRadius: 9, border: "1px solid #d9dee6", background: "#fff", color: "#1a202c", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
+                        Return to postings
+                      </button>
+                    )}
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -1125,7 +1163,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
-      <div className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
+      <div ref={tabsRef} className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
         {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
           const on = tab === k;
           return (
