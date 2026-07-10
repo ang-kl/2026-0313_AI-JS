@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.281";
+const APP_VERSION = "3.0.282";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12129,6 +12129,38 @@ export async function fetchEmployerRegistration(employerName) {
     })
     .finally(() => { empRegInFlight.delete(key); });
   empRegInFlight.set(key, p);
+  return p;
+}
+
+// OI1.2 (v3-organisation-intelligence-spec.md): thin client wrapper for
+// POST /api/mcf { action:"company" } - the employer's full live MCF posting
+// set (same endpoint CompanyPanel already uses, frozen resolveCompany).
+// Same posture as fetchEmployerRegistration - module cache + in-flight
+// de-dup keyed by the normalised employer name, always resolves, never
+// throws to render. ReviewStudio.jsx consumes this to re-scope rsIndicators'
+// duplicate/reposting read to the employer's actual live set instead of the
+// analysis's sampled job list.
+const empPostingsCache = new Map(); // normName -> response envelope
+const empPostingsInFlight = new Map(); // normName -> Promise
+export async function fetchEmployerPostings(employerName) {
+  const key = step2EmployerKey({ employer: employerName });
+  if (!key) return { matches: [], ambiguous: false, totalPostings: 0, reason: "empty_name" };
+  if (empPostingsCache.has(key)) return empPostingsCache.get(key);
+  if (empPostingsInFlight.has(key)) return empPostingsInFlight.get(key);
+  const p = fetch("/api/mcf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "company", company: employerName, limit: 50 }) })
+    .then((r) => r.json())
+    .then((d) => {
+      const out = (d && Array.isArray(d.matches)) ? d : { matches: [], ambiguous: false, totalPostings: 0, reason: "bad_response" };
+      empPostingsCache.set(key, out);
+      return out;
+    })
+    .catch(() => {
+      const out = { matches: [], ambiguous: false, totalPostings: 0, reason: "fetch_error" };
+      empPostingsCache.set(key, out);
+      return out;
+    })
+    .finally(() => { empPostingsInFlight.delete(key); });
+  empPostingsInFlight.set(key, p);
   return p;
 }
 
