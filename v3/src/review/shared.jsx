@@ -251,7 +251,9 @@ export function AITracePanel({ result }) {
         {AIT_STOPS.map((b) => <div key={b} style={{ padding: "6px 4px", background: "#f4f6fa", textAlign: "center", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: BANDS[b].ink }}>{BANDS[b].label}</div>)}
         {dutyRows.map((d) => (
           <Fragment key={d.id}>
-            <div title={d.text} style={{ padding: "7px 10px", borderTop: "1px solid #f0eee7", fontSize: "0.75rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.text}</div>
+            {/* PR 3 (Part C.2 item 6): the trace row is a connector endpoint - "tN" indexes
+                the same jobAnatomy.duties array as the O-I-A card "sN", a real id join. */}
+            <div title={d.text} data-trace-anchor={d.id} style={{ padding: "7px 10px", borderTop: "1px solid #f0eee7", fontSize: "0.75rem", color: "#3a4456", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.text}</div>
             {AIT_STOPS.map((b, ci) => (
               <div key={b} style={{ borderTop: "1px solid #f0eee7", textAlign: "center", padding: "7px 0", background: d.band && ci === col(d.band) ? BANDS[b].bg : "transparent" }}>
                 {d.band && ci === col(d.band)

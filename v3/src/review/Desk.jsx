@@ -1,24 +1,115 @@
 // v3/src/review/Desk.jsx - PR 1 (Part B.4): the layout engine JSX, moved verbatim -
-// splitter, float layer, pinned edge strip + slide-over, bottom sheet, connector SVG
-// overlay. Option 1 (Human Lead, PR 1 gate): ALL state stays in ReviewStudio.jsx and
-// arrives as props - zero state-ownership change.
-// PR 2 (Part B.3): WIN_LABELS / TAB_WINDOWS / LINK_RULES are no longer defined here -
-// they DERIVE from the declarative window registry, the single source of truth.
-import { WIN_LABELS, TAB_WINDOWS } from "./registry.jsx";
+// splitter, float layer, pinned edge strip + slide-over, bottom sheet, connector
+// overlay. Option 1 (Human Lead, PR 1 gate): ALL user/persistent state stays in
+// ReviewStudio.jsx and arrives as props.
+// PR 2 (Part B.3): WIN_LABELS / TAB_WINDOWS derive from the declarative registry.
+// PR 3 (Part C.2, LC1): the single connLine grew into a link SET. The measurement
+// state (lines/stubs) lives HERE - it is ephemeral DOM-derived geometry recomputed
+// every paint, not user state, so Option 1's "persistent state stays up" rule holds.
+import { useState, useLayoutEffect } from "react";
+import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 
-export default function Desk({ deskRef, connLine, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
+// One cubic-bezier path string (same curve family as the #358 single line).
+const bez = (l) => "M " + l.x1 + " " + l.y1 + " C " + ((l.x1 + l.x2) / 2) + " " + l.y1 + ", " + ((l.x1 + l.x2) / 2) + " " + l.y2 + ", " + l.x2 + " " + l.y2;
+
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
+  // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
+  // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
+  // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
+  // panel border with a count badge, replacing the old vanish behaviour (the honesty
+  // rule survives: a stub points at a REAL off-screen/off-tab partner, and clicking
+  // it activates that window; nothing is drawn for links with no live endpoint).
+  const [conn, setConn] = useState({ lines: [], stubs: [] });
+  const links = deriveLinks(tab, linkData || {});
+  const linkKey = links.map((l) => l.id + (l.active ? "!" : "")).join("|");
+  useLayoutEffect(() => {
+    const desk = deskRef.current;
+    if (!desk || !links.length) { setConn({ lines: [], stubs: [] }); return; }
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      const deskRect = desk.getBoundingClientRect();
+      // Visible = has layout AND intersects the viewport AND (for desk content)
+      // intersects the desk band - floats/slide-overs are position:fixed outside the
+      // desk div, so for those the viewport test is the right bound.
+      const rectOf = (sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        if (!r.width && !r.height) return null;
+        const inViewport = r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+        if (!inViewport) return { offscreen: true, r };
+        const inFloat = !desk.contains(el);
+        if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
+        return { offscreen: false, r };
+      };
+      const lines = [];
+      const stubAgg = {}; // key: targetWin|side -> { side, y, count, targetWin }
+      links.forEach((l) => {
+        const a = rectOf(l.fromSel), b = rectOf(l.toSel);
+        const aOn = a && !a.offscreen, bOn = b && !b.offscreen;
+        if (aOn && bOn) {
+          lines.push({ id: l.id, active: l.active,
+            x1: a.r.right, y1: a.r.top + a.r.height / 2,
+            x2: b.r.left, y2: b.r.top + b.r.height / 2 });
+        } else if (aOn || bOn) {
+          // Part C.2 item 4: degrade to an edge stub at the visible endpoint's panel
+          // border, aggregated per missing target window with a count badge.
+          const vis = aOn ? a : b;
+          const targetWin = aOn ? l.toWin : l.fromWin;
+          const side = aOn ? "right" : "left"; // stub points toward the missing partner
+          const key = targetWin + "|" + side;
+          if (!stubAgg[key]) {
+            const x = side === "right" ? Math.min(vis.r.right + 6, deskRect.right - 14) : Math.max(vis.r.left - 6, deskRect.left + 14);
+            const y = Math.min(Math.max(vis.r.top + vis.r.height / 2, deskRect.top + 14), deskRect.bottom - 14);
+            stubAgg[key] = { id: "stub-" + key, side, x, y, count: 0, targetWin, active: false };
+          }
+          stubAgg[key].count += 1;
+          if (l.active) stubAgg[key].active = true;
+        }
+        // neither endpoint live: nothing is drawn (never point at nothing).
+      });
+      setConn({ lines, stubs: Object.values(stubAgg) });
+    };
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(measure); };
+    schedule();
+    window.addEventListener("resize", schedule);
+    desk.addEventListener("scroll", schedule, true); // capture: fires for the scrolling panel too
+    // Part C.2 item 5: observe the panel scrollers instead of guessing layout once -
+    // late layout (fonts, images, async window content) re-measures automatically.
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
+    if (ro) desk.querySelectorAll(".wis-panel .wis-scroll").forEach((el) => ro.observe(el));
+    return () => { if (raf) cancelAnimationFrame(raf); window.removeEventListener("resize", schedule); desk.removeEventListener("scroll", schedule, true); if (ro) ro.disconnect(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkKey, tab, floats, pinned, overrides, activeWin, splitPct]);
   return (
     <>
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
           the top tab selects the view-set (window assignment per TAB_WINDOWS). */}
       <div ref={deskRef} className="wis-desk" style={{ flex: 1, display: "flex", minHeight: 0, position: "relative" }}>
-        {/* MVP connector line: real DOM-measured line, active duty -> its comment card. */}
-        {connLine && (
-          <svg aria-hidden="true" width="100%" height="100%" style={{ position: "absolute", inset: 0, zIndex: 4, pointerEvents: "none", overflow: "visible" }}>
-            <path d={"M " + connLine.x1 + " " + connLine.y1 + " C " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y1 + ", " + ((connLine.x1 + connLine.x2) / 2) + " " + connLine.y2 + ", " + connLine.x2 + " " + connLine.y2}
-              fill="none" stroke="#1a56db" strokeWidth={2} strokeDasharray="none" opacity={0.85} />
-            <circle cx={connLine.x1} cy={connLine.y1} r={4} fill="#1a56db" />
-            <circle cx={connLine.x2} cy={connLine.y2} r={4} fill="#1a56db" />
+        {/* PR 3: connector overlay - FIXED and viewport-spanning so floated windows are
+            valid endpoints (Part C.2 item 4); under the floats (z 1400+), sheet (1394)
+            and pinned strip (1395+), above the desk. pointer-events none except the
+            clickable stubs. All coordinates are viewport coordinates. */}
+        {(conn.lines.length > 0 || conn.stubs.length > 0) && (
+          <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: 1389, pointerEvents: "none", overflow: "visible" }}>
+            {conn.lines.map((l) => (
+              <g key={l.id} style={{ transition: "opacity .2s" }} opacity={l.active ? 0.85 : 0.3}>
+                <path d={bez(l)} fill="none" stroke="#1a56db" strokeWidth={l.active ? 2 : 1} />
+                <circle cx={l.x1} cy={l.y1} r={l.active ? 4 : 2.5} fill="#1a56db" />
+                <circle cx={l.x2} cy={l.y2} r={l.active ? 4 : 2.5} fill="#1a56db" />
+              </g>
+            ))}
+            {conn.stubs.map((s) => (
+              <g key={s.id} style={{ pointerEvents: "auto", cursor: "pointer" }} opacity={s.active ? 0.95 : 0.55}
+                onClick={() => onStubActivate && onStubActivate(s.targetWin)}
+                aria-hidden="false" role="button" tabIndex={-1}>
+                <title>{"Open " + (WIN_LABELS[s.targetWin] || s.targetWin) + " (" + s.count + " link" + (s.count === 1 ? "" : "s") + ")"}</title>
+                <line x1={s.x} y1={s.y} x2={s.side === "right" ? s.x + 14 : s.x - 14} y2={s.y} stroke="#1a56db" strokeWidth={2} />
+                <circle cx={s.side === "right" ? s.x + 22 : s.x - 22} cy={s.y} r={9} fill="#1a56db" />
+                <text x={s.side === "right" ? s.x + 22 : s.x - 22} y={s.y + 3.5} textAnchor="middle" fontSize={10} fontWeight={700} fill="#fff" fontFamily="'Spline Sans Mono',monospace">{s.count}</text>
+              </g>
+            ))}
           </svg>
         )}
         {/* U4-C: draggable splitter sits between the mapped panels (absolute at splitPct). */}
