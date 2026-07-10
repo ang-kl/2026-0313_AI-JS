@@ -112,19 +112,22 @@ export function deriveLinks(tab, d) {
   const links = [];
   const activeSpan = d && d.activeSpan;
   if (tab === "ad") {
-    // Every reviewer comment joins its anchored duty span - all pairs draw (dimmed),
-    // the active pair draws emphasised (Part C.2 item 3).
+    // SINGLE ACTIVE LINE (design handoff, goal_11-JUL-2026.md §9): only the ACTIVE
+    // comment's connector draws - drawing every pair simultaneously was explicitly
+    // rejected in the design as visual clutter. The join is still id-real
+    // (comment.anchor is a span id); hover/click activation lives in the cards.
     (d && Array.isArray(d.comments) ? d.comments : []).forEach((c) => {
-      if (!c || !c.anchor) return;
+      if (!c || !c.anchor || activeSpan !== c.anchor) return;
       links.push({ id: "lnk-ad-" + c.id, fromWin: "manuscript", fromSel: anchorOf("manuscript", "dutyLine")(c.anchor),
-        toWin: "comments", toSel: anchorOf("comments", "comment")(c.anchor), kind: "span-comment", active: activeSpan === c.anchor });
+        toWin: "comments", toSel: anchorOf("comments", "comment")(c.anchor), kind: "span-comment", active: true });
     });
   }
   if (tab === "duties") {
-    // O-I-A card <-> AI-trace row: index join over the same duties array (both on-tab).
+    // O-I-A card <-> AI-trace row: same single-active rule.
     (d && Array.isArray(d.traceIds) ? d.traceIds : []).forEach((p) => {
+      if (activeSpan !== p.oiaId) return;
       links.push({ id: "lnk-du-" + p.oiaId, fromWin: "oia", fromSel: anchorOf("oia", "oiaCard")(p.oiaId),
-        toWin: "aitrace", toSel: anchorOf("aitrace", "traceRow")(p.traceId), kind: "oia-trace", active: activeSpan === p.oiaId });
+        toWin: "aitrace", toSel: anchorOf("aitrace", "traceRow")(p.traceId), kind: "oia-trace", active: true });
     });
     // O-I-A card <-> manuscript duty line: ACTIVE span only (the manuscript is normally
     // on the ad tab - this fires when it is floated/dock-overridden here; otherwise the

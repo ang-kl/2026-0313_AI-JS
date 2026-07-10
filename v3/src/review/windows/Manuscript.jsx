@@ -94,6 +94,13 @@ export function renderWinManuscript(ctx) {
                   {dutySpans.map((s, di) => {
                     const lineNo = <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#5b6878", marginRight: 7 }}>{di + 1}</span>;
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{s.text}</li>;
+                    // Resolution styling (goal §10 / handoff): a line whose reviewer
+                    // comment was REJECTED reads as resolved - struck through, dimmed,
+                    // evidence mark dropped. Accepted lines settle with no extra chrome
+                    // (the handoff's explicit call). Text itself stays verbatim.
+                    const dutyCmt = marginComments.find((mc) => mc.anchor === s.id);
+                    const decided = dutyCmt ? commentStatus[dutyCmt.id] : undefined;
+                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span></li>;
                     // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
