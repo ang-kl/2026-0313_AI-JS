@@ -30,7 +30,7 @@ export function renderWinComments(ctx) {
                   onFocus={() => setPreviewSpan && setPreviewSpan(c.anchor)}
                   onBlur={() => setPreviewSpan && setPreviewSpan(null)}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(c.anchor); } }}
-                  style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
+                  style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#b45309" : st === "accepted" ? "#c7d6ff" : st === "rejected" ? "#e0dcd0" : "#eceae2"), background: active ? "#fdf6ea" : st === "rejected" ? "#f6f5f1" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                     <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{c.persona}</span>

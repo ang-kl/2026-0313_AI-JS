@@ -136,7 +136,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           const actPref = (activeWin[tab] && activeWin[tab][side]) || winsAll[0];
           const act = wins.includes(actPref) ? actPref : wins[0];
           return (
-            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "0 0 " + splitPct + "%" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#f4f6fa" : "#e9edf3", outline: dockHover === side ? "3px solid #1a56db" : "none", outlineOffset: -3, transition: "outline-color .1s" }}>
+            <div key={side} className="wis-panel" style={{ flex: side === "left" ? "0 0 " + splitPct + "%" : "1 1 0", minWidth: 0, display: "flex", flexDirection: "column", borderLeft: side === "right" ? "1px solid #e2e0d8" : "none", background: side === "right" ? "#dedbd0" : "#e9e7e0", outline: dockHover === side ? "3px solid #1a56db" : "none", outlineOffset: -3, transition: "outline-color .1s" }}>
               <div className="wis-scroll" role="tablist" aria-label={side + " panel windows"} style={{ flex: "none", display: "flex", gap: 4, padding: "4px 8px 0", overflowX: "auto", borderBottom: "1px solid #e2e0d8", background: "#fbfaf7" }}>
                 {wins.map((w) => { const on = act === w; return (
                   <button key={w} type="button" role="tab" aria-selected={on}

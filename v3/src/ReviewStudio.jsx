@@ -1021,11 +1021,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     `}</style>
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
       {/* Sub-header (fixed, does not scroll) */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 12, padding: "5px 14px", background: "#fbfaf8", borderBottom: "1px solid #e2e0d8" }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 12, padding: "7px 14px", background: "#14204f", borderBottom: "1px solid #0d1636" }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#dbe2ff", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".14em", color: "#6b6357" }}>REVIEWING</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".14em", color: "rgba(255,255,255,0.72)" }}>REVIEWING</span>
             <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
             {/* Decision counts (goal §10 / handoff sub-header): live accepted/pending
                 tally over the reviewer comments - counts, not colour, carry the state. */}
@@ -1033,15 +1033,15 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               const acc = marginComments.filter((c) => commentStatus[c.id] === "accepted").length;
               const rej = marginComments.filter((c) => commentStatus[c.id] === "rejected").length;
               const pen = marginComments.length - acc - rej;
-              return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#586474", whiteSpace: "nowrap" }}>{marginComments.length} comment{marginComments.length === 1 ? "" : "s"} {RS_DOT} {acc} accepted {RS_DOT} {rej} rejected {RS_DOT} {pen} pending</span>;
+              return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#c9d2ee", whiteSpace: "nowrap" }}>{marginComments.length} comment{marginComments.length === 1 ? "" : "s"} {RS_DOT} {acc} accepted {RS_DOT} {rej} rejected {RS_DOT} {pen} pending</span>;
             })()}
           </div>
-          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
+          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1rem", color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
           {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
               mapped to a canonical ESCO title for the skills fetch - that disclosure must
               not silently vanish by Step 3. */}
           {result && result.escoCanonicalTitle && (
-            <div style={{ fontSize: "0.6875rem", color: "#6b6357", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Skills resolved via the closest ESCO term: <strong style={{ color: "#5a5548" }}>{result.escoCanonicalTitle}</strong></div>
+            <div style={{ fontSize: "0.6875rem", color: "#c9d2ee", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Skills resolved via the closest ESCO term: <strong style={{ color: "#ffffff" }}>{result.escoCanonicalTitle}</strong></div>
           )}
         </div>
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
@@ -1163,17 +1163,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
-      <div ref={tabsRef} className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#fff", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
+      <div ref={tabsRef} className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#f3f1ea", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
         {[["overview", "Overview"], ["ad", "The Ad"], ["duties", "Duties & Exposure"], ["gates", "Requirements & Gates"], ["critical", "Critical Read"], ["market", "Market"]].map(([k, lbl]) => {
           const on = tab === k;
           return (
             <button key={k} type="button" role="tab" aria-selected={on} onClick={() => setTab(k)}
-              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 13px", background: on ? "#fbfaf7" : "#f1f4f8", color: on ? "#142a8e" : "#5b6878", border: "1px solid " + (on ? "#d9dee6" : "#e3e8ef"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
+              style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: on ? 700 : 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 40, padding: "6px 13px", background: on ? "#fbfaf7" : "#e7e4da", color: on ? "#14204f" : "#3d4a5c", border: "1px solid " + (on ? "#d9dee6" : "#dcd8cc"), borderBottom: on ? "1px solid #fbfaf7" : "1px solid #d9dee6", borderRadius: "10px 10px 0 0", marginBottom: -1, position: "relative", zIndex: on ? 2 : 1 }}>{lbl}</button>
           );
         })}
       </div>
       {/* Row 3: the active tab's toolbar */}
-      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "4px 14px", background: "#fbfaf7", borderBottom: "1px solid #eceae2", overflowX: "auto", minHeight: 44 }}>
+      <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "4px 14px", background: "#f3f1ea", borderBottom: "1px solid #e0dcd0", overflowX: "auto", minHeight: 44 }}>
         {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
         {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
           <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
