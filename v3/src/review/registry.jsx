@@ -27,20 +27,24 @@ export const WINDOWS = [
     placements: { overview: ["left", 0] }, anchors: {} },
   { id: "shortcuts",  label: "Shortcuts",              render: renderWinShortcuts,
     placements: { overview: ["right", 0] }, anchors: {} },
+  // Human Lead (11-07 '26, "Step 3 - OIA"): the manuscript joins the DUTIES tab too -
+  // the whole ad, word-review underlines and all, sits on the left while the O-I-A
+  // cards sit beside it, so the existing oia<->manuscript connector line actually has
+  // both endpoints on-tab instead of degrading to a stub.
   { id: "manuscript", label: "Manuscript",             render: renderWinManuscript,
-    placements: { ad: ["left", 0] },
+    placements: { ad: ["left", 0], duties: ["left", 0] },
     anchors: { dutyLine: (id) => "#li-" + id } },
   { id: "comments",   label: "Comments",               render: renderWinComments,
     placements: { ad: ["right", 1] },
     anchors: { comment: (id) => '[data-comment-anchor="' + id + '"]' } },
   { id: "oia",        label: "O-I-A cards",            render: renderWinOIA,
-    placements: { duties: ["left", 0] },
+    placements: { duties: ["right", 0] },
     anchors: { oiaCard: (id) => '[data-oia-anchor="' + id + '"]' } },
   { id: "aitrace",    label: "AI trace",               render: renderWinAitrace,
     placements: { duties: ["left", 1] },
     anchors: { traceRow: (id) => '[data-trace-anchor="' + id + '"]' } },
   { id: "trajectory", label: "Trajectory",             render: renderWinTrajectory,
-    placements: { duties: ["right", 1] }, anchors: {} },
+    placements: { duties: ["right", 2] }, anchors: {} },
   { id: "gates",      label: "Hard gates",             render: renderWinGatesHard,
     placements: { gates: ["left", 0] }, anchors: {} },
   { id: "qoi",        label: "Quality of information", render: renderWinQoI,
@@ -54,7 +58,7 @@ export const WINDOWS = [
   { id: "indicators", label: "Indicators",             render: renderWinIndicators,
     placements: { market: ["right", 1] }, anchors: {} },
   { id: "inspector",  label: "Inspector",              render: renderWinInspector,
-    placements: { overview: ["right", 1], ad: ["right", 0], duties: ["right", 0], gates: ["right", 0], critical: ["right", 0], market: ["right", 2] },
+    placements: { overview: ["right", 1], ad: ["right", 0], duties: ["right", 1], gates: ["right", 0], critical: ["right", 0], market: ["right", 2] },
     anchors: {} },
 ];
 

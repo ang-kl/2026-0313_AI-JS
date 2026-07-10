@@ -9,7 +9,6 @@
 import { useState, useMemo, useEffect, useLayoutEffect, useRef, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
-import BLUEPRINT_STATUS from "./blueprint-status.json";
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
@@ -29,7 +28,6 @@ import { WINDOWS, TAB_WINDOWS } from "./review/registry.jsx";
 // Build-status percentages for the strip above the tabs now come from
 // blueprint-status.json - a real tracked record (single source of truth), not a
 // hand-edited array in this component. Edit the JSON file when a workstream ships.
-const BUILD_STATUS = (BLUEPRINT_STATUS.workstreams || []).map((w) => [w.name, w.pct]);
 // Ribbon items are only rendered when their handler actually does something. The
 // prior version listed Evidence (observed/interpreted/applied/withheld/provenance)
 // plus Output (cover/resume/interview/print) as tappable pills - but their handlers
@@ -835,7 +833,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const pillStyle = (active) => ({ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 500, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 10px", background: active ? "#142a8e" : "#fff", color: active ? "#fff" : "#3a4456", border: "1px solid " + (active ? "#142a8e" : "#e2e0d8") });
 
   const [activeWin, setActiveWin] = useState({});
-  const [showBuildStatus, setShowBuildStatus] = useState(true); // TEMPORARY - remove with the strip above
   // No.138 U3: LAYERS. A torn-off window leaves its panel strip and floats above the desk
   // in its own layer - drag by header, resize by corner, click brings to front, close
   // returns it to its home strip. Arrangement persists per posting (KV "boards").
@@ -973,7 +970,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1032,9 +1029,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           same pattern as the compare-queue's compareStep/compareStatus) - a step counter,
           an honest message, and an elapsed timer. No fabricated percentage and no
           "step N of total": later stages are conditional (posting-only, >=3 jobs, etc.),
-          so a denominator here would be invented. This is NOT the same thing as the
-          BUILD_STATUS strip below, which reports ENGINEERING feature-completion, not
-          this analysis's live progress - the two must never be conflated again. */}
+          so a denominator here would be invented. This is the ONLY progress strip on
+          this page - the static engineering-completion strip was removed (11-07 '26)
+          because a bar that never moves reads as broken, whatever its label says. */}
       {bgRunning && (
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 16px", background: "#eef4ff", borderBottom: "1px solid #d7e3fb" }}>
           <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#2554d6", flex: "none" }} />
@@ -1044,41 +1041,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
       )}
 
-      {/* TEMPORARY (Human Lead, 08-07 '26): this page is still being built - say so
-          honestly instead of letting an unfinished page look finished. Cup-fill per
-          workstream, engineering-reported (not a fabricated user-facing metric).
-          Remove this strip once every cup reads 100%. */}
-      {/* GATED (Human Lead, 08-07 '26): only workstreams below 100% show here - a
-          "finished" item has nothing left to report, so it is filtered out rather than
-          cluttering the strip. Bars are animated (moving stripe) so it reads as live
-          in-progress work, not a static screenshot. */}
-      {showBuildStatus && BUILD_STATUS.some(([, pct]) => pct < 100) && (
-        <div style={{ flex: "none", padding: "10px 16px 12px", background: "#fef3e0", borderBottom: "2px solid #f5d8a8" }}>
-          <style>{`
-            @keyframes bs-stripe { to { background-position: 28px 0; } }
-            .bs-fill { background-image: linear-gradient(45deg, rgba(255,255,255,.35) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.35) 50%, rgba(255,255,255,.35) 75%, transparent 75%, transparent); background-size: 14px 14px; animation: bs-stripe 0.7s linear infinite; }
-            @media (prefers-reduced-motion: reduce) { .bs-fill { animation: none !important; } }
-          `}</style>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.8125rem", fontWeight: 800, letterSpacing: ".06em", color: "#8a4b0a" }}>BUILDING THE BLUEPRINT</span>
-            <span style={{ fontSize: "0.75rem", color: "#8a4b0a" }}>Still in progress - finished workstreams are not listed here.</span>
-            <button type="button" onClick={() => setShowBuildStatus(false)} aria-label="Dismiss build-status strip" style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 30, border: "1px solid #f5d8a8", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#8a4b0a", fontSize: "0.8125rem" }}>{String.fromCharCode(0x2715)}</button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "6px 18px" }}>
-            {BUILD_STATUS.filter(([, pct]) => pct < 100).map(([label, pct]) => (
-              <div key={label} title={label + ": " + pct + "% built"}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#7a4008", marginBottom: 3 }}>
-                  <span style={{ fontWeight: 600 }}>{label}</span>
-                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontWeight: 800 }}>{pct}%</span>
-                </div>
-                <div style={{ height: 10, borderRadius: 5, background: "#f5d8a8", overflow: "hidden" }}>
-                  <div className="bs-fill" style={{ height: "100%", width: pct + "%", borderRadius: 5, background: "#d97706" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* REMOVED (Human Lead, 11-07 '26): the "BUILDING THE BLUEPRINT" strip. Its bars
+          were static engineering-completion percentages from blueprint-status.json -
+          they never moved during an analysis and repeatedly read as a frozen progress
+          bar. The Human Lead's standing rule: a progress bar must progress or it must
+          go. The AN1 "STILL LOADING" strip above is the real, live analysis progress;
+          engineering build status stays in blueprint-status.json, not in the UI. */}
 
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}

@@ -52,20 +52,24 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           lines.push({ id: l.id, active: l.active,
             x1: a.r.right, y1: a.r.top + a.r.height / 2,
             x2: b.r.left, y2: b.r.top + b.r.height / 2 });
-        } else if (aOn || bOn) {
-          // Part C.2 item 4: degrade to an edge stub at the visible endpoint's panel
-          // border, aggregated per missing target window with a count badge.
+        } else if ((aOn || bOn) && l.active) {
+          // Part C.2 item 4, tightened (Human Lead 11-07 '26, "Step 3 - meeting
+          // information"): only the ACTIVE link degrades to an edge stub. Stubbing
+          // every dimmed sibling produced a permanent floating count badge in empty
+          // panels that read as a broken control, not an affordance. The stub pins to
+          // the PANEL BOUNDARY (the splitter x) at the visible endpoint's height, so
+          // it visibly points across at where the partner would be.
           const vis = aOn ? a : b;
           const targetWin = aOn ? l.toWin : l.fromWin;
           const side = aOn ? "right" : "left"; // stub points toward the missing partner
           const key = targetWin + "|" + side;
           if (!stubAgg[key]) {
-            const x = side === "right" ? Math.min(vis.r.right + 6, deskRect.right - 14) : Math.max(vis.r.left - 6, deskRect.left + 14);
+            const boundary = deskRect.left + (deskRect.width * splitPct) / 100;
+            const x = side === "right" ? boundary - 30 : boundary + 30;
             const y = Math.min(Math.max(vis.r.top + vis.r.height / 2, deskRect.top + 14), deskRect.bottom - 14);
-            stubAgg[key] = { id: "stub-" + key, side, x, y, count: 0, targetWin, active: false };
+            stubAgg[key] = { id: "stub-" + key, side, x, y, count: 0, targetWin, active: true };
           }
           stubAgg[key].count += 1;
-          if (l.active) stubAgg[key].active = true;
         }
         // neither endpoint live: nothing is drawn (never point at nothing).
       });
