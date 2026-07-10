@@ -636,7 +636,7 @@ function WhyLine({ why, sec }) {
 }
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
-function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
+function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onExpand }) {
   const ac = accent || "#9a6113";
   const who = persona || "SIGNAL AUDITOR";
   const oc = obsChip || "from posting";
@@ -645,6 +645,10 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{who}</span>
+        {onExpand && (
+          <button type="button" onClick={onExpand} aria-label={"Open " + who + " card in the detail drawer"} title="Open in drawer"
+            style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #e6e3db", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
+        )}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
@@ -672,12 +676,16 @@ function CritCard({ tag, obs, interp, appl, persona, accent, obsChip }) {
 // Advisory (LLM) card for the batched Critical Read pass - devil's advocate, teleology,
 // pro-worker, real-demand. Clearly tagged "AI estimate - advisory": it challenges, it never
 // authors a number or overrides the engine's read.
-function AdvisoryCard({ persona, children }) {
+function AdvisoryCard({ persona, children, onExpand }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
+        {onExpand && (
+          <button type="button" onClick={onExpand} aria-label={"Open " + persona + " card in the detail drawer"} title="Open in drawer"
+            style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #f5dcb0", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
+        )}
       </div>
       <div style={{ padding: "12px 14px" }}>{children}</div>
     </div>
@@ -743,6 +751,16 @@ function AITracePanel({ result }) {
     </div>
   );
 }
+// Generalized connector registry (per Step-3 design spec, No.138 U-conn): the engine's
+// activeSpan/focusSkill remain the only truth source. A rule fires only when whenActive
+// returns a live id read off real state, so no connector line is ever manufactured for a
+// tab with no shared id (overview, gates, critical, market - no rule below, effect no-ops).
+const LINK_RULES = {
+  ad: { active: (s) => s.activeSpan, left: (id) => "#li-" + id,
+        right: (id) => '[data-comment-anchor="' + id + '"]' },
+  duties: { active: (s) => s.activeSpan, left: (id) => '[data-oia-anchor="' + id + '"]',
+            right: (id) => "#li-" + id }, // reciprocal to the manuscript's scrollIntoView target
+};
 export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
@@ -846,7 +864,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.qoi && critical.qoi.length > 0 && !hiddenPanels.includes("qoi") && <>
                 <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
                 <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
-                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting" />)}
+                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting"
+                  onExpand={(e) => openSheet("Quality of information", "critcard", { tag: q.grade, obs: q.text, interp: q.why, appl: q.move, persona: "QoI CHECK", accent: q.grade === "verifiable" ? "#1d4ed8" : "#9a6113", obsChip: "from posting" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -858,7 +877,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.salaryPos && !hiddenPanels.includes("salaryPos") && <>
                 <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
                 <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
-                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed" />
+                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed"
+                  onExpand={(e) => openSheet("Competitive read", "critcard", { tag: critical.salaryPos.pct + "th pct", obs: critical.salaryPos.obs, interp: critical.salaryPos.why, appl: critical.salaryPos.move, persona: "MARKET POSITION", accent: "#0e7490", obsChip: "computed" }, e)} />
               <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -870,7 +890,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.indicators && critical.indicators.length > 0 && !hiddenPanels.includes("indicators") && <>
                 <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
                 <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
-                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed" />)}
+                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed"
+                  onExpand={(e) => openSheet("Indicators", "critcard", { tag: x.label, obs: x.obs, interp: x.why, appl: x.move, persona: "INDICATORS", accent: "#0e7490", obsChip: "computed" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -982,7 +1003,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Can each claim be tested {String.fromCharCode(0x2014)} and what auto-rejects?</h2>
               {critical.hiringFilter.length > 0 && <>
                 <h3 style={critH3}>Hard gates</h3>
-                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"} />)}
+                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"}
+                  onExpand={(e) => openSheet("Hard gates", "critcard", { tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", persona: "HIRING FILTER", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)} />)}
               </>}
               {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
             </div>
@@ -1007,8 +1029,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>JOB AD DISSECTION {String.fromCharCode(0x00b7)} O-I-A LENS</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>Observation {String.fromCharCode(0x2192)} Interpretation {String.fromCharCode(0x2192)} Application</h2>
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Nothing is interpreted that was not first observed; nothing applied that was not first interpreted. Every read traces back to a verbatim span.</p>
-              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; return (
-                <div key={s.id} style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
+              {dissection.spans.map((s) => { const b = BANDS[s.band]; const lc = LENS[s.lens]; const oiaOn = activeSpan === s.id; return (
+                <div key={s.id} data-oia-anchor={s.id} onClick={() => setActiveSpan(oiaOn ? null : s.id)}
+                  style={{ background: "#fff", border: "1px solid " + (oiaOn ? "#1a56db" : "#e6e3db"), borderRadius: 12, overflow: "hidden", marginBottom: 8, cursor: "pointer", ...(oiaOn ? { outline: "2px solid #c7d6ff", outlineOffset: 2 } : {}) }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
                     {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
@@ -1047,11 +1070,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Deterministic and verbatim-only: every flag is a phrase lifted straight from the posting. Empty or inflated wording gets a plain-language counter - the &quot;question-mark move&quot;.</p>
               {critical.noodles.length > 0 && <>
                 <h3 style={critH3}>Word noodles {RS_DOT} shiny but empty</h3>
-                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter} />)}
+                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter}
+                  onExpand={(e) => openSheet("Word noodles", "critcard", { tag: n.cat, obs: n.phrase, interp: n.why, appl: n.counter }, e)} />)}
               </>}
               {critical.forensic.length > 0 && <>
                 <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
-                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter} />)}
+                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter}
+                  onExpand={(e) => openSheet("Forensic reversal", "critcard", { tag: "aspiration", obs: f.phrase, interp: f.why, appl: f.counter }, e)} />)}
               </>}
               {/* No.136 G2: the six deterministic lenses render severity-first (flex order =
                   deterministic rank) and are individually dismissible; hidden panels restore
@@ -1070,7 +1095,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.blindSpots && critical.blindSpots.length > 0 && !hiddenPanels.includes("blindSpots") && <>
                 <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
                 <WhyLine why={critical.blindSpots.length + " of 6 standard fields are absent from the ad text"} sec="spec No.135 AI-2" />
-                {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed" />)}
+                {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} persona="BLIND-SPOT SCAN" accent="#5b4bbd" obsChip="computed"
+                  onExpand={(e) => openSheet("Blind spots", "critcard", { tag: b.label, obs: "The ad is silent on " + b.label + ".", interp: "Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable.", appl: b.ask, persona: "BLIND-SPOT SCAN", accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("blindSpots", true)} aria-label={"Hide panel: " + G2_LABELS.blindSpots} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1078,7 +1104,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.contradictions && critical.contradictions.length > 0 && !hiddenPanels.includes("contradictions") && <>
                 <h3 style={critH3}>Contradictions {RS_DOT} lines that do not belong</h3>
                 <WhyLine why={critical.contradictions.length + " duty line" + (critical.contradictions.length === 1 ? " sits" : "s sit") + " outside the ad's majority domain"} sec="spec No.135 AI-2" />
-                {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived" />)}
+                {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="CONTRADICTION SCAN" accent="#0e7490" obsChip="derived"
+                  onExpand={(e) => openSheet("Contradictions", "critcard", { tag: "mash-up", obs: x.obs, interp: "This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice.", appl: "Ask which of the two jobs the hire actually owns - and which one performance is judged on.", persona: "CONTRADICTION SCAN", accent: "#0e7490", obsChip: "derived" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1089,7 +1116,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               </div>
               {critical.falsification.length > 0 && <>
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
-                {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed" />)}
+                {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} persona="FALSIFICATION LENS" accent="#5b4bbd" obsChip="computed"
+                  onExpand={(e) => openSheet("Falsification", "critcard", { tag: f.tag, obs: f.obs, interp: f.interp, appl: f.appl, persona: "FALSIFICATION LENS", accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
               </>}
               {cr && (
                 (cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length))) ||
@@ -1323,7 +1351,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               return (
-                <div key={c.id} data-comment-anchor={c.anchor} onClick={() => setActiveSpan(c.anchor)} style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
+                <div key={c.id} data-comment-anchor={c.anchor} role="button" tabIndex={0}
+                  aria-label={"Highlight the anchor for " + c.persona + "'s " + c.type + " comment"}
+                  onClick={() => setActiveSpan(c.anchor)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(c.anchor); } }}
+                  style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#1a56db" : st === "accepted" ? "#cce6d4" : st === "rejected" ? "#ecdada" : "#eceae2"), background: active ? "#f5f8ff" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                     <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
@@ -1381,6 +1413,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [overrides, setOverrides] = useState({}); // {tab: {winId: "left"|"right"}}
   const [pinned, setPinned] = useState([]);       // [winId]
   const [slideOpen, setSlideOpen] = useState(null); // pinned winId currently slid out
+  // U-drawer: a bottom sheet for cramped/overflow content (tables, long OIA/advisory
+  // cards) that has no connector partner - {title, kind, payload} straight off the same
+  // data already rendered inline; never a new fetch, never fabricated content.
+  const [sheet, setSheet] = useState(null); // { title, kind, payload } | null
+  const sheetTriggerRef = useRef(null);
+  const sheetCloseRef = useRef(null);
+  const openSheet = (title, kind, payload, e) => { sheetTriggerRef.current = (e && e.currentTarget) || null; setSheet({ title, kind, payload }); };
   const [dockHover, setDockHover] = useState(null); // "left"|"right" while dragging a float
   const splitDragRef = useRef(null);
   const deskRef = useRef(null);
@@ -1394,11 +1433,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [connLine, setConnLine] = useState(null);
   useLayoutEffect(() => {
     const desk = deskRef.current;
-    if (!desk || !activeSpan) { setConnLine(null); return; }
+    const rule = LINK_RULES[tab];
+    const id = rule ? rule.active({ activeSpan, focusSkill }) : null;
+    if (!desk || !rule || !id) { setConnLine(null); return; }
     const recompute = () => {
       const deskRect = desk.getBoundingClientRect();
-      const srcEl = document.getElementById("li-" + activeSpan);
-      const dstEl = desk.querySelector('[data-comment-anchor="' + activeSpan + '"]');
+      const srcEl = desk.querySelector(rule.left(id));
+      const dstEl = desk.querySelector(rule.right(id));
       if (!srcEl || !dstEl) { setConnLine(null); return; }
       const sr = srcEl.getBoundingClientRect();
       const dr = dstEl.getBoundingClientRect();
@@ -1413,7 +1454,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     window.addEventListener("resize", recompute);
     desk.addEventListener("scroll", recompute, true); // capture: fires for the scrolling panel too
     return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", recompute); desk.removeEventListener("scroll", recompute, true); };
-  }, [activeSpan, tab, floats, pinned, overrides, activeWin]);
+  }, [activeSpan, focusSkill, tab, floats, pinned, overrides, activeWin]);
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => {
@@ -1443,11 +1484,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const dockBack = (id) => setFloats((prev) => { const next = prev.filter((f) => f.id !== id); persistFloats(next); return next; });
   const bringToFront = (id) => setFloats((prev) => { const next = prev.map((f) => f.id === id ? { ...f, z: ++zTopRef.current } : f); persistFloats(next); return next; });
   useEffect(() => {
-    if (!slideOpen) return;
-    const onKey = (e) => { if (e.key === "Escape") setSlideOpen(null); };
+    if (!slideOpen && !sheet) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (sheet) { setSheet(null); return; } // sheet closes first, then the pinned slide-over
+      setSlideOpen(null);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [slideOpen]);
+  }, [slideOpen, sheet]);
+  // Focus the sheet's close button on open; return focus to whatever opened it on close.
+  useEffect(() => {
+    if (sheet && sheetCloseRef.current) sheetCloseRef.current.focus();
+    if (!sheet && sheetTriggerRef.current) { sheetTriggerRef.current.focus(); sheetTriggerRef.current = null; }
+  }, [sheet]);
   useEffect(() => { persistFloats(floats); /* also captures splitPct/overrides/pinned via desk blob */ // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [splitPct, overrides, pinned]);
   const startFloatDrag = (e, id) => {
@@ -1479,6 +1529,22 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     } else { persistFloats(floats); }
     setDockHover(null); floatDragRef.current = null;
   };
+  // Bottom-sheet body: every kind re-presents data already rendered inline elsewhere on
+  // the page (same CritCard/AdvisoryCard fields, same JSX children) - just at drawer size
+  // for content that is cramped in the 3-column card grid. Nothing new is fabricated here.
+  const renderSheet = (sh) => {
+    if (!sh) return null;
+    if (sh.kind === "critcard") {
+      const p = sh.payload;
+      return (
+        <div style={{ maxWidth: 880, margin: "0 auto" }}>
+          <CritCard tag={p.tag} obs={p.obs} interp={p.interp} appl={p.appl} persona={p.persona} accent={p.accent} obsChip={p.obsChip} />
+        </div>
+      );
+    }
+    if (sh.kind === "node") return <div style={{ maxWidth: 880, margin: "0 auto" }}>{sh.payload.node}</div>;
+    return null;
+  };
   const renderWindow = (id) => (
     id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
     id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
@@ -1497,6 +1563,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         fixed-position slide-over panels instead of flex siblings that push it aside. */}
     <style>{`
       @keyframes wisSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+      @keyframes wisSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
       @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
       @media (max-width: 860px) {
         /* No.138: the desk stacks on phones - left panel above, right below, each
@@ -1691,6 +1758,28 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <button type="button" onClick={() => setSlideOpen(null)} aria-label="Slide the pinned window away (Esc)" style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
           </div>
           <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(slideOpen)}</div>
+        </div>
+      )}
+
+      {/* Bottom drawer: cramped/overflow content (tables, long explain cards) with no
+          connector partner - mounted outside deskRef so it never perturbs connector
+          geometry. Sits below the pinned slide-over (1394 < 1395/1396) so both can be
+          open together; floats (high z) stay draggable above everything. Non-blocking
+          (aria-modal false) - the desk stays interactive underneath. */}
+      {sheet && (
+        <div role="dialog" aria-modal="false" aria-label={sheet.title}
+          style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 1394,
+            maxHeight: "min(60vh, 560px)", background: "#fbfaf8",
+            borderTop: "1px solid #d9dee6", borderRadius: "14px 14px 0 0",
+            boxShadow: "0 -14px 40px rgba(15,23,42,.22)",
+            display: "flex", flexDirection: "column", animation: "wisSlideUp .3s ease" }}>
+          <div style={{ position: "relative", flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8" }}>
+            <span aria-hidden="true" style={{ position: "absolute", left: "50%", top: 6, transform: "translateX(-50%)", width: 36, height: 4, borderRadius: 2, background: "#d9dee6" }} />
+            <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", marginLeft: 6 }}>{sheet.title}</span>
+            <button type="button" ref={sheetCloseRef} onClick={() => setSheet(null)} aria-label="Close the detail drawer (Esc)"
+              style={{ flex: "none", minHeight: 44, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+          </div>
+          <div style={{ overflowY: "auto", padding: "4px 16px 20px" }}>{renderSheet(sheet)}</div>
         </div>
       )}
 
