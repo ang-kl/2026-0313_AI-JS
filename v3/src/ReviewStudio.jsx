@@ -19,21 +19,11 @@ import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
 // ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
 import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP } from "./review/rs-rules.js";
 import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, critH3 } from "./review/shared.jsx";
-import Desk, { LINK_RULES } from "./review/Desk.jsx";
-import { renderWinVerdict } from "./review/windows/Verdict.jsx";
-import { renderWinShortcuts } from "./review/windows/Shortcuts.jsx";
-import { renderWinGatesHard } from "./review/windows/GatesHard.jsx";
-import { renderWinQoI } from "./review/windows/QoI.jsx";
-import { renderWinGraphs } from "./review/windows/Graphs.jsx";
-import { renderWinSalary } from "./review/windows/Salary.jsx";
-import { renderWinIndicators } from "./review/windows/Indicators.jsx";
-import { renderWinTrajectory } from "./review/windows/Trajectory.jsx";
-import { renderWinAitrace } from "./review/windows/Aitrace.jsx";
-import { renderWinOIA } from "./review/windows/OIA.jsx";
-import { renderWinCritical } from "./review/windows/Critical.jsx";
-import { renderWinManuscript } from "./review/windows/Manuscript.jsx";
-import { renderWinInspector } from "./review/windows/Inspector.jsx";
-import { renderWinComments } from "./review/windows/Comments.jsx";
+import Desk from "./review/Desk.jsx";
+// PR 2 (Part B.3): the declarative window registry is the single source of truth -
+// window render functions, labels, tab placement and the connector anchor contract
+// all derive from it. The 14 individual window imports live inside the registry now.
+import { WINDOWS, LINK_RULES } from "./review/registry.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
@@ -994,27 +984,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
   const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus };
-  const winVerdict = renderWinVerdict(winCtx);
-  const winShortcuts = renderWinShortcuts(winCtx);
-  const winGatesHard = renderWinGatesHard(winCtx);
-  const winQoI = renderWinQoI(winCtx);
-  const winGraphs = renderWinGraphs(winCtx);
-  const winSalary = renderWinSalary(winCtx);
-  const winIndicators = renderWinIndicators(winCtx);
-  const winTrajectory = renderWinTrajectory(winCtx);
-  const winAitrace = renderWinAitrace(winCtx);
-  const winOIA = renderWinOIA(winCtx);
-  const winCritical = renderWinCritical(winCtx);
-  const winManuscript = renderWinManuscript(winCtx);
-  const winInspector = renderWinInspector(winCtx);
-  const winComments = renderWinComments(winCtx);
-  const renderWindow = (id) => (
-    id === "verdict" ? winVerdict : id === "shortcuts" ? winShortcuts : id === "manuscript" ? winManuscript :
-    id === "comments" ? winComments : id === "oia" ? winOIA : id === "aitrace" ? winAitrace :
-    id === "trajectory" ? winTrajectory : id === "gates" ? winGatesHard : id === "qoi" ? winQoI :
-    id === "critical" ? winCritical : id === "graphs" ? winGraphs : id === "salary" ? winSalary :
-    id === "indicators" ? winIndicators : winInspector
-  );
+  // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
+  // ternary chain is gone; an unknown id falls back to the inspector, as before.
+  const winEls = {};
+  WINDOWS.forEach((w) => { winEls[w.id] = w.render(winCtx); });
+  const renderWindow = (id) => (winEls[id] !== undefined ? winEls[id] : winEls.inspector);
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
