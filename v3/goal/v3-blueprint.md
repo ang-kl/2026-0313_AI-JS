@@ -79,6 +79,25 @@ Generic AI advice is a failure mode.
 
 V3 should avoid advice that could apply to any job, any person, or any sector.
 
+### 0.2 The Application Volume Reality (added 10-07 '26)
+
+The market context V3 operates in is adversarial by volume, not by malice.
+
+- The large majority of Singapore private-sector and SG.Gov job postings each draw 100+ applicants; a meaningful share draw 1,000+.
+- A candidate is not competing against the job description. A candidate is competing against a queue.
+- Standing out on paper is close to structurally impossible at this ratio. The real leverage point is not the application - it is what happens if the candidate reaches a screen or an interview.
+
+This reframes the product's job:
+
+> V3's job is not "help this application look better." V3's job is "help this specific candidate walk into a screen or interview and be genuinely, verifiably the strongest reasoned case in the room - because they understood the role, the organisation, and the true state of AI capability better than the other applicants did."
+
+Two open, unresolved questions this section exists to hold (not yet answered by any shipped feature - track under §9/§10 as they resolve):
+
+1. **Currency of the AI-capability read.** AI capability itself keeps moving - what a role's AI-exposure classification should assume about "what AI can now do" needs to track genuinely recent developments (weeks, not the model's training cutoff), or the exposure bands and skill narrations drift stale against the candidate's actual competitive reality. This is a standing maintenance question, not a one-time fix: V3 needs a discipline for periodically refreshing its assumptions about AI capability against the current frontier, sourced and dated, not silently re-guessed by an LLM call. Never invent a "recent development" - if the engine has no verified, sourced signal for what changed, withhold rather than narrate a guess.
+2. **Stickiness toward the actual outcome.** A one-shot analysis is not enough if the goal is interview performance. What would make a candidate come back to this specific role's analysis in the days before a screen - to rehearse, to check a claim, to sharpen an answer - rather than using it once and closing the tab? This is a retention/utility question, not a growth-hacking one: the product earns repeat use by being the thing that actually helped in the room, not by engagement mechanics.
+
+Non-negotiables that already apply here per §0.1: no generic advice, no advice that could apply to any job/candidate/sector, and every AI-capability claim carries a named source and a date - never a bare assertion that "AI can now do X."
+
 ## 1. Core Thesis
 
 V3 treats a job advertisement as a work-system signal, not merely as a vacancy.
