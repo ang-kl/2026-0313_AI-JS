@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.286";
+const APP_VERSION = "3.0.287";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12423,6 +12423,11 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     startedAt: 0, classifyFinishedAt: 0,
   });
   const [selectedId, setSelectedId] = useState(null);
+  // Card DOM nodes keyed by posting id, so the INDEX rail can scroll the
+  // matching card into view - without this, clicking an index entry only
+  // set a highlight on a card that's almost always off-screen among dozens
+  // of postings, so nothing appeared to happen (found in live verification).
+  const cardRefs = useRef({});
   const [sort, setSort] = useState("match");
   // Derived from STEP2_FACETS so adding a facet key can never again miss the
   // state init (FLOW-1b added matchTier to STEP2_FACETS but not here - the
@@ -12654,7 +12659,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     const synopsis = step2Synopsis(c.job);
     const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
     return (
-      <div key={c.id} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+      <div key={c.id} ref={(el) => { if (el) cardRefs.current[c.id] = el; }} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
         {/* FOLIO v2 (Human Lead, 07-07 '26): company leads row 1; row 2 is a folder-TAB
             strip - [match tier] and [+N ads] are separate tabs, each opening its own panel
             (tier -> what the match basis means; ads -> the employer's other jobs here). */}
@@ -12965,7 +12970,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       {g.items.map((t) => { const s = selectedId === t.id; return (
-                        <button key={t.id} onClick={() => setSelectedId(t.id)} style={{ display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "6px 7px", width: "100%" }}>
+                        <button key={t.id} onClick={() => { setSelectedId(t.id); const el = cardRefs.current[t.id]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }} style={{ display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "6px 7px", width: "100%" }}>
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none", marginTop: 5 }} />
                           <span style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: s ? "#142a8e" : "#3a4456", fontWeight: s ? 600 : 500, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
