@@ -559,16 +559,54 @@ function rsQoI(spans) {
       move: grade === "verifiable" ? "Meet it or show the named equivalent." : "Ask: what threshold, measured how, by whom?" };
   }).slice(0, 8);
 }
+// Title normalisation for the dup key: lowercase, strip parenthetical suffixes and
+// in-scope seniority prefixes, collapse punctuation/whitespace. Deterministic - no
+// fuzzy edit-distance, so it never over-collapses distinct role nouns.
+function rsNormTitle(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\b(junior|senior|assistant|lead|principal)\b/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+// Pure count ratio of shared tokens over the union - same sample gives same ratio.
+function rsJaccard(aTokens, bTokens) {
+  const a = new Set(aTokens), b = new Set(bTokens);
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  a.forEach((t) => { if (b.has(t)) inter++; });
+  const union = a.size + b.size - inter;
+  return union ? inter / union : 0;
+}
 function rsIndicators(result) {
   const rdd = result && result.responsibilitiesData;
   const jobs = (rdd && Array.isArray(rdd.jobs)) ? rdd.jobs : [];
   if (jobs.length < 3) return [];
   const out = [];
-  const key = (j) => (String(j.title || "").toLowerCase().trim() + "|" + String(j.postedCompany && j.postedCompany.name || j.companyName || "").toLowerCase().trim());
-  const dupes = {};
-  jobs.forEach((j) => { const k = key(j); dupes[k] = (dupes[k] || 0) + 1; });
-  const maxDupe = Math.max(...Object.values(dupes));
-  if (maxDupe >= 3) out.push({ id: "ind-repost", label: "repost pattern", obs: maxDupe + " near-identical ads (same title + employer) in the " + jobs.length + " sampled", why: "Repeated posting of the same role often signals churn, an always-open req, or pipeline building rather than one vacancy.", move: "Ask how long the position has been open and why." });
+  const emp = (j) => String(j.hiringCompanyName || j.postedCompanyName || (j.postedCompany && j.postedCompany.name) || j.companyName || "").toLowerCase().trim();
+  const key = (j) => (rsNormTitle(j.title) + "|" + emp(j));
+  const clusters = {};
+  jobs.forEach((j) => { const k = key(j); (clusters[k] = clusters[k] || []).push(j); });
+  let maxDupe = 0, maxKey = null;
+  Object.keys(clusters).forEach((k) => { if (clusters[k].length > maxDupe) { maxDupe = clusters[k].length; maxKey = k; } });
+  if (maxDupe >= 3) {
+    const cluster = clusters[maxKey];
+    const dutyToks = cluster.map((j) => rsTokens(rsAdText(j)));
+    let maxOverlap = 0;
+    for (let i = 0; i < dutyToks.length; i++) {
+      for (let jx = i + 1; jx < dutyToks.length; jx++) {
+        const ov = rsJaccard(dutyToks[i], dutyToks[jx]);
+        if (ov > maxOverlap) maxOverlap = ov;
+      }
+    }
+    const dutyMatch = maxOverlap >= 0.6;
+    out.push({ id: "ind-repost", label: "repost pattern",
+      obs: maxDupe + " near-identical ads (same employer + " + (dutyMatch ? "duty text" : "title") + ") in the " + jobs.length + " sampled",
+      why: "This req is being posted repeatedly. A queue this crowded rewards depth over spread - one strong, evidenced application beats several thin ones.",
+      move: "Triage: either commit real effort to this one, or deprioritise it and spend the time on a less-contested req. Ask at screen how long the seat has been open." });
+  }
   const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax || (j.salary && (j.salary.minimum || j.salary.maximum))).length;
   const pct = Math.round((withSalary / jobs.length) * 100);
   if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
