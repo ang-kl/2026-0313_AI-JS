@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.292";
+const APP_VERSION = "3.0.293";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5374,30 +5374,29 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
     return () => clearInterval(id);
   }, [step, label]);
   return (
-    <div role="status" aria-live="polite" style={{ padding: "44px 0 32px", position:"relative" }}>
+    <div role="status" aria-live="polite" style={{ padding: "16px 0 24px", position:"relative" }}>
       <style>{`@keyframes sp{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:0.5;transform:translateX(-5px)}} @keyframes skillBlink{0%,100%{opacity:1;box-shadow:0 0 0 3px var(--blink-glow,#fbbf24)}50%{opacity:0.75;box-shadow:0 0 16px 4px var(--blink-glow,#fbbf24)}} @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}} @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}} @keyframes ldxSweep{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}} @keyframes ldxBreathe{0%,100%{opacity:0.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.ldx{animation:none !important}}
         /* Analysis screen widens to use horizontal room on landscape/desktop
            viewports instead of staying phone-narrow; the skills + info cards
            reflow into responsive columns. Portrait/phone keeps one column. */
         .ldx-shell{max-width:620px;margin:0 auto}
-        /* The progress-ring card stays centred + narrow for readability; the skill
-           grid + info cards (which live directly in the shell) widen with the shell. */
+        /* Human Lead (11-07 '26, Step 2 screenshots): the waiting card and the skill
+           grid were leaving wide dead margins - the shell now tracks the viewport
+           (96vw) and the ring card widens with it instead of staying phone-narrow. */
         .ldx-card{max-width:620px;margin-left:auto;margin-right:auto}
         .ldx-skills-grid{display:block}
         @media (min-width:640px){.ldx-skills-grid{display:grid;grid-template-columns:repeat(2,1fr);column-gap:10px;align-items:start}}
-        /* iPad mini / tablet portrait (~680-900px): expand the shell so the skill
-           cards occupy the side margin instead of staying in a 620px column. */
         @media (min-width:680px){
-          .ldx-shell{max-width:min(1180px,94vw)}
+          .ldx-shell{max-width:96vw}
+          .ldx-card{max-width:none}
           .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         }
         @media (min-width:900px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
-        /* Notebook + up: fill more of the viewport, keeping a small reading margin. */
-        @media (min-width:1180px){.ldx-shell{max-width:min(1440px,95vw)} .ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
+        @media (min-width:1180px){.ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
       <div className="ldx-shell">
-        <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"28px 22px 24px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
+        <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"18px 22px 16px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
           {/* progress ring */}
-          <div aria-hidden="true" style={{ width:76, height:76, margin:"0 auto 16px", position:"relative" }}>
+          <div aria-hidden="true" style={{ width:64, height:64, margin:"0 auto 10px", position:"relative" }}>
             {determinate ? (
               <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
             ) : (
@@ -5422,13 +5421,13 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
             </p>
           )}
           {/* gradient sweep bar */}
-          <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"14px auto 0" }}>
+          <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"10px auto 0" }}>
             {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
             <div className="ldx" style={{ position:"absolute", top:0, bottom:0, left:0, width:"34%", background:"linear-gradient(90deg, transparent, rgba(26,86,219,0.35), transparent)", animation:"ldxSweep 1.5s ease-in-out infinite" }} />
           </div>
           {/* step rail - done = filled + check, current = outlined + pulse, pending = muted */}
           {determinate && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:14, flexWrap:"wrap" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:10, flexWrap:"wrap" }}>
               {Array.from({ length: total }).map((_, i) => {
                 const done = i < step - 1, current = i === step - 1;
                 return (
@@ -5449,19 +5448,36 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
           <p style={{ margin:"0 0 8px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
-          <div className="ldx-skills-grid">
-          {list.map((s, i) => (
-            <div key={(s && (s.escoUri || s.skill)) || i} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
-              <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
-                <span style={{ flexShrink:0, fontSize: "0.625rem", fontWeight:800, color:C.accent, minWidth:18, fontVariantNumeric:"tabular-nums" }}>{String(i+1).padStart(2,"0")}</span>
-                <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
+          {/* Categorised + sorted (Human Lead 11-07 '26): ESCO's own skillType split
+              (skill/competence = what you DO, knowledge = what you KNOW), A-Z inside
+              each group. The taxonomy authored the categories - no new inference. */}
+          {(() => {
+            const isKnow = (s) => String((s && (s.skillType || s.type)) || "").toLowerCase().includes("know");
+            const groups = [
+              { key: "sc", label: "Skills & competences - what you do", items: list.filter((s) => !isKnow(s)) },
+              { key: "kn", label: "Knowledge - what you know", items: list.filter(isKnow) },
+            ].filter((g) => g.items.length > 0);
+            groups.forEach((g) => g.items.sort((a, b) => String((a && a.skill) || "").localeCompare(String((b && b.skill) || ""))));
+            let n = 0;
+            return groups.map((g) => (
+              <div key={g.key}>
+                {groups.length > 1 && <p style={{ margin:"10px 0 6px", fontSize: "0.625rem", fontWeight:800, color:C.accent, textTransform:"uppercase", letterSpacing:"0.08em" }}>{g.label} ({g.items.length})</p>}
+                <div className="ldx-skills-grid">
+                {g.items.map((s, gi) => { const i = n++; return (
+                  <div key={(s && (s.escoUri || s.skill)) || g.key + gi} className="ldx" style={{ background:"rgba(255,255,255,0.92)", border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, borderRadius: 10, padding: "10px 12px", marginBottom:6, boxShadow:"0 1px 3px rgba(15,40,105,0.05)", animation:"fadeInUp 0.45s ease both", animationDelay:`${Math.min(i, 10) * 55}ms` }}>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+                      <span style={{ flexShrink:0, fontSize: "0.625rem", fontWeight:800, color:C.accent, minWidth:18, fontVariantNumeric:"tabular-nums" }}>{String(i+1).padStart(2,"0")}</span>
+                      <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:600, color:C.text, lineHeight:1.4 }}>{(s && s.skill) || ""}</p>
+                    </div>
+                    {s && s.escoDescription && (
+                      <p style={{ margin:"3px 0 0", paddingLeft:26, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
+                    )}
+                  </div>
+                ); })}
+                </div>
               </div>
-              {s && s.escoDescription && (
-                <p style={{ margin:"3px 0 0", paddingLeft:26, fontSize: "0.75rem", color:C.textSub, lineHeight:1.55 }}>{s.escoDescription}</p>
-              )}
-            </div>
-          ))}
-          </div>
+            ));
+          })()}
           <EvidencePreview text={postingText} skills={list} />
         </div>
       )}
@@ -12428,6 +12444,17 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   // set a highlight on a card that's almost always off-screen among dozens
   // of postings, so nothing appeared to happen (found in live verification).
   const cardRefs = useRef({});
+  // Locator blink (Human Lead 11-07 '26): after the rail scrolls a card into
+  // view, strobe its border for ~3s so the eye finds it among dozens of cards.
+  const [blinkId, setBlinkId] = useState(null);
+  const blinkTimer = useRef(null);
+  const blinkCard = (id) => {
+    if (blinkTimer.current) clearTimeout(blinkTimer.current);
+    setBlinkId(null); // restart the CSS animation even on a repeat click
+    requestAnimationFrame(() => setBlinkId(id));
+    blinkTimer.current = setTimeout(() => setBlinkId(null), 3000);
+  };
+  useEffect(() => () => { if (blinkTimer.current) clearTimeout(blinkTimer.current); }, []);
   const [sort, setSort] = useState("match");
   // Derived from STEP2_FACETS so adding a facet key can never again miss the
   // state init (FLOW-1b added matchTier to STEP2_FACETS but not here - the
@@ -12659,7 +12686,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     const synopsis = step2Synopsis(c.job);
     const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
     return (
-      <div key={c.id} ref={(el) => { if (el) cardRefs.current[c.id] = el; }} onClick={() => setFullAd(c)} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+      <div key={c.id} ref={(el) => { if (el) cardRefs.current[c.id] = el; }} onClick={() => setFullAd(c)} className={blinkId === c.id ? "card-blink" : undefined} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
         {/* FOLIO v2 (Human Lead, 07-07 '26): company leads row 1; row 2 is a folder-TAB
             strip - [match tier] and [+N ads] are separate tabs, each opening its own panel
             (tier -> what the match basis means; ads -> the employer's other jobs here). */}
@@ -12970,7 +12997,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       {g.items.map((t) => { const s = selectedId === t.id; return (
-                        <button key={t.id} onClick={() => { setSelectedId(t.id); const el = cardRefs.current[t.id]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }} style={{ display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "6px 7px", width: "100%" }}>
+                        <button key={t.id} onClick={() => { setSelectedId(t.id); blinkCard(t.id); const el = cardRefs.current[t.id]; if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }} style={{ display: "flex", alignItems: "flex-start", gap: 7, cursor: "pointer", textAlign: "left", background: s ? "#eef2ff" : "transparent", border: "1px solid " + (s ? "#cdd9ff" : "transparent"), borderRadius: 6, padding: "6px 7px", width: "100%" }}>
                           <span style={{ width: 6, height: 6, borderRadius: "50%", background: t.band ? t.band.dot : "#cbd5e1", flex: "none", marginTop: 5 }} />
                           <span style={{ flex: 1, minWidth: 0 }}>
                             <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: s ? "#142a8e" : "#3a4456", fontWeight: s ? 600 : 500, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
@@ -16918,6 +16945,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
       @keyframes sp { to { transform: rotate(360deg); } }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
+      /* Step 2 INDEX rail -> card locator blink (Human Lead 11-07 '26): the border
+         strobes blue<->white so the eye lands on the matching card after the
+         scroll. Shape+motion signal, not hue-pair - colour-blind safe. */
+      @keyframes cardBlink {
+        0%, 100% { border-color: #1a56db; box-shadow: 0 0 0 4px rgba(26,86,219,0.35); }
+        50%      { border-color: #ffffff; box-shadow: 0 0 0 4px rgba(255,255,255,0.9); }
+      }
+      .card-blink { animation: cardBlink 0.55s ease-in-out 5; }
+      @media (prefers-reduced-motion: reduce) { .card-blink { animation: none; border-color: #1a56db !important; box-shadow: 0 0 0 4px rgba(26,86,219,0.35) !important; } }
 
       /* ── LUX3: modern micro-interaction layer (landing + analyse) ───────────
          Type-forward, low-whitespace; zero JS / zero bundle cost (no GSAP on the
