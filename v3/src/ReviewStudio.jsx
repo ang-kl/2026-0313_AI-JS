@@ -23,7 +23,7 @@ import Desk from "./review/Desk.jsx";
 // PR 2 (Part B.3): the declarative window registry is the single source of truth -
 // window render functions, labels, tab placement and the connector anchor contract
 // all derive from it. The 14 individual window imports live inside the registry now.
-import { WINDOWS, LINK_RULES } from "./review/registry.jsx";
+import { WINDOWS, TAB_WINDOWS } from "./review/registry.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
@@ -859,36 +859,26 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const deskRef = useRef(null);
   const zTopRef = useRef(1400);
   const floatDragRef = useRef(null);
-  // MVP connector line: a real SVG line from the active duty span (manuscript) to its
-  // matching reviewer comment card - both are read live off the DOM (getBoundingClientRect),
-  // never invented coordinates. Draws only when both endpoints are actually docked and
-  // visible side by side; if either is floated away, off the active tab, or scrolled out
-  // of the desk's viewport slice, no line is drawn rather than pointing at nothing.
-  const [connLine, setConnLine] = useState(null);
-  useLayoutEffect(() => {
-    const desk = deskRef.current;
-    const rule = LINK_RULES[tab];
-    const id = rule ? rule.active({ activeSpan, focusSkill }) : null;
-    if (!desk || !rule || !id) { setConnLine(null); return; }
-    const recompute = () => {
-      const deskRect = desk.getBoundingClientRect();
-      const srcEl = desk.querySelector(rule.left(id));
-      const dstEl = desk.querySelector(rule.right(id));
-      if (!srcEl || !dstEl) { setConnLine(null); return; }
-      const sr = srcEl.getBoundingClientRect();
-      const dr = dstEl.getBoundingClientRect();
-      if (sr.bottom < deskRect.top || sr.top > deskRect.bottom || dr.bottom < deskRect.top || dr.top > deskRect.bottom) { setConnLine(null); return; }
-      setConnLine({
-        x1: sr.right - deskRect.left, y1: sr.top + sr.height / 2 - deskRect.top,
-        x2: dr.left - deskRect.left, y2: dr.top + dr.height / 2 - deskRect.top,
-      });
-    };
-    recompute();
-    const raf = requestAnimationFrame(recompute); // re-measure once layout has settled
-    window.addEventListener("resize", recompute);
-    desk.addEventListener("scroll", recompute, true); // capture: fires for the scrolling panel too
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", recompute); desk.removeEventListener("scroll", recompute, true); };
-  }, [activeSpan, focusSkill, tab, floats, pinned, overrides, activeWin]);
+  // PR 3 (Part C.2, LC1): the single connLine grew into a link SET, measured inside
+  // Desk.jsx (ephemeral DOM geometry). This component supplies only the DATA the links
+  // join on - ids that already exist in the engine's output - plus the stub activation
+  // handler. No LLM authors a link; a tab with no real shared id derives zero links.
+  const traceIds = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties))
+    ? result.jobAnatomy.duties.slice(0, 14).map((_, i) => ({ oiaId: "s" + i, traceId: "t" + i }))
+    : [];
+  const linkData = { comments: dissection.comments, activeSpan, focusSkill, traceIds };
+  // Stub click "opens/activates the target window" (Part C.2 item 4): floated windows
+  // come to front, pinned ones slide out, in-strip ones become the active tab of their
+  // panel; a window that lives on another top tab switches to that tab.
+  const onStubActivate = (winId) => {
+    if (floats.some((f) => f.id === winId)) { bringToFront(winId); return; }
+    if (pinned.includes(winId)) { setSlideOpen(winId); return; }
+    const tw = TAB_WINDOWS[tab] || {};
+    const side = (tw.left || []).includes(winId) ? "left" : (tw.right || []).includes(winId) ? "right" : null;
+    if (side) { setActiveWin((prev) => ({ ...prev, [tab]: { ...(prev[tab] || {}), [side]: winId } })); return; }
+    const home = Object.entries(TAB_WINDOWS).find(([, t]) => (t.left || []).includes(winId) || (t.right || []).includes(winId));
+    if (home) setTab(home[0]);
+  };
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => {
@@ -1122,7 +1112,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} connLine={connLine} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} />
 
 
       {/* Footer */}

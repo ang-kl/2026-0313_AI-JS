@@ -37,7 +37,8 @@ export const WINDOWS = [
     placements: { duties: ["left", 0] },
     anchors: { oiaCard: (id) => '[data-oia-anchor="' + id + '"]' } },
   { id: "aitrace",    label: "AI trace",               render: renderWinAitrace,
-    placements: { duties: ["left", 1] }, anchors: {} },
+    placements: { duties: ["left", 1] },
+    anchors: { traceRow: (id) => '[data-trace-anchor="' + id + '"]' } },
   { id: "trajectory", label: "Trajectory",             render: renderWinTrajectory,
     placements: { duties: ["right", 1] }, anchors: {} },
   { id: "gates",      label: "Hard gates",             render: renderWinGatesHard,
@@ -88,8 +89,46 @@ export function anchorOf(winId, anchorName) {
 
 // Generalized connector rules, now DERIVED from the anchor contract above (was a
 // hand-written selector map in Desk.jsx). Same two tabs, same truth source
-// (activeSpan) - PR 3 extends this to a multi-link set; the contract is ready.
+// (activeSpan) - PR 3's deriveLinks below extends this to a multi-link set.
 export const LINK_RULES = {
   ad: { active: (s) => s.activeSpan, left: anchorOf("manuscript", "dutyLine"), right: anchorOf("comments", "comment") },
   duties: { active: (s) => s.activeSpan, left: anchorOf("oia", "oiaCard"), right: anchorOf("manuscript", "dutyLine") },
 };
+
+// ── PR 3 (Part C.2 item 1) - the link model. deriveLinks(tab, d) returns the SET of
+// live links for a tab: [{ id, fromWin, fromSel, toWin, toSel, kind, active }]. Every
+// link is a join on ids that already exist in the engine's own data (comment.anchor
+// is a span id; AI-trace row "tN" and O-I-A card "sN" index the SAME jobAnatomy.duties
+// array) - no LLM authors a link, no selector is composed outside the anchor contract
+// (anchorOf throws on an undeclared name). Honesty guard preserved: a tab with no real
+// shared id derives zero links (overview/gates/critical - and market until RoleGraph
+// exposes a data-node-anchor, which lives in App.jsx and is deferred to keep this PR
+// off Session B's files).
+export function deriveLinks(tab, d) {
+  const links = [];
+  const activeSpan = d && d.activeSpan;
+  if (tab === "ad") {
+    // Every reviewer comment joins its anchored duty span - all pairs draw (dimmed),
+    // the active pair draws emphasised (Part C.2 item 3).
+    (d && Array.isArray(d.comments) ? d.comments : []).forEach((c) => {
+      if (!c || !c.anchor) return;
+      links.push({ id: "lnk-ad-" + c.id, fromWin: "manuscript", fromSel: anchorOf("manuscript", "dutyLine")(c.anchor),
+        toWin: "comments", toSel: anchorOf("comments", "comment")(c.anchor), kind: "span-comment", active: activeSpan === c.anchor });
+    });
+  }
+  if (tab === "duties") {
+    // O-I-A card <-> AI-trace row: index join over the same duties array (both on-tab).
+    (d && Array.isArray(d.traceIds) ? d.traceIds : []).forEach((p) => {
+      links.push({ id: "lnk-du-" + p.oiaId, fromWin: "oia", fromSel: anchorOf("oia", "oiaCard")(p.oiaId),
+        toWin: "aitrace", toSel: anchorOf("aitrace", "traceRow")(p.traceId), kind: "oia-trace", active: activeSpan === p.oiaId });
+    });
+    // O-I-A card <-> manuscript duty line: ACTIVE span only (the manuscript is normally
+    // on the ad tab - this fires when it is floated/dock-overridden here; otherwise the
+    // engine degrades it to an edge stub rather than a vanished line).
+    if (activeSpan) {
+      links.push({ id: "lnk-du-manu-" + activeSpan, fromWin: "oia", fromSel: anchorOf("oia", "oiaCard")(activeSpan),
+        toWin: "manuscript", toSel: anchorOf("manuscript", "dutyLine")(activeSpan), kind: "oia-manuscript", active: true });
+    }
+  }
+  return links;
+}
