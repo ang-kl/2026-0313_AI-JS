@@ -41,7 +41,7 @@ Fetches live postings, classifies each via `/api/ssoc action:"classifyTitles"`, 
 ### Step 3 — Review Studio
 File: `src/ReviewStudio.jsx`.
 
-A reviewable workspace built around the picked posting: manuscript pane with per-duty exposure highlights, O-I-A (Observation → Interpretation → Application) dissection, rule-based persona reviewer comments in the right margin, provenance and confidence chips throughout, live Role Graph in the right pane.
+A reviewable workspace built around the picked posting: manuscript pane with per-duty exposure highlights, O-I-A (Observation → Interpretation → Application) dissection, rule-based persona reviewer comments in the right margin, provenance and confidence chips throughout, live Role Graph in the right pane. The Overview tab opens with a **Pre-interview brief** card (PB1) — a collapsible, assembly-only join of the SSOC classification, MCF posting facts and the employer's ACRA/SSIC record; every row is a pass-through of a value computed elsewhere, never authored fresh.
 
 **Status is partial** — see the reconciliation audit at [`script/v3-step3-blueprint-reconciliation.md`](./script/v3-step3-blueprint-reconciliation.md) for feature-by-feature MATCH / PARTIAL / IMPROVISED / UNBUILT verdicts.
 

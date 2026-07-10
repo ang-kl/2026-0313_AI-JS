@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.278";
+const APP_VERSION = "3.0.279";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12103,7 +12103,10 @@ function step2MatchTierTitle(tier) {
 // never throws to render.
 const empRegCache = new Map(); // normName -> response envelope
 const empRegInFlight = new Map(); // normName -> Promise
-async function fetchEmployerRegistration(employerName) {
+// PB1 (v3-preinterview-brief-spec.md): exported so ReviewStudio.jsx's Pre-interview
+// Brief card reuses this exact module-cached wrapper - same envelope, same cache,
+// no second fetch path invented for the same endpoint.
+export async function fetchEmployerRegistration(employerName) {
   const key = step2EmployerKey({ employer: employerName });
   if (!key) return { matched: "none", reason: "empty_name" };
   if (empRegCache.has(key)) return empRegCache.get(key);

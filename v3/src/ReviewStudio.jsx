@@ -10,6 +10,10 @@ import { useState, useMemo, useEffect, useLayoutEffect, useRef, Fragment } from 
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 import BLUEPRINT_STATUS from "./blueprint-status.json";
+// PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
+// byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
+// itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
+import { fetchEmployerRegistration } from "./App.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
@@ -25,6 +29,9 @@ const BANDS = {
 const PROV = {
   "from posting": { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
   "from MCF":     { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
+  // PB1: employer facts pass through verbatim from ACRA (data.gov.sg) - same
+  // "sourced fact" family styling as "from posting"/"from MCF" (no red/green).
+  "from ACRA":    { bg: "#eef2f7", ink: "#475569", border: "#dbe2ea" },
   // Audit (07-07 '26): computed was the one green swatch left in the chip vocabulary -
   // moved to the blue family so all five prov chips sit inside blue/violet/amber.
   computed:       { bg: "#eaf0ff", ink: "#1d4ed8", border: "#c7d6ff" },
@@ -765,6 +772,98 @@ function Chip({ kind, children }) {
   return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: p.ink, background: p.bg, border: "1px solid " + p.border, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap" }}>{children}</span>;
 }
 
+// ── PB1 (v3-preinterview-brief-spec.md): the pre-interview brief - assembly only,
+// no LLM, no new number. Every row is a sourced pass-through of a value already
+// computed elsewhere (engine occExposure/ssocResolution, Critical Read's own
+// indicators/salaryPos/blindSpots, and the shipped ACRA lookup). A row that has no
+// source in state is simply omitted - it never blocks, errors, or guesses (spec §8).
+function PbRow({ label, chip, children }) {
+  return (
+    <div style={{ padding: "9px 0", borderBottom: "1px solid #f0eee7" }}>
+      <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".08em", color: "#b3ab9c", marginBottom: 4 }}>{String(label).toUpperCase()}</div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#16202e", lineHeight: 1.5, flex: "1 1 240px" }}>{children}</p>
+        <Chip kind={chip}>{chip}</Chip>
+      </div>
+    </div>
+  );
+}
+// Employer (ACRA) row - the one row with its own async fetch (module-cached,
+// always-resolves). Surfaces ONLY matched:"exact" fields; on "none" shows the
+// honest not-matched line, never the derived-classifier fallback (same guard the
+// shipped fetchEmployerRegistration already applies before this component sees it).
+function PbEmployerRow({ employerName }) {
+  const [emp, setEmp] = useState({ status: "idle", data: null });
+  useEffect(() => {
+    const name = String(employerName || "").trim();
+    if (!name) { setEmp({ status: "done", data: { matched: "none", reason: "no_employer" } }); return undefined; }
+    let cancelled = false;
+    setEmp({ status: "loading", data: null });
+    fetchEmployerRegistration(name).then((d) => { if (!cancelled) setEmp({ status: "done", data: d }); });
+    return () => { cancelled = true; };
+  }, [employerName]);
+  if (emp.status !== "done") {
+    return <PbRow label="Employer (ACRA)" chip="from ACRA">Checking ACRA registration{String.fromCharCode(0x2026)}</PbRow>;
+  }
+  const d = emp.data;
+  if (!d || d.matched !== "exact") {
+    return <PbRow label="Employer (ACRA)" chip="from ACRA">Not matched in the ACRA business register (may be a statutory board, agency, or a name variant ACRA does not carry).</PbRow>;
+  }
+  const parts = [d.entityType, d.status, d.registeredSince ? "registered " + d.registeredSince : null].filter(Boolean);
+  const ssic = d.primarySsicCode ? d.primarySsicCode + (d.primarySsicDescription ? " - " + d.primarySsicDescription : "") : null;
+  const ssic2 = d.secondarySsicCode ? d.secondarySsicCode + (d.secondarySsicDescription ? " - " + d.secondarySsicDescription : "") : null;
+  return (
+    <PbRow label="Employer (ACRA)" chip="from ACRA">
+      {parts.length ? parts.join(" " + RS_DOT + " ") : "ACRA match found but no entity fields on record."}
+      {ssic ? <span style={{ display: "block", marginTop: 3 }}>Primary SSIC: {ssic}</span> : null}
+      {ssic2 ? <span style={{ display: "block", marginTop: 2 }}>Secondary SSIC: {ssic2}</span> : null}
+      {d.namesakes > 0 ? <span style={{ display: "block", marginTop: 3, color: "#9a6113" }}>ACRA lists +{d.namesakes} other {d.namesakes === 1 ? "entity" : "entities"} with this name - showing the live-status match.</span> : null}
+    </PbRow>
+  );
+}
+function PreInterviewBrief({ result, title, employer, posting, critical }) {
+  const [open, setOpen] = useState(true);
+  const ssoc = result && result.ssocResolution;
+  const occ = result && result.occExposure;
+  const indicators = (critical && critical.indicators) || [];
+  const empType = indicators.find((x) => x.id === "ind-emptype");
+  const triage = indicators.filter((x) => x.id !== "ind-emptype");
+  const salaryPos = critical && critical.salaryPos;
+  const blindSpots = (critical && critical.blindSpots) || [];
+  const employerName = (posting && posting.employer) || employer || "";
+  return (
+    <div style={{ border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 16, background: "#fff" }}>
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 44, padding: "10px 14px", background: open ? "#142a8e" : "#fbfaf8", border: "none", cursor: "pointer", textAlign: "left" }}>
+        <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.875rem", fontWeight: 700, color: open ? "#fff" : "#16202e" }}>Pre-interview brief</span>
+        <span aria-hidden="true" style={{ fontSize: "0.75rem", color: open ? "#c7d6ff" : "#94a0b0", transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}>&#9660;</span>
+      </button>
+      {open && (
+        <div style={{ padding: "4px 14px 12px" }}>
+          <PbRow label="Role as classified" chip="computed">
+            {title || "role withheld"}{ssoc && ssoc.code ? " " + RS_DOT + " SSOC " + ssoc.code : ""}
+          </PbRow>
+          {(occ && (occ.band || occ.index != null)) ? (
+            <PbRow label="AI-exposure headline" chip="computed">
+              {occ.band || "band withheld"}{occ.index != null ? " " + RS_DOT + " AI-Exposure Index " + occ.index + "/100" : ""}
+              {Array.isArray(occ.zRange) ? " " + RS_DOT + " range " + occ.zRange[0] + " to " + occ.zRange[1] : ""}
+            </PbRow>
+          ) : null}
+          {empType ? <PbRow label="Engagement type" chip="from posting">{empType.obs}</PbRow> : null}
+          {salaryPos ? <PbRow label="Salary read" chip="computed">{salaryPos.obs}</PbRow> : null}
+          {triage.length > 0 ? (
+            <PbRow label="Demand / triage" chip="computed">{triage.map((t) => t.obs).join(" " + RS_DOT + " ")}</PbRow>
+          ) : null}
+          <PbEmployerRow employerName={employerName} />
+          {blindSpots.length > 0 ? (
+            <PbRow label="Missing facts" chip="computed">The ad is silent on: {blindSpots.map((b) => b.label).join(", ")}.</PbRow>
+          ) : null}
+          <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5, fontStyle: "italic" }}>AI-assisted; human decides. Structural facts from MyCareersFuture, careers.gov.sg and ACRA; interpretation is the candidate's.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 // ── W4a slice 1 (blueprint §10.3 "AI trace"): the AIOE exposure trace, deterministic.
 // Occupation index (engine AIOE chain) -> per-duty engine bands on a labelled 4-stop
 // track (position = band, no fabricated numbers) -> skill-level mix. No LLM anywhere in
@@ -1027,6 +1126,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>OVERVIEW {RS_DOT} THE 10-SECOND READ</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Verdict first {String.fromCharCode(0x2014)} every chip is a door</h2>
+              <PreInterviewBrief result={result} title={title} employer={employer} posting={posting} critical={critical} />
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(250px,100%), 1fr))", gap: 12 }}>
                 {[
                   bandTok ? { k: "duties", kick: "AI EXPOSURE (ROLE READ)", val: bandTok.label, sub: duties.length + " duties " + RS_DOT + " " + skills.length + " skills", chipK: "computed" } : null,
