@@ -450,7 +450,7 @@ function rsFalsification(spans, title, adText) {
   if (bundled.length >= 2 || titleMash) {
     out.push({ id: "fal-mashup", tag: "role mash-up?",
       obs: titleMash ? "The title joins distinct functions: " + DQ + String(title) + DQE : bundled.length + " duties bundle two work clusters with " + DQ + " and " + DQE,
-      interp: "Two roles may be packed into one hire - common when a team is understaffed.",
+      interp: "This ad bundles duties from two distinct work clusters - the posting text itself, not a claim about why.",
       appl: "Ask: which of these is the real priority, and would a larger org split it into two?" });
   }
   const comp = spans.filter((s) => RS_COMPLIANCE.test(s.text));
