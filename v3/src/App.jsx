@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.285";
+const APP_VERSION = "3.0.286";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -14834,48 +14834,6 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
-            {/* OI1.1 (v3-organisation-intelligence-spec.md): "Organisation read" - deterministic
-                counts over this employer's already-fetched live posting set. Never a trend/causal
-                verb (R012 candidate) - a snapshot is a count, not a growth/understaffing story.
-                Bug fix (found in live verification): gating this on `activeMatch` made OI1.3's
-                gov/statutory-board read - which comes from csgGroups, independent of activeMatch -
-                unreachable for any employer that's gov-only (no MCF postings, e.g. most ministries
-                and statutory boards). buildOrgRead already computes govRead without activeMatch;
-                the render gate just needs to allow either source in. */}
-            {(activeMatch || orgRead.govRead) && (orgRead.signals.length > 0 || orgRead.registry || orgRead.govRead) && (
-              <div style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
-                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>ORGANISATION READ</div>
-                {orgRead.signals.map(function(s) {
-                  return (
-                    <p key={s.id} style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{s.obs}</p>
-                  );
-                })}
-                {orgRead.registry && (
-                  <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: orgRead.registry.matched ? C.text : C.muted }}>
-                    {orgRead.registry.obs}
-                    {orgRead.registry.matched && orgRead.registry.namesakes > 0 && (" (+" + orgRead.registry.namesakes + " other " + (orgRead.registry.namesakes === 1 ? "entity" : "entities") + " with this name on ACRA)")}
-                  </p>
-                )}
-                {orgRead.govRead && (
-                  <div style={{ margin: "0 0 6px" }}>
-                    <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{orgRead.govRead.obs}</p>
-                    {orgRead.govRead.perAgency.length > 1 && (
-                      <ul style={{ margin: "0 0 4px", padding: "0 0 0 18px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.6 }}>
-                        {orgRead.govRead.perAgency.map(function(a) {
-                          return <li key={a.name}>{a.name + ": " + a.count + " posting" + (a.count === 1 ? "" : "s")}</li>;
-                        })}
-                      </ul>
-                    )}
-                    {orgRead.govRead.engagementObs && (
-                      <p style={{ margin: "0 0 4px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>{orgRead.govRead.engagementObs}</p>
-                    )}
-                    <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>{orgRead.govRead.provenance}</p>
-                  </div>
-                )}
-                <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Counts only, over this employer's live postings only - not a growth, staffing, or size claim.</p>
-              </div>
-            )}
-
             {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
             {activeMatch && agentsView === "off" && (
               <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -15148,6 +15106,54 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           </>
         )}
       </div>
+      )}
+
+      {/* OI1.1/OI1.3 (v3-organisation-intelligence-spec.md): "Organisation read" -
+          deterministic counts over this employer's already-fetched live posting
+          set. Never a trend/causal verb (R012 candidate) - a snapshot is a count,
+          not a growth/understaffing story.
+          Structural bug fix (found in live verification - a build-green PR is not
+          the same as a working feature): this block used to sit nested inside the
+          MyCareersFuture-only column, itself gated behind an outer ternary that
+          only renders when state.matches.length > 0 - so for any gov-only
+          employer (no MCF postings, e.g. most ministries/statutory boards) the
+          code never reached this block at all, regardless of any inner
+          activeMatch fix. Moved out to sit as its own full-width row below BOTH
+          columns, gated only on its own data (activeMatch OR orgRead.govRead),
+          with gridColumn: "1 / -1" so it spans the .csg-cols 2-column grid
+          instead of collapsing into a half-width orphan cell. */}
+      {(activeMatch || orgRead.govRead) && (orgRead.signals.length > 0 || orgRead.registry || orgRead.govRead) && (
+        <div style={{ gridColumn: "1 / -1", padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
+          <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>ORGANISATION READ</div>
+          {orgRead.signals.map(function(s) {
+            return (
+              <p key={s.id} style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{s.obs}</p>
+            );
+          })}
+          {orgRead.registry && (
+            <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: orgRead.registry.matched ? C.text : C.muted }}>
+              {orgRead.registry.obs}
+              {orgRead.registry.matched && orgRead.registry.namesakes > 0 && (" (+" + orgRead.registry.namesakes + " other " + (orgRead.registry.namesakes === 1 ? "entity" : "entities") + " with this name on ACRA)")}
+            </p>
+          )}
+          {orgRead.govRead && (
+            <div style={{ margin: "0 0 6px" }}>
+              <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{orgRead.govRead.obs}</p>
+              {orgRead.govRead.perAgency.length > 1 && (
+                <ul style={{ margin: "0 0 4px", padding: "0 0 0 18px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.6 }}>
+                  {orgRead.govRead.perAgency.map(function(a) {
+                    return <li key={a.name}>{a.name + ": " + a.count + " posting" + (a.count === 1 ? "" : "s")}</li>;
+                  })}
+                </ul>
+              )}
+              {orgRead.govRead.engagementObs && (
+                <p style={{ margin: "0 0 4px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>{orgRead.govRead.engagementObs}</p>
+              )}
+              <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>{orgRead.govRead.provenance}</p>
+            </div>
+          )}
+          <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Counts only, over this employer's live postings only - not a growth, staffing, or size claim.</p>
+        </div>
       )}
     </div>
   );
