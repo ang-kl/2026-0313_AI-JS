@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.283";
+const APP_VERSION = "3.0.285";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -14836,8 +14836,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
             {/* OI1.1 (v3-organisation-intelligence-spec.md): "Organisation read" - deterministic
                 counts over this employer's already-fetched live posting set. Never a trend/causal
-                verb (R012 candidate) - a snapshot is a count, not a growth/understaffing story. */}
-            {activeMatch && (orgRead.signals.length > 0 || orgRead.registry || orgRead.govRead) && (
+                verb (R012 candidate) - a snapshot is a count, not a growth/understaffing story.
+                Bug fix (found in live verification): gating this on `activeMatch` made OI1.3's
+                gov/statutory-board read - which comes from csgGroups, independent of activeMatch -
+                unreachable for any employer that's gov-only (no MCF postings, e.g. most ministries
+                and statutory boards). buildOrgRead already computes govRead without activeMatch;
+                the render gate just needs to allow either source in. */}
+            {(activeMatch || orgRead.govRead) && (orgRead.signals.length > 0 || orgRead.registry || orgRead.govRead) && (
               <div style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
                 <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>ORGANISATION READ</div>
                 {orgRead.signals.map(function(s) {
