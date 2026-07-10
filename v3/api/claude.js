@@ -155,6 +155,19 @@ function providerError(provider, status, data) {
 async function callAnthropic({ apiKey, anthropicModel, instructions, messages, maxTokens, signal }) {
   const body = { model: anthropicModel, max_tokens: maxTokens, messages };
   if (instructions) body.system = instructions;
+  // Sonnet 5 silently changed the thinking default: with no `thinking` field the
+  // request runs ADAPTIVE THINKING (Sonnet 4.6 ran thinking-off), and max_tokens
+  // caps thinking + text TOGETHER. This proxy's callers use deliberately tight
+  // budgets (e.g. 400 + n*110 for skill ratings), so thinking could consume the
+  // whole budget and return 200 OK with a thinking block and NO text block -
+  // seen live all day as intermittent "[proxy] Provider failure provider=
+  // anthropic: Empty response from Anthropic" 503s. Same failure class as the
+  // Gemini thinkingConfig fix (v3.0.266). These calls are narration/JSON-output
+  // advisory passes - the engine does the reasoning deterministically - so
+  // thinking is disabled explicitly. (Guard: `disabled` is accepted on Sonnet/
+  // Opus 4.7+ but returns 400 on Fable/Mythos, where thinking is always on -
+  // skip the field there if the env override ever points at one.)
+  if (!/fable|mythos/i.test(String(anthropicModel))) body.thinking = { type: "disabled" };
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -173,10 +186,15 @@ async function callAnthropic({ apiKey, anthropicModel, instructions, messages, m
 
   const text = textFromAnthropic(data);
   if (!text) {
+    // Diagnose, don't just declare: name the stop_reason and block types so a
+    // recurrence is attributable from the log line alone (the bare "Empty
+    // response" message hid the thinking-ate-the-budget cause for a full day).
+    const blockTypes = (data && Array.isArray(data.content) ? data.content : []).map((b) => b && b.type).join(",") || "none";
+    console.error(`[proxy] empty anthropic response: stop_reason=${data && data.stop_reason} blocks=[${blockTypes}] max_tokens=${maxTokens}`);
     const err = new Error("Empty response from Anthropic");
     err.provider = "anthropic";
     err.status = 503;
-    err.debug = "Empty response from Anthropic";
+    err.debug = "Empty response from Anthropic (stop_reason=" + (data && data.stop_reason) + ", blocks=" + blockTypes + ")";
     throw err;
   }
 
