@@ -928,7 +928,7 @@ const LINK_RULES = {
   duties: { active: (s) => s.activeSpan, left: (id) => '[data-oia-anchor="' + id + '"]',
             right: (id) => "#li-" + id }, // reciprocal to the manuscript's scrollIntoView target
 };
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1765,6 +1765,25 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           )}
         </div>
       </div>
+
+      {/* AN1: this page renders as soon as core skills resolve, but Responsibilities/
+          Role Graph/Critical Read/SSOC Graph/Role Mix/prompt-enrichment keep loading in
+          the background for tens of seconds after that. This strip narrates the REAL
+          stages still in flight (bgStep/bgStatus set from doAnalyse's own pipeline calls,
+          same pattern as the compare-queue's compareStep/compareStatus) - a step counter,
+          an honest message, and an elapsed timer. No fabricated percentage and no
+          "step N of total": later stages are conditional (posting-only, >=3 jobs, etc.),
+          so a denominator here would be invented. This is NOT the same thing as the
+          BUILD_STATUS strip below, which reports ENGINEERING feature-completion, not
+          this analysis's live progress - the two must never be conflated again. */}
+      {bgRunning && (
+        <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 16px", background: "#eef4ff", borderBottom: "1px solid #d7e3fb" }}>
+          <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#2554d6", flex: "none" }} />
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".04em", color: "#1f3fae", flex: "none" }}>STILL LOADING</span>
+          <span style={{ fontSize: "0.75rem", color: "#2a3f70", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bgStatus}</span>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b6d9a", flex: "none" }}>Step {bgStep} {String.fromCharCode(0x00b7)} {Math.floor((bgElapsed || 0) / 60)}:{String((bgElapsed || 0) % 60).padStart(2, "0")}</span>
+        </div>
+      )}
 
       {/* TEMPORARY (Human Lead, 08-07 '26): this page is still being built - say so
           honestly instead of letting an unfinished page look finished. Cup-fill per

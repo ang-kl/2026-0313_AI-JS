@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.280";
+const APP_VERSION = "3.0.281";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -14988,6 +14988,18 @@ export default function App({ initialSearchMode } = {}) {
   const [isRunningComparison, setIsRunningComparison] = useState(false);
   const [compareElapsed, setCompareElapsed] = useState(0);  // seconds elapsed during comparison
   const [compareWarning, setCompareWarning] = useState(null); // { onConfirm } | null
+  // AN1: Step 3 renders as soon as core skills resolve, but the background fan-out
+  // (responsibilities/role-mix, then anatomy/role-graph/critical-read/ssoc-graph) keeps
+  // running for tens of seconds with no live indicator - previously the only thing in
+  // that spot was the static BUILD_STATUS engineering-completion strip, which looks like
+  // progress but never moves. bgStep/bgStatus/bgElapsed narrate the REAL stages still
+  // in flight (mirrors runQueuedComparisons' compareStep/compareStatus pattern). No
+  // fabricated percentage or "step N of total" - the later stages are conditional
+  // (posting-only, >=3 jobs, etc.), so a denominator would be invented.
+  const [bgRunning, setBgRunning] = useState(false);
+  const [bgStep, setBgStep] = useState(0);
+  const [bgStatus, setBgStatus] = useState("");
+  const [bgElapsed, setBgElapsed] = useState(0);
   const toggleRef       = useRef(null);
   const compareRef      = useRef(null);
   const tabBarRef       = useRef(null);
@@ -15608,6 +15620,16 @@ export default function App({ initialSearchMode } = {}) {
       setStep("results");
       if (wikiDestRef.current) setActiveTab("wikigraph");
 
+      // AN1: narrate the two real concurrent fronts of the fan-out below (see bgRunning
+      // state comment). One message per front, not one per individual call.
+      let _bgN = 0;
+      const bgLogStep = (msg) => {
+        if (analysisCancelRef.current !== cancelId) return;
+        _bgN++; setBgStep(_bgN); setBgStatus(msg);
+      };
+      setBgRunning(true); setBgStep(0); setBgStatus("");
+      bgLogStep(fromAds ? "Fetching live SG postings and mapping role composition..." : "Fetching live SG postings for this role...");
+
       // Background: scrape live MyCareersFuture postings for this role and run the
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
@@ -15628,6 +15650,9 @@ export default function App({ initialSearchMode } = {}) {
           patchComparisonResult(comparisonKey, { responsibilitiesData: rd });
           track("responsibilities_loaded", { occupation: occ.title, jobs: rd && rd.jobCount || 0, count: rd && rd.responsibilities ? rd.responsibilities.length : 0, fallback: !!(rd && rd.fallback) });
           logStep("responsibilities", rd && rd.fallback ? "fallback" : "ok", _msSince(_tR), `jobs=${rd && rd.jobCount || 0} count=${rd && rd.responsibilities ? rd.responsibilities.length : 0}`);
+          // AN1: prompt-enrichment (patchBatch, below) fires right after this same tick and
+          // overlaps in time with this front - folded into one message rather than a 3rd step.
+          bgLogStep("Building job anatomy, role graph, critical read and enriching how-to prompts...");
           // Background: Job Anatomy - reuse the ads this just fetched (no extra MCF call).
           if (rd && Array.isArray(rd.jobs) && rd.jobs.length >= 3) {
             let _tJ; try { _tJ = performance.now(); } catch (_) { _tJ = 0; }
@@ -15766,6 +15791,8 @@ export default function App({ initialSearchMode } = {}) {
 
       Promise.race([generatePrompts(occ.title, skills, ratings, patchBatch), promptTimeout]).then(() => {
         if (analysisCancelRef.current !== cancelId) return;
+        setBgRunning(false); // AN1: prompt enrichment is the longest-running front - its
+        // settle marks the fan-out as done for the live narration strip.
         // Final pass: clear any remaining promptLoading flags
         setResult(prev => {
           if (!prev) return prev;
@@ -15773,6 +15800,7 @@ export default function App({ initialSearchMode } = {}) {
         });
       }).catch(e => {
         if (analysisCancelRef.current !== cancelId) return;
+        setBgRunning(false);
         const isTimeout = e.message === "prompt_timeout";
         console.warn("[generatePrompts] background enrichment", isTimeout ? "timed out" : "failed:", e.message);
         // `actionable` belongs to generatePrompts' own closure, not this scope - referencing it
@@ -15935,6 +15963,15 @@ export default function App({ initialSearchMode } = {}) {
     const tick = setInterval(() => { secs++; setCompareElapsed(secs); }, 1000);
     return () => clearInterval(tick);
   }, [isRunningComparison]);
+
+  // AN1: elapsed timer for the post-results background fan-out - messages are set
+  // directly in doAnalyse (bgLogStep), same pattern as compareElapsed above.
+  useEffect(() => {
+    if (!bgRunning) { setBgElapsed(0); return; }
+    let secs = 0;
+    const tick = setInterval(() => { secs++; setBgElapsed(secs); }, 1000);
+    return () => clearInterval(tick);
+  }, [bgRunning]);
 
   // Set hasAnalysedOnce AFTER the first result renders
   // Using useEffect ensures components receive firstAnalysis=true on first render,
@@ -17143,6 +17180,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 source={reviewSource}
                 rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
                 posting={analysingPosting}
+                bgRunning={bgRunning}
+                bgStep={bgStep}
+                bgStatus={bgStatus}
+                bgElapsed={bgElapsed}
                 band={null}
                 onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 version={APP_VERSION}
