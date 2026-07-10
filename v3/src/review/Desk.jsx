@@ -7,6 +7,7 @@
 // state (lines/stubs) lives HERE - it is ephemeral DOM-derived geometry recomputed
 // every paint, not user state, so Option 1's "persistent state stays up" rule holds.
 import { useState, useLayoutEffect } from "react";
+import { RS_LAYERS } from "./rs-rules.js";
 import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 
 // One cubic-bezier path string (same curve family as the #358 single line).
@@ -96,12 +97,15 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             and pinned strip (1395+), above the desk. pointer-events none except the
             clickable stubs. All coordinates are viewport coordinates. */}
         {(conn.lines.length > 0 || conn.stubs.length > 0) && (
-          <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: 1389, pointerEvents: "none", overflow: "visible" }}>
+          <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
+            {/* Design handoff: the Word-style connector is AMBER. The handoff's #f5a623
+                fails non-text contrast on the light desk (~2.1:1) - #b45309 keeps the
+                amber identity at >=4.5:1 (goal §2 non-text contrast, recorded conflict). */}
             {conn.lines.map((l) => (
-              <g key={l.id} style={{ transition: "opacity .2s" }} opacity={l.active ? 0.85 : 0.3}>
-                <path d={bez(l)} fill="none" stroke="#1a56db" strokeWidth={l.active ? 2 : 1} />
-                <circle cx={l.x1} cy={l.y1} r={l.active ? 4 : 2.5} fill="#1a56db" />
-                <circle cx={l.x2} cy={l.y2} r={l.active ? 4 : 2.5} fill="#1a56db" />
+              <g key={l.id} style={{ transition: "opacity .2s" }} opacity={0.95}>
+                <path d={bez(l)} fill="none" stroke="#b45309" strokeWidth={2.2} />
+                <circle cx={l.x1} cy={l.y1} r={4} fill="#b45309" />
+                <circle cx={l.x2} cy={l.y2} r={4} fill="#b45309" />
               </g>
             ))}
             {conn.stubs.map((s) => (
@@ -109,8 +113,8 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 onClick={() => onStubActivate && onStubActivate(s.targetWin)}
                 aria-hidden="false" role="button" tabIndex={-1}>
                 <title>{"Open " + (WIN_LABELS[s.targetWin] || s.targetWin) + " (" + s.count + " link" + (s.count === 1 ? "" : "s") + ")"}</title>
-                <line x1={s.x} y1={s.y} x2={s.side === "right" ? s.x + 14 : s.x - 14} y2={s.y} stroke="#1a56db" strokeWidth={2} />
-                <circle cx={s.side === "right" ? s.x + 22 : s.x - 22} cy={s.y} r={9} fill="#1a56db" />
+                <line x1={s.x} y1={s.y} x2={s.side === "right" ? s.x + 14 : s.x - 14} y2={s.y} stroke="#b45309" strokeWidth={2} />
+                <circle cx={s.side === "right" ? s.x + 22 : s.x - 22} cy={s.y} r={9} fill="#b45309" />
                 <text x={s.side === "right" ? s.x + 22 : s.x - 22} y={s.y + 3.5} textAnchor="middle" fontSize={10} fontWeight={700} fill="#fff" fontFamily="'Spline Sans Mono',monospace">{s.count}</text>
               </g>
             ))}
@@ -183,7 +187,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
 
       {/* U4-B: pinned edge strip (auto-hide) + the slide-over panel. */}
       {pinned.length > 0 && (
-        <div style={{ position: "fixed", right: 0, top: "30%", zIndex: 1395, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ position: "fixed", right: 0, top: "30%", zIndex: RS_LAYERS.pinned, display: "flex", flexDirection: "column", gap: 4 }}>
           {pinned.map((id) => (
             <button key={id} type="button" onClick={() => setSlideOpen(slideOpen === id ? null : id)} aria-expanded={slideOpen === id}
               aria-label={"Slide out pinned window: " + WIN_LABELS[id]}
@@ -192,7 +196,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
         </div>
       )}
       {slideOpen && (
-        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(460px, 92vw)", zIndex: 1396, background: "#fbfaf8", borderLeft: "1px solid #d9dee6", boxShadow: "-14px 0 40px rgba(15,23,42,.22)", display: "flex", flexDirection: "column", animation: "wisSlideIn .3s ease" }}>
+        <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "min(460px, 92vw)", zIndex: RS_LAYERS.pinned + 1, background: "#fbfaf8", borderLeft: "1px solid #d9dee6", boxShadow: "-14px 0 40px rgba(15,23,42,.22)", display: "flex", flexDirection: "column", animation: "wisSlideIn .3s ease" }}>
           <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8" }}>
             <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e" }}>{WIN_LABELS[slideOpen]}</span>
             <button type="button" onClick={() => { setPinned((prev) => prev.filter((x) => x !== slideOpen)); setSlideOpen(null); }} aria-label="Unpin - dock this window back to its panel" style={{ flex: "none", minHeight: 32, padding: "0 10px", border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>unpin</button>
@@ -209,7 +213,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           (aria-modal false) - the desk stays interactive underneath. */}
       {sheet && (
         <div role="dialog" aria-modal="false" aria-label={sheet.title}
-          style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 1394,
+          style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: RS_LAYERS.sheet,
             maxHeight: "min(60vh, 560px)", background: "#fbfaf8",
             borderTop: "1px solid #d9dee6", borderRadius: "14px 14px 0 0",
             boxShadow: "0 -14px 40px rgba(15,23,42,.22)",

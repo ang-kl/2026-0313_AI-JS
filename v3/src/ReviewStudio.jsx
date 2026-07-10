@@ -16,7 +16,7 @@ import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
 // PR 1 (Part B.4, v3-workflow-and-step3-remediation-spec.md): rules constants, shared
 // components/tokens, the desk layout engine, and the 14 window bodies now live under
 // ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
-import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP } from "./review/rs-rules.js";
+import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP , RS_LAYERS} from "./review/rs-rules.js";
 import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, critH3 } from "./review/shared.jsx";
 import Desk from "./review/Desk.jsx";
 // PR 2 (Part B.3): the declarative window registry is the single source of truth -
@@ -646,6 +646,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // considered. Lazy-init so this reads the real viewport once, not on every render.
   const [railOpen, setRailOpen] = useState(() => (typeof window === "undefined" || window.innerWidth >= 860));
   const [activeSpan, setActiveSpan] = useState(null);
+  // Hover-to-trace (goal §9 / design handoff): hovering a comment card PREVIEWS its
+  // connector without touching the pinned activeSpan; mouse-leave clears it. Click
+  // still pins (activeSpan). The connector reads activeSpan || previewSpan.
+  const [previewSpan, setPreviewSpan] = useState(null);
   const [focusSkill, setFocusSkill] = useState(null); // AI-1 click-to-analyse: focused skill-pill index
   // AI-1 fix: a span tap must take the focus card over from an open skill card - the card
   // resolver prefers the skill, so clear it whenever a span becomes active (found live).
@@ -860,7 +864,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [dockHover, setDockHover] = useState(null); // "left"|"right" while dragging a float
   const splitDragRef = useRef(null);
   const deskRef = useRef(null);
-  const zTopRef = useRef(1400);
+  const zTopRef = useRef(RS_LAYERS.float);
   const floatDragRef = useRef(null);
   // PR 3 (Part C.2, LC1): the single connLine grew into a link SET, measured inside
   // Desk.jsx (ephemeral DOM geometry). This component supplies only the DATA the links
@@ -869,7 +873,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const traceIds = (result && result.jobAnatomy && !result.jobAnatomy.fallback && Array.isArray(result.jobAnatomy.duties))
     ? result.jobAnatomy.duties.slice(0, 14).map((_, i) => ({ oiaId: "s" + i, traceId: "t" + i }))
     : [];
-  const linkData = { comments: dissection.comments, activeSpan, focusSkill, traceIds };
+  const linkData = { comments: dissection.comments, activeSpan: activeSpan || previewSpan, focusSkill, traceIds };
   // Stub click "opens/activates the target window" (Part C.2 item 4): floated windows
   // come to front, pinned ones slide out, in-strip ones become the active tab of their
   // panel; a window that lives on another top tab switches to that tab.
@@ -885,7 +889,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => {
-      if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = 1400 + all.floats[postingKey].length; }
+      if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = RS_LAYERS.float + all.floats[postingKey].length; }
       const d = all && all.desk && all.desk[postingKey];
       if (d) { if (typeof d.splitPct === "number") setSplitPct(Math.max(30, Math.min(75, d.splitPct))); if (d.overrides) setOverrides(d.overrides); if (Array.isArray(d.pinned)) setPinned(d.pinned); }
     });
@@ -976,7 +980,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1010,6 +1014,14 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".14em", color: "#6b6357" }}>REVIEWING</span>
             <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
+            {/* Decision counts (goal §10 / handoff sub-header): live accepted/pending
+                tally over the reviewer comments - counts, not colour, carry the state. */}
+            {marginComments.length > 0 && (() => {
+              const acc = marginComments.filter((c) => commentStatus[c.id] === "accepted").length;
+              const rej = marginComments.filter((c) => commentStatus[c.id] === "rejected").length;
+              const pen = marginComments.length - acc - rej;
+              return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#586474", whiteSpace: "nowrap" }}>{marginComments.length} comment{marginComments.length === 1 ? "" : "s"} {RS_DOT} {acc} accepted {RS_DOT} {rej} rejected {RS_DOT} {pen} pending</span>;
+            })()}
           </div>
           <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1rem", color: "#16202e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
           {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
@@ -1063,7 +1075,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             // never land on the covered page behind the backdrop.
             if (e.key === "Tab") e.preventDefault();
           }}
-          style={{ position: "fixed", inset: 0, zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.48)", padding: 16 }}>
+          style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.modal, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.48)", padding: 16 }}>
           <style>{"@keyframes rsSweep{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}} @keyframes rsPulse{0%,100%{opacity:.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.rs-anim{animation:none !important}}"}</style>
           <div style={{ width: "min(440px, 94vw)", background: "#fff", border: "1px solid #d9dee6", borderRadius: 14, boxShadow: "0 24px 70px rgba(15,23,42,0.35)", padding: "20px 22px 18px" }}>
             {!bgError ? (

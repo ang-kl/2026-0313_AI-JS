@@ -62,3 +62,22 @@ export const RS_EMPTYPE_MAP = [
   { bucket: "internship", re: /intern|trainee/i },
   { bucket: "freelance", re: /freelance|casual/i },
 ];
+
+// ── RS_LAYERS (goal_11-JUL-2026.md §8): the documented Step 3 layer hierarchy.
+// One source of truth for every z-index in the Review Studio - no arbitrary
+// numbers in components. Order (low -> high):
+//   base workspace (auto) < tabs/toolbars (static) < connector overlay
+//   < bottom sheet < pinned slide-over < floating windows < menus/tooltips
+//   < blocking modal + backdrop < critical system alerts.
+// Floating windows allocate from `float` upward via the bring-to-front counter;
+// they must stay below `menu`.
+export const RS_LAYERS = {
+  connector: 1389, // link lines/stubs - above content, under every window chrome
+  sheet:     1394, // bottom drawer for cramped content
+  pinned:    1395, // pinned edge strip + slide-over
+  float:     1400, // floating windows start here; bring-to-front increments
+  floatMax:  1449, // ceiling for the float counter - never reaches `menu`
+  menu:      1450, // menus, dropdowns, tooltips
+  modal:     1500, // blocking modal + backdrop (build progress, OKF, confirm)
+  alert:     1600, // critical system alerts - always on top
+};
