@@ -13,7 +13,7 @@ import BLUEPRINT_STATUS from "./blueprint-status.json";
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
-import { fetchEmployerRegistration } from "./App.jsx";
+import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
@@ -602,9 +602,21 @@ function rsEmpTypeBucket(str) {
   for (let i = 0; i < RS_EMPTYPE_MAP.length; i++) { if (RS_EMPTYPE_MAP[i].re.test(s)) return RS_EMPTYPE_MAP[i].bucket; }
   return null;
 }
-function rsIndicators(result, firstJob) {
+// OI1.2 (v3-organisation-intelligence-spec.md): when the employer-scoped MCF
+// fetch (fetchEmployerPostings) resolves to exactly one, unambiguous match,
+// the repost/salary read below re-scopes to that employer's actual live
+// posting set (frozen resolveCompany, api/mcf.js) instead of the analysis's
+// sampled job list - "across this employer's N live postings" supersedes
+// "in the M sampled". Ambiguous employer resolution withholds the swap and
+// keeps the sampled variant (never merge across firms).
+function rsIndicators(result, firstJob, employerData) {
   const rdd = result && result.responsibilitiesData;
-  const jobs = (rdd && Array.isArray(rdd.jobs)) ? rdd.jobs : [];
+  const sampledJobs = (rdd && Array.isArray(rdd.jobs)) ? rdd.jobs : [];
+  const empMatch = (employerData && !employerData.ambiguous && Array.isArray(employerData.matches) && employerData.matches.length === 1) ? employerData.matches[0] : null;
+  const useEmp = !!(empMatch && Array.isArray(empMatch.jobs) && empMatch.jobs.length >= 3);
+  const jobs = useEmp ? empMatch.jobs : sampledJobs;
+  const scopeTotal = useEmp ? (employerData.totalPostings || jobs.length) : jobs.length;
+  const scopeSuffix = useEmp ? "across this employer's " + scopeTotal + " live postings" : "in the " + jobs.length + " sampled";
   const out = [];
   if (jobs.length >= 3) {
     const emp = (j) => String(j.hiringCompanyName || j.postedCompanyName || (j.postedCompany && j.postedCompany.name) || j.companyName || "").toLowerCase().trim();
@@ -625,13 +637,13 @@ function rsIndicators(result, firstJob) {
       }
       const dutyMatch = maxOverlap >= 0.6;
       out.push({ id: "ind-repost", label: "repost pattern",
-        obs: maxDupe + " near-identical ads (same employer + " + (dutyMatch ? "duty text" : "title") + ") in the " + jobs.length + " sampled",
+        obs: maxDupe + " near-identical ads (same employer + " + (dutyMatch ? "duty text" : "title") + ") " + scopeSuffix,
         why: "This req is being posted repeatedly. A queue this crowded rewards depth over spread - one strong, evidenced application beats several thin ones.",
         move: "Triage: either commit real effort to this one, or deprioritise it and spend the time on a less-contested req. Ask at screen how long the seat has been open." });
     }
     const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax || (j.salary && (j.salary.minimum || j.salary.maximum))).length;
     const pct = Math.round((withSalary / jobs.length) * 100);
-    if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
+    if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " ads (" + scopeSuffix + ") state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
   }
   // ET1: verbatim MCF/CSG employmentType, fact-labelled ("from posting"), non-permanent only.
   const empRaw = firstJob && firstJob.employmentType;
@@ -640,7 +652,7 @@ function rsIndicators(result, firstJob) {
     let obs = "This posting's engagement type is verbatim: " + String(empRaw);
     if (jobs.length >= 4) {
       const sameBucket = jobs.filter((j) => rsEmpTypeBucket(j && j.employmentType) === bucket).length;
-      obs += ". " + sameBucket + " of " + jobs.length + " sampled ads for this role state " + bucket;
+      obs += ". " + sameBucket + " of " + jobs.length + " ads " + scopeSuffix + " state " + bucket;
     }
     out.push({ id: "ind-emptype", label: "engagement type", obsChip: "from posting",
       obs,
@@ -686,7 +698,7 @@ function rsSalaryPosition(posting, result) {
     move: "Quote the sampled range in negotiation - it is this search's own evidence, not a generic benchmark.",
   };
 }
-function buildCriticalRead(result, spans, title, posting) {
+function buildCriticalRead(result, spans, title, posting, employerData) {
   const firstJob = (() => { const js = (result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : (Array.isArray(result && result.jobs) ? result.jobs : []); return js.find((j) => j && (j.description || j.responsibilitiesText)) || null; })();
   let adText = rsAdText(firstJob);
   // Fallback to the analysed posting's own verbatim text when the aggregate result.jobs is thin -
@@ -702,7 +714,7 @@ function buildCriticalRead(result, spans, title, posting) {
       .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
       .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
   }
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
 // No.136 G1 (§7 explainability): every generated section declares WHY it appeared - the
 // triggering evidence + the governing spec section. Deterministic string, no LLM.
@@ -988,7 +1000,19 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     if (!t || t.trim().length < 40) t = rsAdText(srcJob || {});
     return rsAdSections(t);
   }, [result, posting]);
-  const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting), [result, dissection.spans, title, posting]);
+  // OI1.2: deferred, module-cached fetch of this employer's full live MCF posting set
+  // (same posture as fetchEmployerRegistration/PbEmployerRow) - re-scopes rsIndicators'
+  // repost/salary read off the critical render path. Never blocks; on failure or an
+  // ambiguous employer match rsIndicators silently keeps the sampled-set variant.
+  const [employerPostings, setEmployerPostings] = useState(null);
+  useEffect(() => {
+    const name = String(employer || "").trim();
+    if (!name) { setEmployerPostings(null); return undefined; }
+    let cancelled = false;
+    fetchEmployerPostings(name).then((d) => { if (!cancelled) setEmployerPostings(d); });
+    return () => { cancelled = true; };
+  }, [employer]);
+  const critical = useMemo(() => buildCriticalRead(result, dissection.spans, title, posting, employerPostings), [result, dissection.spans, title, posting, employerPostings]);
   // No.136 G2: severity-first ordering + dismiss/restore. Ranks are deterministic reads
   // of evidence the lenses already computed (counts and grades - no new numbers); a
   // dismissed panel is per-posting, persisted (KV-1 "boards" scope), reversible from the
