@@ -1452,7 +1452,7 @@ import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 import { loadState, saveState } from "./persist.js";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
-import ReviewStudio from "./ReviewStudio.jsx";
+import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
 import { exposureForIsco } from "../engine-data/engine-core.js";
 import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
 import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.282";
+const APP_VERSION = "3.0.283";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -13933,6 +13933,147 @@ function _achHypothesis(clusterIds, allClusters) {
   return { top: "augment-human", runnerUp: dominated.length > 0 ? "automate-via-agent" : "keep-human", evidence: fnClusters.map(c => c.id) };
 }
 
+// OI1.1 (v3-organisation-intelligence-spec.md): deterministic organisation-read
+// panel over an employer's already-fetched live posting set. Every signal is a
+// count or a verbatim pass-through - no trend/causal verb (R012 candidate: a
+// snapshot may never render "growing"/"understaffed"/"replacing"/"expanding"/
+// "shrinking"). Reuses rsNormTitle/rsJaccard/rsEmpTypeBucket (ReviewStudio.jsx)
+// rather than re-deriving thresholds. Pure function - same inputs, same output.
+function buildOrgRead(activeMatch, empReg, csgGroups) {
+  const jobs = (activeMatch && Array.isArray(activeMatch.jobs)) ? activeMatch.jobs : [];
+  const n = jobs.length;
+  const signals = [];
+
+  // Hiring breadth + function concentration: verbatim MCF categories[0].
+  if (n >= 3) {
+    const fnCounts = new Map();
+    jobs.forEach((j) => {
+      const f = (Array.isArray(j.categories) && j.categories[0]) || null;
+      if (f) fnCounts.set(f, (fnCounts.get(f) || 0) + 1);
+    });
+    const withFn = Array.from(fnCounts.values()).reduce((a, b) => a + b, 0);
+    if (withFn > 0) {
+      signals.push({
+        id: "org-breadth",
+        label: "hiring breadth",
+        obs: n + " live postings across " + fnCounts.size + " function" + (fnCounts.size === 1 ? "" : "s"),
+      });
+      let modalFn = null, modalCount = 0;
+      fnCounts.forEach((c, f) => { if (c > modalCount) { modalCount = c; modalFn = f; } });
+      if (modalFn) {
+        const pct = Math.round((modalCount / withFn) * 100);
+        signals.push({
+          id: "org-concentration",
+          label: "function concentration",
+          obs: pct + "% of live postings sit in " + modalFn,
+        });
+      }
+    }
+  }
+
+  // Seniority mix: verbatim MCF positionLevels[0] histogram - no invented
+  // entry/mid/senior bucketing, only the levels the ads actually state.
+  {
+    const lvlCounts = new Map();
+    jobs.forEach((j) => {
+      const lvl = (Array.isArray(j.positionLevels) && j.positionLevels[0]) || null;
+      if (lvl) lvlCounts.set(lvl, (lvlCounts.get(lvl) || 0) + 1);
+    });
+    const withLvl = Array.from(lvlCounts.values()).reduce((a, b) => a + b, 0);
+    if (withLvl > 0) {
+      const parts = Array.from(lvlCounts, ([lvl, c]) => c + " " + lvl).sort((a, b) => {
+        const na = parseInt(a, 10), nb = parseInt(b, 10);
+        return nb - na;
+      });
+      signals.push({
+        id: "org-seniority",
+        label: "seniority mix",
+        obs: parts.join(", ") + " of " + withLvl + " postings state a level",
+      });
+    }
+  }
+
+  // Engagement mix (temp vs permanent): reuse rsEmpTypeBucket, no re-derivation.
+  {
+    const withType = jobs.filter((j) => j.employmentType);
+    if (withType.length > 0) {
+      const nonPerm = withType.filter((j) => {
+        const b = rsEmpTypeBucket(j.employmentType);
+        return b && b !== "permanent";
+      }).length;
+      if (nonPerm > 0) {
+        const verbatimTypes = Array.from(new Set(withType.filter((j) => {
+          const b = rsEmpTypeBucket(j.employmentType);
+          return b && b !== "permanent";
+        }).map((j) => j.employmentType)));
+        signals.push({
+          id: "org-engagement",
+          label: "engagement mix",
+          obs: nonPerm + " of " + withType.length + " live postings are non-permanent (verbatim: " + verbatimTypes.join("; ") + ")",
+        });
+      }
+    }
+  }
+
+  // Reposting pressure: near-identical title clusters within this employer's
+  // own live set (already deduped by uuid in resolveCompany - CROJ-3 guard).
+  if (n >= 3) {
+    const clusters = new Map();
+    jobs.forEach((j) => {
+      const k = rsNormTitle(j.title);
+      if (!k) return;
+      if (!clusters.has(k)) clusters.set(k, []);
+      clusters.get(k).push(j);
+    });
+    let maxDupe = 0, maxTitle = null;
+    clusters.forEach((list, k) => { if (list.length > maxDupe) { maxDupe = list.length; maxTitle = list[0].title; } });
+    if (maxDupe >= 3) {
+      signals.push({
+        id: "org-repost",
+        label: "reposting pressure",
+        obs: "This employer has " + maxDupe + " near-identical live ads for \"" + maxTitle + "\"",
+      });
+    }
+  }
+
+  // Salary disclosure posture: reuse the same salaryMin/Max presence test as
+  // ReviewStudio's ind-salary.
+  if (n >= 3) {
+    const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax).length;
+    const pct = Math.round((withSalary / n) * 100);
+    signals.push({
+      id: "org-salary",
+      label: "salary disclosure",
+      obs: withSalary + " of " + n + " live postings state a band (" + pct + "%)",
+    });
+  }
+
+  // Registry facts: exact ACRA match only - facts, never a "startup vs
+  // institution" verdict (that judgement is OI1.5, NOT READY).
+  let registry = null;
+  if (empReg && empReg.status === "done") {
+    if (empReg.data && empReg.data.matched === "exact") {
+      const d = empReg.data;
+      const parts = [];
+      if (d.primarySsicDescription) parts.push("Registered as " + d.primarySsicDescription);
+      if (d.registeredSince) parts.push("incorporated " + d.registeredSince);
+      registry = { matched: true, obs: parts.length ? parts.join("; ") : "ACRA match found but no activity/incorporation fields on record.", namesakes: d.namesakes || 0 };
+    } else {
+      registry = { matched: false, obs: "No exact ACRA match" };
+    }
+  }
+
+  // Sector: gov vs private, from already-fetched careers.gov.sg groups. A
+  // listing here is not a headcount - it is a live-postings count (OI1.4 guard).
+  let govRead = null;
+  if (Array.isArray(csgGroups) && csgGroups.length > 0) {
+    const govPostings = csgGroups.reduce((sum, g) => sum + (g.jobs ? g.jobs.length : 0), 0);
+    govRead = { obs: "Also lists " + govPostings + " role" + (govPostings === 1 ? "" : "s") + " on careers.gov.sg (public service) across " + csgGroups.length + " agenc" + (csgGroups.length === 1 ? "y" : "ies") };
+  }
+
+  return { signals, registry, govRead, scope: n };
+}
+
 // Main CO2.7 engine: buildCompanyAgents(matchGroup) -> deterministic model.
 // matchGroup: { displayName, count, jobs } - jobs carry responsibilitiesText, skills, title,
 // categories, uuid, mcfUrl, postedDate, dutyDetail.
@@ -14509,6 +14650,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     return function() { cancelled = true; };
   }, [activeMatch && activeMatch.displayName]);
 
+  // OI1.1: deterministic organisation read over the already-fetched employer set.
+  const orgRead = useMemo(function() { return buildOrgRead(activeMatch, empReg, csgGroups); }, [activeMatch, empReg, csgGroups]);
+
   const activeJobs = (activeMatch && activeMatch.jobs) || [];
   const mcfFacetOptions = useMemo(function() {
     const levels = new Map(), types = new Map();
@@ -14650,6 +14794,30 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                 {empReg && empReg.status === "done" && (!empReg.data || empReg.data.matched !== "exact") && (
                   <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>No exact ACRA registration match for "{activeMatch.displayName}".</p>
                 )}
+              </div>
+            )}
+
+            {/* OI1.1 (v3-organisation-intelligence-spec.md): "Organisation read" - deterministic
+                counts over this employer's already-fetched live posting set. Never a trend/causal
+                verb (R012 candidate) - a snapshot is a count, not a growth/understaffing story. */}
+            {activeMatch && (orgRead.signals.length > 0 || orgRead.registry || orgRead.govRead) && (
+              <div style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
+                <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>ORGANISATION READ</div>
+                {orgRead.signals.map(function(s) {
+                  return (
+                    <p key={s.id} style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{s.obs}</p>
+                  );
+                })}
+                {orgRead.registry && (
+                  <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: orgRead.registry.matched ? C.text : C.muted }}>
+                    {orgRead.registry.obs}
+                    {orgRead.registry.matched && orgRead.registry.namesakes > 0 && (" (+" + orgRead.registry.namesakes + " other " + (orgRead.registry.namesakes === 1 ? "entity" : "entities") + " with this name on ACRA)")}
+                  </p>
+                )}
+                {orgRead.govRead && (
+                  <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{orgRead.govRead.obs}</p>
+                )}
+                <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Counts only, over this employer's live postings only - not a growth, staffing, or size claim.</p>
               </div>
             )}
 

@@ -235,7 +235,7 @@ function rsComments(spans) {
 // card in the margin. All deterministic - keywords are nucleus tokens + matched skill
 // terms; routes map from the engine band; skill "how/kickstart" lines are the existing
 // LLM narration and stay chipped "AI estimate". Withhold over guess throughout. ──────────
-function rsTokens(text) {
+export function rsTokens(text) {
   return String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w));
 }
 const RS_ROUTE = { human: "candidate edge - bring proof you drove this to an outcome", auto: "governance check - who signs off the machine's output?", augmented: "AI-assist - human frames, verifies, owns", assisted: "AI-assist - human judgment leads" };
@@ -569,7 +569,7 @@ function rsQoI(spans) {
 // Title normalisation for the dup key: lowercase, strip parenthetical suffixes and
 // in-scope seniority prefixes, collapse punctuation/whitespace. Deterministic - no
 // fuzzy edit-distance, so it never over-collapses distinct role nouns.
-function rsNormTitle(s) {
+export function rsNormTitle(s) {
   return String(s || "")
     .toLowerCase()
     .replace(/\([^)]*\)/g, " ")
@@ -579,7 +579,7 @@ function rsNormTitle(s) {
     .trim();
 }
 // Pure count ratio of shared tokens over the union - same sample gives same ratio.
-function rsJaccard(aTokens, bTokens) {
+export function rsJaccard(aTokens, bTokens) {
   const a = new Set(aTokens), b = new Set(bTokens);
   if (!a.size || !b.size) return 0;
   let inter = 0;
@@ -596,7 +596,7 @@ const RS_EMPTYPE_MAP = [
   { bucket: "internship", re: /intern|trainee/i },
   { bucket: "freelance", re: /freelance|casual/i },
 ];
-function rsEmpTypeBucket(str) {
+export function rsEmpTypeBucket(str) {
   const s = String(str || "");
   if (!s) return null;
   for (let i = 0; i < RS_EMPTYPE_MAP.length; i++) { if (RS_EMPTYPE_MAP[i].re.test(s)) return RS_EMPTYPE_MAP[i].bucket; }
