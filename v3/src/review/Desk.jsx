@@ -1,29 +1,10 @@
 // v3/src/review/Desk.jsx - PR 1 (Part B.4): the layout engine JSX, moved verbatim -
 // splitter, float layer, pinned edge strip + slide-over, bottom sheet, connector SVG
-// overlay, and the LINK_RULES / WIN_LABELS / TAB_WINDOWS layout config. Option 1
-// (Human Lead, PR 1 gate): ALL state stays in ReviewStudio.jsx and arrives as props -
-// zero state-ownership change in a zero-behaviour-change PR. PR 2's registry refactor
-// absorbs this prop surface.
-// Generalized connector registry (per Step-3 design spec, No.138 U-conn): the engine's
-// activeSpan/focusSkill remain the only truth source. A rule fires only when whenActive
-// returns a live id read off real state, so no connector line is ever manufactured for a
-// tab with no shared id (overview, gates, critical, market - no rule below, effect no-ops).
-export const LINK_RULES = {
-  ad: { active: (s) => s.activeSpan, left: (id) => "#li-" + id,
-        right: (id) => '[data-comment-anchor="' + id + '"]' },
-  duties: { active: (s) => s.activeSpan, left: (id) => '[data-oia-anchor="' + id + '"]',
-            right: (id) => "#li-" + id }, // reciprocal to the manuscript's scrollIntoView target
-};
-  // No.138 U2: the desk - window registry + per-tab panel assignment.
-export const WIN_LABELS = { verdict: "Verdict", shortcuts: "Shortcuts", manuscript: "Manuscript", comments: "Comments", oia: "O-I-A cards", aitrace: "AI trace", trajectory: "Trajectory", gates: "Hard gates", qoi: "Quality of information", critical: "Critical Read", graphs: "Graphs", salary: "Salary", indicators: "Indicators", inspector: "Inspector" };
-export const TAB_WINDOWS = {
-    overview: { left: ["verdict"], right: ["shortcuts", "inspector"] },
-    ad: { left: ["manuscript"], right: ["inspector", "comments"] },
-    duties: { left: ["oia", "aitrace"], right: ["inspector", "trajectory"] },
-    gates: { left: ["gates", "qoi"], right: ["inspector"] },
-    critical: { left: ["critical"], right: ["inspector"] },
-    market: { left: ["graphs"], right: ["salary", "indicators", "inspector"] },
-  };
+// overlay. Option 1 (Human Lead, PR 1 gate): ALL state stays in ReviewStudio.jsx and
+// arrives as props - zero state-ownership change.
+// PR 2 (Part B.3): WIN_LABELS / TAB_WINDOWS / LINK_RULES are no longer defined here -
+// they DERIVE from the declarative window registry, the single source of truth.
+import { WIN_LABELS, TAB_WINDOWS } from "./registry.jsx";
 
 export default function Desk({ deskRef, connLine, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
   return (
