@@ -628,10 +628,16 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
+  // Modal spec (11-07 '26): the build-progress modal starts open (centred, blocking);
+  // "Read the page while it builds" minimises it to the inline strip. The error state
+  // is dismissable separately and re-arms if a new error arrives.
+  const [bgModalMin, setBgModalMin] = useState(false);
+  const [bgErrDismissed, setBgErrDismissed] = useState(false);
+  useEffect(() => { setBgErrDismissed(false); }, [bgError]);
   const [markup, setMarkup] = useState("suggestions"); // The Ad toolbar: clean | suggestions | comments
   const [dutyView, setDutyView] = useState("oia");     // Duties toolbar: oia | aitrace
   // Rail starts collapsed on narrow viewports (phones) - open by default on
@@ -1032,12 +1038,69 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           so a denominator here would be invented. This is the ONLY progress strip on
           this page - the static engineering-completion strip was removed (11-07 '26)
           because a bar that never moves reads as broken, whatever its label says. */}
-      {bgRunning && (
+      {bgRunning && bgModalMin && (
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 16px", background: "#eef4ff", borderBottom: "1px solid #d7e3fb" }}>
           <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: "#2554d6", flex: "none" }} />
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".04em", color: "#1f3fae", flex: "none" }}>STILL LOADING</span>
           <span style={{ fontSize: "0.75rem", color: "#2a3f70", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bgStatus}</span>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b6d9a", flex: "none" }}>Step {bgStep} {String.fromCharCode(0x00b7)} {Math.floor((bgElapsed || 0) / 60)}:{String((bgElapsed || 0) % 60).padStart(2, "0")}</span>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#42538a", flex: "none" }}>Step {bgStep} {String.fromCharCode(0x00b7)} {Math.floor((bgElapsed || 0) / 60)}:{String((bgElapsed || 0) % 60).padStart(2, "0")}</span>
+        </div>
+      )}
+
+      {/* Modal spec (Human Lead 11-07 '26): the Step 3 build progress shows in a CENTRED
+          MODAL, not only inline. Blocks accidental interaction with the page underneath;
+          a deliberate "Read the page while it builds" button minimises it back to the
+          inline strip above (the page is genuinely usable mid-build - AN1 design). The
+          bar is an indeterminate sweep, NOT a percentage: later stages are conditional,
+          so a denominator would be invented (non-inventive contract). Auto-closes when
+          the fan-out settles; a failure shows an error state + recovery instruction. */}
+      {((bgRunning && !bgModalMin) || (bgError && !bgErrDismissed)) && (
+        <div role="dialog" aria-modal="true" aria-label={bgError ? "Analysis build problem" : "Building the full analysis"}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") { bgError ? setBgErrDismissed(true) : setBgModalMin(true); }
+            // Focus trap (WAI-ARIA dialog): the modal has exactly ONE focusable element
+            // (its action button), so Tab/Shift+Tab wrap to itself - keyboard focus can
+            // never land on the covered page behind the backdrop.
+            if (e.key === "Tab") e.preventDefault();
+          }}
+          style={{ position: "fixed", inset: 0, zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.48)", padding: 16 }}>
+          <style>{"@keyframes rsSweep{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}} @keyframes rsPulse{0%,100%{opacity:.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.rs-anim{animation:none !important}}"}</style>
+          <div style={{ width: "min(440px, 94vw)", background: "#fff", border: "1px solid #d9dee6", borderRadius: 14, boxShadow: "0 24px 70px rgba(15,23,42,0.35)", padding: "20px 22px 18px" }}>
+            {!bgError ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
+                  <span aria-hidden="true" className="rs-anim" style={{ width: 9, height: 9, borderRadius: "50%", background: "#2554d6", flex: "none", animation: "rsPulse 1.3s ease-in-out infinite" }} />
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", fontWeight: 700, letterSpacing: ".06em", color: "#1f3fae" }}>BUILDING THE FULL ANALYSIS</span>
+                </div>
+                <p aria-live="polite" style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.55, minHeight: 40 }}>{bgStatus || "Fetching live SG postings and building the deeper reads..."}</p>
+                <div aria-hidden="true" style={{ position: "relative", height: 6, borderRadius: 3, background: "#e3e9f1", overflow: "hidden", marginBottom: 8 }}>
+                  <div className="rs-anim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "32%", borderRadius: 3, background: "linear-gradient(90deg, #2554d6, #0e7490)", animation: "rsSweep 1.4s ease-in-out infinite" }} />
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#42538a" }}>Step {bgStep} {String.fromCharCode(0x00b7)} {Math.floor((bgElapsed || 0) / 60)}:{String((bgElapsed || 0) % 60).padStart(2, "0")} elapsed</span>
+                  <span style={{ fontSize: "0.75rem", color: "#42538a" }}>closes by itself when done</span>
+                </div>
+                <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: "#3d4a5c", lineHeight: 1.55 }}>The page behind is already live - sections appear as they finish.</p>
+                <button type="button" autoFocus onClick={() => setBgModalMin(true)}
+                  style={{ width: "100%", minHeight: 44, borderRadius: 9, border: "1px solid #c3d3f5", background: "#e8f0fe", color: "#142a8e", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
+                  Read the page while it builds
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
+                  <span aria-hidden="true" style={{ fontSize: "1rem", lineHeight: 1 }}>{String.fromCharCode(0x26a0)}</span>
+                  <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", fontWeight: 700, letterSpacing: ".06em", color: "#92450a" }}>SOME SECTIONS DID NOT FINISH</span>
+                </div>
+                <p style={{ margin: "0 0 10px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.6 }}>{bgError} Everything that completed is already on the page below - nothing shown is affected.</p>
+                <p style={{ margin: "0 0 14px", fontSize: "0.8125rem", color: "#3d4a5c", lineHeight: 1.6 }}>To recover: use <strong>Retry live postings</strong> on The Ad tab for missing duty lines, or run the analysis again from <strong>New Search</strong>. If it keeps failing, wait a minute and retry - the source may be briefly busy.</p>
+                <button type="button" autoFocus onClick={() => setBgErrDismissed(true)}
+                  style={{ width: "100%", minHeight: 44, borderRadius: 9, border: "1px solid #f5d8a8", background: "#fdf0dd", color: "#92450a", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer" }}>
+                  Close and keep reading
+                </button>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -1083,12 +1146,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} />
 
 
-      {/* Footer */}
-      <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 18px", background: "#142a8e" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
+      {/* Footer - +10% type (0.6875 -> 0.75625rem) + roomier padding, and the version
+          tag lifted from #8595d6 (~3.3:1 on navy) to #c3cdf5 (WCAG AA). 11-07 '26. */}
+      <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: "9px 18px", background: "#142a8e", lineHeight: 1.5 }}>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
-          {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#8595d6" }}>v{version}</span>}
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
+          {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#c3cdf5" }}>v{version}</span>}
         </div>
       </div>
     </div>

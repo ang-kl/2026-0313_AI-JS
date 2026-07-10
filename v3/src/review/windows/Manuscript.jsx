@@ -92,7 +92,7 @@ export function renderWinManuscript(ctx) {
                       visible number; the skill pills below cite these numbers as superscript
                       links, so the number IS the on-screen join key. */}
                   {dutySpans.map((s, di) => {
-                    const lineNo = <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#8a94a6", marginRight: 7 }}>{di + 1}</span>;
+                    const lineNo = <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#5b6878", marginRight: 7 }}>{di + 1}</span>;
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{s.text}</li>;
                     // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
                     // no evidence -> the line renders fully plain (Human Lead doctrine).

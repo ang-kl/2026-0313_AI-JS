@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.293";
+const APP_VERSION = "3.0.294";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1622,7 +1622,7 @@ const C = {
   eu:         "#003399",
   euStar:     "#ffcc00",
   muted:      "#5b6878",
-  mutedLight: "#9aa5b4",
+  mutedLight: "#586474", // WCAG AA (11-07 '26): was #9aa5b4 (~2.7:1 on white); >=4.5:1 on white and C.bg
   text:       "#1a202c",
   textSub:    "#4a5568",
   green:      "#1e40af",
@@ -9934,29 +9934,40 @@ function Disclaimer() {
 
 
 // ── Subtle result footer with About panel ─────────────────────────────────────
-function ResultFooter() {
+// SiteFooter (Human Lead 11-07 '26, "consolidate website information into the footer"):
+// the ONE place for governance + site info - prominent indicative-analysis disclaimer,
+// source attribution, Methodology / Legal / Terms / Builder toggles, feedback, site
+// identity + version. Was ResultFooter: written for the legacy result page but never
+// rendered anywhere (stranded code) - now mounted at the app shell on every step
+// except the full-height Review Studio (which carries its own honesty footer).
+// Typography: footer text runs 0.825rem (+10% over the old 0.75rem, WCAG AA colours).
+function SiteFooter() {
   const [open, setOpen] = useState(false);
+  const linkBtn = { background:"transparent", border:"none", fontSize: "0.825rem", color:C.textSub, cursor:"pointer", padding: "6px 8px", minHeight:44, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 };
   return (
-    <div style={{ marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8 }}>
-        <p style={{ margin:0, fontSize: "0.75rem", color:C.mutedLight }}>
+    <footer role="contentinfo" style={{ marginTop:22, paddingTop:16, borderTop:`1px solid ${C.border}` }}>
+      {/* Standing disclaimer - prominent, not faint (WCAG AA; icon + border, not colour-only) */}
+      <div role="note" style={{ display:"flex", alignItems:"flex-start", gap:10, background:"#eef2f9", border:"1px solid #c7d2e4", borderLeft:`4px solid ${C.accent}`, borderRadius:8, padding:"10px 14px", marginBottom:12 }}>
+        <span aria-hidden="true" style={{ flexShrink:0, fontSize: "0.875rem", lineHeight:1.4 }}>ⓘ</span>
+        <p style={{ margin:0, fontSize: "0.825rem", color:C.text, lineHeight:1.6 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Results are a starting point for reflection, not professional career advice.</p>
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
+        <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.65, flex:"1 1 340px" }}>
           ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Skills taxonomy: ESCO v1.2 (CC BY 4.0). Exposure index: AIOE (Felten et al. 2021). AI is used for narration only.
         </p>
-        <div style={{ display:"flex", gap:10, alignItems:"center", flexWrap:"wrap" }}>
+        <div style={{ display:"flex", gap:4, alignItems:"center", flexWrap:"wrap" }}>
           <a href="mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences"
-            style={{ fontSize: "0.75rem", color:C.teal, textDecoration:"none", textDecorationStyle:"dotted", textUnderlineOffset:2 }}>
+            style={{ fontSize: "0.825rem", color:C.teal, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2, padding:"6px 8px", minHeight:44, display:"inline-flex", alignItems:"center" }}>
             Share feedback
           </a>
-          <button onClick={() => setOpen(o => o === "method" ? false : "method")}
-            style={{ background:"transparent", border:"none", fontSize: "0.75rem", color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
+          <button onClick={() => setOpen(o => o === "method" ? false : "method")} aria-expanded={open === "method"} style={linkBtn}>
             Methodology
           </button>
-          <button onClick={() => setOpen(o => o === "legal" ? false : "legal")}
-            style={{ background:"transparent", border:"none", fontSize: "0.75rem", color:C.mutedLight, cursor:"pointer", padding: "2px 6px", textDecoration:"underline", textDecorationStyle:"dotted" }}>
-            Legal
+          <button onClick={() => setOpen(o => o === "legal" ? false : "legal")} aria-expanded={open === "legal"} style={linkBtn}>
+            Legal & privacy
           </button>
           <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ fontSize: "0.75rem", color:C.mutedLight, textDecoration:"underline", textDecorationStyle:"dotted" }}>
+            style={{ fontSize: "0.825rem", color:C.textSub, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2, padding:"6px 8px", minHeight:44, display:"inline-flex", alignItems:"center" }}>
             Terms
           </a>
         </div>
@@ -9964,23 +9975,23 @@ function ResultFooter() {
       {open === "legal" && (
         <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10 }}>
-            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Legal notice</p>
-            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
+            <p style={{ margin:0, fontSize: "0.825rem", fontWeight:700, color:C.text }}>Legal notice</p>
+            <button onClick={() => setOpen(false)} aria-label="Close legal notice" style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0, minWidth:44, minHeight:44, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>×</button>
           </div>
-          <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 8px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             Results are computed from public labour-market data and research indices, and are indicative only. They do not constitute professional career, legal, employment, or HR advice. The builder accepts no liability for decisions made based on these outputs.
           </p>
-          <p style={{ margin:"0 0 8px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 8px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Singapore</strong> - governed by Singapore law. No personal data collected. Aligns with IMDA Model AI Governance Framework.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>European Union</strong> - minimal risk classification under EU AI Act. Not a high-risk system. No automated decisions made about individuals.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>ISCO-08</strong> - Occupation codes used in this tool are sourced from the International Standard Classification of Occupations (ISCO-08), © 2012 International Labour Organization (ILO), reproduced via the ESCO v1.2 API under ESCO&apos;s CC BY 4.0 licence. The ILO name and emblem are not used. No endorsement by the ILO is implied.
           </p>
           <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize: "0.75rem", color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 16, padding: "6px 14px" }}>
+            style={{ display:"inline-flex", alignItems:"center", gap:5, fontSize: "0.825rem", color:C.accent, fontWeight:600, textDecoration:"none", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 16, padding: "6px 14px" }}>
             Read full Terms of Use &#8599;
           </a>
         </div>
@@ -9988,30 +9999,40 @@ function ResultFooter() {
       {open === "method" && (
         <div style={{ marginTop:12, background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "16px 20px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
-            <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Methodology</p>
-            <button onClick={() => setOpen(false)} style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0 }}>×</button>
+            <p style={{ margin:0, fontSize: "0.825rem", fontWeight:700, color:C.text }}>Methodology</p>
+            <button onClick={() => setOpen(false)} aria-label="Close methodology" style={{ background:"transparent", border:"none", fontSize: "1rem", color:C.muted, cursor:"pointer", lineHeight:1, padding:0, minWidth:44, minHeight:44, display:"inline-flex", alignItems:"center", justifyContent:"center" }}>×</button>
           </div>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Data source</strong> - Roles and skills are drawn from live Singapore labour-market sources: job postings from MyCareersFuture and the public sector via careers.gov.sg, classified to SSOC 2024 and SSIC 2020, with employer records from ACRA. Skill labels are canonical ESCO v1.2 taxonomy entries - the official European Classification of Skills, Competences, Qualifications and Occupations, published by the European Commission DG Employment, Social Affairs and Inclusion, licensed CC BY 4.0 - citable by URI. The engine reads these sources; it does not invent role or skill names.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Occupation codes (ISCO-08)</strong> - Each occupation in this tool is mapped to an ISCO-08 code - the International Standard Classification of Occupations (2008 revision), published by the International Labour Organization (ILO). ISCO-08 classifies all jobs globally into a four-level hierarchy of 10 major groups, 43 sub-major groups, 130 minor groups, and 436 unit groups. The codes displayed in this tool are sourced via the ESCO API, which maps each ESCO occupation to exactly one ISCO-08 unit group. ISCO-08 codes are used for reference and cross-referencing only - they indicate the occupational group from which skills are drawn, not a formal classification of the user&apos;s specific role. © 2012 International Labour Organization.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>How exposure is scored</strong> - AI-exposure figures are computed deterministically, not written by a language model. Each occupation is crosswalked SSOC to ISCO-08 to SOC 2010 to the AI Occupational Exposure (AIOE) index of Felten, Raj and Seamans (2021, Strategic Management Journal 42(12):2195-2217), and expressed as a 0-100 percentile among 774 occupations. The raw z-mean and z-range are carried for fidelity. The same input always yields the same score.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Where AI is used</strong> - AI is advisory only. A language model may narrate or phrase guidance, but it never authors the exposure score, a ranking, or a verdict. Where a source is missing, the tool withholds the claim rather than guessing.
           </p>
-          <p style={{ margin:"0 0 10px", fontSize: "0.75rem", color:C.textSub, lineHeight:1.7 }}>
+          <p style={{ margin:"0 0 10px", fontSize: "0.825rem", color:C.textSub, lineHeight:1.7 }}>
             <strong style={{ color:C.text }}>Known limitations</strong> - Exposure reflects occupational-group research, not your specific employer, sector, or seniority. The tool may carry anchoring bias - the first figure seen tends to anchor subsequent interpretation. Results are most useful as a structured starting point for reflection, not as a definitive assessment.
           </p>
-          <p style={{ margin:0, fontSize: "0.75rem", color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
+          <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.6, borderTop:`1px solid ${C.border}`, paddingTop:10 }}>
             For authoritative occupation and skills data, refer to <a href="https://esco.ec.europa.eu" target="_blank" rel="noreferrer" style={{ color:C.accent }}>esco.ec.europa.eu</a>
           </p>
         </div>
       )}
-    </div>
+      {/* Builder note lives in the footer now (was a floating landing-page toggle) */}
+      <CommunityNote />
+      {/* Site identity + honesty line */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8, marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
+        <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.6 }}>
+          <a href="https://www.takearoundabout.com" target="_blank" rel="noreferrer" style={{ color:C.textSub, fontWeight:600, textDecoration:"none" }}>www.takearoundabout.com</a>
+          {" · "}built by Adrian K. L. Ang{" · "}SG Career View v{APP_VERSION}
+        </p>
+        <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, fontStyle:"italic" }}>AI-assisted · human decides</p>
+      </div>
+    </footer>
   );
 }
 
@@ -10692,7 +10713,6 @@ function RoleGraphStepCard({ step }) {
 function RoleGraphPanel({ result, title, posting }) {
   const [graphState, setGraphState] = useState({ status: "loading" });
   const [hoveredId, setHoveredId] = useState(null);
-  const [showJson, setShowJson] = useState(false);
   const [showStmts, setShowStmts] = useState(false);
   const [jdOpen, setJdOpen] = useState(false); // C/D: floating JD panel collapse state
   const [pipeOpen, setPipeOpen] = useState(false); // RIN2: keep Map panel graph-first; pipeline detail expands on demand
@@ -10925,7 +10945,7 @@ function RoleGraphPanel({ result, title, posting }) {
         </div>
         {pipeOpen && (
           <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #c7d2fe" }}>
-            <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities, infers work activities and skills, maps them to <strong>ESCO</strong>, reverse-maps to <strong>ISCO-08</strong>, then assembles an API-ready role - occupation - skill - responsibility graph.</p>
+            <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.6 }}>Takes the role's itemised responsibilities, infers work activities and skills, maps them to <strong>ESCO</strong>, reverse-maps to <strong>ISCO-08</strong>, then assembles the connected map of role, occupations, skills and responsibilities you see here.</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {_RG_PIPE.map((s, i) => <span key={i} style={{ fontSize: "0.6875rem", color: "#4338ca", background: "#fff", border: "1px solid #c7d2fe", borderRadius: 10, padding: "2px 10px" }}>{i + 1}. {s}</span>)}
             </div>
@@ -11221,20 +11241,17 @@ function RoleGraphPanel({ result, title, posting }) {
             </>
           )}
 
-          {/* API-ready JSON */}
-          {card(
-            <>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>{hdr("API-ready graph (nodes / edges)")}<div style={{ display: "flex", gap: 12 }}>
-                <button onClick={() => { try { navigator.clipboard.writeText(JSON.stringify(g.graph, null, 2)); track("rolegraph_json_copied", { occupation: title }); } catch (_) {} }} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.75rem", color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>copy JSON</button>
-                <button onClick={() => setShowJson(s => !s)} style={{ background: "transparent", border: "none", padding: 0, fontSize: "0.75rem", color: "#4338ca", cursor: "pointer", textDecoration: "underline" }}>{showJson ? "hide" : "show"}</button>
-              </div></div>
-              <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>Each node is a role / ISCO-08 occupation / ESCO skill / responsibility; each edge carries a 0–1 match weight and a kind (<code>role-occupation</code>, <code>occupation-skill</code>, <code>skill-responsibility</code>, <code>role-skill</code>).</p>
-              {showJson && <pre style={{ margin: 0, maxHeight: 320, overflow: "auto", background: "#1a202c", color: "#dde3ec", borderRadius: 6, padding: "10px 12px", fontSize: "0.6875rem", lineHeight: 1.5 }}>{JSON.stringify(g.graph, null, 2)}</pre>}
-            </>
-          )}
+          {/* REMOVED (Human Lead, 11-07 '26): the "API-ready graph (nodes / edges)" card.
+              It was a developer artifact - the raw role-occupation-skill JSON graph with a
+              copy button - shown to end users with no explanation. Candidates never need
+              raw JSON; the OKF export covers structured export. The graph data itself
+              (g.graph) still powers the visual above. */}
 
           {/* CV ingress removed (PL1) */}
-          <p style={{ margin: "12px 0 0", fontSize: "0.6875rem", color: C.mutedLight, lineHeight: 1.5 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
+          <div role="note" style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "12px 0 0", background: "#eef2f9", border: `1px solid #c7d2e4`, borderLeft: `4px solid ${C.accent}`, borderRadius: 8, padding: "10px 14px" }}>
+            <span aria-hidden="true" style={{ flexShrink: 0, fontSize: "0.875rem", lineHeight: 1.4 }}>ⓘ</span>
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.text, lineHeight: 1.6 }}>Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict.</p>
+          </div>
         </>
       ))}
       </>}
@@ -14990,7 +15007,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                             );
                           })}
                         </ul>
-                        <p style={{ margin: "8px 0 0", fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}>Tap an agent (or any node in the graph) to see its connections, skills and the postings it spans.</p>
+                        <p style={{ margin: "8px 0 0", fontSize: 11, color: "#586474", lineHeight: 1.5 }}>Tap an agent (or any node in the graph) to see its connections, skills and the postings it spans.</p>
                       </div>
                     )}
                   </aside>
@@ -15293,6 +15310,10 @@ export default function App({ initialSearchMode } = {}) {
   const [bgStep, setBgStep] = useState(0);
   const [bgStatus, setBgStatus] = useState("");
   const [bgElapsed, setBgElapsed] = useState(0);
+  // Modal spec (Human Lead 11-07 '26): when the background fan-out FAILS (vs settling),
+  // the Step 3 progress modal must show an error state + recovery instruction instead
+  // of silently closing. "" = no error; a short reason string otherwise.
+  const [bgError, setBgError] = useState("");
   const toggleRef       = useRef(null);
   const compareRef      = useRef(null);
   const tabBarRef       = useRef(null);
@@ -15702,7 +15723,7 @@ export default function App({ initialSearchMode } = {}) {
     setSel(occ); setStep("loading"); setSub(
       corpus ? `Analysing ${corpus.jobs.length} live SG postings for ${toTitleCase(occ.title)} as one role...`
       : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
-      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null); setLoadingSkills([]);
+      : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null); setLoadingSkills([]); setBgError("");
     setShowExpect(false);
     const total = persona ? 4 : 3;
     const _src = corpus ? "corpus" : posting ? "posting" : "esco";
@@ -16095,6 +16116,9 @@ export default function App({ initialSearchMode } = {}) {
         if (analysisCancelRef.current !== cancelId) return;
         setBgRunning(false);
         const isTimeout = e.message === "prompt_timeout";
+        // Modal spec: surface the failure as a visible error state in the Step 3
+        // progress modal, with a recovery instruction - never a silent close.
+        setBgError(isTimeout ? "The background enrichment timed out." : "The background enrichment failed.");
         console.warn("[generatePrompts] background enrichment", isTimeout ? "timed out" : "failed:", e.message);
         // `actionable` belongs to generatePrompts' own closure, not this scope - referencing it
         // here threw a ReferenceError on every real timeout, before the setResult below could run,
@@ -17341,8 +17365,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <IntroCard onPersonaSelect={setPersona} toggleRef={toggleRef} />
             {/* Persona toggle - after intro card. LUX3: staggered entrance down the stack. */}
             <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} disabled={searchMode === "company" || searchMode === "wiki"} /></div>
+            {/* CommunityNote moved into SiteFooter (11-07 '26) - one home, no duplication */}
             <div className="lux-rise" style={{ "--lux-d":"0.18s" }}>
-              <CommunityNote />
               <Tagline />
               <DeviceNote />
             </div>
@@ -17486,6 +17510,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 bgStep={bgStep}
                 bgStatus={bgStatus}
                 bgElapsed={bgElapsed}
+                bgError={bgError}
                 band={null}
                 onBack={() => { setStep(query && query.trim() ? "mcf_browse" : "idle"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 version={APP_VERSION}
@@ -17506,6 +17531,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
              (_PILLAR_MAP lead questions, renderPillarView, PillarBar) stays defined
              for the No.136 G1 panel-registry port. Git history holds the full block. */
         })()}
+
+        {/* SiteFooter (11-07 '26): the consolidated site footer - disclaimer, attribution,
+            Methodology / Legal / Terms / builder note, identity + version - on every step
+            except the full-height Review Studio, which carries its own honesty footer. */}
+        {step !== "results" && <SiteFooter />}
 
       </main>
     </div>
