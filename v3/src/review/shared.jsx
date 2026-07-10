@@ -76,7 +76,7 @@ export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onE
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
           <div style={oiaKick}>OBSERVATION</div>
-          <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{obs}{String.fromCharCode(0x201d)}</p>
+          <p style={{ fontFamily: "'Source Serif 4','Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{obs}{String.fromCharCode(0x201d)}</p>
           <Chip kind={oc}>{oc}</Chip>
         </div>
         <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
