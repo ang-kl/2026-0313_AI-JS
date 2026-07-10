@@ -580,36 +580,66 @@ function rsJaccard(aTokens, bTokens) {
   const union = a.size + b.size - inter;
   return union ? inter / union : 0;
 }
-function rsIndicators(result) {
+// AI-3 (spec No.135), ET1 (v3-employment-type-signal-spec): fixed regex map, ordered so
+// "permanent" matches first (guards compound types like "Permanent, Full Time").
+const RS_EMPTYPE_MAP = [
+  { bucket: "permanent", re: /perm/i },
+  { bucket: "contract", re: /contract|temporary|fixed[- ]term|temp\b/i },
+  { bucket: "part-time", re: /part[- ]time/i },
+  { bucket: "internship", re: /intern|trainee/i },
+  { bucket: "freelance", re: /freelance|casual/i },
+];
+function rsEmpTypeBucket(str) {
+  const s = String(str || "");
+  if (!s) return null;
+  for (let i = 0; i < RS_EMPTYPE_MAP.length; i++) { if (RS_EMPTYPE_MAP[i].re.test(s)) return RS_EMPTYPE_MAP[i].bucket; }
+  return null;
+}
+function rsIndicators(result, firstJob) {
   const rdd = result && result.responsibilitiesData;
   const jobs = (rdd && Array.isArray(rdd.jobs)) ? rdd.jobs : [];
-  if (jobs.length < 3) return [];
   const out = [];
-  const emp = (j) => String(j.hiringCompanyName || j.postedCompanyName || (j.postedCompany && j.postedCompany.name) || j.companyName || "").toLowerCase().trim();
-  const key = (j) => (rsNormTitle(j.title) + "|" + emp(j));
-  const clusters = {};
-  jobs.forEach((j) => { const k = key(j); (clusters[k] = clusters[k] || []).push(j); });
-  let maxDupe = 0, maxKey = null;
-  Object.keys(clusters).forEach((k) => { if (clusters[k].length > maxDupe) { maxDupe = clusters[k].length; maxKey = k; } });
-  if (maxDupe >= 3) {
-    const cluster = clusters[maxKey];
-    const dutyToks = cluster.map((j) => rsTokens(rsAdText(j)));
-    let maxOverlap = 0;
-    for (let i = 0; i < dutyToks.length; i++) {
-      for (let jx = i + 1; jx < dutyToks.length; jx++) {
-        const ov = rsJaccard(dutyToks[i], dutyToks[jx]);
-        if (ov > maxOverlap) maxOverlap = ov;
+  if (jobs.length >= 3) {
+    const emp = (j) => String(j.hiringCompanyName || j.postedCompanyName || (j.postedCompany && j.postedCompany.name) || j.companyName || "").toLowerCase().trim();
+    const key = (j) => (rsNormTitle(j.title) + "|" + emp(j));
+    const clusters = {};
+    jobs.forEach((j) => { const k = key(j); (clusters[k] = clusters[k] || []).push(j); });
+    let maxDupe = 0, maxKey = null;
+    Object.keys(clusters).forEach((k) => { if (clusters[k].length > maxDupe) { maxDupe = clusters[k].length; maxKey = k; } });
+    if (maxDupe >= 3) {
+      const cluster = clusters[maxKey];
+      const dutyToks = cluster.map((j) => rsTokens(rsAdText(j)));
+      let maxOverlap = 0;
+      for (let i = 0; i < dutyToks.length; i++) {
+        for (let jx = i + 1; jx < dutyToks.length; jx++) {
+          const ov = rsJaccard(dutyToks[i], dutyToks[jx]);
+          if (ov > maxOverlap) maxOverlap = ov;
+        }
       }
+      const dutyMatch = maxOverlap >= 0.6;
+      out.push({ id: "ind-repost", label: "repost pattern",
+        obs: maxDupe + " near-identical ads (same employer + " + (dutyMatch ? "duty text" : "title") + ") in the " + jobs.length + " sampled",
+        why: "This req is being posted repeatedly. A queue this crowded rewards depth over spread - one strong, evidenced application beats several thin ones.",
+        move: "Triage: either commit real effort to this one, or deprioritise it and spend the time on a less-contested req. Ask at screen how long the seat has been open." });
     }
-    const dutyMatch = maxOverlap >= 0.6;
-    out.push({ id: "ind-repost", label: "repost pattern",
-      obs: maxDupe + " near-identical ads (same employer + " + (dutyMatch ? "duty text" : "title") + ") in the " + jobs.length + " sampled",
-      why: "This req is being posted repeatedly. A queue this crowded rewards depth over spread - one strong, evidenced application beats several thin ones.",
-      move: "Triage: either commit real effort to this one, or deprioritise it and spend the time on a less-contested req. Ask at screen how long the seat has been open." });
+    const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax || (j.salary && (j.salary.minimum || j.salary.maximum))).length;
+    const pct = Math.round((withSalary / jobs.length) * 100);
+    if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
   }
-  const withSalary = jobs.filter((j) => j.salaryMin || j.salaryMax || (j.salary && (j.salary.minimum || j.salary.maximum))).length;
-  const pct = Math.round((withSalary / jobs.length) * 100);
-  if (pct <= 40) out.push({ id: "ind-salary", label: "salary opacity", obs: withSalary + " of " + jobs.length + " sampled ads state a salary (" + pct + "%)", why: "Low disclosure in this market segment weakens your negotiating baseline.", move: "Anchor on the ads that DO state a band before naming your number." });
+  // ET1: verbatim MCF/CSG employmentType, fact-labelled ("from posting"), non-permanent only.
+  const empRaw = firstJob && firstJob.employmentType;
+  const bucket = rsEmpTypeBucket(empRaw);
+  if (bucket && bucket !== "permanent") {
+    let obs = "This posting's engagement type is verbatim: " + String(empRaw);
+    if (jobs.length >= 4) {
+      const sameBucket = jobs.filter((j) => rsEmpTypeBucket(j && j.employmentType) === bucket).length;
+      obs += ". " + sameBucket + " of " + jobs.length + " sampled ads for this role state " + bucket;
+    }
+    out.push({ id: "ind-emptype", label: "engagement type", obsChip: "from posting",
+      obs,
+      why: "A " + bucket + " engagement changes what to weigh: tenure, conversion-to-permanent terms, notice, and how the role's duties map to a fixed horizon.",
+      move: "Ask at screen: is there a conversion path, what is the renewal basis, and is the scope realistic for the stated term?" });
+  }
   return out;
 }
 // ── AI-4/5 (spec No.135): second-order + competitive reads, deterministic. ──────────
@@ -665,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting) {
       .filter((s) => s.length >= 25 && s.length <= 200 && /[a-z]/i.test(s))
       .slice(0, 14).map((t, i) => ({ id: "cr" + i, text: t, band: null, lens: rsLens(t) }));
   }
-  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
+  return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
 // No.136 G1 (§7 explainability): every generated section declares WHY it appeared - the
 // triggering evidence + the governing spec section. Deterministic string, no LLM.
@@ -928,8 +958,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.indicators && critical.indicators.length > 0 && !hiddenPanels.includes("indicators") && <>
                 <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
                 <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
-                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip="computed"
-                  onExpand={(e) => openSheet("Indicators", "critcard", { tag: x.label, obs: x.obs, interp: x.why, appl: x.move, persona: "INDICATORS", accent: "#0e7490", obsChip: "computed" }, e)} />)}
+                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip={x.obsChip || "computed"}
+                  onExpand={(e) => openSheet("Indicators", "critcard", { tag: x.label, obs: x.obs, interp: x.why, appl: x.move, persona: "INDICATORS", accent: "#0e7490", obsChip: x.obsChip || "computed" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
