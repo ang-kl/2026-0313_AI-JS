@@ -13939,7 +13939,7 @@ function _achHypothesis(clusterIds, allClusters) {
 // snapshot may never render "growing"/"understaffed"/"replacing"/"expanding"/
 // "shrinking"). Reuses rsNormTitle/rsJaccard/rsEmpTypeBucket (ReviewStudio.jsx)
 // rather than re-deriving thresholds. Pure function - same inputs, same output.
-function buildOrgRead(activeMatch, empReg, csgGroups) {
+function buildOrgRead(activeMatch, empReg, csgGroups, csgRetrievedAt) {
   const jobs = (activeMatch && Array.isArray(activeMatch.jobs)) ? activeMatch.jobs : [];
   const n = jobs.length;
   const signals = [];
@@ -14065,10 +14065,39 @@ function buildOrgRead(activeMatch, empReg, csgGroups) {
 
   // Sector: gov vs private, from already-fetched careers.gov.sg groups. A
   // listing here is not a headcount - it is a live-postings count (OI1.4 guard).
+  // OI1.3: deepen with a per-agency breakdown, verbatim engagement type, and a
+  // named-source provenance line. Each statutory board runs independent HR -
+  // never collapse the per-agency counts into one unified "government" figure.
   let govRead = null;
   if (Array.isArray(csgGroups) && csgGroups.length > 0) {
     const govPostings = csgGroups.reduce((sum, g) => sum + (g.jobs ? g.jobs.length : 0), 0);
-    govRead = { obs: "Also lists " + govPostings + " role" + (govPostings === 1 ? "" : "s") + " on careers.gov.sg (public service) across " + csgGroups.length + " agenc" + (csgGroups.length === 1 ? "y" : "ies") };
+    const perAgency = csgGroups
+      .map((g) => ({ name: g.name, count: g.jobs ? g.jobs.length : 0 }))
+      .sort((a, b) => b.count - a.count);
+
+    // Engagement type across the gov set - same verbatim pass-through posture
+    // as the MCF engagement-mix signal above, no interpretation verb.
+    let engagementObs = null;
+    {
+      const allGovJobs = csgGroups.reduce((acc, g) => acc.concat(g.jobs || []), []);
+      const withType = allGovJobs.filter((j) => j && j.employmentType);
+      if (withType.length > 0) {
+        const typeCounts = new Map();
+        withType.forEach((j) => { typeCounts.set(j.employmentType, (typeCounts.get(j.employmentType) || 0) + 1); });
+        const parts = Array.from(typeCounts, ([t, c]) => c + " " + t).sort((a, b) => {
+          const na = parseInt(a, 10), nb = parseInt(b, 10);
+          return nb - na;
+        });
+        engagementObs = parts.join(", ") + " of " + withType.length + " careers.gov.sg postings state an engagement type";
+      }
+    }
+
+    govRead = {
+      obs: "Also lists " + govPostings + " role" + (govPostings === 1 ? "" : "s") + " on careers.gov.sg (public service) across " + csgGroups.length + " agenc" + (csgGroups.length === 1 ? "y" : "ies"),
+      perAgency,
+      engagementObs,
+      provenance: "Source: careers.gov.sg (Open Government Products dump)" + (csgRetrievedAt ? " - Retrieved " + csgRetrievedAt : "") + " - Live listings in the dump, not a headcount - each agency/statutory board runs independent HR.",
+    };
   }
 
   return { signals, registry, govRead, scope: n };
@@ -14473,6 +14502,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
   const [csgState, setCsgState] = useState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
+  // OI1.3: client-fetch timestamp for the provenance line - honest about
+  // "when this client retrieved it", not a claim about the dump's own refresh window
+  // (that window is not exposed by /api/careers).
+  const [csgRetrievedAt, setCsgRetrievedAt] = useState(null);
   // CO2: agents panel state
   const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
   const [agentsModel, setAgentsModel] = useState(null);
@@ -14516,6 +14549,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     let cancelled = false;
     setState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
     setCsgState({ loading: true, jobs: [], total: 0, fallback: false, message: "" });
+    setCsgRetrievedAt(null);
     setChosenKey(null);
     setAgentsView("off");
     setAgentsModel(null);
@@ -14568,6 +14602,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             fallback: !!cData.fallback,
             message: cData.message || "",
           });
+          try {
+            setCsgRetrievedAt(new Date().toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT");
+          } catch (_) { setCsgRetrievedAt(null); }
         } else {
           setCsgState({ loading: false, jobs: [], total: 0, fallback: true, message: "Could not reach careers.gov.sg data. Please try again." });
         }
@@ -14651,7 +14688,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   }, [activeMatch && activeMatch.displayName]);
 
   // OI1.1: deterministic organisation read over the already-fetched employer set.
-  const orgRead = useMemo(function() { return buildOrgRead(activeMatch, empReg, csgGroups); }, [activeMatch, empReg, csgGroups]);
+  const orgRead = useMemo(function() { return buildOrgRead(activeMatch, empReg, csgGroups, csgRetrievedAt); }, [activeMatch, empReg, csgGroups, csgRetrievedAt]);
 
   const activeJobs = (activeMatch && activeMatch.jobs) || [];
   const mcfFacetOptions = useMemo(function() {
@@ -14815,7 +14852,20 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                   </p>
                 )}
                 {orgRead.govRead && (
-                  <p style={{ margin: "0 0 6px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{orgRead.govRead.obs}</p>
+                  <div style={{ margin: "0 0 6px" }}>
+                    <p style={{ margin: "0 0 4px", fontSize: "0.8125rem", color: C.text, lineHeight: 1.5 }}>{orgRead.govRead.obs}</p>
+                    {orgRead.govRead.perAgency.length > 1 && (
+                      <ul style={{ margin: "0 0 4px", padding: "0 0 0 18px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.6 }}>
+                        {orgRead.govRead.perAgency.map(function(a) {
+                          return <li key={a.name}>{a.name + ": " + a.count + " posting" + (a.count === 1 ? "" : "s")}</li>;
+                        })}
+                      </ul>
+                    )}
+                    {orgRead.govRead.engagementObs && (
+                      <p style={{ margin: "0 0 4px", fontSize: "0.75rem", color: C.muted, lineHeight: 1.5 }}>{orgRead.govRead.engagementObs}</p>
+                    )}
+                    <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>{orgRead.govRead.provenance}</p>
+                  </div>
                 )}
                 <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: C.muted, fontStyle: "italic" }}>Counts only, over this employer's live postings only - not a growth, staffing, or size claim.</p>
               </div>
