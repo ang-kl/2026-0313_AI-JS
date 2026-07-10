@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.273";
+const APP_VERSION = "3.0.274";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -15609,7 +15609,16 @@ export default function App({ initialSearchMode } = {}) {
       // Responsibilities Analysis over their duties. Non-blocking - the
       // "📝 Responsibilities" tab appears (and the Compare row fills) once it resolves.
       { let _tR; try { _tR = performance.now(); } catch (_) { _tR = 0; }
-      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, corpus ? corpus.jobs : undefined, occExposure)
+      // Bug (Human Lead, live: "0 duties" on postings that plainly have duty text):
+      // a posting-driven analysis never passed the user's OWN selected ad as preJobs -
+      // only the aggregate corpus did. That silently sent this to a fresh title-based
+      // MCF/careers search decoupled from the ad on screen, which frequently comes back
+      // thin/empty even when the chosen ad has ample text. Posting-first: analyse the
+      // ad the user picked; corpus is the fallback only when there is no single posting.
+      // (posting.text carries the ad body - buildResponsibilitiesCorpus reads
+      // responsibilitiesText/description, so map the field rather than renaming it
+      // everywhere posting.text is already read.)
+      buildResponsibilitiesData(occ.title, escoOccupation, merged, occ.iscoGroup, persona, posting ? [{ ...posting, responsibilitiesText: posting.text }] : (corpus ? corpus.jobs : undefined), occExposure)
         .then(rd => {
           if (analysisCancelRef.current !== cancelId) return;
           setResult(prev => prev ? { ...prev, responsibilitiesData: rd } : prev);
