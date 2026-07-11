@@ -22,7 +22,7 @@ export function renderWinVerdict(ctx) {
                 ].filter(Boolean).map((c, i) => (
                   <button key={i} type="button" onClick={() => setTab(c.k)} aria-label={c.kick + ": " + c.val + ". Open its tab."}
                     style={{ textAlign: "left", minHeight: 96, background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "14px 16px", cursor: "pointer", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>{c.kick}</div>
+                    <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#6b6456", marginBottom: 6 }}>{c.kick}</div>
                     <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.125rem", color: "#16202e", marginBottom: 4 }}>{c.val}</div>
                     <div style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.45, marginBottom: 6 }}>{c.sub}</div>
                     <Chip kind={c.chipK}>{c.chipK}</Chip>

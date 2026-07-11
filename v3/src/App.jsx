@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.299";
+const APP_VERSION = "3.0.300";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -9943,6 +9943,7 @@ function Disclaimer() {
 // Typography: footer text runs 0.825rem (+10% over the old 0.75rem, WCAG AA colours).
 function SiteFooter() {
   const [open, setOpen] = useState(false);
+  const year = new Date().getFullYear();
   const linkBtn = { background:"transparent", border:"none", fontSize: "0.825rem", color:C.textSub, cursor:"pointer", padding: "6px 8px", minHeight:44, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 };
   return (
     <footer role="contentinfo" style={{ marginTop:22, paddingTop:16, borderTop:`1px solid ${C.border}` }}>
@@ -9969,9 +9970,9 @@ function SiteFooter() {
           <button onClick={() => setOpen(o => o === "a11y" ? false : "a11y")} aria-expanded={open === "a11y"} style={linkBtn}>
             Accessibility
           </button>
-          <a href="/terms.html" target="_blank" rel="noreferrer"
-            style={{ fontSize: "0.825rem", color:C.textSub, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2, padding:"6px 8px", minHeight:44, display:"inline-flex", alignItems:"center" }}>
-            Terms
+          <a href="/terms.html" target="_blank" rel="noreferrer" aria-label="Terms of Use (opens in a new tab)"
+            style={{ fontSize: "0.825rem", color:C.textSub, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2, padding:"6px 8px", minHeight:44, display:"inline-flex", alignItems:"center", gap:3 }}>
+            Terms <span aria-hidden="true">&#8599;</span>
           </a>
         </div>
       </div>
@@ -10044,8 +10045,9 @@ function SiteFooter() {
       {/* Site identity + honesty line */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:8, marginTop:14, paddingTop:12, borderTop:`1px solid ${C.border}` }}>
         <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.6 }}>
-          <a href="https://www.takearoundabout.com" target="_blank" rel="noreferrer" style={{ color:C.textSub, fontWeight:600, textDecoration:"none" }}>www.takearoundabout.com</a>
+          <a href="https://www.takearoundabout.com" target="_blank" rel="noreferrer" aria-label="takearoundabout.com (opens in a new tab)" style={{ color:C.textSub, fontWeight:600, textDecoration:"none" }}>www.takearoundabout.com <span aria-hidden="true">&#8599;</span></a>
           {" · "}built by Adrian K. L. Ang{" · "}SG Career View v{APP_VERSION}
+          {" · "}&copy; {year} Adrian K. L. Ang. All rights reserved.
         </p>
         <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, fontStyle:"italic" }}>AI-assisted · human decides</p>
       </div>
@@ -12303,7 +12305,7 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
             <button key={o.v} type="button" onClick={() => onToggle(o.v)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
               <span aria-hidden="true" style={{ width: 15, height: 15, borderRadius: 4, border: "1.5px solid " + (on ? "#1a56db" : "#cbd5e1"), background: on ? "#1a56db" : "#fff", color: "#fff", fontSize: 11, lineHeight: "13px", textAlign: "center", flex: "none" }}>{on ? String.fromCharCode(0x2713) : ""}</span>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{o.v}</span>
-              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", flex: "none" }}>{o.n}</span>
+              <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>{o.n}</span>
             </button>
           ); })}
         </div>
@@ -12444,9 +12446,9 @@ function OkfModal({ doc, onClose }) {
         </div>
         <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "18px 20px", background: "#fcfbf9" }}>
           <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", lineHeight: 1.7, overflowWrap: "anywhere" }}>
-            <div style={{ color: "#b3ab9c" }}>---</div>
-            {doc.front.map((f, i) => (<div key={i}><span style={{ color: "#5b4bbd" }}>{f.k}</span><span style={{ color: "#b3ab9c" }}>: </span><span style={{ color: "#16202e" }}>{f.v}</span></div>))}
-            <div style={{ color: "#b3ab9c", marginBottom: 10 }}>---</div>
+            <div style={{ color: "#6b6456" }}>---</div>
+            {doc.front.map((f, i) => (<div key={i}><span style={{ color: "#5b4bbd" }}>{f.k}</span><span style={{ color: "#6b6456" }}>: </span><span style={{ color: "#16202e" }}>{f.v}</span></div>))}
+            <div style={{ color: "#6b6456", marginBottom: 10 }}>---</div>
             {doc.body.map((l, i) => (<div key={i} style={{ margin: l.type === "h" ? "12px 0 3px" : "0", color: l.type === "h" ? "#142a8e" : l.type === "l" ? "#1a56db" : "#3a4456", fontWeight: l.type === "h" ? 700 : 400 }}>{l.prefix}{l.text}</div>))}
           </div>
         </div>
@@ -12700,7 +12702,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       .map((s) => ({ sector: s, items: [...by[s]].sort((a, b) => (rank(a) - rank(b)) || ((b.salaryMid || 0) - (a.salaryMid || 0))) }));
   }, [sorted]);
 
-  const KICK = { fontFamily: "'Spline Sans Mono',monospace", fontWeight: 600, color: "#a8a193" };
+  const KICK = { fontFamily: "'Spline Sans Mono',monospace", fontWeight: 600, color: "#6b6456" };
   const Q1 = String.fromCharCode(0x201c), Q2 = String.fromCharCode(0x201d), DOT = String.fromCharCode(0x00b7), ELL = String.fromCharCode(0x2026);
   const SORT_OPTS = [["match", "Best match"], ["recent", "Most recent"], ["salary", "Salary high-low"], ["title", "Title A-Z"]];
   const sortLabel = (SORT_OPTS.find((o) => o[0] === sort) || SORT_OPTS[0])[1];
@@ -12765,7 +12767,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               )}
               {openTab === "ads" && (
                 <div onClick={(e) => e.stopPropagation()} style={{ padding: "9px 12px", background: "#fbfaf8", borderBottom: "1px solid #e6e3db", cursor: "default" }}>
-                  <p style={{ margin: "0 0 3px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>OTHER ADS {String.fromCharCode(0x00b7)} THIS EMPLOYER {String.fromCharCode(0x00b7)} THIS RESULT</p>
+                  <p style={{ margin: "0 0 3px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: ".1em", color: "#6b6456" }}>OTHER ADS {String.fromCharCode(0x00b7)} THIS EMPLOYER {String.fromCharCode(0x00b7)} THIS RESULT</p>
                   {others.slice(0, 6).map((o) => (
                     <button key={o.id} type="button" onClick={(e) => { e.stopPropagation(); setFolioId(null); setFolioTab(null); setFullAd(o); }}
                       style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, padding: "5px 7px", background: "transparent", border: "1px solid transparent", borderRadius: 6, cursor: "pointer", textAlign: "left" }}>
@@ -12813,7 +12815,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const okfRow = (indent, label, color, onClick, bold) => (
     <button key={label} type="button" onClick={onClick} disabled={!onClick} title={label}
       style={{ display: "flex", alignItems: "center", gap: 0, width: "100%", minHeight: onClick ? 44 : 24, textAlign: "left", background: "none", border: "none", padding: 0, cursor: onClick ? "pointer" : "default" }}>
-      <span aria-hidden="true" style={{ flex: "none", whiteSpace: "pre", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#b3ab9c" }}>{indent}</span>
+      <span aria-hidden="true" style={{ flex: "none", whiteSpace: "pre", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6456" }}>{indent}</span>
       <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", lineHeight: 1.5, color, fontWeight: bold ? 700 : 400, textDecoration: onClick ? "underline" : "none", textUnderlineOffset: 2 }}>{label}</span>
     </button>
   );
@@ -13027,7 +13029,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                   <div key={gi}>
                     <div title={g.sector} style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4, paddingBottom: 3, borderBottom: "1px solid #ece9e1" }}>
                       <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#16202e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.sector}</span>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#a8a193", flex: "none" }}>{g.items.length}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>{g.items.length}</span>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       {g.items.map((t) => { const s = selectedId === t.id; return (
@@ -13049,7 +13051,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <div style={{ borderTop: "1px solid #ece9e1", paddingTop: 13 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
                 <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 600, letterSpacing: ".1em", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 5, padding: "2px 6px" }}>OKF v0.1</span>
-                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#a8a193" }}>Open Knowledge Format</span>
+                <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#6b6456" }}>Open Knowledge Format</span>
               </div>
               <p style={{ fontSize: "0.6875rem", color: "#64748b", lineHeight: 1.5, margin: "0 0 9px" }}>A vendor-neutral markdown bundle - tap a file to read it.</p>
               <div style={{ background: "#fff", border: "1px solid #ece9e1", borderRadius: 8, padding: "9px 11px", marginBottom: 9 }}>
@@ -13109,7 +13111,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 </div>
                 {skills.length > 0 && (
                   <div style={{ marginBottom: 14 }}>
-                    <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>SKILLSETS</div>
+                    <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#6b6456", marginBottom: 6 }}>SKILLSETS</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{skills.map((s, i) => (<span key={i} style={{ fontSize: "0.75rem", color: "#0b5e74", background: "#e3f5fb", border: "1px solid #bce6f0", borderRadius: 13, padding: "3px 10px" }}>{s}</span>))}</div>
                   </div>
                 )}
@@ -13118,7 +13120,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     existing full-ad modal. Address only on matched:"exact" (never
                     the derived SSIC fallback); count is over the current result set. */}
                 <div style={{ marginBottom: 14, padding: "10px 12px", background: "#fbfaf8", border: "1px solid #eceae2", borderRadius: 9 }}>
-                  <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 7 }}>REGISTERED EMPLOYER</div>
+                  <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#6b6456", marginBottom: 7 }}>REGISTERED EMPLOYER</div>
 
                   {empReg && empReg.status === "loading" && (
                     <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a0b0" }}>Checking ACRA registration{ELL}</p>
@@ -13156,7 +13158,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                   </p>
                 </div>
 
-                <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
+                <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", color: "#6b6456", marginBottom: 6 }}>JOB AD {DOT} VERBATIM</div>
                 {lines.length ? lines.map((ln, i) => {
                   const isBullet = ln.charAt(0) === String.fromCharCode(0x2022);
                   // Heading heuristic (deterministic, verbatim text untouched): short line, no
@@ -13188,7 +13190,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         {!state.loading
           ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings). Confidence: named-source facts. Time-window: this result.</p>
           : <span />}
-        <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#b3ab9c", flex: "none" }}>v{APP_VERSION}</span>
+        <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>v{APP_VERSION}</span>
       </div>
     </div>
   );
@@ -17043,6 +17045,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       .lux-search:focus-within { border-color: #1a56db; box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.13), 0 12px 44px rgba(15, 40, 105, 0.14); }
       /* modern, consistent keyboard focus ring */
       .lux-focus:focus-visible { outline: 2px solid #1a56db; outline-offset: 2px; border-radius: 8px; }
+      /* Global keyboard-focus fallback (goal_11-JUL §2 / AC5, AC19): every
+         interactive control that does not already opt into .lux-focus still
+         gets a visible high-contrast ring. Deliberately NOT !important, and
+         :focus-visible only, so controls with their own ring (e.g. .lux-search
+         box-shadow, or an intentional inline outline) are never overridden and
+         the ring never shows on mouse click. */
+      a:focus-visible, button:focus-visible, [role="button"]:focus-visible,
+      [role="tab"]:focus-visible, input:focus-visible, select:focus-visible,
+      textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid #1a56db; outline-offset: 2px; border-radius: 6px;
+      }
       /* tab hover - colour lift + underline wipe for the inactive ones */
       .tab-label { position: relative; transition: color 0.18s ease; }
       .tab-label::after {

@@ -47,7 +47,7 @@ export function renderWinComments(ctx) {
                   )}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: st ? 0 : 9 }}>
                     <Chip kind={c.prov}>{c.prov}</Chip>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#a8a193" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6456" }}>conf {String.fromCharCode(0x00b7)} {c.conf}</span>
                   </div>
                   {/* Accept/Reject as REVERSIBLE toggles (goal §10 / handoff): both stay
                       visible; the chosen one renders solid with a check + aria-pressed;
