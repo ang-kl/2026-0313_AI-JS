@@ -23,12 +23,18 @@ const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K in
 // unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
 const KV_CONFIG_KEY = "v3:admin:llm-config";
 const CHAIN_CACHE_TTL_MS = 30_000;
-// Human Lead directive (09-07 '26): use only Claude Sonnet 5 - Gemini/OpenAI free-tier
-// quotas proved too unreliable for the fan-out volume this app generates. Anthropic-only
-// until further notice; admin KV override can still reorder/add providers back later.
-const DEFAULT_CHAIN = ["anthropic"];
-// Keep all three valid for KV admin overrides even though the built-in default is
-// Anthropic-only now - an admin can still opt back into Gemini/OpenAI via the panel.
+// Directive (12-07 '26): route narration to OpenAI and GATE Anthropic for now - the
+// Anthropic account is out of credits (/api/claude was returning HTTP 400 "credit
+// balance too low", which hard-failed the Step 2 -> Step 3 analysis). OpenAI is the
+// default and only active provider until Anthropic billing is restored.
+const DEFAULT_CHAIN = ["openai"];
+// Temporarily gated providers: excluded at the availability layer below, so they are
+// NEVER tried regardless of the KV admin chain or a still-present API key. To re-enable
+// Anthropic once its credits are topped up, remove it from this set (and, if desired,
+// put it back at the front of DEFAULT_CHAIN or the KV chain).
+const GATED_PROVIDERS = new Set(["anthropic"]);
+// Keep all three valid for KV admin overrides - VALID_PROVIDERS governs what the KV
+// chain may CONTAIN; GATED_PROVIDERS governs what is actually reachable right now.
 const VALID_PROVIDERS = new Set(["anthropic", "gemini", "openai"]);
 let _chainCache = { value: null, at: 0 };
 async function loadAdminConfig() {
@@ -308,15 +314,23 @@ export default async function handler(req, res) {
   const openAiModel = openAiModelFor(req.body?.model, admin.overrides.openai);
   const geminiModel = geminiModelFor(admin.overrides.gemini);
   const hasGeminiFallback = Boolean(geminiKey && geminiModel);
-  // Base availability per provider - a provider is only tried if its key(s) are present.
+  // Base availability per provider - a provider is only tried if its key(s) are present
+  // AND it is not currently gated (GATED_PROVIDERS). A gated provider is treated as if it
+  // had no key, so it is dropped from activeOrder no matter what the KV chain says.
   const configured = {
-    anthropic: Boolean(anthropicKey),
-    openai: Boolean(openAiKey),
-    gemini: hasGeminiFallback,
+    anthropic: Boolean(anthropicKey) && !GATED_PROVIDERS.has("anthropic"),
+    openai: Boolean(openAiKey) && !GATED_PROVIDERS.has("openai"),
+    gemini: hasGeminiFallback && !GATED_PROVIDERS.has("gemini"),
   };
   if (!configured.anthropic && !configured.openai && !configured.gemini) {
-    console.error("[proxy] no LLM provider configured: CLAUDE_API_KEY / OPENAI_API_KEY / (GEMINI_API_KEY + GEMINI_MODEL) all missing");
-    return res.status(500).json({ ...WARM_ERRORS.server, debug: "No LLM provider configured (need one of CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY+GEMINI_MODEL)" });
+    // Distinguish "no key at all" from "the only keyed provider is gated" so the operator
+    // knows to set OPENAI_API_KEY (or lift the gate) rather than hunting a missing key.
+    const gatedButKeyed = (GATED_PROVIDERS.has("anthropic") && anthropicKey) || (GATED_PROVIDERS.has("openai") && openAiKey) || (GATED_PROVIDERS.has("gemini") && hasGeminiFallback);
+    const debug = gatedButKeyed
+      ? `No ACTIVE LLM provider: the only configured provider(s) are gated (${[...GATED_PROVIDERS].join(", ")}). Set OPENAI_API_KEY in Vercel or lift the gate in api/claude.js.`
+      : "No LLM provider configured (need one of CLAUDE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY+GEMINI_MODEL)";
+    console.error("[proxy] " + debug);
+    return res.status(500).json({ ...WARM_ERRORS.server, debug });
   }
 
   // Validate body
