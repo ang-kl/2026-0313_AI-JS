@@ -902,18 +902,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => {
-      if (all && all.floats && Array.isArray(all.floats[postingKey])) { setFloats(all.floats[postingKey]); zTopRef.current = RS_LAYERS.float + all.floats[postingKey].length; }
+      // Goal §7: a floated window's position is preserved only within the current
+      // session - NOT restored across reloads. Only the desk layout (split ratio,
+      // docked-panel overrides, pins) persists; torn-off floats start empty each visit.
       const d = all && all.desk && all.desk[postingKey];
       if (d) { if (typeof d.splitPct === "number") setSplitPct(Math.max(30, Math.min(75, d.splitPct))); if (d.overrides) setOverrides(d.overrides); if (Array.isArray(d.pinned)) setPinned(d.pinned); }
     });
   }, [postingKey]);
-  const persistFloats = (next) => {
+  const persistFloats = (/* next */) => {
     if (!postingKey) return;
     try {
       const raw = localStorage.getItem("v3.state.boards");
       const all = raw ? JSON.parse(raw) : {};
-      all.floats = all.floats || {};
-      all.floats[postingKey] = next.map(({ id, x, y, w, h, z }) => ({ id, x, y, w, h, z }));
+      // Float positions are session-only (goal §7): persist ONLY the desk layout, and
+      // clear any float snapshot a previous build may have written for this posting.
+      if (all.floats) delete all.floats[postingKey];
       all.desk = all.desk || {};
       all.desk[postingKey] = { splitPct, overrides, pinned };
       saveState("boards", all);
@@ -927,6 +930,34 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   });
   const dockBack = (id) => setFloats((prev) => { const next = prev.filter((f) => f.id !== id); persistFloats(next); return next; });
   const bringToFront = (id) => setFloats((prev) => { const next = prev.map((f) => f.id === id ? { ...f, z: ++zTopRef.current } : f); persistFloats(next); return next; });
+  // Goal §7: an explicit Reset-position action for a floated window - returns it to a
+  // sensible cascaded default (and clamps size to the viewport) so a window dragged or
+  // resized off-screen is always recoverable without requiring drag.
+  const resetFloat = (id) => setFloats((prev) => {
+    const k = prev.findIndex((f) => f.id === id); if (k < 0) return prev;
+    const next = prev.map((f) => f.id === id
+      ? { ...f, x: 90 + k * 32, y: 110 + k * 28, w: Math.min(640, window.innerWidth - 120), h: Math.min(520, window.innerHeight - 180), z: ++zTopRef.current }
+      : f);
+    persistFloats(next); return next;
+  });
+  // Goal §7: keep floats reachable when the viewport shrinks - clamp each window's
+  // size and position back inside the viewport on resize (drag already clamps live).
+  useEffect(() => {
+    const onResize = () => setFloats((prev) => {
+      let changed = false;
+      const next = prev.map((f) => {
+        const w = Math.min(f.w, Math.max(260, window.innerWidth - 24));
+        const h = Math.min(f.h, Math.max(180, window.innerHeight - 96));
+        const x = Math.max(4, Math.min(window.innerWidth - 160, f.x));
+        const y = Math.max(56, Math.min(window.innerHeight - 80, f.y));
+        if (w !== f.w || h !== f.h || x !== f.x || y !== f.y) { changed = true; return { ...f, w, h, x, y }; }
+        return f;
+      });
+      return changed ? next : prev;
+    });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   useEffect(() => {
     if (!slideOpen && !sheet) return;
     const onKey = (e) => {
@@ -1080,7 +1111,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           so a denominator would be invented (non-inventive contract). Auto-closes when
           the fan-out settles; a failure shows an error state + recovery instruction. */}
       {bgModalOpen && (
-        <div role="dialog" aria-modal="true" aria-label={bgError ? "Analysis build problem" : "Building the full analysis"}
+        <div role="dialog" aria-modal="true" aria-busy={bgError ? undefined : "true"} aria-label={bgError ? "Analysis build problem" : "Building the full analysis"}
           onKeyDown={(e) => {
             if (e.key === "Escape") { bgError ? setBgErrDismissed(true) : setBgModalMin(true); }
             // Focus trap (WAI-ARIA dialog): Tab/Shift+Tab cycle among the dialog's
@@ -1096,7 +1127,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           }}
           style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.modal, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.48)", padding: 16 }}>
           <style>{"@keyframes rsSweep{0%{transform:translateX(-110%)}100%{transform:translateX(380%)}} @keyframes rsPulse{0%,100%{opacity:.45}50%{opacity:1}} @media (prefers-reduced-motion: reduce){.rs-anim{animation:none !important}}"}</style>
-          <div style={{ width: "min(440px, 94vw)", background: "#fff", border: "1px solid #d9dee6", borderRadius: 14, boxShadow: "0 24px 70px rgba(15,23,42,0.35)", padding: "20px 22px 18px" }}>
+          <div style={{ width: "min(440px, 94vw)", maxHeight: "90vh", overflowY: "auto", background: "#fff", border: "1px solid #d9dee6", borderRadius: 14, boxShadow: "0 24px 70px rgba(15,23,42,0.35)", padding: "20px 22px 18px" }}>
             {!bgError ? (
               <>
                 <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
@@ -1104,8 +1135,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", fontWeight: 700, letterSpacing: ".06em", color: "#1f3fae" }}>BUILDING THE FULL ANALYSIS</span>
                 </div>
                 <p aria-live="polite" style={{ margin: "0 0 12px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.55, minHeight: 40 }}>{bgStatus || "Fetching live SG postings and building the deeper reads..."}</p>
-                <div aria-hidden="true" style={{ position: "relative", height: 6, borderRadius: 3, background: "#e3e9f1", overflow: "hidden", marginBottom: 8 }}>
-                  <div className="rs-anim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "32%", borderRadius: 3, background: "linear-gradient(90deg, #2554d6, #0e7490)", animation: "rsSweep 1.4s ease-in-out infinite" }} />
+                {/* Indeterminate progressbar: role + label so AT conveys "in
+                    progress"; aria-valuenow is deliberately omitted (no honest %
+                    exists - later stages are conditional), which is the ARIA
+                    signal for an indeterminate bar. */}
+                <div role="progressbar" aria-label="Building the full analysis - in progress" aria-valuemin={0} aria-valuemax={100} style={{ position: "relative", height: 6, borderRadius: 3, background: "#e3e9f1", overflow: "hidden", marginBottom: 8 }}>
+                  <div aria-hidden="true" className="rs-anim" style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: "32%", borderRadius: 3, background: "linear-gradient(90deg, #2554d6, #0e7490)", animation: "rsSweep 1.4s ease-in-out infinite" }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
                   <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", color: "#42538a" }}>Step {bgStep} {String.fromCharCode(0x00b7)} {Math.floor((bgElapsed || 0) / 60)}:{String((bgElapsed || 0) % 60).padStart(2, "0")} elapsed</span>
@@ -1123,7 +1158,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
                   <span aria-hidden="true" style={{ fontSize: "1rem", lineHeight: 1 }}>{String.fromCharCode(0x26a0)}</span>
                   <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75rem", fontWeight: 700, letterSpacing: ".06em", color: "#92450a" }}>SOME SECTIONS DID NOT FINISH</span>
                 </div>
-                <p style={{ margin: "0 0 10px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.6 }}>{bgError} Everything that completed is already on the page below - nothing shown is affected.</p>
+                <p role="alert" style={{ margin: "0 0 10px", fontSize: "0.875rem", color: "#1e293b", lineHeight: 1.6 }}>{bgError} Everything that completed is already on the page below - nothing shown is affected.</p>
                 <p style={{ margin: "0 0 14px", fontSize: "0.8125rem", color: "#3d4a5c", lineHeight: 1.6 }}>If it keeps failing, wait a minute and retry - the source may be briefly busy.</p>
                 {/* Goal §5: real Retry + Return actions on failure - Retry re-runs the
                     live-postings rebuild (the recoverable stage); Return goes back to
@@ -1193,7 +1228,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} />
 
 
       {/* Footer - +10% type (0.6875 -> 0.75625rem) + roomier padding, and the version

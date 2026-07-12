@@ -13,7 +13,7 @@ import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 // One cubic-bezier path string (same curve family as the #358 single line).
 const bez = (l) => "M " + l.x1 + " " + l.y1 + " C " + ((l.x1 + l.x2) / 2) + " " + l.y1 + ", " + ((l.x1 + l.x2) / 2) + " " + l.y2 + ", " + l.x2 + " " + l.y2;
 
-export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet }) {
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
   // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
@@ -96,7 +96,11 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             valid endpoints (Part C.2 item 4); under the floats (z 1400+), sheet (1394)
             and pinned strip (1395+), above the desk. pointer-events none except the
             clickable stubs. All coordinates are viewport coordinates. */}
-        {(conn.lines.length > 0 || conn.stubs.length > 0) && (
+        {/* Goal §9: on narrow screens panels stack full-width and float into
+            full-screen surfaces, so a curved connector between them would cross the
+            whole viewport and confuse rather than trace. Hide it there - the comment
+            card's aria-label ("linked to highlighted duty N") still carries the link. */}
+        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0) && (
           <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
             {/* Design handoff: the Word-style connector is AMBER. The handoff's #f5a623
                 fails non-text contrast on the light desk (~2.1:1) - #b45309 keeps the
@@ -157,9 +161,9 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 {act && (
                   <button type="button" onClick={() => tearOff(act)} aria-label={"Float this window: " + WIN_LABELS[act]}
                     title={"Tear off " + WIN_LABELS[act] + " into a floating window"}
-                    style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, minWidth: 30, padding: "6px 6px", marginBottom: -1, border: "none", borderBottom: "1px solid transparent", background: "transparent", color: "#a8a193", cursor: "pointer", fontSize: "0.8125rem", opacity: 0.7 }}
+                    style={{ flex: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, minWidth: 30, padding: "6px 6px", marginBottom: -1, border: "none", borderBottom: "1px solid transparent", background: "transparent", color: "#6b6456", cursor: "pointer", fontSize: "0.8125rem", opacity: 0.85 }}
                     onMouseEnter={(e) => { e.currentTarget.style.opacity = 1; e.currentTarget.style.color = "#5b6878"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.7; e.currentTarget.style.color = "#a8a193"; }}>
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = 0.85; e.currentTarget.style.color = "#6b6456"; }}>
                     <span aria-hidden="true">{String.fromCharCode(0x29c9)}</span>
                   </button>
                 )}
@@ -191,24 +195,40 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
         })}
       </div>
 
-      {/* No.138 U3: the float layer - torn-off windows live here, above the desk. */}
-      {floats.map((f) => (
-        <div key={f.id} role="dialog" aria-label={WIN_LABELS[f.id] + " (floating window)"}
-          onPointerDown={() => bringToFront(f.id)}
-          style={{ position: "fixed", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: f.z, background: "#fbfaf8", border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", display: "flex", flexDirection: "column", resize: "both", overflow: "hidden", minWidth: 300, minHeight: 200 }}>
-          <div onPointerDown={(e) => startFloatDrag(e, f.id)} onPointerMove={moveFloatDrag} onPointerUp={stopFloatDrag} onPointerCancel={stopFloatDrag}
-            style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8", cursor: "move", touchAction: "none" }}>
+      {/* No.138 U3: the float layer - torn-off windows live here, above the desk.
+          Goal §7/§11: on a narrow screen a floated window is NOT a cramped fixed box -
+          it becomes a full-screen slide-over (fixed inset:0, aria-modal), drag/resize
+          suppressed, so it stays usable at 320-375px. On desktop it is the draggable,
+          resizable, cascade-positioned window with a Reset-position control. */}
+      {floats.map((f) => {
+        const shell = isNarrow
+          ? { position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: f.z, background: "#fbfaf8", display: "flex", flexDirection: "column", overflow: "hidden", animation: "wisSlideIn .25s ease" }
+          : { position: "fixed", left: f.x, top: f.y, width: f.w, height: f.h, zIndex: f.z, background: "#fbfaf8", border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", display: "flex", flexDirection: "column", resize: "both", overflow: "hidden", minWidth: 300, minHeight: 200, maxWidth: "96vw", maxHeight: "92vh" };
+        return (
+        <div key={f.id} role="dialog" aria-modal={isNarrow ? "true" : undefined} aria-label={WIN_LABELS[f.id] + (isNarrow ? " (full-screen window)" : " (floating window)")}
+          onPointerDown={isNarrow ? undefined : () => bringToFront(f.id)}
+          style={shell}>
+          <div onPointerDown={isNarrow ? undefined : (e) => startFloatDrag(e, f.id)} onPointerMove={isNarrow ? undefined : moveFloatDrag} onPointerUp={isNarrow ? undefined : stopFloatDrag} onPointerCancel={isNarrow ? undefined : stopFloatDrag}
+            style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "#f4f6fa", borderBottom: "1px solid #e2e0d8", cursor: isNarrow ? "default" : "move", touchAction: "none" }}>
             <span style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#142a8e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{WIN_LABELS[f.id]}</span>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357", flex: "none" }}>drag {String.fromCharCode(0x00b7)} resize corner</span>
-            <button type="button" onClick={() => { setPinned((prev) => prev.includes(f.id) ? prev : prev.concat(f.id)); dockBack(f.id); }} aria-label={"Pin " + WIN_LABELS[f.id] + " to the right edge (auto-hide)"}
-              title="Pin to edge (auto-hide)"
-              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>pin</button>
-            <button type="button" onClick={() => dockBack(f.id)} aria-label={"Close and dock " + WIN_LABELS[f.id] + " back to its panel"}
-              style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
+            {!isNarrow && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357", flex: "none" }}>drag {String.fromCharCode(0x00b7)} resize corner</span>}
+            {!isNarrow && resetFloat && (
+              <button type="button" onClick={() => resetFloat(f.id)} aria-label={"Reset " + WIN_LABELS[f.id] + " to its default position and size"}
+                title="Reset position"
+                style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>reset</button>
+            )}
+            {!isNarrow && (
+              <button type="button" onClick={() => { setPinned((prev) => prev.includes(f.id) ? prev : prev.concat(f.id)); dockBack(f.id); }} aria-label={"Pin " + WIN_LABELS[f.id] + " to the right edge (auto-hide)"}
+                title="Pin to edge (auto-hide)"
+                style={{ flex: "none", minHeight: 32, minWidth: 40, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem" }}>pin</button>
+            )}
+            <button type="button" onClick={() => dockBack(f.id)} aria-label={(isNarrow ? "Close " : "Close and dock ") + WIN_LABELS[f.id] + " back to its panel"}
+              style={{ flex: "none", minHeight: isNarrow ? 44 : 32, minWidth: 44, border: "1px solid #e2e0d8", background: "#fff", borderRadius: 7, cursor: "pointer", color: "#64748b" }}>{String.fromCharCode(0x2715)}</button>
           </div>
           <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>{renderWindow(f.id)}</div>
         </div>
-      ))}
+        );
+      })}
 
       {/* U4-B: pinned edge strip (auto-hide) + the slide-over panel. */}
       {pinned.length > 0 && (
