@@ -12,7 +12,7 @@ import { loadState, saveState } from "./persist.js";
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
-import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
+import { fetchEmployerRegistration, fetchEmployerPostings, claudeCall, extractJSON } from "./App.jsx";
 // PR 1 (Part B.4, v3-workflow-and-step3-remediation-spec.md): rules constants, shared
 // components/tokens, the desk layout engine, and the 14 window bodies now live under
 // ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
@@ -124,6 +124,30 @@ function rsUnderlineSkillTerms(text, re) {
     ? <u key={"u" + i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
     : p);
 }
+// Layer 2 (same-term cross-panel highlight): wrap every KNOWN skill/tool term (the same
+// engine term index `skillTermRe` used for the overview underline) in an interactive span
+// carrying its normalised term. Click one and every occurrence of that term across BOTH
+// panels glows - the deterministic "concept lights up everywhere" (Visio) read. No new
+// data, no LLM: purely a highlight over terms the engine already recognises. Respects the
+// plain-line doctrine - a term is invisible until focused (only cursor + title hint it).
+function rsTermSpans(text, re, focusTerm, onTerm) {
+  const s = String(text || "");
+  if (!re) return s;
+  const parts = s.split(re); // odd indices = the captured term (same contract as rsUnderlineSkillTerms)
+  if (parts.length < 2) return s;
+  return parts.map((p, i) => {
+    if (i % 2 === 0) return p;
+    const norm = String(p).toLowerCase().trim();
+    const on = focusTerm && norm === focusTerm;
+    return (
+      <span key={"tm" + i} role="button" tabIndex={0} data-term={norm} aria-pressed={!!on}
+        onClick={(e) => { e.stopPropagation(); onTerm && onTerm(on ? null : norm); }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onTerm && onTerm(on ? null : norm); } }}
+        title={on ? "Traced across both panels - click to clear" : "Click to trace “" + p + "” across both panels"}
+        style={on ? { cursor: "pointer", background: "#fde68a", boxShadow: "0 0 0 2px #fde68a", borderRadius: 3, fontWeight: 600 } : { cursor: "pointer" }}>{p}</span>
+    );
+  });
+}
 function rsDominantBand(duties) {
   const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
   const keys = Object.keys(c); return keys.length ? keys.sort((a, b) => c[b] - c[a])[0] : null;
@@ -137,6 +161,46 @@ function rsLens(text) {
   if (/\b(ai|automat|machine learning|gen ?ai|chatbot|model|algorithm|data analy|analytic|digital transformation)\b/.test(t)) return "AI";
   if (/\b(stakeholder|cross-functional|business unit|department|govern|complian|accountab|relationship|liais|partner)\b/.test(t)) return "ORG";
   return "ROLE";
+}
+// ── Layer 3 (AI-suggested cross-panel links, advisory only) ──────────────────
+// The ONLY inference layer in the connector subsystem. The engine enumerates candidate
+// cross-panel pairs that the deterministic layers cannot join (no shared span id); the
+// LLM only JUDGES relatedness of a given pair - it never authors an id, quote or number.
+// Every returned pair is filtered back against the enumerated set by exact id (mis-point
+// guard), gated by an engine-owned rule, and drawn dashed + labelled "AI-suggested". On
+// any malformed/empty/unknown output the layer draws NOTHING (withhold over fabricate).
+const L3_VERSION = "l3-2"; // cache-version tag (D8); bump on prompt change
+const L3_MAX_CANDIDATES = 40; // cap so the prompt stays small; longest-phrase-first
+const L3_MODEL = "claude-haiku-4-5-20251001"; // cheapest-model precedent (company-summary posture)
+const SYSTEM_L3 = [
+  "You judge whether two short work phrases refer to related work. You do not rank, score, or invent.",
+  "You are given a JSON array of candidate pairs, each { fromId, fromText, toId, toText }. The ids are opaque tokens.",
+  "For each pair, decide if the two phrases describe related work (same task, skill, or responsibility area).",
+  "Output ONLY a JSON array: [{ \"fromId\": <echoed>, \"toId\": <echoed>, \"related\": true|false, \"strength\": \"strong\"|\"weak\" }].",
+  "Use ONLY the ids given to you, echoed verbatim. Do not add pairs, do not invent ids, do not output prose.",
+  "If you are unsure, set related to false. Never guess. Output the JSON array and nothing else.",
+  "Example - input [{\"fromId\":\"a\",\"fromText\":\"Prepare monthly budget reports\",\"toId\":\"b\",\"toText\":\"Organise the annual staff retreat\"}] is unrelated, so output [{\"fromId\":\"a\",\"toId\":\"b\",\"related\":false,\"strength\":\"weak\"}].",
+].join(" ");
+// Deterministic candidate enumeration: every left span (duty/req) against every O-I-A card
+// of a DIFFERENT span (a same-id pair is already the grey provenance link). Scoped to
+// duty<->oia because both anchors resolve in the DOM (Desk rectOfAnchor) - a skill anchor
+// has no on-screen element, so it would never draw. Capped, longest-phrase-first, id-real.
+// Only distinct unordered pairs (dedupe A->B / B->A) so the candidate budget isn't wasted.
+function buildSuggestCandidates(dissection) {
+  const spans = (dissection && Array.isArray(dissection.spans)) ? dissection.spans : [];
+  const lefts = spans.slice().sort((a, b) => (b.text || "").length - (a.text || "").length);
+  const pairs = [], seen = new Set();
+  lefts.forEach((L) => {
+    spans.forEach((R) => {
+      if (R.id === L.id) return;
+      const key = [L.id, R.id].sort().join("|");
+      if (seen.has(key)) return;
+      seen.add(key);
+      pairs.push({ fromId: L.id, fromText: L.text, toId: R.id, toText: R.text,
+        from: { t: "duty", id: L.id, quote: L.text }, to: { t: "oia", id: R.id, quote: R.text } });
+    });
+  });
+  return pairs.slice(0, L3_MAX_CANDIDATES);
 }
 // Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
 // engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
@@ -741,6 +805,68 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // pick. State lives here (Option 1); Desk renders the live rubber-band from linkDrag.
   const [linkDrag, setLinkDrag] = useState(null); // { from, sx, sy, x, y, moved } | null
   const dragRef = useRef(null);
+  // AUTO-CONNECTIONS (Visio-style, deterministic): the engine already OWNS the map between
+  // a responsibility and its O-I-A card - card `s3` IS duty `s3` (same dissection span id),
+  // and every margin comment carries its anchor span. So these are provenance FACTS, not
+  // inference - safe to auto-draw and they can never mis-point. Off by default (opt-in), a
+  // faint GREY line layer distinct from the amber hover-trace and the user's blue locks.
+  const [showAuto, setShowAuto] = useState(false);
+  // Layer 2 - the term currently traced across both panels (normalised skill/tool term),
+  // or null. Set by clicking any known term in the manuscript or an O-I-A card.
+  const [focusTerm, setFocusTerm] = useState(null);
+  // Layer 3 - AI-suggested cross-panel links (advisory, opt-in, off by default). The only
+  // inference layer: the engine enumerates candidate pairs, the LLM only judges relatedness,
+  // and every survivor is drawn DASHED + labelled "AI-suggested", inert until the user
+  // Accepts (promotes to a blue locked link) or Dismisses. Never persisted until accepted.
+  const [showSuggest, setShowSuggest] = useState(false);
+  const [suggestState, setSuggestState] = useState({ status: "idle", items: [] }); // status: idle|loading|ready|empty|error
+  const suggestSeq = useRef(0);
+  const suggestCacheRef = useRef({}); // postingKey -> items, so re-toggling never re-calls the LLM
+  const suggestCacheKey = postingKey ? postingKey + "::" + L3_VERSION : ""; // D8: version-tagged cache
+  const requestSuggestions = async () => {
+    const cached = suggestCacheRef.current[suggestCacheKey];
+    if (cached) { setSuggestState({ status: cached.length ? "ready" : "empty", items: cached }); return; }
+    const candidates = buildSuggestCandidates(dissection);
+    if (!candidates.length) { setSuggestState({ status: "empty", items: [] }); return; }
+    const seq = ++suggestSeq.current;
+    setSuggestState({ status: "loading", items: [] });
+    try {
+      const payload = candidates.map((c) => ({ fromId: c.fromId, fromText: String(c.fromText || "").slice(0, 160), toId: c.toId, toText: String(c.toText || "").slice(0, 160) }));
+      const reply = await claudeCall("Candidate pairs:\n" + JSON.stringify(payload), 900, 1, SYSTEM_L3, L3_MODEL);
+      if (seq !== suggestSeq.current) return; // a newer request superseded this one
+      const parsed = extractJSON(reply, L3_VERSION + "-suggest");
+      if (!Array.isArray(parsed)) { setSuggestState({ status: "empty", items: [] }); return; }
+      const byKey = {}; candidates.forEach((c) => { byKey[c.fromId + "¦" + c.toId] = c; });
+      const items = [];
+      parsed.forEach((p) => {
+        if (!p || p.related !== true || p.strength !== "strong") return; // engine-owned gate; model value never displayed
+        const cand = byKey[p.fromId + "¦" + p.toId]; // id-membership filter: unknown ids drop (no mis-point)
+        if (!cand) return;
+        const id = "sug-" + cand.fromId + "-" + cand.toId;
+        if (items.some((it) => it.id === id)) return;
+        items.push({ id, from: cand.from, to: cand.to, fromText: cand.fromText, toText: cand.toText });
+      });
+      suggestCacheRef.current[suggestCacheKey] = items;
+      setSuggestState({ status: items.length ? "ready" : "empty", items });
+    } catch (_) {
+      if (seq === suggestSeq.current) setSuggestState({ status: "error", items: [] }); // withhold: draw nothing
+    }
+  };
+  useEffect(() => {
+    if (showSuggest) requestSuggestions();
+    else setSuggestState({ status: "idle", items: [] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSuggest, postingKey]);
+  const acceptSuggestion = (item) => {
+    if (!item) return;
+    addLink(item.from, item.to); // promote to a persistent blue locked link (deduped by anchorKey)
+    setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== item.id) }));
+    if (suggestCacheRef.current[suggestCacheKey]) suggestCacheRef.current[suggestCacheKey] = suggestCacheRef.current[suggestCacheKey].filter((it) => it.id !== item.id);
+  };
+  const dismissSuggestion = (id) => {
+    setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== id) }));
+    if (suggestCacheRef.current[suggestCacheKey]) suggestCacheRef.current[suggestCacheKey] = suggestCacheRef.current[suggestCacheKey].filter((it) => it.id !== id);
+  };
   const onLinkDragStart = (anchor, e) => {
     if (!anchor || !e) return;
     const r = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
@@ -1151,7 +1277,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1161,6 +1287,16 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // line -> "#li-<id>" (Manuscript), O-I-A card -> [data-oia-anchor]. Drawn blue, always
   // (not gated on the active span), so a locked link stays visible without hover.
   const userLinks = links.map((l) => ({ id: l.id, from: l.from, to: l.to }));
+  // Layer 1 - auto-drawn provenance links (deterministic). One per dissection span: its
+  // manuscript responsibility (#li-<id>) to its O-I-A card ([data-oia-anchor=<id>]). Desk
+  // only paints a link whose BOTH endpoints resolve in the live DOM, so spans without a
+  // duty line on-screen (e.g. requirement lines) silently don't draw - never mis-points.
+  const autoLinks = useMemo(() => (showAuto && dissection && Array.isArray(dissection.spans)
+    ? dissection.spans.map((s) => ({ id: "auto-" + s.id, from: { t: "duty", id: s.id }, to: { t: "oia", id: s.id } }))
+    : []), [showAuto, dissection]);
+  // Layer 3: only READY, non-dismissed suggestions become drawable dashed links.
+  const suggestLinks = (showSuggest && suggestState.status === "ready")
+    ? suggestState.items.map((it) => ({ id: it.id, from: it.from, to: it.to })) : [];
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
@@ -1347,8 +1483,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
         {tab === "duties" && (
           <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card (persistent, blue)"
-            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
             <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkMode ? "Linking on" : "Draw a link"}{links.length ? " · " + links.length : ""}
+          </button>
+        )}
+        {tab === "duties" && (
+          <button type="button" aria-pressed={showAuto} onClick={() => setShowAuto((v) => !v)} title="Auto-draw the links the engine already knows: every responsibility to its O-I-A card (deterministic - not AI-guessed)"
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showAuto ? "#475569" : "#eef1f5", color: showAuto ? "#fff" : "#475569", border: "1px solid " + (showAuto ? "#475569" : "#c3ccd8"), boxShadow: showAuto ? "0 1px 6px rgba(71,85,105,0.35)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x21c4)}</span> {showAuto ? "Connections on" : "Show connections"}
+          </button>
+        )}
+        {tab === "duties" && (
+          <button type="button" aria-pressed={showSuggest} onClick={() => setShowSuggest((v) => !v)} title="Ask the AI to suggest cross-panel links the engine can't know. Advisory only - each suggestion is a guess you review, never an engine fact."
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showSuggest ? "#6d28d9" : "#f3effc", color: showSuggest ? "#fff" : "#6d28d9", border: "1px solid " + (showSuggest ? "#6d28d9" : "#c9b8f0"), boxShadow: showSuggest ? "0 1px 6px rgba(109,40,217,0.35)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x2728)}</span> {showSuggest ? "Suggestions on" : "AI-suggested links"}
           </button>
         )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
@@ -1381,10 +1529,53 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               Draw your own persistent <b style={{ color: "#1d4ed8" }}>blue</b> links: press <b>Draw a link</b> above, then <b>drag</b> a 🔗 handle from a responsibility onto an O-I-A card (or click one then the other). (The <b style={{ color: "#b45309" }}>amber</b> line that appears when you click a line is the engine's automatic trace, not a saved link.)
             </span>
           ) : null}
+          {/* Layer 2: the term currently traced across both panels, with a clear control.
+              When idle, a quiet hint that skill terms are clickable (respects the plain-line
+              doctrine - terms are not decorated until focused). */}
+          {focusTerm ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flex: "none", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 14, padding: "2px 4px 2px 10px", fontSize: "0.75rem", color: "#7c5e10" }}>
+              <span aria-hidden="true">{String.fromCharCode(0x1f50e)}</span> tracing “{focusTerm}” across both panels
+              <button type="button" onClick={() => setFocusTerm(null)} aria-label={"Clear term trace"} style={{ flex: "none", minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#7c5e10", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+            </span>
+          ) : (
+            <span style={{ fontSize: "0.6875rem", color: "#8a7f66", flex: "none" }}>Tip: click any skill term in a responsibility or card to trace it across both panels.</span>
+          )}
           {links.map((l) => (
             <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>
-              <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+              <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+            </span>
+          ))}
+          {/* Line legend - three distinct kinds now share the desk; name each so no colour
+              alone carries meaning (a11y): grey = engine-known, amber = live trace, blue = yours. */}
+          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10, flexShrink: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b6478" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #94a3b8" }} />engine-known</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #b45309" }} />live trace</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #1d4ed8" }} />your links</span>
+            {showSuggest && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px dashed #6d28d9" }} />AI-suggested (review)</span>}
+          </span>
+        </div>
+      )}
+
+      {/* Layer 3 review bar: every AI suggestion is inert here until the human Accepts
+          (promotes to a blue locked link) or Dismisses. These are guesses, not engine
+          facts - carries the AI-estimate chip + a Source/Confidence/Time-window footprint. */}
+      {tab === "duties" && showSuggest && (
+        <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#f5f1fc", borderBottom: "1px solid #ddd0f5", overflowX: "auto" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#6d28d9", flex: "none" }}>AI-SUGGESTED {String.fromCharCode(0x00b7)} REVIEW EACH</span>
+          <span title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 4, padding: "1px 6px", flex: "none" }}>AI estimate</span>
+          <span aria-live="polite" style={{ display: "inline-flex", alignItems: "center", flex: "none" }}>
+            {suggestState.status === "loading" && <span style={{ fontSize: "0.75rem", color: "#6d28d9" }}>Asking the model to suggest links{String.fromCharCode(0x2026)}</span>}
+            {suggestState.status === "error" && <span style={{ fontSize: "0.75rem", color: "#8a5a1a" }}>Couldn{String.fromCharCode(0x2019)}t get suggestions this time {String.fromCharCode(0x2014)} nothing drawn (withheld, not guessed).</span>}
+            {(suggestState.status === "empty") && <span style={{ fontSize: "0.75rem", color: "#6b6357" }}>No confident cross-panel suggestions for this posting {String.fromCharCode(0x2014)} nothing drawn.</span>}
+            {suggestState.status === "ready" && <span style={{ fontSize: "0.6875rem", color: "#6b5a8a" }}>Guesses, not engine facts. Source: AI suggestion (LLM) {String.fromCharCode(0x00b7)} Confidence: advisory {String.fromCharCode(0x00b7)} Time-window: this session.</span>}
+          </span>
+          {suggestState.items.map((it) => (
+            <span key={it.id} title={"AI-suggested link. Source: AI suggestion (LLM) - Confidence: advisory, not a fact - Time-window: this session. Review before you keep it."} style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: 440, background: "#fff", border: "1px dashed #b79ae8", borderRadius: 12, padding: "3px 5px 3px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
+              <span aria-hidden="true" title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 3, padding: "0 4px", flex: "none" }}>AI</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 230 }}>{String(it.fromText || "").slice(0, 34)} {String.fromCharCode(0x21e2)} {String(it.toText || "").slice(0, 26)}</span>
+              <button type="button" onClick={() => acceptSuggestion(it)} aria-label={"Accept AI-suggested link and lock it"} style={{ flex: "none", minHeight: 44, minWidth: 44, padding: "0 10px", border: "1px solid #6d28d9", background: "#6d28d9", color: "#fff", cursor: "pointer", borderRadius: 8, fontSize: "0.75rem", fontWeight: 700 }}>Accept</button>
+              <button type="button" onClick={() => dismissSuggestion(it.id)} aria-label={"Dismiss AI-suggested link"} style={{ flex: "none", minHeight: 44, minWidth: 44, border: "1px solid #ddd0f5", background: "#fff", color: "#64748b", cursor: "pointer", borderRadius: 8, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
             </span>
           ))}
         </div>
@@ -1393,7 +1584,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} suggestLinks={suggestLinks} />
 
       {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
           selection alive through the click; clicking arms the phrase (or completes the

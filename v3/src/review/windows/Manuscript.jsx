@@ -5,7 +5,9 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinManuscript(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick, onLinkDragStart } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick, onLinkDragStart, rsTermSpans, focusTerm, setFocusTerm } = ctx;
+  // Layer 2 helper: wrap known terms in a line so clicking one traces it across panels.
+  const T = (txt) => (rsTermSpans ? rsTermSpans(txt, skillTermRe, focusTerm, setFocusTerm) : txt);
   const dutySpans = dissection.spans.filter((x) => x.sec !== "req");
   const jumpToLine = (sp) => { setActiveSpan(sp.id); const el = document.getElementById("li-" + sp.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
   return (
@@ -103,19 +105,19 @@ export function renderWinManuscript(ctx) {
                         aria-label={"Lock a link from this responsibility"} title="Drag to an O-I-A card to draw a locked link - or click to pick, then click a card"
                         style={{ marginLeft: 6, verticalAlign: "middle", minHeight: 26, minWidth: 30, border: "1px solid " + (dOn ? "#1d4ed8" : "#c7d6ff"), background: dOn ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 6, cursor: "grab", fontSize: "0.75rem", touchAction: "none" }}>{String.fromCharCode(0x1f517)}</button>
                     ) : null;
-                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{s.text}</li>;
+                    if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{T(s.text)}</li>;
                     // Resolution styling (goal §10 / handoff): a line whose reviewer
                     // comment was REJECTED reads as resolved - struck through, dimmed,
                     // evidence mark dropped. Accepted lines settle with no extra chrome
                     // (the handoff's explicit call). Text itself stays verbatim.
                     const dutyCmt = marginComments.find((mc) => mc.anchor === s.id);
                     const decided = dutyCmt ? commentStatus[dutyCmt.id] : undefined;
-                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span>{linkBtn}</li>;
+                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{T(s.text)}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span>{linkBtn}</li>;
                     // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
                     const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{s.text}{linkBtn}</li>;
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{T(s.text)}{linkBtn}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
@@ -127,7 +129,7 @@ export function renderWinManuscript(ctx) {
                     );
                     return (
                       <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
-                        {lineNo}{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}{linkBtn}
+                        {lineNo}{ev.pre ? <>{T(ev.pre)} </> : ""}{mark}{ev.post ? T(ev.post) : ""}{linkBtn}
                       </li>
                     );
                   })}

@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.308";
+const APP_VERSION = "3.0.313";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -1831,7 +1831,7 @@ function _claudeReleaseSlot() {
   if (next) next(); else _claudeInFlight--;
 }
 
-async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
+export async function claudeCall(prompt, maxTokens, attempt = 1, systemPrompt = null, model = "claude-haiku-4-5-20251001") {
   await _claudeAcquireSlot();
   let _slotReleased = false;
   const _releaseSlot = () => { if (!_slotReleased) { _slotReleased = true; _claudeReleaseSlot(); } };
@@ -1964,7 +1964,7 @@ function parseJSONLenient(jsonText) {
   }
 }
 
-function extractJSON(raw, label) {
+export function extractJSON(raw, label) {
   let s = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
   const ai = s.indexOf("[");
   const oi = s.indexOf("{");
