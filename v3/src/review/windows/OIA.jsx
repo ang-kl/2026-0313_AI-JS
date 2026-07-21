@@ -38,13 +38,25 @@ export function renderWinOIA(ctx) {
                     </div>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>INTERPRETATION</div>
-                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>exposure <strong style={{ color: "#9a6113" }}>withheld</strong> - the engine did not classify this duty.</>}</p>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} {s.exposure ? "rule (engine)" : "none"} {String.fromCharCode(0x00b7)} conf {s.exposure ? "high" : "withheld"}</span>
+                      <p style={{ fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{s.layer ? s.layer + " work; " : ""}{b ? <>exposure reads <strong style={{ color: b.ink }}>{b.label}</strong>.</> : <>AI-exposure <strong style={{ color: "#9a6113" }}>not scored</strong> for this duty.</>}</p>
+                      {/* #2: the method/confidence line is engine provenance for a REAL band -
+                          when nothing was scored it is just boilerplate, so it is hidden. */}
+                      {s.exposure && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd" }}>method {String.fromCharCode(0x00b7)} rule (engine) {String.fromCharCode(0x00b7)} conf high</span>}
                     </div>
                     <div style={{ padding: "12px 13px" }}>
                       <div style={oiaKick}>APPLICATION</div>
-                      <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>{b ? <>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</> : <>AIOE withheld {String.fromCharCode(0x00b7)} no route emitted</>}</p>
-                      <Chip kind={b ? "computed" : "unverified"}>{b ? "computed" : "unverified"}</Chip>
+                      {/* #1 plain language + #2 no boilerplate: with a real band, show the
+                          AIOE read + routing and its computed chip; with nothing scored, say
+                          so in plain words and drop the "no route emitted" jargon + the
+                          unverified chip (there is no figure to attest). */}
+                      {b ? (
+                        <>
+                          <p style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 8px" }}>AIOE: {b.label} {String.fromCharCode(0x00b7)} route {String.fromCharCode(0x2192)} {s.band === "human" ? "candidate edge (proof)" : s.band === "auto" ? "governance check" : "AI-assist, human verify"}</p>
+                          <Chip kind="computed">computed</Chip>
+                        </>
+                      ) : (
+                        <p style={{ fontSize: "0.6875rem", color: "#94a0b0", lineHeight: 1.5, margin: 0 }}>No AI-exposure score for this duty, so there{String.fromCharCode(0x2019)}s nothing to route yet.</p>
+                      )}
                     </div>
                   </div>
                 </div>
