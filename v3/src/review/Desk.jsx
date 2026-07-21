@@ -191,13 +191,12 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             card's aria-label ("linked to highlighted duty N") still carries the link. */}
         {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0 || conn.auto.length > 0 || conn.suggest.length > 0 || (linkDrag && linkDrag.moved)) && (
           <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
-            {/* Layer 1 - auto-drawn provenance (GREY, thin, faint), painted UNDER the amber
-                trace and the blue locks so the user's own work always reads on top. These
-                are engine-owned facts (card is duty), never inference - hence quiet, always
-                shown while the toggle is on, never gated on hover. */}
+            {/* Layer 1 - auto-drawn provenance (engine-known). DOTTED so it is told apart
+                by SHAPE, not colour (a11y: a viewer who can't see hue still reads dotted vs
+                solid vs dashed). Painted UNDER the amber trace and the blue locks. */}
             {(conn.auto || []).map((l) => (
-              <g key={l.id} opacity={0.55}>
-                <path d={bez(l)} fill="none" stroke="#8792a3" strokeWidth={1.6} />
+              <g key={l.id} opacity={0.6}>
+                <path d={bez(l)} fill="none" stroke="#8792a3" strokeWidth={1.7} strokeDasharray="1.5 5" strokeLinecap="round" />
                 <circle cx={l.x1} cy={l.y1} r={2.8} fill="#8792a3" />
                 <circle cx={l.x2} cy={l.y2} r={2.8} fill="#8792a3" />
               </g>
@@ -233,13 +232,14 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 <text x={s.side === "right" ? s.x + 22 : s.x - 22} y={s.y + 3.5} textAnchor="middle" fontSize={10} fontWeight={700} fill="#fff" fontFamily="'Spline Sans Mono',monospace">{s.count}</text>
               </g>
             ))}
-            {/* P1 user-authored LOCKED links - blue, to read as distinct from the amber
-                engine connector; persistent (not hover-gated) so a lock stays visible. */}
+            {/* P1 user-authored LOCKED links. THICK solid + SQUARE endpoints, so a viewer
+                who can't see colour tells "your links" from the thin-solid amber trace by
+                weight and endpoint shape, not hue (a11y). Persistent (not hover-gated). */}
             {(conn.user || []).map((l) => (
               <g key={l.id} opacity={0.95}>
-                <path d={bez(l)} fill="none" stroke="#1d4ed8" strokeWidth={2.2} />
-                <circle cx={l.x1} cy={l.y1} r={4} fill="#1d4ed8" />
-                <circle cx={l.x2} cy={l.y2} r={4} fill="#1d4ed8" />
+                <path d={bez(l)} fill="none" stroke="#1d4ed8" strokeWidth={3.4} />
+                <rect x={l.x1 - 4} y={l.y1 - 4} width={8} height={8} fill="#1d4ed8" />
+                <rect x={l.x2 - 4} y={l.y2 - 4} width={8} height={8} fill="#1d4ed8" />
               </g>
             ))}
             {/* P3 drag-to-connect: the live rubber-band from the grabbed handle to the

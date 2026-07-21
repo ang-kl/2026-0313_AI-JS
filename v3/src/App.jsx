@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.316";
+const APP_VERSION = "3.0.318";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -5357,7 +5357,7 @@ function EvidencePreview({ text, skills }) {
     </div>
   );
 }
-function Spinner({ label, step, total, firstTime, skills, postingText, processMode }) {
+function Spinner({ label, step, total, firstTime, skills, postingText, processMode, corpus }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
   const pct = determinate ? Math.max(4, Math.min(96, Math.round(((step - 0.5) / total) * 100))) : null;
@@ -5415,6 +5415,15 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
           </div>
           {processMode && <ProcessAnimation mode={processMode} />}
           <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
+          {/* Corpus "analyse all as one role" build: an explicit please-wait callout naming
+              the three sources it draws on, so the longer multi-posting build never reads as
+              stuck and the user knows to keep the tab open (Human Lead request). */}
+          {corpus && (
+            <div style={{ margin:"12px auto 0", maxWidth:360, background:"rgba(26,86,219,0.06)", border:`1px solid ${C.border}`, borderRadius:12, padding:"11px 14px", textAlign:"left" }}>
+              <p style={{ margin:0, fontSize:"0.78125rem", fontWeight:700, color:C.text, lineHeight:1.5 }}>Building one combined role from {corpus.count} live posting{corpus.count === 1 ? "" : "s"} - please wait.</p>
+              <p style={{ margin:"5px 0 0", fontSize:"0.71875rem", color:C.muted, lineHeight:1.5 }}>Drawing on all three sources: skills via <strong>ESCO (v2)</strong>, live jobs from <strong>MyCareersFuture</strong> and <strong>careers.gov.sg</strong>. This takes longer than a single posting - keep this tab open.</p>
+            </div>
+          )}
           {elapsed >= 8 && (
             <p aria-live="polite" style={{ color:C.muted, fontSize: "0.71875rem", margin:"6px auto 0", maxWidth:320, lineHeight:1.5 }}>
               Still working ({elapsed}s) - less common titles can take up to a minute to look up.
@@ -15359,6 +15368,10 @@ export default function App({ initialSearchMode } = {}) {
   // Reviewer panels can reference the REAL posting text, employer, and skills
   // instead of the generic Data Analyst mockup. Cleared on reset.
   const [analysingPosting, setAnalysingPosting] = useState(null);
+  // Corpus "analyse all as one role" build spans all three sources and many postings, so it
+  // is slower than a single analysis - hold its shape so the loading screen shows an explicit
+  // "please wait, this is building across every source" callout (Human Lead request).
+  const [corpusWait, setCorpusWait] = useState(null); // { count } while a corpus build runs, else null
   const [skillInputQuery, setSkillInputQuery] = useState("");
   const [skillInputResult, setSkillInputResult] = useState(null);
   const [compareStatus, setCompareStatus] = useState(""); // v6: live step narrative
@@ -15606,7 +15619,7 @@ export default function App({ initialSearchMode } = {}) {
     return () => { cancelled = true; clearTimeout(ssocDebounceRef.current); };
   }, [query, step, searchMode]);
 
-  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setAnalysingPosting(null); };
+  const reset = () => { pickerCancelRef.current = true; wikiDestRef.current = false; setNoExactMatch(null); setFunctionKeywordNotice(null); setStep("idle"); setOccs([]); setSel(null); setResult(null); setErr(""); setQuery(""); setSub(""); setSubStep(0); setLoadingSkills([]); setActiveTab("skills"); comparisonsRef.current = []; setComparisons([]); setCompareCue(false); setAnalysingPosting(null); setCorpusWait(null); };
   // softReset preserves comparison cache - used when adding a role to compare
   const softReset = (savedComparisons) => {
     const readyCount = savedComparisons.filter(c => c.result && c.result.skills).length;
@@ -15834,6 +15847,7 @@ export default function App({ initialSearchMode } = {}) {
       escoFetchTitle = best.title; // Use canonical ESCO title for skills fetch only
     }
 
+    setCorpusWait(corpus ? { count: corpus.jobs.length } : null);
     setSel(occ); setStep("loading"); setSub(
       corpus ? `Analysing ${corpus.jobs.length} live SG postings for ${toTitleCase(occ.title)} as one role...`
       : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
@@ -17580,7 +17594,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           );
         })()}
 
-        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} postingText={(analysingPosting && analysingPosting.text) || ""} processMode="checking" />}
+        {step === "loading" && <Spinner label={sub || "Loading..."} step={subStep} total={persona ? 4 : 3} firstTime={!hasAnalysedOnce.current} skills={loadingSkills} postingText={(analysingPosting && analysingPosting.text) || ""} processMode="checking" corpus={corpusWait} />}
 
         {/* Standalone compare view - shown when step=idle but comparisons are ready */}
         {(step === "idle" || step === "picking" || step === "searching") &&
