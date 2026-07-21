@@ -169,8 +169,9 @@ function rsLens(text) {
 // Every returned pair is filtered back against the enumerated set by exact id (mis-point
 // guard), gated by an engine-owned rule, and drawn dashed + labelled "AI-suggested". On
 // any malformed/empty/unknown output the layer draws NOTHING (withhold over fabricate).
-const L3_VERSION = "l3-1"; // cache-version tag (D8); bump on prompt change
+const L3_VERSION = "l3-2"; // cache-version tag (D8); bump on prompt change
 const L3_MAX_CANDIDATES = 40; // cap so the prompt stays small; longest-phrase-first
+const L3_MODEL = "claude-haiku-4-5-20251001"; // cheapest-model precedent (company-summary posture)
 const SYSTEM_L3 = [
   "You judge whether two short work phrases refer to related work. You do not rank, score, or invent.",
   "You are given a JSON array of candidate pairs, each { fromId, fromText, toId, toText }. The ids are opaque tokens.",
@@ -178,6 +179,7 @@ const SYSTEM_L3 = [
   "Output ONLY a JSON array: [{ \"fromId\": <echoed>, \"toId\": <echoed>, \"related\": true|false, \"strength\": \"strong\"|\"weak\" }].",
   "Use ONLY the ids given to you, echoed verbatim. Do not add pairs, do not invent ids, do not output prose.",
   "If you are unsure, set related to false. Never guess. Output the JSON array and nothing else.",
+  "Example - input [{\"fromId\":\"a\",\"fromText\":\"Prepare monthly budget reports\",\"toId\":\"b\",\"toText\":\"Organise the annual staff retreat\"}] is unrelated, so output [{\"fromId\":\"a\",\"toId\":\"b\",\"related\":false,\"strength\":\"weak\"}].",
 ].join(" ");
 // Deterministic candidate enumeration: every left span (duty/req) against every O-I-A card
 // of a DIFFERENT span (a same-id pair is already the grey provenance link). Scoped to
@@ -820,8 +822,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [suggestState, setSuggestState] = useState({ status: "idle", items: [] }); // status: idle|loading|ready|empty|error
   const suggestSeq = useRef(0);
   const suggestCacheRef = useRef({}); // postingKey -> items, so re-toggling never re-calls the LLM
+  const suggestCacheKey = postingKey ? postingKey + "::" + L3_VERSION : ""; // D8: version-tagged cache
   const requestSuggestions = async () => {
-    const cached = suggestCacheRef.current[postingKey];
+    const cached = suggestCacheRef.current[suggestCacheKey];
     if (cached) { setSuggestState({ status: cached.length ? "ready" : "empty", items: cached }); return; }
     const candidates = buildSuggestCandidates(dissection);
     if (!candidates.length) { setSuggestState({ status: "empty", items: [] }); return; }
@@ -829,9 +832,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     setSuggestState({ status: "loading", items: [] });
     try {
       const payload = candidates.map((c) => ({ fromId: c.fromId, fromText: String(c.fromText || "").slice(0, 160), toId: c.toId, toText: String(c.toText || "").slice(0, 160) }));
-      const reply = await claudeCall("Candidate pairs:\n" + JSON.stringify(payload), 900, 1, SYSTEM_L3);
+      const reply = await claudeCall("Candidate pairs:\n" + JSON.stringify(payload), 900, 1, SYSTEM_L3, L3_MODEL);
       if (seq !== suggestSeq.current) return; // a newer request superseded this one
-      const parsed = extractJSON(reply, "l3-suggest");
+      const parsed = extractJSON(reply, L3_VERSION + "-suggest");
       if (!Array.isArray(parsed)) { setSuggestState({ status: "empty", items: [] }); return; }
       const byKey = {}; candidates.forEach((c) => { byKey[c.fromId + "¦" + c.toId] = c; });
       const items = [];
@@ -843,7 +846,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         if (items.some((it) => it.id === id)) return;
         items.push({ id, from: cand.from, to: cand.to, fromText: cand.fromText, toText: cand.toText });
       });
-      suggestCacheRef.current[postingKey] = items;
+      suggestCacheRef.current[suggestCacheKey] = items;
       setSuggestState({ status: items.length ? "ready" : "empty", items });
     } catch (_) {
       if (seq === suggestSeq.current) setSuggestState({ status: "error", items: [] }); // withhold: draw nothing
@@ -858,11 +861,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     if (!item) return;
     addLink(item.from, item.to); // promote to a persistent blue locked link (deduped by anchorKey)
     setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== item.id) }));
-    if (suggestCacheRef.current[postingKey]) suggestCacheRef.current[postingKey] = suggestCacheRef.current[postingKey].filter((it) => it.id !== item.id);
+    if (suggestCacheRef.current[suggestCacheKey]) suggestCacheRef.current[suggestCacheKey] = suggestCacheRef.current[suggestCacheKey].filter((it) => it.id !== item.id);
   };
   const dismissSuggestion = (id) => {
     setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== id) }));
-    if (suggestCacheRef.current[postingKey]) suggestCacheRef.current[postingKey] = suggestCacheRef.current[postingKey].filter((it) => it.id !== id);
+    if (suggestCacheRef.current[suggestCacheKey]) suggestCacheRef.current[suggestCacheKey] = suggestCacheRef.current[suggestCacheKey].filter((it) => it.id !== id);
   };
   const onLinkDragStart = (anchor, e) => {
     if (!anchor || !e) return;
@@ -1566,8 +1569,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           {(suggestState.status === "empty") && <span style={{ fontSize: "0.75rem", color: "#6b6357", flex: "none" }}>No confident cross-panel suggestions for this posting {String.fromCharCode(0x2014)} nothing drawn.</span>}
           {suggestState.status === "ready" && <span style={{ fontSize: "0.6875rem", color: "#6b5a8a", flex: "none" }}>Guesses, not engine facts. Source: AI suggestion (LLM) {String.fromCharCode(0x00b7)} Confidence: advisory {String.fromCharCode(0x00b7)} this session.</span>}
           {suggestState.items.map((it) => (
-            <span key={it.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: 420, background: "#fff", border: "1px dashed #b79ae8", borderRadius: 12, padding: "3px 5px 3px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{String(it.fromText || "").slice(0, 34)} {String.fromCharCode(0x21e2)} {String(it.toText || "").slice(0, 26)}</span>
+            <span key={it.id} title={"AI-suggested link. Source: AI suggestion (LLM) - Confidence: advisory, not a fact - Time-window: this session. Review before you keep it."} style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: 440, background: "#fff", border: "1px dashed #b79ae8", borderRadius: 12, padding: "3px 5px 3px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
+              <span aria-hidden="true" title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 3, padding: "0 4px", flex: "none" }}>AI</span>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 230 }}>{String(it.fromText || "").slice(0, 34)} {String.fromCharCode(0x21e2)} {String(it.toText || "").slice(0, 26)}</span>
               <button type="button" onClick={() => acceptSuggestion(it)} aria-label={"Accept AI-suggested link and lock it"} style={{ flex: "none", minHeight: 44, minWidth: 44, padding: "0 10px", border: "1px solid #6d28d9", background: "#6d28d9", color: "#fff", cursor: "pointer", borderRadius: 8, fontSize: "0.75rem", fontWeight: 700 }}>Accept</button>
               <button type="button" onClick={() => dismissSuggestion(it.id)} aria-label={"Dismiss AI-suggested link"} style={{ flex: "none", minHeight: 44, minWidth: 44, border: "1px solid #ddd0f5", background: "#fff", color: "#64748b", cursor: "pointer", borderRadius: 8, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
             </span>
