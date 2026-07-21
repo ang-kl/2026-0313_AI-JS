@@ -1553,10 +1553,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           {/* Line legend - three distinct kinds now share the desk; name each so no colour
               alone carries meaning (a11y): grey = engine-known, amber = live trace, blue = yours. */}
           <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10, flexShrink: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b6478" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #94a3b8" }} />engine-known</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #b45309" }} />live trace</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #1d4ed8" }} />your links</span>
-            {showSuggest && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px dashed #6d28d9" }} />AI-suggested (review)</span>}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 16, height: 0, borderTop: "2px dotted #8792a3" }} />engine-known (dotted)</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 16, height: 0, borderTop: "2px solid #b45309" }} />live trace (solid)</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 16, height: 0, borderTop: "4px solid #1d4ed8" }} />your links (thick)</span>
+            {showSuggest && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 16, height: 0, borderTop: "2px dashed #6d28d9" }} />AI-suggested (dashed)</span>}
           </span>
         </div>
       )}
