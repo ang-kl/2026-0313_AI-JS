@@ -741,6 +741,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // pick. State lives here (Option 1); Desk renders the live rubber-band from linkDrag.
   const [linkDrag, setLinkDrag] = useState(null); // { from, sx, sy, x, y, moved } | null
   const dragRef = useRef(null);
+  // AUTO-CONNECTIONS (Visio-style, deterministic): the engine already OWNS the map between
+  // a responsibility and its O-I-A card - card `s3` IS duty `s3` (same dissection span id),
+  // and every margin comment carries its anchor span. So these are provenance FACTS, not
+  // inference - safe to auto-draw and they can never mis-point. Off by default (opt-in), a
+  // faint GREY line layer distinct from the amber hover-trace and the user's blue locks.
+  const [showAuto, setShowAuto] = useState(false);
   const onLinkDragStart = (anchor, e) => {
     if (!anchor || !e) return;
     const r = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
@@ -1161,6 +1167,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // line -> "#li-<id>" (Manuscript), O-I-A card -> [data-oia-anchor]. Drawn blue, always
   // (not gated on the active span), so a locked link stays visible without hover.
   const userLinks = links.map((l) => ({ id: l.id, from: l.from, to: l.to }));
+  // Layer 1 - auto-drawn provenance links (deterministic). One per dissection span: its
+  // manuscript responsibility (#li-<id>) to its O-I-A card ([data-oia-anchor=<id>]). Desk
+  // only paints a link whose BOTH endpoints resolve in the live DOM, so spans without a
+  // duty line on-screen (e.g. requirement lines) silently don't draw - never mis-points.
+  const autoLinks = useMemo(() => (showAuto && dissection && Array.isArray(dissection.spans)
+    ? dissection.spans.map((s) => ({ id: "auto-" + s.id, from: { t: "duty", id: s.id }, to: { t: "oia", id: s.id } }))
+    : []), [showAuto, dissection]);
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
@@ -1351,6 +1364,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkMode ? "Linking on" : "Draw a link"}{links.length ? " · " + links.length : ""}
           </button>
         )}
+        {tab === "duties" && (
+          <button type="button" aria-pressed={showAuto} onClick={() => setShowAuto((v) => !v)} title="Auto-draw the links the engine already knows: every responsibility to its O-I-A card (deterministic - not AI-guessed)"
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showAuto ? "#475569" : "#eef1f5", color: showAuto ? "#fff" : "#475569", border: "1px solid " + (showAuto ? "#475569" : "#c3ccd8"), boxShadow: showAuto ? "0 1px 6px rgba(71,85,105,0.35)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x21c4)}</span> {showAuto ? "Connections on" : "Show connections"}
+          </button>
+        )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
         {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
         {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
@@ -1387,13 +1406,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
             </span>
           ))}
+          {/* Line legend - three distinct kinds now share the desk; name each so no colour
+              alone carries meaning (a11y): grey = engine-known, amber = live trace, blue = yours. */}
+          <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 10, flexShrink: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#5b6478" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #94a3b8" }} />engine-known</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #b45309" }} />live trace</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #1d4ed8" }} />your links</span>
+          </span>
         </div>
       )}
 
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} />
 
       {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
           selection alive through the click; clicking arms the phrase (or completes the
