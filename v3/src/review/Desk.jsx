@@ -43,14 +43,14 @@ function findQuoteRange(host, quote) {
   return null;
 }
 
-export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks, linkDrag, autoLinks }) {
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks, linkDrag, autoLinks, suggestLinks }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
   // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
   // panel border with a count badge, replacing the old vanish behaviour (the honesty
   // rule survives: a stub points at a REAL off-screen/off-tab partner, and clicking
   // it activates that window; nothing is drawn for links with no live endpoint).
-  const [conn, setConn] = useState({ lines: [], stubs: [], user: [], auto: [] });
+  const [conn, setConn] = useState({ lines: [], stubs: [], user: [], auto: [], suggest: [] });
   const links = deriveLinks(tab, linkData || {});
   const linkKey = links.map((l) => l.id + (l.active ? "!" : "")).join("|");
   // P1 user-authored locked links (blue), measured with the same DOM geometry as the
@@ -59,9 +59,10 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
   // Layer 1 auto-connections (grey): same DOM geometry, painted only when both endpoints
   // resolve live - so requirement spans with no on-screen duty line simply don't draw.
   const autoKey = (autoLinks || []).map((l) => l.id).join("|");
+  const suggestKey = (suggestLinks || []).map((l) => l.id).join("|");
   useLayoutEffect(() => {
     const desk = deskRef.current;
-    if (!desk || (!links.length && !(userLinks && userLinks.length) && !(autoLinks && autoLinks.length))) { setConn({ lines: [], stubs: [], user: [], auto: [] }); return; }
+    if (!desk || (!links.length && !(userLinks && userLinks.length) && !(autoLinks && autoLinks.length) && !(suggestLinks && suggestLinks.length))) { setConn({ lines: [], stubs: [], user: [], auto: [], suggest: [] }); return; }
     let raf = 0;
     const measure = () => {
       raf = 0;
@@ -148,7 +149,16 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           autoLines.push({ id: l.id, x1: a.r.right, y1: a.r.top + a.r.height / 2, x2: b.r.left, y2: b.r.top + b.r.height / 2 });
         }
       });
-      setConn({ lines, stubs: Object.values(stubAgg), user: userLines, auto: autoLines });
+      // Layer 3: AI-suggested links, same both-endpoints-live rule (an unresolved anchor
+      // draws nothing - the mis-point guard). Rendered dashed so it never reads committed.
+      const suggestLines = [];
+      (suggestLinks || []).forEach((l) => {
+        const a = rectOfAnchor(l.from, "from"), b = rectOfAnchor(l.to, "to");
+        if (a && !a.offscreen && b && !b.offscreen) {
+          suggestLines.push({ id: l.id, x1: a.r.right, y1: a.r.top + a.r.height / 2, x2: b.r.left, y2: b.r.top + b.r.height / 2 });
+        }
+      });
+      setConn({ lines, stubs: Object.values(stubAgg), user: userLines, auto: autoLines, suggest: suggestLines });
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(measure); };
     schedule();
@@ -160,7 +170,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
     if (ro) desk.querySelectorAll(".wis-panel .wis-scroll").forEach((el) => ro.observe(el));
     return () => { if (raf) cancelAnimationFrame(raf); window.removeEventListener("resize", schedule); desk.removeEventListener("scroll", schedule, true); if (ro) ro.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkKey, userKey, autoKey, tab, floats, pinned, overrides, activeWin, splitPct]);
+  }, [linkKey, userKey, autoKey, suggestKey, tab, floats, pinned, overrides, activeWin, splitPct]);
   return (
     <>
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
@@ -174,7 +184,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             full-screen surfaces, so a curved connector between them would cross the
             whole viewport and confuse rather than trace. Hide it there - the comment
             card's aria-label ("linked to highlighted duty N") still carries the link. */}
-        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0 || conn.auto.length > 0 || (linkDrag && linkDrag.moved)) && (
+        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0 || conn.auto.length > 0 || conn.suggest.length > 0 || (linkDrag && linkDrag.moved)) && (
           <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
             {/* Layer 1 - auto-drawn provenance (GREY, thin, faint), painted UNDER the amber
                 trace and the blue locks so the user's own work always reads on top. These
@@ -185,6 +195,17 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 <path d={bez(l)} fill="none" stroke="#94a3b8" strokeWidth={1.4} />
                 <circle cx={l.x1} cy={l.y1} r={2.6} fill="#94a3b8" />
                 <circle cx={l.x2} cy={l.y2} r={2.6} fill="#94a3b8" />
+              </g>
+            ))}
+            {/* Layer 3 - AI-suggested links: DASHED violet, so it never reads as a solid
+                committed line. Advisory inference; the textual Accept/Dismiss cards are the
+                accessible surface (this SVG is aria-hidden). Painted above grey but below the
+                amber trace and blue locks so the user's own committed work reads on top. */}
+            {(conn.suggest || []).map((l) => (
+              <g key={l.id} opacity={0.85}>
+                <path d={bez(l)} fill="none" stroke="#6d28d9" strokeWidth={2} strokeDasharray="6 5" />
+                <circle cx={l.x1} cy={l.y1} r={3} fill="#6d28d9" />
+                <circle cx={l.x2} cy={l.y2} r={3} fill="#fff" stroke="#6d28d9" strokeWidth={1.6} />
               </g>
             ))}
             {/* Design handoff: the Word-style connector is AMBER. The handoff's #f5a623

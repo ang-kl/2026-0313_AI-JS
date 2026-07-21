@@ -12,7 +12,7 @@ import { loadState, saveState } from "./persist.js";
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
-import { fetchEmployerRegistration, fetchEmployerPostings } from "./App.jsx";
+import { fetchEmployerRegistration, fetchEmployerPostings, claudeCall, extractJSON } from "./App.jsx";
 // PR 1 (Part B.4, v3-workflow-and-step3-remediation-spec.md): rules constants, shared
 // components/tokens, the desk layout engine, and the 14 window bodies now live under
 // ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
@@ -161,6 +161,44 @@ function rsLens(text) {
   if (/\b(ai|automat|machine learning|gen ?ai|chatbot|model|algorithm|data analy|analytic|digital transformation)\b/.test(t)) return "AI";
   if (/\b(stakeholder|cross-functional|business unit|department|govern|complian|accountab|relationship|liais|partner)\b/.test(t)) return "ORG";
   return "ROLE";
+}
+// ── Layer 3 (AI-suggested cross-panel links, advisory only) ──────────────────
+// The ONLY inference layer in the connector subsystem. The engine enumerates candidate
+// cross-panel pairs that the deterministic layers cannot join (no shared span id); the
+// LLM only JUDGES relatedness of a given pair - it never authors an id, quote or number.
+// Every returned pair is filtered back against the enumerated set by exact id (mis-point
+// guard), gated by an engine-owned rule, and drawn dashed + labelled "AI-suggested". On
+// any malformed/empty/unknown output the layer draws NOTHING (withhold over fabricate).
+const L3_VERSION = "l3-1"; // cache-version tag (D8); bump on prompt change
+const L3_MAX_CANDIDATES = 40; // cap so the prompt stays small; longest-phrase-first
+const SYSTEM_L3 = [
+  "You judge whether two short work phrases refer to related work. You do not rank, score, or invent.",
+  "You are given a JSON array of candidate pairs, each { fromId, fromText, toId, toText }. The ids are opaque tokens.",
+  "For each pair, decide if the two phrases describe related work (same task, skill, or responsibility area).",
+  "Output ONLY a JSON array: [{ \"fromId\": <echoed>, \"toId\": <echoed>, \"related\": true|false, \"strength\": \"strong\"|\"weak\" }].",
+  "Use ONLY the ids given to you, echoed verbatim. Do not add pairs, do not invent ids, do not output prose.",
+  "If you are unsure, set related to false. Never guess. Output the JSON array and nothing else.",
+].join(" ");
+// Deterministic candidate enumeration: every left span (duty/req) against every O-I-A card
+// of a DIFFERENT span (a same-id pair is already the grey provenance link). Scoped to
+// duty<->oia because both anchors resolve in the DOM (Desk rectOfAnchor) - a skill anchor
+// has no on-screen element, so it would never draw. Capped, longest-phrase-first, id-real.
+// Only distinct unordered pairs (dedupe A->B / B->A) so the candidate budget isn't wasted.
+function buildSuggestCandidates(dissection) {
+  const spans = (dissection && Array.isArray(dissection.spans)) ? dissection.spans : [];
+  const lefts = spans.slice().sort((a, b) => (b.text || "").length - (a.text || "").length);
+  const pairs = [], seen = new Set();
+  lefts.forEach((L) => {
+    spans.forEach((R) => {
+      if (R.id === L.id) return;
+      const key = [L.id, R.id].sort().join("|");
+      if (seen.has(key)) return;
+      seen.add(key);
+      pairs.push({ fromId: L.id, fromText: L.text, toId: R.id, toText: R.text,
+        from: { t: "duty", id: L.id, quote: L.text }, to: { t: "oia", id: R.id, quote: R.text } });
+    });
+  });
+  return pairs.slice(0, L3_MAX_CANDIDATES);
 }
 // Honesty contract (v3-blueprint.md:1042 "never silently convert missing exposure"): when the
 // engine does not classify a duty's exposure, the band is WITHHELD (null) - we do not guess one.
@@ -774,6 +812,58 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // Layer 2 - the term currently traced across both panels (normalised skill/tool term),
   // or null. Set by clicking any known term in the manuscript or an O-I-A card.
   const [focusTerm, setFocusTerm] = useState(null);
+  // Layer 3 - AI-suggested cross-panel links (advisory, opt-in, off by default). The only
+  // inference layer: the engine enumerates candidate pairs, the LLM only judges relatedness,
+  // and every survivor is drawn DASHED + labelled "AI-suggested", inert until the user
+  // Accepts (promotes to a blue locked link) or Dismisses. Never persisted until accepted.
+  const [showSuggest, setShowSuggest] = useState(false);
+  const [suggestState, setSuggestState] = useState({ status: "idle", items: [] }); // status: idle|loading|ready|empty|error
+  const suggestSeq = useRef(0);
+  const suggestCacheRef = useRef({}); // postingKey -> items, so re-toggling never re-calls the LLM
+  const requestSuggestions = async () => {
+    const cached = suggestCacheRef.current[postingKey];
+    if (cached) { setSuggestState({ status: cached.length ? "ready" : "empty", items: cached }); return; }
+    const candidates = buildSuggestCandidates(dissection);
+    if (!candidates.length) { setSuggestState({ status: "empty", items: [] }); return; }
+    const seq = ++suggestSeq.current;
+    setSuggestState({ status: "loading", items: [] });
+    try {
+      const payload = candidates.map((c) => ({ fromId: c.fromId, fromText: String(c.fromText || "").slice(0, 160), toId: c.toId, toText: String(c.toText || "").slice(0, 160) }));
+      const reply = await claudeCall("Candidate pairs:\n" + JSON.stringify(payload), 900, 1, SYSTEM_L3);
+      if (seq !== suggestSeq.current) return; // a newer request superseded this one
+      const parsed = extractJSON(reply, "l3-suggest");
+      if (!Array.isArray(parsed)) { setSuggestState({ status: "empty", items: [] }); return; }
+      const byKey = {}; candidates.forEach((c) => { byKey[c.fromId + "¦" + c.toId] = c; });
+      const items = [];
+      parsed.forEach((p) => {
+        if (!p || p.related !== true || p.strength !== "strong") return; // engine-owned gate; model value never displayed
+        const cand = byKey[p.fromId + "¦" + p.toId]; // id-membership filter: unknown ids drop (no mis-point)
+        if (!cand) return;
+        const id = "sug-" + cand.fromId + "-" + cand.toId;
+        if (items.some((it) => it.id === id)) return;
+        items.push({ id, from: cand.from, to: cand.to, fromText: cand.fromText, toText: cand.toText });
+      });
+      suggestCacheRef.current[postingKey] = items;
+      setSuggestState({ status: items.length ? "ready" : "empty", items });
+    } catch (_) {
+      if (seq === suggestSeq.current) setSuggestState({ status: "error", items: [] }); // withhold: draw nothing
+    }
+  };
+  useEffect(() => {
+    if (showSuggest) requestSuggestions();
+    else setSuggestState({ status: "idle", items: [] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSuggest, postingKey]);
+  const acceptSuggestion = (item) => {
+    if (!item) return;
+    addLink(item.from, item.to); // promote to a persistent blue locked link (deduped by anchorKey)
+    setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== item.id) }));
+    if (suggestCacheRef.current[postingKey]) suggestCacheRef.current[postingKey] = suggestCacheRef.current[postingKey].filter((it) => it.id !== item.id);
+  };
+  const dismissSuggestion = (id) => {
+    setSuggestState((s) => ({ ...s, items: s.items.filter((it) => it.id !== id) }));
+    if (suggestCacheRef.current[postingKey]) suggestCacheRef.current[postingKey] = suggestCacheRef.current[postingKey].filter((it) => it.id !== id);
+  };
   const onLinkDragStart = (anchor, e) => {
     if (!anchor || !e) return;
     const r = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
@@ -1201,6 +1291,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const autoLinks = useMemo(() => (showAuto && dissection && Array.isArray(dissection.spans)
     ? dissection.spans.map((s) => ({ id: "auto-" + s.id, from: { t: "duty", id: s.id }, to: { t: "oia", id: s.id } }))
     : []), [showAuto, dissection]);
+  // Layer 3: only READY, non-dismissed suggestions become drawable dashed links.
+  const suggestLinks = (showSuggest && suggestState.status === "ready")
+    ? suggestState.items.map((it) => ({ id: it.id, from: it.from, to: it.to })) : [];
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
@@ -1397,6 +1490,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <span aria-hidden="true">{String.fromCharCode(0x21c4)}</span> {showAuto ? "Connections on" : "Show connections"}
           </button>
         )}
+        {tab === "duties" && (
+          <button type="button" aria-pressed={showSuggest} onClick={() => setShowSuggest((v) => !v)} title="Ask the AI to suggest cross-panel links the engine can't know. Advisory only - each suggestion is a guess you review, never an engine fact."
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showSuggest ? "#6d28d9" : "#f3effc", color: showSuggest ? "#fff" : "#6d28d9", border: "1px solid " + (showSuggest ? "#6d28d9" : "#c9b8f0"), boxShadow: showSuggest ? "0 1px 6px rgba(109,40,217,0.35)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x2728)}</span> {showSuggest ? "Suggestions on" : "AI-suggested links"}
+          </button>
+        )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
         {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
         {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
@@ -1450,14 +1549,36 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #94a3b8" }} />engine-known</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #b45309" }} />live trace</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px solid #1d4ed8" }} />your links</span>
+            {showSuggest && <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span aria-hidden="true" style={{ width: 14, height: 0, borderTop: "2px dashed #6d28d9" }} />AI-suggested (review)</span>}
           </span>
+        </div>
+      )}
+
+      {/* Layer 3 review bar: every AI suggestion is inert here until the human Accepts
+          (promotes to a blue locked link) or Dismisses. These are guesses, not engine
+          facts - carries the AI-estimate chip + a Source/Confidence/Time-window footprint. */}
+      {tab === "duties" && showSuggest && (
+        <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#f5f1fc", borderBottom: "1px solid #ddd0f5", overflowX: "auto" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#6d28d9", flex: "none" }}>AI-SUGGESTED {String.fromCharCode(0x00b7)} REVIEW EACH</span>
+          <span title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 4, padding: "1px 6px", flex: "none" }}>AI estimate</span>
+          {suggestState.status === "loading" && <span style={{ fontSize: "0.75rem", color: "#6d28d9", flex: "none" }}>Asking the model to suggest links{String.fromCharCode(0x2026)}</span>}
+          {suggestState.status === "error" && <span style={{ fontSize: "0.75rem", color: "#8a5a1a", flex: "none" }}>Couldn{String.fromCharCode(0x2019)}t get suggestions this time {String.fromCharCode(0x2014)} nothing drawn (withheld, not guessed).</span>}
+          {(suggestState.status === "empty") && <span style={{ fontSize: "0.75rem", color: "#6b6357", flex: "none" }}>No confident cross-panel suggestions for this posting {String.fromCharCode(0x2014)} nothing drawn.</span>}
+          {suggestState.status === "ready" && <span style={{ fontSize: "0.6875rem", color: "#6b5a8a", flex: "none" }}>Guesses, not engine facts. Source: AI suggestion (LLM) {String.fromCharCode(0x00b7)} Confidence: advisory {String.fromCharCode(0x00b7)} this session.</span>}
+          {suggestState.items.map((it) => (
+            <span key={it.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: 420, background: "#fff", border: "1px dashed #b79ae8", borderRadius: 12, padding: "3px 5px 3px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 240 }}>{String(it.fromText || "").slice(0, 34)} {String.fromCharCode(0x21e2)} {String(it.toText || "").slice(0, 26)}</span>
+              <button type="button" onClick={() => acceptSuggestion(it)} aria-label={"Accept AI-suggested link and lock it"} style={{ flex: "none", minHeight: 44, minWidth: 44, padding: "0 10px", border: "1px solid #6d28d9", background: "#6d28d9", color: "#fff", cursor: "pointer", borderRadius: 8, fontSize: "0.75rem", fontWeight: 700 }}>Accept</button>
+              <button type="button" onClick={() => dismissSuggestion(it.id)} aria-label={"Dismiss AI-suggested link"} style={{ flex: "none", minHeight: 44, minWidth: 44, border: "1px solid #ddd0f5", background: "#fff", color: "#64748b", cursor: "pointer", borderRadius: 8, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+            </span>
+          ))}
         </div>
       )}
 
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} suggestLinks={suggestLinks} />
 
       {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
           selection alive through the click; clicking arms the phrase (or completes the
