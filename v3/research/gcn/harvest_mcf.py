@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""Phase 0 harvester B — MyCareersFuture postings -> skill co-occurrence (offline substrate).
+
+RUN THIS FROM A NETWORKED ENVIRONMENT. Authored in a sandbox whose egress policy BLOCKS
+api.mycareersfuture.gov.sg (see data/PHASE0-FINDINGS.md), so it is UNTESTED here. It mirrors
+the public, unauthenticated MCF v2 API the app's own (production-tested) v3/api/mcf.js uses:
+  search: POST https://api.mycareersfuture.gov.sg/v2/jobs/search?limit=<n>&page=<p>
+          body {"search": "<query>", "sessionId": "<any>"}
+          -> { results: [ { uuid, title, skills:[{skill}|str], categories:[...] }, ... ] }
+
+We only keep, per posting, the SKILL TAG SET (j.skills -> list of names) + a few fields for
+provenance. Skill co-occurrence (which skills appear together in one real posting) is the
+INDEPENDENT signal the occupation text can't reproduce, and the whole reason the substrate
+can beat a features-only baseline. Public data; still, harvest politely and store raw offline
+(gitignored). Seed queries span the SSOC major groups so the sample isn't title-biased; widen
+SEED_QUERIES or raise PAGES for a bigger sample (Phase-1 decision D1: ~3k postings / 90 days).
+
+  python harvest_mcf.py                 # default sample
+  python harvest_mcf.py --pages 10      # deeper per-query
+Output: data/mcf_postings.jsonl   (one posting per line; deduped by uuid; gitignored)
+"""
+import json, os, sys, time, urllib.request
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, "data", "mcf_postings.jsonl")
+MCF_SEARCH = "https://api.mycareersfuture.gov.sg/v2/jobs/search"
+LIMIT = 30            # MCF page size
+PAGES = 6            # pages per seed query (override with --pages)
+SLEEP_S = 0.5
+TIMEOUT_S = 25
+
+# Broad seeds spanning SSOC major groups so co-occurrence isn't one-domain biased.
+SEED_QUERIES = [
+    "manager", "engineer", "analyst", "executive", "officer", "assistant",
+    "technician", "specialist", "developer", "consultant", "coordinator",
+    "nurse", "teacher", "accountant", "designer", "operator", "sales",
+    "administrator", "supervisor", "clerk",
+]
+
+
+def post_json(url, body):
+    data = json.dumps(body).encode()
+    req = urllib.request.Request(url, data=data,
+                                 headers={"content-type": "application/json", "accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
+        return json.load(r)
+
+
+def skills_of(job):
+    out = []
+    for s in (job.get("skills") or []):
+        name = s if isinstance(s, str) else (s or {}).get("skill", "")
+        if name:
+            out.append(name)
+    return out
+
+
+def categories_of(job):
+    out = []
+    for c in (job.get("categories") or []):
+        name = c if isinstance(c, str) else (c or {}).get("category", "")
+        if name:
+            out.append(name)
+    return out
+
+
+def main():
+    pages = PAGES
+    if "--pages" in sys.argv:
+        pages = int(sys.argv[sys.argv.index("--pages") + 1])
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    seen = set()
+    if os.path.exists(OUT):
+        for line in open(OUT):
+            try: seen.add(json.loads(line)["uuid"])
+            except Exception: pass
+    print(f"{len(seen)} postings already harvested", file=sys.stderr)
+    kept = 0
+    with open(OUT, "a") as fout:
+        for q in SEED_QUERIES:
+            for page in range(pages):
+                url = f"{MCF_SEARCH}?limit={LIMIT}&page={page}"
+                try:
+                    data = post_json(url, {"search": q, "sessionId": "gcn-harvest"})
+                except Exception as e:
+                    print(f"  {q} p{page} ERROR {type(e).__name__}: {e}", file=sys.stderr)
+                    time.sleep(SLEEP_S); continue
+                results = data.get("results") or data.get("jobs") or []
+                if not results:
+                    break  # no more pages for this query
+                for j in results:
+                    uuid = j.get("uuid")
+                    if not uuid or uuid in seen:
+                        continue
+                    sk = skills_of(j)
+                    if len(sk) < 2:  # co-occurrence needs >=2 skills to contribute an edge
+                        continue
+                    seen.add(uuid); kept += 1
+                    fout.write(json.dumps({
+                        "uuid": uuid, "title": j.get("title", ""), "query": q,
+                        "skills": sk, "categories": categories_of(j),
+                    }) + "\n"); fout.flush()
+                time.sleep(SLEEP_S)
+            print(f"  seed '{q}' done; kept so far {kept}", file=sys.stderr)
+    print(f"done -> {OUT}  ({kept} new postings this run)", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
