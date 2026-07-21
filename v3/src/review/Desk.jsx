@@ -13,6 +13,36 @@ import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 // One cubic-bezier path string (same curve family as the #358 single line).
 const bez = (l) => "M " + l.x1 + " " + l.y1 + " C " + ((l.x1 + l.x2) / 2) + " " + l.y1 + ", " + ((l.x1 + l.x2) / 2) + " " + l.y2 + ", " + l.x2 + " " + l.y2;
 
+// P2: resolve a TextQuote anchor to a DOM Range inside `host`. The quote was captured
+// from whitespace-normalised text, so match raw text first, then fall back to a
+// whitespace-flexible regex; walk text nodes to place the Range. Returns null if the
+// verbatim text is no longer present (the link simply doesn't draw - never mis-points).
+function findQuoteRange(host, quote) {
+  if (!host || !quote) return null;
+  const raw = host.textContent || "";
+  let idx = raw.indexOf(quote);
+  let q = quote;
+  if (idx < 0) {
+    try {
+      const rx = new RegExp(quote.split(/\s+/).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("\\s+"));
+      const m = rx.exec(raw);
+      if (m) { idx = m.index; q = m[0]; }
+    } catch (_) { /* bad regex - give up */ }
+  }
+  if (idx < 0) return null;
+  const end = idx + q.length;
+  const range = document.createRange();
+  const walker = document.createTreeWalker(host, NodeFilter.SHOW_TEXT, null);
+  let acc = 0, started = false, node;
+  while ((node = walker.nextNode())) {
+    const len = node.nodeValue.length;
+    if (!started && acc + len > idx) { range.setStart(node, idx - acc); started = true; }
+    if (started && acc + len >= end) { range.setEnd(node, end - acc); return range; }
+    acc += len;
+  }
+  return null;
+}
+
 export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
@@ -46,6 +76,26 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
         const inFloat = !desk.contains(el);
         if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
         return { offscreen: false, r };
+      };
+      // P2: an anchor is an element (duty line / O-I-A card) OR a text-quote phrase.
+      // Legacy P1 links carry no `t` - read them as duty(from)->oia(to).
+      const rectOfAnchor = (a, role) => {
+        if (!a) return null;
+        const t = a.t || (role === "from" ? "duty" : "oia");
+        if (t === "phrase") {
+          const host = document.querySelector('[data-anchor-block="' + String(a.block).replace(/"/g, '\\"') + '"]');
+          const range = findQuoteRange(host, a.quote);
+          if (!range) return null;
+          const r = range.getBoundingClientRect();
+          if (!r || (!r.width && !r.height)) return null;
+          const inViewport = r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+          if (!inViewport) return { offscreen: true, r };
+          const inFloat = host && !desk.contains(host);
+          if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
+          return { offscreen: false, r };
+        }
+        const sel = t === "duty" ? ("#li-" + a.id) : ('[data-oia-anchor="' + String(a.id).replace(/"/g, '\\"') + '"]');
+        return rectOf(sel);
       };
       const lines = [];
       const stubAgg = {}; // key: targetWin|side -> { side, y, count, targetWin }
@@ -82,7 +132,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
       // manages them. No stub (a user link is not a derived-coverage affordance).
       const userLines = [];
       (userLinks || []).forEach((l) => {
-        const a = rectOf(l.fromSel), b = rectOf(l.toSel);
+        const a = rectOfAnchor(l.from, "from"), b = rectOfAnchor(l.to, "to");
         if (a && !a.offscreen && b && !b.offscreen) {
           userLines.push({ id: l.id, x1: a.r.right, y1: a.r.top + a.r.height / 2, x2: b.r.left, y2: b.r.top + b.r.height / 2 });
         }

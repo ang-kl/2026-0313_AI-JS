@@ -687,17 +687,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     } catch (_) {}
   }, [commentStatus, postingKey]);
 
-  // P1 LOCKED LINKS: user-authored, persistent N:N links between a duty line and an
-  // O-I-A card (Word/PPT-style annotations - NOT engine output, so they author no band
-  // or verdict and never touch the deterministic contract). Persisted per posting on the
-  // same rail as review decisions. linkMode arms picking; linkDraft holds the pending
-  // first pick; onLinkPick locks a duty->card pair; a distinct blue line renders it.
-  const [links, setLinks] = useState([]); // [{ id, from:{id,quote}, to:{id,quote}, locked }]
+  // LOCKED LINKS (P1 + P2): user-authored, persistent N:N links between ANCHORS - a whole
+  // duty line, a whole O-I-A card, OR (P2) an arbitrary selected PHRASE in the manuscript /
+  // O-I-A text. Word/PPT-style annotations - NOT engine output, so they author no band or
+  // verdict and never touch the deterministic contract. Persisted per posting on the
+  // review-decisions rail. An anchor is either an ELEMENT { t:'duty'|'oia', id, quote } or
+  // a TEXT-QUOTE { t:'phrase', block, quote, pre, suf } (re-resolved to a Range at draw
+  // time, so it survives re-render without mutating the manuscript DOM).
+  const [links, setLinks] = useState([]); // [{ id, from:<anchor>, to:<anchor>, locked }]
   const [linkMode, setLinkMode] = useState(false);
-  const [linkDraft, setLinkDraft] = useState(null); // { kind:'duty'|'oia', id, quote }
+  const [linkDraft, setLinkDraft] = useState(null); // first-picked anchor, or null
+  const [phraseSel, setPhraseSel] = useState(null); // { block, quote, pre, suf, x, y } - floating "link this phrase"
   const linkSeq = useRef(0);
   useEffect(() => {
-    setLinks([]); setLinkDraft(null);
+    setLinks([]); setLinkDraft(null); setPhraseSel(null);
     if (!postingKey) return;
     loadState("links", (all) => { if (all && Array.isArray(all[postingKey])) setLinks(all[postingKey]); });
   }, [postingKey]);
@@ -712,18 +715,48 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       saveState("links", all);
     } catch (_) {}
   }, [links, postingKey]);
-  const onLinkPick = (kind, id, quote) => {
-    if (!linkDraft || linkDraft.kind === kind) { setLinkDraft({ kind, id, quote }); return; } // arm / re-arm
-    const duty = linkDraft.kind === "duty" ? linkDraft : { kind, id, quote };
-    const oia = linkDraft.kind === "oia" ? linkDraft : { kind, id, quote };
-    setLinks((ls) => (ls.some((l) => l.from.id === duty.id && l.to.id === oia.id) ? ls
-      : ls.concat({ id: "lnk-" + (++linkSeq.current) + "-" + duty.id + "-" + oia.id, from: { id: duty.id, quote: duty.quote || "" }, to: { id: oia.id, quote: oia.quote || "" }, locked: true })));
-    setLinkDraft(null); // pair locked
+  // Anchor identity, for dedupe + self-link guard. Legacy P1 links (stored with no `t`)
+  // are read as duty(from)->oia(to) by the resolver and never re-picked, so this only
+  // needs to key anchors created here.
+  const anchorKey = (a) => (a ? a.t + "|" + (a.id != null ? a.id : ((a.block || "") + "¦" + (a.quote || ""))) : "");
+  const onLinkPick = (a) => {
+    if (!a) return;
+    if (!linkDraft || anchorKey(linkDraft) === anchorKey(a)) { setLinkDraft(a); return; } // arm / re-arm
+    const from = linkDraft, to = a, fk = anchorKey(from), tk = anchorKey(to);
+    setLinks((ls) => (ls.some((l) => { const lf = anchorKey(l.from), lt = anchorKey(l.to); return (lf === fk && lt === tk) || (lf === tk && lt === fk); }) ? ls
+      : ls.concat({ id: "lnk-" + (++linkSeq.current), from, to, locked: true })));
+    setLinkDraft(null); setPhraseSel(null); // pair locked
   };
   const removeLink = (lid) => setLinks((ls) => ls.filter((l) => l.id !== lid));
+  // P2: while link mode is on, capture a text selection inside a linkable block
+  // ([data-anchor-block]) into a floating "link this phrase" affordance. Stores a
+  // TextQuote anchor (block + verbatim quote + short prefix/suffix to disambiguate).
+  useEffect(() => {
+    if (!linkMode) { setPhraseSel(null); return undefined; }
+    const onUp = () => {
+      const sel = typeof window !== "undefined" ? window.getSelection() : null;
+      if (!sel || sel.isCollapsed || !sel.rangeCount) { setPhraseSel(null); return; }
+      const quote = sel.toString().replace(/\s+/g, " ").trim();
+      if (quote.length < 2 || quote.length > 140) { setPhraseSel(null); return; }
+      const range = sel.getRangeAt(0);
+      const node = range.commonAncestorContainer;
+      const el = node && node.nodeType === 3 ? node.parentElement : node;
+      const block = el && el.closest ? el.closest("[data-anchor-block]") : null;
+      if (!block) { setPhraseSel(null); return; }
+      const blockId = block.getAttribute("data-anchor-block");
+      const text = (block.textContent || "").replace(/\s+/g, " ");
+      const i = text.indexOf(quote);
+      const pre = i > 0 ? text.slice(Math.max(0, i - 14), i) : "";
+      const suf = i >= 0 ? text.slice(i + quote.length, i + quote.length + 14) : "";
+      const r = range.getBoundingClientRect();
+      setPhraseSel({ block: blockId, quote, pre, suf, x: r.left + r.width / 2, y: r.top });
+    };
+    document.addEventListener("mouseup", onUp);
+    return () => document.removeEventListener("mouseup", onUp);
+  }, [linkMode]);
   useEffect(() => {
     if (!linkMode) return;
-    const onKey = (e) => { if (e.key === "Escape") setLinkDraft(null); };
+    const onKey = (e) => { if (e.key === "Escape") { setLinkDraft(null); setPhraseSel(null); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [linkMode]);
@@ -1074,7 +1107,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // P1: resolve the persisted links to DOM selectors for the connector overlay. Duty
   // line -> "#li-<id>" (Manuscript), O-I-A card -> [data-oia-anchor]. Drawn blue, always
   // (not gated on the active span), so a locked link stays visible without hover.
-  const userLinks = links.map((l) => ({ id: l.id, fromSel: "#li-" + l.from.id, toSel: "[data-oia-anchor=\"" + l.to.id + "\"]" }));
+  const userLinks = links.map((l) => ({ id: l.id, from: l.from, to: l.to }));
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
@@ -1284,7 +1317,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#1e3fae", flex: "none" }}>LOCKED LINKS {String.fromCharCode(0x00b7)} {links.length}</span>
           {linkMode && (
             <span style={{ fontSize: "0.75rem", color: "#1e3fae", flex: "none" }}>
-              {linkDraft ? "Now pick the " + (linkDraft.kind === "duty" ? "O-I-A card" : "responsibility") + " to lock this link (Esc cancels)" : "Pick a responsibility, then an O-I-A card, to lock a link."}
+              {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Pick two things to link: a responsibility, an O-I-A card (🔗 handles), or select any phrase and confirm."}
             </span>
           )}
           {links.map((l) => (
@@ -1300,6 +1333,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
       <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} />
+
+      {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
+          selection alive through the click; clicking arms the phrase (or completes the
+          link if one end is already picked). */}
+      {linkMode && phraseSel && (
+        <button type="button" onMouseDown={(e) => e.preventDefault()}
+          onClick={() => { onLinkPick({ t: "phrase", block: phraseSel.block, quote: phraseSel.quote, pre: phraseSel.pre, suf: phraseSel.suf }); const s = (typeof window !== "undefined" && window.getSelection) ? window.getSelection() : null; if (s) s.removeAllRanges(); setPhraseSel(null); }}
+          style={{ position: "fixed", left: Math.max(8, Math.min((typeof window !== "undefined" ? window.innerWidth : 1200) - 170, phraseSel.x - 78)), top: Math.max(8, phraseSel.y - 42), zIndex: RS_LAYERS.menu, display: "inline-flex", alignItems: "center", gap: 6, minHeight: 34, padding: "0 12px", background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 8, boxShadow: "0 6px 18px rgba(29,78,216,0.35)", cursor: "pointer", fontSize: "0.8125rem", fontWeight: 700 }}>
+          <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkDraft ? "Link to this phrase" : "Link this phrase"}
+        </button>
+      )}
 
 
       {/* Footer - +10% type (0.6875 -> 0.75625rem) + roomier padding, and the version
