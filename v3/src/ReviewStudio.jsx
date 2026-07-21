@@ -140,7 +140,7 @@ function rsTermSpans(text, re, focusTerm, onTerm) {
     const norm = String(p).toLowerCase().trim();
     const on = focusTerm && norm === focusTerm;
     return (
-      <span key={"tm" + i} role="button" tabIndex={0} data-term={norm}
+      <span key={"tm" + i} role="button" tabIndex={0} data-term={norm} aria-pressed={!!on}
         onClick={(e) => { e.stopPropagation(); onTerm && onTerm(on ? null : norm); }}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onTerm && onTerm(on ? null : norm); } }}
         title={on ? "Traced across both panels - click to clear" : "Click to trace “" + p + "” across both panels"}
@@ -1483,13 +1483,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
         {tab === "duties" && (
           <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card (persistent, blue)"
-            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
             <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkMode ? "Linking on" : "Draw a link"}{links.length ? " · " + links.length : ""}
           </button>
         )}
         {tab === "duties" && (
           <button type="button" aria-pressed={showAuto} onClick={() => setShowAuto((v) => !v)} title="Auto-draw the links the engine already knows: every responsibility to its O-I-A card (deterministic - not AI-guessed)"
-            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showAuto ? "#475569" : "#eef1f5", color: showAuto ? "#fff" : "#475569", border: "1px solid " + (showAuto ? "#475569" : "#c3ccd8"), boxShadow: showAuto ? "0 1px 6px rgba(71,85,105,0.35)" : "none" }}>
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 44, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: showAuto ? "#475569" : "#eef1f5", color: showAuto ? "#fff" : "#475569", border: "1px solid " + (showAuto ? "#475569" : "#c3ccd8"), boxShadow: showAuto ? "0 1px 6px rgba(71,85,105,0.35)" : "none" }}>
             <span aria-hidden="true">{String.fromCharCode(0x21c4)}</span> {showAuto ? "Connections on" : "Show connections"}
           </button>
         )}
@@ -1535,7 +1535,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           {focusTerm ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flex: "none", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 14, padding: "2px 4px 2px 10px", fontSize: "0.75rem", color: "#7c5e10" }}>
               <span aria-hidden="true">{String.fromCharCode(0x1f50e)}</span> tracing “{focusTerm}” across both panels
-              <button type="button" onClick={() => setFocusTerm(null)} aria-label={"Clear term trace"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#7c5e10", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+              <button type="button" onClick={() => setFocusTerm(null)} aria-label={"Clear term trace"} style={{ flex: "none", minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#7c5e10", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
             </span>
           ) : (
             <span style={{ fontSize: "0.6875rem", color: "#8a7f66", flex: "none" }}>Tip: click any skill term in a responsibility or card to trace it across both panels.</span>
@@ -1543,7 +1543,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           {links.map((l) => (
             <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>
-              <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+              <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 44, minHeight: 44, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
             </span>
           ))}
           {/* Line legend - three distinct kinds now share the desk; name each so no colour
@@ -1564,10 +1564,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#f5f1fc", borderBottom: "1px solid #ddd0f5", overflowX: "auto" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#6d28d9", flex: "none" }}>AI-SUGGESTED {String.fromCharCode(0x00b7)} REVIEW EACH</span>
           <span title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 4, padding: "1px 6px", flex: "none" }}>AI estimate</span>
-          {suggestState.status === "loading" && <span style={{ fontSize: "0.75rem", color: "#6d28d9", flex: "none" }}>Asking the model to suggest links{String.fromCharCode(0x2026)}</span>}
-          {suggestState.status === "error" && <span style={{ fontSize: "0.75rem", color: "#8a5a1a", flex: "none" }}>Couldn{String.fromCharCode(0x2019)}t get suggestions this time {String.fromCharCode(0x2014)} nothing drawn (withheld, not guessed).</span>}
-          {(suggestState.status === "empty") && <span style={{ fontSize: "0.75rem", color: "#6b6357", flex: "none" }}>No confident cross-panel suggestions for this posting {String.fromCharCode(0x2014)} nothing drawn.</span>}
-          {suggestState.status === "ready" && <span style={{ fontSize: "0.6875rem", color: "#6b5a8a", flex: "none" }}>Guesses, not engine facts. Source: AI suggestion (LLM) {String.fromCharCode(0x00b7)} Confidence: advisory {String.fromCharCode(0x00b7)} this session.</span>}
+          <span aria-live="polite" style={{ display: "inline-flex", alignItems: "center", flex: "none" }}>
+            {suggestState.status === "loading" && <span style={{ fontSize: "0.75rem", color: "#6d28d9" }}>Asking the model to suggest links{String.fromCharCode(0x2026)}</span>}
+            {suggestState.status === "error" && <span style={{ fontSize: "0.75rem", color: "#8a5a1a" }}>Couldn{String.fromCharCode(0x2019)}t get suggestions this time {String.fromCharCode(0x2014)} nothing drawn (withheld, not guessed).</span>}
+            {(suggestState.status === "empty") && <span style={{ fontSize: "0.75rem", color: "#6b6357" }}>No confident cross-panel suggestions for this posting {String.fromCharCode(0x2014)} nothing drawn.</span>}
+            {suggestState.status === "ready" && <span style={{ fontSize: "0.6875rem", color: "#6b5a8a" }}>Guesses, not engine facts. Source: AI suggestion (LLM) {String.fromCharCode(0x00b7)} Confidence: advisory {String.fromCharCode(0x00b7)} Time-window: this session.</span>}
+          </span>
           {suggestState.items.map((it) => (
             <span key={it.id} title={"AI-suggested link. Source: AI suggestion (LLM) - Confidence: advisory, not a fact - Time-window: this session. Review before you keep it."} style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: 440, background: "#fff", border: "1px dashed #b79ae8", borderRadius: 12, padding: "3px 5px 3px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span aria-hidden="true" title="AI estimate = LLM advisory, not fact" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, color: PROV["AI estimate"].ink, background: PROV["AI estimate"].bg, border: "1px solid " + PROV["AI estimate"].border, borderRadius: 3, padding: "0 4px", flex: "none" }}>AI</span>
