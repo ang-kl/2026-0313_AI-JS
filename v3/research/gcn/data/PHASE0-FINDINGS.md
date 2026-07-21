@@ -39,5 +39,21 @@ production (Vercel)** — the block is specific to this sandbox's egress policy,
    (occupations / skills / occupationSkillRelations, CC-BY) once and drops it into `data/`;
    MCF co-occurrence still needs path 1 or 2.
 
-Until one of these lands, Phases 1–3 stay blocked on data. No code was written against
-unreachable endpoints, and nothing was routed around the policy.
+Until one of these lands, Phases 1–3 stay blocked on data. Nothing was routed around the
+policy.
+
+## Tooling ready (for path 1 or 2)
+
+Two harvesters are committed so whichever unblock path you pick just runs them:
+
+- `harvest_esco.py` — walks the 1,006 SSOC 2024 leaf occupations (verified offline against
+  `ssoc2024-hierarchy.json`), resolves each to an ESCO occupation and pulls essential +
+  optional skills. Mirrors the request shapes of the production-tested `api/esco.js`.
+  Resumable (JSONL checkpoint), rate-limited. → `data/esco_occupation_skills.jsonl`.
+- `harvest_mcf.py` — samples MCF postings across SSOC-spanning seed queries and keeps each
+  posting's skill-tag set (the co-occurrence signal). Mirrors `api/mcf.js`. Deduped by uuid,
+  resumable. → `data/mcf_postings.jsonl`.
+
+Both are **network-untested in this sandbox** (egress blocked); their offline logic (SSOC
+leaf enumeration, title cleaning, parsing) is verified. Run from a networked host, or here
+once the env policy allows the two hosts. Raw outputs are gitignored.
