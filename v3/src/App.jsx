@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.303";
+const APP_VERSION = "3.0.304";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -17002,8 +17002,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     <>
     <style>{`
       *, *::before, *::after { box-sizing: border-box; }
+      /* STANDARDISE (Human Lead, 21-07 '26): ONE typeface across the whole app -
+         Google Inter for absolutely everything (UI, headings, the manuscript, and the
+         data/provenance chips that used to be monospace/serif). A single !important
+         rule overrides every inline font-family without touching 200+ call sites or the
+         SVG graph labels. Tabular numerals stay ON (body, below) so indices, percentages
+         and the O-I-A/trace columns still align even though Inter replaces monospace. */
+      * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }
       html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: clip; font-size: 16px; }
-      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; }
+      body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; font-variant-numeric: tabular-nums; }
       #root { width: 100%; max-width: 100vw; overflow-x: clip; }
       img, video { max-width: 100%; }
       :root {
