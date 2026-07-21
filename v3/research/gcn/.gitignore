@@ -7,3 +7,5 @@ __pycache__/
 data/*.jsonl
 data/*.json
 !data/PHASE0-FINDINGS.md
+substrate.npz
+substrate_meta.json

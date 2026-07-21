@@ -81,10 +81,18 @@ is the missing ingredient.
 
 | File | Purpose |
 |---|---|
-| `build_graph.py` | Build the real graph from SSOC 2024 → `graph.npz`. Swap point for the real skill graph. |
+| `build_graph.py` | The ORIGINAL node-classification probe (SSOC text → cosine-kNN → `graph.npz`). Its "no lift" result is what motivated the real substrate below. |
 | `gcn_numpy.py` | Runnable 2-layer GCN (NumPy, manual backprop) + `--mlp` baseline. |
-| `gcn_torch.py` | PyTorch mirror of the same architecture — the extension point (autograd/GPU, link prediction, PSHGCN/PolyGCL). |
-| `graph.npz`, `meta.json` | Generated artifacts (gitignored). |
+| `gcn_torch.py` | PyTorch mirror — the natural next encoder for link prediction (autograd/GPU, PSHGCN/PolyGCL). |
+| **`SUBSTRATE-PLAN.md`** | The real occupation↔skill substrate plan (Phases 0–3). |
+| **`harvest_esco.py` / `harvest_mcf.py`** | Phase 0 data acquisition (run when egress is unblocked — see `data/PHASE0-FINDINGS.md`). |
+| **`build_substrate_graph.py`** | Phase 1 — assemble the bipartite occupation↔skill graph (+ MCF co-occurrence) → `substrate.npz`. `--self-test` validated. |
+| **`linkpred.py`** | Phase 2 — occupation→skill link prediction with honest baselines (popularity / ESCO-only / MCF); reports the MCF-over-ESCO lift. `--self-test` validated. |
+| `graph.npz`, `substrate.npz`, `data/*.jsonl` | Generated artifacts (gitignored). |
+
+**Status:** Phase 0 gated on data (ESCO + MCF hosts blocked by the sandbox egress policy);
+Phases 1–2 are code-complete and self-tested offline, so the pipeline runs the moment real
+harvest data lands: `harvest_* → build_substrate_graph.py → linkpred.py`.
 
 ## Credits / sources
 
