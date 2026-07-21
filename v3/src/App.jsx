@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.305";
+const APP_VERSION = "3.0.306";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -17002,13 +17002,21 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     <>
     <style>{`
       *, *::before, *::after { box-sizing: border-box; }
-      /* STANDARDISE (Human Lead, 21-07 '26): ONE typeface across the whole app -
-         Google Inter for absolutely everything (UI, headings, the manuscript, and the
-         data/provenance chips that used to be monospace/serif). A single !important
-         rule overrides every inline font-family without touching 200+ call sites or the
-         SVG graph labels. Tabular numerals stay ON (body, below) so indices, percentages
-         and the O-I-A/trace columns still align even though Inter replaces monospace. */
+      /* TYPE SYSTEM (Human Lead, 21-07 '26, dialled back): Inter is the UI/chrome
+         typeface everywhere by default, but the two LOAD-BEARING voices are preserved -
+         monospace for data/provenance (tabular data chips, indices, O-I-A/trace columns)
+         and serif for the manuscript ("this is the source text"). Done purely in CSS via
+         inline-style attribute selectors, so no inline font-family is edited: the `*`
+         rule sets Inter; the two more-specific rules re-assert mono/serif wherever an
+         element declared them. Tabular numerals stay ON (body, below). */
       * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }
+      /* Keep MONO where the code asked for it (every mono inline style contains the
+         literal "monospace"). "monospace" never appears inside a sans/serif stack. */
+      [style*="monospace"] { font-family: 'Spline Sans Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important; }
+      /* Keep SERIF (manuscript). Match on the family NAMES, not the word "serif" -
+         "serif" would also match "sans-serif". Every serif stack names Newsreader
+         and/or Source Serif 4. */
+      [style*="Newsreader"], [style*="Source Serif 4"] { font-family: 'Source Serif 4', 'Newsreader', Georgia, serif !important; }
       html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: clip; font-size: 16px; }
       body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; font-variant-numeric: tabular-nums; }
       #root { width: 100%; max-width: 100vw; overflow-x: clip; }
