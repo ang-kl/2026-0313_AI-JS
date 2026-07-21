@@ -124,6 +124,30 @@ function rsUnderlineSkillTerms(text, re) {
     ? <u key={"u" + i} style={{ textDecorationColor: "#1e40af", textUnderlineOffset: 2, fontWeight: 600 }}>{p}</u>
     : p);
 }
+// Layer 2 (same-term cross-panel highlight): wrap every KNOWN skill/tool term (the same
+// engine term index `skillTermRe` used for the overview underline) in an interactive span
+// carrying its normalised term. Click one and every occurrence of that term across BOTH
+// panels glows - the deterministic "concept lights up everywhere" (Visio) read. No new
+// data, no LLM: purely a highlight over terms the engine already recognises. Respects the
+// plain-line doctrine - a term is invisible until focused (only cursor + title hint it).
+function rsTermSpans(text, re, focusTerm, onTerm) {
+  const s = String(text || "");
+  if (!re) return s;
+  const parts = s.split(re); // odd indices = the captured term (same contract as rsUnderlineSkillTerms)
+  if (parts.length < 2) return s;
+  return parts.map((p, i) => {
+    if (i % 2 === 0) return p;
+    const norm = String(p).toLowerCase().trim();
+    const on = focusTerm && norm === focusTerm;
+    return (
+      <span key={"tm" + i} role="button" tabIndex={0} data-term={norm}
+        onClick={(e) => { e.stopPropagation(); onTerm && onTerm(on ? null : norm); }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); onTerm && onTerm(on ? null : norm); } }}
+        title={on ? "Traced across both panels - click to clear" : "Click to trace “" + p + "” across both panels"}
+        style={on ? { cursor: "pointer", background: "#fde68a", boxShadow: "0 0 0 2px #fde68a", borderRadius: 3, fontWeight: 600 } : { cursor: "pointer" }}>{p}</span>
+    );
+  });
+}
 function rsDominantBand(duties) {
   const c = {}; (duties || []).forEach((d) => { const b = RS_EXP_BAND[d && d.exposureNow]; if (b) c[b] = (c[b] || 0) + 1; });
   const keys = Object.keys(c); return keys.length ? keys.sort((a, b) => c[b] - c[a])[0] : null;
@@ -747,6 +771,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // inference - safe to auto-draw and they can never mis-point. Off by default (opt-in), a
   // faint GREY line layer distinct from the amber hover-trace and the user's blue locks.
   const [showAuto, setShowAuto] = useState(false);
+  // Layer 2 - the term currently traced across both panels (normalised skill/tool term),
+  // or null. Set by clicking any known term in the manuscript or an O-I-A card.
+  const [focusTerm, setFocusTerm] = useState(null);
   const onLinkDragStart = (anchor, e) => {
     if (!anchor || !e) return;
     const r = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
@@ -1157,7 +1184,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1400,6 +1427,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               Draw your own persistent <b style={{ color: "#1d4ed8" }}>blue</b> links: press <b>Draw a link</b> above, then <b>drag</b> a 🔗 handle from a responsibility onto an O-I-A card (or click one then the other). (The <b style={{ color: "#b45309" }}>amber</b> line that appears when you click a line is the engine's automatic trace, not a saved link.)
             </span>
           ) : null}
+          {/* Layer 2: the term currently traced across both panels, with a clear control.
+              When idle, a quiet hint that skill terms are clickable (respects the plain-line
+              doctrine - terms are not decorated until focused). */}
+          {focusTerm ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, flex: "none", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 14, padding: "2px 4px 2px 10px", fontSize: "0.75rem", color: "#7c5e10" }}>
+              <span aria-hidden="true">{String.fromCharCode(0x1f50e)}</span> tracing “{focusTerm}” across both panels
+              <button type="button" onClick={() => setFocusTerm(null)} aria-label={"Clear term trace"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#7c5e10", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+            </span>
+          ) : (
+            <span style={{ fontSize: "0.6875rem", color: "#8a7f66", flex: "none" }}>Tip: click any skill term in a responsibility or card to trace it across both panels.</span>
+          )}
           {links.map((l) => (
             <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>

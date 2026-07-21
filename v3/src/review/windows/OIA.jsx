@@ -5,7 +5,8 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinOIA(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, linkMode, linkDraft, onLinkPick, onLinkDragStart } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, linkMode, linkDraft, onLinkPick, onLinkDragStart, rsTermSpans, focusTerm, setFocusTerm } = ctx;
+  const T = (txt) => (rsTermSpans ? rsTermSpans(txt, skillTermRe, focusTerm, setFocusTerm) : txt);
   return (
 
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
@@ -28,7 +29,7 @@ export function renderWinOIA(ctx) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>OBSERVATION</div>
-                      <p data-anchor-block={"oiaobs-" + s.id} style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
+                      <p data-anchor-block={"oiaobs-" + s.id} style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{T(s.text)}{String.fromCharCode(0x201d)}</p>
                       {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
                           from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
                           verbatim posting text - so the chip must not say "from posting".
