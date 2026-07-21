@@ -163,12 +163,17 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
     const schedule = () => { if (!raf) raf = requestAnimationFrame(measure); };
     schedule();
     window.addEventListener("resize", schedule);
-    desk.addEventListener("scroll", schedule, true); // capture: fires for the scrolling panel too
+    // Endpoints are measured in VIEWPORT coords and the overlay is position:fixed, so ANY
+    // scroll (the page/body, an ancestor container, a panel scroller, a floated window) shifts
+    // an endpoint and must re-measure. A window-level CAPTURE scroll listener fires for scroll
+    // on every element in the document (scroll doesn't bubble, but capture still sees it) - the
+    // earlier desk-scoped listener missed page/ancestor scrolls, so lines detached from content.
+    window.addEventListener("scroll", schedule, true);
     // Part C.2 item 5: observe the panel scrollers instead of guessing layout once -
     // late layout (fonts, images, async window content) re-measures automatically.
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
     if (ro) desk.querySelectorAll(".wis-panel .wis-scroll").forEach((el) => ro.observe(el));
-    return () => { if (raf) cancelAnimationFrame(raf); window.removeEventListener("resize", schedule); desk.removeEventListener("scroll", schedule, true); if (ro) ro.disconnect(); };
+    return () => { if (raf) cancelAnimationFrame(raf); window.removeEventListener("resize", schedule); window.removeEventListener("scroll", schedule, true); if (ro) ro.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [linkKey, userKey, autoKey, suggestKey, tab, floats, pinned, overrides, activeWin, splitPct]);
   return (
