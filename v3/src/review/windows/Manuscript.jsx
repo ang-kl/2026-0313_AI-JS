@@ -5,7 +5,7 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinManuscript(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick } = ctx;
   const dutySpans = dissection.spans.filter((x) => x.sec !== "req");
   const jumpToLine = (sp) => { setActiveSpan(sp.id); const el = document.getElementById("li-" + sp.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
   return (
@@ -93,6 +93,15 @@ export function renderWinManuscript(ctx) {
                       links, so the number IS the on-screen join key. */}
                   {dutySpans.map((s, di) => {
                     const lineNo = <span aria-hidden="true" style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#5b6878", marginRight: 7 }}>{di + 1}</span>;
+                    // P1: in link mode each responsibility gets a pick handle; clicking it
+                    // arms/locks a user link to an O-I-A card (blue connector). Not shown in
+                    // clean view (that mode is the plain manuscript).
+                    const dOn = linkDraft && linkDraft.kind === "duty" && linkDraft.id === s.id;
+                    const linkBtn = (linkMode && onLinkPick) ? (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick("duty", s.id, s.text); }}
+                        aria-label={"Lock a link from this responsibility"} title="Lock a link from this responsibility to an O-I-A card"
+                        style={{ marginLeft: 6, verticalAlign: "middle", minHeight: 26, minWidth: 30, border: "1px solid " + (dOn ? "#1d4ed8" : "#c7d6ff"), background: dOn ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem" }}>{String.fromCharCode(0x1f517)}</button>
+                    ) : null;
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{s.text}</li>;
                     // Resolution styling (goal §10 / handoff): a line whose reviewer
                     // comment was REJECTED reads as resolved - struck through, dimmed,
@@ -100,12 +109,12 @@ export function renderWinManuscript(ctx) {
                     // (the handoff's explicit call). Text itself stays verbatim.
                     const dutyCmt = marginComments.find((mc) => mc.anchor === s.id);
                     const decided = dutyCmt ? commentStatus[dutyCmt.id] : undefined;
-                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span></li>;
+                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span>{linkBtn}</li>;
                     // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
                     const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{s.text}</li>;
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{s.text}{linkBtn}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
@@ -117,7 +126,7 @@ export function renderWinManuscript(ctx) {
                     );
                     return (
                       <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
-                        {lineNo}{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}
+                        {lineNo}{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}{linkBtn}
                       </li>
                     );
                   })}

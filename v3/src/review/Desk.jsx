@@ -13,19 +13,22 @@ import { WIN_LABELS, TAB_WINDOWS, deriveLinks } from "./registry.jsx";
 // One cubic-bezier path string (same curve family as the #358 single line).
 const bez = (l) => "M " + l.x1 + " " + l.y1 + " C " + ((l.x1 + l.x2) / 2) + " " + l.y1 + ", " + ((l.x1 + l.x2) / 2) + " " + l.y2 + ", " + l.x2 + " " + l.y2;
 
-export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow }) {
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
   // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
   // panel border with a count badge, replacing the old vanish behaviour (the honesty
   // rule survives: a stub points at a REAL off-screen/off-tab partner, and clicking
   // it activates that window; nothing is drawn for links with no live endpoint).
-  const [conn, setConn] = useState({ lines: [], stubs: [] });
+  const [conn, setConn] = useState({ lines: [], stubs: [], user: [] });
   const links = deriveLinks(tab, linkData || {});
   const linkKey = links.map((l) => l.id + (l.active ? "!" : "")).join("|");
+  // P1 user-authored locked links (blue), measured with the same DOM geometry as the
+  // derived amber connector but never gated on the active span - a lock stays drawn.
+  const userKey = (userLinks || []).map((l) => l.id).join("|");
   useLayoutEffect(() => {
     const desk = deskRef.current;
-    if (!desk || !links.length) { setConn({ lines: [], stubs: [] }); return; }
+    if (!desk || (!links.length && !(userLinks && userLinks.length))) { setConn({ lines: [], stubs: [], user: [] }); return; }
     let raf = 0;
     const measure = () => {
       raf = 0;
@@ -74,7 +77,17 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
         }
         // neither endpoint live: nothing is drawn (never point at nothing).
       });
-      setConn({ lines, stubs: Object.values(stubAgg) });
+      // P1: user links draw only when BOTH endpoints are live (both panels on-screen);
+      // off-screen ones simply don't render this frame - the Locked-links bar still
+      // manages them. No stub (a user link is not a derived-coverage affordance).
+      const userLines = [];
+      (userLinks || []).forEach((l) => {
+        const a = rectOf(l.fromSel), b = rectOf(l.toSel);
+        if (a && !a.offscreen && b && !b.offscreen) {
+          userLines.push({ id: l.id, x1: a.r.right, y1: a.r.top + a.r.height / 2, x2: b.r.left, y2: b.r.top + b.r.height / 2 });
+        }
+      });
+      setConn({ lines, stubs: Object.values(stubAgg), user: userLines });
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(measure); };
     schedule();
@@ -86,7 +99,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
     if (ro) desk.querySelectorAll(".wis-panel .wis-scroll").forEach((el) => ro.observe(el));
     return () => { if (raf) cancelAnimationFrame(raf); window.removeEventListener("resize", schedule); desk.removeEventListener("scroll", schedule, true); if (ro) ro.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkKey, tab, floats, pinned, overrides, activeWin, splitPct]);
+  }, [linkKey, userKey, tab, floats, pinned, overrides, activeWin, splitPct]);
   return (
     <>
       {/* Body: No.138 U2 - the two-panel study desk. Each panel hosts tabbed windows;
@@ -100,7 +113,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             full-screen surfaces, so a curved connector between them would cross the
             whole viewport and confuse rather than trace. Hide it there - the comment
             card's aria-label ("linked to highlighted duty N") still carries the link. */}
-        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0) && (
+        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0) && (
           <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
             {/* Design handoff: the Word-style connector is AMBER. The handoff's #f5a623
                 fails non-text contrast on the light desk (~2.1:1) - #b45309 keeps the
@@ -120,6 +133,15 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 <line x1={s.x} y1={s.y} x2={s.side === "right" ? s.x + 14 : s.x - 14} y2={s.y} stroke="#b45309" strokeWidth={2} />
                 <circle cx={s.side === "right" ? s.x + 22 : s.x - 22} cy={s.y} r={9} fill="#b45309" />
                 <text x={s.side === "right" ? s.x + 22 : s.x - 22} y={s.y + 3.5} textAnchor="middle" fontSize={10} fontWeight={700} fill="#fff" fontFamily="'Spline Sans Mono',monospace">{s.count}</text>
+              </g>
+            ))}
+            {/* P1 user-authored LOCKED links - blue, to read as distinct from the amber
+                engine connector; persistent (not hover-gated) so a lock stays visible. */}
+            {(conn.user || []).map((l) => (
+              <g key={l.id} opacity={0.95}>
+                <path d={bez(l)} fill="none" stroke="#1d4ed8" strokeWidth={2.2} />
+                <circle cx={l.x1} cy={l.y1} r={4} fill="#1d4ed8" />
+                <circle cx={l.x2} cy={l.y2} r={4} fill="#1d4ed8" />
               </g>
             ))}
           </svg>
