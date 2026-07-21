@@ -1293,9 +1293,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         ))}
         {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
         {tab === "duties" && (
-          <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card"
-            style={{ ...pillStyle(linkMode), display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
-            <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> Link mode{links.length ? " · " + links.length : ""}
+          <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card (persistent, blue)"
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkMode ? "Linking on" : "Draw a link"}{links.length ? " · " + links.length : ""}
           </button>
         )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
@@ -1311,15 +1311,23 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* P1 locked-links manager: lists every user-drawn duty->card link with a delete,
           and narrates the pick step while link mode is armed. Duties tab only (where both
-          endpoints live). Kept visually distinct (blue) from the engine's amber connector. */}
-      {tab === "duties" && (linkMode || links.length > 0) && (
+          endpoints live). Kept visually distinct (blue) from the engine's amber connector.
+          Always shown on the duties tab so the feature is discoverable: when link mode is
+          off and no link exists yet, it explains what a locked link is and how to draw one
+          (the earlier bug report was "cannot see the link" - the 🔗 handles only appear
+          once link mode is armed, so before that there was no on-screen hint at all). */}
+      {tab === "duties" && (
         <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#eef2ff", borderBottom: "1px solid #d7e0fb", overflowX: "auto" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#1e3fae", flex: "none" }}>LOCKED LINKS {String.fromCharCode(0x00b7)} {links.length}</span>
-          {linkMode && (
+          {linkMode ? (
             <span style={{ fontSize: "0.75rem", color: "#1e3fae", flex: "none" }}>
-              {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Pick two things to link: a responsibility, an O-I-A card (🔗 handles), or select any phrase and confirm."}
+              {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Now click a 🔗 handle on a responsibility (left), then a 🔗 handle on an O-I-A card (right) - or select any phrase and confirm. A blue line locks between them."}
             </span>
-          )}
+          ) : links.length === 0 ? (
+            <span style={{ fontSize: "0.75rem", color: "#3a4a86", flex: "none" }}>
+              Draw your own persistent <b style={{ color: "#1d4ed8" }}>blue</b> links between a responsibility and an O-I-A card - press <b>Draw a link</b> above to start. (The <b style={{ color: "#b45309" }}>amber</b> line that appears when you click a line is the engine's automatic trace, not a saved link.)
+            </span>
+          ) : null}
           {links.map((l) => (
             <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>
