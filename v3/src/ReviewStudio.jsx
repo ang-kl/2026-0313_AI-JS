@@ -719,15 +719,68 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // are read as duty(from)->oia(to) by the resolver and never re-picked, so this only
   // needs to key anchors created here.
   const anchorKey = (a) => (a ? a.t + "|" + (a.id != null ? a.id : ((a.block || "") + "¦" + (a.quote || ""))) : "");
+  // Create a locked link between two anchors, deduped and self-link-guarded. Shared by
+  // the two-click pick flow (onLinkPick) and the P3 drag-to-connect gesture (onLinkDrop).
+  const addLink = (from, to) => {
+    if (!from || !to) return;
+    const fk = anchorKey(from), tk = anchorKey(to);
+    if (fk === tk) return; // no self-link
+    setLinks((ls) => (ls.some((l) => { const lf = anchorKey(l.from), lt = anchorKey(l.to); return (lf === fk && lt === tk) || (lf === tk && lt === fk); }) ? ls
+      : ls.concat({ id: "lnk-" + (++linkSeq.current), from, to, locked: true })));
+  };
   const onLinkPick = (a) => {
     if (!a) return;
     if (!linkDraft || anchorKey(linkDraft) === anchorKey(a)) { setLinkDraft(a); return; } // arm / re-arm
-    const from = linkDraft, to = a, fk = anchorKey(from), tk = anchorKey(to);
-    setLinks((ls) => (ls.some((l) => { const lf = anchorKey(l.from), lt = anchorKey(l.to); return (lf === fk && lt === tk) || (lf === tk && lt === fk); }) ? ls
-      : ls.concat({ id: "lnk-" + (++linkSeq.current), from, to, locked: true })));
+    addLink(linkDraft, a);
     setLinkDraft(null); setPhraseSel(null); // pair locked
   };
   const removeLink = (lid) => setLinks((ls) => ls.filter((l) => l.id !== lid));
+  // P3 - drag-to-connect: the Word/PPT gesture. Press a 🔗 handle on a responsibility or
+  // an O-I-A card and drag to the other; drop resolves the anchor under the cursor and
+  // locks the pair. A tap (no drag past a small threshold) falls back to the two-click
+  // pick. State lives here (Option 1); Desk renders the live rubber-band from linkDrag.
+  const [linkDrag, setLinkDrag] = useState(null); // { from, sx, sy, x, y, moved } | null
+  const dragRef = useRef(null);
+  const onLinkDragStart = (anchor, e) => {
+    if (!anchor || !e) return;
+    const r = e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : { left: e.clientX, top: e.clientY, width: 0, height: 0 };
+    const sx = r.left + r.width / 2, sy = r.top + r.height / 2;
+    dragRef.current = { from: anchor, sx, sy, x0: e.clientX, y0: e.clientY, moved: false };
+    setLinkDrag({ from: anchor, sx, sy, x: e.clientX, y: e.clientY, moved: false });
+  };
+  useEffect(() => {
+    if (!linkDrag) return undefined;
+    // Resolve the element under the cursor to a link anchor (duty line / O-I-A card).
+    // Phrases are not drag targets (they have no persistent handle) - use select+confirm.
+    const anchorAtPoint = (x, y) => {
+      const el = typeof document !== "undefined" && document.elementFromPoint ? document.elementFromPoint(x, y) : null;
+      if (!el || !el.closest) return null;
+      const oia = el.closest("[data-oia-anchor]");
+      if (oia) return { t: "oia", id: oia.getAttribute("data-oia-anchor"), quote: (oia.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120) };
+      const li = el.closest('li[id^="li-"]');
+      if (li) return { t: "duty", id: li.id.slice(3), quote: (li.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120) };
+      return null;
+    };
+    const onMove = (e) => {
+      const d = dragRef.current; if (!d) return;
+      if (!d.moved && (Math.abs(e.clientX - d.x0) > 5 || Math.abs(e.clientY - d.y0) > 5)) d.moved = true;
+      const tgt = d.moved ? anchorAtPoint(e.clientX, e.clientY) : null;
+      setLinkDrag({ from: d.from, sx: d.sx, sy: d.sy, x: e.clientX, y: e.clientY, moved: d.moved, overKey: tgt ? anchorKey(tgt) : null });
+    };
+    const onUp = (e) => {
+      const d = dragRef.current; dragRef.current = null; setLinkDrag(null);
+      if (!d || !d.moved) return; // a tap (no drag) is left to the handle's native onClick = the two-click pick
+      const tgt = anchorAtPoint(e.clientX, e.clientY);
+      if (tgt) { addLink(d.from, tgt); setLinkDraft(null); setPhraseSel(null); } // drop onto nothing = cancel
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    const prevSel = typeof document !== "undefined" ? document.body.style.userSelect : "";
+    if (typeof document !== "undefined") document.body.style.userSelect = "none"; // no text-select while dragging
+    return () => { window.removeEventListener("pointermove", onMove); window.removeEventListener("pointerup", onUp); window.removeEventListener("pointercancel", onUp); if (typeof document !== "undefined") document.body.style.userSelect = prevSel; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkDrag ? "on" : "off"]);
   // P2: while link mode is on, capture a text selection inside a linkable block
   // ([data-anchor-block]) into a floating "link this phrase" affordance. Stores a
   // TextQuote anchor (block + verbatim quote + short prefix/suffix to disambiguate).
@@ -1098,7 +1151,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1293,9 +1346,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         ))}
         {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
         {tab === "duties" && (
-          <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card"
-            style={{ ...pillStyle(linkMode), display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
-            <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> Link mode{links.length ? " · " + links.length : ""}
+          <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card (persistent, blue)"
+            style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, whiteSpace: "nowrap", cursor: "pointer", minHeight: 36, borderRadius: 6, padding: "5px 12px", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0, background: linkMode ? "#1d4ed8" : "#eef2ff", color: linkMode ? "#fff" : "#1e3fae", border: "1px solid " + (linkMode ? "#1d4ed8" : "#9cb4ff"), boxShadow: linkMode ? "0 1px 6px rgba(29,78,216,0.4)" : "none" }}>
+            <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> {linkMode ? "Linking on" : "Draw a link"}{links.length ? " · " + links.length : ""}
           </button>
         )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
@@ -1311,15 +1364,23 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
 
       {/* P1 locked-links manager: lists every user-drawn duty->card link with a delete,
           and narrates the pick step while link mode is armed. Duties tab only (where both
-          endpoints live). Kept visually distinct (blue) from the engine's amber connector. */}
-      {tab === "duties" && (linkMode || links.length > 0) && (
+          endpoints live). Kept visually distinct (blue) from the engine's amber connector.
+          Always shown on the duties tab so the feature is discoverable: when link mode is
+          off and no link exists yet, it explains what a locked link is and how to draw one
+          (the earlier bug report was "cannot see the link" - the 🔗 handles only appear
+          once link mode is armed, so before that there was no on-screen hint at all). */}
+      {tab === "duties" && (
         <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#eef2ff", borderBottom: "1px solid #d7e0fb", overflowX: "auto" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#1e3fae", flex: "none" }}>LOCKED LINKS {String.fromCharCode(0x00b7)} {links.length}</span>
-          {linkMode && (
+          {linkMode ? (
             <span style={{ fontSize: "0.75rem", color: "#1e3fae", flex: "none" }}>
-              {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Pick two things to link: a responsibility, an O-I-A card (🔗 handles), or select any phrase and confirm."}
+              {linkDraft ? "Picked “" + String(linkDraft.quote || "").slice(0, 30) + "” - now pick another responsibility, card, or selected phrase to lock (Esc cancels)" : "Drag a 🔗 handle from a responsibility (left) onto an O-I-A card (right) to draw a blue link - or click one 🔗 then another, or select any phrase and confirm."}
             </span>
-          )}
+          ) : links.length === 0 ? (
+            <span style={{ fontSize: "0.75rem", color: "#3a4a86", flex: "none" }}>
+              Draw your own persistent <b style={{ color: "#1d4ed8" }}>blue</b> links: press <b>Draw a link</b> above, then <b>drag</b> a 🔗 handle from a responsibility onto an O-I-A card (or click one then the other). (The <b style={{ color: "#b45309" }}>amber</b> line that appears when you click a line is the engine's automatic trace, not a saved link.)
+            </span>
+          ) : null}
           {links.map((l) => (
             <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>
@@ -1332,7 +1393,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} />
 
       {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
           selection alive through the click; clicking arms the phrase (or completes the

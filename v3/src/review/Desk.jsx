@@ -43,7 +43,7 @@ function findQuoteRange(host, quote) {
   return null;
 }
 
-export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks }) {
+export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setSplitPct, splitDragRef, persistFloats, floats, tab, overrides, setOverrides, pinned, activeWin, setActiveWin, dockHover, renderWindow, tearOff, startFloatDrag, moveFloatDrag, stopFloatDrag, bringToFront, dockBack, resetFloat, setPinned, slideOpen, setSlideOpen, sheet, setSheet, sheetCloseRef, renderSheet, isNarrow, userLinks, linkDrag }) {
   // PR 3 (Part C.2 items 3-5): measure ALL of the tab's derived links each paint.
   // Both endpoints visible -> a bezier line (active: 2px full-opacity; siblings: 1px,
   // 30% opacity). Exactly one endpoint visible -> an edge STUB at that endpoint's
@@ -163,7 +163,7 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
             full-screen surfaces, so a curved connector between them would cross the
             whole viewport and confuse rather than trace. Hide it there - the comment
             card's aria-label ("linked to highlighted duty N") still carries the link. */}
-        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0) && (
+        {!isNarrow && (conn.lines.length > 0 || conn.stubs.length > 0 || conn.user.length > 0 || (linkDrag && linkDrag.moved)) && (
           <svg aria-hidden="true" style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", zIndex: RS_LAYERS.connector, pointerEvents: "none", overflow: "visible" }}>
             {/* Design handoff: the Word-style connector is AMBER. The handoff's #f5a623
                 fails non-text contrast on the light desk (~2.1:1) - #b45309 keeps the
@@ -194,6 +194,18 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 <circle cx={l.x2} cy={l.y2} r={4} fill="#1d4ed8" />
               </g>
             ))}
+            {/* P3 drag-to-connect: the live rubber-band from the grabbed handle to the
+                cursor. Dashed while hunting; the cursor dot turns solid + larger once
+                it is over a valid drop target (linkDrag.overKey set), so the drop reads
+                as "will land here". Ephemeral - never persisted, never an engine fact. */}
+            {linkDrag && linkDrag.moved && (
+              <g opacity={0.95}>
+                <path d={bez({ x1: linkDrag.sx, y1: linkDrag.sy, x2: linkDrag.x, y2: linkDrag.y })}
+                  fill="none" stroke="#1d4ed8" strokeWidth={2.2} strokeDasharray={linkDrag.overKey ? "0" : "5 5"} />
+                <circle cx={linkDrag.sx} cy={linkDrag.sy} r={4} fill="#1d4ed8" />
+                <circle cx={linkDrag.x} cy={linkDrag.y} r={linkDrag.overKey ? 7 : 5} fill={linkDrag.overKey ? "#1d4ed8" : "#fff"} stroke="#1d4ed8" strokeWidth={2} />
+              </g>
+            )}
           </svg>
         )}
         {/* U4-C: draggable splitter sits between the mapped panels (absolute at splitPct). */}
