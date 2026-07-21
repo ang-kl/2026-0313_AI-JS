@@ -808,9 +808,13 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // AUTO-CONNECTIONS (Visio-style, deterministic): the engine already OWNS the map between
   // a responsibility and its O-I-A card - card `s3` IS duty `s3` (same dissection span id),
   // and every margin comment carries its anchor span. So these are provenance FACTS, not
-  // inference - safe to auto-draw and they can never mis-point. Off by default (opt-in), a
-  // faint GREY line layer distinct from the amber hover-trace and the user's blue locks.
-  const [showAuto, setShowAuto] = useState(false);
+  // inference - safe to auto-draw and they can never mis-point. ON by default (Human Lead,
+  // 21-07 '26: "still cannot link the left to the right" - the mapping the engine already
+  // knows should be VISIBLE without hunting for a toggle; the earlier opt-in default meant
+  // the Duties tab opened with no lines and clicking a duty only fired the ephemeral amber
+  // trace, which reads as "nothing is linked"). A faint GREY layer, distinct from the amber
+  // hover-trace and the user's blue locks; still toggleable off if it reads as busy.
+  const [showAuto, setShowAuto] = useState(true);
   // Layer 2 - the term currently traced across both panels (normalised skill/tool term),
   // or null. Set by clicking any known term in the manuscript or an O-I-A card.
   const [focusTerm, setFocusTerm] = useState(null);

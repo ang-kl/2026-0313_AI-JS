@@ -191,10 +191,10 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
                 are engine-owned facts (card is duty), never inference - hence quiet, always
                 shown while the toggle is on, never gated on hover. */}
             {(conn.auto || []).map((l) => (
-              <g key={l.id} opacity={0.4}>
-                <path d={bez(l)} fill="none" stroke="#94a3b8" strokeWidth={1.4} />
-                <circle cx={l.x1} cy={l.y1} r={2.6} fill="#94a3b8" />
-                <circle cx={l.x2} cy={l.y2} r={2.6} fill="#94a3b8" />
+              <g key={l.id} opacity={0.55}>
+                <path d={bez(l)} fill="none" stroke="#8792a3" strokeWidth={1.6} />
+                <circle cx={l.x1} cy={l.y1} r={2.8} fill="#8792a3" />
+                <circle cx={l.x2} cy={l.y2} r={2.8} fill="#8792a3" />
               </g>
             ))}
             {/* Layer 3 - AI-suggested links: DASHED violet, so it never reads as a solid
