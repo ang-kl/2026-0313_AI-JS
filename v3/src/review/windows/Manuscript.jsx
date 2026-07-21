@@ -96,9 +96,9 @@ export function renderWinManuscript(ctx) {
                     // P1: in link mode each responsibility gets a pick handle; clicking it
                     // arms/locks a user link to an O-I-A card (blue connector). Not shown in
                     // clean view (that mode is the plain manuscript).
-                    const dOn = linkDraft && linkDraft.kind === "duty" && linkDraft.id === s.id;
+                    const dOn = linkDraft && linkDraft.t === "duty" && linkDraft.id === s.id;
                     const linkBtn = (linkMode && onLinkPick) ? (
-                      <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick("duty", s.id, s.text); }}
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick({ t: "duty", id: s.id, quote: s.text }); }}
                         aria-label={"Lock a link from this responsibility"} title="Lock a link from this responsibility to an O-I-A card"
                         style={{ marginLeft: 6, verticalAlign: "middle", minHeight: 26, minWidth: 30, border: "1px solid " + (dOn ? "#1d4ed8" : "#c7d6ff"), background: dOn ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem" }}>{String.fromCharCode(0x1f517)}</button>
                     ) : null;
@@ -109,12 +109,12 @@ export function renderWinManuscript(ctx) {
                     // (the handoff's explicit call). Text itself stays verbatim.
                     const dutyCmt = marginComments.find((mc) => mc.anchor === s.id);
                     const decided = dutyCmt ? commentStatus[dutyCmt.id] : undefined;
-                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span>{linkBtn}</li>;
+                    if (decided === "rejected") return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, textDecoration: "line-through", opacity: 0.55 }}>{lineNo}{s.text}<span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474", marginLeft: 6, textDecoration: "none" }}>rejected {String.fromCharCode(0x2717)}</span>{linkBtn}</li>;
                     // RS-EV: highlight only an EVIDENCE-linked phrase (skill match / gate);
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
                     const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{s.text}{linkBtn}</li>;
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{s.text}{linkBtn}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
@@ -125,7 +125,7 @@ export function renderWinManuscript(ctx) {
                         style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                     );
                     return (
-                      <li key={s.id} id={"li-" + s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
+                      <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
                         {lineNo}{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}{linkBtn}
                       </li>
                     );

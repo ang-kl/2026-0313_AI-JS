@@ -18,8 +18,8 @@ export function renderWinOIA(ctx) {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
                     <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
                     {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
-                    {linkMode && onLinkPick && (() => { const on = linkDraft && linkDraft.kind === "oia" && linkDraft.id === s.id; return (
-                      <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick("oia", s.id, s.text); }}
+                    {linkMode && onLinkPick && (() => { const on = linkDraft && linkDraft.t === "oia" && linkDraft.id === s.id; return (
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick({ t: "oia", id: s.id, quote: s.text }); }}
                         aria-label={"Lock a link to this O-I-A card"} title="Lock a link from a responsibility to this card"
                         style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 34, border: "1px solid " + (on ? "#1d4ed8" : "#c7d6ff"), background: on ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 7, cursor: "pointer", fontSize: "0.8125rem" }}>{String.fromCharCode(0x1f517)}</button>
                     ); })()}
@@ -27,7 +27,7 @@ export function renderWinOIA(ctx) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
                     <div style={{ padding: "12px 13px", borderRight: "1px solid #f0eee7" }}>
                       <div style={oiaKick}>OBSERVATION</div>
-                      <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
+                      <p data-anchor-block={"oiaobs-" + s.id} style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#3a4456", lineHeight: 1.45, margin: "0 0 8px" }}>{String.fromCharCode(0x201c)}{s.text}{String.fromCharCode(0x201d)}</p>
                       {/* s.text is an AI-extracted duty (jobAnatomy / responsibilitiesData
                           from the LLM's normalise-and-dedupe pass, App.jsx SYSTEM_RESP), not
                           verbatim posting text - so the chip must not say "from posting".
