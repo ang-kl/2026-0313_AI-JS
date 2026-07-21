@@ -686,6 +686,47 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       saveState("review", all);
     } catch (_) {}
   }, [commentStatus, postingKey]);
+
+  // P1 LOCKED LINKS: user-authored, persistent N:N links between a duty line and an
+  // O-I-A card (Word/PPT-style annotations - NOT engine output, so they author no band
+  // or verdict and never touch the deterministic contract). Persisted per posting on the
+  // same rail as review decisions. linkMode arms picking; linkDraft holds the pending
+  // first pick; onLinkPick locks a duty->card pair; a distinct blue line renders it.
+  const [links, setLinks] = useState([]); // [{ id, from:{id,quote}, to:{id,quote}, locked }]
+  const [linkMode, setLinkMode] = useState(false);
+  const [linkDraft, setLinkDraft] = useState(null); // { kind:'duty'|'oia', id, quote }
+  const linkSeq = useRef(0);
+  useEffect(() => {
+    setLinks([]); setLinkDraft(null);
+    if (!postingKey) return;
+    loadState("links", (all) => { if (all && Array.isArray(all[postingKey])) setLinks(all[postingKey]); });
+  }, [postingKey]);
+  useEffect(() => {
+    if (!postingKey) return;
+    try {
+      const raw = localStorage.getItem("v3.state.links");
+      const all = raw ? JSON.parse(raw) : {};
+      if (links.length) all[postingKey] = links; else delete all[postingKey];
+      const keys = Object.keys(all);
+      if (keys.length > 40) delete all[keys[0]]; // cap the ledger; oldest key drops
+      saveState("links", all);
+    } catch (_) {}
+  }, [links, postingKey]);
+  const onLinkPick = (kind, id, quote) => {
+    if (!linkDraft || linkDraft.kind === kind) { setLinkDraft({ kind, id, quote }); return; } // arm / re-arm
+    const duty = linkDraft.kind === "duty" ? linkDraft : { kind, id, quote };
+    const oia = linkDraft.kind === "oia" ? linkDraft : { kind, id, quote };
+    setLinks((ls) => (ls.some((l) => l.from.id === duty.id && l.to.id === oia.id) ? ls
+      : ls.concat({ id: "lnk-" + (++linkSeq.current) + "-" + duty.id + "-" + oia.id, from: { id: duty.id, quote: duty.quote || "" }, to: { id: oia.id, quote: oia.quote || "" }, locked: true })));
+    setLinkDraft(null); // pair locked
+  };
+  const removeLink = (lid) => setLinks((ls) => ls.filter((l) => l.id !== lid));
+  useEffect(() => {
+    if (!linkMode) return;
+    const onKey = (e) => { if (e.key === "Escape") setLinkDraft(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [linkMode]);
   // Drives whether the drawer/comment-margin panes portal to document.body (mobile
   // overlay) or stay as normal flex siblings (desktop, pushes the manuscript aside).
   // Needed because <main className="main-content"> (App.jsx) sets position:relative
@@ -1024,12 +1065,16 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
   WINDOWS.forEach((w) => { winEls[w.id] = w.render(winCtx); });
   const renderWindow = (id) => (winEls[id] !== undefined ? winEls[id] : winEls.inspector);
+  // P1: resolve the persisted links to DOM selectors for the connector overlay. Duty
+  // line -> "#li-<id>" (Manuscript), O-I-A card -> [data-oia-anchor]. Drawn blue, always
+  // (not gated on the active span), so a locked link stays visible without hover.
+  const userLinks = links.map((l) => ({ id: l.id, fromSel: "#li-" + l.from.id, toSel: "[data-oia-anchor=\"" + l.to.id + "\"]" }));
   return (
     <>
     {/* Mobile responsive fix: the desktop 3-pane layout (rail + manuscript + comment
@@ -1214,6 +1259,12 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
         ))}
         {tab === "duties" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>O-I-A cards {String.fromCharCode(0x00b7)} AI trace {String.fromCharCode(0x00b7)} trajectory - as windows in the panels</span>}
+        {tab === "duties" && (
+          <button type="button" aria-pressed={linkMode} onClick={() => { setLinkMode((v) => !v); setLinkDraft(null); }} title="Draw your own locked link from a responsibility to an O-I-A card"
+            style={{ ...pillStyle(linkMode), display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+            <span aria-hidden="true">{String.fromCharCode(0x1f517)}</span> Link mode{links.length ? " · " + links.length : ""}
+          </button>
+        )}
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
         {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
         {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
@@ -1225,10 +1276,30 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </span>
       </div>
 
+      {/* P1 locked-links manager: lists every user-drawn duty->card link with a delete,
+          and narrates the pick step while link mode is armed. Duties tab only (where both
+          endpoints live). Kept visually distinct (blue) from the engine's amber connector. */}
+      {tab === "duties" && (linkMode || links.length > 0) && (
+        <div className="wis-scroll" style={{ flex: "none", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, padding: "7px 14px", background: "#eef2ff", borderBottom: "1px solid #d7e0fb", overflowX: "auto" }}>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#1e3fae", flex: "none" }}>LOCKED LINKS {String.fromCharCode(0x00b7)} {links.length}</span>
+          {linkMode && (
+            <span style={{ fontSize: "0.75rem", color: "#1e3fae", flex: "none" }}>
+              {linkDraft ? "Now pick the " + (linkDraft.kind === "duty" ? "O-I-A card" : "responsibility") + " to lock this link (Esc cancels)" : "Pick a responsibility, then an O-I-A card, to lock a link."}
+            </span>
+          )}
+          {links.map((l) => (
+            <span key={l.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, maxWidth: 340, background: "#fff", border: "1px solid #c7d6ff", borderRadius: 14, padding: "2px 3px 2px 10px", fontSize: "0.75rem", color: "#1e293b", flex: "none" }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(l.from.quote || l.from.id).slice(0, 40)} {String.fromCharCode(0x2192)} {(l.to.quote || l.to.id).slice(0, 26)}</span>
+              <button type="button" onClick={() => removeLink(l.id)} aria-label={"Remove locked link"} style={{ flex: "none", minWidth: 26, minHeight: 26, border: "none", background: "transparent", color: "#64748b", cursor: "pointer", borderRadius: 13, fontSize: "0.9375rem", lineHeight: 1 }}>{String.fromCharCode(0x00d7)}</button>
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} />
 
 
       {/* Footer - +10% type (0.6875 -> 0.75625rem) + roomier padding, and the version
