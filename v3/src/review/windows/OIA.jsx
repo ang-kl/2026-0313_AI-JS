@@ -5,7 +5,7 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinOIA(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, linkMode, linkDraft, onLinkPick } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, linkMode, linkDraft, onLinkPick, onLinkDragStart } = ctx;
   return (
 
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
@@ -20,8 +20,9 @@ export function renderWinOIA(ctx) {
                     {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
                     {linkMode && onLinkPick && (() => { const on = linkDraft && linkDraft.t === "oia" && linkDraft.id === s.id; return (
                       <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick({ t: "oia", id: s.id, quote: s.text }); }}
-                        aria-label={"Lock a link to this O-I-A card"} title="Lock a link from a responsibility to this card"
-                        style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 34, border: "1px solid " + (on ? "#1d4ed8" : "#c7d6ff"), background: on ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 7, cursor: "pointer", fontSize: "0.8125rem" }}>{String.fromCharCode(0x1f517)}</button>
+                        onPointerDown={onLinkDragStart ? (e) => { e.stopPropagation(); onLinkDragStart({ t: "oia", id: s.id, quote: s.text }, e); } : undefined}
+                        aria-label={"Lock a link to this O-I-A card"} title="Drag to a responsibility to draw a locked link - or click to pick, then click a responsibility"
+                        style={{ marginLeft: "auto", flex: "none", minHeight: 30, minWidth: 34, border: "1px solid " + (on ? "#1d4ed8" : "#c7d6ff"), background: on ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 7, cursor: "grab", fontSize: "0.8125rem", touchAction: "none" }}>{String.fromCharCode(0x1f517)}</button>
                     ); })()}
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>

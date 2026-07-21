@@ -5,7 +5,7 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinManuscript(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick, onLinkDragStart } = ctx;
   const dutySpans = dissection.spans.filter((x) => x.sec !== "req");
   const jumpToLine = (sp) => { setActiveSpan(sp.id); const el = document.getElementById("li-" + sp.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
   return (
@@ -99,8 +99,9 @@ export function renderWinManuscript(ctx) {
                     const dOn = linkDraft && linkDraft.t === "duty" && linkDraft.id === s.id;
                     const linkBtn = (linkMode && onLinkPick) ? (
                       <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick({ t: "duty", id: s.id, quote: s.text }); }}
-                        aria-label={"Lock a link from this responsibility"} title="Lock a link from this responsibility to an O-I-A card"
-                        style={{ marginLeft: 6, verticalAlign: "middle", minHeight: 26, minWidth: 30, border: "1px solid " + (dOn ? "#1d4ed8" : "#c7d6ff"), background: dOn ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 6, cursor: "pointer", fontSize: "0.75rem" }}>{String.fromCharCode(0x1f517)}</button>
+                        onPointerDown={onLinkDragStart ? (e) => { e.stopPropagation(); onLinkDragStart({ t: "duty", id: s.id, quote: s.text }, e); } : undefined}
+                        aria-label={"Lock a link from this responsibility"} title="Drag to an O-I-A card to draw a locked link - or click to pick, then click a card"
+                        style={{ marginLeft: 6, verticalAlign: "middle", minHeight: 26, minWidth: 30, border: "1px solid " + (dOn ? "#1d4ed8" : "#c7d6ff"), background: dOn ? "#dbe6ff" : "#eef2ff", color: "#1d4ed8", borderRadius: 6, cursor: "grab", fontSize: "0.75rem", touchAction: "none" }}>{String.fromCharCode(0x1f517)}</button>
                     ) : null;
                     if (showClean) return <li key={s.id} style={{ ...manuP, marginBottom: 7 }}>{lineNo}{s.text}</li>;
                     // Resolution styling (goal §10 / handoff): a line whose reviewer
