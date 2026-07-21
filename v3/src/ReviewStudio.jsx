@@ -1323,10 +1323,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     `}</style>
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
       {/* Sub-header (fixed, does not scroll) */}
-      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 12, padding: "7px 14px", background: "#14204f", borderBottom: "1px solid #0d1636" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", background: "#14204f", borderBottom: "1px solid #0d1636" }}>
         <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#dbe2ff", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 3 }}>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".14em", color: "rgba(255,255,255,0.72)" }}>REVIEWING</span>
             <Chip kind="from MCF">{String.fromCharCode(0x25cf)} {source || "from MCF"}</Chip>
             {/* Decision counts (goal §10 / handoff sub-header): live accepted/pending
@@ -1338,7 +1338,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               return <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#c9d2ee", whiteSpace: "nowrap" }}>{marginComments.length} comment{marginComments.length === 1 ? "" : "s"} {RS_DOT} {acc} accepted {RS_DOT} {rej} rejected {RS_DOT} {pen} pending</span>;
             })()}
           </div>
-          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1rem", color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
+          <div style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.1875rem", lineHeight: 1.2, color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "this role"}</div>
           {/* Step 1's picker discloses when a typed prefix/alt title ("Deputy CEO") was
               mapped to a canonical ESCO title for the skills fetch - that disclosure must
               not silently vanish by Step 3. */}
