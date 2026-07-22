@@ -45,6 +45,10 @@ export function SimilarRoles({ skills }) {
           status: "ok",
           roles,
           synthetic: d.synthetic !== false,   // fail SAFE: only an explicit false clears the DEMO badge
+          // The substrate emits `bridged` on EVERY response and it is all-or-nothing (the whole
+          // result set is either direct-ESCO or all MCF-bridged - server.cpp only sets it true
+          // when the entire ranking came from the fallback), so a single panel-level banner is
+          // correct and `=== true` is safe (the flag is never absent when genuinely bridged).
           bridged: d.bridged === true,
           unmatched: Array.isArray(d.unmatched) ? d.unmatched : [],
         });
@@ -91,7 +95,7 @@ export function SimilarRoles({ skills }) {
               </p>
             )}
             {!state.synthetic && state.bridged && (
-              <p role="note" style={{ margin: "0 0 12px", fontSize: "0.75rem", color: "#5b4bbd" }}>
+              <p role="note" style={{ margin: "0 0 12px", fontSize: "0.75rem", color: "#4a5464", fontWeight: 600 }}>
                 Matched via related postings (skill co-occurrence), not direct occupation data - a looser basis.
               </p>
             )}
@@ -115,6 +119,14 @@ export function SimilarRoles({ skills }) {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/* Parity with the skills panel: disclose which of the role's skills the substrate
+                did not recognise (its vocabulary is limited), an honest coverage signal. */}
+            {hasRoles && state.unmatched.length > 0 && (
+              <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#8a8578", lineHeight: 1.5 }}>
+                Not matched to the substrate vocabulary: {state.unmatched.join(", ")}.
+              </p>
             )}
           </div>
 
