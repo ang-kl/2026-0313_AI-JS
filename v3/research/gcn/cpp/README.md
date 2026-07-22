@@ -11,17 +11,36 @@ that actually benefit from it.
 | --- | --- | --- | --- |
 | `build_substrate_graph.py` | `build_substrate.cpp` + `substrate.hpp` | ✅ | Deterministic graph assembly — scales with postings. |
 | `linkpred.py` | `linkpred.cpp` + `linkpred.hpp` | ✅ | The ESCO-vs-MCF ablation that **is** the thesis; the clearest scale win. |
+| `gcn_numpy.py` | `gcn.cpp` + `gcn.hpp` | ✅ | 2-layer Kipf & Welling GCN; dense matmul, the biggest raw win. |
 | `harvest_esco.py`, `harvest_mcf.py` | — | ❌ (stays Python) | Pure network + JSON I/O. Network-bound, not compute-bound — C++ buys nothing. |
-| `gcn_numpy.py`, `gcn_torch.py` | — | *follow-on* | Dense matmul GCN; biggest raw win, but depends on `build_graph.py` features. Next. |
+| `gcn_torch.py` | — | ❌ (reference) | The torch reference; the numpy/C++ port is the runnable one. |
 
-The pipeline is unchanged: **harvest (Python) → build (C++ or Python) → linkpred (C++ or
-Python)**. The C++ build reads the same `../data/*.jsonl` the Python harvest writes.
+The pipeline is unchanged: **harvest (Python) → build (C++ or Python) → linkpred / gcn (C++
+or Python)**. The C++ build reads the same `../data/*.jsonl` the Python harvest writes.
+
+### GCN encoder (`gcn.cpp` + `gcn.hpp`)
+
+A dependency-free 2-layer GCN — a tiny dense-matrix type, Adam with weight decay, dropout,
+and early stopping, all in the standard library. `H^(l+1) = σ(Â H^(l) W^(l))` with
+`Â = D^-1/2 (A+I) D^-1/2`. `--mlp` sets `Â = I` (features-only baseline); the gap is the
+value the graph adds.
+
+```sh
+make gcn
+./gcn --self-test    # synthetic homophilous graph; asserts GCN beats the features-only MLP
+```
+
+The self-test builds a task where per-node features are a weak class signal buried in heavy
+noise, but same-class nodes are densely wired — so neighbour-averaging recovers the class
+and the GCN (~100%) sharply beats the MLP (~47%, random 25%). Real-data training needs a
+`graph.bin` exporter from `build_graph.py` (a follow-on, as `build_substrate` does for the
+substrate); the training code itself is complete and matches the NumPy reference in shape.
 
 ## Build & run
 
 ```sh
-make            # builds build_substrate and linkpred (g++/clang++, C++17, stdlib only)
-make test       # runs both self-tests
+make            # builds build_substrate, linkpred, gcn, server (g++/clang++, C++17, stdlib only)
+make test       # runs all three self-tests (build_substrate, linkpred, gcn)
 
 ./build_substrate               # ../data/*.jsonl -> substrate.bin + substrate_meta.json
 ./build_substrate --data DIR    # override data directory

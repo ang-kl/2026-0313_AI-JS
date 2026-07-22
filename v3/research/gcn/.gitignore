@@ -13,6 +13,7 @@ substrate_meta.json
 # C++ port build artifacts (source is tracked; binaries and the local substrate are not)
 cpp/build_substrate
 cpp/linkpred
+cpp/gcn
 cpp/server
 cpp/substrate.bin
 cpp/substrate_meta.json
