@@ -105,7 +105,7 @@ export function SkillSuggest({ skills }) {
             {state.synthetic && (
               <p role="note" style={{ margin: "0 0 12px", padding: "7px 11px", border: "1px dashed #9a6113",
                    borderRadius: 8, background: "#fff", fontSize: "0.75rem", color: "#7a4d0f", fontWeight: 600 }}>
-                {String.fromCharCode(0x26A0)} DEMO {String.fromCharCode(0x00b7)} sample data {String.fromCharCode(0x2014)} these are illustrative, not real suggestions yet (the ESCO + MyCareersFuture harvest is not wired in).
+                {String.fromCharCode(0x26A0)} DEMO {String.fromCharCode(0x00b7)} sample data - these are illustrative, not real suggestions yet (the ESCO + MyCareersFuture harvest is not wired in).
               </p>
             )}
 
@@ -128,16 +128,20 @@ export function SkillSuggest({ skills }) {
                 recognise (its vocabulary is limited, especially on the synthetic sample). */}
             {hasSuggestions && state.unmatched.length > 0 && (
               <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#8a8578", lineHeight: 1.5 }}>
-                Not yet in the substrate vocabulary: {state.unmatched.join(", ")} {String.fromCharCode(0x2014)} coverage grows as the corpus does.
+                Not yet in the substrate vocabulary: {state.unmatched.join(", ")} - coverage grows as the corpus does.
               </p>
             )}
           </div>
 
-          {/* Source / method / AI-assisted footer (spec Section 7 - every artifact carries it). */}
+          {/* Source / Confidence / Time-window + the literal "AI-assisted; human decides"
+              (spec Section 7). Confidence is CONDITIONAL: demo data is not substrate-computed,
+              so it must not claim the engine authored it. */}
           <p style={{ margin: "12px 0 0", fontSize: "0.6875rem", color: "#8a8578", lineHeight: 1.5 }}>
-            <span aria-hidden="true">{"◆"}</span> ESCO occupation{String.fromCharCode(0x2013)}skill relations {String.fromCharCode(0x00b7)}{" "}
+            <span aria-hidden="true">{"◆"}</span> ESCO occupation-skill relations {String.fromCharCode(0x00b7)}{" "}
             <span aria-hidden="true">{"●"}</span> MyCareersFuture posting co-occurrence {String.fromCharCode(0x00b7)}{" "}
-            engine-authored (deterministic, no LLM) {String.fromCharCode(0x00b7)} AI-assisted; you decide what fits.
+            AI-assisted; human decides. Source: substrate service (ESCO + MyCareersFuture).{" "}
+            Confidence: {state.synthetic ? "demo / sample data, not substrate-computed" : "engine-computed (deterministic ESCO + MCF affinity, no LLM)"}.{" "}
+            Time-window: this session.
           </p>
         </div>
       )}
