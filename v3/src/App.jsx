@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.320";
+const APP_VERSION = "3.0.321";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -17023,6 +17023,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
          align. The earlier mono (Spline Sans Mono) / serif (Source Serif 4, Newsreader)
          re-assertions are removed - Inter is the whole voice now. */
       * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }
+      /* Headings -15% (Human Lead, 22-07 '26). zoom scales each heading to 0.85 of its
+         OWN rendered size, so the h1>h2>h3>h4 hierarchy is preserved and it wins over the
+         inline font-size values without editing each one. Same zoom idiom the app already
+         uses (html zoom at wide viewports). */
+      h1, h2, h3, h4 { zoom: 0.85; }
       html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: clip; font-size: 16px; }
       body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; font-variant-numeric: tabular-nums; }
       #root { width: 100%; max-width: 100vw; overflow-x: clip; }
