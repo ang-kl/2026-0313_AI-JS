@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.321";
+const APP_VERSION = "3.0.322";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -12847,7 +12847,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
   return (
     <div className="step2-bleed" style={{ position: "relative", padding: "0 24px 60px", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
+      <div className="step2-head" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
           <div style={{ ...KICK, fontSize: "0.5625rem", letterSpacing: ".16em", color: "#6b6357" }}>STEP 2 {DOT} SELECT EVIDENCE</div>
@@ -12893,7 +12893,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               </p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
               {rows.map((r) => {
                 const idle = r.status === "idle";
                 const loading = r.status === "loading";
@@ -17028,6 +17028,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
          inline font-size values without editing each one. Same zoom idiom the app already
          uses (html zoom at wide viewports). */
       h1, h2, h3, h4 { zoom: 0.85; }
+      /* Step 2 evidence header (mobile): on a narrow screen the "New search" back link
+         sat inline against the big serif title and squeezed it, and the count/OKF chips
+         fought for the same row. Stack it - back link on its own row, title full width,
+         chips left-aligned below (override the desktop margin-left:auto). */
+      @media (max-width: 640px) {
+        .step2-head { flex-direction: column; align-items: stretch; gap: 8px; }
+        .step2-head > button:first-child { align-self: flex-start; }
+        .step2-head > :last-child { margin-left: 0 !important; }
+      }
       html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: clip; font-size: 16px; }
       body { margin: 0; padding: 0; width: 100%; min-height: 100%; overflow-x: clip; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: "kern" 1, "liga" 1, "calt" 1; font-variant-numeric: tabular-nums; }
       #root { width: 100%; max-width: 100vw; overflow-x: clip; }
