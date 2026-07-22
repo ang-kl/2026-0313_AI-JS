@@ -7,8 +7,9 @@
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra
 HEADERS   = json.hpp substrate.hpp linkpred.hpp
+SRV_HEADERS = $(HEADERS) suggest.hpp
 
-all: build_substrate linkpred
+all: build_substrate linkpred server
 
 build_substrate: build_substrate.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $@ build_substrate.cpp
@@ -16,11 +17,14 @@ build_substrate: build_substrate.cpp $(HEADERS)
 linkpred: linkpred.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -o $@ linkpred.cpp
 
-test: all
+server: server.cpp $(SRV_HEADERS)
+	$(CXX) $(CXXFLAGS) -pthread -o $@ server.cpp
+
+test: build_substrate linkpred
 	./build_substrate --self-test
 	./linkpred --self-test
 
 clean:
-	rm -f build_substrate linkpred substrate.bin substrate_meta.json
+	rm -f build_substrate linkpred server substrate.bin substrate_meta.json
 
 .PHONY: all test clean
