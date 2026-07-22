@@ -101,7 +101,10 @@ function anthropicModelFor(requestedModel, ov = {}) {
 function openAiModelFor(requestedModel, ov = {}) {
   const requested = String(requestedModel || "");
   if (/^(gpt|o[0-9]|o-)/i.test(requested)) return requested;
-  const configured = ov.model || process.env.OPENAI_MODEL || "";
+  // OPENAI_MODEL is the canonical name; OPENAI_MODEL_KEY is an accepted alias for it
+  // (Human Lead set that name in Vercel, 22-07 '26). Both hold a model *id* (e.g.
+  // "gpt-4.1-mini"), NOT a credential - the API key stays in OPENAI_API_KEY.
+  const configured = ov.model || process.env.OPENAI_MODEL || process.env.OPENAI_MODEL_KEY || "";
   if (configured) return configured;
   if (/opus|sonnet|fable/i.test(requested)) {
     return ov.strong || process.env.OPENAI_MODEL_STRONG || "gpt-4.1";
