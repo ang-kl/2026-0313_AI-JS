@@ -30,10 +30,17 @@ export function SimilarRoles({ skills }) {
       .then((d) => {
         if (cancelled) return;
         if (!d || !d.ok) { setState({ status: "unavailable" }); return; }
-        // Enforce evidence: a role must have a title and at least one shared skill, else drop
-        // it rather than render an unsupported adjacency.
+        // Enforce evidence per row: a role must have a title AND at least one NAMED shared
+        // skill, else drop it - never show a bare "shares N skills" with no evidence. Also
+        // strip everything but the fields we render (notably the raw Jaccard score, which must
+        // never reach the DOM) and coerce the count to an integer once.
         const roles = (Array.isArray(d.roles) ? d.roles : [])
-          .filter((r) => r && r.title && (r.shared | 0) >= 1);
+          .filter((r) => r && r.title && Array.isArray(r.sharedSkills) && r.sharedSkills.some((s) => typeof s === "string" && s))
+          .map((r) => ({
+            title: String(r.title),
+            shared: r.shared | 0,
+            sharedSkills: r.sharedSkills.filter((s) => typeof s === "string" && s),
+          }));
         setState({
           status: "ok",
           roles,
@@ -100,11 +107,11 @@ export function SimilarRoles({ skills }) {
                       <span style={{ fontFamily: "'Inter',sans-serif", fontSize: "0.875rem", fontWeight: 600, color: "#16202e" }}>{r.title}</span>
                       <span style={{ fontSize: "0.6875rem", color: "#6b6357", flex: "none" }}>shares {r.shared} skill{r.shared === 1 ? "" : "s"}</span>
                     </div>
-                    {Array.isArray(r.sharedSkills) && r.sharedSkills.length > 0 && (
-                      <p style={{ margin: "4px 0 0", fontSize: "0.75rem", color: "#4a5464", lineHeight: 1.5 }}>
-                        {r.sharedSkills.join(", ")}
-                      </p>
-                    )}
+                    {/* Disclose truncation: when the count exceeds the names shown, say the list
+                        is a sample ("including:") rather than imply it is the full set. */}
+                    <p style={{ margin: "4px 0 0", fontSize: "0.75rem", color: "#4a5464", lineHeight: 1.5 }}>
+                      {r.shared > r.sharedSkills.length ? "including: " : ""}{r.sharedSkills.join(", ")}
+                    </p>
                   </li>
                 ))}
               </ul>
