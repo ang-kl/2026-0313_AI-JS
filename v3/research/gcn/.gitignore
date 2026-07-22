@@ -1,4 +1,5 @@
 graph.npz
+graph.bin
 meta.json
 __pycache__/
 *.pyc
