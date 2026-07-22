@@ -133,7 +133,28 @@ static std::string handleSimilar(const std::string& body) {
     return "{\"error\":\"invalid JSON body\"}";
   }
 
+  // Primary: rank by direct ESCO occupation->skill overlap (precise for well-covered roles).
   auto roles = similar::similarRoles(G, OCC, known, topN);
+  bool bridged = false;
+  // Fallback for thin cases (notably tech, which ESCO barely maps to occupations): expand the
+  // query through MCF posting co-occurrence - each skill's top real-posting neighbours - so the
+  // role can be matched via posting-adjacent skills ESCO *does* map. Only used when the direct
+  // overlap found little, so precise domains keep their exact result.
+  if (roles.size() < 3) {
+    std::set<int64_t> expanded(known.begin(), known.end());
+    for (int64_t k : known) {
+      auto it = AFF.mcf.find(k);
+      if (it == AFF.mcf.end()) continue;
+      std::vector<std::pair<double, int64_t>> nb;
+      for (const auto& kv : it->second) nb.push_back({kv.second, kv.first});
+      size_t take = std::min<size_t>(5, nb.size());
+      std::partial_sort(nb.begin(), nb.begin() + take, nb.end(), std::greater<std::pair<double,int64_t>>());
+      for (size_t i = 0; i < take; ++i) expanded.insert(nb[i].second);
+    }
+    std::vector<int64_t> ev(expanded.begin(), expanded.end());
+    auto viaMcf = similar::similarRoles(G, OCC, ev, topN);
+    if (viaMcf.size() > roles.size()) { roles = std::move(viaMcf); bridged = true; }
+  }
 
   std::ostringstream o;
   o << "{\"roles\":[";
@@ -149,7 +170,10 @@ static std::string handleSimilar(const std::string& body) {
   for (size_t i = 0; i < matched.size(); ++i) { if (i) o << ","; o << "\"" << jesc(matched[i]) << "\""; }
   o << "],\"unmatched\":[";
   for (size_t i = 0; i < unmatched.size(); ++i) { if (i) o << ","; o << "\"" << jesc(unmatched[i]) << "\""; }
-  o << "],\"synthetic\":" << (SYNTHETIC ? "true" : "false") << "}";
+  // `bridged` = these matches came via MCF posting co-occurrence, not direct ESCO overlap;
+  // the UI can label them "via related postings" so the weaker basis is disclosed.
+  o << "],\"bridged\":" << (bridged ? "true" : "false")
+    << ",\"synthetic\":" << (SYNTHETIC ? "true" : "false") << "}";
   return o.str();
 }
 
