@@ -4,6 +4,7 @@
 import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, AdvisoryCard, Chip, PreInterviewBrief, AITracePanel, manuH2, manuP, oiaKick, critH3 } from "../shared.jsx";
 import { RS_DOT } from "../rs-rules.js";
 import { SkillSuggest } from "../SkillSuggest.jsx";
+import { SimilarRoles } from "../SimilarRoles.jsx";
 
 export function renderWinOIA(ctx) {
   const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, linkMode, linkDraft, onLinkPick, onLinkDragStart, rsTermSpans, focusTerm, setFocusTerm } = ctx;
@@ -67,6 +68,10 @@ export function renderWinOIA(ctx) {
                   bottom of the dissection. Self-contained; renders nothing if the service is
                   unreachable or returns no suggestions (withhold-over-invent). */}
               <SkillSuggest skills={skills} />
+              {/* Brick 3: adjacent-role suggestions from the substrate service, just below
+                  the adjacent-skills panel. Self-contained; withholds when the service is
+                  unreachable or returns no confident matches. */}
+              <SimilarRoles skills={skills} />
             </div>
   );
 }
