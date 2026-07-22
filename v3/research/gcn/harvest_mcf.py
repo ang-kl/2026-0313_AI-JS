@@ -14,8 +14,10 @@ can beat a features-only baseline. Public data; still, harvest politely and stor
 (gitignored). Seed queries span the SSOC major groups so the sample isn't title-biased; widen
 SEED_QUERIES or raise PAGES for a bigger sample (Phase-1 decision D1: ~3k postings / 90 days).
 
-  python harvest_mcf.py                 # default sample
-  python harvest_mcf.py --pages 10      # deeper per-query
+  python harvest_mcf.py                 # default sample (35 seeds x up to 10 pages)
+  python harvest_mcf.py --pages 12      # deeper per-query, toward the ~3k Phase-1 target
+The run is RESUMABLE and ADDITIVE: it reads any existing output, skips uuids already seen, and
+appends only new postings - so re-running with more --pages or new seeds only grows the file.
 Output: data/mcf_postings.jsonl   (one posting per line; deduped by uuid; gitignored)
 """
 import json, os, sys, time, urllib.parse, urllib.request
@@ -26,16 +28,29 @@ OUT = os.path.join(HERE, "data", "mcf_postings.jsonl")
 # (an earlier guess of POST /v2/jobs/search 404'd - the /search path does not exist).
 MCF_BASE = "https://api.mycareersfuture.gov.sg/v2/jobs"
 LIMIT = 30            # MCF page size
-PAGES = 6            # pages per seed query (override with --pages)
+PAGES = 10           # pages per seed query (override with --pages; a query stops early when
+                     # MCF returns an empty page, so this is a ceiling, not a fixed cost)
 SLEEP_S = 0.5
 TIMEOUT_S = 25
 
 # Broad seeds spanning SSOC major groups so co-occurrence isn't one-domain biased.
+# Two tiers:
+#  (1) generic occupational stems - wide SSOC spread, keeps the sample from being title-biased;
+#  (2) TECH-TARGETED seeds - added to thicken co-occurrence around software/data skills, which
+#      the thin first harvest under-sampled (bare 'python'/'sql' had too few real neighbours to
+#      bridge from). These pull postings dense in the exact skills the substrate was weakest on.
 SEED_QUERIES = [
+    # (1) generic occupational stems across SSOC major groups
     "manager", "engineer", "analyst", "executive", "officer", "assistant",
     "technician", "specialist", "developer", "consultant", "coordinator",
     "nurse", "teacher", "accountant", "designer", "operator", "sales",
     "administrator", "supervisor", "clerk",
+    "finance", "marketing", "human resource", "logistics", "procurement",
+    "researcher", "pharmacist", "electrician", "mechanic", "architect",
+    # (2) tech-targeted seeds - close the residual software/data gap
+    "software engineer", "data analyst", "data scientist", "python", "sql",
+    "cloud", "cybersecurity", "devops", "machine learning", "full stack",
+    "backend", "frontend", "network engineer", "database", "data engineer",
 ]
 
 
