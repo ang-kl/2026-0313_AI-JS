@@ -4,8 +4,7 @@
 RUN THIS FROM A NETWORKED ENVIRONMENT. Authored in a sandbox whose egress policy BLOCKS
 api.mycareersfuture.gov.sg (see data/PHASE0-FINDINGS.md), so it is UNTESTED here. It mirrors
 the public, unauthenticated MCF v2 API the app's own (production-tested) v3/api/mcf.js uses:
-  search: POST https://api.mycareersfuture.gov.sg/v2/jobs/search?limit=<n>&page=<p>
-          body {"search": "<query>", "sessionId": "<any>"}
+  search: GET https://api.mycareersfuture.gov.sg/v2/jobs?search=<query>&limit=<n>&offset=<o>
           -> { results: [ { uuid, title, skills:[{skill}|str], categories:[...] }, ... ] }
 
 We only keep, per posting, the SKILL TAG SET (j.skills -> list of names) + a few fields for
@@ -19,11 +18,13 @@ SEED_QUERIES or raise PAGES for a bigger sample (Phase-1 decision D1: ~3k postin
   python harvest_mcf.py --pages 10      # deeper per-query
 Output: data/mcf_postings.jsonl   (one posting per line; deduped by uuid; gitignored)
 """
-import json, os, sys, time, urllib.request
+import json, os, sys, time, urllib.parse, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "data", "mcf_postings.jsonl")
-MCF_SEARCH = "https://api.mycareersfuture.gov.sg/v2/jobs/search"
+# Proven endpoint from the production v3/api/mcf.js: GET /v2/jobs?search=&limit=&offset=
+# (an earlier guess of POST /v2/jobs/search 404'd - the /search path does not exist).
+MCF_BASE = "https://api.mycareersfuture.gov.sg/v2/jobs"
 LIMIT = 30            # MCF page size
 PAGES = 6            # pages per seed query (override with --pages)
 SLEEP_S = 0.5
@@ -38,10 +39,8 @@ SEED_QUERIES = [
 ]
 
 
-def post_json(url, body):
-    data = json.dumps(body).encode()
-    req = urllib.request.Request(url, data=data,
-                                 headers={"content-type": "application/json", "accept": "application/json"})
+def get_json(url):
+    req = urllib.request.Request(url, headers={"accept": "application/json"})
     with urllib.request.urlopen(req, timeout=TIMEOUT_S) as r:
         return json.load(r)
 
@@ -79,9 +78,9 @@ def main():
     with open(OUT, "a") as fout:
         for q in SEED_QUERIES:
             for page in range(pages):
-                url = f"{MCF_SEARCH}?limit={LIMIT}&page={page}"
+                url = f"{MCF_BASE}?search={urllib.parse.quote(q)}&limit={LIMIT}&offset={page * LIMIT}"
                 try:
-                    data = post_json(url, {"search": q, "sessionId": "gcn-harvest"})
+                    data = get_json(url)
                 except Exception as e:
                     print(f"  {q} p{page} ERROR {type(e).__name__}: {e}", file=sys.stderr)
                     time.sleep(SLEEP_S); continue
