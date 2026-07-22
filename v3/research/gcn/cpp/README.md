@@ -32,9 +32,25 @@ make gcn
 
 The self-test builds a task where per-node features are a weak class signal buried in heavy
 noise, but same-class nodes are densely wired — so neighbour-averaging recovers the class
-and the GCN (~100%) sharply beats the MLP (~47%, random 25%). Real-data training needs a
-`graph.bin` exporter from `build_graph.py` (a follow-on, as `build_substrate` does for the
-substrate); the training code itself is complete and matches the NumPy reference in shape.
+and the GCN (~100%) sharply beats the MLP (~47%, random 25%).
+
+**Real-data run.** `../export_graph_bin.py` writes the real SSOC graph (from `build_graph.py`)
+to `graph.bin`, which the C++ GCN loads directly:
+
+```sh
+python ../build_graph.py          # -> graph.npz  (1006 SSOC occupations, TF-IDF features)
+python ../export_graph_bin.py     # -> graph.bin
+./gcn --graph ../graph.bin --runs 3
+```
+
+On the real graph (1006 nodes, 1200 features, 10 major-group classes) the C++ GCN reproduces
+the NumPy reference within RNG noise — **GCN ≈ MLP at ~75%** (C++: GCN 75.2±0.6 vs MLP
+74.0±0.8; NumPy: GCN 74.5±2.0 vs MLP 76.4±1.4). The sign of the GCN-minus-MLP gap flips
+inside the noise band, so the honest read is **no reliable lift**: for major-group
+classification the TF-IDF features already separate the classes, and the content-similarity
+graph adds nothing dependable. A null, reported straight — the same discipline as `linkpred`.
+(The tool prints "graph adds signal" only when the gap clears +1%; treat a sub-2% gap over 3
+runs as noise, not a win.)
 
 ## Build & run
 
