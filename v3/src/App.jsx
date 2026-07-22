@@ -1460,7 +1460,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.322";
+const APP_VERSION = "3.0.323";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
@@ -10056,7 +10056,7 @@ function SiteFooter() {
         <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, lineHeight:1.6 }}>
           <a href="https://www.takearoundabout.com" target="_blank" rel="noreferrer" aria-label="takearoundabout.com (opens in a new tab)" style={{ color:C.textSub, fontWeight:600, textDecoration:"none" }}>www.takearoundabout.com <span aria-hidden="true">&#8599;</span></a>
           {" · "}built by Adrian K. L. Ang{" · "}SG Career View v{APP_VERSION}
-          {" · "}&copy; {year} Adrian K. L. Ang. All rights reserved.
+          {" · "}&copy; {year}. All rights reserved.
         </p>
         <p style={{ margin:0, fontSize: "0.825rem", color:C.muted, fontStyle:"italic" }}>AI-assisted · human decides</p>
       </div>
