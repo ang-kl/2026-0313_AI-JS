@@ -46,12 +46,20 @@ export function SkillSuggest({ skills }) {
       .then((d) => {
         if (cancelled) return;
         if (!d || !d.ok) { setState({ status: "unavailable" }); return; }
+        // C1 - enforce provenance at the client: a suggestion with no recognised source
+        // (esco/mcf) is an unsourced, fabrication-shaped row; drop it rather than render a
+        // bare skill. The panel's whole claim is "sourced + disclosed", so we never trust
+        // the service to always be well-behaved.
+        const KNOWN = new Set(["esco", "mcf"]);
+        const sourced = (Array.isArray(d.suggestions) ? d.suggestions : [])
+          .filter((s) => Array.isArray(s.sources) && s.sources.some((t) => KNOWN.has(t)));
         setState({
           status: "ok",
-          suggestions: Array.isArray(d.suggestions) ? d.suggestions : [],
-          synthetic: !!d.synthetic,
-          matched: d.matched || [],
-          unmatched: d.unmatched || [],
+          suggestions: sourced,
+          // C2 - fail SAFE, not open: treat anything but an explicit `false` as synthetic
+          // (show the DEMO badge). A dropped flag must never present sample data as real.
+          synthetic: d.synthetic !== false,
+          unmatched: Array.isArray(d.unmatched) ? d.unmatched : [],
         });
       })
       .catch(() => { if (!cancelled) setState({ status: "unavailable" }); });
@@ -87,18 +95,20 @@ export function SkillSuggest({ skills }) {
 
       {open && (
         <div style={{ padding: "4px 16px 16px" }}>
-          {state.synthetic && (
-            <p role="note" style={{ margin: "0 0 12px", padding: "7px 11px", border: "1px dashed #9a6113",
-                 borderRadius: 8, background: "#fff", fontSize: "0.75rem", color: "#7a4d0f", fontWeight: 600 }}>
-              {String.fromCharCode(0x26A0)} DEMO {String.fromCharCode(0x00b7)} sample data {String.fromCharCode(0x2014)} these are illustrative, not real suggestions yet (the ESCO + MyCareersFuture harvest is not wired in).
-            </p>
-          )}
-
           <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: "#4a5464", lineHeight: 1.5 }}>
             Beyond the duties above, these skills tend to appear alongside this role. Each is tagged with why.
           </p>
 
+          {/* S1 - the DEMO caveat lives INSIDE the announced region, so a screen-reader user
+              never hears suggestions without the "sample data" disclosure. */}
           <div aria-live="polite">
+            {state.synthetic && (
+              <p role="note" style={{ margin: "0 0 12px", padding: "7px 11px", border: "1px dashed #9a6113",
+                   borderRadius: 8, background: "#fff", fontSize: "0.75rem", color: "#7a4d0f", fontWeight: 600 }}>
+                {String.fromCharCode(0x26A0)} DEMO {String.fromCharCode(0x00b7)} sample data {String.fromCharCode(0x2014)} these are illustrative, not real suggestions yet (the ESCO + MyCareersFuture harvest is not wired in).
+              </p>
+            )}
+
             {loading && <p style={{ fontSize: "0.8125rem", color: "#64748b" }}>Finding adjacent skills{String.fromCharCode(0x2026)}</p>}
 
             {hasSuggestions && (
@@ -112,6 +122,14 @@ export function SkillSuggest({ skills }) {
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/* S3 - honest coverage signal: which of the role's skills the substrate did not
+                recognise (its vocabulary is limited, especially on the synthetic sample). */}
+            {hasSuggestions && state.unmatched.length > 0 && (
+              <p style={{ margin: "10px 0 0", fontSize: "0.6875rem", color: "#8a8578", lineHeight: 1.5 }}>
+                Not yet in the substrate vocabulary: {state.unmatched.join(", ")} {String.fromCharCode(0x2014)} coverage grows as the corpus does.
+              </p>
             )}
           </div>
 

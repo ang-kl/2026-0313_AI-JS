@@ -39,9 +39,10 @@ export default async function handler(req, res) {
       console.error('[suggest] substrate error', r.status);
       return res.status(503).json({ ok: false, reason: `substrate service HTTP ${r.status}` });
     }
-    // Pass the service payload through verbatim, plus ok:true. `synthetic` is preserved so
-    // the UI can decide whether/how to surface it.
-    return res.status(200).json({ ok: true, ...data });
+    // Pass the service payload through verbatim, plus ok:true. `ok` is pinned AFTER the
+    // spread so the substrate's own payload can never override the proxy's contract flag.
+    // `synthetic` is preserved so the UI can decide whether/how to surface it.
+    return res.status(200).json({ ...data, ok: true });
   } catch (err) {
     const isTimeout = err.name === 'AbortError';
     console.error('[suggest] substrate unreachable:', err.message);
