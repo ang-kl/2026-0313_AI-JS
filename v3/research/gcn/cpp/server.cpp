@@ -11,6 +11,8 @@
 //                             -> {"suggestions":[{"skill","score","esco","mcf","sources":[..]}],
 //                                 "matched":[..],"unmatched":[..],"synthetic":bool}
 #include "suggest.hpp"
+#include "similar.hpp"
+#include "resolve.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -30,6 +32,8 @@ using substrate::Graph;
 // ---- loaded once at startup ----
 static Graph G;
 static suggest::Affinities AFF;
+static similar::OccIndex OCC;
+static resolve::Index RIX;
 static std::unordered_map<std::string, int64_t> NAME2ID;
 static std::string DATASET = "none";
 static bool SYNTHETIC = true;
@@ -105,6 +109,74 @@ static std::string handleSuggest(const std::string& body) {
   return o.str();
 }
 
+// Build the /similar-roles response: given the role's skills, rank adjacent occupations.
+static std::string handleSimilar(const std::string& body) {
+  size_t topN = 8;
+  std::vector<int64_t> known;
+  std::vector<std::string> matched, unmatched;
+  try {
+    gjson::Value v = gjson::parse(body);
+    const gjson::Value* topv = v.find("top");
+    if (topv && topv->type == gjson::Type::Number && topv->num > 0) topN = (size_t)topv->num;
+    const gjson::Array* skills = v.getArr("skills");
+    if (skills) {
+      for (const auto& s : *skills) {
+        if (s.type != gjson::Type::String) continue;
+        // Fuzzy resolve (exact, else token-subset) so posting/LLM skill names like "python"
+        // or "teaching" reach ESCO's formal labels ("python (computer programming)", ...).
+        auto ids = resolve::resolveSkill(s.str, NAME2ID, RIX);
+        if (!ids.empty()) { for (int64_t id : ids) known.push_back(id); matched.push_back(s.str); }
+        else unmatched.push_back(s.str);
+      }
+    }
+  } catch (...) {
+    return "{\"error\":\"invalid JSON body\"}";
+  }
+
+  // Primary: rank by direct ESCO occupation->skill overlap (precise for well-covered roles).
+  auto roles = similar::similarRoles(G, OCC, known, topN);
+  bool bridged = false;
+  // Fallback for thin cases (notably tech, which ESCO barely maps to occupations): expand the
+  // query through MCF posting co-occurrence - each skill's top real-posting neighbours - so the
+  // role can be matched via posting-adjacent skills ESCO *does* map. Only used when the direct
+  // overlap found little, so precise domains keep their exact result.
+  if (roles.size() < 3) {
+    std::set<int64_t> expanded(known.begin(), known.end());
+    for (int64_t k : known) {
+      auto it = AFF.mcf.find(k);
+      if (it == AFF.mcf.end()) continue;
+      std::vector<std::pair<double, int64_t>> nb;
+      for (const auto& kv : it->second) nb.push_back({kv.second, kv.first});
+      size_t take = std::min<size_t>(5, nb.size());
+      std::partial_sort(nb.begin(), nb.begin() + take, nb.end(), std::greater<std::pair<double,int64_t>>());
+      for (size_t i = 0; i < take; ++i) expanded.insert(nb[i].second);
+    }
+    std::vector<int64_t> ev(expanded.begin(), expanded.end());
+    auto viaMcf = similar::similarRoles(G, OCC, ev, topN);
+    if (viaMcf.size() > roles.size()) { roles = std::move(viaMcf); bridged = true; }
+  }
+
+  std::ostringstream o;
+  o << "{\"roles\":[";
+  for (size_t i = 0; i < roles.size(); ++i) {
+    const auto& r = roles[i];
+    if (i) o << ",";
+    o << "{\"title\":\"" << jesc(r.title) << "\",\"score\":" << r.score
+      << ",\"shared\":" << r.shared << ",\"sharedSkills\":[";
+    for (size_t k = 0; k < r.sharedSkills.size(); ++k) { if (k) o << ","; o << "\"" << jesc(r.sharedSkills[k]) << "\""; }
+    o << "]}";
+  }
+  o << "],\"matched\":[";
+  for (size_t i = 0; i < matched.size(); ++i) { if (i) o << ","; o << "\"" << jesc(matched[i]) << "\""; }
+  o << "],\"unmatched\":[";
+  for (size_t i = 0; i < unmatched.size(); ++i) { if (i) o << ","; o << "\"" << jesc(unmatched[i]) << "\""; }
+  // `bridged` = these matches came via MCF posting co-occurrence, not direct ESCO overlap;
+  // the UI can label them "via related postings" so the weaker basis is disclosed.
+  o << "],\"bridged\":" << (bridged ? "true" : "false")
+    << ",\"synthetic\":" << (SYNTHETIC ? "true" : "false") << "}";
+  return o.str();
+}
+
 static void writeResponse(int fd, int code, const char* status, const std::string& body,
                           const char* ctype = "application/json") {
   std::ostringstream o;
@@ -165,6 +237,7 @@ static void handleConn(int fd) {
     close(fd); return;
   }
   if (path == "/suggest" && method == "POST") { writeResponse(fd, 200, "OK", handleSuggest(body)); close(fd); return; }
+  if (path == "/similar-roles" && method == "POST") { writeResponse(fd, 200, "OK", handleSimilar(body)); close(fd); return; }
   writeResponse(fd, 404, "Not Found", "{\"error\":\"not found\"}");
   close(fd);
 }
@@ -181,6 +254,8 @@ int main(int argc, char** argv) {
   if (substrate::load(G, binPath)) {
     for (size_t i = 0; i < G.skill_labels.size(); ++i) NAME2ID[G.skill_labels[i]] = (int64_t)i;
     AFF = suggest::buildAffinities(G);
+    OCC = similar::buildOccIndex(G);
+    RIX = resolve::buildIndex(G);
     std::cerr << "[server] loaded " << binPath << ": " << G.occ_labels.size()
               << " occupations, " << G.skill_labels.size() << " skills (dataset=" << DATASET
               << ", synthetic=" << (SYNTHETIC ? "true" : "false") << ")\n";

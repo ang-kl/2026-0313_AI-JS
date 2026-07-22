@@ -7,7 +7,7 @@
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra
 HEADERS   = json.hpp substrate.hpp linkpred.hpp
-SRV_HEADERS = $(HEADERS) suggest.hpp
+SRV_HEADERS = $(HEADERS) suggest.hpp similar.hpp resolve.hpp
 
 all: build_substrate linkpred gcn server
 
