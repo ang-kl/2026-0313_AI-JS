@@ -1,0 +1,76 @@
+- generic [ref=f1e1]:
+  - link "Skip to main content" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f1e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f1e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f1e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f1e10]:
+        - button "Decrease text size" [ref=f1e11] [cursor=pointer]:
+          - generic [ref=f1e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f1e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f1e14] [cursor=pointer]:
+          - generic [ref=f1e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f1e16]:
+      - generic [ref=f1e107]:
+        - generic [ref=f1e108]:
+          - textbox [active] [ref=f1e109]: Data Analyst
+          - button "Search" [ref=f1e110] [cursor=pointer]
+        - generic [ref=f1e111]:
+          - paragraph [ref=f1e112]:
+            - text: First 5 closest matches for
+            - generic [ref=f1e113]: "\"Data Analyst\""
+            - text: "- loading more..."
+          - paragraph [ref=f1e114]: Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
+        - generic [ref=f1e115]:
+          - generic [ref=f1e116] [cursor=pointer]:
+            - paragraph [ref=f1e118]: Data Analyst
+            - paragraph [ref=f1e119]:
+              - generic [ref=f1e120]: "ISCO-08: 2521 ·"
+              - text: Collects, processes, and interprets data to help organisations make informed decisions.
+          - generic [ref=f1e121] [cursor=pointer]:
+            - paragraph [ref=f1e123]: Data Scientist
+            - paragraph [ref=f1e124]:
+              - generic [ref=f1e125]: "ISCO-08: 2521 ·"
+              - text: Uses statistical and computational methods to extract insights and build predictive models from complex data.
+          - generic [ref=f1e126] [cursor=pointer]:
+            - paragraph [ref=f1e128]: Business Analyst
+            - paragraph [ref=f1e129]:
+              - generic [ref=f1e130]: "ISCO-08: 2422 ·"
+              - text: Analyses business processes and data to recommend improvements and support strategic decisions.
+          - generic [ref=f1e131] [cursor=pointer]:
+            - paragraph [ref=f1e133]: Statistician
+            - paragraph [ref=f1e134]:
+              - generic [ref=f1e135]: "ISCO-08: 2120 ·"
+              - text: Applies statistical theory and methods to collect, analyse, and interpret numerical data.
+          - generic [ref=f1e136] [cursor=pointer]:
+            - paragraph [ref=f1e138]: ICT Systems Analyst
+            - paragraph [ref=f1e139]:
+              - generic [ref=f1e140]: "ISCO-08: 2511 ·"
+              - text: Studies and designs information systems to meet organisational data and business needs.
+        - generic [ref=f1e141]:
+          - generic [ref=f1e142]:
+            - paragraph [ref=f1e143]: Browse all roles
+            - button "Expand all" [ref=f1e144] [cursor=pointer]
+          - paragraph [ref=f1e147]: Loading more roles - please wait.
+          - button "Finance and Banking 1 ▼" [ref=f1e149] [cursor=pointer]:
+            - generic [ref=f1e150]:
+              - generic [ref=f1e151]: Finance and Banking
+              - generic [ref=f1e152]: "1"
+            - generic [ref=f1e153]: ▼
+          - button "Government and Public Administration 1 ▼" [ref=f1e155] [cursor=pointer]:
+            - generic [ref=f1e156]:
+              - generic [ref=f1e157]: Government and Public Administration
+              - generic [ref=f1e158]: "1"
+            - generic [ref=f1e159]: ▼
+          - button "Technology 3 ▼" [ref=f1e161] [cursor=pointer]:
+            - generic [ref=f1e162]:
+              - generic [ref=f1e163]: Technology
+              - generic [ref=f1e164]: "3"
+            - generic [ref=f1e165]: ▼

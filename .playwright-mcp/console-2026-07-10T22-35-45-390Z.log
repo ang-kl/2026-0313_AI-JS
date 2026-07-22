@@ -1,0 +1,7 @@
+[     964ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v98197694700.takearoundabout.com/_vercel/insights/script.js:0
+[     964ms] [ERROR] Refused to execute script from 'https://v98197694700.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v98197694700.takearoundabout.com/:0
+[     972ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v98197694700.takearoundabout.com/assets/index-AWojQIu6.js:873
+[  112780ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  113094ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  123494ms] [WARNING] [generatePrompts] batch failed for skills 13,14,15,16,17,18 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-AWojQIu6.js:384
+[  125964ms] [WARNING] [generatePrompts] batch failed for skills 31,32,33,34,35,36 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-AWojQIu6.js:384

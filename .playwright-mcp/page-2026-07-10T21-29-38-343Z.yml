@@ -1,0 +1,76 @@
+- generic [ref=f3e1]:
+  - link "Skip to main content" [ref=f3e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - generic [ref=f3e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f3e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f3e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f3e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f3e10]:
+        - button "Decrease text size" [ref=f3e11] [cursor=pointer]:
+          - generic [ref=f3e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f3e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f3e14] [cursor=pointer]:
+          - generic [ref=f3e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f3e16]:
+      - generic [ref=f3e107]:
+        - generic [ref=f3e108]:
+          - textbox [active] [ref=f3e109]: Accountant
+          - button "Search" [ref=f3e110] [cursor=pointer]
+        - generic [ref=f3e111]:
+          - paragraph [ref=f3e112]:
+            - text: First 5 closest matches for
+            - generic [ref=f3e113]: "\"Accountant\""
+            - text: "- loading more..."
+          - paragraph [ref=f3e114]: Not finding the right match? Try a more specific title - e.g. add your sector or specialisation.
+        - generic [ref=f3e115]:
+          - generic [ref=f3e116] [cursor=pointer]:
+            - paragraph [ref=f3e118]: Accountant
+            - paragraph [ref=f3e119]:
+              - generic [ref=f3e120]: "ISCO-08: 2411 ·"
+              - text: Prepares, analyses, and reports on financial accounts and records to ensure accuracy and compliance with regul...
+          - generic [ref=f3e121] [cursor=pointer]:
+            - paragraph [ref=f3e123]: Chartered Accountant
+            - paragraph [ref=f3e124]:
+              - generic [ref=f3e125]: "ISCO-08: 2411 ·"
+              - text: Provides accounting, auditing, and financial advisory services having attained professional chartered status.
+          - generic [ref=f3e126] [cursor=pointer]:
+            - paragraph [ref=f3e128]: Management Accountant
+            - paragraph [ref=f3e129]:
+              - generic [ref=f3e130]: "ISCO-08: 2411 ·"
+              - text: Analyses financial information to help managers make strategic business and investment decisions.
+          - generic [ref=f3e131] [cursor=pointer]:
+            - paragraph [ref=f3e133]: Tax Accountant
+            - paragraph [ref=f3e134]:
+              - generic [ref=f3e135]: "ISCO-08: 2411 ·"
+              - text: Prepares tax returns and advises individuals or organisations on tax planning and compliance matters.
+          - generic [ref=f3e136] [cursor=pointer]:
+            - paragraph [ref=f3e138]: Cost Accountant
+            - paragraph [ref=f3e139]:
+              - generic [ref=f3e140]: "ISCO-08: 2411 ·"
+              - text: Analyses production and operational costs to support budgeting and pricing decisions in a manufacturing busine...
+        - generic [ref=f3e141]:
+          - generic [ref=f3e142]:
+            - paragraph [ref=f3e143]: Browse all roles
+            - button "Expand all" [ref=f3e144] [cursor=pointer]
+          - paragraph [ref=f3e147]: Loading more roles - please wait.
+          - button "Finance and Banking 3 ▼" [ref=f3e149] [cursor=pointer]:
+            - generic [ref=f3e150]:
+              - generic [ref=f3e151]: Finance and Banking
+              - generic [ref=f3e152]: "3"
+            - generic [ref=f3e153]: ▼
+          - button "Legal and Compliance 1 ▼" [ref=f3e155] [cursor=pointer]:
+            - generic [ref=f3e156]:
+              - generic [ref=f3e157]: Legal and Compliance
+              - generic [ref=f3e158]: "1"
+            - generic [ref=f3e159]: ▼
+          - button "Manufacturing 1 ▼" [ref=f3e161] [cursor=pointer]:
+            - generic [ref=f3e162]:
+              - generic [ref=f3e163]: Manufacturing
+              - generic [ref=f3e164]: "1"
+            - generic [ref=f3e165]: ▼

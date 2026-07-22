@@ -1,0 +1,102 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - group "Text size, currently 100 percent" [ref=e10]:
+        - button "Decrease text size" [ref=e11] [cursor=pointer]:
+          - generic [ref=e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture and careers.gov.sg. In Browse and Search-by-employer modes, SSOC 2024 suggestions may appear under the search box to help refine your search words.
+        - generic [ref=e19]:
+          - heading "Understand a Singapore job before you apply" [level=2] [ref=e20]
+          - paragraph [ref=e21]: Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture and careers.gov.sg.
+        - generic [ref=e22]:
+          - button "Analyse role Select the closest matching role before analysis." [pressed] [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]: Analyse role
+            - generic [ref=e26]: Select the closest matching role before analysis.
+          - 'button "Browse SG jobs Sources: MyCareersFuture + careers.gov.sg Explore current Singapore openings - public service and private sector - and compare what employers are asking for." [ref=e28] [cursor=pointer]':
+            - generic [ref=e29]: Browse SG jobs
+            - generic [ref=e30]: "Sources: MyCareersFuture + careers.gov.sg"
+            - generic [ref=e31]: Explore current Singapore openings - public service and private sector - and compare what employers are asking for.
+          - 'button "Search by employer Sources: MyCareersFuture + careers.gov.sg Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg." [ref=e33] [cursor=pointer]':
+            - generic [ref=e34]: Search by employer
+            - generic [ref=e35]: "Sources: MyCareersFuture + careers.gov.sg"
+            - generic [ref=e36]: Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg.
+          - button "Career WikiGraph See a role as a living ecosystem - one centre, branch out." [ref=e38] [cursor=pointer]:
+            - generic [ref=e39]: Career WikiGraph
+            - generic [ref=e40]: See a role as a living ecosystem - one centre, branch out.
+        - generic [ref=e41]: Job title or role
+        - generic [ref=e42]:
+          - searchbox "Job title or role" [active] [ref=e43]
+          - button "Analyse role" [ref=e44] [cursor=pointer]:
+            - generic [ref=e46]: →
+        - paragraph [ref=e47]: Use 1 to 3 words for best results - e.g. HR Manager, Physician, Chief Executive Officer, Software Developer
+        - paragraph [ref=e48]: Results are indicative - a starting point, not a final assessment.
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - paragraph [ref=e51]: Start with a job title. Choose the closest role. Then analyse it.
+          - paragraph [ref=e52]: Grounded in live 🇸🇬 SG job postings (MyCareersFuture + careers.gov.sg) - real Singapore demand, not idealised profiles. See the role as a wired knowledge graph, and what AI can take on.
+        - generic [ref=e53]:
+          - paragraph [ref=e54]: Who is this most useful for?
+          - generic [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]: "01"
+              - generic [ref=e58]: 🏢
+              - generic [ref=e59]:
+                - generic [ref=e60]: Leaders Leaders
+                - text: Map AI exposure across roles. Compare up to 3 roles side by side.
+            - generic [ref=e61]:
+              - generic [ref=e62]: "02"
+              - generic [ref=e63]: 👤
+              - generic [ref=e64]:
+                - generic [ref=e65]: Employees Employees
+                - text: See which skills AI is reshaping in a role, with prompts for each skill and a view of career progression.
+            - button "🎓 Fresh Graduates Fresh Graduates Find out which skills in a field remain human, with a foundation plan." [ref=e66] [cursor=pointer]:
+              - generic [ref=e67]: "03"
+              - generic [ref=e68]: 🎓
+              - generic [ref=e69]:
+                - generic [ref=e70]: Fresh Graduates Fresh Graduates
+                - text: Find out which skills in a field remain human, with a foundation plan.
+              - generic [ref=e71]: ↓
+            - button "🔄 Industry Crossover Industry Crossover See which skills carry across to a new field, with a foundation plan." [ref=e72] [cursor=pointer]:
+              - generic [ref=e73]: "04"
+              - generic [ref=e74]: 🔄
+              - generic [ref=e75]:
+                - generic [ref=e76]: Industry Crossover Industry Crossover
+                - text: See which skills carry across to a new field, with a foundation plan.
+              - generic [ref=e77]: ↓
+      - generic [ref=e80]:
+        - generic [ref=e81]:
+          - paragraph [ref=e82]: Adds a foundation skills plan to the analysis
+          - generic [ref=e83]: optional
+        - generic [ref=e84]:
+          - button "🎓 Fresh Graduate Fresh Graduate Foundation skills plan for entering a new field" [ref=e85] [cursor=pointer]:
+            - generic [ref=e87]: 🎓
+            - generic [ref=e88]:
+              - paragraph [ref=e89]:
+                - generic [ref=e90]: Fresh Graduate Fresh Graduate
+              - paragraph [ref=e91]: Foundation skills plan for entering a new field
+          - button "🔄 Industry Crossover Industry Crossover See which skills travel across to a new field" [ref=e92] [cursor=pointer]:
+            - generic [ref=e94]: 🔄
+            - generic [ref=e95]:
+              - paragraph [ref=e96]:
+                - generic [ref=e97]: Industry Crossover Industry Crossover
+              - paragraph [ref=e98]: See which skills travel across to a new field
+      - generic [ref=e99]:
+        - button "▼ Note by builder" [ref=e101] [cursor=pointer]
+        - paragraph [ref=e102]: Sometimes the scenic route is the right one.
+        - generic [ref=e103]:
+          - generic [ref=e104]: 💡
+          - paragraph [ref=e105]: Best explored on a wider screen - results span multiple tabs and detailed breakdowns.

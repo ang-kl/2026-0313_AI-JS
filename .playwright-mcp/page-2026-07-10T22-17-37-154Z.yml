@@ -1,0 +1,43 @@
+- generic [active] [ref=f6e1]:
+  - link "Skip to main content" [ref=f6e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f6e4]:
+    - generic [ref=f6e5]:
+      - generic [ref=f6e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f6e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f6e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f6e122] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f6e10]:
+        - button "Decrease text size" [ref=f6e11] [cursor=pointer]:
+          - generic [ref=f6e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f6e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f6e14] [cursor=pointer]:
+          - generic [ref=f6e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f6e16]:
+      - status [ref=f6e123]:
+        - paragraph [ref=f6e137]: Searching for "Data Analyst"...
+      - contentinfo [ref=f6e104]:
+        - note [ref=f6e105]:
+          - generic [ref=f6e106]: ⓘ
+          - paragraph [ref=f6e107]: Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Results are a starting point for reflection, not professional career advice.
+        - generic [ref=f6e108]:
+          - paragraph [ref=f6e109]: "ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Skills taxonomy: ESCO v1.2 (CC BY 4.0). Exposure index: AIOE (Felten et al. 2021). AI is used for narration only."
+          - generic [ref=f6e110]:
+            - link "Share feedback" [ref=f6e111] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=f6e112] [cursor=pointer]
+            - button "Legal & privacy" [ref=f6e113] [cursor=pointer]
+            - button "Accessibility" [ref=f6e114] [cursor=pointer]
+            - link "Terms" [ref=f6e115] [cursor=pointer]:
+              - /url: /terms.html
+        - button "▼ Note by builder" [ref=f6e117] [cursor=pointer]
+        - generic [ref=f6e118]:
+          - paragraph [ref=f6e119]:
+            - link "www.takearoundabout.com" [ref=f6e120] [cursor=pointer]:
+              - /url: https://www.takearoundabout.com
+            - text: · built by Adrian K. L. Ang · SG Career View v3.0.297
+          - paragraph [ref=f6e121]: AI-assisted · human decides

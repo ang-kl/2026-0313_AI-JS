@@ -1,0 +1,122 @@
+- generic [ref=f8e1]:
+  - link "Skip to main content" [ref=f8e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f8e4]:
+    - generic [ref=f8e5]:
+      - generic [ref=f8e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f8e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f8e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - group "Text size, currently 100 percent" [ref=f8e10]:
+        - button "Decrease text size" [ref=f8e11] [cursor=pointer]:
+          - generic [ref=f8e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f8e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f8e14] [cursor=pointer]:
+          - generic [ref=f8e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f8e16]:
+      - generic [ref=f8e17]:
+        - generic [ref=f8e18]: Type a job title, select the closest matching role, then analyse the role. You can also browse live Singapore jobs from MyCareersFuture and careers.gov.sg. In Browse and Search-by-employer modes, SSOC 2024 suggestions may appear under the search box to help refine your search words.
+        - generic [ref=f8e19]:
+          - heading "Understand a Singapore job before you apply" [level=2] [ref=f8e20]
+          - paragraph [ref=f8e21]: Type a job title, select the closest match, then browse live 🇸🇬 SG jobs from MyCareersFuture and careers.gov.sg.
+        - generic [ref=f8e22]:
+          - button "Analyse role Select the closest matching role before analysis." [pressed] [ref=f8e24] [cursor=pointer]:
+            - generic [ref=f8e25]: Analyse role
+            - generic [ref=f8e26]: Select the closest matching role before analysis.
+          - 'button "Browse SG jobs Sources: MyCareersFuture + careers.gov.sg Explore current Singapore openings - public service and private sector - and compare what employers are asking for." [ref=f8e28] [cursor=pointer]':
+            - generic [ref=f8e29]: Browse SG jobs
+            - generic [ref=f8e30]: "Sources: MyCareersFuture + careers.gov.sg"
+            - generic [ref=f8e31]: Explore current Singapore openings - public service and private sector - and compare what employers are asking for.
+          - 'button "Search by employer Sources: MyCareersFuture + careers.gov.sg Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg." [ref=f8e33] [cursor=pointer]':
+            - generic [ref=f8e34]: Search by employer
+            - generic [ref=f8e35]: "Sources: MyCareersFuture + careers.gov.sg"
+            - generic [ref=f8e36]: Type an employer name - private companies on MCF, ministries and statutory boards also on careers.gov.sg.
+          - button "Career WikiGraph See a role as a living ecosystem - one centre, branch out." [ref=f8e38] [cursor=pointer]:
+            - generic [ref=f8e39]: Career WikiGraph
+            - generic [ref=f8e40]: See a role as a living ecosystem - one centre, branch out.
+        - generic [ref=f8e41]: Job title or role
+        - generic [ref=f8e42]:
+          - searchbox "Job title or role" [active] [ref=f8e43]
+          - button "Analyse role" [ref=f8e44] [cursor=pointer]:
+            - generic [ref=f8e46]: →
+        - paragraph [ref=f8e47]: Use 1 to 3 words for best results - e.g. HR Manager, Physician, Chief Executive Officer, Software Developer
+        - paragraph [ref=f8e48]: Results are indicative - a starting point, not a final assessment.
+      - generic [ref=f8e49]:
+        - generic [ref=f8e50]:
+          - paragraph [ref=f8e51]: Start with a job title. Choose the closest role. Then analyse it.
+          - paragraph [ref=f8e52]: Grounded in live 🇸🇬 SG job postings (MyCareersFuture + careers.gov.sg) - real Singapore demand, not idealised profiles. See the role as a wired knowledge graph, and what AI can take on.
+        - generic [ref=f8e53]:
+          - paragraph [ref=f8e54]: Who is this most useful for?
+          - generic [ref=f8e55]:
+            - generic [ref=f8e56]:
+              - generic [ref=f8e57]: "01"
+              - generic [ref=f8e58]: 🏢
+              - generic [ref=f8e59]:
+                - generic [ref=f8e60]: Leaders Leaders
+                - text: Map AI exposure across roles. Compare up to 3 roles side by side.
+            - generic [ref=f8e61]:
+              - generic [ref=f8e62]: "02"
+              - generic [ref=f8e63]: 👤
+              - generic [ref=f8e64]:
+                - generic [ref=f8e65]: Employees Employees
+                - text: See which skills AI is reshaping in a role, with prompts for each skill and a view of career progression.
+            - button "🎓 Fresh Graduates Fresh Graduates Find out which skills in a field remain human, with a foundation plan." [ref=f8e66] [cursor=pointer]:
+              - generic [ref=f8e67]: "03"
+              - generic [ref=f8e68]: 🎓
+              - generic [ref=f8e69]:
+                - generic [ref=f8e70]: Fresh Graduates Fresh Graduates
+                - text: Find out which skills in a field remain human, with a foundation plan.
+              - generic [ref=f8e71]: ↓
+            - button "🔄 Industry Crossover Industry Crossover See which skills carry across to a new field, with a foundation plan." [ref=f8e72] [cursor=pointer]:
+              - generic [ref=f8e73]: "04"
+              - generic [ref=f8e74]: 🔄
+              - generic [ref=f8e75]:
+                - generic [ref=f8e76]: Industry Crossover Industry Crossover
+                - text: See which skills carry across to a new field, with a foundation plan.
+              - generic [ref=f8e77]: ↓
+      - generic [ref=f8e80]:
+        - generic [ref=f8e81]:
+          - paragraph [ref=f8e82]: Adds a foundation skills plan to the analysis
+          - generic [ref=f8e83]: optional
+        - generic [ref=f8e84]:
+          - button "🎓 Fresh Graduate Fresh Graduate Foundation skills plan for entering a new field" [ref=f8e85] [cursor=pointer]:
+            - generic [ref=f8e87]: 🎓
+            - generic [ref=f8e88]:
+              - paragraph [ref=f8e89]:
+                - generic [ref=f8e90]: Fresh Graduate Fresh Graduate
+              - paragraph [ref=f8e91]: Foundation skills plan for entering a new field
+          - button "🔄 Industry Crossover Industry Crossover See which skills travel across to a new field" [ref=f8e92] [cursor=pointer]:
+            - generic [ref=f8e94]: 🔄
+            - generic [ref=f8e95]:
+              - paragraph [ref=f8e96]:
+                - generic [ref=f8e97]: Industry Crossover Industry Crossover
+              - paragraph [ref=f8e98]: See which skills travel across to a new field
+      - generic [ref=f8e99]:
+        - paragraph [ref=f8e100]: Sometimes the scenic route is the right one.
+        - generic [ref=f8e101]:
+          - generic [ref=f8e102]: 💡
+          - paragraph [ref=f8e103]: Best explored on a wider screen - results span multiple tabs and detailed breakdowns.
+      - contentinfo [ref=f8e104]:
+        - note [ref=f8e105]:
+          - generic [ref=f8e106]: ⓘ
+          - paragraph [ref=f8e107]: Indicative analysis - ESCO/ISCO mappings are derived from public taxonomy data plus model inference; treat scores as a guide, not a verdict. Results are a starting point for reflection, not professional career advice.
+        - generic [ref=f8e108]:
+          - paragraph [ref=f8e109]: "ESCO v1.2 (aligned to v1.2.1) European Commission DG EMPL CC BY 4.0. ISCO-08 © 2012 International Labour Organization (ILO). Skills taxonomy: ESCO v1.2 (CC BY 4.0). Exposure index: AIOE (Felten et al. 2021). AI is used for narration only."
+          - generic [ref=f8e110]:
+            - link "Share feedback" [ref=f8e111] [cursor=pointer]:
+              - /url: mailto:feedback@takearoundabout.com?subject=Feedback - AI Readiness across Skills and Competences
+            - button "Methodology" [ref=f8e112] [cursor=pointer]
+            - button "Legal & privacy" [ref=f8e113] [cursor=pointer]
+            - button "Accessibility" [ref=f8e114] [cursor=pointer]
+            - link "Terms" [ref=f8e115] [cursor=pointer]:
+              - /url: /terms.html
+        - button "▼ Note by builder" [ref=f8e117] [cursor=pointer]
+        - generic [ref=f8e118]:
+          - paragraph [ref=f8e119]:
+            - link "www.takearoundabout.com" [ref=f8e120] [cursor=pointer]:
+              - /url: https://www.takearoundabout.com
+            - text: · built by Adrian K. L. Ang · SG Career View v3.0.299
+          - paragraph [ref=f8e121]: AI-assisted · human decides

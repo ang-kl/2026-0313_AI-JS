@@ -1,0 +1,7 @@
+[     309ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.vhpnvRTDMD0.2018.O/am=GAIFAAAAACATYKA/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2Nef81atY8VLBmPLkByiykxINTVgQ/dti=1/m=_b,_tp:287
+[     309ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.vhpnvRTDMD0.2018.O/am=GAIFAAAAACATYKA/d=1/excm=_b,_tp,article/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2Nef81atY8VLBmPLkByiykxINTVgQ/dti=1/m=_b,_tp:287
+[    4222ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    4236ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    4242ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[    6583ms] [LOG] JQMIGRATE: Migrate is installed, version 3.0.0 @ https://ph.theurbandeveloper.com/static/posthog-recorder.js?v=1.395.0:0

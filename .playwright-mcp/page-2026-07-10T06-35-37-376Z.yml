@@ -1,0 +1,200 @@
+- generic [active] [ref=f5e1]:
+  - link "Skip to main content" [ref=f5e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f5e4]:
+    - generic [ref=f5e5]:
+      - generic [ref=f5e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f5e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f5e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f5e108] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f5e10]:
+        - button "Decrease text size" [ref=f5e11] [cursor=pointer]:
+          - generic [ref=f5e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f5e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f5e14] [cursor=pointer]:
+          - generic [ref=f5e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f5e16]:
+      - generic [ref=f5e109]:
+        - button "Back to new search" [ref=f5e110] [cursor=pointer]: ← New search
+        - generic [ref=f5e111]:
+          - generic [ref=f5e112]:
+            - generic [ref=f5e113]: 🇸🇬 MyCareersFuture
+            - generic [ref=f5e115]:
+              - paragraph [ref=f5e116]: No live MyCareersFuture postings found for that company.
+              - paragraph [ref=f5e117]: Company names and posting counts are verbatim from MyCareersFuture (polled 3 page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+          - generic [ref=f5e118]:
+            - generic [ref=f5e119]:
+              - generic [ref=f5e120]: 🏛 careers.gov.sg
+              - generic [ref=f5e121]: (125 postings)
+            - generic [ref=f5e122]:
+              - generic [ref=f5e123]:
+                - generic [ref=f5e124]:
+                  - link "Manager/Senior Manager, Foreign Manpower Management Policy, WPSD" [ref=f5e125] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/13524229/005056a3-53e2-1fd1-9bd8-61ecd6bbd3ff
+                  - generic [ref=f5e126]: Today
+                - paragraph [ref=f5e127]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e129]':
+                  - generic [ref=f5e130]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e131]:
+                  - generic [ref=f5e132]: Permanent/Contract
+                  - generic [ref=f5e133]: 2+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e134] [cursor=pointer]
+                - generic [ref=f5e135]:
+                  - button "📊 Analyse this posting" [ref=f5e136] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e137] [cursor=pointer]
+              - generic [ref=f5e138]:
+                - generic [ref=f5e139]:
+                  - link "Assistant Manager/Manager, Progressive Wage Team, ESE, LRWD" [ref=f5e140] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/12882714/005056a3-d347-1fe1-9ee6-df2035b762ad
+                  - generic [ref=f5e141]: Yesterday
+                - paragraph [ref=f5e142]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e144]':
+                  - generic [ref=f5e145]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e146]: Contract
+                - button "▼ Show responsibilities & skills" [ref=f5e148] [cursor=pointer]
+                - generic [ref=f5e149]:
+                  - button "📊 Analyse this posting" [ref=f5e150] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e151] [cursor=pointer]
+              - generic [ref=f5e152]:
+                - generic [ref=f5e153]:
+                  - link "Assistant Director, Corporate Admin & Service Standards" [ref=f5e154] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17807916/005056a3-d347-1fe1-9ed7-0182376b62ad
+                  - generic [ref=f5e155]: 2 days ago
+                - paragraph [ref=f5e156]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e158]':
+                  - generic [ref=f5e159]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e160]:
+                  - generic [ref=f5e161]: Permanent/Contract
+                  - generic [ref=f5e162]: 5+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e163] [cursor=pointer]
+                - generic [ref=f5e164]:
+                  - button "📊 Analyse this posting" [ref=f5e165] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e166] [cursor=pointer]
+              - generic [ref=f5e167]:
+                - generic [ref=f5e168]:
+                  - link "Manager/Senior Manager, Data, ACE Group" [ref=f5e169] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17800351/005056a3-d347-1fe1-9eb6-1eab103b62ad
+                  - generic [ref=f5e170]: 3 days ago
+                - paragraph [ref=f5e171]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e173]':
+                  - generic [ref=f5e174]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e175]: Permanent/Contract
+                - button "▼ Show responsibilities & skills" [ref=f5e177] [cursor=pointer]
+                - generic [ref=f5e178]:
+                  - button "📊 Analyse this posting" [ref=f5e179] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e180] [cursor=pointer]
+              - generic [ref=f5e181]:
+                - generic [ref=f5e182]:
+                  - link "Manager, AI and Data Office" [ref=f5e183] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17800346/005056a3-53e2-1fd1-9eb6-2a4a5f627401
+                  - generic [ref=f5e184]: 3 days ago
+                - paragraph [ref=f5e185]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e187]':
+                  - generic [ref=f5e188]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e189]:
+                  - generic [ref=f5e190]: Permanent/Contract
+                  - generic [ref=f5e191]: 2+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e192] [cursor=pointer]
+                - generic [ref=f5e193]:
+                  - button "📊 Analyse this posting" [ref=f5e194] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e195] [cursor=pointer]
+              - generic [ref=f5e196]:
+                - generic [ref=f5e197]:
+                  - link "Assistant Director, AI and Data Office" [ref=f5e198] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17800282/005056a3-53e2-1fd1-9eb5-fb56fce49401
+                  - generic [ref=f5e199]: 3 days ago
+                - paragraph [ref=f5e200]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e202]':
+                  - generic [ref=f5e203]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e204]:
+                  - generic [ref=f5e205]: Permanent/Contract
+                  - generic [ref=f5e206]: 5+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e207] [cursor=pointer]
+                - generic [ref=f5e208]:
+                  - button "📊 Analyse this posting" [ref=f5e209] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e210] [cursor=pointer]
+              - generic [ref=f5e211]:
+                - generic [ref=f5e212]:
+                  - link "Senior/Manager/Assistant Manager, Social Resilience, ACE Group" [ref=f5e213] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/14023435/d5871b69-6b41-1fd0-9c89-f94822ca73c2
+                  - generic [ref=f5e214]: 3 days ago
+                - paragraph [ref=f5e215]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e217]':
+                  - generic [ref=f5e218]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e219]: Permanent/Contract
+                - button "▼ Show responsibilities & skills" [ref=f5e221] [cursor=pointer]
+                - generic [ref=f5e222]:
+                  - button "📊 Analyse this posting" [ref=f5e223] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e224] [cursor=pointer]
+              - generic [ref=f5e225]:
+                - generic [ref=f5e226]:
+                  - link "Assistant Director, Media Communications, CED" [ref=f5e227] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17788167/005056a3-53e2-1fd1-9dd5-e96766923401
+                  - generic [ref=f5e228]: 1 week ago
+                - paragraph [ref=f5e229]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e231]':
+                  - generic [ref=f5e232]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e233]:
+                  - generic [ref=f5e234]: Permanent/Contract
+                  - generic [ref=f5e235]: 5+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e236] [cursor=pointer]
+                - generic [ref=f5e237]:
+                  - button "📊 Analyse this posting" [ref=f5e238] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e239] [cursor=pointer]
+              - generic [ref=f5e240]:
+                - generic [ref=f5e241]:
+                  - link "Assistant Manager / Manager, Transformation and Systems, FMMD" [ref=f5e242] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/17787822/005056a3-53e2-1fd1-9dd4-77a67c0a3401
+                  - generic [ref=f5e243]: 1 week ago
+                - paragraph [ref=f5e244]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e246]':
+                  - generic [ref=f5e247]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e248]:
+                  - generic [ref=f5e249]: Permanent/Contract
+                  - generic [ref=f5e250]: 2+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e251] [cursor=pointer]
+                - generic [ref=f5e252]:
+                  - button "📊 Analyse this posting" [ref=f5e253] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e254] [cursor=pointer]
+              - generic [ref=f5e255]:
+                - generic [ref=f5e256]:
+                  - link "Principal Legal Counsel & Assistant Commissioner (WIC), LSD" [ref=f5e257] [cursor=pointer]:
+                    - /url: https://jobs.careers.gov.sg/jobs/hrp/15440381/005056a3-53e2-1fd1-9d85-8213689ff401
+                  - generic [ref=f5e258]: 1 week ago
+                - paragraph [ref=f5e259]: Ministry of Manpower
+                - 'generic "Source: careers.gov.sg" [ref=f5e261]':
+                  - generic [ref=f5e262]: 🏛
+                  - text: careers.gov.sg
+                - generic [ref=f5e263]:
+                  - generic [ref=f5e264]: Contract
+                  - generic [ref=f5e265]: 10+ yrs exp
+                - button "▼ Show responsibilities & skills" [ref=f5e266] [cursor=pointer]
+                - generic [ref=f5e267]:
+                  - button "📊 Analyse this posting" [ref=f5e268] [cursor=pointer]
+                  - button "＋ Compare" [ref=f5e269] [cursor=pointer]
+            - paragraph [ref=f5e270]:
+              - text: +115 more on careers.gov.sg - visit
+              - link "careers.gov.sg" [ref=f5e271] [cursor=pointer]:
+                - /url: https://careers.gov.sg
+              - text: to browse all.
+            - paragraph [ref=f5e272]: ✓ computed - agency name matched from careers.gov.sg dump (MIT-licensed, opengovsg). Counts are real posting totals, not estimated.
+          - generic [ref=f5e273]:
+            - generic [ref=f5e274]: ORGANISATION READ
+            - generic [ref=f5e275]:
+              - paragraph [ref=f5e276]: Also lists 50 roles on careers.gov.sg (public service) across 1 agency
+              - paragraph [ref=f5e277]: 41 Permanent/Contract, 7 Contract, 2 Internship of 50 careers.gov.sg postings state an engagement type
+              - paragraph [ref=f5e278]: "Source: careers.gov.sg (Open Government Products dump) - Retrieved 10 Jul 2026, 14:35 SGT - Live listings in the dump, not a headcount - each agency/statutory board runs independent HR."
+            - paragraph [ref=f5e279]: Counts only, over this employer's live postings only - not a growth, staffing, or size claim.

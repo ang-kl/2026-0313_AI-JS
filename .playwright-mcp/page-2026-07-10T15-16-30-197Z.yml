@@ -1,0 +1,2195 @@
+- generic [active] [ref=f1e1]:
+  - link "Skip to main content" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f1e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f1e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f1e116] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f1e10]:
+        - button "Decrease text size" [ref=f1e11] [cursor=pointer]:
+          - generic [ref=f1e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f1e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f1e14] [cursor=pointer]:
+          - generic [ref=f1e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f1e16]:
+      - generic [ref=f1e118]:
+        - generic [ref=f1e119]:
+          - button "New search" [ref=f1e120] [cursor=pointer]:
+            - generic [ref=f1e121]: ←
+            - text: New search
+          - generic [ref=f1e122]:
+            - generic [ref=f1e123]: STEP 2 · SELECT EVIDENCE
+            - heading "Posting evidence for “data engineer”" [level=2] [ref=f1e124]
+          - generic [ref=f1e125]:
+            - generic [ref=f1e126]: 80 of 80
+            - generic "SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." [ref=f1e127]: 80 withheld
+            - 'button "{ } OKF index" [ref=f1e128] [cursor=pointer]'
+        - generic [ref=f1e129]:
+          - textbox "Search postings" [ref=f1e130]:
+            - /placeholder: Search postings...
+          - 'button "Sort: Best match" [ref=f1e132] [cursor=pointer]':
+            - text: "Sort: Best match"
+            - generic [ref=f1e133]: ▼
+          - button "Field" [ref=f1e135] [cursor=pointer]:
+            - text: Field
+            - generic [ref=f1e136]: ▼
+          - button "Company" [ref=f1e138] [cursor=pointer]:
+            - text: Company
+            - generic [ref=f1e139]: ▼
+          - button "Group" [ref=f1e141] [cursor=pointer]:
+            - text: Group
+            - generic [ref=f1e142]: ▼
+          - button "Function" [ref=f1e144] [cursor=pointer]:
+            - text: Function
+            - generic [ref=f1e145]: ▼
+          - button "Experience" [ref=f1e147] [cursor=pointer]:
+            - text: Experience
+            - generic [ref=f1e148]: ▼
+          - button "Type of work" [ref=f1e150] [cursor=pointer]:
+            - text: Type of work
+            - generic [ref=f1e151]: ▼
+          - button "Match" [ref=f1e153] [cursor=pointer]:
+            - text: Match
+            - generic [ref=f1e154]: ▼
+        - status [ref=f1e155]:
+          - generic [ref=f1e156]:
+            - paragraph [ref=f1e157]: Curating evidence for “data engineer”
+            - generic [ref=f1e158]: deterministic · no LLM
+          - generic [ref=f1e159]:
+            - generic [ref=f1e160]:
+              - generic [ref=f1e161]:
+                - generic [ref=f1e163]: MCF
+                - generic [ref=f1e164]: MyCareersFuture
+              - generic [ref=f1e166]:
+                - strong [ref=f1e167]: "30"
+                - text: postings
+            - generic [ref=f1e168]:
+              - generic [ref=f1e169]:
+                - generic [ref=f1e171]: CSG
+                - generic [ref=f1e172]: careers.gov.sg
+              - generic [ref=f1e174]:
+                - strong [ref=f1e175]: "50"
+                - text: postings
+            - generic [ref=f1e176]:
+              - generic [ref=f1e177]:
+                - generic [ref=f1e179]: SSOC
+                - generic [ref=f1e180]: SSOC 2024 classify
+              - generic [ref=f1e182]:
+                - text: classifying
+                - strong [ref=f1e183]: "80"
+                - text: …
+        - generic [ref=f1e184]:
+          - generic [ref=f1e185]:
+            - paragraph [ref=f1e186]: CURATION OVERVIEW · 80 POSTINGS
+            - generic [ref=f1e187]: computed from SSOC classifications
+          - generic [ref=f1e188]:
+            - generic [ref=f1e189]:
+              - img [ref=f1e190]:
+                - generic [ref=f1e193]: "80"
+                - generic [ref=f1e194]: POSTINGS
+              - generic [ref=f1e196]:
+                - generic [ref=f1e198]: Withheld
+                - generic [ref=f1e199]: "80"
+            - generic [ref=f1e200]:
+              - paragraph [ref=f1e201]: TOP SSOC FAMILIES
+              - button "Filter postings to Unclassified (80)" [ref=f1e203] [cursor=pointer]:
+                - paragraph [ref=f1e205]: Unclassified
+                - generic [ref=f1e208]: "80"
+        - generic [ref=f1e209]:
+          - complementary [ref=f1e210]:
+            - generic [ref=f1e211]:
+              - generic [ref=f1e212]: INDEX · 80 OF 80
+              - paragraph [ref=f1e213]: Ranked by match tier, then salary.
+              - generic [ref=f1e215]:
+                - generic "Unclassified" [ref=f1e216]: "80"
+                - generic [ref=f1e219]:
+                  - button "Data Engineer THE EDGE CONTRACTING SERVICES PTE. LTD." [ref=f1e220] [cursor=pointer]:
+                    - generic [ref=f1e222]:
+                      - generic [ref=f1e223]: Data Engineer
+                      - generic [ref=f1e224]: THE EDGE CONTRACTING SERVICES PTE. LTD.
+                  - button "Data Engineer TALENT PULSE PTE. LTD." [ref=f1e225] [cursor=pointer]:
+                    - generic [ref=f1e227]:
+                      - generic [ref=f1e228]: Data Engineer
+                      - generic [ref=f1e229]: TALENT PULSE PTE. LTD.
+                  - button "Data Engineer National Library Board" [ref=f1e230] [cursor=pointer]:
+                    - generic [ref=f1e232]:
+                      - generic [ref=f1e233]: Data Engineer
+                      - generic [ref=f1e234]: National Library Board
+                  - button "Data Engineer RAZER (ASIA-PACIFIC) PTE. LTD." [ref=f1e235] [cursor=pointer]:
+                    - generic [ref=f1e237]:
+                      - generic [ref=f1e238]: Data Engineer
+                      - generic [ref=f1e239]: RAZER (ASIA-PACIFIC) PTE. LTD.
+                  - button "Data Engineer SPH MEDIA LIMITED" [ref=f1e240] [cursor=pointer]:
+                    - generic [ref=f1e242]:
+                      - generic [ref=f1e243]: Data Engineer
+                      - generic [ref=f1e244]: SPH MEDIA LIMITED
+                  - button "Data Engineer XTREMAX PTE. LTD." [ref=f1e245] [cursor=pointer]:
+                    - generic [ref=f1e247]:
+                      - generic [ref=f1e248]: Data Engineer
+                      - generic [ref=f1e249]: XTREMAX PTE. LTD.
+                  - button "DATA Engineer KRISE SOLUTIONS PTE. LTD." [ref=f1e250] [cursor=pointer]:
+                    - generic [ref=f1e252]:
+                      - generic [ref=f1e253]: DATA Engineer
+                      - generic [ref=f1e254]: KRISE SOLUTIONS PTE. LTD.
+                  - button "Data Engineer GECO ASIA PTE. LTD." [ref=f1e255] [cursor=pointer]:
+                    - generic [ref=f1e257]:
+                      - generic [ref=f1e258]: Data Engineer
+                      - generic [ref=f1e259]: GECO ASIA PTE. LTD.
+                  - button "Data Engineer ALPHA X TECHNOLOGY PTE. LTD." [ref=f1e260] [cursor=pointer]:
+                    - generic [ref=f1e262]:
+                      - generic [ref=f1e263]: Data Engineer
+                      - generic [ref=f1e264]: ALPHA X TECHNOLOGY PTE. LTD.
+                  - button "Data Engineer INNOWAVE TECH PTE. LTD." [ref=f1e265] [cursor=pointer]:
+                    - generic [ref=f1e267]:
+                      - generic [ref=f1e268]: Data Engineer
+                      - generic [ref=f1e269]: INNOWAVE TECH PTE. LTD.
+                  - button "Data Engineer Government Technology Agency" [ref=f1e270] [cursor=pointer]:
+                    - generic [ref=f1e272]:
+                      - generic [ref=f1e273]: Data Engineer
+                      - generic [ref=f1e274]: Government Technology Agency
+                  - button "Data Engineer D-SIMLAB TECHNOLOGIES PTE. LTD." [ref=f1e275] [cursor=pointer]:
+                    - generic [ref=f1e277]:
+                      - generic [ref=f1e278]: Data Engineer
+                      - generic [ref=f1e279]: D-SIMLAB TECHNOLOGIES PTE. LTD.
+                  - button "Data Engineer WEBSPARKS PTE. LTD." [ref=f1e280] [cursor=pointer]:
+                    - generic [ref=f1e282]:
+                      - generic [ref=f1e283]: Data Engineer
+                      - generic [ref=f1e284]: WEBSPARKS PTE. LTD.
+                  - button "Data Engineer COMBUILDER PTE LTD" [ref=f1e285] [cursor=pointer]:
+                    - generic [ref=f1e287]:
+                      - generic [ref=f1e288]: Data Engineer
+                      - generic [ref=f1e289]: COMBUILDER PTE LTD
+                  - button "Data Engineer OPUS IT SERVICES PTE LTD" [ref=f1e290] [cursor=pointer]:
+                    - generic [ref=f1e292]:
+                      - generic [ref=f1e293]: Data Engineer
+                      - generic [ref=f1e294]: OPUS IT SERVICES PTE LTD
+                  - button "Data Engineer Government Technology Agency" [ref=f1e295] [cursor=pointer]:
+                    - generic [ref=f1e297]:
+                      - generic [ref=f1e298]: Data Engineer
+                      - generic [ref=f1e299]: Government Technology Agency
+                  - button "Data Engineer Government Technology Agency" [ref=f1e300] [cursor=pointer]:
+                    - generic [ref=f1e302]:
+                      - generic [ref=f1e303]: Data Engineer
+                      - generic [ref=f1e304]: Government Technology Agency
+                  - button "Data Engineer Government Technology Agency" [ref=f1e305] [cursor=pointer]:
+                    - generic [ref=f1e307]:
+                      - generic [ref=f1e308]: Data Engineer
+                      - generic [ref=f1e309]: Government Technology Agency
+                  - button "Data Engineer MHA - Internal Security Department (ISD)" [ref=f1e310] [cursor=pointer]:
+                    - generic [ref=f1e312]:
+                      - generic [ref=f1e313]: Data Engineer
+                      - generic [ref=f1e314]: MHA - Internal Security Department (ISD)
+                  - button "Senior Data Engineer | Enterprise Data | AI SCIENTEC CONSULTING PTE. LTD." [ref=f1e315] [cursor=pointer]:
+                    - generic [ref=f1e317]:
+                      - generic [ref=f1e318]: Senior Data Engineer | Enterprise Data | AI
+                      - generic [ref=f1e319]: SCIENTEC CONSULTING PTE. LTD.
+                  - button "Senior Data Engineer SCIENTEC CONSULTING PTE. LTD." [ref=f1e320] [cursor=pointer]:
+                    - generic [ref=f1e322]:
+                      - generic [ref=f1e323]: Senior Data Engineer
+                      - generic [ref=f1e324]: SCIENTEC CONSULTING PTE. LTD.
+                  - button "Data Engineer DCI CONSULTANTS PRIVATE LIMITED" [ref=f1e325] [cursor=pointer]:
+                    - generic [ref=f1e327]:
+                      - generic [ref=f1e328]: Data Engineer
+                      - generic [ref=f1e329]: DCI CONSULTANTS PRIVATE LIMITED
+                  - button "Senior Data Engineer CMC-APAC PRIVATE LIMITED" [ref=f1e330] [cursor=pointer]:
+                    - generic [ref=f1e332]:
+                      - generic [ref=f1e333]: Senior Data Engineer
+                      - generic [ref=f1e334]: CMC-APAC PRIVATE LIMITED
+                  - button "Senior Data Engineer NICOLL CURTIN TECHNOLOGY PTE. LTD." [ref=f1e335] [cursor=pointer]:
+                    - generic [ref=f1e337]:
+                      - generic [ref=f1e338]: Senior Data Engineer
+                      - generic [ref=f1e339]: NICOLL CURTIN TECHNOLOGY PTE. LTD.
+                  - button "SENIOR DATA ENGINEER RAPSYS TECHNOLOGIES PTE. LTD." [ref=f1e340] [cursor=pointer]:
+                    - generic [ref=f1e342]:
+                      - generic [ref=f1e343]: SENIOR DATA ENGINEER
+                      - generic [ref=f1e344]: RAPSYS TECHNOLOGIES PTE. LTD.
+                  - button "Data Acquisition Engineer MHA - Internal Security Department (ISD)" [ref=f1e345] [cursor=pointer]:
+                    - generic [ref=f1e347]:
+                      - generic [ref=f1e348]: Data Acquisition Engineer
+                      - generic [ref=f1e349]: MHA - Internal Security Department (ISD)
+                  - button "Senior Data Engineer SPH MEDIA LIMITED" [ref=f1e350] [cursor=pointer]:
+                    - generic [ref=f1e352]:
+                      - generic [ref=f1e353]: Senior Data Engineer
+                      - generic [ref=f1e354]: SPH MEDIA LIMITED
+                  - button "Data Engineer PERSOL SINGAPORE PTE. LTD." [ref=f1e355] [cursor=pointer]:
+                    - generic [ref=f1e357]:
+                      - generic [ref=f1e358]: Data Engineer
+                      - generic [ref=f1e359]: PERSOL SINGAPORE PTE. LTD.
+                  - button "Data Engineer III JPMORGAN CHASE BANK, N.A." [ref=f1e360] [cursor=pointer]:
+                    - generic [ref=f1e362]:
+                      - generic [ref=f1e363]: Data Engineer III
+                      - generic [ref=f1e364]: JPMORGAN CHASE BANK, N.A.
+                  - button "Data Engineer (Python KEY CONNECT RECRUITMENT PTE. LTD." [ref=f1e365] [cursor=pointer]:
+                    - generic [ref=f1e367]:
+                      - generic [ref=f1e368]: Data Engineer (Python
+                      - generic [ref=f1e369]: KEY CONNECT RECRUITMENT PTE. LTD.
+                  - button "Senior Data Engineer ILLUMINA INTERNATIONAL GENOMICS PTE. LTD." [ref=f1e370] [cursor=pointer]:
+                    - generic [ref=f1e372]:
+                      - generic [ref=f1e373]: Senior Data Engineer
+                      - generic [ref=f1e374]: ILLUMINA INTERNATIONAL GENOMICS PTE. LTD.
+                  - button "AI Data Engineer & Analyst RUDER FINN ASIA PTE LTD" [ref=f1e375] [cursor=pointer]:
+                    - generic [ref=f1e377]:
+                      - generic [ref=f1e378]: AI Data Engineer & Analyst
+                      - generic [ref=f1e379]: RUDER FINN ASIA PTE LTD
+                  - button "Data Engineer (Perm role with up to 6mth VB RECRUIT EXPRESS PTE LTD" [ref=f1e380] [cursor=pointer]:
+                    - generic [ref=f1e382]:
+                      - generic [ref=f1e383]: Data Engineer (Perm role with up to 6mth VB
+                      - generic [ref=f1e384]: RECRUIT EXPRESS PTE LTD
+                  - button "Data Engineer IOTALENTS PTE. LTD." [ref=f1e385] [cursor=pointer]:
+                    - generic [ref=f1e387]:
+                      - generic [ref=f1e388]: Data Engineer
+                      - generic [ref=f1e389]: IOTALENTS PTE. LTD.
+                  - button "Data Analytics Engineer MHA - Internal Security Department (ISD)" [ref=f1e390] [cursor=pointer]:
+                    - generic [ref=f1e392]:
+                      - generic [ref=f1e393]: Data Analytics Engineer
+                      - generic [ref=f1e394]: MHA - Internal Security Department (ISD)
+                  - button "Data Engineer Civil Service College" [ref=f1e395] [cursor=pointer]:
+                    - generic [ref=f1e397]:
+                      - generic [ref=f1e398]: Data Engineer
+                      - generic [ref=f1e399]: Civil Service College
+                  - button "Senior / Data Engineer Government Technology Agency" [ref=f1e400] [cursor=pointer]:
+                    - generic [ref=f1e402]:
+                      - generic [ref=f1e403]: Senior / Data Engineer
+                      - generic [ref=f1e404]: Government Technology Agency
+                  - button "Data Engineer Government Technology Agency" [ref=f1e405] [cursor=pointer]:
+                    - generic [ref=f1e407]:
+                      - generic [ref=f1e408]: Data Engineer
+                      - generic [ref=f1e409]: Government Technology Agency
+                  - button "Junior Data Engineer VANGUARD SOFTWARE PTE. LTD." [ref=f1e410] [cursor=pointer]:
+                    - generic [ref=f1e412]:
+                      - generic [ref=f1e413]: Junior Data Engineer
+                      - generic [ref=f1e414]: VANGUARD SOFTWARE PTE. LTD.
+                  - button "Senior Data Engineer Centre for Strategic Infocomm Technologies" [ref=f1e415] [cursor=pointer]:
+                    - generic [ref=f1e417]:
+                      - generic [ref=f1e418]: Senior Data Engineer
+                      - generic [ref=f1e419]: Centre for Strategic Infocomm Technologies
+                  - button "Senior Data Engineer AIRWALLEX (SINGAPORE) PTE. LTD." [ref=f1e420] [cursor=pointer]:
+                    - generic [ref=f1e422]:
+                      - generic [ref=f1e423]: Senior Data Engineer
+                      - generic [ref=f1e424]: AIRWALLEX (SINGAPORE) PTE. LTD.
+                  - button "Data Engineer SYNAPXE PTE. LTD." [ref=f1e425] [cursor=pointer]:
+                    - generic [ref=f1e427]:
+                      - generic [ref=f1e428]: Data Engineer
+                      - generic [ref=f1e429]: SYNAPXE PTE. LTD.
+                  - button "Data Centre Engineer MHA - Internal Security Department (ISD)" [ref=f1e430] [cursor=pointer]:
+                    - generic [ref=f1e432]:
+                      - generic [ref=f1e433]: Data Centre Engineer
+                      - generic [ref=f1e434]: MHA - Internal Security Department (ISD)
+                  - button "Data Platform Engineer MHA - Internal Security Department (ISD)" [ref=f1e435] [cursor=pointer]:
+                    - generic [ref=f1e437]:
+                      - generic [ref=f1e438]: Data Platform Engineer
+                      - generic [ref=f1e439]: MHA - Internal Security Department (ISD)
+                  - button "Principal Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e440] [cursor=pointer]:
+                    - generic [ref=f1e442]:
+                      - generic [ref=f1e443]: Principal Engineer
+                      - generic [ref=f1e444]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e445] [cursor=pointer]:
+                    - generic [ref=f1e447]:
+                      - generic [ref=f1e448]: Lead Engineer/Engineer
+                      - generic [ref=f1e449]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead / Senior Software Engineer Government Technology Agency" [ref=f1e450] [cursor=pointer]:
+                    - generic [ref=f1e452]:
+                      - generic [ref=f1e453]: Lead / Senior Software Engineer
+                      - generic [ref=f1e454]: Government Technology Agency
+                  - button "Senior Software Engineer Government Technology Agency" [ref=f1e455] [cursor=pointer]:
+                    - generic [ref=f1e457]:
+                      - generic [ref=f1e458]: Senior Software Engineer
+                      - generic [ref=f1e459]: Government Technology Agency
+                  - button "Systems Engineer Government Technology Agency" [ref=f1e460] [cursor=pointer]:
+                    - generic [ref=f1e462]:
+                      - generic [ref=f1e463]: Systems Engineer
+                      - generic [ref=f1e464]: Government Technology Agency
+                  - button "Software Engineer Government Technology Agency" [ref=f1e465] [cursor=pointer]:
+                    - generic [ref=f1e467]:
+                      - generic [ref=f1e468]: Software Engineer
+                      - generic [ref=f1e469]: Government Technology Agency
+                  - button "Principal Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e470] [cursor=pointer]:
+                    - generic [ref=f1e472]:
+                      - generic [ref=f1e473]: Principal Engineer
+                      - generic [ref=f1e474]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e475] [cursor=pointer]:
+                    - generic [ref=f1e477]:
+                      - generic [ref=f1e478]: Lead Engineer/Engineer
+                      - generic [ref=f1e479]: Home Team Science and Technology Agency (HTX)
+                  - button "Software Engineer Government Technology Agency" [ref=f1e480] [cursor=pointer]:
+                    - generic [ref=f1e482]:
+                      - generic [ref=f1e483]: Software Engineer
+                      - generic [ref=f1e484]: Government Technology Agency
+                  - button "AI Engineer 2 Energy Market Authority" [ref=f1e485] [cursor=pointer]:
+                    - generic [ref=f1e487]:
+                      - generic [ref=f1e488]: AI Engineer 2
+                      - generic [ref=f1e489]: Energy Market Authority
+                  - button "Snr Associate Accountant-General's Department" [ref=f1e490] [cursor=pointer]:
+                    - generic [ref=f1e492]:
+                      - generic [ref=f1e493]: Snr Associate
+                      - generic [ref=f1e494]: Accountant-General's Department
+                  - button "Software Engineer Centre for Strategic Infocomm Technologies" [ref=f1e495] [cursor=pointer]:
+                    - generic [ref=f1e497]:
+                      - generic [ref=f1e498]: Software Engineer
+                      - generic [ref=f1e499]: Centre for Strategic Infocomm Technologies
+                  - button "Software Engineer Defence Science and Technology Agency" [ref=f1e500] [cursor=pointer]:
+                    - generic [ref=f1e502]:
+                      - generic [ref=f1e503]: Software Engineer
+                      - generic [ref=f1e504]: Defence Science and Technology Agency
+                  - button "Software Engineer Centre for Strategic Infocomm Technologies" [ref=f1e505] [cursor=pointer]:
+                    - generic [ref=f1e507]:
+                      - generic [ref=f1e508]: Software Engineer
+                      - generic [ref=f1e509]: Centre for Strategic Infocomm Technologies
+                  - button "Platform Engineer Centre for Strategic Infocomm Technologies" [ref=f1e510] [cursor=pointer]:
+                    - generic [ref=f1e512]:
+                      - generic [ref=f1e513]: Platform Engineer
+                      - generic [ref=f1e514]: Centre for Strategic Infocomm Technologies
+                  - button "Software Engineer Centre for Strategic Infocomm Technologies" [ref=f1e515] [cursor=pointer]:
+                    - generic [ref=f1e517]:
+                      - generic [ref=f1e518]: Software Engineer
+                      - generic [ref=f1e519]: Centre for Strategic Infocomm Technologies
+                  - button "Senior Software Engineer Centre for Strategic Infocomm Technologies" [ref=f1e520] [cursor=pointer]:
+                    - generic [ref=f1e522]:
+                      - generic [ref=f1e523]: Senior Software Engineer
+                      - generic [ref=f1e524]: Centre for Strategic Infocomm Technologies
+                  - button "Senior Platform Infrastructure Engineer Government Technology Agency" [ref=f1e525] [cursor=pointer]:
+                    - generic [ref=f1e527]:
+                      - generic [ref=f1e528]: Senior Platform Infrastructure Engineer
+                      - generic [ref=f1e529]: Government Technology Agency
+                  - button "Software Engineering Government Technology Agency" [ref=f1e530] [cursor=pointer]:
+                    - generic [ref=f1e532]:
+                      - generic [ref=f1e533]: Software Engineering
+                      - generic [ref=f1e534]: Government Technology Agency
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e535] [cursor=pointer]:
+                    - generic [ref=f1e537]:
+                      - generic [ref=f1e538]: Lead Engineer/ Engineer
+                      - generic [ref=f1e539]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e540] [cursor=pointer]:
+                    - generic [ref=f1e542]:
+                      - generic [ref=f1e543]: Lead Engineer/ Engineer
+                      - generic [ref=f1e544]: Home Team Science and Technology Agency (HTX)
+                  - button "Head, AI Data Solutioning, AI Data Engineeri… Home Team Science and Technology Agency (HTX)" [ref=f1e545] [cursor=pointer]:
+                    - generic [ref=f1e547]:
+                      - generic [ref=f1e548]: Head, AI Data Solutioning, AI Data Engineeri…
+                      - generic [ref=f1e549]: Home Team Science and Technology Agency (HTX)
+                  - button "Deputy Director Home Team Science and Technology Agency (HTX)" [ref=f1e550] [cursor=pointer]:
+                    - generic [ref=f1e552]:
+                      - generic [ref=f1e553]: Deputy Director
+                      - generic [ref=f1e554]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e555] [cursor=pointer]:
+                    - generic [ref=f1e557]:
+                      - generic [ref=f1e558]: Lead Engineer/ Engineer
+                      - generic [ref=f1e559]: Home Team Science and Technology Agency (HTX)
+                  - button "Statistician (Data Engineer) Department of Statistics" [ref=f1e560] [cursor=pointer]:
+                    - generic [ref=f1e562]:
+                      - generic [ref=f1e563]: Statistician (Data Engineer)
+                      - generic [ref=f1e564]: Department of Statistics
+                  - button "Intern, Data Engineering & Platform Singapore Land Authority" [ref=f1e565] [cursor=pointer]:
+                    - generic [ref=f1e567]:
+                      - generic [ref=f1e568]: Intern, Data Engineering & Platform
+                      - generic [ref=f1e569]: Singapore Land Authority
+                  - button "Senior Manager Health Promotion Board" [ref=f1e570] [cursor=pointer]:
+                    - generic [ref=f1e572]:
+                      - generic [ref=f1e573]: Senior Manager
+                      - generic [ref=f1e574]: Health Promotion Board
+                  - button "Assistant Director Health Promotion Board" [ref=f1e575] [cursor=pointer]:
+                    - generic [ref=f1e577]:
+                      - generic [ref=f1e578]: Assistant Director
+                      - generic [ref=f1e579]: Health Promotion Board
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e580] [cursor=pointer]:
+                    - generic [ref=f1e582]:
+                      - generic [ref=f1e583]: Lead Engineer/ Engineer
+                      - generic [ref=f1e584]: Home Team Science and Technology Agency (HTX)
+                  - button "Head, AI Data Solutioning, AI Data Engineeri… Home Team Science and Technology Agency (HTX)" [ref=f1e585] [cursor=pointer]:
+                    - generic [ref=f1e587]:
+                      - generic [ref=f1e588]: Head, AI Data Solutioning, AI Data Engineeri…
+                      - generic [ref=f1e589]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f1e590] [cursor=pointer]:
+                    - generic [ref=f1e592]:
+                      - generic [ref=f1e593]: Lead Engineer/ Engineer
+                      - generic [ref=f1e594]: Home Team Science and Technology Agency (HTX)
+                  - button "Data & Analytics Engineer Institute of Technical Education" [ref=f1e595] [cursor=pointer]:
+                    - generic [ref=f1e597]:
+                      - generic [ref=f1e598]: Data & Analytics Engineer
+                      - generic [ref=f1e599]: Institute of Technical Education
+                  - button "SM, Presales Consultant Info-communications Media Development Authority" [ref=f1e600] [cursor=pointer]:
+                    - generic [ref=f1e602]:
+                      - generic [ref=f1e603]: SM, Presales Consultant
+                      - generic [ref=f1e604]: Info-communications Media Development Authority
+                  - button "Senior Executive Ministry of Health" [ref=f1e605] [cursor=pointer]:
+                    - generic [ref=f1e607]:
+                      - generic [ref=f1e608]: Senior Executive
+                      - generic [ref=f1e609]: Ministry of Health
+                  - button "Platform & SRE Engineer Centre for Strategic Infocomm Technologies" [ref=f1e610] [cursor=pointer]:
+                    - generic [ref=f1e612]:
+                      - generic [ref=f1e613]: Platform & SRE Engineer
+                      - generic [ref=f1e614]: Centre for Strategic Infocomm Technologies
+                  - button "Assistant/ Manager Health Promotion Board" [ref=f1e615] [cursor=pointer]:
+                    - generic [ref=f1e617]:
+                      - generic [ref=f1e618]: Assistant/ Manager
+                      - generic [ref=f1e619]: Health Promotion Board
+            - generic [ref=f1e620]:
+              - generic [ref=f1e621]:
+                - generic [ref=f1e622]: OKF v0.1
+                - generic [ref=f1e623]: Open Knowledge Format
+              - paragraph [ref=f1e624]: A vendor-neutral markdown bundle - tap a file to read it.
+              - generic [ref=f1e625]:
+                - button "data-engineer.okf/" [disabled] [ref=f1e626]
+                - button "index.md" [ref=f1e628] [cursor=pointer]:
+                  - generic [ref=f1e629]: ├──
+                - button "postings/ (80)" [disabled] [ref=f1e631]:
+                  - generic [ref=f1e632]: ├──
+                - button "sectors/" [disabled] [ref=f1e634]:
+                  - generic [ref=f1e635]: ├──
+                - button "log.md" [ref=f1e637] [cursor=pointer]:
+                  - generic [ref=f1e638]: └──
+              - button "Open index" [ref=f1e641] [cursor=pointer]
+          - generic [ref=f1e642]:
+            - paragraph [ref=f1e643]: "Badge key · match basis: exact title (same title) · title variant (close wording) · nuance (specialised form) · R&R match (matched in the duties) · related · +N from employer = more live postings by the same employer in this result."
+            - generic [ref=f1e644]:
+              - generic [ref=f1e645]:
+                - generic [ref=f1e646]:
+                  - generic [ref=f1e648]: MyCareersFuture
+                  - generic [ref=f1e649]: "30"
+                - generic [ref=f1e650]:
+                  - generic [ref=f1e651] [cursor=pointer]:
+                    - generic [ref=f1e652]:
+                      - generic [ref=f1e653]: T
+                      - generic "THE EDGE CONTRACTING SERVICES PTE. LTD." [ref=f1e654]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e656]':
+                      - text: exact title
+                      - generic [ref=f1e657]: ▾
+                    - generic [ref=f1e658]:
+                      - heading "Data Engineer" [level=3] [ref=f1e659]
+                      - generic [ref=f1e660]:
+                        - generic [ref=f1e661]: NEW
+                        - generic [ref=f1e662]: today
+                      - generic [ref=f1e663]:
+                        - generic [ref=f1e664]: S$5,000 - S$7,000 / month
+                        - generic [ref=f1e665]: Contract
+                      - paragraph [ref=f1e666]: Design, develop, maintain, and support data pipelines and ETL workflows across multiple systems Develop and optimize SQL queries, stored procedures, and data transformations Perform data validation, reconciliation, and data quality checks to ensure accuracy and consistency Troubleshoot and resolve data pipeline, ETL, and reporting issues in production environments Maintain and support existing SSIS workflows and related data processes Integrate data from…
+                      - 'generic "Position level: Senior Executive" [ref=f1e668]': Senior Executive
+                      - generic [ref=f1e669]:
+                        - button "Analyse" [ref=f1e670]
+                        - link "Open" [ref=f1e671]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-edge-contracting-services-501efccc405a8d5670a9636fdcf2fc96
+                        - 'button "{ } OKF" [ref=f1e672]'
+                  - generic [ref=f1e673] [cursor=pointer]:
+                    - generic [ref=f1e674]:
+                      - generic [ref=f1e675]: T
+                      - generic "TALENT PULSE PTE. LTD." [ref=f1e676]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e678]':
+                      - text: exact title
+                      - generic [ref=f1e679]: ▾
+                    - generic [ref=f1e680]:
+                      - heading "Data Engineer (Cloud Data Platform & AI)" [level=3] [ref=f1e681]
+                      - generic [ref=f1e682]: 2 days ago
+                      - generic [ref=f1e684]:
+                        - generic [ref=f1e685]: S$7,500 - S$8,300 / month
+                        - generic [ref=f1e686]: Contract
+                      - paragraph [ref=f1e687]: Data Architecture & Platform Engineering Design and implement scalable, secure, and highly available cloud-based data architectures. Develop and maintain enterprise Data Lakehouse solutions to support analytics and AI workloads. Collaborate with business and technical stakeholders to gather requirements and translate them into scalable technical solutions.
+                      - 'generic "Position level: Professional" [ref=f1e689]': Professional
+                      - generic [ref=f1e690]:
+                        - button "Analyse" [ref=f1e691]
+                        - link "Open" [ref=f1e692]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-talent-pulse-570ca3da85a51001f47555e07e039863
+                        - 'button "{ } OKF" [ref=f1e693]'
+                  - generic [ref=f1e694] [cursor=pointer]:
+                    - generic [ref=f1e695]:
+                      - generic [ref=f1e696]: R
+                      - generic "RAZER (ASIA-PACIFIC) PTE. LTD." [ref=f1e697]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e699]':
+                      - text: exact title
+                      - generic [ref=f1e700]: ▾
+                    - generic [ref=f1e701]:
+                      - heading "Data Engineer" [level=3] [ref=f1e702]
+                      - generic [ref=f1e703]: 1 week ago
+                      - generic [ref=f1e705]:
+                        - generic [ref=f1e706]: S$5,500 - S$7,500 / month
+                        - generic [ref=f1e707]: Permanent, Full Time
+                      - paragraph [ref=f1e708]: This role is responsible for designing, building, and maintaining scalable, high-volume data processing systems that support Razer’s internal analytics and AI use cases. The Data Engineer enables the reliable collection, transformation, and storage of raw data into high-quality, trusted datasets for data scientists, business analysts, and downstream applications.
+                      - 'generic "Position level: Executive" [ref=f1e710]': Executive
+                      - generic [ref=f1e711]:
+                        - button "Analyse" [ref=f1e712]
+                        - link "Open" [ref=f1e713]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-engineer-razer-1d4f43efa451a9a492f16de4d0094487
+                        - 'button "{ } OKF" [ref=f1e714]'
+                  - generic [ref=f1e715] [cursor=pointer]:
+                    - generic [ref=f1e716]:
+                      - generic [ref=f1e717]: S
+                      - generic "SPH MEDIA LIMITED" [ref=f1e718]
+                    - generic [ref=f1e719]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e720]':
+                        - text: exact title
+                        - generic [ref=f1e721]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f1e722]:
+                        - text: +1 ads
+                        - generic [ref=f1e723]: ▾
+                    - generic [ref=f1e724]:
+                      - heading "Data Engineer" [level=3] [ref=f1e725]
+                      - generic [ref=f1e726]: 1 week ago
+                      - generic [ref=f1e728]:
+                        - generic [ref=f1e729]: S$10,000 - S$15,000 / month
+                        - generic [ref=f1e730]: Full Time
+                      - paragraph [ref=f1e731]: Role We are hiring Data Engineers at all levels, seeking individuals who bring deep technical expertise and a clear drive to deliver measurable results. In this role, you will lead end-to-end engineering projects, designing and building the scalable data infrastructure that underpins our business.
+                      - 'generic "Position level: Middle Management" [ref=f1e733]': Middle Management
+                      - generic [ref=f1e734]:
+                        - button "Analyse" [ref=f1e735]
+                        - link "Open" [ref=f1e736]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/others/data-engineer-sph-media-a099d8a10ba7ee54c1d6a18f37db00c7
+                        - 'button "{ } OKF" [ref=f1e737]'
+                  - generic [ref=f1e738] [cursor=pointer]:
+                    - generic [ref=f1e739]:
+                      - generic [ref=f1e740]: X
+                      - generic "XTREMAX PTE. LTD." [ref=f1e741]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e743]':
+                      - text: exact title
+                      - generic [ref=f1e744]: ▾
+                    - generic [ref=f1e745]:
+                      - heading "Data Engineer" [level=3] [ref=f1e746]
+                      - generic [ref=f1e747]: 1 week ago
+                      - generic [ref=f1e749]:
+                        - generic [ref=f1e750]: S$6,500 - S$8,500 / month
+                        - generic [ref=f1e751]: Full Time
+                      - paragraph [ref=f1e752]: Champion Data Access and User Experience Evaluate and coordinate data requests from business users, serving as their trusted advisor to understand requirements and recommend the most suitable datasets for their objectives. Transform complex data availability assessments into clear, actionable guidance, helping users navigate HPB's data ecosystem with confidence.
+                      - 'generic "Position level: Junior Executive" [ref=f1e754]': Junior Executive
+                      - generic [ref=f1e755]:
+                        - button "Analyse" [ref=f1e756]
+                        - link "Open" [ref=f1e757]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-engineer-xtremax-87afe7677fa5cd1da0152e490a964c2e
+                        - 'button "{ } OKF" [ref=f1e758]'
+                  - generic [ref=f1e759] [cursor=pointer]:
+                    - generic [ref=f1e760]:
+                      - generic [ref=f1e761]: K
+                      - generic "KRISE SOLUTIONS PTE. LTD." [ref=f1e762]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e764]':
+                      - text: exact title
+                      - generic [ref=f1e765]: ▾
+                    - generic [ref=f1e766]:
+                      - heading "DATA Engineer" [level=3] [ref=f1e767]
+                      - generic [ref=f1e768]: 2 weeks ago
+                      - generic [ref=f1e770]:
+                        - generic [ref=f1e771]: S$6,000 - S$9,000 / month
+                        - generic [ref=f1e772]: Contract, Full Time
+                      - paragraph [ref=f1e773]: We are looking for a skilled and detail-oriented Data Engineer to join our team. The ideal candidate will be responsible for designing, building, and maintaining scalable data pipelines and infrastructure. You will work closely with data scientists, analysts, and business teams to ensure the availability, reliability, and accuracy of data.
+                      - 'generic "Position level: Professional" [ref=f1e775]': Professional
+                      - generic [ref=f1e776]:
+                        - button "Analyse" [ref=f1e777]
+                        - link "Open" [ref=f1e778]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-krise-solutions-9097a5e3432de50cd43ffaea77c9cd64
+                        - 'button "{ } OKF" [ref=f1e779]'
+                  - generic [ref=f1e780] [cursor=pointer]:
+                    - generic [ref=f1e781]:
+                      - generic [ref=f1e782]: G
+                      - generic "GECO ASIA PTE. LTD." [ref=f1e783]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e785]':
+                      - text: exact title
+                      - generic [ref=f1e786]: ▾
+                    - generic [ref=f1e787]:
+                      - heading "Data Engineer" [level=3] [ref=f1e788]
+                      - generic [ref=f1e789]: 2 weeks ago
+                      - generic [ref=f1e791]:
+                        - generic [ref=f1e792]: S$6,500 - S$8,000 / month
+                        - generic [ref=f1e793]: Contract, Full Time
+                      - paragraph [ref=f1e794]: "Role: Data Engineer Start: ASAP Duration: 12 Months Location: Singapore We are seeking an experienced Data Engineer with 6+ years of expertise in enterprise data warehouse (EDW), ETL/ELT development, and big data engineering. The ideal candidate will be responsible for designing, developing, and optimizing scalable data pipelines and frameworks across Teradata-based data warehouse environments and modern Hadoop ecosystem platforms."
+                      - 'generic "Position level: Professional" [ref=f1e796]': Professional
+                      - generic [ref=f1e797]:
+                        - button "Analyse" [ref=f1e798]
+                        - link "Open" [ref=f1e799]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-geco-asia-c4053a400a2dc084c95244009c6440f4
+                        - 'button "{ } OKF" [ref=f1e800]'
+                  - generic [ref=f1e801] [cursor=pointer]:
+                    - generic [ref=f1e802]:
+                      - generic [ref=f1e803]: A
+                      - generic "ALPHA X TECHNOLOGY PTE. LTD." [ref=f1e804]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e806]':
+                      - text: exact title
+                      - generic [ref=f1e807]: ▾
+                    - generic [ref=f1e808]:
+                      - heading "Data Engineer (Python)" [level=3] [ref=f1e809]
+                      - generic [ref=f1e810]: 2 weeks ago
+                      - generic [ref=f1e812]:
+                        - generic [ref=f1e813]: S$4,000 - S$6,500 / month
+                        - generic [ref=f1e814]: Permanent, Full Time
+                      - paragraph [ref=f1e815]: Position Summary We are looking for a Data Engineer to join our team and contribute to a major project within the semiconductor manufacturing domain. The role involves designing and implementing data pipelines, managing Oracle-based data environments, and supporting end-to-end BI processes — from data ingestion to visualization.
+                      - 'generic "Position level: Professional" [ref=f1e817]': Professional
+                      - generic [ref=f1e818]:
+                        - button "Analyse" [ref=f1e819]
+                        - link "Open" [ref=f1e820]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-engineer-alpha-x-technology-7fb19695a60683666f3d428091ec91c7
+                        - 'button "{ } OKF" [ref=f1e821]'
+                  - generic [ref=f1e822] [cursor=pointer]:
+                    - generic [ref=f1e823]:
+                      - generic [ref=f1e824]: I
+                      - generic "INNOWAVE TECH PTE. LTD." [ref=f1e825]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e827]':
+                      - text: exact title
+                      - generic [ref=f1e828]: ▾
+                    - generic [ref=f1e829]:
+                      - heading "Data Engineer" [level=3] [ref=f1e830]
+                      - generic [ref=f1e831]: 3 weeks ago
+                      - generic [ref=f1e833]:
+                        - generic [ref=f1e834]: S$5,000 - S$8,000 / month
+                        - generic [ref=f1e835]: Full Time
+                      - paragraph [ref=f1e836]: Your Role and Impact As our Data Engineer, you will have a foundational role in building robust data infrastructure to handle manufacturing data and LLM applications, while establishing secure data practices that power our AI solutions for advanced manufacturing operations. Select and manage on-premises technologies suitable for secure and efficient operations.
+                      - 'generic "Position level: Executive" [ref=f1e838]': Executive
+                      - generic [ref=f1e839]:
+                        - button "Analyse" [ref=f1e840]
+                        - link "Open" [ref=f1e841]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-engineer-innowave-tech-ffdb8aa13383a8843cf51eacb5cf9835
+                        - 'button "{ } OKF" [ref=f1e842]'
+                  - generic [ref=f1e843] [cursor=pointer]:
+                    - generic [ref=f1e844]:
+                      - generic [ref=f1e845]: D
+                      - generic "D-SIMLAB TECHNOLOGIES PTE. LTD." [ref=f1e846]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e848]':
+                      - text: exact title
+                      - generic [ref=f1e849]: ▾
+                    - generic [ref=f1e850]:
+                      - heading "Data Engineer" [level=3] [ref=f1e851]
+                      - generic [ref=f1e852]: 3 weeks ago
+                      - generic [ref=f1e854]:
+                        - generic [ref=f1e855]: S$4,500 - S$8,000 / month
+                        - generic [ref=f1e856]: Permanent, Full Time
+                      - paragraph [ref=f1e857]: Data Engineer As a Data Engineer at D-SIMLAB Technologies, you will play a key role in deriving insights from large datasets to optimize semiconductor manufacturing processes. This role focuses on data extraction, analysis, and actionable insights, while collaborating with cross-functional teams to develop and deploy D-SIMLAB’s software products as well as provide professional consultation services to our clients.
+                      - 'generic "Position level: Junior Executive" [ref=f1e859]': Junior Executive
+                      - generic [ref=f1e860]:
+                        - button "Analyse" [ref=f1e861]
+                        - link "Open" [ref=f1e862]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-d-simlab-technologies-c5e09089c99c82f39acdd26b5ea54ec0
+                        - 'button "{ } OKF" [ref=f1e863]'
+                  - generic [ref=f1e864] [cursor=pointer]:
+                    - generic [ref=f1e865]:
+                      - generic [ref=f1e866]: W
+                      - generic "WEBSPARKS PTE. LTD." [ref=f1e867]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e869]':
+                      - text: exact title
+                      - generic [ref=f1e870]: ▾
+                    - generic [ref=f1e871]:
+                      - heading "Data Engineer (Public Sector)" [level=3] [ref=f1e872]
+                      - generic [ref=f1e873]: 1 month ago
+                      - generic [ref=f1e875]:
+                        - generic [ref=f1e876]: S$5,500 - S$9,000 / month
+                        - generic [ref=f1e877]: Contract
+                      - paragraph [ref=f1e878]: Data Modelling & Architecture Analyse the current organisational data landscape and identify opportunities to improve data structures and integration. Design and document conceptual, logical, and physical data models to support enterprise data architecture. Develop data mapping and transformation logic between source systems and target data models.
+                      - 'generic "Position level: Executive" [ref=f1e880]': Executive
+                      - generic [ref=f1e881]:
+                        - button "Analyse" [ref=f1e882]
+                        - link "Open" [ref=f1e883]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-websparks-0c3aea5b191af10d9ba9c6c84485cd38
+                        - 'button "{ } OKF" [ref=f1e884]'
+                  - generic [ref=f1e885] [cursor=pointer]:
+                    - generic [ref=f1e886]:
+                      - generic [ref=f1e887]: C
+                      - generic "COMBUILDER PTE LTD" [ref=f1e888]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e890]':
+                      - text: exact title
+                      - generic [ref=f1e891]: ▾
+                    - generic [ref=f1e892]:
+                      - heading "Data Engineer (AMK)" [level=3] [ref=f1e893]
+                      - generic [ref=f1e894]: 1 month ago
+                      - generic [ref=f1e896]:
+                        - generic [ref=f1e897]: S$5,000 - S$6,500 / month
+                        - generic [ref=f1e898]: Contract, Full Time
+                      - paragraph [ref=f1e899]: "We are looking for a Data Engineer to support large-scale government and defence-related data projects, focusing on building secure, scalable, and reliable data platforms and ETL/ELT pipelines across cloud and enterprise environments. Job Responsibilities: Data Engineering & Platform Development Design and develop scalable and reliable data pipelines."
+                      - 'generic "Position level: Executive" [ref=f1e901]': Executive
+                      - generic [ref=f1e902]:
+                        - button "Analyse" [ref=f1e903]
+                        - link "Open" [ref=f1e904]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/data-engineer-combuilder-4b1669dac27f3200517b66c3c524fbee
+                        - 'button "{ } OKF" [ref=f1e905]'
+                  - generic [ref=f1e906] [cursor=pointer]:
+                    - generic [ref=f1e907]:
+                      - generic [ref=f1e908]: O
+                      - generic "OPUS IT SERVICES PTE LTD" [ref=f1e909]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e911]':
+                      - text: exact title
+                      - generic [ref=f1e912]: ▾
+                    - generic [ref=f1e913]:
+                      - heading "Data Engineer" [level=3] [ref=f1e914]
+                      - generic [ref=f1e915]: 1 month ago
+                      - generic [ref=f1e917]:
+                        - generic [ref=f1e918]: S$4,000 - S$6,000 / month
+                        - generic [ref=f1e919]: Contract, Full Time
+                      - paragraph [ref=f1e920]: As a Data Engineer, you will design, build, and operate scalable, secure, and high-performance enterprise data platforms and ETL pipelines that enable analytics, reporting, and data-driven decision making. You will play a key technical role in delivering end-to-end data pipelines, analytics platforms, and integration solutions across hybrid and cloud environments, including Government Commercial Cloud (GCC) and MINDEF Commercial Cloud (MCC).
+                      - 'generic "Position level: Executive" [ref=f1e922]': Executive
+                      - generic [ref=f1e923]:
+                        - button "Analyse" [ref=f1e924]
+                        - link "Open" [ref=f1e925]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-opus-services-e9b3a201a8260214a0a9d4fc83cc0020
+                        - 'button "{ } OKF" [ref=f1e926]'
+                  - generic [ref=f1e927] [cursor=pointer]:
+                    - generic [ref=f1e928]:
+                      - generic [ref=f1e929]: S
+                      - generic "SCIENTEC CONSULTING PTE. LTD." [ref=f1e930]
+                    - generic [ref=f1e931]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e932]':
+                        - text: title variant
+                        - generic [ref=f1e933]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f1e934]:
+                        - text: +1 ads
+                        - generic [ref=f1e935]: ▾
+                    - generic [ref=f1e936]:
+                      - heading "Senior Data Engineer | Enterprise Data | AI" [level=3] [ref=f1e937]
+                      - generic [ref=f1e938]:
+                        - generic [ref=f1e939]: NEW
+                        - generic [ref=f1e940]: today
+                      - generic [ref=f1e941]:
+                        - generic [ref=f1e942]: S$6,000 - S$9,000 / month
+                        - generic [ref=f1e943]: Permanent, Full Time
+                      - paragraph [ref=f1e944]: Design, develop, and maintain scalable data pipelines for ingestion, transformation, and delivery. Build and automate ETL/ELT workflows to improve efficiency, reliability, and scalability. Optimise data lakehouse and data warehouse platforms for performance, availability, and cost efficiency.
+                      - 'generic "Position level: Senior Executive" [ref=f1e946]': Senior Executive
+                      - generic [ref=f1e947]:
+                        - button "Analyse" [ref=f1e948]
+                        - link "Open" [ref=f1e949]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-enterprise-data-ai-scientec-consulting-c96a38969826aeb4b3ab3d43221253b8
+                        - 'button "{ } OKF" [ref=f1e950]'
+                  - generic [ref=f1e951] [cursor=pointer]:
+                    - generic [ref=f1e952]:
+                      - generic [ref=f1e953]: S
+                      - generic "SCIENTEC CONSULTING PTE. LTD." [ref=f1e954]
+                    - generic [ref=f1e955]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e956]':
+                        - text: title variant
+                        - generic [ref=f1e957]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f1e958]:
+                        - text: +1 ads
+                        - generic [ref=f1e959]: ▾
+                    - generic [ref=f1e960]:
+                      - heading "Senior Data Engineer (Python / AWS)" [level=3] [ref=f1e961]
+                      - generic [ref=f1e962]:
+                        - generic [ref=f1e963]: NEW
+                        - generic [ref=f1e964]: today
+                      - generic [ref=f1e965]:
+                        - generic [ref=f1e966]: S$5,000 - S$9,000 / month
+                        - generic [ref=f1e967]: Permanent, Full Time
+                      - paragraph [ref=f1e968]: Design, develop, and maintain scalable data pipelines for data ingestion, transformation, and delivery. Build and automate ETL/ELT processes to improve efficiency and reliability. Optimize data warehouses and data lakes for performance, scalability, and cost efficiency. Ensure data quality, security, governance, and compliance with company standards.
+                      - 'generic "Position level: Senior Executive" [ref=f1e970]': Senior Executive
+                      - generic [ref=f1e971]:
+                        - button "Analyse" [ref=f1e972]
+                        - link "Open" [ref=f1e973]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-scientec-consulting-dd6926c2c5f7aaa2b558c7ba5e61e784
+                        - 'button "{ } OKF" [ref=f1e974]'
+                  - generic [ref=f1e975] [cursor=pointer]:
+                    - generic [ref=f1e976]:
+                      - generic [ref=f1e977]: D
+                      - generic "DCI CONSULTANTS PRIVATE LIMITED" [ref=f1e978]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e980]':
+                      - text: title variant
+                      - generic [ref=f1e981]: ▾
+                    - generic [ref=f1e982]:
+                      - heading "Data Engineer - KT" [level=3] [ref=f1e983]
+                      - generic [ref=f1e984]:
+                        - generic [ref=f1e985]: NEW
+                        - generic [ref=f1e986]: yesterday
+                      - generic [ref=f1e987]:
+                        - generic [ref=f1e988]: S$6,000 - S$8,100 / month
+                        - generic [ref=f1e989]: Contract, Full Time
+                      - paragraph [ref=f1e990]: Data Pipeline Infrastructure & Architecture o Design and implement scalable data architectures on cloud data platforms with high availability, security, and performance o Lead development of Data Lakehouse solutions o Collaborate with stakeholders to understand requirements and translate them into technical specifications Pipeline Development & Optimisation o Build and maintain robust ETL/ELT pipelines using modern data engineering tools and frameworks o…
+                      - 'generic "Position level: Professional" [ref=f1e992]': Professional
+                      - generic [ref=f1e993]:
+                        - button "Analyse" [ref=f1e994]
+                        - link "Open" [ref=f1e995]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-kt-dci-consultants-61606186727dbe029c863b2265f87b79
+                        - 'button "{ } OKF" [ref=f1e996]'
+                  - generic [ref=f1e997] [cursor=pointer]:
+                    - generic [ref=f1e998]:
+                      - generic [ref=f1e999]: C
+                      - generic "CMC-APAC PRIVATE LIMITED" [ref=f1e1000]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1002]':
+                      - text: title variant
+                      - generic [ref=f1e1003]: ▾
+                    - generic [ref=f1e1004]:
+                      - heading "Senior Data Engineer" [level=3] [ref=f1e1005]
+                      - generic [ref=f1e1006]: 2 days ago
+                      - generic [ref=f1e1008]:
+                        - generic [ref=f1e1009]: S$6,500 - S$8,000 / month
+                        - generic [ref=f1e1010]: Full Time
+                      - paragraph [ref=f1e1011]: We are seeking an experienced Senior Data Engineer to design, develop, and maintain scalable cloud-native data platforms that support enterprise analytics and AI initiatives. You will be responsible for architecting modern data solutions, building robust data pipelines, and driving cloud transformation while ensuring data quality, security, and operational excellence.
+                      - 'generic "Position level: Senior Executive" [ref=f1e1013]': Senior Executive
+                      - generic [ref=f1e1014]:
+                        - button "Analyse" [ref=f1e1015]
+                        - link "Open" [ref=f1e1016]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-cmc-apac-cb6b7e0498cb0ee07f731aa95b3644cc
+                        - 'button "{ } OKF" [ref=f1e1017]'
+                  - generic [ref=f1e1018] [cursor=pointer]:
+                    - generic [ref=f1e1019]:
+                      - generic [ref=f1e1020]: "N"
+                      - generic "NICOLL CURTIN TECHNOLOGY PTE. LTD." [ref=f1e1021]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1023]':
+                      - text: title variant
+                      - generic [ref=f1e1024]: ▾
+                    - generic [ref=f1e1025]:
+                      - heading "Senior Data Engineer" [level=3] [ref=f1e1026]
+                      - generic [ref=f1e1027]: 5 days ago
+                      - generic [ref=f1e1029]:
+                        - generic [ref=f1e1030]: S$9,000 - S$12,000 / month
+                        - generic [ref=f1e1031]: Contract
+                      - paragraph [ref=f1e1032]: Design, build, and maintain scalable data pipelines and ETL/ELT workflows. Develop and optimize data models, warehouse structures, and large-scale datasets for performance and efficiency. Partner with Data Scientists, Product Managers, and Software Engineers to understand business requirements and deliver data solutions.
+                      - 'generic "Position level: Senior Executive" [ref=f1e1034]': Senior Executive
+                      - generic [ref=f1e1035]:
+                        - button "Analyse" [ref=f1e1036]
+                        - link "Open" [ref=f1e1037]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-nicoll-curtin-technology-c078fd1db6f7aa997b631f778c051ac5
+                        - 'button "{ } OKF" [ref=f1e1038]'
+                  - generic [ref=f1e1039] [cursor=pointer]:
+                    - generic [ref=f1e1040]:
+                      - generic [ref=f1e1041]: R
+                      - generic "RAPSYS TECHNOLOGIES PTE. LTD." [ref=f1e1042]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1044]':
+                      - text: title variant
+                      - generic [ref=f1e1045]: ▾
+                    - generic [ref=f1e1046]:
+                      - heading "SENIOR DATA ENGINEER" [level=3] [ref=f1e1047]
+                      - generic [ref=f1e1048]: 1 week ago
+                      - generic [ref=f1e1050]:
+                        - generic [ref=f1e1051]: S$7,500 - S$8,500 / month
+                        - generic [ref=f1e1052]: Contract
+                      - paragraph [ref=f1e1053]: Data Pipeline Development and Architecture a)Translate data requirements from business users into technical specifications. b)Build out data products as part of a data team. c)Architect and build ingestion pipelines to collect, clean, merge, and harmonise data from different source systems. d)Construct, test, and update useful and reusable data models based on data needs of end users. e)Design and build secure mechanisms for end users and systems to…
+                      - 'generic "Position level: Senior Executive" [ref=f1e1055]': Senior Executive
+                      - generic [ref=f1e1056]:
+                        - button "Analyse" [ref=f1e1057]
+                        - link "Open" [ref=f1e1058]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/senior-data-engineer-rapsys-technologies-72fb4c326b8a70db05106f742a5223ea
+                        - 'button "{ } OKF" [ref=f1e1059]'
+                  - generic [ref=f1e1060] [cursor=pointer]:
+                    - generic [ref=f1e1061]:
+                      - generic [ref=f1e1062]: S
+                      - generic "SPH MEDIA LIMITED" [ref=f1e1063]
+                    - generic [ref=f1e1064]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1065]':
+                        - text: title variant
+                        - generic [ref=f1e1066]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f1e1067]:
+                        - text: +1 ads
+                        - generic [ref=f1e1068]: ▾
+                    - generic [ref=f1e1069]:
+                      - heading "Senior Data Engineer" [level=3] [ref=f1e1070]
+                      - generic [ref=f1e1071]: 1 week ago
+                      - generic [ref=f1e1073]:
+                        - generic [ref=f1e1074]: S$17,000 - S$22,000 / month
+                        - generic [ref=f1e1075]: Full Time
+                      - paragraph [ref=f1e1076]: Role We are hiring Data Engineers at all levels, seeking individuals who bring deep technical expertise and a clear drive to deliver measurable results. In this role, you will lead end-to-end engineering projects, designing and building the scalable data infrastructure that underpins our business.
+                      - 'generic "Position level: Middle Management" [ref=f1e1078]': Middle Management
+                      - generic [ref=f1e1079]:
+                        - button "Analyse" [ref=f1e1080]
+                        - link "Open" [ref=f1e1081]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/others/senior-data-engineer-sph-media-2d79759f8e2030e2c051dc383e246b6d
+                        - 'button "{ } OKF" [ref=f1e1082]'
+                  - generic [ref=f1e1083] [cursor=pointer]:
+                    - generic [ref=f1e1084]:
+                      - generic [ref=f1e1085]: P
+                      - generic "PERSOL SINGAPORE PTE. LTD." [ref=f1e1086]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1088]':
+                      - text: title variant
+                      - generic [ref=f1e1089]: ▾
+                    - generic [ref=f1e1090]:
+                      - heading "Data Engineer - 12 months agency contract" [level=3] [ref=f1e1091]
+                      - generic [ref=f1e1092]: 1 week ago
+                      - generic [ref=f1e1094]:
+                        - generic [ref=f1e1095]: S$8,000 - S$10,500 / month
+                        - generic [ref=f1e1096]: Contract
+                      - paragraph [ref=f1e1097]: Architect and implement scalable and resilient data pipelines, ensuring efficient data ingestion, processing, and storage in a cloud environment. Coordinate cross-functional teams, including business leads, system owners, architects, engineers, and external vendors to deliver high impact solutions.
+                      - 'generic "Position level: Senior Executive" [ref=f1e1099]': Senior Executive
+                      - generic [ref=f1e1100]:
+                        - button "Analyse" [ref=f1e1101]
+                        - link "Open" [ref=f1e1102]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-12-months-agency-contract-persol-singapore-df578fc734fa26b53847ad4643b799e5
+                        - 'button "{ } OKF" [ref=f1e1103]'
+                  - generic [ref=f1e1104] [cursor=pointer]:
+                    - generic [ref=f1e1105]:
+                      - generic [ref=f1e1106]: J
+                      - generic "JPMORGAN CHASE BANK, N.A." [ref=f1e1107]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1109]':
+                      - text: title variant
+                      - generic [ref=f1e1110]: ▾
+                    - generic [ref=f1e1111]:
+                      - heading "Data Engineer III - Python/Spark/AWS" [level=3] [ref=f1e1112]
+                      - generic [ref=f1e1113]: 1 week ago
+                      - generic [ref=f1e1115]:
+                        - generic [ref=f1e1116]: S$8,000 - S$16,000 / month
+                        - generic [ref=f1e1117]: Permanent, Full Time
+                      - paragraph [ref=f1e1118]: Be part of a dynamic team where your distinctive skills will contribute to a winning culture and team. As a Data Engineer at JPMorganChase within the International Consumer Bank, you will serve as a seasoned member of an agile team, designing and delivering trusted data collection, storage, access, and analytics solutions in a secure, stable, and scalable way.
+                      - 'generic "Position level: Executive" [ref=f1e1120]': Executive
+                      - generic [ref=f1e1121]:
+                        - button "Analyse" [ref=f1e1122]
+                        - link "Open" [ref=f1e1123]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-engineer-iii-pythonsparkaws-jpmorgan-chase-bank-na-fefad6aca1dcff1bd8f87c16fc675691
+                        - 'button "{ } OKF" [ref=f1e1124]'
+                  - generic [ref=f1e1125] [cursor=pointer]:
+                    - generic [ref=f1e1126]:
+                      - generic [ref=f1e1127]: K
+                      - generic "KEY CONNECT RECRUITMENT PTE. LTD." [ref=f1e1128]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1130]':
+                      - text: title variant
+                      - generic [ref=f1e1131]: ▾
+                    - generic [ref=f1e1132]:
+                      - heading "Data Engineer (Python, Data Systems & AI Enablement" [level=3] [ref=f1e1133]
+                      - generic [ref=f1e1134]: 1 week ago
+                      - generic [ref=f1e1136]:
+                        - generic [ref=f1e1137]: S$8,000 - S$14,500 / month
+                        - generic [ref=f1e1138]: Contract, Full Time
+                      - paragraph [ref=f1e1139]: Python-focused Data Engineer with strong hands-on coding skills in data-intensive systems. The role focuses on building scalable data pipelines, processing large datasets, and enabling AI/Generative AI applications through well-structured data infrastructure. Key Responsibilities Build and maintain scalable data pipelines using Python Write production-grade Python code specifically for data processing, transformation, and ETL workflows Perform data…
+                      - 'generic "Position level: Middle Management" [ref=f1e1141]': Middle Management
+                      - generic [ref=f1e1142]:
+                        - button "Analyse" [ref=f1e1143]
+                        - link "Open" [ref=f1e1144]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-python-data-systems-ai-enablement-key-connect-recruitment-456dff3c7ed4edc2021c00434529ce92
+                        - 'button "{ } OKF" [ref=f1e1145]'
+                  - generic [ref=f1e1146] [cursor=pointer]:
+                    - generic [ref=f1e1147]:
+                      - generic [ref=f1e1148]: I
+                      - generic "ILLUMINA INTERNATIONAL GENOMICS PTE. LTD." [ref=f1e1149]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1151]':
+                      - text: title variant
+                      - generic [ref=f1e1152]: ▾
+                    - generic [ref=f1e1153]:
+                      - heading "Senior Data Engineer (18 Months Contract)" [level=3] [ref=f1e1154]
+                      - generic [ref=f1e1155]: 2 weeks ago
+                      - generic [ref=f1e1157]:
+                        - generic [ref=f1e1158]: S$8,200 - S$11,100 / month
+                        - generic [ref=f1e1159]: Contract
+                      - paragraph [ref=f1e1160]: "We are seeking a highly skilled and motivated Senior Data Engineer to join our team and play a crucial role in building and maintaining our common unified framework, data pipelines, data models, data products, and data engineering tooling. Position Responsibilities: Design, develop, and maintain a common unified data framework that enables seamless integration of data from various sources and systems."
+                      - 'generic "Position level: Senior Executive" [ref=f1e1162]': Senior Executive
+                      - generic [ref=f1e1163]:
+                        - button "Analyse" [ref=f1e1164]
+                        - link "Open" [ref=f1e1165]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-data-engineer-illumina-international-genomics-c88a644854e67f575bcb783d87d06cfb
+                        - 'button "{ } OKF" [ref=f1e1166]'
+                  - generic [ref=f1e1167] [cursor=pointer]:
+                    - generic [ref=f1e1168]:
+                      - generic [ref=f1e1169]: R
+                      - generic "RUDER FINN ASIA PTE LTD" [ref=f1e1170]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1172]':
+                      - text: title variant
+                      - generic [ref=f1e1173]: ▾
+                    - generic [ref=f1e1174]:
+                      - heading "AI Data Engineer & Analyst" [level=3] [ref=f1e1175]
+                      - generic [ref=f1e1176]: 3 weeks ago
+                      - generic [ref=f1e1178]:
+                        - generic [ref=f1e1179]: S$5,500 - S$7,500 / month
+                        - generic [ref=f1e1180]: Contract
+                      - paragraph [ref=f1e1181]: Data Architecture & Engineering (40%) Design and implement the canonical object model in Microsoft Fabric / OneLake (Lakehouse / Data Warehouse) Build and maintain automated ingestion pipelines using Data Factory in Fabric / Azure Data Factory Implement identity resolution across disparate source systems (deterministic matching on shared keys + probabilistic/ML-based entity resolution) Create golden records with source-confidence scoring per attribute and…
+                      - 'generic "Position level: Professional" [ref=f1e1183]': Professional
+                      - generic [ref=f1e1184]:
+                        - button "Analyse" [ref=f1e1185]
+                        - link "Open" [ref=f1e1186]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/consulting/ai-data-engineer-analyst-ruder-finn-asia-29672e9129ecf236e3f9bcc7c01df1bb
+                        - 'button "{ } OKF" [ref=f1e1187]'
+                  - generic [ref=f1e1188] [cursor=pointer]:
+                    - generic [ref=f1e1189]:
+                      - generic [ref=f1e1190]: R
+                      - generic "RECRUIT EXPRESS PTE LTD" [ref=f1e1191]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1193]':
+                      - text: title variant
+                      - generic [ref=f1e1194]: ▾
+                    - generic [ref=f1e1195]:
+                      - 'heading "Data Engineer (Perm role with up to 6mth VB, up to $8000 basic, Azure DevOps, Python) #IRT" [level=3] [ref=f1e1196]'
+                      - generic [ref=f1e1197]: 4 weeks ago
+                      - generic [ref=f1e1199]:
+                        - generic [ref=f1e1200]: S$6,500 - S$8,000 / month
+                        - generic [ref=f1e1201]: Permanent
+                      - paragraph [ref=f1e1202]: Data Management & Transformation Designing and developing new data pipelines and managing existing data pipelines that extract data from various business applications, databases, and external systems. Implementing data quality checks and validations within data pipelines to ensure the accuracy, consistency, and completeness of data.
+                      - 'generic "Position level: Senior Executive" [ref=f1e1204]': Senior Executive
+                      - generic [ref=f1e1205]:
+                        - button "Analyse" [ref=f1e1206]
+                        - link "Open" [ref=f1e1207]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-irt-recruit-express-52737b92cd1c5d2c4d2e6a84b66dadd0
+                        - 'button "{ } OKF" [ref=f1e1208]'
+                  - generic [ref=f1e1209] [cursor=pointer]:
+                    - generic [ref=f1e1210]:
+                      - generic [ref=f1e1211]: I
+                      - generic "IOTALENTS PTE. LTD." [ref=f1e1212]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1214]':
+                      - text: title variant
+                      - generic [ref=f1e1215]: ▾
+                    - generic [ref=f1e1216]:
+                      - heading "Data Engineer, Digital Transformation & Data" [level=3] [ref=f1e1217]
+                      - generic [ref=f1e1218]: 1 month ago
+                      - generic [ref=f1e1220]:
+                        - generic [ref=f1e1221]: S$9,000 - S$11,000 / month
+                        - generic [ref=f1e1222]: Permanent, Full Time
+                      - paragraph [ref=f1e1223]: "job Reporting to the Data and Analytics Lead, the successful candidate will be responsible for the following: Data Management & Transformation Designing and developing new data pipelines and managing existing data pipelines that extract data from various business applications, databases, and external systems."
+                      - 'generic "Position level: Professional" [ref=f1e1225]': Professional
+                      - generic [ref=f1e1226]:
+                        - button "Analyse" [ref=f1e1227]
+                        - link "Open" [ref=f1e1228]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-digital-transformation-data-iotalents-6d4797b665ebc60bfb26b37f26da63e7
+                        - 'button "{ } OKF" [ref=f1e1229]'
+                  - generic [ref=f1e1230] [cursor=pointer]:
+                    - generic [ref=f1e1231]:
+                      - generic [ref=f1e1232]: V
+                      - generic "VANGUARD SOFTWARE PTE. LTD." [ref=f1e1233]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1235]':
+                      - text: title variant
+                      - generic [ref=f1e1236]: ▾
+                    - generic [ref=f1e1237]:
+                      - heading "Junior Data Engineer" [level=3] [ref=f1e1238]
+                      - generic [ref=f1e1239]: 2 months ago
+                      - generic [ref=f1e1241]:
+                        - generic [ref=f1e1242]: S$4,000 - S$5,500 / month
+                        - generic [ref=f1e1243]: Full Time
+                      - paragraph [ref=f1e1244]: We're looking for a Data Engineer with strong software engineering fundamentals to build and scale our data infrastructure. You'll design high-performance systems that handle massive data volumes and high-concurrency workloads, optimize query engines for speed and reliability, and architect robust data pipelines.
+                      - 'generic "Position level: Junior Executive" [ref=f1e1246]': Junior Executive
+                      - generic [ref=f1e1247]:
+                        - button "Analyse" [ref=f1e1248]
+                        - link "Open" [ref=f1e1249]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/junior-data-engineer-vanguard-software-7eb52e1040a1e9a4ea0c1dd44131e51e
+                        - 'button "{ } OKF" [ref=f1e1250]'
+                  - generic [ref=f1e1251] [cursor=pointer]:
+                    - generic [ref=f1e1252]:
+                      - generic [ref=f1e1253]: A
+                      - generic "AIRWALLEX (SINGAPORE) PTE. LTD." [ref=f1e1254]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1256]':
+                      - text: title variant
+                      - generic [ref=f1e1257]: ▾
+                    - generic [ref=f1e1258]:
+                      - heading "Senior Data Engineer" [level=3] [ref=f1e1259]
+                      - generic [ref=f1e1260]: 3 months ago
+                      - generic [ref=f1e1262]:
+                        - generic [ref=f1e1263]: S$10,000 - S$20,000 / month
+                        - generic [ref=f1e1264]: Full Time
+                      - paragraph [ref=f1e1265]: Data Modeling Design and implement robust and scalable data models that support business intelligence, machine learning, and operational needs. Possess a deep understanding of data schemas and be able to select appropriate schema designs (e.g., star schema, snowflake, normalized vs denormalized) based on use cases.
+                      - 'generic "Position level: Senior Executive" [ref=f1e1267]': Senior Executive
+                      - generic [ref=f1e1268]:
+                        - button "Analyse" [ref=f1e1269]
+                        - link "Open" [ref=f1e1270]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/engineering/senior-data-engineer-airwallex-b70641128b226cbdd2d7ff260c74036d
+                        - 'button "{ } OKF" [ref=f1e1271]'
+                  - generic [ref=f1e1272] [cursor=pointer]:
+                    - generic [ref=f1e1273]:
+                      - generic [ref=f1e1274]: S
+                      - generic "SYNAPXE PTE. LTD." [ref=f1e1275]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1277]':
+                      - text: title variant
+                      - generic [ref=f1e1278]: ▾
+                    - generic [ref=f1e1279]:
+                      - heading "Data Engineer - Informatica" [level=3] [ref=f1e1280]
+                      - generic [ref=f1e1281]: 5 months ago
+                      - generic [ref=f1e1283]:
+                        - generic [ref=f1e1284]: S$7,200 - S$8,500 / month
+                        - generic [ref=f1e1285]: Full Time
+                      - paragraph [ref=f1e1286]: We are hiring a Data Engineer for data migration projects (Primarily utilizing AWS, IDMC, Databricks and Tableau) Roles and responsibilities Design and architect data storage solutions, including databases, data lakes, and warehouses, using AWS services such as Amazon S3, Amazon RDS, Amazon Redshift, and Amazon DynamoDB, along with Databricks' Delta Lake Integrate Informatica IDMC for metadata management and data cataloging Integrate data from various…
+                      - 'generic "Position level: Senior Executive" [ref=f1e1288]': Senior Executive
+                      - generic [ref=f1e1289]:
+                        - button "Analyse" [ref=f1e1290]
+                        - link "Open" [ref=f1e1291]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-engineer-informatica-synapxe-546fe1ed9440b5b35b44eb5f620e7c32
+                        - 'button "{ } OKF" [ref=f1e1292]'
+              - generic [ref=f1e1293]:
+                - generic [ref=f1e1294]:
+                  - generic [ref=f1e1296]: careers.gov.sg
+                  - generic [ref=f1e1297]: "50"
+                - generic [ref=f1e1298]:
+                  - generic [ref=f1e1299] [cursor=pointer]:
+                    - generic [ref=f1e1300]:
+                      - generic [ref=f1e1301]: "N"
+                      - generic "National Library Board" [ref=f1e1302]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1304]':
+                      - text: exact title
+                      - generic [ref=f1e1305]: ▾
+                    - generic [ref=f1e1306]:
+                      - heading "Data Engineer" [level=3] [ref=f1e1307]
+                      - generic [ref=f1e1308]: 2 days ago
+                      - generic [ref=f1e1310]:
+                        - generic [ref=f1e1311]: Salary on application
+                        - generic [ref=f1e1312]: Fixed Terms
+                      - paragraph [ref=f1e1313]: "- Data Architecture Design: Collaborating with NLB solution architects, Data Management Platform awarded vendor and other stakeholders to understand data requirements and designing scalable and efficient data architectures. - Data Management: Working closely with the vendor to set up and manage Databases and Data Lake, including selecting appropriate database technologies, optimizing query performance, and ensuring data integrity and security. - Data…"
+                      - generic [ref=f1e1314]:
+                        - button "Analyse" [ref=f1e1315]
+                        - link "Open" [ref=f1e1316]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17804754/005056a3-53e2-1fd1-9ec8-4ea9951f5401
+                        - 'button "{ } OKF" [ref=f1e1317]'
+                  - generic [ref=f1e1318] [cursor=pointer]:
+                    - generic [ref=f1e1319]:
+                      - generic [ref=f1e1320]: G
+                      - generic "Government Technology Agency" [ref=f1e1321]
+                    - generic [ref=f1e1322]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1323]':
+                        - text: exact title
+                        - generic [ref=f1e1324]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1325]:
+                        - text: +12 ads
+                        - generic [ref=f1e1326]: ▾
+                    - generic [ref=f1e1327]:
+                      - heading "Data Engineer (CSC)" [level=3] [ref=f1e1328]
+                      - generic [ref=f1e1329]: 3 weeks ago
+                      - generic [ref=f1e1331]: Salary on application
+                      - paragraph [ref=f1e1333]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1334]:
+                        - button "Analyse" [ref=f1e1335]
+                        - link "Open" [ref=f1e1336]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004340201?gh_jid=4004340201
+                        - 'button "{ } OKF" [ref=f1e1337]'
+                  - generic [ref=f1e1338] [cursor=pointer]:
+                    - generic [ref=f1e1339]:
+                      - generic [ref=f1e1340]: G
+                      - generic "Government Technology Agency" [ref=f1e1341]
+                    - generic [ref=f1e1342]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1343]':
+                        - text: exact title
+                        - generic [ref=f1e1344]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1345]:
+                        - text: +12 ads
+                        - generic [ref=f1e1346]: ▾
+                    - generic [ref=f1e1347]:
+                      - heading "Data Engineer (GeBIZ X)" [level=3] [ref=f1e1348]
+                      - generic [ref=f1e1349]: 1 month ago
+                      - generic [ref=f1e1351]: Salary on application
+                      - paragraph [ref=f1e1353]: The Ministry of Finance is responsible for the Government Procurement (GP) policies, which govern how government agencies conduct their procurement. With evolving needs of our public officers and changing procurement landscape, MOF is embarking on the Whole of Government Procurement initiative.
+                      - generic [ref=f1e1354]:
+                        - button "Analyse" [ref=f1e1355]
+                        - link "Open" [ref=f1e1356]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003807201?gh_jid=4003807201
+                        - 'button "{ } OKF" [ref=f1e1357]'
+                  - generic [ref=f1e1358] [cursor=pointer]:
+                    - generic [ref=f1e1359]:
+                      - generic [ref=f1e1360]: G
+                      - generic "Government Technology Agency" [ref=f1e1361]
+                    - generic [ref=f1e1362]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1363]':
+                        - text: exact title
+                        - generic [ref=f1e1364]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1365]:
+                        - text: +12 ads
+                        - generic [ref=f1e1366]: ▾
+                    - generic [ref=f1e1367]:
+                      - heading "Data Engineer (MSF)" [level=3] [ref=f1e1368]
+                      - generic [ref=f1e1369]: 2 months ago
+                      - generic [ref=f1e1371]: Salary on application
+                      - paragraph [ref=f1e1373]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1374]:
+                        - button "Analyse" [ref=f1e1375]
+                        - link "Open" [ref=f1e1376]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003155201?gh_jid=4003155201
+                        - 'button "{ } OKF" [ref=f1e1377]'
+                  - generic [ref=f1e1378] [cursor=pointer]:
+                    - generic [ref=f1e1379]:
+                      - generic [ref=f1e1380]: G
+                      - generic "Government Technology Agency" [ref=f1e1381]
+                    - generic [ref=f1e1382]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1383]':
+                        - text: exact title
+                        - generic [ref=f1e1384]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1385]:
+                        - text: +12 ads
+                        - generic [ref=f1e1386]: ▾
+                    - generic [ref=f1e1387]:
+                      - heading "Data Engineer (ESG)" [level=3] [ref=f1e1388]
+                      - generic [ref=f1e1389]: 2 months ago
+                      - generic [ref=f1e1391]: Salary on application
+                      - paragraph [ref=f1e1393]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1394]:
+                        - button "Analyse" [ref=f1e1395]
+                        - link "Open" [ref=f1e1396]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001705201?gh_jid=4001705201
+                        - 'button "{ } OKF" [ref=f1e1397]'
+                  - generic [ref=f1e1398] [cursor=pointer]:
+                    - generic [ref=f1e1399]:
+                      - generic [ref=f1e1400]: M
+                      - generic "MHA - Internal Security Department (ISD)" [ref=f1e1401]
+                    - generic [ref=f1e1402]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f1e1403]':
+                        - text: exact title
+                        - generic [ref=f1e1404]: ▾
+                      - button "4 more ads from this employer in this result. Tap to list them." [ref=f1e1405]:
+                        - text: +4 ads
+                        - generic [ref=f1e1406]: ▾
+                    - generic [ref=f1e1407]:
+                      - heading "Data Engineer" [level=3] [ref=f1e1408]
+                      - generic [ref=f1e1409]: 12 months ago
+                      - generic [ref=f1e1411]:
+                        - generic [ref=f1e1412]: Salary on application
+                        - generic [ref=f1e1413]: Permanent
+                      - paragraph [ref=f1e1414]: Design, build, maintain and optimize data pipeline architecture Collaborate with Data Scientists and Analysts to optimise extraction, transformation, and loading of data from a wide variety of data sources using SQL and Big Data technologies. Evaluate Data Analytics technologies to recommend tools and frameworks to optimize data processing and analysis.
+                      - generic [ref=f1e1415]:
+                        - button "Analyse" [ref=f1e1416]
+                        - link "Open" [ref=f1e1417]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/11782951/005056a3-53e2-1fd1-9d87-3ebb5c547401
+                        - 'button "{ } OKF" [ref=f1e1418]'
+                  - generic [ref=f1e1419] [cursor=pointer]:
+                    - generic [ref=f1e1420]:
+                      - generic [ref=f1e1421]: M
+                      - generic "MHA - Internal Security Department (ISD)" [ref=f1e1422]
+                    - generic [ref=f1e1423]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1424]':
+                        - text: title variant
+                        - generic [ref=f1e1425]: ▾
+                      - button "4 more ads from this employer in this result. Tap to list them." [ref=f1e1426]:
+                        - text: +4 ads
+                        - generic [ref=f1e1427]: ▾
+                    - generic [ref=f1e1428]:
+                      - heading "Data Acquisition Engineer (AI Systems)" [level=3] [ref=f1e1429]
+                      - generic [ref=f1e1430]: 1 week ago
+                      - generic [ref=f1e1432]:
+                        - generic [ref=f1e1433]: Salary on application
+                        - generic [ref=f1e1434]: Permanent
+                      - paragraph [ref=f1e1435]: As a Data Acquisition Engineer (AI Systems), you will work at the intersection of software engineering, browser automation, distributed systems, and AI. You will help design and build platforms that collect, process, and deliver structured data from a wide range of public sources while continuously improving their reliability and resilience.
+                      - generic [ref=f1e1436]:
+                        - button "Analyse" [ref=f1e1437]
+                        - link "Open" [ref=f1e1438]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17782251/005056a3-d347-1fe1-9db9-36ad1b0fe2ad
+                        - 'button "{ } OKF" [ref=f1e1439]'
+                  - generic [ref=f1e1440] [cursor=pointer]:
+                    - generic [ref=f1e1441]:
+                      - generic [ref=f1e1442]: M
+                      - generic "MHA - Internal Security Department (ISD)" [ref=f1e1443]
+                    - generic [ref=f1e1444]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1445]':
+                        - text: title variant
+                        - generic [ref=f1e1446]: ▾
+                      - button "4 more ads from this employer in this result. Tap to list them." [ref=f1e1447]:
+                        - text: +4 ads
+                        - generic [ref=f1e1448]: ▾
+                    - generic [ref=f1e1449]:
+                      - heading "Data Analytics Engineer" [level=3] [ref=f1e1450]
+                      - generic [ref=f1e1451]: 1 month ago
+                      - generic [ref=f1e1453]:
+                        - generic [ref=f1e1454]: Salary on application
+                        - generic [ref=f1e1455]: Permanent
+                      - paragraph [ref=f1e1456]: "Design, develop, and build data analytics and AI solutions with the following key technologies: Python web frameworks (Flask, FastAPI), Apache Spark, Oracle database and Linux. Leverage and integrate data-driven technologies such as distributed data processing, graph databases, search engines, generative AI and agentic AI."
+                      - generic [ref=f1e1457]:
+                        - button "Analyse" [ref=f1e1458]
+                        - link "Open" [ref=f1e1459]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/11772504/005056a3-d347-1fe1-9db9-48d00f0c82ad
+                        - 'button "{ } OKF" [ref=f1e1460]'
+                  - generic [ref=f1e1461] [cursor=pointer]:
+                    - generic [ref=f1e1462]:
+                      - generic [ref=f1e1463]: C
+                      - generic "Civil Service College" [ref=f1e1464]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1466]':
+                      - text: title variant
+                      - generic [ref=f1e1467]: ▾
+                    - generic [ref=f1e1468]:
+                      - heading "Data Engineer, Data and AI Office (DAO) - 2 Two-Year Contract" [level=3] [ref=f1e1469]
+                      - generic [ref=f1e1470]: 1 month ago
+                      - generic [ref=f1e1472]:
+                        - generic [ref=f1e1473]: Salary on application
+                        - generic [ref=f1e1474]: Contract
+                      - paragraph [ref=f1e1475]: Data Infrastructure and Data Pipeline Development Collaborate with system architect or senior engineers to design and implement the suitable data architecture, schema and data storage solutions that support business requirements. Work with vendor and stakeholders on secure API integrations, including API specification and documentations to integrate data from multiple sources.
+                      - generic [ref=f1e1476]:
+                        - button "Analyse" [ref=f1e1477]
+                        - link "Open" [ref=f1e1478]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17390896/005056a3-53e2-1fd1-9dba-617b6e701401
+                        - 'button "{ } OKF" [ref=f1e1479]'
+                  - generic [ref=f1e1480] [cursor=pointer]:
+                    - generic [ref=f1e1481]:
+                      - generic [ref=f1e1482]: G
+                      - generic "Government Technology Agency" [ref=f1e1483]
+                    - generic [ref=f1e1484]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1485]':
+                        - text: title variant
+                        - generic [ref=f1e1486]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1487]:
+                        - text: +12 ads
+                        - generic [ref=f1e1488]: ▾
+                    - generic [ref=f1e1489]:
+                      - heading "Senior / Data Engineer (AGC)" [level=3] [ref=f1e1490]
+                      - generic [ref=f1e1491]: 1 month ago
+                      - generic [ref=f1e1493]: Salary on application
+                      - paragraph [ref=f1e1495]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1496]:
+                        - button "Analyse" [ref=f1e1497]
+                        - link "Open" [ref=f1e1498]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004030201?gh_jid=4004030201
+                        - 'button "{ } OKF" [ref=f1e1499]'
+                  - generic [ref=f1e1500] [cursor=pointer]:
+                    - generic [ref=f1e1501]:
+                      - generic [ref=f1e1502]: G
+                      - generic "Government Technology Agency" [ref=f1e1503]
+                    - generic [ref=f1e1504]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1505]':
+                        - text: title variant
+                        - generic [ref=f1e1506]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1507]:
+                        - text: +12 ads
+                        - generic [ref=f1e1508]: ▾
+                    - generic [ref=f1e1509]:
+                      - heading "Data Engineer, Data Practice" [level=3] [ref=f1e1510]
+                      - generic [ref=f1e1511]: 1 month ago
+                      - generic [ref=f1e1513]: Salary on application
+                      - paragraph [ref=f1e1515]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1516]:
+                        - button "Analyse" [ref=f1e1517]
+                        - link "Open" [ref=f1e1518]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003992201?gh_jid=4003992201
+                        - 'button "{ } OKF" [ref=f1e1519]'
+                  - generic [ref=f1e1520] [cursor=pointer]:
+                    - generic [ref=f1e1521]:
+                      - generic [ref=f1e1522]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1523]
+                    - generic [ref=f1e1524]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1525]':
+                        - text: title variant
+                        - generic [ref=f1e1526]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1527]:
+                        - text: +6 ads
+                        - generic [ref=f1e1528]: ▾
+                    - generic [ref=f1e1529]:
+                      - heading "Senior Data Engineer (Big Data Processing)" [level=3] [ref=f1e1530]
+                      - generic [ref=f1e1531]: 3 months ago
+                      - generic [ref=f1e1533]:
+                        - generic [ref=f1e1534]: Salary on application
+                        - generic [ref=f1e1535]: Permanent
+                      - paragraph [ref=f1e1536]: Design and build data pipelines that are scalable, robust and maintainable to ingest crucial data using cutting-edge platforms and technologies Work with product managers, engineering managers and key stakeholders to deliver impactful data products that meet our business needs Optimise performance of large-scale data pipelines for low-latency, high-throughput and reliability Ensure data integrity, quality and governance through robust design and…
+                      - generic [ref=f1e1537]:
+                        - button "Analyse" [ref=f1e1538]
+                        - link "Open" [ref=f1e1539]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17337996/005056a3-d347-1fe1-8ab4-23510783228d
+                        - 'button "{ } OKF" [ref=f1e1540]'
+                  - generic [ref=f1e1541] [cursor=pointer]:
+                    - generic [ref=f1e1542]:
+                      - generic [ref=f1e1543]: M
+                      - generic "MHA - Internal Security Department (ISD)" [ref=f1e1544]
+                    - generic [ref=f1e1545]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1546]':
+                        - text: title variant
+                        - generic [ref=f1e1547]: ▾
+                      - button "4 more ads from this employer in this result. Tap to list them." [ref=f1e1548]:
+                        - text: +4 ads
+                        - generic [ref=f1e1549]: ▾
+                    - generic [ref=f1e1550]:
+                      - heading "Data Centre Engineer" [level=3] [ref=f1e1551]
+                      - generic [ref=f1e1552]: 12 months ago
+                      - generic [ref=f1e1554]:
+                        - generic [ref=f1e1555]: Salary on application
+                        - generic [ref=f1e1556]: Permanent
+                      - paragraph [ref=f1e1557]: Participate in designing and modernisation of data centre infrastructure; Manage data centre operations, which include formulation and assessment of KPIs, capacity planning, usage management etc; Coordinate with stakeholders during incident response and remediation of issues Manage data centre modernisation and technology upgrade projects; Manage data centre maintenance contracts; Provide technical consultancy to stakeholders regarding project…
+                      - generic [ref=f1e1558]:
+                        - button "Analyse" [ref=f1e1559]
+                        - link "Open" [ref=f1e1560]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/11898051/005056a3-53e2-1fd1-9d87-43cec5e5b401
+                        - 'button "{ } OKF" [ref=f1e1561]'
+                  - generic [ref=f1e1562] [cursor=pointer]:
+                    - generic [ref=f1e1563]:
+                      - generic [ref=f1e1564]: M
+                      - generic "MHA - Internal Security Department (ISD)" [ref=f1e1565]
+                    - generic [ref=f1e1566]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f1e1567]':
+                        - text: title variant
+                        - generic [ref=f1e1568]: ▾
+                      - button "4 more ads from this employer in this result. Tap to list them." [ref=f1e1569]:
+                        - text: +4 ads
+                        - generic [ref=f1e1570]: ▾
+                    - generic [ref=f1e1571]:
+                      - heading "Data Platform Engineer" [level=3] [ref=f1e1572]
+                      - generic [ref=f1e1573]: 49 months ago
+                      - generic [ref=f1e1575]:
+                        - generic [ref=f1e1576]: Salary on application
+                        - generic [ref=f1e1577]: Permanent
+                      - paragraph [ref=f1e1578]: Manage the data infrastructure to support data analytics on SQL and Big Data technologies Research, Evaluate and Implement solutions to enhance performance, availability and security of data platforms Collaborate with Data Scientists, Analysts and Developers to optimise using data advance technologies.
+                      - generic [ref=f1e1579]:
+                        - button "Analyse" [ref=f1e1580]
+                        - link "Open" [ref=f1e1581]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/11783064/005056a3-53e2-1fd1-9d87-30b6377b9401
+                        - 'button "{ } OKF" [ref=f1e1582]'
+                  - generic [ref=f1e1583] [cursor=pointer]:
+                    - generic [ref=f1e1584]:
+                      - generic [ref=f1e1585]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e1586]
+                    - generic [ref=f1e1587]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1588]':
+                        - text: nuance
+                        - generic [ref=f1e1589]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e1590]:
+                        - text: +11 ads
+                        - generic [ref=f1e1591]: ▾
+                    - generic [ref=f1e1592]:
+                      - heading "Principal Engineer, AI & Data Engineering, Data Solutioning, xData" [level=3] [ref=f1e1593]
+                      - generic [ref=f1e1594]:
+                        - generic [ref=f1e1595]: NEW
+                        - generic [ref=f1e1596]: today
+                      - generic [ref=f1e1597]:
+                        - generic [ref=f1e1598]: Salary on application
+                        - generic [ref=f1e1599]: Permanent/Contract
+                      - paragraph [ref=f1e1600]: "AI Data Architecture: develop and implement a cohesive data strategy across Home Teams that aligns with organisation’s AI goals. o Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f1e1601]:
+                        - button "Analyse" [ref=f1e1602]
+                        - link "Open" [ref=f1e1603]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815525/005056a3-53e2-1fd1-9f83-f56332d63401
+                        - 'button "{ } OKF" [ref=f1e1604]'
+                  - generic [ref=f1e1605] [cursor=pointer]:
+                    - generic [ref=f1e1606]:
+                      - generic [ref=f1e1607]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e1608]
+                    - generic [ref=f1e1609]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1610]':
+                        - text: nuance
+                        - generic [ref=f1e1611]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e1612]:
+                        - text: +11 ads
+                        - generic [ref=f1e1613]: ▾
+                    - generic [ref=f1e1614]:
+                      - heading "Lead Engineer/Engineer, AI & Data Engineering, xData" [level=3] [ref=f1e1615]
+                      - generic [ref=f1e1616]:
+                        - generic [ref=f1e1617]: NEW
+                        - generic [ref=f1e1618]: today
+                      - generic [ref=f1e1619]:
+                        - generic [ref=f1e1620]: Salary on application
+                        - generic [ref=f1e1621]: Permanent/Contract
+                      - paragraph [ref=f1e1622]: "The principal accountabilities of the job holder is to: a. Ensure timely delivery of projects within the committed schedule and budget ensuring project issues are timely resolved or escalated to management for attention. b. Provide regular update to HTX management on the project progress highlighting project milestones, issues and track project expenditure. c."
+                      - generic [ref=f1e1623]:
+                        - button "Analyse" [ref=f1e1624]
+                        - link "Open" [ref=f1e1625]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815747/005056a3-53e2-1fd1-9f84-c276ef0b3401
+                        - 'button "{ } OKF" [ref=f1e1626]'
+                  - generic [ref=f1e1627] [cursor=pointer]:
+                    - generic [ref=f1e1628]:
+                      - generic [ref=f1e1629]: G
+                      - generic "Government Technology Agency" [ref=f1e1630]
+                    - generic [ref=f1e1631]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1632]':
+                        - text: nuance
+                        - generic [ref=f1e1633]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1634]:
+                        - text: +12 ads
+                        - generic [ref=f1e1635]: ▾
+                    - generic [ref=f1e1636]:
+                      - heading "Lead / Senior Software Engineer, Data Programme" [level=3] [ref=f1e1637]
+                      - generic [ref=f1e1638]:
+                        - generic [ref=f1e1639]: NEW
+                        - generic [ref=f1e1640]: yesterday
+                      - generic [ref=f1e1641]: Salary on application
+                      - paragraph [ref=f1e1643]: The Government Technology Agency (GovTech) aims to transform the delivery of Government digital services by taking an "outside-in" view, putting citizens and businesses at the heart of everything we do. We also develop the Smart Nation infrastructure and applications, and facilitate collaboration with citizens and businesses to co-develop technologies.
+                      - generic [ref=f1e1644]:
+                        - button "Analyse" [ref=f1e1645]
+                        - link "Open" [ref=f1e1646]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004796201?gh_jid=4004796201
+                        - 'button "{ } OKF" [ref=f1e1647]'
+                  - generic [ref=f1e1648] [cursor=pointer]:
+                    - generic [ref=f1e1649]:
+                      - generic [ref=f1e1650]: G
+                      - generic "Government Technology Agency" [ref=f1e1651]
+                    - generic [ref=f1e1652]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1653]':
+                        - text: nuance
+                        - generic [ref=f1e1654]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1655]:
+                        - text: +12 ads
+                        - generic [ref=f1e1656]: ▾
+                    - generic [ref=f1e1657]:
+                      - heading "Senior Software Engineer, Data Programme" [level=3] [ref=f1e1658]
+                      - generic [ref=f1e1659]:
+                        - generic [ref=f1e1660]: NEW
+                        - generic [ref=f1e1661]: yesterday
+                      - generic [ref=f1e1662]: Salary on application
+                      - paragraph [ref=f1e1664]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1665]:
+                        - button "Analyse" [ref=f1e1666]
+                        - link "Open" [ref=f1e1667]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004794201?gh_jid=4004794201
+                        - 'button "{ } OKF" [ref=f1e1668]'
+                  - generic [ref=f1e1669] [cursor=pointer]:
+                    - generic [ref=f1e1670]:
+                      - generic [ref=f1e1671]: G
+                      - generic "Government Technology Agency" [ref=f1e1672]
+                    - generic [ref=f1e1673]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1674]':
+                        - text: nuance
+                        - generic [ref=f1e1675]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1676]:
+                        - text: +12 ads
+                        - generic [ref=f1e1677]: ▾
+                    - generic [ref=f1e1678]:
+                      - heading "Systems Engineer" [level=3] [ref=f1e1679]
+                      - generic [ref=f1e1680]:
+                        - generic [ref=f1e1681]: NEW
+                        - generic [ref=f1e1682]: yesterday
+                      - generic [ref=f1e1683]: Salary on application
+                      - paragraph [ref=f1e1685]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1686]:
+                        - button "Analyse" [ref=f1e1687]
+                        - link "Open" [ref=f1e1688]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004787201?gh_jid=4004787201
+                        - 'button "{ } OKF" [ref=f1e1689]'
+                  - generic [ref=f1e1690] [cursor=pointer]:
+                    - generic [ref=f1e1691]:
+                      - generic [ref=f1e1692]: G
+                      - generic "Government Technology Agency" [ref=f1e1693]
+                    - generic [ref=f1e1694]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1695]':
+                        - text: nuance
+                        - generic [ref=f1e1696]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1697]:
+                        - text: +12 ads
+                        - generic [ref=f1e1698]: ▾
+                    - generic [ref=f1e1699]:
+                      - heading "Software Engineer, Data Programme" [level=3] [ref=f1e1700]
+                      - generic [ref=f1e1701]:
+                        - generic [ref=f1e1702]: NEW
+                        - generic [ref=f1e1703]: yesterday
+                      - generic [ref=f1e1704]: Salary on application
+                      - paragraph [ref=f1e1706]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1707]:
+                        - button "Analyse" [ref=f1e1708]
+                        - link "Open" [ref=f1e1709]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004780201?gh_jid=4004780201
+                        - 'button "{ } OKF" [ref=f1e1710]'
+                  - generic [ref=f1e1711] [cursor=pointer]:
+                    - generic [ref=f1e1712]:
+                      - generic [ref=f1e1713]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e1714]
+                    - generic [ref=f1e1715]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1716]':
+                        - text: nuance
+                        - generic [ref=f1e1717]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e1718]:
+                        - text: +11 ads
+                        - generic [ref=f1e1719]: ▾
+                    - generic [ref=f1e1720]:
+                      - heading "Principal Engineer, AI & Data Engineering, Data Solutioning, xData" [level=3] [ref=f1e1721]
+                      - generic [ref=f1e1722]: 2 weeks ago
+                      - generic [ref=f1e1724]:
+                        - generic [ref=f1e1725]: Salary on application
+                        - generic [ref=f1e1726]: Permanent/Contract
+                      - paragraph [ref=f1e1727]: "AI Data Architecture: develop and implement a cohesive data strategy across Home Teams that aligns with organisation’s AI goals. o Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f1e1728]:
+                        - button "Analyse" [ref=f1e1729]
+                        - link "Open" [ref=f1e1730]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17753306/005056a3-53e2-1fd1-9ca2-3a4285c373ff
+                        - 'button "{ } OKF" [ref=f1e1731]'
+                  - generic [ref=f1e1732] [cursor=pointer]:
+                    - generic [ref=f1e1733]:
+                      - generic [ref=f1e1734]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e1735]
+                    - generic [ref=f1e1736]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1737]':
+                        - text: nuance
+                        - generic [ref=f1e1738]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e1739]:
+                        - text: +11 ads
+                        - generic [ref=f1e1740]: ▾
+                    - generic [ref=f1e1741]:
+                      - heading "Lead Engineer/Engineer, AI & Data Engineering, xData" [level=3] [ref=f1e1742]
+                      - generic [ref=f1e1743]: 2 weeks ago
+                      - generic [ref=f1e1745]:
+                        - generic [ref=f1e1746]: Salary on application
+                        - generic [ref=f1e1747]: Permanent/Contract
+                      - paragraph [ref=f1e1748]: "The principal accountabilities of the job holder is to: a. Ensure timely delivery of projects within the committed schedule and budget ensuring project issues are timely resolved or escalated to management for attention. b. Provide regular update to HTX management on the project progress highlighting project milestones, issues and track project expenditure. c."
+                      - generic [ref=f1e1749]:
+                        - button "Analyse" [ref=f1e1750]
+                        - link "Open" [ref=f1e1751]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17753722/005056a3-53e2-1fd1-9ca3-30d2625f93ff
+                        - 'button "{ } OKF" [ref=f1e1752]'
+                  - generic [ref=f1e1753] [cursor=pointer]:
+                    - generic [ref=f1e1754]:
+                      - generic [ref=f1e1755]: G
+                      - generic "Government Technology Agency" [ref=f1e1756]
+                    - generic [ref=f1e1757]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1758]':
+                        - text: nuance
+                        - generic [ref=f1e1759]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1760]:
+                        - text: +12 ads
+                        - generic [ref=f1e1761]: ▾
+                    - generic [ref=f1e1762]:
+                      - heading "Software Engineer, Data Programme" [level=3] [ref=f1e1763]
+                      - generic [ref=f1e1764]: 3 weeks ago
+                      - generic [ref=f1e1766]: Salary on application
+                      - paragraph [ref=f1e1768]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1769]:
+                        - button "Analyse" [ref=f1e1770]
+                        - link "Open" [ref=f1e1771]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004128201?gh_jid=4004128201
+                        - 'button "{ } OKF" [ref=f1e1772]'
+                  - generic [ref=f1e1773] [cursor=pointer]:
+                    - generic [ref=f1e1774]:
+                      - generic [ref=f1e1775]: E
+                      - generic "Energy Market Authority" [ref=f1e1776]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1778]':
+                      - text: nuance
+                      - generic [ref=f1e1779]: ▾
+                    - generic [ref=f1e1780]:
+                      - heading "AI Engineer 2 (Data & AI Department)" [level=3] [ref=f1e1781]
+                      - generic [ref=f1e1782]: 1 month ago
+                      - generic [ref=f1e1784]:
+                        - generic [ref=f1e1785]: Salary on application
+                        - generic [ref=f1e1786]: Fixed Terms
+                      - paragraph [ref=f1e1787]: "(1) AI Solution Development : Work collaboratively with Data Scientists and Data Engineers to design, test, and implement AI/ML models for EMA's diverse use cases across the complete AI/ML lifecycle. Lead the development of production-ready AI solutions that can be deployed reliably, timely, and consistently to support critical energy sector operations and regulatory functions. (2) MLOps and Production Lifecycle Management : Establish and maintain…"
+                      - generic [ref=f1e1788]:
+                        - button "Analyse" [ref=f1e1789]
+                        - link "Open" [ref=f1e1790]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17654470/005056a3-d347-1fe1-9eaf-07c4050122ad
+                        - 'button "{ } OKF" [ref=f1e1791]'
+                  - generic [ref=f1e1792] [cursor=pointer]:
+                    - generic [ref=f1e1793]:
+                      - generic [ref=f1e1794]: A
+                      - generic "Accountant-General's Department" [ref=f1e1795]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1797]':
+                      - text: nuance
+                      - generic [ref=f1e1798]: ▾
+                    - generic [ref=f1e1799]:
+                      - heading "Snr Associate - Data Solutions Engineer" [level=3] [ref=f1e1800]
+                      - generic [ref=f1e1801]: 1 month ago
+                      - generic [ref=f1e1803]:
+                        - generic [ref=f1e1804]: Salary on application
+                        - generic [ref=f1e1805]: Contract
+                      - paragraph [ref=f1e1806]: "Your key responsibilities will include: Planning, designing and executing the data strategy for the WOG enterprise finance data analytics platform, integrating with agency’s objectives and building data as strategic assets for the agency. Including the enriching of these data assets with context and metadata to produce re-usable data products."
+                      - generic [ref=f1e1807]:
+                        - button "Analyse" [ref=f1e1808]
+                        - link "Open" [ref=f1e1809]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17138868/005056a3-53e2-1fd1-9af6-bd85cf5a33fe
+                        - 'button "{ } OKF" [ref=f1e1810]'
+                  - generic [ref=f1e1811] [cursor=pointer]:
+                    - generic [ref=f1e1812]:
+                      - generic [ref=f1e1813]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1814]
+                    - generic [ref=f1e1815]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1816]':
+                        - text: nuance
+                        - generic [ref=f1e1817]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1818]:
+                        - text: +6 ads
+                        - generic [ref=f1e1819]: ▾
+                    - generic [ref=f1e1820]:
+                      - heading "Software Engineer (Data Processing and Management)" [level=3] [ref=f1e1821]
+                      - generic [ref=f1e1822]: 1 month ago
+                      - generic [ref=f1e1824]:
+                        - generic [ref=f1e1825]: Salary on application
+                        - generic [ref=f1e1826]: Permanent
+                      - paragraph [ref=f1e1827]: Write high-quality code with comprehensive unit, functional, and end-to-end tests. Design, build, and deploy applications and APIs for data processing and management. Develop and maintain data pipelines for efficient data ingestion, transformation, and storage. Participate in peer reviews, providing and incorporating constructive feedback to ensure best-practices (e.g., code styles, Git check-ins, testability, performance, and security).
+                      - generic [ref=f1e1828]:
+                        - button "Analyse" [ref=f1e1829]
+                        - link "Open" [ref=f1e1830]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17616133/005056a3-53e2-1fd1-9681-7debc131d3f7
+                        - 'button "{ } OKF" [ref=f1e1831]'
+                  - generic [ref=f1e1832] [cursor=pointer]:
+                    - generic [ref=f1e1833]:
+                      - generic [ref=f1e1834]: D
+                      - generic "Defence Science and Technology Agency" [ref=f1e1835]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1837]':
+                      - text: nuance
+                      - generic [ref=f1e1838]: ▾
+                    - generic [ref=f1e1839]:
+                      - heading "Software Engineer (Data Services and Applications)" [level=3] [ref=f1e1840]
+                      - generic [ref=f1e1841]: 2 months ago
+                      - generic [ref=f1e1843]:
+                        - generic [ref=f1e1844]: Salary on application
+                        - generic [ref=f1e1845]: Permanent
+                      - paragraph [ref=f1e1846]: "Solution Design: Design and develop data pipelines designed to efficiently collect, aggregate and disseminate data across multiple systems. Core Data Services Development: Design, document and implement APIs to expose aggregated data to various consumers Develop algorithms to automatically detect, diagnose and address issues with data pipelines."
+                      - generic [ref=f1e1847]:
+                        - button "Analyse" [ref=f1e1848]
+                        - link "Open" [ref=f1e1849]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17544444/005056a3-53e2-1fd1-92c0-39f22dab93f3
+                        - 'button "{ } OKF" [ref=f1e1850]'
+                  - generic [ref=f1e1851] [cursor=pointer]:
+                    - generic [ref=f1e1852]:
+                      - generic [ref=f1e1853]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1854]
+                    - generic [ref=f1e1855]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1856]':
+                        - text: nuance
+                        - generic [ref=f1e1857]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1858]:
+                        - text: +6 ads
+                        - generic [ref=f1e1859]: ▾
+                    - generic [ref=f1e1860]:
+                      - heading "Software Engineer (Data Discovery and Operations)" [level=3] [ref=f1e1861]
+                      - generic [ref=f1e1862]: 3 months ago
+                      - generic [ref=f1e1864]:
+                        - generic [ref=f1e1865]: Salary on application
+                        - generic [ref=f1e1866]: Permanent
+                      - paragraph [ref=f1e1867]: Design, develop, and maintain high-quality applications and/or data pipelines Source, evaluate, and integrate state-of-the-art technologies into applications and/or data pipelines Debug and resolve bugs and performance issues Participate in code and design reviews to enhance code quality and software architecture Stay updated with the latest industry trends and technologies related to software and data engineering Communicate technical solutions…
+                      - generic [ref=f1e1868]:
+                        - button "Analyse" [ref=f1e1869]
+                        - link "Open" [ref=f1e1870]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17347542/005056a3-d347-1fe1-8afa-e046b320428d
+                        - 'button "{ } OKF" [ref=f1e1871]'
+                  - generic [ref=f1e1872] [cursor=pointer]:
+                    - generic [ref=f1e1873]:
+                      - generic [ref=f1e1874]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1875]
+                    - generic [ref=f1e1876]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1877]':
+                        - text: nuance
+                        - generic [ref=f1e1878]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1879]:
+                        - text: +6 ads
+                        - generic [ref=f1e1880]: ▾
+                    - generic [ref=f1e1881]:
+                      - heading "Platform Engineer - Data Exploration Platform Management" [level=3] [ref=f1e1882]
+                      - generic [ref=f1e1883]: 3 months ago
+                      - generic [ref=f1e1885]:
+                        - generic [ref=f1e1886]: Salary on application
+                        - generic [ref=f1e1887]: Permanent
+                      - paragraph [ref=f1e1888]: Develop and deploy reliable, scalable and secure Data Exploration Platform solutions Manage the platform, including upgrades, patches, configuration changes, system resource allocation and utilization Optimize the performance of our platform, including troubleshooting and resolving issues related to data processing and query performance Identify opportunities for process improvements and implement changes to optimize the use of our platform.
+                      - generic [ref=f1e1889]:
+                        - button "Analyse" [ref=f1e1890]
+                        - link "Open" [ref=f1e1891]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17347511/005056a3-d347-1fe1-8afa-a6968fe2428d
+                        - 'button "{ } OKF" [ref=f1e1892]'
+                  - generic [ref=f1e1893] [cursor=pointer]:
+                    - generic [ref=f1e1894]:
+                      - generic [ref=f1e1895]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1896]
+                    - generic [ref=f1e1897]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1898]':
+                        - text: nuance
+                        - generic [ref=f1e1899]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1900]:
+                        - text: +6 ads
+                        - generic [ref=f1e1901]: ▾
+                    - generic [ref=f1e1902]:
+                      - heading "Software Engineer (Big Data Processing)" [level=3] [ref=f1e1903]
+                      - generic [ref=f1e1904]: 3 months ago
+                      - generic [ref=f1e1906]:
+                        - generic [ref=f1e1907]: Salary on application
+                        - generic [ref=f1e1908]: Permanent
+                      - paragraph [ref=f1e1909]: Design and develop internal flagship big data analytics systems, applications and APIs that allow engineers and analysts to retrieve, triage and analyse information more efficiently Work with product managers, engineering managers and key stakeholders to deliver impactful solutions that meet our business needs Manage enterprise system performance, reliability and sustainability through software quality control and optimisation of software products and…
+                      - generic [ref=f1e1910]:
+                        - button "Analyse" [ref=f1e1911]
+                        - link "Open" [ref=f1e1912]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17338033/005056a3-d347-1fe1-8ab4-34fafac1428d
+                        - 'button "{ } OKF" [ref=f1e1913]'
+                  - generic [ref=f1e1914] [cursor=pointer]:
+                    - generic [ref=f1e1915]:
+                      - generic [ref=f1e1916]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e1917]
+                    - generic [ref=f1e1918]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f1e1919]':
+                        - text: nuance
+                        - generic [ref=f1e1920]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e1921]:
+                        - text: +6 ads
+                        - generic [ref=f1e1922]: ▾
+                    - generic [ref=f1e1923]:
+                      - heading "Senior Software Engineer (Big Data Processing)" [level=3] [ref=f1e1924]
+                      - generic [ref=f1e1925]: 3 months ago
+                      - generic [ref=f1e1927]:
+                        - generic [ref=f1e1928]: Salary on application
+                        - generic [ref=f1e1929]: Permanent
+                      - paragraph [ref=f1e1930]: Design and develop internal flagship data analytics systems, applications and APIs that allow engineers and analysts to retrieve, triage and analyse information more efficiently Work with product managers, engineering managers and key stakeholders to deliver impactful solutions that meet our business needs Manage enterprise system performance, reliability and sustainability through software quality control and optimisation of software products and…
+                      - generic [ref=f1e1931]:
+                        - button "Analyse" [ref=f1e1932]
+                        - link "Open" [ref=f1e1933]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17337862/005056a3-d347-1fe1-8ab3-c96afdea028d
+                        - 'button "{ } OKF" [ref=f1e1934]'
+                  - generic [ref=f1e1935] [cursor=pointer]:
+                    - generic [ref=f1e1936]:
+                      - generic [ref=f1e1937]: G
+                      - generic "Government Technology Agency" [ref=f1e1938]
+                    - generic [ref=f1e1939]:
+                      - 'button "Match basis: R&R match. Tap to show what this means." [ref=f1e1940]':
+                        - text: R&R match
+                        - generic [ref=f1e1941]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1942]:
+                        - text: +12 ads
+                        - generic [ref=f1e1943]: ▾
+                    - generic [ref=f1e1944]:
+                      - heading "Senior Platform Infrastructure Engineer, NEA" [level=3] [ref=f1e1945]
+                      - generic [ref=f1e1946]:
+                        - generic [ref=f1e1947]: NEW
+                        - generic [ref=f1e1948]: today
+                      - generic [ref=f1e1949]: Salary on application
+                      - paragraph [ref=f1e1951]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1952]:
+                        - button "Analyse" [ref=f1e1953]
+                        - link "Open" [ref=f1e1954]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004811201?gh_jid=4004811201
+                        - 'button "{ } OKF" [ref=f1e1955]'
+                  - generic [ref=f1e1956] [cursor=pointer]:
+                    - generic [ref=f1e1957]:
+                      - generic [ref=f1e1958]: G
+                      - generic "Government Technology Agency" [ref=f1e1959]
+                    - generic [ref=f1e1960]:
+                      - 'button "Match basis: R&R match. Tap to show what this means." [ref=f1e1961]':
+                        - text: R&R match
+                        - generic [ref=f1e1962]: ▾
+                      - button "12 more ads from this employer in this result. Tap to list them." [ref=f1e1963]:
+                        - text: +12 ads
+                        - generic [ref=f1e1964]: ▾
+                    - generic [ref=f1e1965]:
+                      - heading "Software Engineering, Data Programme (DXD)" [level=3] [ref=f1e1966]
+                      - generic [ref=f1e1967]: 3 months ago
+                      - generic [ref=f1e1969]: Salary on application
+                      - paragraph [ref=f1e1971]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f1e1972]:
+                        - button "Analyse" [ref=f1e1973]
+                        - link "Open" [ref=f1e1974]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001579201?gh_jid=4001579201
+                        - 'button "{ } OKF" [ref=f1e1975]'
+                  - generic [ref=f1e1976] [cursor=pointer]:
+                    - generic [ref=f1e1977]:
+                      - generic [ref=f1e1978]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e1979]
+                    - generic [ref=f1e1980]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e1981]':
+                        - text: related
+                        - generic [ref=f1e1982]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e1983]:
+                        - text: +11 ads
+                        - generic [ref=f1e1984]: ▾
+                    - generic [ref=f1e1985]:
+                      - heading "Lead Engineer/ Engineer, Geospatial Development, Data Platforms, xData" [level=3] [ref=f1e1986]
+                      - generic [ref=f1e1987]:
+                        - generic [ref=f1e1988]: NEW
+                        - generic [ref=f1e1989]: today
+                      - generic [ref=f1e1990]:
+                        - generic [ref=f1e1991]: Salary on application
+                        - generic [ref=f1e1992]: Permanent/Contract
+                      - paragraph [ref=f1e1993]: "Job Scope / Key Deliverables The principal accountabilities of the job holder to: a. Work with stakeholders to develop and manage new capabilities in geospatial technologies to enhance Home Team Departments’ operational capabilities. The development will cover the entire project phases, from conceptualization, trials to production. b."
+                      - generic [ref=f1e1994]:
+                        - button "Analyse" [ref=f1e1995]
+                        - link "Open" [ref=f1e1996]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815678/005056a3-53e2-1fd1-9f84-7f6fcefa5401
+                        - 'button "{ } OKF" [ref=f1e1997]'
+                  - generic [ref=f1e1998] [cursor=pointer]:
+                    - generic [ref=f1e1999]:
+                      - generic [ref=f1e2000]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2001]
+                    - generic [ref=f1e2002]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2003]':
+                        - text: related
+                        - generic [ref=f1e2004]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2005]:
+                        - text: +11 ads
+                        - generic [ref=f1e2006]: ▾
+                    - generic [ref=f1e2007]:
+                      - heading "Lead Engineer/ Engineer, Sensemaking Application, Sensemaking, xData" [level=3] [ref=f1e2008]
+                      - generic [ref=f1e2009]:
+                        - generic [ref=f1e2010]: NEW
+                        - generic [ref=f1e2011]: today
+                      - generic [ref=f1e2012]:
+                        - generic [ref=f1e2013]: Salary on application
+                        - generic [ref=f1e2014]: Permanent/Contract
+                      - paragraph [ref=f1e2015]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and advance dashboarding Lead the agile development and conducting design thinking workshops with users on story mapping, creating user stories with operational insights that address operational challenges in a proactive manner Managing and enhancing video hub to…"
+                      - generic [ref=f1e2016]:
+                        - button "Analyse" [ref=f1e2017]
+                        - link "Open" [ref=f1e2018]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815234/005056a3-53e2-1fd1-9f83-6608658f7401
+                        - 'button "{ } OKF" [ref=f1e2019]'
+                  - generic [ref=f1e2020] [cursor=pointer]:
+                    - generic [ref=f1e2021]:
+                      - generic [ref=f1e2022]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2023]
+                    - generic [ref=f1e2024]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2025]':
+                        - text: related
+                        - generic [ref=f1e2026]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2027]:
+                        - text: +11 ads
+                        - generic [ref=f1e2028]: ▾
+                    - generic [ref=f1e2029]:
+                      - heading "Head, AI Data Solutioning, AI Data Engineering, xData" [level=3] [ref=f1e2030]
+                      - generic [ref=f1e2031]:
+                        - generic [ref=f1e2032]: NEW
+                        - generic [ref=f1e2033]: today
+                      - generic [ref=f1e2034]:
+                        - generic [ref=f1e2035]: Salary on application
+                        - generic [ref=f1e2036]: Permanent/Contract
+                      - paragraph [ref=f1e2037]: "The job holder will be responsible for the following: Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f1e2038]:
+                        - button "Analyse" [ref=f1e2039]
+                        - link "Open" [ref=f1e2040]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815511/005056a3-53e2-1fd1-9f83-ddfc3b223401
+                        - 'button "{ } OKF" [ref=f1e2041]'
+                  - generic [ref=f1e2042] [cursor=pointer]:
+                    - generic [ref=f1e2043]:
+                      - generic [ref=f1e2044]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2045]
+                    - generic [ref=f1e2046]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2047]':
+                        - text: related
+                        - generic [ref=f1e2048]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2049]:
+                        - text: +11 ads
+                        - generic [ref=f1e2050]: ▾
+                    - generic [ref=f1e2051]:
+                      - heading "Deputy Director, AI Software Engineering, AI Products" [level=3] [ref=f1e2052]
+                      - generic [ref=f1e2053]:
+                        - generic [ref=f1e2054]: NEW
+                        - generic [ref=f1e2055]: today
+                      - generic [ref=f1e2056]:
+                        - generic [ref=f1e2057]: Salary on application
+                        - generic [ref=f1e2058]: Permanent/Contract
+                      - paragraph [ref=f1e2059]: Develop technology roadmap for HTxAI Products team(s), lead the team(s) in customising and developing platform, products and solutions across in various AI domains. Regularly review and formulate AI & Digitalisation roadmap with the awareness of AI capabilities and gaps of HTDs Lead the HTX in-house development of AI technologies deployable for operations use in multiple platforms.
+                      - generic [ref=f1e2060]:
+                        - button "Analyse" [ref=f1e2061]
+                        - link "Open" [ref=f1e2062]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815519/005056a3-53e2-1fd1-9f83-e8b5d0b61401
+                        - 'button "{ } OKF" [ref=f1e2063]'
+                  - generic [ref=f1e2064] [cursor=pointer]:
+                    - generic [ref=f1e2065]:
+                      - generic [ref=f1e2066]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2067]
+                    - generic [ref=f1e2068]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2069]':
+                        - text: related
+                        - generic [ref=f1e2070]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2071]:
+                        - text: +11 ads
+                        - generic [ref=f1e2072]: ▾
+                    - generic [ref=f1e2073]:
+                      - heading "Lead Engineer/ Engineer, MLOps / SRE (Developer Experience), xCloud" [level=3] [ref=f1e2074]
+                      - generic [ref=f1e2075]:
+                        - generic [ref=f1e2076]: NEW
+                        - generic [ref=f1e2077]: today
+                      - generic [ref=f1e2078]:
+                        - generic [ref=f1e2079]: Salary on application
+                        - generic [ref=f1e2080]: Permanent/Contract
+                      - paragraph [ref=f1e2081]: "LLM Deployment: Deploy and manage LLM models using vLLM/TensorRT-LLM on our GPU infrastructure, optimizing for throughput, latency, and GPU utilization Infrastructure Management: Provision and maintain the supporting infrastructure including vector databases (for RAG), orchestration services, Redis/queue systems, and API gateways Performance Optimization: Profile and tune LLM inference performance, experiment with batching strategies, context caching, and…"
+                      - generic [ref=f1e2082]:
+                        - button "Analyse" [ref=f1e2083]
+                        - link "Open" [ref=f1e2084]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815495/005056a3-53e2-1fd1-9f83-d2e31b56b401
+                        - 'button "{ } OKF" [ref=f1e2085]'
+                  - generic [ref=f1e2086] [cursor=pointer]:
+                    - generic [ref=f1e2087]:
+                      - generic [ref=f1e2088]: D
+                      - generic "Department of Statistics" [ref=f1e2089]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f1e2091]':
+                      - text: related
+                      - generic [ref=f1e2092]: ▾
+                    - generic [ref=f1e2093]:
+                      - heading "Statistician (Data Engineer) (Household, Income and Population)" [level=3] [ref=f1e2094]
+                      - generic [ref=f1e2095]: 2 days ago
+                      - generic [ref=f1e2097]:
+                        - generic [ref=f1e2098]: Salary on application
+                        - generic [ref=f1e2099]: Contract
+                      - paragraph [ref=f1e2100]: ∙ Collaborate with source agencies to acquire data and identify opportunities for enhanced analytical capabilities ∙ Perform methodological reviews on data quality and develop new indicators to meet evolving needs of the government and public ∙ Lead the technical development and continuous improvement of the Household Register ∙ Design, build, and optimise scalable cloud ETL/ELT pipelines that integrate and harmonise diverse data sources ∙ Develop…
+                      - generic [ref=f1e2101]:
+                        - button "Analyse" [ref=f1e2102]
+                        - link "Open" [ref=f1e2103]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17805294/005056a3-53e2-1fd1-9ece-9d4a222a3401
+                        - 'button "{ } OKF" [ref=f1e2104]'
+                  - generic [ref=f1e2105] [cursor=pointer]:
+                    - generic [ref=f1e2106]:
+                      - generic [ref=f1e2107]: S
+                      - generic "Singapore Land Authority" [ref=f1e2108]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f1e2110]':
+                      - text: related
+                      - generic [ref=f1e2111]: ▾
+                    - generic [ref=f1e2112]:
+                      - heading "Intern, Data Engineering & Platform" [level=3] [ref=f1e2113]
+                      - generic [ref=f1e2114]: 1 week ago
+                      - generic [ref=f1e2116]:
+                        - generic [ref=f1e2117]: Salary on application
+                        - generic [ref=f1e2118]: Internship
+                      - paragraph [ref=f1e2119]: "- Assist in the development of data models for various business domains. - Work with stakeholders to understand data requirements and translate them into conceptual, logical, and physical data models. - Develop and maintain data transformation processes, including data cleansing, enrichment, normalization, and aggregation, to ensure the integrity and performance of data models. - Analyse data from diverse sources and map it to existing data models and…"
+                      - generic [ref=f1e2120]:
+                        - button "Analyse" [ref=f1e2121]
+                        - link "Open" [ref=f1e2122]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17780924/005056a3-53e2-1fd1-9db1-a64dce72f401
+                        - 'button "{ } OKF" [ref=f1e2123]'
+                  - generic [ref=f1e2124] [cursor=pointer]:
+                    - generic [ref=f1e2125]:
+                      - generic [ref=f1e2126]: H
+                      - generic "Health Promotion Board" [ref=f1e2127]
+                    - generic [ref=f1e2128]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2129]':
+                        - text: related
+                        - generic [ref=f1e2130]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f1e2131]:
+                        - text: +2 ads
+                        - generic [ref=f1e2132]: ▾
+                    - generic [ref=f1e2133]:
+                      - heading "Senior Manager, Data Engineering & Architecture (1 year contract)" [level=3] [ref=f1e2134]
+                      - generic [ref=f1e2135]: 1 week ago
+                      - generic [ref=f1e2137]:
+                        - generic [ref=f1e2138]: Salary on application
+                        - generic [ref=f1e2139]: Fixed Terms
+                      - paragraph [ref=f1e2140]: "- As Senior Manager responsible for data governance and standards, you will drive the development of the governance frameworks, data standards, and partnership agreements that underpin the NLR's integrity and trustworthiness as a national lifestyle data platform. - You will lead complex multi-agency engagements, negotiating and aligning partner organisations on governance standards, data sharing protocols, and compliance requirements, and facilitating…"
+                      - generic [ref=f1e2141]:
+                        - button "Analyse" [ref=f1e2142]
+                        - link "Open" [ref=f1e2143]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17780919/005056a3-53e2-1fd1-9db1-aac429aeb401
+                        - 'button "{ } OKF" [ref=f1e2144]'
+                  - generic [ref=f1e2145] [cursor=pointer]:
+                    - generic [ref=f1e2146]:
+                      - generic [ref=f1e2147]: H
+                      - generic "Health Promotion Board" [ref=f1e2148]
+                    - generic [ref=f1e2149]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2150]':
+                        - text: related
+                        - generic [ref=f1e2151]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f1e2152]:
+                        - text: +2 ads
+                        - generic [ref=f1e2153]: ▾
+                    - generic [ref=f1e2154]:
+                      - heading "Assistant Director, Data Engineering & Architecture (1 year contract)" [level=3] [ref=f1e2155]
+                      - generic [ref=f1e2156]: 1 week ago
+                      - generic [ref=f1e2158]:
+                        - generic [ref=f1e2159]: Salary on application
+                        - generic [ref=f1e2160]: Fixed Terms
+                      - paragraph [ref=f1e2161]: "- As Assistant Director leading a team of data engineers, you will provide strategic leadership and technical direction across the full lifecycle of the NLR — from architecture and governance to data partnerships, distilling business needs and engineering delivery. - You will define and own the overarching technical vision, architecture roadmap, and data governance frameworks, including data exchange protocols and interoperability frameworks, that guide…"
+                      - generic [ref=f1e2162]:
+                        - button "Analyse" [ref=f1e2163]
+                        - link "Open" [ref=f1e2164]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17780918/005056a3-53e2-1fd1-9db1-aa6482f4d401
+                        - 'button "{ } OKF" [ref=f1e2165]'
+                  - generic [ref=f1e2166] [cursor=pointer]:
+                    - generic [ref=f1e2167]:
+                      - generic [ref=f1e2168]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2169]
+                    - generic [ref=f1e2170]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2171]':
+                        - text: related
+                        - generic [ref=f1e2172]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2173]:
+                        - text: +11 ads
+                        - generic [ref=f1e2174]: ▾
+                    - generic [ref=f1e2175]:
+                      - heading "Lead Engineer/ Engineer, Geospatial Development, Data Platforms, xData" [level=3] [ref=f1e2176]
+                      - generic [ref=f1e2177]: 2 weeks ago
+                      - generic [ref=f1e2179]:
+                        - generic [ref=f1e2180]: Salary on application
+                        - generic [ref=f1e2181]: Permanent/Contract
+                      - paragraph [ref=f1e2182]: "Job Scope / Key Deliverables The principal accountabilities of the job holder to: a. Work with stakeholders to develop and manage new capabilities in geospatial technologies to enhance Home Team Departments’ operational capabilities. The development will cover the entire project phases, from conceptualization, trials to production. b."
+                      - generic [ref=f1e2183]:
+                        - button "Analyse" [ref=f1e2184]
+                        - link "Open" [ref=f1e2185]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17753558/005056a3-53e2-1fd1-9ca2-d26b1c0bf3ff
+                        - 'button "{ } OKF" [ref=f1e2186]'
+                  - generic [ref=f1e2187] [cursor=pointer]:
+                    - generic [ref=f1e2188]:
+                      - generic [ref=f1e2189]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2190]
+                    - generic [ref=f1e2191]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2192]':
+                        - text: related
+                        - generic [ref=f1e2193]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2194]:
+                        - text: +11 ads
+                        - generic [ref=f1e2195]: ▾
+                    - generic [ref=f1e2196]:
+                      - heading "Head, AI Data Solutioning, AI Data Engineering, xData" [level=3] [ref=f1e2197]
+                      - generic [ref=f1e2198]: 2 weeks ago
+                      - generic [ref=f1e2200]:
+                        - generic [ref=f1e2201]: Salary on application
+                        - generic [ref=f1e2202]: Permanent/Contract
+                      - paragraph [ref=f1e2203]: "The job holder will be responsible for the following: Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f1e2204]:
+                        - button "Analyse" [ref=f1e2205]
+                        - link "Open" [ref=f1e2206]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17753442/005056a3-53e2-1fd1-9ca2-9253742573ff
+                        - 'button "{ } OKF" [ref=f1e2207]'
+                  - generic [ref=f1e2208] [cursor=pointer]:
+                    - generic [ref=f1e2209]:
+                      - generic [ref=f1e2210]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f1e2211]
+                    - generic [ref=f1e2212]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2213]':
+                        - text: related
+                        - generic [ref=f1e2214]: ▾
+                      - button "11 more ads from this employer in this result. Tap to list them." [ref=f1e2215]:
+                        - text: +11 ads
+                        - generic [ref=f1e2216]: ▾
+                    - generic [ref=f1e2217]:
+                      - heading "Lead Engineer/ Engineer, Sensemaking Application, Sensemaking, xData" [level=3] [ref=f1e2218]
+                      - generic [ref=f1e2219]: 2 weeks ago
+                      - generic [ref=f1e2221]:
+                        - generic [ref=f1e2222]: Salary on application
+                        - generic [ref=f1e2223]: Permanent/Contract
+                      - paragraph [ref=f1e2224]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and advance dashboarding Lead the agile development and conducting design thinking workshops with users on story mapping, creating user stories with operational insights that address operational challenges in a proactive manner Managing and enhancing video hub to…"
+                      - generic [ref=f1e2225]:
+                        - button "Analyse" [ref=f1e2226]
+                        - link "Open" [ref=f1e2227]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17737823/005056a3-d347-1fe1-9bed-9b58b775a2ad
+                        - 'button "{ } OKF" [ref=f1e2228]'
+                  - generic [ref=f1e2229] [cursor=pointer]:
+                    - generic [ref=f1e2230]:
+                      - generic [ref=f1e2231]: I
+                      - generic "Institute of Technical Education" [ref=f1e2232]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f1e2234]':
+                      - text: related
+                      - generic [ref=f1e2235]: ▾
+                    - generic [ref=f1e2236]:
+                      - heading "Data & Analytics Engineer - Learning Technologies Devt [ITE Headquarters]" [level=3] [ref=f1e2237]
+                      - generic [ref=f1e2238]: 2 weeks ago
+                      - generic [ref=f1e2240]:
+                        - generic [ref=f1e2241]: Salary on application
+                        - generic [ref=f1e2242]: Fixed Terms
+                      - paragraph [ref=f1e2243]: You are expected to build scripts to extract, prepare, transform and load data into an analytics software; build AI models with clustering and predictive capabilities. You will work closely with our team to gather user requirement and translate them into data requirement and insights.
+                      - generic [ref=f1e2244]:
+                        - button "Analyse" [ref=f1e2245]
+                        - link "Open" [ref=f1e2246]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17721847/005056a3-d347-1fe1-9d98-330fbfc762ad
+                        - 'button "{ } OKF" [ref=f1e2247]'
+                  - generic [ref=f1e2248] [cursor=pointer]:
+                    - generic [ref=f1e2249]:
+                      - generic [ref=f1e2250]: I
+                      - generic "Info-communications Media Development Authority" [ref=f1e2251]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f1e2253]':
+                      - text: related
+                      - generic [ref=f1e2254]: ▾
+                    - generic [ref=f1e2255]:
+                      - heading "SM, Presales Consultant (AI & Data Engineering)" [level=3] [ref=f1e2256]
+                      - generic [ref=f1e2257]: 1 month ago
+                      - generic [ref=f1e2259]:
+                        - generic [ref=f1e2260]: Salary on application
+                        - generic [ref=f1e2261]: Fixed Terms
+                      - paragraph [ref=f1e2262]: Client Engagement & Problem Definition - Engage government agencies and enterprises to identify, distil, and prioritise digital pain points, translating broad challenges into clear problem statements and opportunity areas. - Work with business and IT stakeholders, including senior management and CXOs, to understand strategic objectives, operational constraints, and technology readiness. - Advise clients on how digital and emerging technologies can address…
+                      - generic [ref=f1e2263]:
+                        - button "Analyse" [ref=f1e2264]
+                        - link "Open" [ref=f1e2265]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/16007345/005056a3-53e2-1fd1-96da-563dee2713f8
+                        - 'button "{ } OKF" [ref=f1e2266]'
+                  - generic [ref=f1e2267] [cursor=pointer]:
+                    - generic [ref=f1e2268]:
+                      - generic [ref=f1e2269]: M
+                      - generic "Ministry of Health" [ref=f1e2270]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f1e2272]':
+                      - text: related
+                      - generic [ref=f1e2273]: ▾
+                    - generic [ref=f1e2274]:
+                      - heading "Senior Executive (Data Engineering and Analytics)" [level=3] [ref=f1e2275]
+                      - generic [ref=f1e2276]: 3 months ago
+                      - generic [ref=f1e2278]:
+                        - generic [ref=f1e2279]: Salary on application
+                        - generic [ref=f1e2280]: Contract
+                      - paragraph [ref=f1e2281]: Create dashboards and reports using tools such as Tableau, Power BI, or similar platforms. Help maintain data collection processes from various sources and ensuring data accuracy. Perform regular data checks to ensure information accuracy and follow established security procedures.
+                      - generic [ref=f1e2282]:
+                        - button "Analyse" [ref=f1e2283]
+                        - link "Open" [ref=f1e2284]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/16990944/005056a3-d347-1fe1-9dee-006a982e22ad
+                        - 'button "{ } OKF" [ref=f1e2285]'
+                  - generic [ref=f1e2286] [cursor=pointer]:
+                    - generic [ref=f1e2287]:
+                      - generic [ref=f1e2288]: C
+                      - generic "Centre for Strategic Infocomm Technologies" [ref=f1e2289]
+                    - generic [ref=f1e2290]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2291]':
+                        - text: related
+                        - generic [ref=f1e2292]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f1e2293]:
+                        - text: +6 ads
+                        - generic [ref=f1e2294]: ▾
+                    - generic [ref=f1e2295]:
+                      - heading "Platform & SRE Engineer (Database and Search Platform)" [level=3] [ref=f1e2296]
+                      - generic [ref=f1e2297]: 6 months ago
+                      - generic [ref=f1e2299]:
+                        - generic [ref=f1e2300]: Salary on application
+                        - generic [ref=f1e2301]: Permanent
+                      - paragraph [ref=f1e2302]: Build and maintain high-available, scalable large-scale databases and search platforms using techonologies like PostgreSQL and Elasticsearch Design and implement data integration and migration pipelines to ingest data from various data integration points including APIs, files, and/or other databases Improve platform availability and performance through use of SRE practices Conduct incident managment, including troubleshooting, resolution and post-mortem…
+                      - generic [ref=f1e2303]:
+                        - button "Analyse" [ref=f1e2304]
+                        - link "Open" [ref=f1e2305]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/16597943/005056a3-d347-1fe0-bba6-e5e8ae5a8284
+                        - 'button "{ } OKF" [ref=f1e2306]'
+                  - generic [ref=f1e2307] [cursor=pointer]:
+                    - generic [ref=f1e2308]:
+                      - generic [ref=f1e2309]: H
+                      - generic "Health Promotion Board" [ref=f1e2310]
+                    - generic [ref=f1e2311]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f1e2312]':
+                        - text: related
+                        - generic [ref=f1e2313]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f1e2314]:
+                        - text: +2 ads
+                        - generic [ref=f1e2315]: ▾
+                    - generic [ref=f1e2316]:
+                      - heading "Assistant/ Manager, Data Engineering & Architecture" [level=3] [ref=f1e2317]
+                      - generic [ref=f1e2318]: 28 months ago
+                      - generic [ref=f1e2320]:
+                        - generic [ref=f1e2321]: Salary on application
+                        - generic [ref=f1e2322]: Permanent
+                      - paragraph [ref=f1e2323]: of the Chief Data Officer Office (CDOO) Advance the data-driven, evidence-based and citizen-centric approach to health promotion through state-of-the-art data best practices to maximize data quality and internationally-recognised governance and policies to promote safe usage of data.
+                      - generic [ref=f1e2324]:
+                        - button "Analyse" [ref=f1e2325]
+                        - link "Open" [ref=f1e2326]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/14427360/71b39788-bb4c-1eee-b6cc-94af3e10c0c0
+                        - 'button "{ } OKF" [ref=f1e2327]'
+        - generic [ref=f1e2328]:
+          - paragraph [ref=f1e2329]: "No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture (80 postings). Confidence: named-source facts. Time-window: this result."
+          - generic "SG Career View 3.0.288" [ref=f1e2330]: v3.0.288

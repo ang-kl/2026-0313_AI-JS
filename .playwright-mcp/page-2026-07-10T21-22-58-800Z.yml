@@ -1,0 +1,104 @@
+- generic [active] [ref=f1e1]:
+  - link "Skip to main content" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f1e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f1e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f1e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f1e10]:
+        - button "Decrease text size" [ref=f1e11] [cursor=pointer]:
+          - generic [ref=f1e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f1e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f1e14] [cursor=pointer]:
+          - generic [ref=f1e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f1e16]:
+      - generic [ref=f1e199]:
+        - generic [ref=f1e200]:
+          - button "Postings" [ref=f1e201] [cursor=pointer]: ← Postings
+          - generic [ref=f1e202]:
+            - generic [ref=f1e203]:
+              - generic [ref=f1e204]: REVIEWING
+              - generic [ref=f1e205]: ● from ESCO
+            - generic [ref=f1e206]: Data Analyst
+          - generic [ref=f1e207]:
+            - generic [ref=f1e208]: 0 duties · 36 skills
+            - 'button "{ } OKF" [ref=f1e209] [cursor=pointer]'
+        - generic [ref=f1e210]:
+          - generic [ref=f1e212]: STILL LOADING
+          - generic [ref=f1e213]: Fetching live SG postings for this role...
+          - generic [ref=f1e214]: Step 1 · 0:00
+        - tablist "Analysis views" [ref=f1e215]:
+          - tab "Overview" [selected] [ref=f1e216] [cursor=pointer]
+          - tab "The Ad" [ref=f1e217] [cursor=pointer]
+          - tab "Duties & Exposure" [ref=f1e218] [cursor=pointer]
+          - tab "Requirements & Gates" [ref=f1e219] [cursor=pointer]
+          - tab "Critical Read" [ref=f1e220] [cursor=pointer]
+          - tab "Market" [ref=f1e221] [cursor=pointer]
+        - generic [ref=f1e222]:
+          - generic [ref=f1e223]: "verdict first · every chip is a door · time-window: snapshot at analysis"
+          - generic [ref=f1e224]:
+            - generic [ref=f1e225]: CHIP KEY
+            - generic "from posting = verbatim ad text" [ref=f1e226]: from posting
+            - generic "computed = engine, deterministic" [ref=f1e227]: computed
+            - generic "derived = rule-based inference" [ref=f1e228]: derived
+            - generic "AI estimate = LLM advisory, not fact" [ref=f1e229]: AI estimate
+            - generic "unverified = no source confirmed" [ref=f1e230]: unverified
+        - generic [ref=f1e231]:
+          - separator "Resize panels" [ref=f1e232]
+          - generic [ref=f1e233]:
+            - tablist "left panel windows" [ref=f1e234]:
+              - tab "Verdict" [selected] [ref=f1e235] [cursor=pointer]
+              - 'button "Float this window: Verdict" [ref=f1e236] [cursor=pointer]':
+                - generic [ref=f1e237]: ⧉
+            - generic [ref=f1e239]:
+              - generic [ref=f1e240]: OVERVIEW · THE 10-SECOND READ
+              - heading "Verdict first — every chip is a door" [level=2] [ref=f1e241]
+              - generic [ref=f1e242]:
+                - button "Pre-interview brief" [expanded] [ref=f1e243] [cursor=pointer]:
+                  - generic [ref=f1e245]: ▼
+                - generic [ref=f1e246]:
+                  - generic [ref=f1e247]:
+                    - generic [ref=f1e248]: ROLE AS CLASSIFIED
+                    - generic [ref=f1e249]:
+                      - paragraph [ref=f1e250]: Data Analyst
+                      - generic [ref=f1e251]: computed
+                  - generic [ref=f1e252]:
+                    - generic [ref=f1e253]: EMPLOYER (ACRA)
+                    - generic [ref=f1e254]:
+                      - paragraph [ref=f1e255]: Not matched in the ACRA business register (may be a statutory board, agency, or a name variant ACRA does not carry).
+                      - generic [ref=f1e256]: from ACRA
+                  - paragraph [ref=f1e257]: AI-assisted; human decides. Structural facts from MyCareersFuture, careers.gov.sg and ACRA; interpretation is the candidate's.
+              - paragraph [ref=f1e258]: The verdict chips appear as the engines classify this role - nothing is summarised before it is computed.
+          - generic [ref=f1e259]:
+            - tablist "right panel windows" [ref=f1e260]:
+              - tab "Shortcuts" [selected] [ref=f1e261] [cursor=pointer]
+              - tab "Inspector" [ref=f1e262] [cursor=pointer]
+              - 'button "Float this window: Shortcuts" [ref=f1e263] [cursor=pointer]':
+                - generic [ref=f1e264]: ⧉
+            - generic [ref=f1e266]:
+              - generic [ref=f1e267]: WORKSPACE SHORTCUTS
+              - generic [ref=f1e268]:
+                - 'button "Sources: opens the verbatim ad and its provenance" [ref=f1e269] [cursor=pointer]':
+                  - generic [ref=f1e270]: Sources
+                  - generic [ref=f1e271]: the verbatim ad and its provenance
+                - 'button "Trace: opens duty-by-duty O-I-A dissection" [ref=f1e272] [cursor=pointer]':
+                  - generic [ref=f1e273]: Trace
+                  - generic [ref=f1e274]: duty-by-duty O-I-A dissection
+                - 'button "Skilling: opens skills and the AI trace" [ref=f1e275] [cursor=pointer]':
+                  - generic [ref=f1e276]: Skilling
+                  - generic [ref=f1e277]: skills and the AI trace
+                - 'button "Advisory: opens the challenged deep read" [ref=f1e278] [cursor=pointer]':
+                  - generic [ref=f1e279]: Advisory
+                  - generic [ref=f1e280]: the challenged deep read
+              - paragraph [ref=f1e281]: "Cover letter, Boards and Saved retired from the rail - they were placeholder drawers; they return as real windows when built (trust-loop: no dead controls)."
+        - generic [ref=f1e282]:
+          - generic [ref=f1e283]: "Source: from ESCO · Confidence: withheld · Time-window: snapshot at analysis"
+          - generic [ref=f1e284]:
+            - generic [ref=f1e285]: AI-assisted · human decides
+            - generic "SG Career View 3.0.293" [ref=f1e286]: v3.0.293

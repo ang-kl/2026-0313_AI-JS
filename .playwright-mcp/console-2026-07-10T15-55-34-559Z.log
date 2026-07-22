@@ -1,0 +1,14 @@
+[    4888ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; WARNING! @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.vhpnvRTDMD0.2018.O/am=GAIFAAAAACATYMA/d=1/excm=_b,_tp,homeview/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2Mlaqg8zQdhW-spA2jO0QyvQ3bzyQ/dti=1/m=_b,_tp:287
+[    4888ms] [LOG] %c%s font-size: 18px; Using this console may allow attackers to impersonate you and steal your information using an attack called Self-XSS.
+Do not enter or paste code that you don't understand. @ /_/mss/boq-dots/_/js/k=boq-dots.DotsSplashUi_desktop_ms.en_SG.vhpnvRTDMD0.2018.O/am=GAIFAAAAACATYMA/d=1/excm=_b,_tp,homeview/ed=1/dg=0/wt=2/ujg=1/rs=ALs0n2Mlaqg8zQdhW-spA2jO0QyvQ3bzyQ/dti=1/m=_b,_tp:287
+[    8047ms] _.Nj
+[   18671ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://lh3.googleusercontent.com/proxy/-vtuyR1ushQHGML6hdp_kRGDxDcVizLck0GO3rG6xmC7-mCbhhFeBRAlHHEfVhlU8zGUQr1GWF1aBGFU-HBOxFW6PtqSwB2PqWLvITF-ZUEldevo4KSqjHj5m2Q6D1zV20RHInVqKv_ZwdRJp5JX5qk_tzsfKxdoWPsnASstQa8IvD0=s48-rw:0
+[   33518ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <a.WwrzSb>
+Ancestor with aria-hidden: <a.WwrzSb> @ https://news.google.com/search?q=brisbane&hl=en-SG&gl=SG&ceid=SG%3Aen:0
+[   56516ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <a.WwrzSb>
+Ancestor with aria-hidden: <a.WwrzSb> @ https://news.google.com/search?q=brisbane&hl=en-SG&gl=SG&ceid=SG%3Aen:0
+[   63614ms] [WARNING] Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <a.WwrzSb>
+Ancestor with aria-hidden: <a.WwrzSb> @ https://news.google.com/search?q=brisbane&hl=en-SG&gl=SG&ceid=SG%3Aen:0

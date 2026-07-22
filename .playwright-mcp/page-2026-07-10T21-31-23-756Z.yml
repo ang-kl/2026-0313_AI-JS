@@ -1,0 +1,22 @@
+- generic [active] [ref=f4e1]:
+  - link "Skip to main content" [ref=f4e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - generic [ref=f4e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f4e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f4e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f4e106] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f4e10]:
+        - button "Decrease text size" [ref=f4e11] [cursor=pointer]:
+          - generic [ref=f4e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f4e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f4e14] [cursor=pointer]:
+          - generic [ref=f4e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f4e16]:
+      - status [ref=f4e107]:
+        - paragraph [ref=f4e121]: Searching for "Hydrographic Surveyor"...

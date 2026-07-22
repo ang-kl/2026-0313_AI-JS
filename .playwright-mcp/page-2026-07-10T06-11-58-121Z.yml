@@ -1,0 +1,23 @@
+- generic [active] [ref=f3e1]:
+  - link "Skip to main content" [ref=f3e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - generic [ref=f3e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f3e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f3e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f3e108] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f3e10]:
+        - button "Decrease text size" [ref=f3e11] [cursor=pointer]:
+          - generic [ref=f3e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f3e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f3e14] [cursor=pointer]:
+          - generic [ref=f3e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f3e16]:
+      - generic [ref=f3e109]:
+        - button "Back to new search" [ref=f3e110] [cursor=pointer]: ← New search
+        - paragraph [ref=f3e113]: Searching MyCareersFuture for "Ministry of Manpower"...

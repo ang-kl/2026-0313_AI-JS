@@ -1,0 +1,8 @@
+[   14878ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/fib-rsi-filter:0
+[   14904ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/actions/ctrader-accounts:0
+[   14919ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/fib-fvg-filter:0
+[   14921ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/risk-config:0
+[   14925ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/autotrade-timeframes:0
+[   14927ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/fib-vwap-filter:0
+[   14933ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/symbol-map:0
+[   14935ms] [ERROR] Failed to load resource: the server responded with a status of 401 () @ https://sg-trade.up.railway.app/state/config:0

@@ -1,0 +1,11 @@
+[    2426ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://v98197694700.takearoundabout.com/_vercel/insights/script.js:0
+[    2427ms] [ERROR] Refused to execute script from 'https://v98197694700.takearoundabout.com/_vercel/insights/script.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ https://v98197694700.takearoundabout.com/:0
+[    2429ms] [LOG] [Vercel Web Analytics] Failed to load script from /_vercel/insights/script.js. Be sure to enable Web Analytics for your project and deploy again. See https://vercel.com/docs/analytics/quickstart for more information. @ https://v98197694700.takearoundabout.com/assets/index-BJn0Pu29.js:855
+[  160471ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  168045ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  170190ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  183526ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://v98197694700.takearoundabout.com/api/claude:0
+[  274839ms] [WARNING] [generatePrompts] batch failed for skills 1,2,3,4,5,6 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-BJn0Pu29.js:388
+[  276818ms] [WARNING] [generatePrompts] batch failed for skills 19,20,21,22,23 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-BJn0Pu29.js:388
+[  279682ms] [WARNING] [generatePrompts] batch failed for skills 13,14,15,16,17,18 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-BJn0Pu29.js:388
+[  280085ms] [WARNING] [generatePrompts] batch failed for skills 7,8,9,10,11,12 Could not parse JSON for prompts-batch @ https://v98197694700.takearoundabout.com/assets/index-BJn0Pu29.js:388

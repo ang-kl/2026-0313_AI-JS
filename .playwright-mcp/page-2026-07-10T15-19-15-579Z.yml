@@ -1,0 +1,133 @@
+- generic [active] [ref=f1e1]:
+  - link "Skip to main content" [ref=f1e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - generic [ref=f1e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f1e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f1e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f1e116] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f1e10]:
+        - button "Decrease text size" [ref=f1e11] [cursor=pointer]:
+          - generic [ref=f1e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f1e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f1e14] [cursor=pointer]:
+          - generic [ref=f1e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f1e16]:
+      - generic [ref=f1e3181]:
+        - generic [ref=f1e3182]:
+          - button "Postings" [ref=f1e3183] [cursor=pointer]: ← Postings
+          - generic [ref=f1e3184]:
+            - generic [ref=f1e3185]:
+              - generic [ref=f1e3186]: REVIEWING
+              - generic [ref=f1e3187]: ● from MyCareersFuture
+            - generic [ref=f1e3188]: Data Engineer
+          - generic [ref=f1e3189]:
+            - generic [ref=f1e3190]: 17 duties · 23 skills
+            - 'button "{ } OKF" [ref=f1e3191] [cursor=pointer]'
+        - generic [ref=f1e3192]:
+          - generic [ref=f1e3194]: STILL LOADING
+          - generic [ref=f1e3195]: Building job anatomy, role graph, critical read and enriching how-to prompts...
+          - generic [ref=f1e3196]: Step 2 · 1:21
+        - generic [ref=f1e3197]:
+          - generic [ref=f1e3198]:
+            - generic [ref=f1e3199]: BUILDING THE BLUEPRINT
+            - generic [ref=f1e3200]: Still in progress - finished workstreams are not listed here.
+            - button "Dismiss build-status strip" [ref=f1e3201] [cursor=pointer]: ✕
+          - generic [ref=f1e3202]:
+            - 'generic "Visual Grammar: 20% built" [ref=f1e3203]':
+              - generic [ref=f1e3204]:
+                - generic [ref=f1e3205]: Visual Grammar
+                - generic [ref=f1e3206]: 20%
+            - 'generic "Generative Panels: 5% built" [ref=f1e3209]':
+              - generic [ref=f1e3210]:
+                - generic [ref=f1e3211]: Generative Panels
+                - generic [ref=f1e3212]: 5%
+        - tablist "Analysis views" [ref=f1e3215]:
+          - tab "Overview" [selected] [ref=f1e3216] [cursor=pointer]
+          - tab "The Ad" [ref=f1e3217] [cursor=pointer]
+          - tab "Duties & Exposure" [ref=f1e3218] [cursor=pointer]
+          - tab "Requirements & Gates" [ref=f1e3219] [cursor=pointer]
+          - tab "Critical Read" [ref=f1e3220] [cursor=pointer]
+          - tab "Market" [ref=f1e3221] [cursor=pointer]
+        - generic [ref=f1e3222]:
+          - generic [ref=f1e3223]: "verdict first · every chip is a door · time-window: snapshot at analysis"
+          - generic [ref=f1e3224]:
+            - generic [ref=f1e3225]: CHIP KEY
+            - generic "from posting = verbatim ad text" [ref=f1e3226]: from posting
+            - generic "computed = engine, deterministic" [ref=f1e3227]: computed
+            - generic "derived = rule-based inference" [ref=f1e3228]: derived
+            - generic "AI estimate = LLM advisory, not fact" [ref=f1e3229]: AI estimate
+            - generic "unverified = no source confirmed" [ref=f1e3230]: unverified
+        - generic [ref=f1e3231]:
+          - separator "Resize panels" [ref=f1e3232]
+          - generic [ref=f1e3233]:
+            - tablist "left panel windows" [ref=f1e3234]:
+              - tab "Verdict" [selected] [ref=f1e3235] [cursor=pointer]
+              - 'button "Float this window: Verdict" [ref=f1e3236] [cursor=pointer]':
+                - generic [ref=f1e3237]: ⧉
+            - generic [ref=f1e3239]:
+              - generic [ref=f1e3240]: OVERVIEW · THE 10-SECOND READ
+              - heading "Verdict first — every chip is a door" [level=2] [ref=f1e3241]
+              - generic [ref=f1e3242]:
+                - button "Pre-interview brief" [expanded] [ref=f1e3243] [cursor=pointer]:
+                  - generic [ref=f1e3245]: ▼
+                - generic [ref=f1e3246]:
+                  - generic [ref=f1e3247]:
+                    - generic [ref=f1e3248]: ROLE AS CLASSIFIED
+                    - generic [ref=f1e3249]:
+                      - paragraph [ref=f1e3250]: Data Engineer · SSOC 25213
+                      - generic [ref=f1e3251]: computed
+                  - generic [ref=f1e3252]:
+                    - generic [ref=f1e3253]: EMPLOYER (ACRA)
+                    - generic [ref=f1e3254]:
+                      - paragraph [ref=f1e3255]:
+                        - text: Local Company · Live Company · registered 2024-01-04
+                        - generic [ref=f1e3256]: "Primary SSIC: 70201"
+                        - generic [ref=f1e3257]: "Secondary SSIC: 62021"
+                      - generic [ref=f1e3258]: from ACRA
+                  - generic [ref=f1e3259]:
+                    - generic [ref=f1e3260]: MISSING FACTS
+                    - generic [ref=f1e3261]:
+                      - paragraph [ref=f1e3262]: "The ad is silent on: salary, reporting line, team size, success metrics, growth path, work arrangement."
+                      - generic [ref=f1e3263]: computed
+                  - paragraph [ref=f1e3264]: AI-assisted; human decides. Structural facts from MyCareersFuture, careers.gov.sg and ACRA; interpretation is the candidate's.
+              - 'button "BIGGEST FLAG: silent on salary. Open its tab." [ref=f1e3266] [cursor=pointer]':
+                - generic [ref=f1e3267]: BIGGEST FLAG
+                - generic [ref=f1e3268]: silent on salary
+                - generic [ref=f1e3269]: 6 findings in Critical Read
+                - text: derived
+          - generic [ref=f1e3270]:
+            - tablist "right panel windows" [ref=f1e3271]:
+              - tab "Shortcuts" [selected] [ref=f1e3272] [cursor=pointer]
+              - tab "Inspector" [ref=f1e3273] [cursor=pointer]
+              - 'button "Float this window: Shortcuts" [ref=f1e3274] [cursor=pointer]':
+                - generic [ref=f1e3275]: ⧉
+            - generic [ref=f1e3277]:
+              - generic [ref=f1e3278]: WORKSPACE SHORTCUTS
+              - generic [ref=f1e3279]:
+                - 'button "Sources: opens the verbatim ad and its provenance" [ref=f1e3280] [cursor=pointer]':
+                  - generic [ref=f1e3281]: Sources
+                  - generic [ref=f1e3282]: the verbatim ad and its provenance
+                - 'button "Trace: opens duty-by-duty O-I-A dissection" [ref=f1e3283] [cursor=pointer]':
+                  - generic [ref=f1e3284]: Trace
+                  - generic [ref=f1e3285]: duty-by-duty O-I-A dissection
+                - 'button "Skilling: opens skills and the AI trace" [ref=f1e3286] [cursor=pointer]':
+                  - generic [ref=f1e3287]: Skilling
+                  - generic [ref=f1e3288]: skills and the AI trace
+                - 'button "Advisory: opens the challenged deep read" [ref=f1e3289] [cursor=pointer]':
+                  - generic [ref=f1e3290]: Advisory
+                  - generic [ref=f1e3291]: the challenged deep read
+              - paragraph [ref=f1e3292]: "Cover letter, Boards and Saved retired from the rail - they were placeholder drawers; they return as real windows when built (trust-loop: no dead controls)."
+        - generic [ref=f1e3293]:
+          - generic [ref=f1e3294]: "Source: from MyCareersFuture · Confidence: withheld · Time-window: snapshot at analysis"
+          - generic [ref=f1e3295]:
+            - generic [ref=f1e3296]: AI-assisted · human decides
+            - generic "SG Career View 3.0.288" [ref=f1e3297]: v3.0.288
+      - button "Open the job advertisement" [ref=f1e3298] [cursor=pointer]:
+        - generic [ref=f1e3299]: 📄
+        - text: Job ad

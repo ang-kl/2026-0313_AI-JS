@@ -1,0 +1,2231 @@
+- generic [active] [ref=f2e1]:
+  - link "Skip to main content" [ref=f2e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e4]:
+    - generic [ref=f2e5]:
+      - generic [ref=f2e6]: ★
+      - heading "AI Readiness across Skills and Competences" [level=1] [ref=f2e8]
+      - link "Switch to V2 - ESCO EU skillsets" [ref=f2e9] [cursor=pointer]:
+        - /url: https://www.takearoundabout.com
+        - text: V2 - ESCO EU skillsets
+      - button "New Search" [ref=f2e110] [cursor=pointer]
+      - group "Text size, currently 100 percent" [ref=f2e10]:
+        - button "Decrease text size" [ref=f2e11] [cursor=pointer]:
+          - generic [ref=f2e12]: A
+          - text: "-"
+        - button "Reset text size" [pressed] [ref=f2e13] [cursor=pointer]: A
+        - button "Increase text size" [ref=f2e14] [cursor=pointer]:
+          - generic [ref=f2e15]: A
+          - text: +
+    - main "Job skills analyser" [ref=f2e16]:
+      - generic [ref=f2e112]:
+        - generic [ref=f2e113]:
+          - button "New search" [ref=f2e114] [cursor=pointer]:
+            - generic [ref=f2e115]: ←
+            - text: New search
+          - generic [ref=f2e116]:
+            - generic [ref=f2e117]: STEP 2 · SELECT EVIDENCE
+            - heading "Posting evidence for “data analyst”" [level=2] [ref=f2e118]
+          - generic [ref=f2e119]:
+            - generic [ref=f2e120]: 80 of 80
+            - generic "SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." [ref=f2e121]: 80 withheld
+            - 'button "{ } OKF index" [ref=f2e122] [cursor=pointer]'
+        - generic [ref=f2e123]:
+          - textbox "Search postings" [ref=f2e124]:
+            - /placeholder: Search postings...
+          - 'button "Sort: Best match" [ref=f2e126] [cursor=pointer]':
+            - text: "Sort: Best match"
+            - generic [ref=f2e127]: ▼
+          - button "Field" [ref=f2e129] [cursor=pointer]:
+            - text: Field
+            - generic [ref=f2e130]: ▼
+          - button "Company" [ref=f2e132] [cursor=pointer]:
+            - text: Company
+            - generic [ref=f2e133]: ▼
+          - button "Group" [ref=f2e135] [cursor=pointer]:
+            - text: Group
+            - generic [ref=f2e136]: ▼
+          - button "Function" [ref=f2e138] [cursor=pointer]:
+            - text: Function
+            - generic [ref=f2e139]: ▼
+          - button "Experience" [ref=f2e141] [cursor=pointer]:
+            - text: Experience
+            - generic [ref=f2e142]: ▼
+          - button "Type of work" [ref=f2e144] [cursor=pointer]:
+            - text: Type of work
+            - generic [ref=f2e145]: ▼
+          - button "Match" [ref=f2e147] [cursor=pointer]:
+            - text: Match
+            - generic [ref=f2e148]: ▼
+        - status [ref=f2e149]:
+          - generic [ref=f2e150]:
+            - paragraph [ref=f2e151]: Curating evidence for “data analyst”
+            - generic [ref=f2e152]: deterministic · no LLM
+          - generic [ref=f2e153]:
+            - generic [ref=f2e154]:
+              - generic [ref=f2e155]:
+                - generic [ref=f2e157]: MCF
+                - generic [ref=f2e158]: MyCareersFuture
+              - generic [ref=f2e160]:
+                - strong [ref=f2e161]: "30"
+                - text: postings
+            - generic [ref=f2e162]:
+              - generic [ref=f2e163]:
+                - generic [ref=f2e165]: CSG
+                - generic [ref=f2e166]: careers.gov.sg
+              - generic [ref=f2e168]:
+                - strong [ref=f2e169]: "50"
+                - text: postings
+            - generic [ref=f2e170]:
+              - generic [ref=f2e171]:
+                - generic [ref=f2e173]: SSOC
+                - generic [ref=f2e174]: SSOC 2024 classify
+              - generic [ref=f2e176]:
+                - text: classifying
+                - strong [ref=f2e177]: "80"
+                - text: …
+        - generic [ref=f2e178]:
+          - generic [ref=f2e179]:
+            - paragraph [ref=f2e180]: CURATION OVERVIEW · 80 POSTINGS
+            - generic [ref=f2e181]: computed from SSOC classifications
+          - generic [ref=f2e182]:
+            - generic [ref=f2e183]:
+              - img [ref=f2e184]:
+                - generic [ref=f2e187]: "80"
+                - generic [ref=f2e188]: POSTINGS
+              - generic [ref=f2e190]:
+                - generic [ref=f2e192]: Withheld
+                - generic [ref=f2e193]: "80"
+            - generic [ref=f2e194]:
+              - paragraph [ref=f2e195]: TOP SSOC FAMILIES
+              - button "Filter postings to Unclassified (80)" [ref=f2e197] [cursor=pointer]:
+                - paragraph [ref=f2e199]: Unclassified
+                - generic [ref=f2e202]: "80"
+        - generic [ref=f2e203]:
+          - complementary [ref=f2e204]:
+            - generic [ref=f2e205]:
+              - generic [ref=f2e206]: INDEX · 80 OF 80
+              - paragraph [ref=f2e207]: Ranked by match tier, then salary.
+              - generic [ref=f2e209]:
+                - generic "Unclassified" [ref=f2e210]: "80"
+                - generic [ref=f2e213]:
+                  - button "Data Analyst ELLIOTT MOSS CONSULTING PTE. LTD." [ref=f2e214] [cursor=pointer]:
+                    - generic [ref=f2e216]:
+                      - generic [ref=f2e217]: Data Analyst
+                      - generic [ref=f2e218]: ELLIOTT MOSS CONSULTING PTE. LTD.
+                  - button "DATA ANALYST SERVICE CONNECTIONS HR CONSULTANCY PTE. LTD." [ref=f2e219] [cursor=pointer]:
+                    - generic [ref=f2e221]:
+                      - generic [ref=f2e222]: DATA ANALYST
+                      - generic [ref=f2e223]: SERVICE CONNECTIONS HR CONSULTANCY PTE. LTD.
+                  - button "Data Analyst HAYS SPECIALIST RECRUITMENT PTE. LTD." [ref=f2e224] [cursor=pointer]:
+                    - generic [ref=f2e226]:
+                      - generic [ref=f2e227]: Data Analyst
+                      - generic [ref=f2e228]: HAYS SPECIALIST RECRUITMENT PTE. LTD.
+                  - button "Data Analyst BGC GROUP PTE. LTD." [ref=f2e229] [cursor=pointer]:
+                    - generic [ref=f2e231]:
+                      - generic [ref=f2e232]: Data Analyst
+                      - generic [ref=f2e233]: BGC GROUP PTE. LTD.
+                  - button "Data Analyst WILLIAMS-SONOMA SINGAPORE PTE. LTD." [ref=f2e234] [cursor=pointer]:
+                    - generic [ref=f2e236]:
+                      - generic [ref=f2e237]: Data Analyst
+                      - generic [ref=f2e238]: WILLIAMS-SONOMA SINGAPORE PTE. LTD.
+                  - button "Data Analyst QUESS SELECTION & SERVICES PTE. LTD." [ref=f2e239] [cursor=pointer]:
+                    - generic [ref=f2e241]:
+                      - generic [ref=f2e242]: Data Analyst
+                      - generic [ref=f2e243]: QUESS SELECTION & SERVICES PTE. LTD.
+                  - button "Data Analyst AXIOM RISE PTE. LTD." [ref=f2e244] [cursor=pointer]:
+                    - generic [ref=f2e246]:
+                      - generic [ref=f2e247]: Data Analyst
+                      - generic [ref=f2e248]: AXIOM RISE PTE. LTD.
+                  - button "Data Analyst UST GLOBAL (SINGAPORE) PTE. LIMITED" [ref=f2e249] [cursor=pointer]:
+                    - generic [ref=f2e251]:
+                      - generic [ref=f2e252]: Data Analyst
+                      - generic [ref=f2e253]: UST GLOBAL (SINGAPORE) PTE. LIMITED
+                  - button "Data Analyst SCIENTE INTERNATIONAL PTE. LTD." [ref=f2e254] [cursor=pointer]:
+                    - generic [ref=f2e256]:
+                      - generic [ref=f2e257]: Data Analyst
+                      - generic [ref=f2e258]: SCIENTE INTERNATIONAL PTE. LTD.
+                  - button "Data Analyst YARA ASIA PTE. LTD." [ref=f2e259] [cursor=pointer]:
+                    - generic [ref=f2e261]:
+                      - generic [ref=f2e262]: Data Analyst
+                      - generic [ref=f2e263]: YARA ASIA PTE. LTD.
+                  - button "Data Analyst GMP TECHNOLOGIES (S) PTE LTD" [ref=f2e264] [cursor=pointer]:
+                    - generic [ref=f2e266]:
+                      - generic [ref=f2e267]: Data Analyst
+                      - generic [ref=f2e268]: GMP TECHNOLOGIES (S) PTE LTD
+                  - button "Data Analyst ST ENGINEERING IHQ PTE. LTD." [ref=f2e269] [cursor=pointer]:
+                    - generic [ref=f2e271]:
+                      - generic [ref=f2e272]: Data Analyst
+                      - generic [ref=f2e273]: ST ENGINEERING IHQ PTE. LTD.
+                  - button "Data Analyst GMP RECRUITMENT SERVICES (S) PTE LTD" [ref=f2e274] [cursor=pointer]:
+                    - generic [ref=f2e276]:
+                      - generic [ref=f2e277]: Data Analyst
+                      - generic [ref=f2e278]: GMP RECRUITMENT SERVICES (S) PTE LTD
+                  - button "Data Analyst Intern LUMENS PTE. LTD." [ref=f2e279] [cursor=pointer]:
+                    - generic [ref=f2e281]:
+                      - generic [ref=f2e282]: Data Analyst Intern
+                      - generic [ref=f2e283]: LUMENS PTE. LTD.
+                  - button "Data Analyst / Associate NTT SINGAPORE PTE. LTD." [ref=f2e284] [cursor=pointer]:
+                    - generic [ref=f2e286]:
+                      - generic [ref=f2e287]: Data Analyst / Associate
+                      - generic [ref=f2e288]: NTT SINGAPORE PTE. LTD.
+                  - button "Data Analyst RAPSYS TECHNOLOGIES PTE. LTD." [ref=f2e289] [cursor=pointer]:
+                    - generic [ref=f2e291]:
+                      - generic [ref=f2e292]: Data Analyst
+                      - generic [ref=f2e293]: RAPSYS TECHNOLOGIES PTE. LTD.
+                  - button "Data Analyst MANPOWER STAFFING SERVICES (SINGAPORE) PTE LTD" [ref=f2e294] [cursor=pointer]:
+                    - generic [ref=f2e296]:
+                      - generic [ref=f2e297]: Data Analyst
+                      - generic [ref=f2e298]: MANPOWER STAFFING SERVICES (SINGAPORE) PTE LTD
+                  - button "Data Analyst Support LINK2 MANPOWER PTE. LTD." [ref=f2e299] [cursor=pointer]:
+                    - generic [ref=f2e301]:
+                      - generic [ref=f2e302]: Data Analyst Support
+                      - generic [ref=f2e303]: LINK2 MANPOWER PTE. LTD.
+                  - button "Salesforce Data Analyst CAPGEMINI SINGAPORE PTE. LTD." [ref=f2e304] [cursor=pointer]:
+                    - generic [ref=f2e306]:
+                      - generic [ref=f2e307]: Salesforce Data Analyst
+                      - generic [ref=f2e308]: CAPGEMINI SINGAPORE PTE. LTD.
+                  - button "Data Analyst Engineer VISIONPOWER SEMICONDUCTOR MANUFACTURING COMPANY PTE. LTD." [ref=f2e309] [cursor=pointer]:
+                    - generic [ref=f2e311]:
+                      - generic [ref=f2e312]: Data Analyst Engineer
+                      - generic [ref=f2e313]: VISIONPOWER SEMICONDUCTOR MANUFACTURING COMPANY PTE. LTD.
+                  - button "Risk & Data Analyst 8HEXA FINANCIAL PTE. LTD." [ref=f2e314] [cursor=pointer]:
+                    - generic [ref=f2e316]:
+                      - generic [ref=f2e317]: Risk & Data Analyst
+                      - generic [ref=f2e318]: 8HEXA FINANCIAL PTE. LTD.
+                  - button "Data Analyst Senior Consultant ERP21 PTE LTD" [ref=f2e319] [cursor=pointer]:
+                    - generic [ref=f2e321]:
+                      - generic [ref=f2e322]: Data Analyst Senior Consultant
+                      - generic [ref=f2e323]: ERP21 PTE LTD
+                  - button "Data Analyst D L RESOURCES PTE LTD" [ref=f2e324] [cursor=pointer]:
+                    - generic [ref=f2e326]:
+                      - generic [ref=f2e327]: Data Analyst
+                      - generic [ref=f2e328]: D L RESOURCES PTE LTD
+                  - button "BI Data Analyst GUNVOR SINGAPORE PTE. LTD." [ref=f2e329] [cursor=pointer]:
+                    - generic [ref=f2e331]:
+                      - generic [ref=f2e332]: BI Data Analyst
+                      - generic [ref=f2e333]: GUNVOR SINGAPORE PTE. LTD.
+                  - button "Data Analyst GMP TECHNOLOGIES (S) PTE LTD" [ref=f2e334] [cursor=pointer]:
+                    - generic [ref=f2e336]:
+                      - generic [ref=f2e337]: Data Analyst
+                      - generic [ref=f2e338]: GMP TECHNOLOGIES (S) PTE LTD
+                  - button "Data Analyst (Advanced SQL) 12-months contract OPTIMUM SOLUTIONS (SINGAPORE) PTE LTD" [ref=f2e339] [cursor=pointer]:
+                    - generic [ref=f2e341]:
+                      - generic [ref=f2e342]: Data Analyst (Advanced SQL) 12-months contract
+                      - generic [ref=f2e343]: OPTIMUM SOLUTIONS (SINGAPORE) PTE LTD
+                  - button "Data Analyst RAPSYS TECHNOLOGIES PTE. LTD." [ref=f2e344] [cursor=pointer]:
+                    - generic [ref=f2e346]:
+                      - generic [ref=f2e347]: Data Analyst
+                      - generic [ref=f2e348]: RAPSYS TECHNOLOGIES PTE. LTD.
+                  - button "Salesforce Data Analyst CAPGEMINI SINGAPORE PTE. LTD." [ref=f2e349] [cursor=pointer]:
+                    - generic [ref=f2e351]:
+                      - generic [ref=f2e352]: Salesforce Data Analyst
+                      - generic [ref=f2e353]: CAPGEMINI SINGAPORE PTE. LTD.
+                  - button "Data Analyst Ministry of Manpower" [ref=f2e354] [cursor=pointer]:
+                    - generic [ref=f2e356]:
+                      - generic [ref=f2e357]: Data Analyst
+                      - generic [ref=f2e358]: Ministry of Manpower
+                  - button "Data Analyst Ministry of Manpower" [ref=f2e359] [cursor=pointer]:
+                    - generic [ref=f2e361]:
+                      - generic [ref=f2e362]: Data Analyst
+                      - generic [ref=f2e363]: Ministry of Manpower
+                  - button "Data Analyst | Banking Sector D L RESOURCES PTE LTD" [ref=f2e364] [cursor=pointer]:
+                    - generic [ref=f2e366]:
+                      - generic [ref=f2e367]: Data Analyst | Banking Sector
+                      - generic [ref=f2e368]: D L RESOURCES PTE LTD
+                  - button "Data Analyst Nanyang Polytechnic" [ref=f2e369] [cursor=pointer]:
+                    - generic [ref=f2e371]:
+                      - generic [ref=f2e372]: Data Analyst
+                      - generic [ref=f2e373]: Nanyang Polytechnic
+                  - button "Data Analyst Ministry Of Social And Family Development" [ref=f2e374] [cursor=pointer]:
+                    - generic [ref=f2e376]:
+                      - generic [ref=f2e377]: Data Analyst
+                      - generic [ref=f2e378]: Ministry Of Social And Family Development
+                  - button "Data Analyst Ministry of Manpower" [ref=f2e379] [cursor=pointer]:
+                    - generic [ref=f2e381]:
+                      - generic [ref=f2e382]: Data Analyst
+                      - generic [ref=f2e383]: Ministry of Manpower
+                  - button "Operational Analyst Security & Intelligence Division" [ref=f2e384] [cursor=pointer]:
+                    - generic [ref=f2e386]:
+                      - generic [ref=f2e387]: Operational Analyst
+                      - generic [ref=f2e388]: Security & Intelligence Division
+                  - button "Analyst Security & Intelligence Division" [ref=f2e389] [cursor=pointer]:
+                    - generic [ref=f2e391]:
+                      - generic [ref=f2e392]: Analyst
+                      - generic [ref=f2e393]: Security & Intelligence Division
+                  - button "Target Analyst Security & Intelligence Division" [ref=f2e394] [cursor=pointer]:
+                    - generic [ref=f2e396]:
+                      - generic [ref=f2e397]: Target Analyst
+                      - generic [ref=f2e398]: Security & Intelligence Division
+                  - button "Data Engineer National Library Board" [ref=f2e399] [cursor=pointer]:
+                    - generic [ref=f2e401]:
+                      - generic [ref=f2e402]: Data Engineer
+                      - generic [ref=f2e403]: National Library Board
+                  - button "[Express of Interest] Data Analyst RECRUIT123 PTE. LTD." [ref=f2e404] [cursor=pointer]:
+                    - generic [ref=f2e406]:
+                      - generic [ref=f2e407]: "[Express of Interest] Data Analyst"
+                      - generic [ref=f2e408]: RECRUIT123 PTE. LTD.
+                  - button "Manager/Senior Manager Ministry of Manpower" [ref=f2e409] [cursor=pointer]:
+                    - generic [ref=f2e411]:
+                      - generic [ref=f2e412]: Manager/Senior Manager
+                      - generic [ref=f2e413]: Ministry of Manpower
+                  - button "Data Engineer Government Technology Agency" [ref=f2e414] [cursor=pointer]:
+                    - generic [ref=f2e416]:
+                      - generic [ref=f2e417]: Data Engineer
+                      - generic [ref=f2e418]: Government Technology Agency
+                  - button "Contract Senior Analyst Data Pilots Singapore Tourism Board" [ref=f2e419] [cursor=pointer]:
+                    - generic [ref=f2e421]:
+                      - generic [ref=f2e422]: Contract Senior Analyst Data Pilots
+                      - generic [ref=f2e423]: Singapore Tourism Board
+                  - button "Senior / Data Engineer Government Technology Agency" [ref=f2e424] [cursor=pointer]:
+                    - generic [ref=f2e426]:
+                      - generic [ref=f2e427]: Senior / Data Engineer
+                      - generic [ref=f2e428]: Government Technology Agency
+                  - button "Policy HR Analyst (Lead/Senior) Public Service Division (PSD)" [ref=f2e429] [cursor=pointer]:
+                    - generic [ref=f2e431]:
+                      - generic [ref=f2e432]: Policy HR Analyst (Lead/Senior)
+                      - generic [ref=f2e433]: Public Service Division (PSD)
+                  - button "Policy HR Analyst (Lead/Senior) Public Service Division (PSD)" [ref=f2e434] [cursor=pointer]:
+                    - generic [ref=f2e436]:
+                      - generic [ref=f2e437]: Policy HR Analyst (Lead/Senior)
+                      - generic [ref=f2e438]: Public Service Division (PSD)
+                  - button "Senior/Data Analyst (Data & AI Office) Ministry of Trade and Industry" [ref=f2e439] [cursor=pointer]:
+                    - generic [ref=f2e441]:
+                      - generic [ref=f2e442]: Senior/Data Analyst (Data & AI Office)
+                      - generic [ref=f2e443]: Ministry of Trade and Industry
+                  - button "Data Engineer Government Technology Agency" [ref=f2e444] [cursor=pointer]:
+                    - generic [ref=f2e446]:
+                      - generic [ref=f2e447]: Data Engineer
+                      - generic [ref=f2e448]: Government Technology Agency
+                  - button "Data Engineer Government Technology Agency" [ref=f2e449] [cursor=pointer]:
+                    - generic [ref=f2e451]:
+                      - generic [ref=f2e452]: Data Engineer
+                      - generic [ref=f2e453]: Government Technology Agency
+                  - button "Analyst - SPF/PID MHA - Singapore Police Force (SPF)" [ref=f2e454] [cursor=pointer]:
+                    - generic [ref=f2e456]:
+                      - generic [ref=f2e457]: Analyst - SPF/PID
+                      - generic [ref=f2e458]: MHA - Singapore Police Force (SPF)
+                  - button "Threat Intel Analyst Government Technology Agency" [ref=f2e459] [cursor=pointer]:
+                    - generic [ref=f2e461]:
+                      - generic [ref=f2e462]: Threat Intel Analyst
+                      - generic [ref=f2e463]: Government Technology Agency
+                  - button "Manager/Senior Mgr Data & AI Product Mgr Singapore Tourism Board" [ref=f2e464] [cursor=pointer]:
+                    - generic [ref=f2e466]:
+                      - generic [ref=f2e467]: Manager/Senior Mgr Data & AI Product Mgr
+                      - generic [ref=f2e468]: Singapore Tourism Board
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f2e469] [cursor=pointer]:
+                    - generic [ref=f2e471]:
+                      - generic [ref=f2e472]: Lead Engineer/ Engineer
+                      - generic [ref=f2e473]: Home Team Science and Technology Agency (HTX)
+                  - button "Head, Sensemaking Application, Sensemaking,… Home Team Science and Technology Agency (HTX)" [ref=f2e474] [cursor=pointer]:
+                    - generic [ref=f2e476]:
+                      - generic [ref=f2e477]: Head, Sensemaking Application, Sensemaking,…
+                      - generic [ref=f2e478]: Home Team Science and Technology Agency (HTX)
+                  - button "Principal Engineer Home Team Science and Technology Agency (HTX)" [ref=f2e479] [cursor=pointer]:
+                    - generic [ref=f2e481]:
+                      - generic [ref=f2e482]: Principal Engineer
+                      - generic [ref=f2e483]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/ Engineer Home Team Science and Technology Agency (HTX)" [ref=f2e484] [cursor=pointer]:
+                    - generic [ref=f2e486]:
+                      - generic [ref=f2e487]: Lead Engineer/ Engineer
+                      - generic [ref=f2e488]: Home Team Science and Technology Agency (HTX)
+                  - button "Head, AI Data Solutioning, AI Data Engineeri… Home Team Science and Technology Agency (HTX)" [ref=f2e489] [cursor=pointer]:
+                    - generic [ref=f2e491]:
+                      - generic [ref=f2e492]: Head, AI Data Solutioning, AI Data Engineeri…
+                      - generic [ref=f2e493]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead Engineer/Engineer Home Team Science and Technology Agency (HTX)" [ref=f2e494] [cursor=pointer]:
+                    - generic [ref=f2e496]:
+                      - generic [ref=f2e497]: Lead Engineer/Engineer
+                      - generic [ref=f2e498]: Home Team Science and Technology Agency (HTX)
+                  - button "Senior/Data Scientist Home Team Science and Technology Agency (HTX)" [ref=f2e499] [cursor=pointer]:
+                    - generic [ref=f2e501]:
+                      - generic [ref=f2e502]: Senior/Data Scientist
+                      - generic [ref=f2e503]: Home Team Science and Technology Agency (HTX)
+                  - button "Lead / Senior Software Engineer Government Technology Agency" [ref=f2e504] [cursor=pointer]:
+                    - generic [ref=f2e506]:
+                      - generic [ref=f2e507]: Lead / Senior Software Engineer
+                      - generic [ref=f2e508]: Government Technology Agency
+                  - button "Senior Software Engineer Government Technology Agency" [ref=f2e509] [cursor=pointer]:
+                    - generic [ref=f2e511]:
+                      - generic [ref=f2e512]: Senior Software Engineer
+                      - generic [ref=f2e513]: Government Technology Agency
+                  - button "Software Engineer Government Technology Agency" [ref=f2e514] [cursor=pointer]:
+                    - generic [ref=f2e516]:
+                      - generic [ref=f2e517]: Software Engineer
+                      - generic [ref=f2e518]: Government Technology Agency
+                  - button "Senior/Health Policy Analyst Ministry of Health" [ref=f2e519] [cursor=pointer]:
+                    - generic [ref=f2e521]:
+                      - generic [ref=f2e522]: Senior/Health Policy Analyst
+                      - generic [ref=f2e523]: Ministry of Health
+                  - button "Data Scientist Nanyang Polytechnic" [ref=f2e524] [cursor=pointer]:
+                    - generic [ref=f2e526]:
+                      - generic [ref=f2e527]: Data Scientist
+                      - generic [ref=f2e528]: Nanyang Polytechnic
+                  - button "[LTA-T&ID] DEPUTY / ASST MGR Land Transport Authority" [ref=f2e529] [cursor=pointer]:
+                    - generic [ref=f2e531]:
+                      - generic [ref=f2e532]: "[LTA-T&ID] DEPUTY / ASST MGR"
+                      - generic [ref=f2e533]: Land Transport Authority
+                  - button "Analyst/ Senior Analyst Public Service Division" [ref=f2e534] [cursor=pointer]:
+                    - generic [ref=f2e536]:
+                      - generic [ref=f2e537]: Analyst/ Senior Analyst
+                      - generic [ref=f2e538]: Public Service Division
+                  - button "Senior/Health Policy Analyst Ministry of Health" [ref=f2e539] [cursor=pointer]:
+                    - generic [ref=f2e541]:
+                      - generic [ref=f2e542]: Senior/Health Policy Analyst
+                      - generic [ref=f2e543]: Ministry of Health
+                  - button "Assistant Director / Principal Manager Health Sciences Authority" [ref=f2e544] [cursor=pointer]:
+                    - generic [ref=f2e546]:
+                      - generic [ref=f2e547]: Assistant Director / Principal Manager
+                      - generic [ref=f2e548]: Health Sciences Authority
+                  - button "Statistician (Data Engineer) Department of Statistics" [ref=f2e549] [cursor=pointer]:
+                    - generic [ref=f2e551]:
+                      - generic [ref=f2e552]: Statistician (Data Engineer)
+                      - generic [ref=f2e553]: Department of Statistics
+                  - button "Snr Analyst Public Service Division" [ref=f2e554] [cursor=pointer]:
+                    - generic [ref=f2e556]:
+                      - generic [ref=f2e557]: Snr Analyst
+                      - generic [ref=f2e558]: Public Service Division
+                  - button "(Senior) Research Analyst Ministry of Education" [ref=f2e559] [cursor=pointer]:
+                    - generic [ref=f2e561]:
+                      - generic [ref=f2e562]: (Senior) Research Analyst
+                      - generic [ref=f2e563]: Ministry of Education
+                  - button "Curriculum Development Analyst Institute of Technical Education" [ref=f2e564] [cursor=pointer]:
+                    - generic [ref=f2e566]:
+                      - generic [ref=f2e567]: Curriculum Development Analyst
+                      - generic [ref=f2e568]: Institute of Technical Education
+                  - button "Assistant Director MINDEF" [ref=f2e569] [cursor=pointer]:
+                    - generic [ref=f2e571]:
+                      - generic [ref=f2e572]: Assistant Director
+                      - generic [ref=f2e573]: MINDEF
+                  - button "Data Engineer Civil Service College" [ref=f2e574] [cursor=pointer]:
+                    - generic [ref=f2e576]:
+                      - generic [ref=f2e577]: Data Engineer
+                      - generic [ref=f2e578]: Civil Service College
+                  - button "Research Analyst Ministry of Manpower" [ref=f2e579] [cursor=pointer]:
+                    - generic [ref=f2e581]:
+                      - generic [ref=f2e582]: Research Analyst
+                      - generic [ref=f2e583]: Ministry of Manpower
+                  - button "Product Manager Government Technology Agency" [ref=f2e584] [cursor=pointer]:
+                    - generic [ref=f2e586]:
+                      - generic [ref=f2e587]: Product Manager
+                      - generic [ref=f2e588]: Government Technology Agency
+                  - button "[LTA-IDE] ASST MANAGER Land Transport Authority" [ref=f2e589] [cursor=pointer]:
+                    - generic [ref=f2e591]:
+                      - generic [ref=f2e592]: "[LTA-IDE] ASST MANAGER"
+                      - generic [ref=f2e593]: Land Transport Authority
+                  - button "Business Analyst (Tech Data and Innovation) Ministry Of Social And Family Development" [ref=f2e594] [cursor=pointer]:
+                    - generic [ref=f2e596]:
+                      - generic [ref=f2e597]: Business Analyst (Tech Data and Innovation)
+                      - generic [ref=f2e598]: Ministry Of Social And Family Development
+                  - button "Principal/Senior Manager (Data Analyst) Ministry of Manpower" [ref=f2e599] [cursor=pointer]:
+                    - generic [ref=f2e601]:
+                      - generic [ref=f2e602]: Principal/Senior Manager (Data Analyst)
+                      - generic [ref=f2e603]: Ministry of Manpower
+                  - button "Senior / Product Manager Government Technology Agency" [ref=f2e604] [cursor=pointer]:
+                    - generic [ref=f2e606]:
+                      - generic [ref=f2e607]: Senior / Product Manager
+                      - generic [ref=f2e608]: Government Technology Agency
+                  - button "Director / Deputy Director Government Technology Agency" [ref=f2e609] [cursor=pointer]:
+                    - generic [ref=f2e611]:
+                      - generic [ref=f2e612]: Director / Deputy Director
+                      - generic [ref=f2e613]: Government Technology Agency
+            - generic [ref=f2e614]:
+              - generic [ref=f2e615]:
+                - generic [ref=f2e616]: OKF v0.1
+                - generic [ref=f2e617]: Open Knowledge Format
+              - paragraph [ref=f2e618]: A vendor-neutral markdown bundle - tap a file to read it.
+              - generic [ref=f2e619]:
+                - button "data-analyst.okf/" [disabled] [ref=f2e620]
+                - button "index.md" [ref=f2e622] [cursor=pointer]:
+                  - generic [ref=f2e623]: ├──
+                - button "postings/ (80)" [disabled] [ref=f2e625]:
+                  - generic [ref=f2e626]: ├──
+                - button "sectors/" [disabled] [ref=f2e628]:
+                  - generic [ref=f2e629]: ├──
+                - button "log.md" [ref=f2e631] [cursor=pointer]:
+                  - generic [ref=f2e632]: └──
+              - button "Open index" [ref=f2e635] [cursor=pointer]
+          - generic [ref=f2e636]:
+            - paragraph [ref=f2e637]: "Badge key · match basis: exact title (same title) · title variant (close wording) · nuance (specialised form) · R&R match (matched in the duties) · related · +N from employer = more live postings by the same employer in this result."
+            - generic [ref=f2e638]:
+              - generic [ref=f2e639]:
+                - generic [ref=f2e640]:
+                  - generic [ref=f2e642]: MyCareersFuture
+                  - generic [ref=f2e643]: "30"
+                - generic [ref=f2e644]:
+                  - generic [ref=f2e645] [cursor=pointer]:
+                    - generic [ref=f2e646]:
+                      - generic [ref=f2e647]: E
+                      - generic "ELLIOTT MOSS CONSULTING PTE. LTD." [ref=f2e648]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e650]':
+                      - text: exact title
+                      - generic [ref=f2e651]: ▾
+                    - generic [ref=f2e652]:
+                      - heading "Data Analyst" [level=3] [ref=f2e653]
+                      - generic [ref=f2e654]:
+                        - generic [ref=f2e655]: NEW
+                        - generic [ref=f2e656]: today
+                      - generic [ref=f2e657]:
+                        - generic [ref=f2e658]: S$6,500 - S$8,700 / month
+                        - generic [ref=f2e659]: Contract
+                      - paragraph [ref=f2e660]: We are seeking a Data Analyst to transform data into actionable insights that support business decisions and improve operational performance. You will work closely with business stakeholders, project managers, solution architects, and data engineers to analyze business requirements, develop reports and dashboards, and provide meaningful recommendations based on data.
+                      - 'generic "Position level: Professional" [ref=f2e662]': Professional
+                      - generic [ref=f2e663]:
+                        - button "Analyse" [ref=f2e664]
+                        - link "Open" [ref=f2e665]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-elliott-moss-consulting-5501a469617ea471d5a3b5043f445a06
+                        - 'button "{ } OKF" [ref=f2e666]'
+                  - generic [ref=f2e667] [cursor=pointer]:
+                    - generic [ref=f2e668]:
+                      - generic [ref=f2e669]: S
+                      - generic "SERVICE CONNECTIONS HR CONSULTANCY PTE. LTD." [ref=f2e670]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e672]':
+                      - text: exact title
+                      - generic [ref=f2e673]: ▾
+                    - generic [ref=f2e674]:
+                      - heading "DATA ANALYST" [level=3] [ref=f2e675]
+                      - generic [ref=f2e676]:
+                        - generic [ref=f2e677]: NEW
+                        - generic [ref=f2e678]: yesterday
+                      - generic [ref=f2e679]:
+                        - generic [ref=f2e680]: S$4,000 - S$4,500 / month
+                        - generic [ref=f2e681]: Contract, Full Time
+                      - paragraph [ref=f2e682]: Work with internal stakeholders to understand analytics needs and deliver relevant insights Collect, organize, and maintain data from primary and secondary sources while ensuring quality and accuracy Clean, prepare, and validate data sets for reliable analysis and reporting Build dashboards, charts, and reports that simplify and visualise data findings for both technical and non-technical audiences Collaborate with cross-functional teams to align…
+                      - 'generic "Position level: Professional" [ref=f2e684]': Professional
+                      - generic [ref=f2e685]:
+                        - button "Analyse" [ref=f2e686]
+                        - link "Open" [ref=f2e687]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/education-training/data-analyst-service-connections-hr-consultancy-f3b6bea4dffd00832242fd39f13221fe
+                        - 'button "{ } OKF" [ref=f2e688]'
+                  - generic [ref=f2e689] [cursor=pointer]:
+                    - generic [ref=f2e690]:
+                      - generic [ref=f2e691]: H
+                      - generic "HAYS SPECIALIST RECRUITMENT PTE. LTD." [ref=f2e692]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e694]':
+                      - text: exact title
+                      - generic [ref=f2e695]: ▾
+                    - generic [ref=f2e696]:
+                      - heading "Data Analyst (1 year contract, Life science, Pharmaceutical)" [level=3] [ref=f2e697]
+                      - generic [ref=f2e698]: 4 days ago
+                      - generic [ref=f2e700]:
+                        - generic [ref=f2e701]: S$4,400 - S$5,500 / month
+                        - generic [ref=f2e702]: Temporary, Contract, Permanent
+                      - paragraph [ref=f2e703]: The Data Analyst will play a key role in driving the modernization of BIO Lab Management and Analytics through digital transformation. This role focuses on technical data analysis, sample and inventory management, lab analytics, and knowledge management. The analyst will collaborate with cross-functional stakeholders to identify opportunities for improvement, develop sustainable digital solutions, and provide data-driven insights that enhance performance and decision-making.
+                      - 'generic "Position level: Executive" [ref=f2e705]': Executive
+                      - generic [ref=f2e706]:
+                        - button "Analyse" [ref=f2e707]
+                        - link "Open" [ref=f2e708]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-hays-specialist-recruitment-99f386be64e49266e489d1fccf180092
+                        - 'button "{ } OKF" [ref=f2e709]'
+                  - generic [ref=f2e710] [cursor=pointer]:
+                    - generic [ref=f2e711]:
+                      - generic [ref=f2e712]: B
+                      - generic "BGC GROUP PTE. LTD." [ref=f2e713]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e715]':
+                      - text: exact title
+                      - generic [ref=f2e716]: ▾
+                    - generic [ref=f2e717]:
+                      - heading "Data Analyst (12-mth contract |Up to $4,800 |Data Protection)" [level=3] [ref=f2e718]
+                      - generic [ref=f2e719]: 4 days ago
+                      - generic [ref=f2e721]:
+                        - generic [ref=f2e722]: S$3,800 - S$4,800 / month
+                        - generic [ref=f2e723]: Contract
+                      - paragraph [ref=f2e724]: (Day-to-Day) Build and maintain Tableau dashboards to track personal data breach incidents and compliance KPIs Analyse complex datasets in Excel — spot trends, anomalies, and patterns in breach data Conduct risk assessments of datasets against government data protection standards Prepare presentations and reports for senior management on high-impact incidents Coordinate with stakeholders across different healthcare entities to track mitigation measures
+                      - 'generic "Position level: Executive" [ref=f2e726]': Executive
+                      - generic [ref=f2e727]:
+                        - button "Analyse" [ref=f2e728]
+                        - link "Open" [ref=f2e729]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/admin/data-analyst-bgc-group-44ea83fb8477db5817497f5c0cfb86cc
+                        - 'button "{ } OKF" [ref=f2e730]'
+                  - generic [ref=f2e731] [cursor=pointer]:
+                    - generic [ref=f2e732]:
+                      - generic [ref=f2e733]: W
+                      - generic "WILLIAMS-SONOMA SINGAPORE PTE. LTD." [ref=f2e734]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e736]':
+                      - text: exact title
+                      - generic [ref=f2e737]: ▾
+                    - generic [ref=f2e738]:
+                      - heading "Data Analyst" [level=3] [ref=f2e739]
+                      - generic [ref=f2e740]: 1 week ago
+                      - generic [ref=f2e742]:
+                        - generic [ref=f2e743]: S$4,500 - S$5,500 / month
+                        - generic [ref=f2e744]: Permanent, Full Time
+                      - paragraph [ref=f2e745]: Learn and understand WSI Sourcing business workflow, processes and data requirements. Interpret data and analyze results using statistical techniques, providing actionable reports, dashboards, and business insights. Develop and implement data collection processes, data analytics methodologies, and automation solutions that improve efficiency, accuracy, and scalability.
+                      - 'generic "Position level: Executive" [ref=f2e747]': Executive
+                      - generic [ref=f2e748]:
+                        - button "Analyse" [ref=f2e749]
+                        - link "Open" [ref=f2e750]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-williams-sonoma-singapore-699439c598c8360b9f0312ea45b212b4
+                        - 'button "{ } OKF" [ref=f2e751]'
+                  - generic [ref=f2e752] [cursor=pointer]:
+                    - generic [ref=f2e753]:
+                      - generic [ref=f2e754]: Q
+                      - generic "QUESS SELECTION & SERVICES PTE. LTD." [ref=f2e755]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e757]':
+                      - text: exact title
+                      - generic [ref=f2e758]: ▾
+                    - generic [ref=f2e759]:
+                      - heading "Data Analyst (Life Sciences / Pharma Manufacturing)" [level=3] [ref=f2e760]
+                      - generic [ref=f2e761]: 1 week ago
+                      - generic [ref=f2e763]:
+                        - generic [ref=f2e764]: S$4,000 - S$5,500 / month
+                        - generic [ref=f2e765]: Contract
+                      - paragraph [ref=f2e766]: Role Overview The Data Analyst will play a key role in driving the modernization of BIO Lab Management and Analytics through digital transformation. This role focuses on technical data analysis, sample and inventory management, lab analytics, and knowledge management. The analyst will collaborate with cross-functional stakeholders to identify opportunities for improvement, develop sustainable digital solutions, and provide data-driven insights that…
+                      - 'generic "Position level: Professional" [ref=f2e768]': Professional
+                      - generic [ref=f2e769]:
+                        - button "Analyse" [ref=f2e770]
+                        - link "Open" [ref=f2e771]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/healthcare/data-analyst-quess-selection-services-c750624cd0efa47510d9b79f12de6d70
+                        - 'button "{ } OKF" [ref=f2e772]'
+                  - generic [ref=f2e773] [cursor=pointer]:
+                    - generic [ref=f2e774]:
+                      - generic [ref=f2e775]: A
+                      - generic "AXIOM RISE PTE. LTD." [ref=f2e776]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e778]':
+                      - text: exact title
+                      - generic [ref=f2e779]: ▾
+                    - generic [ref=f2e780]:
+                      - heading "Data Analyst" [level=3] [ref=f2e781]
+                      - generic [ref=f2e782]: 1 week ago
+                      - generic [ref=f2e784]:
+                        - generic [ref=f2e785]: S$5,000 - S$5,800 / month
+                        - generic [ref=f2e786]: Permanent
+                      - paragraph [ref=f2e787]: Validate data from source systems (pre-load) incollaboration with business users; identify data quality challenges andcoordinate with source system owners to resolve issues. Assist business users in data preparation, ensuringdata is formatted correctly for ingestion into the data platform.
+                      - 'generic "Position level: Senior Executive" [ref=f2e789]': Senior Executive
+                      - generic [ref=f2e790]:
+                        - button "Analyse" [ref=f2e791]
+                        - link "Open" [ref=f2e792]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-axiom-rise-2571ced62c707bbeedf1c8695e2fa769
+                        - 'button "{ } OKF" [ref=f2e793]'
+                  - generic [ref=f2e794] [cursor=pointer]:
+                    - generic [ref=f2e795]:
+                      - generic [ref=f2e796]: U
+                      - generic "UST GLOBAL (SINGAPORE) PTE. LIMITED" [ref=f2e797]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e799]':
+                      - text: exact title
+                      - generic [ref=f2e800]: ▾
+                    - generic [ref=f2e801]:
+                      - heading "Data Analyst" [level=3] [ref=f2e802]
+                      - generic [ref=f2e803]: 1 week ago
+                      - generic [ref=f2e805]:
+                        - generic [ref=f2e806]: S$5,000 - S$7,000 / month
+                        - generic [ref=f2e807]: Permanent
+                      - paragraph [ref=f2e808]: Build simple conversational agents using Microsoft Copilot Studio to support access request navigation. Support development of Power BI dashboards for BAU access management. Develop Python scripts for access data validation, reconciliation, and analysis under guidance. Assist in data preparation and validation for migration activities, including access mapping checks.
+                      - 'generic "Position level: Senior Executive" [ref=f2e810]': Senior Executive
+                      - generic [ref=f2e811]:
+                        - button "Analyse" [ref=f2e812]
+                        - link "Open" [ref=f2e813]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-ust-global-c1db9bc3306fbc9706534fa5b41c7e19
+                        - 'button "{ } OKF" [ref=f2e814]'
+                  - generic [ref=f2e815] [cursor=pointer]:
+                    - generic [ref=f2e816]:
+                      - generic [ref=f2e817]: S
+                      - generic "SCIENTE INTERNATIONAL PTE. LTD." [ref=f2e818]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e820]':
+                      - text: exact title
+                      - generic [ref=f2e821]: ▾
+                    - generic [ref=f2e822]:
+                      - heading "Data Analyst (JD#11069)" [level=3] [ref=f2e823]
+                      - generic [ref=f2e824]: 2 weeks ago
+                      - generic [ref=f2e826]:
+                        - generic [ref=f2e827]: S$4,500 - S$5,500 / month
+                        - generic [ref=f2e828]: Contract
+                      - paragraph [ref=f2e829]: We are looking for a Data Analyst to drive end-to-end analytics for Anti-Financial Crime projects in a reputed bank . This role blends strong analytical and data science capabilities with compelling storytelling, documentation excellence, and stakeholder leadership. You will work extensively on Hadoop Big Data, design analytic workflows, build ML models (including unsupervised techniques), and translate insights into meaningful business impact.
+                      - 'generic "Position level: Executive" [ref=f2e831]': Executive
+                      - generic [ref=f2e832]:
+                        - button "Analyse" [ref=f2e833]
+                        - link "Open" [ref=f2e834]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-sciente-international-34829f54e7455e4189f3b6bdc8b807ca
+                        - 'button "{ } OKF" [ref=f2e835]'
+                  - generic [ref=f2e836] [cursor=pointer]:
+                    - generic [ref=f2e837]:
+                      - generic [ref=f2e838]: "Y"
+                      - generic "YARA ASIA PTE. LTD." [ref=f2e839]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e841]':
+                      - text: exact title
+                      - generic [ref=f2e842]: ▾
+                    - generic [ref=f2e843]:
+                      - heading "Data Analyst" [level=3] [ref=f2e844]
+                      - generic [ref=f2e845]: 2 weeks ago
+                      - generic [ref=f2e847]:
+                        - generic [ref=f2e848]: S$5,000 - S$7,000 / month
+                        - generic [ref=f2e849]: Full Time
+                      - paragraph [ref=f2e850]: The Data Analyst will be a critical part of our team, responsible for transforming complex data into actionable insights that drive business decisions. The role is expected to leverage analytical expertise to design and produce comprehensive dashboards and reports, identify data quality issues proactively, and communicate findings clearly to diverse stakeholders.
+                      - 'generic "Position level: Professional" [ref=f2e852]': Professional
+                      - generic [ref=f2e853]:
+                        - button "Analyse" [ref=f2e854]
+                        - link "Open" [ref=f2e855]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/design/data-analyst-yara-asia-fece1d85ceefd022a1ba51b12e40f236
+                        - 'button "{ } OKF" [ref=f2e856]'
+                  - generic [ref=f2e857] [cursor=pointer]:
+                    - generic [ref=f2e858]:
+                      - generic [ref=f2e859]: G
+                      - generic "GMP TECHNOLOGIES (S) PTE LTD" [ref=f2e860]
+                    - generic [ref=f2e861]:
+                      - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e862]':
+                        - text: exact title
+                        - generic [ref=f2e863]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e864]:
+                        - text: +1 ads
+                        - generic [ref=f2e865]: ▾
+                    - generic [ref=f2e866]:
+                      - heading "Data Analyst (Healthcare | Contract)" [level=3] [ref=f2e867]
+                      - generic [ref=f2e868]: 4 weeks ago
+                      - generic [ref=f2e870]:
+                        - generic [ref=f2e871]: S$4,500 - S$6,800 / month
+                        - generic [ref=f2e872]: Contract, Full Time
+                      - paragraph [ref=f2e873]: Data Analytics Spearhead the design and execution of end-to-end data analytics strategies. Develop and manage automated data pipelines and ETL workflows. Perform data cleaning, preprocessing, and validation to maintain high data accuracy and integrity. Utilize advanced statistical and data mining techniques to analyze extensive healthcare datasets.
+                      - 'generic "Position level: Senior Executive" [ref=f2e875]': Senior Executive
+                      - generic [ref=f2e876]:
+                        - button "Analyse" [ref=f2e877]
+                        - link "Open" [ref=f2e878]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-gmp-technologies-ee171709208660fa7fb537e1425a383e
+                        - 'button "{ } OKF" [ref=f2e879]'
+                  - generic [ref=f2e880] [cursor=pointer]:
+                    - generic [ref=f2e881]:
+                      - generic [ref=f2e882]: S
+                      - generic "ST ENGINEERING IHQ PTE. LTD." [ref=f2e883]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e885]':
+                      - text: exact title
+                      - generic [ref=f2e886]: ▾
+                    - generic [ref=f2e887]:
+                      - heading "Data Analyst" [level=3] [ref=f2e888]
+                      - generic [ref=f2e889]: 3 months ago
+                      - generic [ref=f2e891]:
+                        - generic [ref=f2e892]: S$5,000 - S$7,000 / month
+                        - generic [ref=f2e893]: Permanent
+                      - paragraph [ref=f2e894]: Provide analytics consulting and POC implementation services Elicit requirements and highlight key business value for each project to end-customers Support business unit project teams and corporate functions to develop, evaluate, refine, and deploy analytics models for production.
+                      - 'generic "Position level: Senior Executive" [ref=f2e896]': Senior Executive
+                      - generic [ref=f2e897]:
+                        - button "Analyse" [ref=f2e898]
+                        - link "Open" [ref=f2e899]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-st-engineering-ihq-d79bb263df09f8c00e7a0360f1388087
+                        - 'button "{ } OKF" [ref=f2e900]'
+                  - generic [ref=f2e901] [cursor=pointer]:
+                    - generic [ref=f2e902]:
+                      - generic [ref=f2e903]: G
+                      - generic "GMP RECRUITMENT SERVICES (S) PTE LTD" [ref=f2e904]
+                    - 'button "Match basis: exact title. Tap to show what this means." [ref=f2e906]':
+                      - text: exact title
+                      - generic [ref=f2e907]: ▾
+                    - generic [ref=f2e908]:
+                      - heading "Data Analyst (Healthcare)" [level=3] [ref=f2e909]
+                      - generic [ref=f2e910]: 4 months ago
+                      - generic [ref=f2e912]:
+                        - generic [ref=f2e913]: S$6,000 - S$6,800 / month
+                        - generic [ref=f2e914]: Full Time
+                      - paragraph [ref=f2e915]: "Responsibilitites Lead Data Analytics Strategy : Develop and implement data analytics strategies, including automated data pipelines, ETL processes, and predictive modeling using statistical and machine learning techniques (e.g., LLMs). Data Preparation & Analysis : Clean, validate, and preprocess healthcare data; identify trends and correlations; support clinical research and quality improvement efforts."
+                      - 'generic "Position level: Executive" [ref=f2e917]': Executive
+                      - generic [ref=f2e918]:
+                        - button "Analyse" [ref=f2e919]
+                        - link "Open" [ref=f2e920]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-gmp-recruitment-services-87d4dc44051ad3c6d96e62b6a4c44f57
+                        - 'button "{ } OKF" [ref=f2e921]'
+                  - generic [ref=f2e922] [cursor=pointer]:
+                    - generic [ref=f2e923]:
+                      - generic [ref=f2e924]: L
+                      - generic "LUMENS PTE. LTD." [ref=f2e925]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e927]':
+                      - text: title variant
+                      - generic [ref=f2e928]: ▾
+                    - generic [ref=f2e929]:
+                      - heading "Data Analyst Intern" [level=3] [ref=f2e930]
+                      - generic [ref=f2e931]: 2 days ago
+                      - generic [ref=f2e933]:
+                        - generic [ref=f2e934]: S$800 - S$1,200 / month
+                        - generic [ref=f2e935]: Internship/Attachment
+                      - paragraph [ref=f2e936]: Your Role on Our Journey We are looking for a Data Analyst Intern to support our business teams in making data driven decisions. The intern will work closely with different stakeholders to understand processes and reporting needs and then translate them into automated solutions and dashboards.
+                      - 'generic "Position level: Fresh/entry level" [ref=f2e938]': Fresh/entry level
+                      - generic [ref=f2e939]:
+                        - button "Analyse" [ref=f2e940]
+                        - link "Open" [ref=f2e941]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/design/data-analyst-intern-lumens-42d5fef7f3d9d01c24399dc56e1721f3
+                        - 'button "{ } OKF" [ref=f2e942]'
+                  - generic [ref=f2e943] [cursor=pointer]:
+                    - generic [ref=f2e944]:
+                      - generic [ref=f2e945]: "N"
+                      - generic "NTT SINGAPORE PTE. LTD." [ref=f2e946]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e948]':
+                      - text: title variant
+                      - generic [ref=f2e949]: ▾
+                    - generic [ref=f2e950]:
+                      - heading "Data Analyst / Associate (Banking Sector)" [level=3] [ref=f2e951]
+                      - generic [ref=f2e952]: 2 days ago
+                      - generic [ref=f2e954]:
+                        - generic [ref=f2e955]: S$4,000 - S$4,500 / month
+                        - generic [ref=f2e956]: Contract
+                      - paragraph [ref=f2e957]: As a Rates Data Analyst, you will play a crucial role in supporting the team by ensuring the smooth and efficient operation of the rates sourcing process. You will be responsible for tasks ranging from data analysis to project support, contributing to the accuracy and reliability of market data used for various financial functions.
+                      - 'generic "Position level: Junior Executive" [ref=f2e959]': Junior Executive
+                      - generic [ref=f2e960]:
+                        - button "Analyse" [ref=f2e961]
+                        - link "Open" [ref=f2e962]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-associate-ntt-singapore-e7bdb27f0fa093f1fba89ca83a9c6cf1
+                        - 'button "{ } OKF" [ref=f2e963]'
+                  - generic [ref=f2e964] [cursor=pointer]:
+                    - generic [ref=f2e965]:
+                      - generic [ref=f2e966]: R
+                      - generic "RAPSYS TECHNOLOGIES PTE. LTD." [ref=f2e967]
+                    - generic [ref=f2e968]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e969]':
+                        - text: title variant
+                        - generic [ref=f2e970]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e971]:
+                        - text: +1 ads
+                        - generic [ref=f2e972]: ▾
+                    - generic [ref=f2e973]:
+                      - heading "Data Analyst - Tableau/PowerBI/Data Visualization" [level=3] [ref=f2e974]
+                      - generic [ref=f2e975]: 3 days ago
+                      - generic [ref=f2e977]:
+                        - generic [ref=f2e978]: S$7,000 - S$8,000 / month
+                        - generic [ref=f2e979]: Contract
+                      - paragraph [ref=f2e980]: Engage with business users and stakeholders to gather, understand, and document data and reporting requirements. Perform in-depth data analysis to identify trends, patterns, and actionable insights within retail datasets. Design, develop, and maintain interactive dashboards and reports using Tableau and Power BI.
+                      - 'generic "Position level: Professional" [ref=f2e982]': Professional
+                      - generic [ref=f2e983]:
+                        - button "Analyse" [ref=f2e984]
+                        - link "Open" [ref=f2e985]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-tableaupowerbidata-visualization-rapsys-technologies-5156e85ea6f987130bea8a75ac964719
+                        - 'button "{ } OKF" [ref=f2e986]'
+                  - generic [ref=f2e987] [cursor=pointer]:
+                    - generic [ref=f2e988]:
+                      - generic [ref=f2e989]: M
+                      - generic "MANPOWER STAFFING SERVICES (SINGAPORE) PTE LTD" [ref=f2e990]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e992]':
+                      - text: title variant
+                      - generic [ref=f2e993]: ▾
+                    - generic [ref=f2e994]:
+                      - heading "Data Analyst, Costing Data & Operations (1-Year Contract)" [level=3] [ref=f2e995]
+                      - generic [ref=f2e996]: 3 days ago
+                      - generic [ref=f2e998]:
+                        - generic [ref=f2e999]: S$5,500 - S$7,000 / month
+                        - generic [ref=f2e1000]: Contract
+                      - paragraph [ref=f2e1001]: Manage footwear costing quote operations by collaborating with internal costing teams, manufacturing partners, and regional stakeholders. Investigate and resolve FOB costing discrepancies while supporting tooling cost balancing activities. Support the migration of costing data from Snowflake to Databricks, including rebuilding dashboards and reporting solutions.
+                      - 'generic "Position level: Executive" [ref=f2e1003]': Executive
+                      - generic [ref=f2e1004]:
+                        - button "Analyse" [ref=f2e1005]
+                        - link "Open" [ref=f2e1006]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-costing-data-operations-manpower-staffing-services-7543a1433b26172ee200690b925d17f7
+                        - 'button "{ } OKF" [ref=f2e1007]'
+                  - generic [ref=f2e1008] [cursor=pointer]:
+                    - generic [ref=f2e1009]:
+                      - generic [ref=f2e1010]: L
+                      - generic "LINK2 MANPOWER PTE. LTD." [ref=f2e1011]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1013]':
+                      - text: title variant
+                      - generic [ref=f2e1014]: ▾
+                    - generic [ref=f2e1015]:
+                      - heading "Data Analyst Support (1-Year Contract)" [level=3] [ref=f2e1016]
+                      - generic [ref=f2e1017]: 1 week ago
+                      - generic [ref=f2e1019]:
+                        - generic [ref=f2e1020]: S$3,000 - S$5,000 / month
+                        - generic [ref=f2e1021]: Contract
+                      - paragraph [ref=f2e1022]: Analyse data collected from Maintenance Alert Systems to identify performance trends, anomalies, and root causes. Process large datasets to generate actionable intelligence for preventive maintenance and corrective rectification works. Develop dashboard displays for real-time monitoring of maintenance KPIs.
+                      - 'generic "Position level: Executive" [ref=f2e1024]': Executive
+                      - generic [ref=f2e1025]:
+                        - button "Analyse" [ref=f2e1026]
+                        - link "Open" [ref=f2e1027]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/manufacturing/data-analyst-support-link2-manpower-0d97e28d38ef99ac772dbbd0f857e8f9
+                        - 'button "{ } OKF" [ref=f2e1028]'
+                  - generic [ref=f2e1029] [cursor=pointer]:
+                    - generic [ref=f2e1030]:
+                      - generic [ref=f2e1031]: C
+                      - generic "CAPGEMINI SINGAPORE PTE. LTD." [ref=f2e1032]
+                    - generic [ref=f2e1033]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1034]':
+                        - text: title variant
+                        - generic [ref=f2e1035]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1036]:
+                        - text: +1 ads
+                        - generic [ref=f2e1037]: ▾
+                    - generic [ref=f2e1038]:
+                      - heading "Salesforce Data Analyst" [level=3] [ref=f2e1039]
+                      - generic [ref=f2e1040]: 1 week ago
+                      - generic [ref=f2e1042]:
+                        - generic [ref=f2e1043]: S$5,500 - S$7,500 / month
+                        - generic [ref=f2e1044]: Contract, Permanent
+                      - paragraph [ref=f2e1045]: We are seeking a Salesforce Data Analyst to support data integration initiatives across Salesforce and external systems. The role focuses on data mapping, integration support, and testing within enterprise environments. Responsibilities Support data mapping between Salesforce and external systems using APIs to ensure accurate data integration Analyse data structures, fields, and relationships across platforms to identify integration requirements and…
+                      - 'generic "Position level: Junior Executive" [ref=f2e1047]': Junior Executive
+                      - generic [ref=f2e1048]:
+                        - button "Analyse" [ref=f2e1049]
+                        - link "Open" [ref=f2e1050]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-fcd2ebf459bb867bc073a67c96c74679
+                        - 'button "{ } OKF" [ref=f2e1051]'
+                  - generic [ref=f2e1052] [cursor=pointer]:
+                    - generic [ref=f2e1053]:
+                      - generic [ref=f2e1054]: V
+                      - generic "VISIONPOWER SEMICONDUCTOR MANUFACTURING COMPANY PTE. LTD." [ref=f2e1055]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1057]':
+                      - text: title variant
+                      - generic [ref=f2e1058]: ▾
+                    - generic [ref=f2e1059]:
+                      - heading "Data Analyst Engineer" [level=3] [ref=f2e1060]
+                      - generic [ref=f2e1061]: 1 week ago
+                      - generic [ref=f2e1063]:
+                        - generic [ref=f2e1064]: S$4,500 - S$7,500 / month
+                        - generic [ref=f2e1065]: Full Time
+                      - paragraph [ref=f2e1066]: VisionPower Semiconductor Manufacturing Company Pte Ltd (VSMC) is a new joint-venture 300mm semiconductor wafer manufacturing fab to be built in Singapore. We are looking for committed, resilient and passionate talents to launch a promising future that power the next generation devices and systems.
+                      - 'generic "Position level: Executive" [ref=f2e1068]': Executive
+                      - generic [ref=f2e1069]:
+                        - button "Analyse" [ref=f2e1070]
+                        - link "Open" [ref=f2e1071]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-engineer-visionpower-semiconductor-manufacturing-company-891d6c5c255226b09579be298f961d0f
+                        - 'button "{ } OKF" [ref=f2e1072]'
+                  - generic [ref=f2e1073] [cursor=pointer]:
+                    - generic [ref=f2e1074]:
+                      - generic [ref=f2e1075]: "8"
+                      - generic "8HEXA FINANCIAL PTE. LTD." [ref=f2e1076]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1078]':
+                      - text: title variant
+                      - generic [ref=f2e1079]: ▾
+                    - generic [ref=f2e1080]:
+                      - heading "Risk & Data Analyst" [level=3] [ref=f2e1081]
+                      - generic [ref=f2e1082]: 2 weeks ago
+                      - generic [ref=f2e1084]:
+                        - generic [ref=f2e1085]: S$3,000 - S$6,000 / month
+                        - generic [ref=f2e1086]: Full Time
+                      - paragraph [ref=f2e1087]: We are looking for a Risk & Data Analyst to support a new financial technology business line. The role will focus on data monitoring, calculation, risk exposure tracking, performance reporting and management analysis. This is suitable for a fresh graduate or junior candidate who is strong with numbers, careful with data, and interested to learn about financial markets, risk management and digital finance operations.
+                      - 'generic "Position level: Executive" [ref=f2e1089]': Executive
+                      - generic [ref=f2e1090]:
+                        - button "Analyse" [ref=f2e1091]
+                        - link "Open" [ref=f2e1092]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/risk-data-analyst-8hexa-financial-97149826cd1a8e8b3faee5316eed631c
+                        - 'button "{ } OKF" [ref=f2e1093]'
+                  - generic [ref=f2e1094] [cursor=pointer]:
+                    - generic [ref=f2e1095]:
+                      - generic [ref=f2e1096]: E
+                      - generic "ERP21 PTE LTD" [ref=f2e1097]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1099]':
+                      - text: title variant
+                      - generic [ref=f2e1100]: ▾
+                    - generic [ref=f2e1101]:
+                      - heading "Data Analyst Senior Consultant" [level=3] [ref=f2e1102]
+                      - generic [ref=f2e1103]: 2 weeks ago
+                      - generic [ref=f2e1105]:
+                        - generic [ref=f2e1106]: S$7,000 - S$9,000 / month
+                        - generic [ref=f2e1107]: Contract
+                      - paragraph [ref=f2e1108]: Role immerse yourself in the core of our clients' businesses , grasping their goals and demands, and transforming these insights into actionable data strategies through a rich understanding of business dynamics. Your journey begins with talking to business stakeholders to uncover opportunities to create a data driven business unit, collecting and scrutinizing data, uncovering hidden patterns and generating initial insights that pave the way for hypothesis formulation.
+                      - 'generic "Position level: Senior Executive" [ref=f2e1110]': Senior Executive
+                      - generic [ref=f2e1111]:
+                        - button "Analyse" [ref=f2e1112]
+                        - link "Open" [ref=f2e1113]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-senior-consultant-erp21-7849ad3cd3900e1f097525dce14f685d
+                        - 'button "{ } OKF" [ref=f2e1114]'
+                  - generic [ref=f2e1115] [cursor=pointer]:
+                    - generic [ref=f2e1116]:
+                      - generic [ref=f2e1117]: D
+                      - generic "D L RESOURCES PTE LTD" [ref=f2e1118]
+                    - generic [ref=f2e1119]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1120]':
+                        - text: title variant
+                        - generic [ref=f2e1121]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1122]:
+                        - text: +1 ads
+                        - generic [ref=f2e1123]: ▾
+                    - generic [ref=f2e1124]:
+                      - heading "Data Analyst - Banking Data Governance" [level=3] [ref=f2e1125]
+                      - generic [ref=f2e1126]: 2 weeks ago
+                      - generic [ref=f2e1128]:
+                        - generic [ref=f2e1129]: S$3,000 - S$5,500 / month
+                        - generic [ref=f2e1130]: Contract, Full Time
+                      - paragraph [ref=f2e1131]: "Summary: Data Management - Data Quality is responsible for multiple aspects of data management and operations for the firm, including database administration and design, business intelligence and data architecture, data analytics, governance, and quality. Specializes in supporting improvement and performance activities by providing measurement, evaluation, and assessment services relating to data quality and data production."
+                      - 'generic "Position level: Junior Executive" [ref=f2e1133]': Junior Executive
+                      - generic [ref=f2e1134]:
+                        - button "Analyse" [ref=f2e1135]
+                        - link "Open" [ref=f2e1136]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-banking-data-governance-d-l-resources-6ab7f0821a69b1df80f1161e63b5414d
+                        - 'button "{ } OKF" [ref=f2e1137]'
+                  - generic [ref=f2e1138] [cursor=pointer]:
+                    - generic [ref=f2e1139]:
+                      - generic [ref=f2e1140]: G
+                      - generic "GUNVOR SINGAPORE PTE. LTD." [ref=f2e1141]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1143]':
+                      - text: title variant
+                      - generic [ref=f2e1144]: ▾
+                    - generic [ref=f2e1145]:
+                      - heading "BI Data Analyst" [level=3] [ref=f2e1146]
+                      - generic [ref=f2e1147]: 2 weeks ago
+                      - generic [ref=f2e1149]:
+                        - generic [ref=f2e1150]: S$5,500 - S$11,000 / month
+                        - generic [ref=f2e1151]: Permanent
+                      - paragraph [ref=f2e1152]: Company Gunvor Group is one of the world’s largest independent commodities trading houses by turnover, creating logistics solutions that safely and efficiently move physical energy from where it is sourced and stored to where it is demanded most. With strategic investments in energy infrastructure—shipping, refineries, pipelines, storage, and terminals —Gunvor further generates sustainable value across the global supply chain for its customers.
+                      - 'generic "Position level: Non-executive" [ref=f2e1154]': Non-executive
+                      - generic [ref=f2e1155]:
+                        - button "Analyse" [ref=f2e1156]
+                        - link "Open" [ref=f2e1157]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/bi-data-analyst-gunvor-singapore-41899b22b905f393a34d9fc7db52d2b2
+                        - 'button "{ } OKF" [ref=f2e1158]'
+                  - generic [ref=f2e1159] [cursor=pointer]:
+                    - generic [ref=f2e1160]:
+                      - generic [ref=f2e1161]: G
+                      - generic "GMP TECHNOLOGIES (S) PTE LTD" [ref=f2e1162]
+                    - generic [ref=f2e1163]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1164]':
+                        - text: title variant
+                        - generic [ref=f2e1165]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1166]:
+                        - text: +1 ads
+                        - generic [ref=f2e1167]: ▾
+                    - generic [ref=f2e1168]:
+                      - heading "Data Analyst - Healthcare (Contract)" [level=3] [ref=f2e1169]
+                      - generic [ref=f2e1170]: 2 weeks ago
+                      - generic [ref=f2e1172]:
+                        - generic [ref=f2e1173]: S$4,500 - S$6,800 / month
+                        - generic [ref=f2e1174]: Contract, Full Time
+                      - paragraph [ref=f2e1175]: Data Analytics Spearhead the design and execution of end-to-end data analytics strategies. Develop and manage automated data pipelines and ETL workflows. Perform data cleaning, preprocessing, and validation to maintain high data accuracy and integrity. Utilize advanced statistical and data mining techniques to analyze extensive healthcare datasets.
+                      - 'generic "Position level: Senior Executive" [ref=f2e1177]': Senior Executive
+                      - generic [ref=f2e1178]:
+                        - button "Analyse" [ref=f2e1179]
+                        - link "Open" [ref=f2e1180]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-healthcare-gmp-technologies-36b95cd3f5892dac0cc4e8bb1e88b57d
+                        - 'button "{ } OKF" [ref=f2e1181]'
+                  - generic [ref=f2e1182] [cursor=pointer]:
+                    - generic [ref=f2e1183]:
+                      - generic [ref=f2e1184]: O
+                      - generic "OPTIMUM SOLUTIONS (SINGAPORE) PTE LTD" [ref=f2e1185]
+                    - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1187]':
+                      - text: title variant
+                      - generic [ref=f2e1188]: ▾
+                    - generic [ref=f2e1189]:
+                      - heading "Data Analyst (Advanced SQL) 12-months contract" [level=3] [ref=f2e1190]
+                      - generic [ref=f2e1191]: 2 weeks ago
+                      - generic [ref=f2e1193]:
+                        - generic [ref=f2e1194]: S$5,000 - S$5,880 / month
+                        - generic [ref=f2e1195]: Contract
+                      - paragraph [ref=f2e1196]: Analyze large and complex datasets using SQL, Python/R, Tableau, Hive, Presto, and other big data technologies. Develop and execute data science and analytics initiatives that support business strategy and operational performance. Design, build, and maintain advanced analytical models, dashboards, and reporting frameworks to generate actionable insights.
+                      - 'generic "Position level: Non-executive" [ref=f2e1198]': Non-executive
+                      - generic [ref=f2e1199]:
+                        - button "Analyse" [ref=f2e1200]
+                        - link "Open" [ref=f2e1201]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-12-months-contract-optimum-solutions-dd3c614f09ea0381208e579a9dbb4486
+                        - 'button "{ } OKF" [ref=f2e1202]'
+                  - generic [ref=f2e1203] [cursor=pointer]:
+                    - generic [ref=f2e1204]:
+                      - generic [ref=f2e1205]: R
+                      - generic "RAPSYS TECHNOLOGIES PTE. LTD." [ref=f2e1206]
+                    - generic [ref=f2e1207]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1208]':
+                        - text: title variant
+                        - generic [ref=f2e1209]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1210]:
+                        - text: +1 ads
+                        - generic [ref=f2e1211]: ▾
+                    - generic [ref=f2e1212]:
+                      - heading "Data Analyst - Tableau/PowerBI/Retail" [level=3] [ref=f2e1213]
+                      - generic [ref=f2e1214]: 2 weeks ago
+                      - generic [ref=f2e1216]:
+                        - generic [ref=f2e1217]: S$6,000 - S$8,000 / month
+                        - generic [ref=f2e1218]: Contract
+                      - paragraph [ref=f2e1219]: Engage with business users and stakeholders to gather, understand, and document data and reporting requirements. Perform in-depth data analysis to identify trends, patterns, and actionable insights within retail datasets. Design, develop, and maintain interactive dashboards and reports using Tableau and Power BI.
+                      - 'generic "Position level: Senior Executive" [ref=f2e1221]': Senior Executive
+                      - generic [ref=f2e1222]:
+                        - button "Analyse" [ref=f2e1223]
+                        - link "Open" [ref=f2e1224]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/information-technology/data-analyst-tableaupowerbiretail-rapsys-technologies-e70f58dd59d9b82bfa790f53ba1fb505
+                        - 'button "{ } OKF" [ref=f2e1225]'
+                  - generic [ref=f2e1226] [cursor=pointer]:
+                    - generic [ref=f2e1227]:
+                      - generic [ref=f2e1228]: C
+                      - generic "CAPGEMINI SINGAPORE PTE. LTD." [ref=f2e1229]
+                    - generic [ref=f2e1230]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1231]':
+                        - text: title variant
+                        - generic [ref=f2e1232]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1233]:
+                        - text: +1 ads
+                        - generic [ref=f2e1234]: ▾
+                    - generic [ref=f2e1235]:
+                      - heading "Salesforce Data Analyst" [level=3] [ref=f2e1236]
+                      - generic [ref=f2e1237]: 4 weeks ago
+                      - generic [ref=f2e1239]:
+                        - generic [ref=f2e1240]: S$4,500 - S$6,000 / month
+                        - generic [ref=f2e1241]: Permanent, Full Time
+                      - paragraph [ref=f2e1242]: Data Mapping & Integration Support Work closely with functional, integration (MuleSoft) and data migration teams to support end‑to‑end delivery. Assist in mapping data between Salesforce objects and external systems via APIs. Analyse field definitions, data structures, and relationships across systems.
+                      - 'generic "Position level: Professional" [ref=f2e1244]': Professional
+                      - generic [ref=f2e1245]:
+                        - button "Analyse" [ref=f2e1246]
+                        - link "Open" [ref=f2e1247]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/consulting/salesforce-data-analyst-capgemini-singapore-0e934c4d7e1d9b51dfea965bb8ab4404
+                        - 'button "{ } OKF" [ref=f2e1248]'
+                  - generic [ref=f2e1249] [cursor=pointer]:
+                    - generic [ref=f2e1250]:
+                      - generic [ref=f2e1251]: D
+                      - generic "D L RESOURCES PTE LTD" [ref=f2e1252]
+                    - generic [ref=f2e1253]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1254]':
+                        - text: title variant
+                        - generic [ref=f2e1255]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1256]:
+                        - text: +1 ads
+                        - generic [ref=f2e1257]: ▾
+                    - generic [ref=f2e1258]:
+                      - heading "Data Analyst | Banking Sector" [level=3] [ref=f2e1259]
+                      - generic [ref=f2e1260]: 2 months ago
+                      - generic [ref=f2e1262]:
+                        - generic [ref=f2e1263]: S$3,000 - S$6,000 / month
+                        - generic [ref=f2e1264]: Contract, Full Time
+                      - paragraph [ref=f2e1265]: "Summary: Data Management - Data Quality is responsible for multiple aspects of data management and operations for the firm, including database administration and design, business intelligence and data architecture, data analytics, governance, and quality. Specializes in supporting improvement and performance activities by providing measurement, evaluation, and assessment services relating to data quality and data production."
+                      - 'generic "Position level: Junior Executive" [ref=f2e1267]': Junior Executive
+                      - generic [ref=f2e1268]:
+                        - button "Analyse" [ref=f2e1269]
+                        - link "Open" [ref=f2e1270]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/banking-finance/data-analyst-banking-sector-d-l-resources-1f1ca9f8535f445383dd55bdd42ad7d1
+                        - 'button "{ } OKF" [ref=f2e1271]'
+                  - generic [ref=f2e1272] [cursor=pointer]:
+                    - generic [ref=f2e1273]:
+                      - generic [ref=f2e1274]: R
+                      - generic "RECRUIT123 PTE. LTD." [ref=f2e1275]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1277]':
+                      - text: nuance
+                      - generic [ref=f2e1278]: ▾
+                    - generic [ref=f2e1279]:
+                      - heading "[Express of Interest] Data Analyst" [level=3] [ref=f2e1280]
+                      - generic [ref=f2e1281]: 3 days ago
+                      - generic [ref=f2e1283]:
+                        - generic [ref=f2e1284]: S$4,200 - S$6,500 / month
+                        - generic [ref=f2e1285]: Permanent, Full Time
+                      - paragraph [ref=f2e1286]: Collect, clean, and analyze large datasets from multiple sources to identify trends and business insights Build dashboards and reports using BI tools to visualize key performance metrics for stakeholders Partner with business units to understand data requirements and translate them into analytical solutions Conduct statistical analysis and hypothesis testing to support data-driven decision-making Automate recurring reporting processes to improve…
+                      - 'generic "Position level: Senior Executive" [ref=f2e1288]': Senior Executive
+                      - generic [ref=f2e1289]:
+                        - button "Analyse" [ref=f2e1290]
+                        - link "Open" [ref=f2e1291]:
+                          - /url: https://www.mycareersfuture.gov.sg/job/consulting/express-interest-data-analyst-recruit123-b6a02b90d3141a40130e9f95abfd2a14
+                        - 'button "{ } OKF" [ref=f2e1292]'
+              - generic [ref=f2e1293]:
+                - generic [ref=f2e1294]:
+                  - generic [ref=f2e1296]: careers.gov.sg
+                  - generic [ref=f2e1297]: "50"
+                - generic [ref=f2e1298]:
+                  - generic [ref=f2e1299] [cursor=pointer]:
+                    - generic [ref=f2e1300]:
+                      - generic [ref=f2e1301]: M
+                      - generic "Ministry of Manpower" [ref=f2e1302]
+                    - generic [ref=f2e1303]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1304]':
+                        - text: title variant
+                        - generic [ref=f2e1305]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e1306]:
+                        - text: +5 ads
+                        - generic [ref=f2e1307]: ▾
+                    - generic [ref=f2e1308]:
+                      - heading "Data Analyst, AI and Data Products and Model Assurance, AIDO" [level=3] [ref=f2e1309]
+                      - generic [ref=f2e1310]: 1 month ago
+                      - generic [ref=f2e1312]:
+                        - generic [ref=f2e1313]: Salary on application
+                        - generic [ref=f2e1314]: Permanent/Contract
+                      - paragraph [ref=f2e1315]: Process and transform large, complex datasets through cleaning, fusion, and structuring activities Partner with MOM departments and government agencies to deliver impactful dashboards, data visualisation, and data analytics projects Acquire new data sets to increase data product offering and maximise exploitation potential; and Oversee the secure and effective operation of the Data Lab.
+                      - generic [ref=f2e1316]:
+                        - button "Analyse" [ref=f2e1317]
+                        - link "Open" [ref=f2e1318]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17379892/005056a3-53e2-1fd1-9ac1-4ccd7ab173fe
+                        - 'button "{ } OKF" [ref=f2e1319]'
+                  - generic [ref=f2e1320] [cursor=pointer]:
+                    - generic [ref=f2e1321]:
+                      - generic [ref=f2e1322]: M
+                      - generic "Ministry of Manpower" [ref=f2e1323]
+                    - generic [ref=f2e1324]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1325]':
+                        - text: title variant
+                        - generic [ref=f2e1326]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e1327]:
+                        - text: +5 ads
+                        - generic [ref=f2e1328]: ▾
+                    - generic [ref=f2e1329]:
+                      - heading "Data Analyst, Economics Department, Ministry of Manpower" [level=3] [ref=f2e1330]
+                      - generic [ref=f2e1331]: 2 months ago
+                      - generic [ref=f2e1333]:
+                        - generic [ref=f2e1334]: Salary on application
+                        - generic [ref=f2e1335]: Permanent/Contract
+                      - paragraph [ref=f2e1336]: As a Data Analyst in ED, you will help to shape manpower policies in Singapore through the application of data science, advanced analytics and clear policy communication. You will use a range of data analytics techniques – including machine learning, natural language processing, text analytics, network analytics, predictive modelling, statistical analysis, data visualisation and other frontier data science approaches – to examine traditional and emerging…
+                      - generic [ref=f2e1337]:
+                        - button "Analyse" [ref=f2e1338]
+                        - link "Open" [ref=f2e1339]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17555096/005056a3-53e2-1fd1-9ac1-4a3b3dedb3fe
+                        - 'button "{ } OKF" [ref=f2e1340]'
+                  - generic [ref=f2e1341] [cursor=pointer]:
+                    - generic [ref=f2e1342]:
+                      - generic [ref=f2e1343]: "N"
+                      - generic "Nanyang Polytechnic" [ref=f2e1344]
+                    - generic [ref=f2e1345]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1346]':
+                        - text: title variant
+                        - generic [ref=f2e1347]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1348]:
+                        - text: +1 ads
+                        - generic [ref=f2e1349]: ▾
+                    - generic [ref=f2e1350]:
+                      - heading "Data Analyst - Organisational Transformation Dept" [level=3] [ref=f2e1351]
+                      - generic [ref=f2e1352]: 2 months ago
+                      - generic [ref=f2e1354]:
+                        - generic [ref=f2e1355]: Salary on application
+                        - generic [ref=f2e1356]: Fixed Terms
+                      - paragraph [ref=f2e1357]: "- Design, develop, and maintain automated data ingestion pipelines and ETL processes. - Take ownership of data quality by cleaning, transforming, and aggregating diverse datasets from multiple sources. - Partner with stakeholders to define business questions and help translate them into actionable insights. - Develop dashboards to support operations and management to make data driven decisions."
+                      - generic [ref=f2e1358]:
+                        - button "Analyse" [ref=f2e1359]
+                        - link "Open" [ref=f2e1360]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17509224/005056a3-d347-1fe1-9ee1-553269de22ad
+                        - 'button "{ } OKF" [ref=f2e1361]'
+                  - generic [ref=f2e1362] [cursor=pointer]:
+                    - generic [ref=f2e1363]:
+                      - generic [ref=f2e1364]: M
+                      - generic "Ministry Of Social And Family Development" [ref=f2e1365]
+                    - generic [ref=f2e1366]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1367]':
+                        - text: title variant
+                        - generic [ref=f2e1368]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1369]:
+                        - text: +1 ads
+                        - generic [ref=f2e1370]: ▾
+                    - generic [ref=f2e1371]:
+                      - heading "Data Analyst, ECDA/SP [GRIT@Gov]" [level=3] [ref=f2e1372]
+                      - generic [ref=f2e1373]: 2 months ago
+                      - generic [ref=f2e1375]:
+                        - generic [ref=f2e1376]: Salary on application
+                        - generic [ref=f2e1377]: Traineeship
+                      - paragraph [ref=f2e1378]: "- Analyse and harness insights from preschool-related data to enhance preschool infrastructure planning and service delivery. - Monitor and propose responses to fast-changing trends in the preschool sector. Communicate findings through visualisations and presentations/reports to internal and external stakeholders. - Conduct studies, feasibility assessments, evaluate proposals and guide implementation of preschool infrastructure plans with government…"
+                      - generic [ref=f2e1379]:
+                        - button "Analyse" [ref=f2e1380]
+                        - link "Open" [ref=f2e1381]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17504233/005056a3-53e2-1fd1-9c8c-5519053ef3ff
+                        - 'button "{ } OKF" [ref=f2e1382]'
+                  - generic [ref=f2e1383] [cursor=pointer]:
+                    - generic [ref=f2e1384]:
+                      - generic [ref=f2e1385]: M
+                      - generic "Ministry of Manpower" [ref=f2e1386]
+                    - generic [ref=f2e1387]:
+                      - 'button "Match basis: title variant. Tap to show what this means." [ref=f2e1388]':
+                        - text: title variant
+                        - generic [ref=f2e1389]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e1390]:
+                        - text: +5 ads
+                        - generic [ref=f2e1391]: ▾
+                    - generic [ref=f2e1392]:
+                      - heading "Data Analyst, Data Unit, Manpower Planning and Policy Division" [level=3] [ref=f2e1393]
+                      - generic [ref=f2e1394]: 2 months ago
+                      - generic [ref=f2e1396]:
+                        - generic [ref=f2e1397]: Salary on application
+                        - generic [ref=f2e1398]: Permanent/Contract
+                      - paragraph [ref=f2e1399]: Process and transform large, complex datasets through cleaning, fusion, and structuring activities Partner with MOM departments and government agencies to deliver impactful dashboards, data visualisation, and data analytics projects Acquire new data sets to increase data product offering and maximise exploitation potential; and Oversee the secure and effective operation of the Data Lab.
+                      - generic [ref=f2e1400]:
+                        - button "Analyse" [ref=f2e1401]
+                        - link "Open" [ref=f2e1402]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17285189/005056a3-53e2-1fd1-9ac1-3b1a51b793fe
+                        - 'button "{ } OKF" [ref=f2e1403]'
+                  - generic [ref=f2e1404] [cursor=pointer]:
+                    - generic [ref=f2e1405]:
+                      - generic [ref=f2e1406]: S
+                      - generic "Security & Intelligence Division" [ref=f2e1407]
+                    - generic [ref=f2e1408]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1409]':
+                        - text: nuance
+                        - generic [ref=f2e1410]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f2e1411]:
+                        - text: +2 ads
+                        - generic [ref=f2e1412]: ▾
+                    - generic [ref=f2e1413]:
+                      - heading "Operational Analyst (Analysis)" [level=3] [ref=f2e1414]
+                      - generic [ref=f2e1415]:
+                        - generic [ref=f2e1416]: NEW
+                        - generic [ref=f2e1417]: yesterday
+                      - generic [ref=f2e1418]:
+                        - generic [ref=f2e1419]: Salary on application
+                        - generic [ref=f2e1420]: Permanent
+                      - paragraph [ref=f2e1421]: Collaborate with multiple stakeholders to understand requirements and ensure delivery of mission outcomes Develop plans and strategies to deliver mission outcomes Conduct research and analysis on geopolitical developments to identify, evaluate and recommend operational opportunities Gather and review performance metrics related to operational outcomes, identify factors for success or failure and recommend improvements Conduct risk assessment and…
+                      - generic [ref=f2e1422]:
+                        - button "Analyse" [ref=f2e1423]
+                        - link "Open" [ref=f2e1424]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/13031913/005056a3-d347-1fe1-80ac-fc42b0f4c286
+                        - 'button "{ } OKF" [ref=f2e1425]'
+                  - generic [ref=f2e1426] [cursor=pointer]:
+                    - generic [ref=f2e1427]:
+                      - generic [ref=f2e1428]: S
+                      - generic "Security & Intelligence Division" [ref=f2e1429]
+                    - generic [ref=f2e1430]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1431]':
+                        - text: nuance
+                        - generic [ref=f2e1432]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f2e1433]:
+                        - text: +2 ads
+                        - generic [ref=f2e1434]: ▾
+                    - generic [ref=f2e1435]:
+                      - heading "Analyst (Analysis)" [level=3] [ref=f2e1436]
+                      - generic [ref=f2e1437]:
+                        - generic [ref=f2e1438]: NEW
+                        - generic [ref=f2e1439]: yesterday
+                      - generic [ref=f2e1440]:
+                        - generic [ref=f2e1441]: Salary on application
+                        - generic [ref=f2e1442]: Permanent
+                      - paragraph [ref=f2e1443]: Conduct research on dynamic and complex political developments, current issues, global trends, and key threats to Singapore Work on a wide range of intelligence reports for Singapore’s policy makers, including written reports, verbal presentations, and briefings Engage Singapore government agencies to understand Singapore’s policy concerns and national interests Engage academics and SID’s foreign counterparts in analytical discussions If you are in a…
+                      - generic [ref=f2e1444]:
+                        - button "Analyse" [ref=f2e1445]
+                        - link "Open" [ref=f2e1446]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/12759886/005056a3-d347-1fe1-80ac-ed0e27846286
+                        - 'button "{ } OKF" [ref=f2e1447]'
+                  - generic [ref=f2e1448] [cursor=pointer]:
+                    - generic [ref=f2e1449]:
+                      - generic [ref=f2e1450]: S
+                      - generic "Security & Intelligence Division" [ref=f2e1451]
+                    - generic [ref=f2e1452]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1453]':
+                        - text: nuance
+                        - generic [ref=f2e1454]: ▾
+                      - button "2 more ads from this employer in this result. Tap to list them." [ref=f2e1455]:
+                        - text: +2 ads
+                        - generic [ref=f2e1456]: ▾
+                    - generic [ref=f2e1457]:
+                      - heading "Target Analyst (Analysis)" [level=3] [ref=f2e1458]
+                      - generic [ref=f2e1459]:
+                        - generic [ref=f2e1460]: NEW
+                        - generic [ref=f2e1461]: yesterday
+                      - generic [ref=f2e1462]:
+                        - generic [ref=f2e1463]: Salary on application
+                        - generic [ref=f2e1464]: Permanent
+                      - paragraph [ref=f2e1465]: "Deconstruct intelligence requirements to drive SID’s operations Conduct investigations and network analysis to support and drive operations Synthesise, assess and deliver information from various sources, to provide early-warning and strategic support to Singapore’s policy makers If you are in a senior role, in addition to the above, you will need to: Provide technical and strategic leadership for a team Design and implement workplace processes, with…"
+                      - generic [ref=f2e1466]:
+                        - button "Analyse" [ref=f2e1467]
+                        - link "Open" [ref=f2e1468]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17258876/005056a3-53e2-1fd1-87a3-7a56c3f053ea
+                        - 'button "{ } OKF" [ref=f2e1469]'
+                  - generic [ref=f2e1470] [cursor=pointer]:
+                    - generic [ref=f2e1471]:
+                      - generic [ref=f2e1472]: "N"
+                      - generic "National Library Board" [ref=f2e1473]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1475]':
+                      - text: nuance
+                      - generic [ref=f2e1476]: ▾
+                    - generic [ref=f2e1477]:
+                      - heading "Data Engineer" [level=3] [ref=f2e1478]
+                      - generic [ref=f2e1479]: 2 days ago
+                      - generic [ref=f2e1481]:
+                        - generic [ref=f2e1482]: Salary on application
+                        - generic [ref=f2e1483]: Fixed Terms
+                      - paragraph [ref=f2e1484]: "- Data Architecture Design: Collaborating with NLB solution architects, Data Management Platform awarded vendor and other stakeholders to understand data requirements and designing scalable and efficient data architectures. - Data Management: Working closely with the vendor to set up and manage Databases and Data Lake, including selecting appropriate database technologies, optimizing query performance, and ensuring data integrity and security. - Data…"
+                      - generic [ref=f2e1485]:
+                        - button "Analyse" [ref=f2e1486]
+                        - link "Open" [ref=f2e1487]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17804754/005056a3-53e2-1fd1-9ec8-4ea9951f5401
+                        - 'button "{ } OKF" [ref=f2e1488]'
+                  - generic [ref=f2e1489] [cursor=pointer]:
+                    - generic [ref=f2e1490]:
+                      - generic [ref=f2e1491]: M
+                      - generic "Ministry of Manpower" [ref=f2e1492]
+                    - generic [ref=f2e1493]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1494]':
+                        - text: nuance
+                        - generic [ref=f2e1495]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e1496]:
+                        - text: +5 ads
+                        - generic [ref=f2e1497]: ▾
+                    - generic [ref=f2e1498]:
+                      - heading "Manager/Senior Manager, Data, ACE Group" [level=3] [ref=f2e1499]
+                      - generic [ref=f2e1500]: 3 days ago
+                      - generic [ref=f2e1502]:
+                        - generic [ref=f2e1503]: Salary on application
+                        - generic [ref=f2e1504]: Permanent/Contract
+                      - paragraph [ref=f2e1505]: Engage stakeholders to understand business challenges, scope use cases, and translate them into data analytics and AI projects; Extract, clean, pre-process, and analyse large datasets from primary and secondary sources (e.g. SQL, VQL, Tableau, Excel) to identify trends, patterns, and actionable insights; Build and maintain dashboards, analytical models, and AI-assisted tools; present findings and iterate with stakeholders to refine analysis in line with…
+                      - generic [ref=f2e1506]:
+                        - button "Analyse" [ref=f2e1507]
+                        - link "Open" [ref=f2e1508]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17800351/005056a3-d347-1fe1-9eb6-1eab103b62ad
+                        - 'button "{ } OKF" [ref=f2e1509]'
+                  - generic [ref=f2e1510] [cursor=pointer]:
+                    - generic [ref=f2e1511]:
+                      - generic [ref=f2e1512]: G
+                      - generic "Government Technology Agency" [ref=f2e1513]
+                    - generic [ref=f2e1514]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1515]':
+                        - text: nuance
+                        - generic [ref=f2e1516]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1517]:
+                        - text: +10 ads
+                        - generic [ref=f2e1518]: ▾
+                    - generic [ref=f2e1519]:
+                      - heading "Data Engineer (CSC)" [level=3] [ref=f2e1520]
+                      - generic [ref=f2e1521]: 3 weeks ago
+                      - generic [ref=f2e1523]: Salary on application
+                      - paragraph [ref=f2e1525]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1526]:
+                        - button "Analyse" [ref=f2e1527]
+                        - link "Open" [ref=f2e1528]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004340201?gh_jid=4004340201
+                        - 'button "{ } OKF" [ref=f2e1529]'
+                  - generic [ref=f2e1530] [cursor=pointer]:
+                    - generic [ref=f2e1531]:
+                      - generic [ref=f2e1532]: S
+                      - generic "Singapore Tourism Board" [ref=f2e1533]
+                    - generic [ref=f2e1534]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1535]':
+                        - text: nuance
+                        - generic [ref=f2e1536]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1537]:
+                        - text: +1 ads
+                        - generic [ref=f2e1538]: ▾
+                    - generic [ref=f2e1539]:
+                      - heading "Contract Senior Analyst Data Pilots, Data Exploration and Partnerships" [level=3] [ref=f2e1540]
+                      - generic [ref=f2e1541]: 1 month ago
+                      - generic [ref=f2e1543]:
+                        - generic [ref=f2e1544]: Salary on application
+                        - generic [ref=f2e1545]: Fixed Terms
+                      - paragraph [ref=f2e1546]: "[What you will be working on] Technical Design & Feasibility Assessment: - Partner with Data Partnership Managers in later-stage discussions with potential data partners to finalise the scope and specifications of data exchange. - Act as the technical expert, assessing the quality, structure, and feasibility of using STB’s and our partner's data. - Help translate business problems into specific, testable analytical questions."
+                      - generic [ref=f2e1547]:
+                        - button "Analyse" [ref=f2e1548]
+                        - link "Open" [ref=f2e1549]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17631272/005056a3-d347-1fe1-9efa-7d5572aa42ad
+                        - 'button "{ } OKF" [ref=f2e1550]'
+                  - generic [ref=f2e1551] [cursor=pointer]:
+                    - generic [ref=f2e1552]:
+                      - generic [ref=f2e1553]: G
+                      - generic "Government Technology Agency" [ref=f2e1554]
+                    - generic [ref=f2e1555]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1556]':
+                        - text: nuance
+                        - generic [ref=f2e1557]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1558]:
+                        - text: +10 ads
+                        - generic [ref=f2e1559]: ▾
+                    - generic [ref=f2e1560]:
+                      - heading "Senior / Data Engineer (AGC)" [level=3] [ref=f2e1561]
+                      - generic [ref=f2e1562]: 1 month ago
+                      - generic [ref=f2e1564]: Salary on application
+                      - paragraph [ref=f2e1566]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1567]:
+                        - button "Analyse" [ref=f2e1568]
+                        - link "Open" [ref=f2e1569]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004030201?gh_jid=4004030201
+                        - 'button "{ } OKF" [ref=f2e1570]'
+                  - generic [ref=f2e1571] [cursor=pointer]:
+                    - generic [ref=f2e1572]:
+                      - generic [ref=f2e1573]: P
+                      - generic "Public Service Division (PSD)" [ref=f2e1574]
+                    - generic [ref=f2e1575]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1576]':
+                        - text: nuance
+                        - generic [ref=f2e1577]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1578]:
+                        - text: +1 ads
+                        - generic [ref=f2e1579]: ▾
+                    - generic [ref=f2e1580]:
+                      - heading "Policy HR Analyst (Lead/Senior) (Compensation and Org Design)" [level=3] [ref=f2e1581]
+                      - generic [ref=f2e1582]: 2 months ago
+                      - generic [ref=f2e1584]:
+                        - generic [ref=f2e1585]: Salary on application
+                        - generic [ref=f2e1586]: Full-time
+                      - paragraph [ref=f2e1587]: PSD’s HR Policy cluster is reimagining HR policies, including compensation and benefits, talent attraction, development, performance management, for Singapore’s biggest employer – the public service and its 156,000 officers. We’re rethinking how policies, operations and tech could look like for a multi-generational workforce, against the backdrop of career tour-of-duties and tech disruption.
+                      - generic [ref=f2e1588]:
+                        - button "Analyse" [ref=f2e1589]
+                        - link "Open" [ref=f2e1590]:
+                          - /url: https://apply.workable.com/j/222EB2A1C8
+                        - 'button "{ } OKF" [ref=f2e1591]'
+                  - generic [ref=f2e1592] [cursor=pointer]:
+                    - generic [ref=f2e1593]:
+                      - generic [ref=f2e1594]: P
+                      - generic "Public Service Division (PSD)" [ref=f2e1595]
+                    - generic [ref=f2e1596]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1597]':
+                        - text: nuance
+                        - generic [ref=f2e1598]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1599]:
+                        - text: +1 ads
+                        - generic [ref=f2e1600]: ▾
+                    - generic [ref=f2e1601]:
+                      - heading "Policy HR Analyst (Lead/Senior) (Performance Management)" [level=3] [ref=f2e1602]
+                      - generic [ref=f2e1603]: 2 months ago
+                      - generic [ref=f2e1605]:
+                        - generic [ref=f2e1606]: Salary on application
+                        - generic [ref=f2e1607]: Full-time
+                      - paragraph [ref=f2e1608]: PSD’s HR Policy cluster is the Public Sector Centre of Excellence for several areas relating to people policy, including talent attraction, compensation, performance management, and benefits. We ensure that our Public Sector can continue to attract, develop, retain, and motivate the right talent to build Singapore for the next generation.
+                      - generic [ref=f2e1609]:
+                        - button "Analyse" [ref=f2e1610]
+                        - link "Open" [ref=f2e1611]:
+                          - /url: https://apply.workable.com/j/3BE0E4D8F3
+                        - 'button "{ } OKF" [ref=f2e1612]'
+                  - generic [ref=f2e1613] [cursor=pointer]:
+                    - generic [ref=f2e1614]:
+                      - generic [ref=f2e1615]: M
+                      - generic "Ministry of Trade and Industry" [ref=f2e1616]
+                    - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1618]':
+                      - text: nuance
+                      - generic [ref=f2e1619]: ▾
+                    - generic [ref=f2e1620]:
+                      - heading "Senior/Data Analyst (Data & AI Office), Economics Division" [level=3] [ref=f2e1621]
+                      - generic [ref=f2e1622]: 2 months ago
+                      - generic [ref=f2e1624]:
+                        - generic [ref=f2e1625]: Salary on application
+                        - generic [ref=f2e1626]: Permanent/Contract
+                      - paragraph [ref=f2e1627]: AI Product Development and Management Support end-to-end development and enhancement of AI tools and develop workflows and pipelines that integrate AI into MTI’s digital ecosystem. Prototype innovative data products using new technologies / techniques / modelling including Generative Artificial Intelligence on cloud platforms.
+                      - generic [ref=f2e1628]:
+                        - button "Analyse" [ref=f2e1629]
+                        - link "Open" [ref=f2e1630]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/16731233/005056a3-d347-1fe0-adad-16cee26c2281
+                        - 'button "{ } OKF" [ref=f2e1631]'
+                  - generic [ref=f2e1632] [cursor=pointer]:
+                    - generic [ref=f2e1633]:
+                      - generic [ref=f2e1634]: G
+                      - generic "Government Technology Agency" [ref=f2e1635]
+                    - generic [ref=f2e1636]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1637]':
+                        - text: nuance
+                        - generic [ref=f2e1638]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1639]:
+                        - text: +10 ads
+                        - generic [ref=f2e1640]: ▾
+                    - generic [ref=f2e1641]:
+                      - heading "Data Engineer (MSF)" [level=3] [ref=f2e1642]
+                      - generic [ref=f2e1643]: 2 months ago
+                      - generic [ref=f2e1645]: Salary on application
+                      - paragraph [ref=f2e1647]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1648]:
+                        - button "Analyse" [ref=f2e1649]
+                        - link "Open" [ref=f2e1650]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003155201?gh_jid=4003155201
+                        - 'button "{ } OKF" [ref=f2e1651]'
+                  - generic [ref=f2e1652] [cursor=pointer]:
+                    - generic [ref=f2e1653]:
+                      - generic [ref=f2e1654]: G
+                      - generic "Government Technology Agency" [ref=f2e1655]
+                    - generic [ref=f2e1656]:
+                      - 'button "Match basis: nuance. Tap to show what this means." [ref=f2e1657]':
+                        - text: nuance
+                        - generic [ref=f2e1658]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1659]:
+                        - text: +10 ads
+                        - generic [ref=f2e1660]: ▾
+                    - generic [ref=f2e1661]:
+                      - heading "Data Engineer (ESG)" [level=3] [ref=f2e1662]
+                      - generic [ref=f2e1663]: 2 months ago
+                      - generic [ref=f2e1665]: Salary on application
+                      - paragraph [ref=f2e1667]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1668]:
+                        - button "Analyse" [ref=f2e1669]
+                        - link "Open" [ref=f2e1670]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001705201?gh_jid=4001705201
+                        - 'button "{ } OKF" [ref=f2e1671]'
+                  - generic [ref=f2e1672] [cursor=pointer]:
+                    - generic [ref=f2e1673]:
+                      - generic [ref=f2e1674]: M
+                      - generic "MHA - Singapore Police Force (SPF)" [ref=f2e1675]
+                    - 'button "Match basis: R&R match. Tap to show what this means." [ref=f2e1677]':
+                      - text: R&R match
+                      - generic [ref=f2e1678]: ▾
+                    - generic [ref=f2e1679]:
+                      - heading "Analyst - SPF/PID" [level=3] [ref=f2e1680]
+                      - generic [ref=f2e1681]: 1 week ago
+                      - generic [ref=f2e1683]:
+                        - generic [ref=f2e1684]: Salary on application
+                        - generic [ref=f2e1685]: Permanent/Contract
+                      - paragraph [ref=f2e1686]: The Home Team plays a critical role in Singapore’s Criminal Justice System with its mission to protect Singapore and to prevent, deter and detect crime. Police Intelligence Department is responsible for providing Intelligence Analysts to support operations and investigations in Singapore Police Force, Central Narcotics Bureau, Immigration and Checkpoints Authority and Singapore Prisons.
+                      - generic [ref=f2e1687]:
+                        - button "Analyse" [ref=f2e1688]
+                        - link "Open" [ref=f2e1689]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17156771/005056a3-53e2-1fd1-9cf2-d64d8c975401
+                        - 'button "{ } OKF" [ref=f2e1690]'
+                  - generic [ref=f2e1691] [cursor=pointer]:
+                    - generic [ref=f2e1692]:
+                      - generic [ref=f2e1693]: G
+                      - generic "Government Technology Agency" [ref=f2e1694]
+                    - generic [ref=f2e1695]:
+                      - 'button "Match basis: R&R match. Tap to show what this means." [ref=f2e1696]':
+                        - text: R&R match
+                        - generic [ref=f2e1697]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1698]:
+                        - text: +10 ads
+                        - generic [ref=f2e1699]: ▾
+                    - generic [ref=f2e1700]:
+                      - heading "Threat Intel Analyst" [level=3] [ref=f2e1701]
+                      - generic [ref=f2e1702]: 3 weeks ago
+                      - generic [ref=f2e1704]:
+                        - generic [ref=f2e1705]: Salary on application
+                        - generic [ref=f2e1706]: 4+ yrs
+                      - paragraph [ref=f2e1707]: "[What the role is] GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity."
+                      - generic [ref=f2e1708]:
+                        - button "Analyse" [ref=f2e1709]
+                        - link "Open" [ref=f2e1710]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004352201?gh_jid=4004352201
+                        - 'button "{ } OKF" [ref=f2e1711]'
+                  - generic [ref=f2e1712] [cursor=pointer]:
+                    - generic [ref=f2e1713]:
+                      - generic [ref=f2e1714]: S
+                      - generic "Singapore Tourism Board" [ref=f2e1715]
+                    - generic [ref=f2e1716]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1717]':
+                        - text: related
+                        - generic [ref=f2e1718]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1719]:
+                        - text: +1 ads
+                        - generic [ref=f2e1720]: ▾
+                    - generic [ref=f2e1721]:
+                      - heading "Manager/Senior Mgr Data & AI Product Mgr, Data Exploration & Partnerships" [level=3] [ref=f2e1722]
+                      - generic [ref=f2e1723]:
+                        - generic [ref=f2e1724]: NEW
+                        - generic [ref=f2e1725]: today
+                      - generic [ref=f2e1726]:
+                        - generic [ref=f2e1727]: Salary on application
+                        - generic [ref=f2e1728]: Permanent
+                      - paragraph [ref=f2e1729]: "[What you will be working on] As a Data and AI Product Manager, your key responsibilities include: 1. Data Products Roadmap Development, Planning and Execution: a) Develop and execute the data product roadmap, defining data products required by STB and industry stakeholders, and aligned with STB's organisational goals. b) Create and maintain comprehensive data products requirement specifications, acceptance criteria and test cases. c) Develop mock and/or…"
+                      - generic [ref=f2e1730]:
+                        - button "Analyse" [ref=f2e1731]
+                        - link "Open" [ref=f2e1732]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17509205/005056a3-d347-1fe1-9efa-7cd1df7822ad
+                        - 'button "{ } OKF" [ref=f2e1733]'
+                  - generic [ref=f2e1734] [cursor=pointer]:
+                    - generic [ref=f2e1735]:
+                      - generic [ref=f2e1736]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1737]
+                    - generic [ref=f2e1738]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1739]':
+                        - text: related
+                        - generic [ref=f2e1740]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1741]:
+                        - text: +6 ads
+                        - generic [ref=f2e1742]: ▾
+                    - generic [ref=f2e1743]:
+                      - heading "Lead Engineer/ Engineer, Geospatial Development, Data Platforms, xData" [level=3] [ref=f2e1744]
+                      - generic [ref=f2e1745]:
+                        - generic [ref=f2e1746]: NEW
+                        - generic [ref=f2e1747]: today
+                      - generic [ref=f2e1748]:
+                        - generic [ref=f2e1749]: Salary on application
+                        - generic [ref=f2e1750]: Permanent/Contract
+                      - paragraph [ref=f2e1751]: "Job Scope / Key Deliverables The principal accountabilities of the job holder to: a. Work with stakeholders to develop and manage new capabilities in geospatial technologies to enhance Home Team Departments’ operational capabilities. The development will cover the entire project phases, from conceptualization, trials to production. b."
+                      - generic [ref=f2e1752]:
+                        - button "Analyse" [ref=f2e1753]
+                        - link "Open" [ref=f2e1754]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815678/005056a3-53e2-1fd1-9f84-7f6fcefa5401
+                        - 'button "{ } OKF" [ref=f2e1755]'
+                  - generic [ref=f2e1756] [cursor=pointer]:
+                    - generic [ref=f2e1757]:
+                      - generic [ref=f2e1758]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1759]
+                    - generic [ref=f2e1760]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1761]':
+                        - text: related
+                        - generic [ref=f2e1762]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1763]:
+                        - text: +6 ads
+                        - generic [ref=f2e1764]: ▾
+                    - generic [ref=f2e1765]:
+                      - heading "Head, Sensemaking Application, Sensemaking, xData, Enterprise Group" [level=3] [ref=f2e1766]
+                      - generic [ref=f2e1767]:
+                        - generic [ref=f2e1768]: NEW
+                        - generic [ref=f2e1769]: today
+                      - generic [ref=f2e1770]:
+                        - generic [ref=f2e1771]: Salary on application
+                        - generic [ref=f2e1772]: Permanent/Contract
+                      - paragraph [ref=f2e1773]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and advance dashboarding Lead the agile development and conducting design thinking workshops with users on story mapping, creating user stories with operational insights that address operational challenges in a proactive manner Managing and enhancing video hub to…"
+                      - generic [ref=f2e1774]:
+                        - button "Analyse" [ref=f2e1775]
+                        - link "Open" [ref=f2e1776]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815562/005056a3-53e2-1fd1-9f84-192567f67401
+                        - 'button "{ } OKF" [ref=f2e1777]'
+                  - generic [ref=f2e1778] [cursor=pointer]:
+                    - generic [ref=f2e1779]:
+                      - generic [ref=f2e1780]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1781]
+                    - generic [ref=f2e1782]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1783]':
+                        - text: related
+                        - generic [ref=f2e1784]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1785]:
+                        - text: +6 ads
+                        - generic [ref=f2e1786]: ▾
+                    - generic [ref=f2e1787]:
+                      - heading "Principal Engineer, AI & Data Engineering, Data Solutioning, xData" [level=3] [ref=f2e1788]
+                      - generic [ref=f2e1789]:
+                        - generic [ref=f2e1790]: NEW
+                        - generic [ref=f2e1791]: today
+                      - generic [ref=f2e1792]:
+                        - generic [ref=f2e1793]: Salary on application
+                        - generic [ref=f2e1794]: Permanent/Contract
+                      - paragraph [ref=f2e1795]: "AI Data Architecture: develop and implement a cohesive data strategy across Home Teams that aligns with organisation’s AI goals. o Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f2e1796]:
+                        - button "Analyse" [ref=f2e1797]
+                        - link "Open" [ref=f2e1798]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815525/005056a3-53e2-1fd1-9f83-f56332d63401
+                        - 'button "{ } OKF" [ref=f2e1799]'
+                  - generic [ref=f2e1800] [cursor=pointer]:
+                    - generic [ref=f2e1801]:
+                      - generic [ref=f2e1802]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1803]
+                    - generic [ref=f2e1804]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1805]':
+                        - text: related
+                        - generic [ref=f2e1806]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1807]:
+                        - text: +6 ads
+                        - generic [ref=f2e1808]: ▾
+                    - generic [ref=f2e1809]:
+                      - heading "Lead Engineer/ Engineer, Sensemaking Application, Sensemaking, xData" [level=3] [ref=f2e1810]
+                      - generic [ref=f2e1811]:
+                        - generic [ref=f2e1812]: NEW
+                        - generic [ref=f2e1813]: today
+                      - generic [ref=f2e1814]:
+                        - generic [ref=f2e1815]: Salary on application
+                        - generic [ref=f2e1816]: Permanent/Contract
+                      - paragraph [ref=f2e1817]: "The jobholder will collaborate with various teams (within HTX and across Home Teams) and is responsible to: Develop enterprise sensemaking application with video/data analytics, AL/ML models and advance dashboarding Lead the agile development and conducting design thinking workshops with users on story mapping, creating user stories with operational insights that address operational challenges in a proactive manner Managing and enhancing video hub to…"
+                      - generic [ref=f2e1818]:
+                        - button "Analyse" [ref=f2e1819]
+                        - link "Open" [ref=f2e1820]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815234/005056a3-53e2-1fd1-9f83-6608658f7401
+                        - 'button "{ } OKF" [ref=f2e1821]'
+                  - generic [ref=f2e1822] [cursor=pointer]:
+                    - generic [ref=f2e1823]:
+                      - generic [ref=f2e1824]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1825]
+                    - generic [ref=f2e1826]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1827]':
+                        - text: related
+                        - generic [ref=f2e1828]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1829]:
+                        - text: +6 ads
+                        - generic [ref=f2e1830]: ▾
+                    - generic [ref=f2e1831]:
+                      - heading "Head, AI Data Solutioning, AI Data Engineering, xData" [level=3] [ref=f2e1832]
+                      - generic [ref=f2e1833]:
+                        - generic [ref=f2e1834]: NEW
+                        - generic [ref=f2e1835]: today
+                      - generic [ref=f2e1836]:
+                        - generic [ref=f2e1837]: Salary on application
+                        - generic [ref=f2e1838]: Permanent/Contract
+                      - paragraph [ref=f2e1839]: "The job holder will be responsible for the following: Provide guidance as SME to formulate capabilities development roadmaps for the AI and Data Engineering domain areas. Data Integration: Oversees the integration of data from various sources, ensuring consistency, accuracy and accessibility."
+                      - generic [ref=f2e1840]:
+                        - button "Analyse" [ref=f2e1841]
+                        - link "Open" [ref=f2e1842]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815511/005056a3-53e2-1fd1-9f83-ddfc3b223401
+                        - 'button "{ } OKF" [ref=f2e1843]'
+                  - generic [ref=f2e1844] [cursor=pointer]:
+                    - generic [ref=f2e1845]:
+                      - generic [ref=f2e1846]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1847]
+                    - generic [ref=f2e1848]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1849]':
+                        - text: related
+                        - generic [ref=f2e1850]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1851]:
+                        - text: +6 ads
+                        - generic [ref=f2e1852]: ▾
+                    - generic [ref=f2e1853]:
+                      - heading "Lead Engineer/Engineer, AI & Data Engineering, xData" [level=3] [ref=f2e1854]
+                      - generic [ref=f2e1855]:
+                        - generic [ref=f2e1856]: NEW
+                        - generic [ref=f2e1857]: today
+                      - generic [ref=f2e1858]:
+                        - generic [ref=f2e1859]: Salary on application
+                        - generic [ref=f2e1860]: Permanent/Contract
+                      - paragraph [ref=f2e1861]: "The principal accountabilities of the job holder is to: a. Ensure timely delivery of projects within the committed schedule and budget ensuring project issues are timely resolved or escalated to management for attention. b. Provide regular update to HTX management on the project progress highlighting project milestones, issues and track project expenditure. c."
+                      - generic [ref=f2e1862]:
+                        - button "Analyse" [ref=f2e1863]
+                        - link "Open" [ref=f2e1864]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815747/005056a3-53e2-1fd1-9f84-c276ef0b3401
+                        - 'button "{ } OKF" [ref=f2e1865]'
+                  - generic [ref=f2e1866] [cursor=pointer]:
+                    - generic [ref=f2e1867]:
+                      - generic [ref=f2e1868]: H
+                      - generic "Home Team Science and Technology Agency (HTX)" [ref=f2e1869]
+                    - generic [ref=f2e1870]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1871]':
+                        - text: related
+                        - generic [ref=f2e1872]: ▾
+                      - button "6 more ads from this employer in this result. Tap to list them." [ref=f2e1873]:
+                        - text: +6 ads
+                        - generic [ref=f2e1874]: ▾
+                    - generic [ref=f2e1875]:
+                      - heading "Senior/Data Scientist, Process Modelling & Simulation, Decision Science, xData" [level=3] [ref=f2e1876]
+                      - generic [ref=f2e1877]:
+                        - generic [ref=f2e1878]: NEW
+                        - generic [ref=f2e1879]: today
+                      - generic [ref=f2e1880]:
+                        - generic [ref=f2e1881]: Salary on application
+                        - generic [ref=f2e1882]: Permanent/Contract
+                      - paragraph [ref=f2e1883]: "Work in a Data Science team with other stakeholders to identify, scope, develop and implement Data Science and AI solutions to address users’ needs. Conduct applied research in advance simulation and data science techniques to tailor models to Home Team operational use cases. These techniques include but are not limited to: o Agent-based simulation o Discrete-event simulation o Traffic simulation o Crowd simulation o Physics based simulation o AI based…"
+                      - generic [ref=f2e1884]:
+                        - button "Analyse" [ref=f2e1885]
+                        - link "Open" [ref=f2e1886]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17815745/005056a3-53e2-1fd1-9f84-b44c2e52b401
+                        - 'button "{ } OKF" [ref=f2e1887]'
+                  - generic [ref=f2e1888] [cursor=pointer]:
+                    - generic [ref=f2e1889]:
+                      - generic [ref=f2e1890]: G
+                      - generic "Government Technology Agency" [ref=f2e1891]
+                    - generic [ref=f2e1892]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1893]':
+                        - text: related
+                        - generic [ref=f2e1894]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1895]:
+                        - text: +10 ads
+                        - generic [ref=f2e1896]: ▾
+                    - generic [ref=f2e1897]:
+                      - heading "Lead / Senior Software Engineer, Data Programme" [level=3] [ref=f2e1898]
+                      - generic [ref=f2e1899]:
+                        - generic [ref=f2e1900]: NEW
+                        - generic [ref=f2e1901]: yesterday
+                      - generic [ref=f2e1902]: Salary on application
+                      - paragraph [ref=f2e1904]: The Government Technology Agency (GovTech) aims to transform the delivery of Government digital services by taking an "outside-in" view, putting citizens and businesses at the heart of everything we do. We also develop the Smart Nation infrastructure and applications, and facilitate collaboration with citizens and businesses to co-develop technologies.
+                      - generic [ref=f2e1905]:
+                        - button "Analyse" [ref=f2e1906]
+                        - link "Open" [ref=f2e1907]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004796201?gh_jid=4004796201
+                        - 'button "{ } OKF" [ref=f2e1908]'
+                  - generic [ref=f2e1909] [cursor=pointer]:
+                    - generic [ref=f2e1910]:
+                      - generic [ref=f2e1911]: G
+                      - generic "Government Technology Agency" [ref=f2e1912]
+                    - generic [ref=f2e1913]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1914]':
+                        - text: related
+                        - generic [ref=f2e1915]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1916]:
+                        - text: +10 ads
+                        - generic [ref=f2e1917]: ▾
+                    - generic [ref=f2e1918]:
+                      - heading "Senior Software Engineer, Data Programme" [level=3] [ref=f2e1919]
+                      - generic [ref=f2e1920]:
+                        - generic [ref=f2e1921]: NEW
+                        - generic [ref=f2e1922]: yesterday
+                      - generic [ref=f2e1923]: Salary on application
+                      - paragraph [ref=f2e1925]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1926]:
+                        - button "Analyse" [ref=f2e1927]
+                        - link "Open" [ref=f2e1928]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004794201?gh_jid=4004794201
+                        - 'button "{ } OKF" [ref=f2e1929]'
+                  - generic [ref=f2e1930] [cursor=pointer]:
+                    - generic [ref=f2e1931]:
+                      - generic [ref=f2e1932]: G
+                      - generic "Government Technology Agency" [ref=f2e1933]
+                    - generic [ref=f2e1934]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1935]':
+                        - text: related
+                        - generic [ref=f2e1936]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e1937]:
+                        - text: +10 ads
+                        - generic [ref=f2e1938]: ▾
+                    - generic [ref=f2e1939]:
+                      - heading "Software Engineer, Data Programme" [level=3] [ref=f2e1940]
+                      - generic [ref=f2e1941]:
+                        - generic [ref=f2e1942]: NEW
+                        - generic [ref=f2e1943]: yesterday
+                      - generic [ref=f2e1944]: Salary on application
+                      - paragraph [ref=f2e1946]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e1947]:
+                        - button "Analyse" [ref=f2e1948]
+                        - link "Open" [ref=f2e1949]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4004780201?gh_jid=4004780201
+                        - 'button "{ } OKF" [ref=f2e1950]'
+                  - generic [ref=f2e1951] [cursor=pointer]:
+                    - generic [ref=f2e1952]:
+                      - generic [ref=f2e1953]: M
+                      - generic "Ministry of Health" [ref=f2e1954]
+                    - generic [ref=f2e1955]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1956]':
+                        - text: related
+                        - generic [ref=f2e1957]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1958]:
+                        - text: +1 ads
+                        - generic [ref=f2e1959]: ▾
+                    - generic [ref=f2e1960]:
+                      - heading "Senior/Health Policy Analyst (Community Care Manpower)" [level=3] [ref=f2e1961]
+                      - generic [ref=f2e1962]:
+                        - generic [ref=f2e1963]: NEW
+                        - generic [ref=f2e1964]: yesterday
+                      - generic [ref=f2e1965]:
+                        - generic [ref=f2e1966]: Salary on application
+                        - generic [ref=f2e1967]: Contract
+                      - paragraph [ref=f2e1968]: You will review and conceptualise schemes related to workforce development and training in the community care sector. This will include reviewing training subsidies, manpower development sponsorships, and leadership programmes within the community care sector. You will also assess funding requests for new care settings, and facilitate policies to help with the prevention of abuse and harassment of healthcare workers.
+                      - generic [ref=f2e1969]:
+                        - button "Analyse" [ref=f2e1970]
+                        - link "Open" [ref=f2e1971]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17809625/005056a3-d347-1fe1-9ee4-29fdb7d7e2ad
+                        - 'button "{ } OKF" [ref=f2e1972]'
+                  - generic [ref=f2e1973] [cursor=pointer]:
+                    - generic [ref=f2e1974]:
+                      - generic [ref=f2e1975]: "N"
+                      - generic "Nanyang Polytechnic" [ref=f2e1976]
+                    - generic [ref=f2e1977]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e1978]':
+                        - text: related
+                        - generic [ref=f2e1979]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e1980]:
+                        - text: +1 ads
+                        - generic [ref=f2e1981]: ▾
+                    - generic [ref=f2e1982]:
+                      - heading "Data Scientist - Organisational Transformation Dept" [level=3] [ref=f2e1983]
+                      - generic [ref=f2e1984]:
+                        - generic [ref=f2e1985]: NEW
+                        - generic [ref=f2e1986]: yesterday
+                      - generic [ref=f2e1987]:
+                        - generic [ref=f2e1988]: Salary on application
+                        - generic [ref=f2e1989]: Fixed Terms
+                      - paragraph [ref=f2e1990]: "- Contribute to AI strategy by developing and supporting the team's transition towards industry standard MLOps and Agentic AI frameworks, support OTD’s core efforts to provide value returns to NYP’s schools and department, and aid the elevating of skills and talent within OTD and across AI practitioners in NYP. - Take on the challenging and strategic enterprise AI projects."
+                      - generic [ref=f2e1991]:
+                        - button "Analyse" [ref=f2e1992]
+                        - link "Open" [ref=f2e1993]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17809533/005056a3-d347-1fe1-9ee1-55cb19bda2ad
+                        - 'button "{ } OKF" [ref=f2e1994]'
+                  - generic [ref=f2e1995] [cursor=pointer]:
+                    - generic [ref=f2e1996]:
+                      - generic [ref=f2e1997]: L
+                      - generic "Land Transport Authority" [ref=f2e1998]
+                    - generic [ref=f2e1999]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2000]':
+                        - text: related
+                        - generic [ref=f2e2001]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2002]:
+                        - text: +1 ads
+                        - generic [ref=f2e2003]: ▾
+                    - generic [ref=f2e2004]:
+                      - heading "[LTA-T&ID] DEPUTY / ASST MGR, EV MASTERPLANNING (DATA & COMMUNICATIONS)" [level=3] [ref=f2e2005]
+                      - generic [ref=f2e2006]:
+                        - generic [ref=f2e2007]: NEW
+                        - generic [ref=f2e2008]: yesterday
+                      - generic [ref=f2e2009]:
+                        - generic [ref=f2e2010]: Salary on application
+                        - generic [ref=f2e2011]: Fixed Terms
+                      - paragraph [ref=f2e2012]: ou will be part of LTA’s National Electric Vehicle Centre (NEVC). The NEVC spearheads the promotion of EV adoption, regulating and planning EV charging systems, and the development of an EV ecosystem in Singapore. In this role, you will be part of the dynamic Masterplanning team, which develops and executes plans related to the deployment of EV charging systems and its supporting infrastructure.
+                      - generic [ref=f2e2013]:
+                        - button "Analyse" [ref=f2e2014]
+                        - link "Open" [ref=f2e2015]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17809528/005056a3-d347-1fe1-9ee1-5140740ce2ad
+                        - 'button "{ } OKF" [ref=f2e2016]'
+                  - generic [ref=f2e2017] [cursor=pointer]:
+                    - generic [ref=f2e2018]:
+                      - generic [ref=f2e2019]: P
+                      - generic "Public Service Division" [ref=f2e2020]
+                    - generic [ref=f2e2021]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2022]':
+                        - text: related
+                        - generic [ref=f2e2023]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2024]:
+                        - text: +1 ads
+                        - generic [ref=f2e2025]: ▾
+                    - generic [ref=f2e2026]:
+                      - heading "Analyst/ Senior Analyst, Strategic Planning" [level=3] [ref=f2e2027]
+                      - generic [ref=f2e2028]:
+                        - generic [ref=f2e2029]: NEW
+                        - generic [ref=f2e2030]: yesterday
+                      - generic [ref=f2e2031]:
+                        - generic [ref=f2e2032]: Salary on application
+                        - generic [ref=f2e2033]: Contract
+                      - paragraph [ref=f2e2034]: "[Specific Job Responsibilities] As part of the Strategic Planning (SP) unit under the Strategic Planning & International Relations (SPR) cluster, you will be part of a dynamic team that supports PSD senior management directly in developing the organisation's: (i) strategic priorities and narratives, (ii) business strategies with relevant stakeholders within PSD and across the whole-of-government, and (iii) culture of performance measurement and risk management."
+                      - generic [ref=f2e2035]:
+                        - button "Analyse" [ref=f2e2036]
+                        - link "Open" [ref=f2e2037]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17809691/005056a3-53e2-1fd1-9ee5-5f36a0bfd401
+                        - 'button "{ } OKF" [ref=f2e2038]'
+                  - generic [ref=f2e2039] [cursor=pointer]:
+                    - generic [ref=f2e2040]:
+                      - generic [ref=f2e2041]: M
+                      - generic "Ministry of Health" [ref=f2e2042]
+                    - generic [ref=f2e2043]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2044]':
+                        - text: related
+                        - generic [ref=f2e2045]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2046]:
+                        - text: +1 ads
+                        - generic [ref=f2e2047]: ▾
+                    - generic [ref=f2e2048]:
+                      - heading "Senior/Health Policy Analyst (Planning & Education)" [level=3] [ref=f2e2049]
+                      - generic [ref=f2e2050]:
+                        - generic [ref=f2e2051]: NEW
+                        - generic [ref=f2e2052]: yesterday
+                      - generic [ref=f2e2053]:
+                        - generic [ref=f2e2054]: Salary on application
+                        - generic [ref=f2e2055]: Contract
+                      - paragraph [ref=f2e2056]: You will be responsible for developing national-level manpower projections for key healthcare professions and putting in place processes to periodically refresh and review these projection models. You will be responsible for the development and implementation of healthcare programmes in Singapore, ensuring that the requisite training infrastructure, budget for clinical training and capabilities are developed to facilitate the intended ramp-up of healthcare programmes.
+                      - generic [ref=f2e2057]:
+                        - button "Analyse" [ref=f2e2058]
+                        - link "Open" [ref=f2e2059]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17810455/005056a3-53e2-1fd1-9ee8-7fd607b35401
+                        - 'button "{ } OKF" [ref=f2e2060]'
+                  - generic [ref=f2e2061] [cursor=pointer]:
+                    - generic [ref=f2e2062]:
+                      - generic [ref=f2e2063]: H
+                      - generic "Health Sciences Authority" [ref=f2e2064]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2066]':
+                      - text: related
+                      - generic [ref=f2e2067]: ▾
+                    - generic [ref=f2e2068]:
+                      - heading "Assistant Director / Principal Manager (HR Operations and Data Analytics)" [level=3] [ref=f2e2069]
+                      - generic [ref=f2e2070]: 2 days ago
+                      - generic [ref=f2e2072]:
+                        - generic [ref=f2e2073]: Salary on application
+                        - generic [ref=f2e2074]: Fixed Terms
+                      - paragraph [ref=f2e2075]: "include: HR Systems Management and Enhancement - Lead end-to-end Workday system management including maintenance, configuration, performance optimisation, and feature enhancements aligned with business requirements - Oversee change management and global deployment initiatives to ensure minimal operational disruption and maximise user adoption - Manage role assignments, implement security protocols, and maintain appropriate access controls for all user…"
+                      - generic [ref=f2e2076]:
+                        - button "Analyse" [ref=f2e2077]
+                        - link "Open" [ref=f2e2078]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17790273/005056a3-53e2-1fd1-9ec8-4bec9c4e1401
+                        - 'button "{ } OKF" [ref=f2e2079]'
+                  - generic [ref=f2e2080] [cursor=pointer]:
+                    - generic [ref=f2e2081]:
+                      - generic [ref=f2e2082]: D
+                      - generic "Department of Statistics" [ref=f2e2083]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2085]':
+                      - text: related
+                      - generic [ref=f2e2086]: ▾
+                    - generic [ref=f2e2087]:
+                      - heading "Statistician (Data Engineer) (Household, Income and Population)" [level=3] [ref=f2e2088]
+                      - generic [ref=f2e2089]: 2 days ago
+                      - generic [ref=f2e2091]:
+                        - generic [ref=f2e2092]: Salary on application
+                        - generic [ref=f2e2093]: Contract
+                      - paragraph [ref=f2e2094]: ∙ Collaborate with source agencies to acquire data and identify opportunities for enhanced analytical capabilities ∙ Perform methodological reviews on data quality and develop new indicators to meet evolving needs of the government and public ∙ Lead the technical development and continuous improvement of the Household Register ∙ Design, build, and optimise scalable cloud ETL/ELT pipelines that integrate and harmonise diverse data sources ∙ Develop…
+                      - generic [ref=f2e2095]:
+                        - button "Analyse" [ref=f2e2096]
+                        - link "Open" [ref=f2e2097]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17805294/005056a3-53e2-1fd1-9ece-9d4a222a3401
+                        - 'button "{ } OKF" [ref=f2e2098]'
+                  - generic [ref=f2e2099] [cursor=pointer]:
+                    - generic [ref=f2e2100]:
+                      - generic [ref=f2e2101]: P
+                      - generic "Public Service Division" [ref=f2e2102]
+                    - generic [ref=f2e2103]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2104]':
+                        - text: related
+                        - generic [ref=f2e2105]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2106]:
+                        - text: +1 ads
+                        - generic [ref=f2e2107]: ▾
+                    - generic [ref=f2e2108]:
+                      - heading "Snr Analyst, Data Product Development, Data Office, SPR" [level=3] [ref=f2e2109]
+                      - generic [ref=f2e2110]: 1 week ago
+                      - generic [ref=f2e2112]:
+                        - generic [ref=f2e2113]: Salary on application
+                        - generic [ref=f2e2114]: Contract
+                      - paragraph [ref=f2e2115]: The successful candidate will join the Data Engineering team, supporting the maintenance of an existing whole-of-government Public Officer data platform and the development a modernised replacement. This central platform facilitates data exchange between HR systems and downstream applications, consolidating and harmonising data from various sources before distributing it to relevant applications.
+                      - generic [ref=f2e2116]:
+                        - button "Analyse" [ref=f2e2117]
+                        - link "Open" [ref=f2e2118]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17788279/005056a3-d347-1fe1-9dd6-1e67595422ad
+                        - 'button "{ } OKF" [ref=f2e2119]'
+                  - generic [ref=f2e2120] [cursor=pointer]:
+                    - generic [ref=f2e2121]:
+                      - generic [ref=f2e2122]: M
+                      - generic "Ministry of Education" [ref=f2e2123]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2125]':
+                      - text: related
+                      - generic [ref=f2e2126]: ▾
+                    - generic [ref=f2e2127]:
+                      - heading "(Senior) Research Analyst, Applied Measurement & Psychological Sciences" [level=3] [ref=f2e2128]
+                      - generic [ref=f2e2129]: 1 week ago
+                      - generic [ref=f2e2131]:
+                        - generic [ref=f2e2132]: Salary on application
+                        - generic [ref=f2e2133]: Contract
+                      - paragraph [ref=f2e2134]: Plan and execute large-scale surveys, including designing psychometric survey instruments to assess attitudes, perceptions and non-academic competencies Utilise advanced data analysis techniques and tools to extract, clean and analyse data, and identify meaningful trends and actionable insights Provide consultancy on research methodology, survey design and related areas to support stakeholders in using and deriving meaningful insights from their data…
+                      - generic [ref=f2e2135]:
+                        - button "Analyse" [ref=f2e2136]
+                        - link "Open" [ref=f2e2137]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17787747/005056a3-53e2-1fd1-9dd3-f50e98519401
+                        - 'button "{ } OKF" [ref=f2e2138]'
+                  - generic [ref=f2e2139] [cursor=pointer]:
+                    - generic [ref=f2e2140]:
+                      - generic [ref=f2e2141]: I
+                      - generic "Institute of Technical Education" [ref=f2e2142]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2144]':
+                      - text: related
+                      - generic [ref=f2e2145]: ▾
+                    - generic [ref=f2e2146]:
+                      - heading "Curriculum Development Analyst - Eng Svcs [ITE Headquarters] – 2 Year Contract" [level=3] [ref=f2e2147]
+                      - generic [ref=f2e2148]: 2 weeks ago
+                      - generic [ref=f2e2150]:
+                        - generic [ref=f2e2151]: Salary on application
+                        - generic [ref=f2e2152]: Fixed Terms
+                      - paragraph [ref=f2e2153]: "- Conduct data analysis and applied research to evaluate curriculum effectiveness, learning outcomes and graduate employment performance - Facilitate focus group discussions and stakeholder engagements to gather qualitative insights for curriculum improvement - Apply qualitative and quantitative research methodologies to surface insights that drive curriculum decisions, identify curriculum gaps and improvement opportunities - Collaborate with curriculum…"
+                      - generic [ref=f2e2154]:
+                        - button "Analyse" [ref=f2e2155]
+                        - link "Open" [ref=f2e2156]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17737019/005056a3-d347-1fe1-9d98-3596cce962ad
+                        - 'button "{ } OKF" [ref=f2e2157]'
+                  - generic [ref=f2e2158] [cursor=pointer]:
+                    - generic [ref=f2e2159]:
+                      - generic [ref=f2e2160]: M
+                      - generic "MINDEF" [ref=f2e2161]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2163]':
+                      - text: related
+                      - generic [ref=f2e2164]: ▾
+                    - generic [ref=f2e2165]:
+                      - heading "Assistant Director (Data Analysis)" [level=3] [ref=f2e2166]
+                      - generic [ref=f2e2167]: 2 weeks ago
+                      - generic [ref=f2e2169]:
+                        - generic [ref=f2e2170]: Salary on application
+                        - generic [ref=f2e2171]: Permanent
+                      - paragraph [ref=f2e2172]: "- Apply data analytic techniques to exploit existing data - Discover new data sources for trending and deeper insights - Apply insights practically to secure the maritime domain - Proactively engage with national agencies and external entities - Ensure team remains current with appropriate technologies Challenge(s) - Being innovative and resourceful in discovering and applying various methods - Collaborating effectively across teams and agencies"
+                      - generic [ref=f2e2173]:
+                        - button "Analyse" [ref=f2e2174]
+                        - link "Open" [ref=f2e2175]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/13736769/005056a3-d347-1fe1-9bf2-7673548902ad
+                        - 'button "{ } OKF" [ref=f2e2176]'
+                  - generic [ref=f2e2177] [cursor=pointer]:
+                    - generic [ref=f2e2178]:
+                      - generic [ref=f2e2179]: C
+                      - generic "Civil Service College" [ref=f2e2180]
+                    - 'button "Match basis: related. Tap to show what this means." [ref=f2e2182]':
+                      - text: related
+                      - generic [ref=f2e2183]: ▾
+                    - generic [ref=f2e2184]:
+                      - heading "Data Engineer, Data and AI Office (DAO) - 2 Two-Year Contract" [level=3] [ref=f2e2185]
+                      - generic [ref=f2e2186]: 1 month ago
+                      - generic [ref=f2e2188]:
+                        - generic [ref=f2e2189]: Salary on application
+                        - generic [ref=f2e2190]: Contract
+                      - paragraph [ref=f2e2191]: Data Infrastructure and Data Pipeline Development Collaborate with system architect or senior engineers to design and implement the suitable data architecture, schema and data storage solutions that support business requirements. Work with vendor and stakeholders on secure API integrations, including API specification and documentations to integrate data from multiple sources.
+                      - generic [ref=f2e2192]:
+                        - button "Analyse" [ref=f2e2193]
+                        - link "Open" [ref=f2e2194]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17390896/005056a3-53e2-1fd1-9dba-617b6e701401
+                        - 'button "{ } OKF" [ref=f2e2195]'
+                  - generic [ref=f2e2196] [cursor=pointer]:
+                    - generic [ref=f2e2197]:
+                      - generic [ref=f2e2198]: M
+                      - generic "Ministry of Manpower" [ref=f2e2199]
+                    - generic [ref=f2e2200]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2201]':
+                        - text: related
+                        - generic [ref=f2e2202]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e2203]:
+                        - text: +5 ads
+                        - generic [ref=f2e2204]: ▾
+                    - generic [ref=f2e2205]:
+                      - heading "Research Analyst, Economics Department, MOM" [level=3] [ref=f2e2206]
+                      - generic [ref=f2e2207]: 1 month ago
+                      - generic [ref=f2e2209]:
+                        - generic [ref=f2e2210]: Salary on application
+                        - generic [ref=f2e2211]: Permanent/Contract
+                      - paragraph [ref=f2e2212]: Conducting policy-relevant research and analysis Analyse a diverse range of manpower issues, including workforce allocation, foreign and local manpower policies, retirement adequacy, lower-wage workers, vulnerable workforce segments, workplace outcomes and business impacts. Supporting economic surveillance and forecasting Contribute to ED’s monitoring of labour market developments, workforce trends and economic indicators to support timely policy…
+                      - generic [ref=f2e2213]:
+                        - button "Analyse" [ref=f2e2214]
+                        - link "Open" [ref=f2e2215]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17626724/005056a3-d347-1fe1-9da4-f00cd2b662ad
+                        - 'button "{ } OKF" [ref=f2e2216]'
+                  - generic [ref=f2e2217] [cursor=pointer]:
+                    - generic [ref=f2e2218]:
+                      - generic [ref=f2e2219]: G
+                      - generic "Government Technology Agency" [ref=f2e2220]
+                    - generic [ref=f2e2221]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2222]':
+                        - text: related
+                        - generic [ref=f2e2223]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e2224]:
+                        - text: +10 ads
+                        - generic [ref=f2e2225]: ▾
+                    - generic [ref=f2e2226]:
+                      - heading "Product Manager, Data Programme" [level=3] [ref=f2e2227]
+                      - generic [ref=f2e2228]: 1 month ago
+                      - generic [ref=f2e2230]: Salary on application
+                      - paragraph [ref=f2e2232]: The Government Technology Agency (GovTech) is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e2233]:
+                        - button "Analyse" [ref=f2e2234]
+                        - link "Open" [ref=f2e2235]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4003948201?gh_jid=4003948201
+                        - 'button "{ } OKF" [ref=f2e2236]'
+                  - generic [ref=f2e2237] [cursor=pointer]:
+                    - generic [ref=f2e2238]:
+                      - generic [ref=f2e2239]: L
+                      - generic "Land Transport Authority" [ref=f2e2240]
+                    - generic [ref=f2e2241]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2242]':
+                        - text: related
+                        - generic [ref=f2e2243]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2244]:
+                        - text: +1 ads
+                        - generic [ref=f2e2245]: ▾
+                    - generic [ref=f2e2246]:
+                      - heading "[LTA-IDE] ASST MANAGER, LAND (GIS ANALYST / SPATIAL DATA SPECIALIST)" [level=3] [ref=f2e2247]
+                      - generic [ref=f2e2248]: 1 month ago
+                      - generic [ref=f2e2250]:
+                        - generic [ref=f2e2251]: Salary on application
+                        - generic [ref=f2e2252]: Fixed Terms
+                      - paragraph [ref=f2e2253]: We are looking for a detail-oriented and analytical GIS professional to support the development and implementation of spatial data solutions across LTA's engineering functions. In this role, you will work with complex geospatial datasets, design GIS solutions to address operational challenges, and communicate spatial insights to a diverse range of stakeholders.
+                      - generic [ref=f2e2254]:
+                        - button "Analyse" [ref=f2e2255]
+                        - link "Open" [ref=f2e2256]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/17565348/005056a3-d347-1fe1-9dca-7176441022ad
+                        - 'button "{ } OKF" [ref=f2e2257]'
+                  - generic [ref=f2e2258] [cursor=pointer]:
+                    - generic [ref=f2e2259]:
+                      - generic [ref=f2e2260]: M
+                      - generic "Ministry Of Social And Family Development" [ref=f2e2261]
+                    - generic [ref=f2e2262]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2263]':
+                        - text: related
+                        - generic [ref=f2e2264]: ▾
+                      - button "1 more ad from this employer in this result. Tap to list them." [ref=f2e2265]:
+                        - text: +1 ads
+                        - generic [ref=f2e2266]: ▾
+                    - generic [ref=f2e2267]:
+                      - heading "Business Analyst (Tech Data and Innovation), RPG/POP [GRIT@Gov]" [level=3] [ref=f2e2268]
+                      - generic [ref=f2e2269]: 1 month ago
+                      - generic [ref=f2e2271]:
+                        - generic [ref=f2e2272]: Salary on application
+                        - generic [ref=f2e2273]: Traineeship
+                      - paragraph [ref=f2e2274]: "- Gather and document business requirements - Facilitate stakeholder workshops and present solutions - Support process improvement initiatives - Provide project administration support - Develop process maps, functional prototypes and proof of concepts using suitable platforms"
+                      - generic [ref=f2e2275]:
+                        - button "Analyse" [ref=f2e2276]
+                        - link "Open" [ref=f2e2277]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/16657279/005056a3-53e2-1fd1-9ea5-63dbc53b9401
+                        - 'button "{ } OKF" [ref=f2e2278]'
+                  - generic [ref=f2e2279] [cursor=pointer]:
+                    - generic [ref=f2e2280]:
+                      - generic [ref=f2e2281]: M
+                      - generic "Ministry of Manpower" [ref=f2e2282]
+                    - generic [ref=f2e2283]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2284]':
+                        - text: related
+                        - generic [ref=f2e2285]: ▾
+                      - button "5 more ads from this employer in this result. Tap to list them." [ref=f2e2286]:
+                        - text: +5 ads
+                        - generic [ref=f2e2287]: ▾
+                    - generic [ref=f2e2288]:
+                      - heading "Principal/Senior Manager (Data Analyst), Compliance Strategy & Analytics, WPD" [level=3] [ref=f2e2289]
+                      - generic [ref=f2e2290]: 2 months ago
+                      - generic [ref=f2e2292]:
+                        - generic [ref=f2e2293]: Salary on application
+                        - generic [ref=f2e2294]: Permanent
+                      - paragraph [ref=f2e2295]: Leverage appropriate data analytics, design thinking and behavioural insights tools to understand and identify fraudulent manpower practices, emerging risks and vulnerabilities in the work pass framework to ensure policy and business outcomes are effectively met Propose and implement agile and robust measures to address identified gaps and risks to ensure continued relevancy and effectiveness of policies and processes Develop data visualisation products,…
+                      - generic [ref=f2e2296]:
+                        - button "Analyse" [ref=f2e2297]
+                        - link "Open" [ref=f2e2298]:
+                          - /url: https://jobs.careers.gov.sg/jobs/hrp/14842980/67c5b17f-30f4-1eef-b39d-6d382ab9e20e
+                        - 'button "{ } OKF" [ref=f2e2299]'
+                  - generic [ref=f2e2300] [cursor=pointer]:
+                    - generic [ref=f2e2301]:
+                      - generic [ref=f2e2302]: G
+                      - generic "Government Technology Agency" [ref=f2e2303]
+                    - generic [ref=f2e2304]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2305]':
+                        - text: related
+                        - generic [ref=f2e2306]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e2307]:
+                        - text: +10 ads
+                        - generic [ref=f2e2308]: ▾
+                    - generic [ref=f2e2309]:
+                      - heading "Senior / Product Manager, Data Analytics (SC)" [level=3] [ref=f2e2310]
+                      - generic [ref=f2e2311]: 2 months ago
+                      - generic [ref=f2e2313]: Salary on application
+                      - paragraph [ref=f2e2315]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e2316]:
+                        - button "Analyse" [ref=f2e2317]
+                        - link "Open" [ref=f2e2318]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4001679201?gh_jid=4001679201
+                        - 'button "{ } OKF" [ref=f2e2319]'
+                  - generic [ref=f2e2320] [cursor=pointer]:
+                    - generic [ref=f2e2321]:
+                      - generic [ref=f2e2322]: G
+                      - generic "Government Technology Agency" [ref=f2e2323]
+                    - generic [ref=f2e2324]:
+                      - 'button "Match basis: related. Tap to show what this means." [ref=f2e2325]':
+                        - text: related
+                        - generic [ref=f2e2326]: ▾
+                      - button "10 more ads from this employer in this result. Tap to list them." [ref=f2e2327]:
+                        - text: +10 ads
+                        - generic [ref=f2e2328]: ▾
+                    - generic [ref=f2e2329]:
+                      - heading "Director / Deputy Director, Design Management - Data Programme" [level=3] [ref=f2e2330]
+                      - generic [ref=f2e2331]: 2 months ago
+                      - generic [ref=f2e2333]: Salary on application
+                      - paragraph [ref=f2e2335]: GovTech is the lead agency driving Singapore’s Smart Nation initiatives and public sector digital transformation. As the Centre of Excellence for Infocomm Technology and Smart Systems (ICT & SS), GovTech develops the Singapore Government’s capabilities in Data Science & Artificial Intelligence, Application Development, Smart City Technology, Digital Infrastructure, and Cybersecurity.
+                      - generic [ref=f2e2336]:
+                        - button "Analyse" [ref=f2e2337]
+                        - link "Open" [ref=f2e2338]:
+                          - /url: https://jobs.careers.gov.sg/jobs/greenhouse/4002008201?gh_jid=4002008201
+                        - 'button "{ } OKF" [ref=f2e2339]'
+        - generic [ref=f2e2340]:
+          - paragraph [ref=f2e2341]: "No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture (80 postings). Confidence: named-source facts. Time-window: this result."
+          - generic "SG Career View 3.0.293" [ref=f2e2342]: v3.0.293
