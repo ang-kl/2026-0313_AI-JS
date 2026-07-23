@@ -10,19 +10,28 @@
 
 ```yaml
 contract:
-  version: 1.0.0
+  version: 1.1.0
   supersedes: CLAUDE-FULL.md v0.0.3
   last_updated: 23-07 '26   # see git log for this file's exact commit timestamp
+  changelog:
+    - version: 1.1.0
+      date: 23-07 '26
+      change: >
+        §1 time source switched from passive context-derivation to an active per-response
+        sandbox-clock fetch (`date -u` via Bash), after confirming the container clock is
+        accurate (cross-checked against two independent GitHub webhook timestamps ~17
+        minutes apart, agreement within seconds). CLAUDE-FULL.md's TF-6/TF-9 mandate was
+        about *sovereign web-fetch* sources being unreliable in assistant-chat runtime
+        (cached HTML, sensor lag) - it never tested the Claude Code sandbox's own system
+        clock, which turns out to be trustworthy here. Ask-the-user remains the fallback
+        for runtimes without Bash, or if the sandbox clock is ever caught drifting.
   reconciliation_note: >
     CLAUDE-FULL.md (root and v3/doc/, identical) defined a doc/Chat + doc/Journal +
     .serial-state.yml folder taxonomy that was drafted 07-07 '26 but never bootstrapped
-    (no such folders or state file exist in this repo). Its live time-fetch mandate
-    (Rule TF-6/TF-9) is documented, by its own §15 worked example, as unreliable in this
-    runtime (cached HTML, sensor-lag APIs, blocked egress) - its own case study concludes
-    the human-stated-time fallback (TF-8) is what actually works, so this file promotes
-    that fallback to the primary path. Its §6.3 decision rules (R001-R010) are proven and
-    in force in practice - preserved verbatim in §2 below. Serial and paragraph syntax
-    updated to the form settled on in the 23-07 '26 session (see §1).
+    (no such folders or state file exist in this repo). Its §6.3 decision rules
+    (R001-R010) are proven and in force in practice - preserved verbatim in §2 below.
+    Serial and paragraph syntax updated to the form settled on in the 23-07 '26 session
+    (see §1).
 ```
 
 ---
@@ -45,9 +54,11 @@ Prefix every substantive reply with a serial tag on its own line:
 
 Example: `№ 1,024 · 23-07'26 20:08 SGT`
 
-**Time source.** No live clock is available in this environment (sovereign time-fetch endpoints are egress-blocked here - see the §0 reconciliation note). Derive the time from context: the newest timestamp actually present in the conversation (a webhook, a system date-change notice, or a time the user states). A time the user states is always authoritative and overrides any estimate.
+**Time source (fresh every response).** Before stamping the serial on any substantive reply, run `date -u` via Bash and convert from UTC to the active TZ (default SGT = UTC+8; see the TZ table if another zone is active). This is a genuine, no-egress, per-response live clock - not a passive wait for context evidence. Cross-check opportunistically against any timestamp present in context (a GitHub webhook, a system date-change notice); if the sandbox clock and a context timestamp disagree by more than a few minutes, trust the more specific/freshest source and note the discrepancy once.
 
-**Freshness.** Re-derive the time on every reply from the newest available evidence - do not carry an old stamp forward unchanged once newer evidence exists. When the newest reliable timestamp is more than roughly an hour old, a new session is starting, or the gap since the last message is unknown, do not guess: ask once ("Time check: what's the current time and timezone?"), adopt the answer, and correct any drift on the next reply.
+**Sanity check.** Before trusting `date -u`, sanity-check the returned year/date against the conversation's known epoch (a container with an unset or broken clock can return an obviously wrong value, e.g. 1970 or a year that contradicts a recent webhook). If it looks wrong, don't use it - fall back to context-derived evidence.
+
+**Fallback (no Bash available, or the sandbox clock is caught drifting).** Derive the time from the newest evidence in context; a time the user states is always authoritative and overrides any estimate. If no reliable evidence exists and more than roughly an hour may have passed, ask once ("Time check: what's the current time and timezone?"), adopt the answer, and correct any drift on the next reply.
 
 ---
 
