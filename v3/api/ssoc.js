@@ -476,6 +476,45 @@ function classifySsocJobs(jobs) {
     .map((job) => classifySsocJob(job || {}, byCode, occupations));
 }
 
+// ── C++ substrate fast-path (best-effort, local classifySsocJobs() is the fallback) ─
+// classifySsocJobs() above also runs, byte-for-byte identical, as a C++ endpoint on the
+// GCN substrate's Railway service (research/gcn/cpp/classify_ssoc.hpp, verified against
+// this exact function - including scoreSsocCandidate's title/context scoring and the
+// full hierarchy walk - before that port shipped). Tries the service first with a short
+// timeout and falls back to the local computation on any failure - a pure speed/offload
+// optimisation, never a correctness dependency: classifySsocJobs() here is the source
+// of truth.
+const SUBSTRATE_URL = process.env.SUBSTRATE_URL || 'https://job-analysis.up.railway.app';
+const CLASSIFY_TIMEOUT_MS = 4000;
+
+async function classifySsocJobsViaService(jobs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CLASSIFY_TIMEOUT_MS);
+  try {
+    const r = await fetch(`${SUBSTRATE_URL.replace(/\/+$/, '')}/classify-ssoc`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ jobs }),
+      signal: controller.signal,
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!data || !Array.isArray(data.classifications) || data.classifications.length !== jobs.length) return null;
+    return data.classifications;
+  } catch (_) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function classifySsocJobsFast(jobs) {
+  const list = Array.isArray(jobs) ? jobs.slice(0, 80) : [];
+  if (!list.length) return [];
+  const viaService = await classifySsocJobsViaService(list);
+  return viaService || classifySsocJobs(list);
+}
+
 function serialiseRow(row) {
   return {
     version: row.version || VERSION,
@@ -558,7 +597,7 @@ export default async function handler(req, res) {
     const jobs = Array.isArray(body.jobs) ? body.jobs : (Array.isArray(body.titles) ? body.titles.map((title, index) => ({ id: String(index + 1), title })) : []);
     if (!jobs.length) return res.status(200).json({ ok: true, db: false, classifications: [] });
     try {
-      const classifications = classifySsocJobs(jobs);
+      const classifications = await classifySsocJobsFast(jobs);
       const matched = classifications.filter((item) => item.status === 'classified').length;
       return res.status(200).json({
         ok: true,

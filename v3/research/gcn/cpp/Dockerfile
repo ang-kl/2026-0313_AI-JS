@@ -10,7 +10,7 @@ WORKDIR /src
 # failed the next Docker build with "No such file or directory" on those two #includes
 # (caught before it ever shipped, while wiring in classify.hpp - see git blame timestamps:
 # similar.hpp/resolve.hpp landed the morning after this line was last touched).
-COPY json.hpp substrate.hpp linkpred.hpp suggest.hpp similar.hpp resolve.hpp classify.hpp ./
+COPY json.hpp substrate.hpp linkpred.hpp suggest.hpp similar.hpp resolve.hpp classify.hpp classify_ssoc.hpp ./
 COPY build_substrate.cpp server.cpp ./
 # Statically link libstdc++/libgcc so the runtime image needs NO apt-get (the previous
 # `apt-get install libstdc++6` step could stall for many minutes on a slow Debian mirror -

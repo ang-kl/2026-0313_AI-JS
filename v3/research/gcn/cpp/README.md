@@ -15,6 +15,7 @@ that actually benefit from it.
 | `harvest_esco.py`, `harvest_mcf.py` | — | ❌ (stays Python) | Pure network + JSON I/O. Network-bound, not compute-bound — C++ buys nothing. |
 | `gcn_torch.py` | — | ❌ (reference) | The torch reference; the numpy/C++ port is the runnable one. |
 | `../../api/ssic.js`'s `classifyText()` | `classify.hpp` | ✅ | Deterministic SSIC 2020 activity-text classifier — token-overlap scoring over 5.4k terms per request. `ssic.js` keeps ACRA lookup/Postgres (I/O); only the compute loop moved. |
+| `../../api/ssoc.js`'s `classifySsocJobs()` | `classify_ssoc.hpp` | ✅ | Deterministic SSOC 2024 job-title classifier — title/context scoring over 1,006 occupations per job, full 5-level hierarchy walk. `ssoc.js` keeps Postgres search/get/correspondence (I/O); only the compute loop moved. Different scoring formula from SSIC's — independently ported, not shared code. |
 
 The pipeline is unchanged: **harvest (Python) → build (C++ or Python) → linkpred / gcn (C++
 or Python)**. The C++ build reads the same `../data/*.jsonl` the Python harvest writes.
@@ -102,10 +103,11 @@ POSIX sockets + `std::thread` only — no HTTP framework. Endpoints:
 
 | Method | Path | Body | Returns |
 | --- | --- | --- | --- |
-| GET | `/health` | — | `{status, dataset, synthetic, skills, occupations, ssicTerms}` |
+| GET | `/health` | — | `{status, dataset, synthetic, skills, occupations, ssicTerms, ssocOccupations}` |
 | POST | `/suggest` | `{"skills":["python","sql"],"top":10}` | ranked adjacent skills + provenance |
 | POST | `/similar-roles` | `{"skills":[...],"top":8}` | ranked adjacent occupations + shared skills (Brick 3) |
 | POST | `/classify-ssic` | `{"text":"...","limit":5}` or `{"texts":[...],"limit":5}` | ranked SSIC codes — see below |
+| POST | `/classify-ssoc` | `{"jobs":[{"id","title","categories":[],"skills":[],"description"}]}` | classified/withheld SSOC codes + hierarchy — see below |
 
 `/suggest` response shape:
 
@@ -164,6 +166,33 @@ a correctness dependency.
 ```sh
 make classify_selftest
 ./classify_selftest --index taxonomy-data/ssic2020-index.json
+```
+
+### SSOC classifier (`classify_ssoc.hpp`)
+
+A direct port of `v3/api/ssoc.js`'s `classifySsocJobs()` — deterministic job-title
+classification against the SSOC 2024 hierarchy (`taxonomy-data/`, 1,632 nodes / 1,006
+occupations across 5 levels). Richer than the SSIC port: title-exact-match bonus, token
+overlap tiers with bidirectional substring containment, job-req-ID stripping (`WD-12345`,
+`Job123`), context scoring against each occupation's definition/tasks/examples, and a full
+major → sub-major → minor → unit-group → occupation hierarchy walk on the winning match. Uses
+a **different scoring formula** from the SSIC port (`hits/max(|a|,|b|)`, not SSIC's weighted
+coverage/precision blend) — independently ported, not shared code, because the JS originals
+are independently authored and diverge on purpose. `ssoc.js` keeps everything I/O-bound
+(Postgres search/get/correspondence) untouched.
+
+**Verified byte-for-byte** the same way as the SSIC port: a Node harness ran the real,
+unmodified `ssoc.js` handler (`action:"classifyTitles"`) on ten jobs covering exact-title
+matches, partial-overlap matches, job-req-ID stripping, ampersands, a withheld
+(below-threshold) case, and a missing-title case; the C++ self-test
+(`classify_ssoc_selftest.cpp`) ran the same jobs against the same data files — every score,
+confidence tier, code, hierarchy field, and candidate list matched exactly. `ssoc.js` tries
+the Railway service first (4s timeout, larger payload than SSIC's) and falls back to its own
+identical local computation on any failure.
+
+```sh
+make classify_ssoc_selftest
+./classify_ssoc_selftest --hierarchy taxonomy-data/ssoc2024-hierarchy.json --changes taxonomy-data/ssoc2024-type-of-change.json
 ```
 
 ### Data honesty
