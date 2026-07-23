@@ -1,4 +1,13 @@
-# CLAUDE.md
+# CLAUDE.md (RETIRED - see root `/CLAUDE.md`)
+
+> **Status (23-07 '26): retired.** The root `CLAUDE.md` is now the auto-loaded file and
+> supersedes this file's serial-number, paragraph-tagging, and time-fetch sections (§§3-5
+> below) - its live time-fetch mandate proved unreliable in this runtime (see this file's own
+> §15 worked example). This file's folder taxonomy (`doc/Chat/`, `doc/Journal/`,
+> `.serial-state.yml`) was never bootstrapped in this repo and was not adopted. Its §6.3
+> decision rules (R001-R010) ARE still in force - carried forward verbatim in the new
+> `CLAUDE.md` §5. Kept here for historical record only; do not edit further, do not rename to
+> `CLAUDE.md`.
 
 > **Purpose:** Master orchestrator file for Claude Code. Defines documentation upkeep, version control, file naming, serial number protocol, time fetch protocol, and decision rules for any project that adopts this template.
 >
