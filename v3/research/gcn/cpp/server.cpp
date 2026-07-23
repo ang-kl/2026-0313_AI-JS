@@ -5,14 +5,21 @@
 // Railway container runs). It is a small, single-purpose service, not a general framework.
 //
 // Endpoints:
-//   GET  /health           -> {"status":"ok","dataset":..,"synthetic":..,"skills":N,"occupations":N}
+//   GET  /health           -> {"status":"ok","dataset":..,"synthetic":..,"skills":N,"occupations":N,"ssicTerms":N}
 //   GET  /                 -> same as /health plus usage
 //   POST /suggest          -> body {"skills":["python","sql",...],"top":10}
 //                             -> {"suggestions":[{"skill","score","esco","mcf","sources":[..]}],
 //                                 "matched":[..],"unmatched":[..],"synthetic":bool}
+//   POST /similar-roles    -> body {"skills":[...],"top":8}
+//                             -> {"roles":[{"title","score","shared","sharedSkills":[..]}],
+//                                 "matched":[..],"unmatched":[..],"bridged":bool,"synthetic":bool}
+//   POST /classify-ssic    -> body {"text":"...","limit":5} or {"texts":["...",...],"limit":5}
+//                             -> C++ port of v3/api/ssic.js's classifyText() - deterministic
+//                                SSIC 2020 activity-text classification, no LLM. See classify.hpp.
 #include "suggest.hpp"
 #include "similar.hpp"
 #include "resolve.hpp"
+#include "classify.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -37,6 +44,7 @@ static resolve::Index RIX;
 static std::unordered_map<std::string, int64_t> NAME2ID;
 static std::string DATASET = "none";
 static bool SYNTHETIC = true;
+static classify::Index SSIC;
 
 static std::string jesc(const std::string& s) {
   std::string o; o.reserve(s.size() + 8);
@@ -60,7 +68,8 @@ static std::string healthJson() {
   o << "{\"status\":\"ok\",\"dataset\":\"" << jesc(DATASET) << "\",\"synthetic\":"
     << (SYNTHETIC ? "true" : "false")
     << ",\"skills\":" << G.skill_labels.size()
-    << ",\"occupations\":" << G.occ_labels.size() << "}";
+    << ",\"occupations\":" << G.occ_labels.size()
+    << ",\"ssicTerms\":" << SSIC.terms.size() << "}";
   return o.str();
 }
 
@@ -177,6 +186,65 @@ static std::string handleSimilar(const std::string& body) {
   return o.str();
 }
 
+// Serialize one classify::Result in the same shape as ssic.js's classifyText() return value.
+static void writeClassifyResult(std::ostringstream& o, const classify::Result& r) {
+  o << "{\"matched\":\"" << jesc(r.matched) << "\"";
+  if (r.matched == "none") {
+    if (!r.reason.empty()) o << ",\"reason\":\"" << jesc(r.reason) << "\"";
+  } else {
+    o << ",\"code\":\"" << jesc(r.code) << "\",\"section\":\"" << jesc(r.section)
+      << "\",\"sectionTitle\":\"" << jesc(r.sectionTitle) << "\",\"confidence\":\""
+      << jesc(r.confidence) << "\",\"matchedTerm\":\"" << jesc(r.matchedTerm) << "\"";
+  }
+  o << ",\"candidates\":[";
+  for (size_t i = 0; i < r.candidates.size(); ++i) {
+    const auto& c = r.candidates[i];
+    if (i) o << ",";
+    o << "{\"code\":\"" << jesc(c.code) << "\",\"section\":\"" << jesc(c.section)
+      << "\",\"sectionTitle\":\"" << jesc(c.sectionTitle) << "\",\"score\":" << c.score
+      << ",\"matchedTerm\":\"" << jesc(c.matchedTerm) << "\",\"confidence\":\"" << jesc(c.confidence) << "\"}";
+  }
+  o << "]}";
+}
+
+// Build the /classify-ssic response: one text -> one classification, or a batch via
+// {"texts":[...]}. Deterministic port of ssic.js's classifyText() - see classify.hpp for the
+// parity note. Withholds nothing beyond what the JS original withholds (below-floor matches
+// already come back as matched:"none" from classifyText itself).
+static std::string handleClassifySsic(const std::string& body) {
+  size_t limit = 5;
+  gjson::Value v;
+  try { v = gjson::parse(body); } catch (...) { return "{\"error\":\"invalid JSON body\"}"; }
+  const gjson::Value* limv = v.find("limit");
+  if (limv && limv->type == gjson::Type::Number && limv->num > 0) limit = (size_t)limv->num;
+
+  std::ostringstream o;
+  const gjson::Array* texts = v.getArr("texts");
+  if (texts) {
+    o << "{\"version\":\"" << jesc(SSIC.version) << "\",\"results\":[";
+    for (size_t i = 0; i < texts->size(); ++i) {
+      const auto& t = (*texts)[i];
+      std::string text = (t.type == gjson::Type::String) ? t.str : "";
+      auto r = classify::classifyText(SSIC, text, limit);
+      if (i) o << ",";
+      writeClassifyResult(o, r);
+    }
+    o << "]}";
+    return o.str();
+  }
+
+  std::string text = v.getStr("text");
+  if (text.empty()) return "{\"error\":\"Required: text=string (or texts=array)\"}";
+  auto r = classify::classifyText(SSIC, text, limit);
+  o << "{\"version\":\"" << jesc(SSIC.version) << "\",";
+  // Flatten the result's top-level fields alongside version, matching ssic.js's
+  // `{ version, ...classifyText(...) }` spread shape (not nested under "result").
+  std::ostringstream inner; writeClassifyResult(inner, r);
+  std::string innerStr = inner.str();
+  o << innerStr.substr(1);  // drop inner's leading '{' so fields join the outer object
+  return o.str();
+}
+
 static void writeResponse(int fd, int code, const char* status, const std::string& body,
                           const char* ctype = "application/json") {
   std::ostringstream o;
@@ -238,15 +306,18 @@ static void handleConn(int fd) {
   }
   if (path == "/suggest" && method == "POST") { writeResponse(fd, 200, "OK", handleSuggest(body)); close(fd); return; }
   if (path == "/similar-roles" && method == "POST") { writeResponse(fd, 200, "OK", handleSimilar(body)); close(fd); return; }
+  if (path == "/classify-ssic" && method == "POST") { writeResponse(fd, 200, "OK", handleClassifySsic(body)); close(fd); return; }
   writeResponse(fd, 404, "Not Found", "{\"error\":\"not found\"}");
   close(fd);
 }
 
 int main(int argc, char** argv) {
   std::string binPath = "substrate.bin";
+  std::string ssicPath = "taxonomy-data/ssic2020-index.json";
   for (int i = 1; i < argc; ++i) {
     std::string a = argv[i];
     if (a == "--bin" && i + 1 < argc) binPath = argv[++i];
+    else if (a == "--ssic" && i + 1 < argc) ssicPath = argv[++i];
   }
   if (const char* d = std::getenv("DATASET_LABEL")) DATASET = d;
   if (const char* s = std::getenv("SYNTHETIC")) SYNTHETIC = !(std::string(s) == "0" || std::string(s) == "false");
@@ -261,6 +332,13 @@ int main(int argc, char** argv) {
               << ", synthetic=" << (SYNTHETIC ? "true" : "false") << ")\n";
   } else {
     std::cerr << "[server] WARNING: no " << binPath << " loaded; /suggest will return empty.\n";
+  }
+
+  if (classify::loadIndex(SSIC, ssicPath)) {
+    std::cerr << "[server] loaded " << ssicPath << ": " << SSIC.terms.size()
+              << " terms, " << SSIC.codeCount << " codes (version=" << SSIC.version << ")\n";
+  } else {
+    std::cerr << "[server] WARNING: no " << ssicPath << " loaded; /classify-ssic will 404-shape empty results.\n";
   }
 
   int port = 8080;

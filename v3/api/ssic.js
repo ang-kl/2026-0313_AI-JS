@@ -11,6 +11,13 @@
 // table for other queries; the classify path is in-memory (5.4k terms) so it
 // works with or without a database, exactly like ssoc.js's classify path.
 //
+// classifyText() below also runs, byte-for-byte identical, as a C++ endpoint on the
+// GCN substrate's Railway service (research/gcn/cpp/classify.hpp, verified against
+// this exact function before that port shipped - see its parity note). classify/
+// classifyMany try that service first with a short timeout and fall back to the
+// local computation on any failure - a pure speed/offload optimisation, never a
+// correctness dependency: classifyText() here remains the source of truth.
+//
 // `action:"lookup"` is a separate, authoritative path: it reads the real
 // registered SSIC for a company from `acra_entities` (seeded offline via
 // scripts/seed-acra.mjs from the ACRA "Information on Corporate Entities"
@@ -126,6 +133,51 @@ function classifyText(text, limit) {
     matchedTerm: top.matchedTerm,
     candidates: ranked,
   };
+}
+
+// ── C++ substrate fast-path (best-effort, local classifyText() is the fallback) ─
+const SUBSTRATE_URL = process.env.SUBSTRATE_URL || 'https://job-analysis.up.railway.app';
+const CLASSIFY_TIMEOUT_MS = 3000;
+
+async function classifyViaService(payload) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CLASSIFY_TIMEOUT_MS);
+  try {
+    const r = await fetch(`${SUBSTRATE_URL.replace(/\/+$/, '')}/classify-ssic`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// One text -> one classification. Tries the Railway C++ service; on any failure (network,
+// timeout, malformed response) falls back to the identical local computation - never
+// withholds, since a local answer is always available for this deterministic classifier.
+async function classifyOne(text, limit) {
+  const viaService = await classifyViaService({ text, limit });
+  if (viaService && (viaService.matched === 'ranked' || viaService.matched === 'none')) {
+    const { version, ...rest } = viaService;
+    return rest;
+  }
+  return classifyText(text, limit);
+}
+
+// Batch: one request to the service for the whole array; falls back to local computation
+// per-text (not the whole batch) if the service is unreachable or the shape looks wrong.
+async function classifyMany(texts, limit) {
+  const viaService = await classifyViaService({ texts, limit });
+  if (viaService && Array.isArray(viaService.results) && viaService.results.length === texts.length) {
+    return viaService.results;
+  }
+  return texts.map((t) => classifyText(String(t || ''), limit));
 }
 
 // ── optional Postgres persistence ────────────────────────────────────────────
@@ -379,7 +431,7 @@ export default async function handler(req, res) {
     let acra = await acraDbLookup(query);
     if (acra.matched !== 'exact') acra = await acraLiveLookup(query);
     if (acra.matched === 'exact') return res.status(200).json({ version: VERSION, ...acra });
-    const fallback = classifyText(query, Number(body.limit) || 5);
+    const fallback = await classifyOne(query, Number(body.limit) || 5);
     return res.status(200).json({ version: VERSION, acra, fallback: { source: 'derived', ...fallback } });
   }
 
@@ -387,11 +439,11 @@ export default async function handler(req, res) {
     // Single text, or batch: { texts:[...] } -> one classification each.
     if (Array.isArray(body.texts)) {
       const limit = Number(body.limit) || 5;
-      return res.status(200).json({ version: VERSION, results: body.texts.map((t) => classifyText(String(t || ''), limit)) });
+      return res.status(200).json({ version: VERSION, results: await classifyMany(body.texts.map((t) => String(t || '')), limit) });
     }
     const text = String(body.text || '');
     if (!text.trim()) return res.status(400).json({ error: 'Required: action="classify", text=string (or texts=array)' });
-    return res.status(200).json({ version: VERSION, ...classifyText(text, Number(body.limit) || 5) });
+    return res.status(200).json({ version: VERSION, ...(await classifyOne(text, Number(body.limit) || 5)) });
   }
 
   return res.status(400).json({ error: 'Invalid action. Use classify | lookup | seed | status' });

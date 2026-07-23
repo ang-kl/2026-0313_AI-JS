@@ -5,7 +5,12 @@
 # ---- build stage ----
 FROM gcc:13 AS build
 WORKDIR /src
-COPY json.hpp substrate.hpp linkpred.hpp suggest.hpp ./
+# NOTE: every header server.cpp #includes must be listed here - the Brick 3 merge added
+# similar.hpp/resolve.hpp to server.cpp without updating this COPY line, which would have
+# failed the next Docker build with "No such file or directory" on those two #includes
+# (caught before it ever shipped, while wiring in classify.hpp - see git blame timestamps:
+# similar.hpp/resolve.hpp landed the morning after this line was last touched).
+COPY json.hpp substrate.hpp linkpred.hpp suggest.hpp similar.hpp resolve.hpp classify.hpp ./
 COPY build_substrate.cpp server.cpp ./
 # Statically link libstdc++/libgcc so the runtime image needs NO apt-get (the previous
 # `apt-get install libstdc++6` step could stall for many minutes on a slow Debian mirror -
@@ -15,6 +20,7 @@ RUN g++ -std=c++17 -O2 -o build_substrate build_substrate.cpp \
  && g++ -std=c++17 -O2 -pthread -static-libgcc -static-libstdc++ -o server server.cpp
 COPY sample-data ./sample-data
 COPY real-data ./real-data
+COPY taxonomy-data ./taxonomy-data
 # Prefer the REAL harvest data if both files are present in real-data/; otherwise fall back
 # to the SYNTHETIC sample. The dataset choice also decides the runtime honesty flag, written
 # to dataset.env so the server reports synthetic:false only when it is actually serving real
@@ -38,6 +44,7 @@ WORKDIR /app
 COPY --from=build /src/server /app/server
 COPY --from=build /src/substrate.bin /app/substrate.bin
 COPY --from=build /src/dataset.env /app/dataset.env
+COPY --from=build /src/taxonomy-data /app/taxonomy-data
 # Railway injects PORT at runtime; the server honours it. The SYNTHETIC / DATASET_LABEL flags
 # come from the build-time dataset.env (sourced here) so they always match the baked data.
 EXPOSE 8080

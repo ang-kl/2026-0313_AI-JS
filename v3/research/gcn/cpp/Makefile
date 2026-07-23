@@ -7,7 +7,7 @@
 CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra
 HEADERS   = json.hpp substrate.hpp linkpred.hpp
-SRV_HEADERS = $(HEADERS) suggest.hpp similar.hpp resolve.hpp
+SRV_HEADERS = $(HEADERS) suggest.hpp similar.hpp resolve.hpp classify.hpp
 
 all: build_substrate linkpred gcn server
 
@@ -23,12 +23,16 @@ gcn: gcn.cpp gcn.hpp
 server: server.cpp $(SRV_HEADERS)
 	$(CXX) $(CXXFLAGS) -pthread -o $@ server.cpp
 
-test: build_substrate linkpred gcn
+classify_selftest: classify_selftest.cpp classify.hpp json.hpp
+	$(CXX) $(CXXFLAGS) -o $@ classify_selftest.cpp
+
+test: build_substrate linkpred gcn classify_selftest
 	./build_substrate --self-test
 	./linkpred --self-test
 	./gcn --self-test
+	./classify_selftest --index taxonomy-data/ssic2020-index.json
 
 clean:
-	rm -f build_substrate linkpred gcn server substrate.bin substrate_meta.json
+	rm -f build_substrate linkpred gcn server classify_selftest substrate.bin substrate_meta.json
 
 .PHONY: all test clean

@@ -14,6 +14,7 @@ that actually benefit from it.
 | `gcn_numpy.py` | `gcn.cpp` + `gcn.hpp` | ✅ | 2-layer Kipf & Welling GCN; dense matmul, the biggest raw win. |
 | `harvest_esco.py`, `harvest_mcf.py` | — | ❌ (stays Python) | Pure network + JSON I/O. Network-bound, not compute-bound — C++ buys nothing. |
 | `gcn_torch.py` | — | ❌ (reference) | The torch reference; the numpy/C++ port is the runnable one. |
+| `../../api/ssic.js`'s `classifyText()` | `classify.hpp` | ✅ | Deterministic SSIC 2020 activity-text classifier — token-overlap scoring over 5.4k terms per request. `ssic.js` keeps ACRA lookup/Postgres (I/O); only the compute loop moved. |
 
 The pipeline is unchanged: **harvest (Python) → build (C++ or Python) → linkpred / gcn (C++
 or Python)**. The C++ build reads the same `../data/*.jsonl` the Python harvest writes.
@@ -101,8 +102,10 @@ POSIX sockets + `std::thread` only — no HTTP framework. Endpoints:
 
 | Method | Path | Body | Returns |
 | --- | --- | --- | --- |
-| GET | `/health` | — | `{status, dataset, synthetic, skills, occupations}` |
+| GET | `/health` | — | `{status, dataset, synthetic, skills, occupations, ssicTerms}` |
 | POST | `/suggest` | `{"skills":["python","sql"],"top":10}` | ranked adjacent skills + provenance |
+| POST | `/similar-roles` | `{"skills":[...],"top":8}` | ranked adjacent occupations + shared skills (Brick 3) |
+| POST | `/classify-ssic` | `{"text":"...","limit":5}` or `{"texts":[...],"limit":5}` | ranked SSIC codes — see below |
 
 `/suggest` response shape:
 
@@ -139,6 +142,28 @@ make server
 PORT=8099 ./server --bin substrate.bin
 curl -s localhost:8099/health
 curl -s -X POST localhost:8099/suggest -d '{"skills":["python","sql"],"top":6}'
+```
+
+### SSIC classifier (`classify.hpp`)
+
+A direct port of `v3/api/ssic.js`'s `classifyText()` — deterministic token-overlap scoring
+of free business-activity text against the compiled SSIC 2020 index (`taxonomy-data/`,
+5,426 terms across 999 codes). `ssic.js` still owns everything I/O-bound (ACRA entity
+lookup, Postgres seeding, the live data.gov.sg path); this covers only the in-memory scoring
+loop the JS comment itself already called out as the compute-bound part.
+
+**Verified byte-for-byte, not hand-translated.** Before this was wired into `server.cpp`, a
+Node harness ran the real, unmodified `ssic.js` handler on a fixed query set (plain text,
+an HTML fragment, parens, `&amp;`, hyphen/slash punctuation, an empty string, and a
+below-floor gibberish string) and the C++ self-test (`classify_selftest.cpp`) ran the same
+set against the same `ssic2020-index.json` — every code, score, rank, and edge case matched
+exactly. `ssic.js` tries the Railway service first (short timeout) and falls back to its own
+identical local computation on any failure, so the service is a pure speed/offload win, never
+a correctness dependency.
+
+```sh
+make classify_selftest
+./classify_selftest --index taxonomy-data/ssic2020-index.json
 ```
 
 ### Data honesty
