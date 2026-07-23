@@ -16,10 +16,14 @@
 //   POST /classify-ssic    -> body {"text":"...","limit":5} or {"texts":["...",...],"limit":5}
 //                             -> C++ port of v3/api/ssic.js's classifyText() - deterministic
 //                                SSIC 2020 activity-text classification, no LLM. See classify.hpp.
+//   POST /classify-ssoc    -> body {"jobs":[{"id","title","categories":[],"skills":[],"description"}]}
+//                             -> C++ port of v3/api/ssoc.js's classifySsocJobs() - deterministic
+//                                SSOC 2024 job-title classification, no LLM. See classify_ssoc.hpp.
 #include "suggest.hpp"
 #include "similar.hpp"
 #include "resolve.hpp"
 #include "classify.hpp"
+#include "classify_ssoc.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -45,6 +49,7 @@ static std::unordered_map<std::string, int64_t> NAME2ID;
 static std::string DATASET = "none";
 static bool SYNTHETIC = true;
 static classify::Index SSIC;
+static ssoc::Index SSOC;
 
 static std::string jesc(const std::string& s) {
   std::string o; o.reserve(s.size() + 8);
@@ -69,7 +74,8 @@ static std::string healthJson() {
     << (SYNTHETIC ? "true" : "false")
     << ",\"skills\":" << G.skill_labels.size()
     << ",\"occupations\":" << G.occ_labels.size()
-    << ",\"ssicTerms\":" << SSIC.terms.size() << "}";
+    << ",\"ssicTerms\":" << SSIC.terms.size()
+    << ",\"ssocOccupations\":" << SSOC.occupationIdx.size() << "}";
   return o.str();
 }
 
@@ -245,6 +251,99 @@ static std::string handleClassifySsic(const std::string& body) {
   return o.str();
 }
 
+static void writeShortNode(std::ostringstream& o, const ssoc::ShortNode& n) {
+  if (!n.present) { o << "null"; return; }
+  o << "{\"code\":\"" << jesc(n.code) << "\",\"title\":\"" << jesc(n.title)
+    << "\",\"level\":" << n.level << ",\"kind\":\"" << jesc(n.kind)
+    << "\",\"parent_code\":\"" << jesc(n.parent_code) << "\"}";
+}
+
+static void writeStrArray(std::ostringstream& o, const std::vector<std::string>& v) {
+  o << "[";
+  for (size_t i = 0; i < v.size(); ++i) { if (i) o << ","; o << "\"" << jesc(v[i]) << "\""; }
+  o << "]";
+}
+
+// Serialize one ssoc::ClassifyResult in the same shape as ssoc.js's classifySsocJob().
+static void writeSsocResult(std::ostringstream& o, const ssoc::ClassifyResult& r) {
+  o << "{\"id\":\"" << jesc(r.id) << "\",\"title\":\"" << jesc(r.title)
+    << "\",\"status\":\"" << jesc(r.status) << "\",\"score\":" << r.score
+    << ",\"confidence\":\"" << jesc(r.confidence) << "\"";
+  if (!r.reason.empty()) o << ",\"reason\":\"" << jesc(r.reason) << "\"";
+  if (r.status == "classified" && r.hasNode && r.node) {
+    const auto& n = *r.node;
+    o << ",\"source\":\"" << jesc(r.source) << "\",\"node\":{\"version\":\"" << jesc(SSOC.version)
+      << "\",\"code\":\"" << jesc(n.code) << "\",\"level\":" << n.level << ",\"kind\":\"" << jesc(n.kind)
+      << "\",\"title\":\"" << jesc(n.title) << "\",\"parent_code\":\"" << jesc(n.parent_code)
+      << "\",\"path\":"; writeStrArray(o, n.path);
+    o << ",\"definition\":\"" << jesc(n.definition) << "\",\"tasks\":"; writeStrArray(o, n.tasks);
+    o << ",\"examples\":"; writeStrArray(o, n.examples);
+    o << ",\"exclusions\":"; writeStrArray(o, n.exclusions);
+    o << ",\"change_type\":\"" << jesc(n.change_type) << "\",\"source_kind\":\"" << jesc(n.source_kind) << "\"}";
+    o << ",\"hierarchy\":{\"major_group\":"; writeShortNode(o, r.hierarchy.major_group);
+    o << ",\"sub_major_group\":"; writeShortNode(o, r.hierarchy.sub_major_group);
+    o << ",\"minor_group\":"; writeShortNode(o, r.hierarchy.minor_group);
+    o << ",\"unit_group\":"; writeShortNode(o, r.hierarchy.unit_group);
+    o << ",\"occupation\":"; writeShortNode(o, r.hierarchy.occupation);
+    o << ",\"path\":[";
+    for (size_t i = 0; i < r.hierarchy.path.size(); ++i) { if (i) o << ","; writeShortNode(o, r.hierarchy.path[i]); }
+    o << "]}";
+    o << ",\"family\":"; writeShortNode(o, r.family);
+    o << ",\"reasons\":"; writeStrArray(o, r.reasons);
+  }
+  o << ",\"candidates\":[";
+  for (size_t i = 0; i < r.candidates.size(); ++i) {
+    const auto& c = r.candidates[i];
+    if (i) o << ",";
+    o << "{\"score\":" << c.score << ",\"confidence\":\"" << jesc(c.confidence) << "\",\"node\":";
+    writeShortNode(o, c.node);
+    o << ",\"reasons\":"; writeStrArray(o, c.reasons);
+    o << "}";
+  }
+  o << "]}";
+}
+
+// Build the /classify-ssoc response: body {"jobs":[{"id","title","categories":[],"skills":[],
+// "description"}]} -> ssoc.js's classifyTitles envelope. Deterministic port of
+// classifySsocJobs() - see classify_ssoc.hpp for the parity note.
+static std::string handleClassifySsoc(const std::string& body) {
+  std::vector<ssoc::Job> jobs;
+  try {
+    gjson::Value v = gjson::parse(body);
+    const gjson::Array* jarr = v.getArr("jobs");
+    if (jarr) {
+      for (const auto& jv : *jarr) {
+        ssoc::Job job;
+        job.id = jv.getStr("id");
+        if (job.id.empty()) job.id = jv.getStr("uuid");
+        job.title = jv.getStr("title");
+        job.description = jv.getStr("description");
+        if (job.description.empty()) job.description = jv.getStr("responsibilitiesText");
+        if (const gjson::Array* cats = jv.getArr("categories"))
+          for (const auto& c : *cats) if (c.type == gjson::Type::String) job.categories.push_back(c.str);
+        if (const gjson::Array* sk = jv.getArr("skills"))
+          for (const auto& s : *sk) if (s.type == gjson::Type::String) job.skills.push_back(s.str);
+        jobs.push_back(std::move(job));
+      }
+    }
+  } catch (...) {
+    return "{\"ok\":false,\"error\":\"invalid JSON body\"}";
+  }
+
+  if (jobs.empty()) return "{\"ok\":true,\"db\":false,\"classifications\":[]}";
+
+  auto results = ssoc::classifySsocJobs(jobs, SSOC);
+  size_t matched = 0;
+  for (auto& r : results) if (r.status == "classified") matched++;
+
+  std::ostringstream o;
+  o << "{\"ok\":true,\"db\":false,\"source\":\"compiled_ssoc2024\",\"matched\":" << matched
+    << ",\"withheld\":" << (results.size() - matched) << ",\"classifications\":[";
+  for (size_t i = 0; i < results.size(); ++i) { if (i) o << ","; writeSsocResult(o, results[i]); }
+  o << "]}";
+  return o.str();
+}
+
 static void writeResponse(int fd, int code, const char* status, const std::string& body,
                           const char* ctype = "application/json") {
   std::ostringstream o;
@@ -307,6 +406,7 @@ static void handleConn(int fd) {
   if (path == "/suggest" && method == "POST") { writeResponse(fd, 200, "OK", handleSuggest(body)); close(fd); return; }
   if (path == "/similar-roles" && method == "POST") { writeResponse(fd, 200, "OK", handleSimilar(body)); close(fd); return; }
   if (path == "/classify-ssic" && method == "POST") { writeResponse(fd, 200, "OK", handleClassifySsic(body)); close(fd); return; }
+  if (path == "/classify-ssoc" && method == "POST") { writeResponse(fd, 200, "OK", handleClassifySsoc(body)); close(fd); return; }
   writeResponse(fd, 404, "Not Found", "{\"error\":\"not found\"}");
   close(fd);
 }
@@ -314,10 +414,14 @@ static void handleConn(int fd) {
 int main(int argc, char** argv) {
   std::string binPath = "substrate.bin";
   std::string ssicPath = "taxonomy-data/ssic2020-index.json";
+  std::string ssocHierarchyPath = "taxonomy-data/ssoc2024-hierarchy.json";
+  std::string ssocChangesPath = "taxonomy-data/ssoc2024-type-of-change.json";
   for (int i = 1; i < argc; ++i) {
     std::string a = argv[i];
     if (a == "--bin" && i + 1 < argc) binPath = argv[++i];
     else if (a == "--ssic" && i + 1 < argc) ssicPath = argv[++i];
+    else if (a == "--ssoc-hierarchy" && i + 1 < argc) ssocHierarchyPath = argv[++i];
+    else if (a == "--ssoc-changes" && i + 1 < argc) ssocChangesPath = argv[++i];
   }
   if (const char* d = std::getenv("DATASET_LABEL")) DATASET = d;
   if (const char* s = std::getenv("SYNTHETIC")) SYNTHETIC = !(std::string(s) == "0" || std::string(s) == "false");
@@ -339,6 +443,13 @@ int main(int argc, char** argv) {
               << " terms, " << SSIC.codeCount << " codes (version=" << SSIC.version << ")\n";
   } else {
     std::cerr << "[server] WARNING: no " << ssicPath << " loaded; /classify-ssic will 404-shape empty results.\n";
+  }
+
+  if (ssoc::loadIndex(SSOC, ssocHierarchyPath, ssocChangesPath)) {
+    std::cerr << "[server] loaded " << ssocHierarchyPath << ": " << SSOC.nodes.size()
+              << " nodes, " << SSOC.occupationIdx.size() << " occupations (version=" << SSOC.version << ")\n";
+  } else {
+    std::cerr << "[server] WARNING: no " << ssocHierarchyPath << " loaded; /classify-ssoc will 404-shape empty results.\n";
   }
 
   int port = 8080;
