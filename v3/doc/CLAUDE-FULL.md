@@ -1,4 +1,10 @@
-# CLAUDE.md
+# CLAUDE.md (RETIRED - duplicate of root `/CLAUDE-FULL.md`; see root `/CLAUDE.md`)
+
+> **Status (23-07 '26): retired.** Identical to the root-level `CLAUDE-FULL.md`; the root
+> `CLAUDE.md` is now the auto-loaded file and supersedes this file's serial-number,
+> paragraph-tagging, and time-fetch sections (§§3-5 below). This file's folder taxonomy was
+> never bootstrapped in this repo. Its §6.3 decision rules (R001-R010) ARE still in force -
+> carried forward verbatim in the new `CLAUDE.md` §5. Kept here for historical record only.
 
 > **Purpose:** Master orchestrator file for Claude Code. Defines documentation upkeep, version control, file naming, serial number protocol, time fetch protocol, and decision rules for any project that adopts this template.
 >
