@@ -75,7 +75,15 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
         if (!el) return null;
         const r = el.getBoundingClientRect();
         if (!r.width && !r.height) return null;
-        const inViewport = r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+        // The line/circle endpoint drawn below is the element's MIDPOINT (r.top +
+        // r.height/2), not its full box - so visibility must be judged on that same
+        // midpoint. A bounding-box-overlap test (old code) passes for an element that
+        // is 95% scrolled off-screen with just a sliver showing, letting the endpoint
+        // land far outside the viewport while the line still draws - a real mis-point,
+        // reproduced live via DevTools (comment card scrolled to midY=-71, connector
+        // still drawn as a full line instead of degrading to a stub). 24-07'26.
+        const midY = r.top + r.height / 2;
+        const inViewport = midY > 0 && midY < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
         if (!inViewport) return { offscreen: true, r };
         const inFloat = !desk.contains(el);
         if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
@@ -92,7 +100,10 @@ export default function Desk({ deskRef, linkData, onStubActivate, splitPct, setS
           if (!range) return null;
           const r = range.getBoundingClientRect();
           if (!r || (!r.width && !r.height)) return null;
-          const inViewport = r.bottom > 0 && r.top < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
+          // Same midpoint-based visibility test as rectOf() above - a phrase range
+          // mostly scrolled off-screen must not draw a line from its off-screen middle.
+          const midY = r.top + r.height / 2;
+          const inViewport = midY > 0 && midY < window.innerHeight && r.right > 0 && r.left < window.innerWidth;
           if (!inViewport) return { offscreen: true, r };
           const inFloat = host && !desk.contains(host);
           if (!inFloat && (r.bottom < deskRect.top || r.top > deskRect.bottom)) return { offscreen: true, r };
