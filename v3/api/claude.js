@@ -23,15 +23,14 @@ const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K in
 // unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
 const KV_CONFIG_KEY = "v3:admin:llm-config";
 const CHAIN_CACHE_TTL_MS = 30_000;
-// Directive (12-07 '26): route narration to OpenAI and GATE Anthropic for now - the
-// Anthropic account is out of credits (/api/claude was returning HTTP 400 "credit
-// balance too low", which hard-failed the Step 2 -> Step 3 analysis). OpenAI is the
-// default and only active provider until Anthropic billing is restored.
+// Directive (12-07 '26, reaffirmed 24-07 '26 - Human Lead: "Don't use Anthropic"):
+// route narration to OpenAI only. OpenAI is the default and only active provider;
+// Anthropic stays gated regardless of its own credit/billing state.
 const DEFAULT_CHAIN = ["openai"];
 // Temporarily gated providers: excluded at the availability layer below, so they are
-// NEVER tried regardless of the KV admin chain or a still-present API key. To re-enable
-// Anthropic once its credits are topped up, remove it from this set (and, if desired,
-// put it back at the front of DEFAULT_CHAIN or the KV chain).
+// NEVER tried regardless of the KV admin chain or a still-present API key. Anthropic
+// stays here per the Human Lead's standing directive - do not remove without an explicit
+// instruction to re-enable it.
 const GATED_PROVIDERS = new Set(["anthropic"]);
 // Keep all three valid for KV admin overrides - VALID_PROVIDERS governs what the KV
 // chain may CONTAIN; GATED_PROVIDERS governs what is actually reachable right now.
