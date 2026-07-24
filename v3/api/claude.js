@@ -23,16 +23,18 @@ const MAX_PROMPT_CHARS = 200000; // Assembled system + messages content; ~50K in
 // unconfigured, empty, or errors. NEVER blocks the request path: KV failure -> defaults.
 const KV_CONFIG_KEY = "v3:admin:llm-config";
 const CHAIN_CACHE_TTL_MS = 30_000;
-// Directive (12-07 '26): route narration to OpenAI and GATE Anthropic for now - the
-// Anthropic account is out of credits (/api/claude was returning HTTP 400 "credit
-// balance too low", which hard-failed the Step 2 -> Step 3 analysis). OpenAI is the
-// default and only active provider until Anthropic billing is restored.
-const DEFAULT_CHAIN = ["openai"];
+// Directive (24-07 '26 - Human Lead: "fallback to ANTHROPIC as second choice"):
+// OpenAI stays primary; Anthropic is back in the chain as the fallback so a repeat of
+// the 24-07'26 outage (OpenAI HTTP 429 insufficient_quota with nothing to fall back to,
+// confirmed via the Vercel log - every /api/claude call 503ing and breaking Step 2 ->
+// Step 3) degrades to Anthropic instead of hard-failing. Supersedes the 12-07'26 gate,
+// which existed for the opposite reason (Anthropic was the one out of credits then).
+const DEFAULT_CHAIN = ["openai", "anthropic"];
 // Temporarily gated providers: excluded at the availability layer below, so they are
-// NEVER tried regardless of the KV admin chain or a still-present API key. To re-enable
-// Anthropic once its credits are topped up, remove it from this set (and, if desired,
-// put it back at the front of DEFAULT_CHAIN or the KV chain).
-const GATED_PROVIDERS = new Set(["anthropic"]);
+// NEVER tried regardless of the KV admin chain or a still-present API key. Empty for
+// now - add a provider name here (e.g. "anthropic") if its account goes out of credits
+// again and needs to be pulled from the chain without a key change.
+const GATED_PROVIDERS = new Set([]);
 // Keep all three valid for KV admin overrides - VALID_PROVIDERS governs what the KV
 // chain may CONTAIN; GATED_PROVIDERS governs what is actually reachable right now.
 const VALID_PROVIDERS = new Set(["anthropic", "gemini", "openai"]);
