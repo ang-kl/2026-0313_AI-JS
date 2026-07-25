@@ -47,7 +47,7 @@ export const SPAN_STYLE = {
 export const SPAN_STYLE_WITHHELD = { bg: "#fff3cf", under: "#d4a72c", color: "#7a5712" };
 
 export const manuH2 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "1.0625rem", color: "#16202e", margin: "0 0 9px" };
-export const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.6, margin: "0 0 12px" };
+export const manuP = { fontSize: "0.9375rem", color: "#3a4456", lineHeight: 1.5, margin: "0 0 10px" };
 export const oiaKick = { fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5rem", fontWeight: 600, letterSpacing: ".12em", color: "#b3ab9c", marginBottom: 6 };
 export const critH3 = { fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#16202e", margin: "8px 0 5px" };
 
@@ -66,7 +66,7 @@ export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onE
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: ac, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: ac, background: `color-mix(in srgb, ${ac} 14%, white)`, border: `1px solid color-mix(in srgb, ${ac} 38%, white)`, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{who}</span>
         {onExpand && (
           <button type="button" onClick={onExpand} aria-label={"Open " + who + " card in the detail drawer"} title="Open in drawer"
@@ -89,7 +89,7 @@ export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onE
         </div>
         <div style={{ padding: "12px 13px" }}>
           <div style={oiaKick}>APPLICATION</div>
-          <p style={{ fontSize: "0.8125rem", color: "#16202e", fontWeight: 600, lineHeight: 1.5, margin: "0 0 8px" }}>{appl}</p>
+          <p style={{ fontSize: "0.8125rem", color: "#16202e", lineHeight: 1.5, margin: "0 0 8px" }}>{appl}</p>
           <Chip kind="derived">derived</Chip>
         </div>
       </div>
@@ -104,7 +104,7 @@ export function AdvisoryCard({ persona, children, onExpand }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#fff", background: "#9a6113", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
         {onExpand && (
           <button type="button" onClick={onExpand} aria-label={"Open " + persona + " card in the detail drawer"} title="Open in drawer"

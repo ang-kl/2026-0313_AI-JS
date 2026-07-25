@@ -19,7 +19,7 @@ export function renderWinOIA(ctx) {
                 <div key={s.id} data-oia-anchor={s.id} onClick={() => setActiveSpan(oiaOn ? null : s.id)}
                   style={{ background: "#fff", border: "1px solid " + (oiaOn ? "#1a56db" : "#e6e3db"), borderRadius: 12, overflow: "hidden", marginBottom: 8, cursor: "pointer", ...(oiaOn ? { outline: "2px solid #c7d6ff", outlineOffset: 2 } : {}) }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: "#fff", background: lc, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
+                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".05em", color: lc, background: `color-mix(in srgb, ${lc} 14%, white)`, border: `1px solid color-mix(in srgb, ${lc} 38%, white)`, borderRadius: 4, padding: "2px 7px" }}>{s.lens} LENS</span>
                     {b && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: b.ink, background: b.bg, border: "1px solid " + b.border, borderRadius: 5, padding: "1px 7px" }}>{b.label}</span>}
                     {linkMode && onLinkPick && (() => { const on = linkDraft && linkDraft.t === "oia" && linkDraft.id === s.id; return (
                       <button type="button" onClick={(e) => { e.stopPropagation(); onLinkPick({ t: "oia", id: s.id, quote: s.text }); }}
