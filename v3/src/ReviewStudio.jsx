@@ -1510,12 +1510,22 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         {tab === "gates" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>each requirement graded: verifiable {String.fromCharCode(0x00b7)} vague {String.fromCharCode(0x00b7)} unfalsifiable (QoI, deterministic)</span>}
         {tab === "critical" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>severity-first {String.fromCharCode(0x00b7)} {hiddenPanels.length ? hiddenPanels.length + " hidden panel" + (hiddenPanels.length === 1 ? "" : "s") + " (restore below)" : "panels dismissible"}</span>}
         {tab === "market" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>graph picker inside the pane (Layered {String.fromCharCode(0x00b7)} Knowledge {String.fromCharCode(0x00b7)} SSOC) {String.fromCharCode(0x00b7)} salary position + indicators below</span>}
-        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>CHIP KEY</span>
-          {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
-            <span key={k} title={k + " = " + gloss} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: "1px solid " + PROV[k].border, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
-          ))}
-        </span>
+        {/* PR 3 of the Step 3 simplification plan (24-07'26): this legend used to sit
+            permanently open, taking fixed toolbar space on every tab. Each chip already
+            carries a native title= tooltip with the same gloss, so the always-visible row
+            was mostly redundant with content it already had - a native <details> disclosure
+            keeps that content one tap away instead, with zero new state/handlers and
+            correct expanded/collapsed a11y semantics for free. */}
+        <details style={{ marginLeft: "auto", flexShrink: 0 }}>
+          <summary aria-label="Chip key legend" style={{ display: "inline-flex", alignItems: "center", minHeight: 44, minWidth: 44, padding: "0 8px", cursor: "pointer", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".1em", color: "#b3ab9c" }}>
+            CHIP KEY
+          </summary>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 6 }}>
+            {[["from posting", "verbatim ad text"], ["computed", "engine, deterministic"], ["derived", "rule-based inference"], ["AI estimate", "LLM advisory, not fact"], ["unverified", "no source confirmed"]].map(([k, gloss]) => (
+              <span key={k} title={k + " = " + gloss} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: PROV[k].ink, background: PROV[k].bg, border: "1px solid " + PROV[k].border, borderRadius: 4, padding: "1px 6px" }}>{k}</span>
+            ))}
+          </div>
+        </details>
       </div>
 
       {/* P1 locked-links manager: lists every user-drawn duty->card link with a delete,
