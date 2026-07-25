@@ -31,11 +31,19 @@ export const PROV = {
 };
 // O-I-A lens colours (S7) and reviewer persona colours (S5.5).
 export const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
+// Consolidated 24-07'26 (Human Lead: Step 3 "so confusing"): this dict, Critical.jsx's
+// hardcoded lens tags, and the AdvisoryCard personas used to be three separate,
+// overlapping vocabularies - "Evidence Auditor" and "Signal Auditor" were even two
+// different entries here for what was functionally the same voice. Collapsed to 5
+// canonical names, reused everywhere a "who is speaking" badge is needed.
 export const PERSONA = {
   "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
-  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#0e7490", "Evidence Auditor": "#64748b",
+  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#0e7490",
   "Signal Auditor": "#9a6113",
 };
+// CritCard's fallback speaker when no persona is given (deterministic lenses that don't
+// need a distinct voice) - single source so the dict and the default can't drift apart.
+export const DEFAULT_PERSONA = "Signal Auditor";
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
 export const SPAN_STYLE = {
   augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
@@ -61,7 +69,7 @@ export function WhyLine({ why, sec }) {
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
 export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onExpand }) {
   const ac = accent || "#9a6113";
-  const who = persona || "SIGNAL AUDITOR";
+  const who = persona || DEFAULT_PERSONA.toUpperCase();
   const oc = obsChip || "from posting";
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
@@ -100,11 +108,16 @@ export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onE
 // Advisory (LLM) card for the batched Critical Read pass - devil's advocate, teleology,
 // pro-worker, real-demand. Clearly tagged "AI estimate - advisory": it challenges, it never
 // authors a number or overrides the engine's read.
-export function AdvisoryCard({ persona, children, onExpand }) {
+// subLabel: an optional short sub-question shown next to the persona badge - lets
+// several cards share one persona identity (e.g. "SKEPTICAL READ") while still telling
+// their distinct angle apart ("counter-case" vs "competing hypotheses" vs "is the demand
+// real?"), instead of each needing its own separate persona name to be distinguishable.
+export function AdvisoryCard({ persona, subLabel, children, onExpand }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
+        {subLabel && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{subLabel}</span>}
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
         {onExpand && (
           <button type="button" onClick={onExpand} aria-label={"Open " + persona + " card in the detail drawer"} title="Open in drawer"

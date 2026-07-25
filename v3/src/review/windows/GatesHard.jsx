@@ -13,8 +13,8 @@ export function renderWinGatesHard(ctx) {
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 14px" }}>Can each claim be tested {String.fromCharCode(0x2014)} and what auto-rejects?</h2>
               {critical.hiringFilter.length > 0 && <>
                 <h3 style={critH3}>Hard gates</h3>
-                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." persona="HIRING FILTER" accent="#0e7490" obsChip={h.obsChip || "from posting"}
-                  onExpand={(e) => openSheet("Hard gates", "critcard", { tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", persona: "HIRING FILTER", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)} />)}
+                {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." accent="#0e7490" obsChip={h.obsChip || "from posting"}
+                  onExpand={(e) => openSheet("Hard gates", "critcard", { tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)} />)}
               </>}
               {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
             </div>
