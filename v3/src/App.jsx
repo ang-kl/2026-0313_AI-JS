@@ -1448,6 +1448,9 @@
 // frozen symbols + api/mcf.js untouched. G1 (v3.0.118 -> v3.0.119).
 import { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Toaster, toast as sonnerToast } from "sonner";
+import NumberFlow from "@number-flow/react";
 import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 import { loadState, saveState } from "./persist.js";
 import { KGGraph } from "./RoleGraph.jsx";
@@ -5357,6 +5360,20 @@ function EvidencePreview({ text, skills }) {
     </div>
   );
 }
+// Reusable small loading ring - single source for the many inline "please wait" spinners
+// scattered through modals/inline states (was duplicated ~16x with a raw inline
+// animation:"sp..." at each site). Centralising it under one class (.sp-spin) lets
+// prefers-reduced-motion actually disable it - a raw inline animation style cannot be
+// targeted by a CSS media-query override.
+function InlineSpinner({ size = 12, color = C.accent, trackColor = C.border, thickness, style }) {
+  const t = thickness || Math.max(1.5, size / 6);
+  return (
+    <span aria-hidden="true" className="sp-spin" style={{
+      width: size, height: size, display: "inline-block", flexShrink: 0, borderRadius: "50%",
+      border: `${t}px solid ${trackColor}`, borderTopColor: color, ...style,
+    }} />
+  );
+}
 function Spinner({ label, step, total, firstTime, skills, postingText, processMode, corpus }) {
   const list = Array.isArray(skills) ? skills : [];
   const determinate = !!(step && total);
@@ -5813,7 +5830,7 @@ function OccupationPicker({ occs, grouped, singleSector, query, persona, pickerF
           </div>
           {pickerFullLoading && (
             <div style={{ display:"flex", alignItems:"center", gap:10, padding: "10px 14px", marginBottom:10, background:"#eef2ff", border:"1px solid #93c5fd", borderRadius: 6 }}>
-              <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #93c5fd", borderTop:"2px solid #0f766e", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+              <InlineSpinner size={12} color="#0f766e" trackColor="#93c5fd" />
               <p style={{ margin:0, fontSize: "0.8125rem", fontWeight:500, color:"#1e40af", lineHeight:1.5 }}>
                 Loading more roles - please wait.
               </p>
@@ -6105,7 +6122,7 @@ function EngineHeadline({ result, title }) {
     <div style={box}>
       {head}
       <p style={{ margin:"0 0 8px" }} aria-label={`AI exposure index ${exp.index} out of 100, ${exp.band} band, ${exp.confidence} confidence`}>
-        <span style={{ fontSize: "1.875rem", fontWeight:800, color:C.accent }}>{exp.index}</span>
+        <span style={{ fontSize: "1.875rem", fontWeight:800, color:C.accent }}><NumberFlow value={exp.index} /></span>
         <span style={{ fontSize: "1rem", fontWeight:700, color:C.textSub }}>/100</span>
         <span style={{ fontSize: "0.75rem", fontWeight:700, color:C.textSub, marginLeft:10 }}><Term k="exposure band">{exp.band} exposure</Term> - <Term k="confidence">{exp.confidence} confidence</Term></span>
       </p>
@@ -8604,7 +8621,7 @@ function SkillExpertOverlay({ skillName, currentRole, onQueue, queueCount, onClo
         <div style={{ padding: "10px 16px 16px", overflowY:"auto", maxHeight:"60vh", WebkitOverflowScrolling:"touch" }}>
           {loading ? (
             <div style={{ display:"flex", alignItems:"center", gap:8, padding: "20px 0" }}>
-              <span style={{ width:14, height:14, border:`2px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite" }} />
+              <InlineSpinner size={14} />
               <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Finding roles where this skill defines the job...</p>
             </div>
           ) : experts.length === 0 ? (
@@ -8731,7 +8748,7 @@ function SkillGroupedView({ grouped, result, onSearch, skillInputResult = null, 
         </div>
         {skillInputResult && skillInputResult.status === "loading" && (
           <div style={{ display:"flex", alignItems:"center", gap:7, marginTop:8 }}>
-            <span style={{ width:10, height:10, border:`1.5px solid ${C.border}`, borderTop:`1.5px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite" }} />
+            <InlineSpinner size={10} thickness={1.5} />
             <p style={{ margin:0, fontSize: "0.75rem", color:C.muted }}>Interpreting your skill...</p>
           </div>
         )}
@@ -8932,7 +8949,7 @@ function SkillRow({ item, idx, onSearch, highlight, autoOpen, matchRef, onQueue,
               item.promptLoading
                 ? <div style={{ marginTop:8, padding: "10px 12px", background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius: 6 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <div style={{ width:12, height:12, borderRadius:"50%", border:"2px solid #bae6fd", borderTop:"2px solid #0369a1", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+                      <InlineSpinner size={12} color="#0369a1" trackColor="#bae6fd" />
                       <p style={{ margin:0, fontSize: "0.6875rem", color:"#0369a1", fontStyle:"italic" }}>
                         Generating an AI prompt for <strong style={{ fontStyle:"normal" }}>{item.skill}</strong> - {["A","E","I","O","U"].some(v => (item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted").startsWith(v)) ? "an" : "a"} <strong style={{ fontStyle:"normal" }}>{item.level === "HIGH" ? "Full Automation" : item.level === "MEDIUM" ? "AI-Augmented" : "AI-Assisted"}</strong> technical skill. "What to do Next" will include a 3-step guide on how to act on this skill. Please wait a moment - thank you.
                       </p>
@@ -9270,7 +9287,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         if (!respReadyAll) {
           return (
             <div style={{ background:"#fcfaff", border:`1px solid ${C.purpleBdr}`, borderRadius: 10, padding: "10px 14px", marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ width:11, height:11, border:`2px solid ${C.purpleBdr}`, borderTop:`2px solid ${C.purple}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+              <InlineSpinner size={11} color={C.purple} trackColor={C.purpleBdr} />
               <p style={{ margin:0, fontSize: "0.75rem", color:C.purple }}>Building the Responsibilities comparison from live job postings…</p>
             </div>
           );
@@ -9628,7 +9645,7 @@ function ComparisonPanel({ comparisons, onRemove, onAnalyse, onAddThird, current
         </div>
         {summaryLoading && (
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ width:11, height:11, border:"2px solid #a5f3fc", borderTop:"2px solid #0e7490", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+            <InlineSpinner size={11} color="#0e7490" trackColor="#a5f3fc" />
             <p style={{ margin:0, fontSize: "0.75rem", color:"#0e7490" }}>Putting the comparison together...</p>
           </div>
         )}
@@ -10727,7 +10744,7 @@ function RoleGraphStepCard({ step }) {
                 {done
                   ? <span style={{ color: "#0f766e", fontSize: "0.8125rem", fontWeight: 800 }}>✓</span>
                   : active
-                    ? <span style={{ width: 12, height: 12, border: "2px solid #bae6fd", borderTop: "2px solid #1a56db", borderRadius: "50%", display: "inline-block", animation: "sp 0.7s linear infinite" }} />
+                    ? <InlineSpinner size={12} color="#1a56db" trackColor="#bae6fd" />
                     : <span style={{ color: C.muted, fontSize: "0.6875rem", fontWeight: 700 }}>{n}.</span>}
               </span>
               <span style={{ fontSize: "0.75rem", lineHeight: 1.55, color: active ? "#0c4a6e" : done ? C.text : C.muted, fontWeight: active ? 700 : 400 }}>{s.full}</span>
@@ -11001,7 +11018,7 @@ function RoleGraphPanel({ result, title, posting }) {
         if (!sg) {
           return (
             <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "24px 20px", textAlign: "center" }}>
-              <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+              <InlineSpinner size={24} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 10px" }} />
               <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Resolving this role in SSOC 2024 (SingStat)…</p>
             </div>
           );
@@ -11091,7 +11108,7 @@ function RoleGraphPanel({ result, title, posting }) {
         <RoleGraphStepCard step={(result && result.roleGraphProgress) || 1} />
       ) : (
         <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "28px 20px", textAlign: "center" }}>
-          <div style={{ width: 28, height: 28, margin: "0 auto 10px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <InlineSpinner size={28} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 10px" }} />
           <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Decomposing the role, mapping to ESCO, reverse-mapping to ISCO-08…</p>
         </div>
       ))}
@@ -12064,6 +12081,13 @@ function step2Salary(lo, hi) {
   return "Salary on application";
 }
 function step2SalK(mid) { return mid != null ? "S$" + (Math.round(mid / 100) / 10) + "k" : ""; }
+// Same "S$xx.xk" figure as step2SalK(), but as an animated NumberFlow read-out (transitions
+// on change instead of snapping) for the two spots where it re-renders live: the sort-order
+// toggle and card refresh in Step 2's evidence picker.
+function Step2SalaryFlow({ mid }) {
+  if (mid == null) return null;
+  return <NumberFlow value={Math.round(mid / 100) / 10} format={{ maximumFractionDigits: 1 }} prefix="S$" suffix="k" />;
+}
 function step2IsFresh(j) { return j && j.minimumYearsExperience != null && Number(j.minimumYearsExperience) < 4; }
 
 // EMP3: normalised employer key for the client-side "same employer" count -
@@ -12473,6 +12497,12 @@ function OkfModal({ doc, onClose }) {
 function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
+  // Card grids animate add/remove/reorder when facets or sort change, instead of
+  // snapping - one animate ref per source panel (MyCareersFuture / careers.gov.sg),
+  // both always mounted so the hook order stays fixed. Respects prefers-reduced-motion
+  // automatically (auto-animate reads the media query itself).
+  const [mcfGridRef] = useAutoAnimate({ duration: 200 });
+  const [csgGridRef] = useAutoAnimate({ duration: 200 });
   // Real-time progress for the Step 1 -> Step 2 banner. Each fetch updates its
   // own status independently so the banner reflects what actually happened (and
   // the user sees fast paths first). Non-blocking - cards render below as soon
@@ -12781,7 +12811,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                     <button key={o.id} type="button" onClick={(e) => { e.stopPropagation(); setFolioId(null); setFolioTab(null); setFullAd(o); }}
                       style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, padding: "5px 7px", background: "transparent", border: "1px solid transparent", borderRadius: 6, cursor: "pointer", textAlign: "left" }}>
                       <span style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#1a56db", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.job.title}</span>
-                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", flex: "none" }}>{step2SalK(o.salaryMid) || o.age || ""}</span>
+                      <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", flex: "none" }}>{o.salaryMid != null ? <Step2SalaryFlow mid={o.salaryMid} /> : (o.age || "")}</span>
                     </button>
                   ))}
                   {others.length > 6 && <p style={{ margin: "3px 0 0", fontSize: "0.6875rem", color: "#6b6357" }}>+{others.length - 6} more - use the employer filter above.</p>}
@@ -12832,7 +12862,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const TL = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
   const TI = String.fromCharCode(0x2502) + "   ";
 
-  const sourcePanel = (name, srcCards, tone) => (
+  const sourcePanel = (name, srcCards, tone, gridRef) => (
     <section style={{ flex: "1 1 380px", minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
@@ -12841,7 +12871,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       </div>
       {srcCards.length === 0
         ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div className="step2-cards">{srcCards.map(renderCard)}</div>}
+        : <div className="step2-cards" ref={gridRef}>{srcCards.map(renderCard)}</div>}
     </section>
   );
 
@@ -12854,7 +12884,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.3rem", color: "#16202e", margin: "1px 0 0", lineHeight: 1.2 }}>Posting evidence for {Q1}{query}{Q2}</h2>
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{sorted.length} of {baseJobs.length}</span>
+          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}><NumberFlow value={sorted.length} /> of <NumberFlow value={baseJobs.length} /></span>
           {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} title="Open the OKF concept index for this result" style={{ cursor: "pointer", minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
@@ -13048,7 +13078,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                             <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: s ? "#142a8e" : "#3a4456", fontWeight: s ? 600 : 500, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.short}</span>
                             <span style={{ display: "block", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.company || ""}</span>
                           </span>
-                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", fontWeight: 600, flex: "none", marginTop: 2 }}>{step2SalK(t.salaryMid)}</span>
+                          <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#52607a", fontWeight: 600, flex: "none", marginTop: 2 }}><Step2SalaryFlow mid={t.salaryMid} /></span>
                         </button>
                       ); })}
                     </div>
@@ -13083,8 +13113,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
             </p>
             <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-            {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" })}
-            {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" })}
+            {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" }, mcfGridRef)}
+            {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" }, csgGridRef)}
             </div>
           </div>
         </div>
@@ -13399,7 +13429,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
 
       {state.loading && (
         <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
-          <div style={{ width: 30, height: 30, margin: "0 auto 12px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+          <InlineSpinner size={30} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 12px" }} />
           <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture...</p>
         </div>
       )}
@@ -14865,7 +14895,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   if (state.loading) {
     return (
       <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
-        <div style={{ width: 30, height: 30, margin: "0 auto 12px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+        <InlineSpinner size={30} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 12px" }} />
         <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture for "{companyQuery}"...</p>
       </div>
     );
@@ -14999,7 +15029,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             {/* CO2: agents panel loading state */}
             {activeMatch && agentsView === "loading" && (
               <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
-                <div style={{ width: 24, height: 24, margin: "0 auto 10px", border: "3px solid #7dd3fc", borderTop: "3px solid #0369a1", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+                <InlineSpinner size={24} thickness={3} color="#0369a1" trackColor="#7dd3fc" style={{ display: "block", margin: "0 auto 10px" }} />
                 <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Reading duties and clustering... (up to 5 detail fetches within budget)</p>
               </div>
             )}
@@ -15186,7 +15216,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
         {csgState.loading ? (
           <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "20px 16px", textAlign: "center" }}>
-            <div style={{ width: 22, height: 22, margin: "0 auto 8px", border: "3px solid #bae6fd", borderTop: "3px solid #1a56db", borderRadius: "50%", animation: "sp 0.7s linear infinite" }} />
+            <InlineSpinner size={22} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 8px" }} />
             <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Checking careers.gov.sg...</p>
           </div>
         ) : csgState.fallback || csgState.jobs.length === 0 ? (
@@ -15387,7 +15417,6 @@ export default function App({ initialSearchMode } = {}) {
   const [jumpToSkill, setJumpToSkill] = useState(null); // v1.5.5: skill name to jump to and pre-expand
   const [comparisons, setComparisons] = useState([]); // [{title, result}] max 3
   const [compareCue, setCompareCue] = useState(false);
-  const [toast, setToast]           = useState(null);   // { msg, action? }
   const [showBackTop, setShowBackTop] = useState(false);
   useEffect(() => {
     const onScroll = () => setShowBackTop(window.scrollY > 400);
@@ -15415,10 +15444,7 @@ export default function App({ initialSearchMode } = {}) {
     document.documentElement.style.setProperty("--ui-scale", String(clamped));
     try { localStorage.setItem("uiTextScale", String(clamped)); } catch (_) {}
   }
-  const showToast = (msg, action) => {
-    setToast({ msg, action });
-    setTimeout(() => setToast(null), 5000);
-  };
+  const showToast = (msg) => { sonnerToast(msg); };
   // L4 audit note: fromPath was removed. It was set to "progression" or "crossover"
   // in handleAnalyseRole but its value was never read in any render condition, prop,
   // or branch. Confirmed dead state - no render path branched on it.
@@ -16623,7 +16649,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     // PL4: compare lives under the Position pillar; navigate there.
     setActivePillar("position");
     setTimeout(() => tabBarRef.current?.scrollIntoView({ behavior:"smooth", block:"start" }), 150);
-    showToast("Comparison ready", null);
+    showToast("Comparison ready");
   }, []);
 
   const buildTabs = (r) => {
@@ -16923,7 +16949,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             </div>
           ) : isRunningComparison ? (
             <div style={{ background:"#f0f9ff", border:"1px solid #bae6fd", borderRadius:10, padding: "32px 20px", textAlign:"center" }}>
-              <div style={{ width:36, height:36, margin:"0 auto 14px", border:"3px solid #bae6fd", borderTop:"3px solid #1a56db", borderRadius:"50%", animation:"sp 0.7s linear infinite" }} />
+              <InlineSpinner size={36} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 14px" }} />
               <p style={{ margin:"0 0 6px", fontSize: "0.8125rem", fontWeight:700, color:"#0369a1" }}>Building comparison</p>
               <p style={{ margin:"0 0 4px", fontSize: "0.75rem", color:"#0369a1", lineHeight:1.5, minHeight:20 }}>{compareStatus}</p>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, margin:"0 0 16px" }}>
@@ -16935,7 +16961,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginBottom:12 }}>
                 {comparisons.map((c, i) => (
                   <span key={i} style={{ fontSize: "0.6875rem", color: c.result ? "#1e40af" : "#0369a1", background: c.result ? "#eef2ff" : "#e8f0fe", border:`1px solid ${c.result ? "#c7d2fe" : "#bae6fd"}`, borderRadius: 10, padding: "4px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
-                    {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>&#x2713;</span> : <span style={{ width:9, height:9, border:"1.5px solid #bae6fd", borderTop:"1.5px solid #0369a1", borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />}
+                    {c.result ? <span style={{ color:"#1e40af", fontWeight:700 }}>&#x2713;</span> : <InlineSpinner size={9} thickness={1.5} color="#0369a1" trackColor="#bae6fd" />}
                     <span style={{ fontWeight: c.result ? 600 : 400 }}>{c.title}</span>
                   </span>
                 ))}
@@ -17117,6 +17143,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         .main-content .tab-label { font-size: 0.9375rem !important; }
       }
       @keyframes sp { to { transform: rotate(360deg); } }
+      .sp-spin { animation: sp 0.7s linear infinite; }
       @keyframes fadeOut { 0% { opacity:1; } 70% { opacity:1; } 100% { opacity:0; } }
       /* Step 2 INDEX rail -> card locator blink (Human Lead 11-07 '26): the border
          strobes blue<->white so the eye lands on the matching card after the
@@ -17200,6 +17227,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         .lux-clip::after { transition: none !important; }
         .lux-uline::after, .tab-label::after, .lux-arrow, .lux-cta::before { transition: none !important; }
         .lux-cta:active { transform: none !important; }
+        .sp-spin { animation: none !important; }
       }
 
       /* ── NEO: neo-skeuomorphic (soft-UI) skin ─────────────────────────────
@@ -17320,18 +17348,13 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         </button>
       )}
 
-      {toast && (
-        <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:999, background:"#1a56db", color:"#fff", borderRadius:10, padding: "12px 20px", fontSize: "0.8125rem", fontWeight:600, boxShadow:"0 4px 20px rgba(0,0,0,0.18)", display:"flex", alignItems:"center", gap:12, maxWidth:"90vw", animation:"slideUp 0.3s ease" }}>
-          <span>{toast.msg}</span>
-          {toast.action === "compare" && (
-            <button onClick={() => { setActivePillar("position"); setToast(null); track("pillar_viewed", { pillar:"position" }); }}
-              style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.4)", borderRadius:6, color:"#fff", padding: "4px 12px", fontSize: "0.75rem", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
-              View comparison →
-            </button>
-          )}
-          <button onClick={() => setToast(null)} aria-label="Dismiss" style={{ ...POP.closeBtn, color:"rgba(255,255,255,0.85)" }}>×</button>
-        </div>
-      )}
+      {/* Toast stack (was a homegrown single-slot div with no exit animation and no
+          stacking) - Sonner gives proper enter/exit transitions and queues multiple
+          toasts instead of only ever showing one. Styled to match the app's existing
+          blue toast identity (#1a56db) rather than Sonner's default look. */}
+      <Toaster position="bottom-center" toastOptions={{
+        style: { background: "#1a56db", color: "#fff", border: "none", borderRadius: 10, fontSize: "0.8125rem", fontWeight: 600, boxShadow: "0 4px 20px rgba(0,0,0,0.18)" },
+      }} />
       <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
 
         {(step === "idle" || step === "error") && (
@@ -17509,7 +17532,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
               </p>
               {showExpect ? (
                 <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:8, padding: "8px 10px", background:C.accentSoft, border:`1px solid #c3d3f5`, borderRadius: 6 }}>
-                  <span style={{ width:12, height:12, border:"2px solid #c3d3f5", borderTop:`2px solid ${C.accent}`, borderRadius:"50%", display:"inline-block", animation:"sp 0.7s linear infinite", flexShrink:0 }} />
+                  <InlineSpinner size={12} trackColor="#c3d3f5" />
                   <p style={{ margin:0, fontSize: "0.75rem", color:C.accent, lineHeight:1.5, fontWeight:600 }}>
                     Looking up your role - analysis on the way
                   </p>
