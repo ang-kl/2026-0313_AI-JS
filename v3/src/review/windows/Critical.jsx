@@ -1,33 +1,39 @@
 // v3/src/review/windows/Critical.jsx - PR 1 (Part B.4): window body moved VERBATIM from
 // ReviewStudio.jsx; ctx carries the component-state closure (built once per render
 // in ReviewStudio, so renderWindow and all behaviour stay identical).
+// PR 2 of the Step 3 simplification plan (24-07'26): progressive disclosure. Word
+// noodles / forensic reversal / falsification now dismiss+restore like blindSpots/
+// contradictions already did; the Candidate Advocate card moves to its own
+// visible-by-default "Prep for the room" section (highest interview value, was buried
+// under "the other side of the table"); the five Skeptical Read cards + Recruiter +
+// Hiring Manager merge into one "Deep read" section, collapsed by default
+// (ReviewStudio.jsx seeds hiddenPanels with ["deepRead"] for first-time views).
 import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, AdvisoryCard, Chip, PreInterviewBrief, AITracePanel, manuH2, manuP, oiaKick, critH3 } from "../shared.jsx";
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinCritical(ctx) {
   const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus } = ctx;
+  // Shared "hide this section" control - 44px touch target (the two pre-existing
+  // instances of this button were 20px, below the house a11y minimum; fixed here
+  // while extending the same pattern to 5 more sections rather than propagating the gap).
+  const hideBtn = (key) => (
+    <button type="button" onClick={() => setPanelHidden(key, true)} aria-label={"Hide panel: " + (G2_LABELS[key] || key)}
+      style={{ alignSelf: "flex-end", minHeight: 44, minWidth: 44, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 10px" }}>hide {String.fromCharCode(0x2715)}</button>
+  );
+  const hasDeepRead = !!(cr && (
+    (cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length))) ||
+    cr.realDemand || (cr.teleology && (cr.teleology.whyExists || cr.teleology.problem)) ||
+    (cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning)) ||
+    (cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager))
+  ));
   return (
 
             <div style={{ maxWidth: 880, margin: "0 auto" }}>
               <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 6 }}>CRITICAL READ {RS_DOT} PLAIN-LANGUAGE CHECK</div>
               <h2 style={{ fontFamily: "'Newsreader',serif", fontWeight: 600, fontSize: "1.5rem", color: "#16202e", margin: "0 0 6px" }}>What the ad says {String.fromCharCode(0x2192)} what it leaves empty</h2>
               <p style={{ fontSize: "0.8125rem", color: "#64748b", lineHeight: 1.55, margin: "0 0 16px", maxWidth: 640 }}>Deterministic and verbatim-only: every flag is a phrase lifted straight from the posting. Empty or inflated wording gets a plain-language counter - the &quot;question-mark move&quot;.</p>
-              {critical.noodles.length > 0 && <>
-                <h3 style={critH3}>Word noodles {RS_DOT} shiny but empty</h3>
-                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter}
-                  onExpand={(e) => openSheet("Word noodles", "critcard", { tag: n.cat, obs: n.phrase, interp: n.why, appl: n.counter }, e)} />)}
-              </>}
-              {critical.forensic.length > 0 && <>
-                <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
-                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter}
-                  onExpand={(e) => openSheet("Forensic reversal", "critcard", { tag: "aspiration", obs: f.phrase, interp: f.why, appl: f.counter }, e)} />)}
-              </>}
-              {/* No.136 G2: the six deterministic lenses render severity-first (flex order =
-                  deterministic rank) and are individually dismissible; hidden panels restore
-                  from the chip row below. */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
               {hiddenPanels.length > 0 && (
-                <div style={{ order: 0, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, margin: "0 0 10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6, margin: "0 0 10px" }}>
                   <span style={{ fontFamily: "monospace", fontSize: "0.6875rem", color: "#6b6357" }}>hidden panels:</span>
                   {hiddenPanels.map((k) => (
                     <button key={k} type="button" onClick={() => setPanelHidden(k, false)} aria-label={"Restore panel: " + (G2_LABELS[k] || k)}
@@ -35,13 +41,29 @@ export function renderWinCritical(ctx) {
                   ))}
                 </div>
               )}
+              {critical.noodles.length > 0 && !hiddenPanels.includes("noodles") && <div style={{ display: "flex", flexDirection: "column" }}>
+                <h3 style={critH3}>Word noodles {RS_DOT} shiny but empty</h3>
+                {critical.noodles.map((n) => <CritCard key={n.id} tag={n.cat} obs={n.phrase} interp={n.why} appl={n.counter}
+                  onExpand={(e) => openSheet("Word noodles", "critcard", { tag: n.cat, obs: n.phrase, interp: n.why, appl: n.counter }, e)} />)}
+                {hideBtn("noodles")}
+              </div>}
+              {critical.forensic.length > 0 && !hiddenPanels.includes("forensic") && <div style={{ display: "flex", flexDirection: "column" }}>
+                <h3 style={critH3}>Forensic reversal {RS_DOT} aspiration vs evidence</h3>
+                {critical.forensic.map((f) => <CritCard key={f.id} tag="aspiration" obs={f.phrase} interp={f.why} appl={f.counter}
+                  onExpand={(e) => openSheet("Forensic reversal", "critcard", { tag: "aspiration", obs: f.phrase, interp: f.why, appl: f.counter }, e)} />)}
+                {hideBtn("forensic")}
+              </div>}
+              {/* No.136 G2: the six deterministic lenses render severity-first (flex order =
+                  deterministic rank) and are individually dismissible; hidden panels restore
+                  from the chip row above. */}
+              <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ order: g2Rank.blindSpots, display: "flex", flexDirection: "column" }}>
               {critical.blindSpots && critical.blindSpots.length > 0 && !hiddenPanels.includes("blindSpots") && <>
                 <h3 style={critH3}>Blind spots {RS_DOT} what the ad does not say</h3>
                 <WhyLine why={critical.blindSpots.length + " of 6 standard fields are absent from the ad text"} sec="spec No.135 AI-2" />
                 {critical.blindSpots.map((b) => <CritCard key={b.id} tag={b.label} obs={"The ad is silent on " + b.label + "."} interp={"Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable."} appl={b.ask} accent="#5b4bbd" obsChip="computed"
                   onExpand={(e) => openSheet("Blind spots", "critcard", { tag: b.label, obs: "The ad is silent on " + b.label + ".", interp: "Checked the full ad text for any mention - none found. Silence on " + b.label + " is information: it is either unsettled or unfavourable.", appl: b.ask, accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
-              <button type="button" onClick={() => setPanelHidden("blindSpots", true)} aria-label={"Hide panel: " + G2_LABELS.blindSpots} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              {hideBtn("blindSpots")}
               </>}
               </div>
               <div style={{ order: g2Rank.contradictions, display: "flex", flexDirection: "column" }}>
@@ -50,25 +72,30 @@ export function renderWinCritical(ctx) {
                 <WhyLine why={critical.contradictions.length + " duty line" + (critical.contradictions.length === 1 ? " sits" : "s sit") + " outside the ad's majority domain"} sec="spec No.135 AI-2" />
                 {critical.contradictions.map((x) => <CritCard key={x.id} tag="mash-up" obs={x.obs} interp={"This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice."} appl="Ask which of the two jobs the hire actually owns - and which one performance is judged on." persona="ROLE ANALYST" accent="#0e7490" obsChip="derived"
                   onExpand={(e) => openSheet("Contradictions", "critcard", { tag: "mash-up", obs: x.obs, interp: "This line reads as " + x.foreign + ", but the ad's majority domain is " + x.majority + " - a role mash-up or template splice.", appl: "Ask which of the two jobs the hire actually owns - and which one performance is judged on.", persona: "ROLE ANALYST", accent: "#0e7490", obsChip: "derived" }, e)} />)}
-              <button type="button" onClick={() => setPanelHidden("contradictions", true)} aria-label={"Hide panel: " + G2_LABELS.contradictions} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
+              {hideBtn("contradictions")}
               </>}
               </div>
-              
-              
-              
-              
               </div>
-              {critical.falsification.length > 0 && <>
+              {critical.falsification.length > 0 && !hiddenPanels.includes("falsification") && <div style={{ display: "flex", flexDirection: "column" }}>
                 <h3 style={critH3}>Falsification {RS_DOT} before you trust this read</h3>
                 {critical.falsification.map((f) => <CritCard key={f.id} tag={f.tag} obs={f.obs} interp={f.interp} appl={f.appl} accent="#5b4bbd" obsChip="computed"
                   onExpand={(e) => openSheet("Falsification", "critcard", { tag: f.tag, obs: f.obs, interp: f.interp, appl: f.appl, accent: "#5b4bbd", obsChip: "computed" }, e)} />)}
-              </>}
-              {cr && (
-                (cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length))) ||
-                cr.realDemand || (cr.teleology && (cr.teleology.whyExists || cr.teleology.problem)) ||
-                (cr.proWorker && (cr.proWorker.verdict || cr.proWorker.reasoning))
-              ) && <>
-                <h3 style={critH3}>Deep read {RS_DOT} challenged</h3>
+                {hideBtn("falsification")}
+              </div>}
+              {/* Prep for the room: the single highest interview-value AI content (what to
+                  personally bring/say) - pulled out of "the other side of the table" so it
+                  is not buried behind three recruiter-side cards. Visible by default. */}
+              {cr && cr.hiring && cr.hiring.interviewCoach && !hiddenPanels.includes("candidatePrep") && <div style={{ display: "flex", flexDirection: "column" }}>
+                <h3 style={critH3}>Prep for the room</h3>
+                <AdvisoryCard persona="CANDIDATE ADVOCATE" subLabel="interview coaching"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>
+                {hideBtn("candidatePrep")}
+              </div>}
+              {/* Deep read: every adversarial/speculative advisory voice in one place,
+                  collapsed by default (ReviewStudio.jsx seeds hiddenPanels with
+                  ["deepRead"] for a posting with no prior visit) - this is the deepest,
+                  most speculative content, not what a candidate needs first. */}
+              {hasDeepRead && !hiddenPanels.includes("deepRead") && <div style={{ display: "flex", flexDirection: "column" }}>
+                <h3 style={critH3}>Deep read {RS_DOT} challenged &amp; adversarial</h3>
                 {cr.devilsAdvocate && (cr.devilsAdvocate.counterCase || (cr.devilsAdvocate.challenges && cr.devilsAdvocate.challenges.length > 0)) && (
                   <AdvisoryCard persona="SKEPTICAL READ" subLabel="counter-case">
                     {cr.devilsAdvocate.counterCase && <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.devilsAdvocate.counterCase}</p>}
@@ -103,13 +130,10 @@ export function renderWinCritical(ctx) {
                     {cr.proWorker.reasoning && <p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.proWorker.reasoning}</p>}
                   </AdvisoryCard>
                 )}
-              </>}
-              {(cr && cr.hiring && (cr.hiring.recruiter || cr.hiring.hiringManager || cr.hiring.interviewCoach)) && <>
-                <h3 style={critH3}>The other side of the table</h3>
-                {cr && cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
-                {cr && cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
-                {cr && cr.hiring && cr.hiring.interviewCoach && <AdvisoryCard persona="CANDIDATE ADVOCATE" subLabel="interview coaching"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.interviewCoach}</p></AdvisoryCard>}
-              </>}
+                {cr.hiring && cr.hiring.recruiter && <AdvisoryCard persona="RECRUITER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.recruiter}</p></AdvisoryCard>}
+                {cr.hiring && cr.hiring.hiringManager && <AdvisoryCard persona="HIRING MANAGER"><p style={{ margin: 0, fontSize: "0.875rem", color: "#3a4456", lineHeight: 1.55 }}>{cr.hiring.hiringManager}</p></AdvisoryCard>}
+                {hideBtn("deepRead")}
+              </div>}
               {!critical.noodles.length && !critical.forensic.length && !critical.falsification.length && !critical.hiringFilter.length && !(critical.blindSpots && critical.blindSpots.length) && !(critical.contradictions && critical.contradictions.length) && !(critical.qoi && critical.qoi.length) && !(critical.indicators && critical.indicators.length) && !critical.trajectory && !critical.salaryPos && !cr && <p style={manuP}>{critical.adText ? "This posting reads plainly - no empty phrasing, inflated language, or template/mash-up/compliance signals flagged. The challenged deep read (AI-assisted) appears here once it finishes." : "No posting text available to run the plain-language check."}</p>}
             </div>
   );
