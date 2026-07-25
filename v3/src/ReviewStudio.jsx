@@ -1530,7 +1530,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
             </span>
           ) : links.length === 0 ? (
             <span style={{ fontSize: "0.75rem", color: "#3a4a86", flex: "none" }}>
-              Draw your own persistent <b style={{ color: "#1d4ed8" }}>blue</b> links: press <b>Draw a link</b> above, then <b>drag</b> a 🔗 handle from a responsibility onto an O-I-A card (or click one then the other). (The <b style={{ color: "#b45309" }}>amber</b> line that appears when you click a line is the engine's automatic trace, not a saved link.)
+              Draw your own persistent <span style={{ color: "#1d4ed8" }}>blue</span> links: press <b>Draw a link</b> above, then drag a 🔗 handle from a responsibility onto an O-I-A card (or click one then the other). (The <span style={{ color: "#b45309" }}>amber</span> line that appears when you click a line is the engine's automatic trace, not a saved link.)
             </span>
           ) : null}
           {/* Layer 2: the term currently traced across both panels, with a clear control.
