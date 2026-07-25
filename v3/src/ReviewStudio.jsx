@@ -985,7 +985,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // of evidence the lenses already computed (counts and grades - no new numbers); a
   // dismissed panel is per-posting, persisted (KV-1 "boards" scope), reversible from the
   // hidden-panels chip row (spec 136 section 7: reversible + human-controlled).
-  const [hiddenPanels, setHiddenPanels] = useState([]);
+  // PR 2 of the Step 3 simplification plan (24-07'26): a posting with no prior visit
+  // starts with the deepest, most speculative Critical Read section already collapsed -
+  // the loadState effect below only overwrites this when a posting HAS persisted
+  // hiddenPanels state, so a previously-restored choice is still honoured either way.
+  const [hiddenPanels, setHiddenPanels] = useState(["deepRead"]);
   useEffect(() => {
     if (!postingKey) return;
     loadState("boards", (all) => { if (all && all.hiddenPanels && Array.isArray(all.hiddenPanels[postingKey])) setHiddenPanels(all.hiddenPanels[postingKey]); });
@@ -1013,7 +1017,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     qoi: (critical.qoi && critical.qoi.some((q) => q.grade === "unfalsifiable")) ? 5 : 8,
     indicators: (critical.indicators && critical.indicators.length) ? 6 : 9,
   };
-  const G2_LABELS = { contradictions: "Contradictions", trajectory: "Around the corner", salaryPos: "Competitive read", blindSpots: "Blind spots", qoi: "Quality of information", indicators: "Indicators" };
+  const G2_LABELS = { contradictions: "Contradictions", trajectory: "Around the corner", salaryPos: "Competitive read", blindSpots: "Blind spots", qoi: "Quality of information", indicators: "Indicators", noodles: "Word noodles", forensic: "Forensic reversal", falsification: "Falsification lens", candidatePrep: "Prep for the room", deepRead: "Deep read (adversarial)" };
   // No.137 T1 section moves: these render blocks live on their OWN tabs now (qoi ->
   // Gates; salaryPos + indicators -> Market; trajectory -> Duties). Same data, same
   // dismiss machinery - just placed where their reader-question lives.
