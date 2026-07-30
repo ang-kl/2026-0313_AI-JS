@@ -10755,7 +10755,7 @@ function RoleGraphStepCard({ step }) {
     </div>
   );
 }
-function RoleGraphPanel({ result, title, posting }) {
+function RoleGraphPanel({ result, title, posting, onModeChange }) {
   const [graphState, setGraphState] = useState({ status: "loading" });
   const [hoveredId, setHoveredId] = useState(null);
   const [showStmts, setShowStmts] = useState(false);
@@ -10764,7 +10764,7 @@ function RoleGraphPanel({ result, title, posting }) {
   const [roleGraphOpen, setRoleGraphOpen] = useState(true); // RIN3: centre graph can collapse without losing place
   const [roleGraphFloat, setRoleGraphFloat] = useState(false); // RIN3: graph can expand into a floating window
   const [roleGraphFloatPos, setRoleGraphFloatPos] = useState({ x: 24, y: 72 });
-  const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge"
+  const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge" | "ssoc"
   const graphScrollRef = useRef(null);
   const roleGraphDragRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
@@ -10793,6 +10793,15 @@ function RoleGraphPanel({ result, title, posting }) {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey, (result && result.source) || "", _rgRespCount, _rgDutyCount]);
+
+  // PR 1 (Step 3 Working Canvas, 30-07 '26) §3.6: REPORT the taxonomy this graph is
+  // currently reading so the workspace's minimise tray can label it ("Role Graph · ESCO").
+  // Read-only and additive - graphMode, the toggle and every interaction are untouched
+  // (§2.2). Layered and Knowledge both resolve via ESCO; the SSOC graph is Singapore-first.
+  useEffect(() => {
+    if (typeof onModeChange !== "function") return;
+    onModeChange(graphMode === "ssoc" ? "SSOC" : graphMode === "knowledge" ? "ESCO KG" : "ESCO");
+  }, [graphMode, onModeChange]);
 
   const g = isPosting ? (result && result.roleGraphData) : graphState.g;
   const rgLoading = isPosting ? !(result && result.roleGraphData) : (graphState.status === "loading");
@@ -15383,6 +15392,11 @@ export default function App({ initialSearchMode } = {}) {
   const [result,    setResult]    = useState(null);
   const [step,      setStep]      = useState("idle");
   const [okfRole,   setOkfRole]   = useState(false); // Step 3 OKF export modal (role.md)
+  // PR 1 "Step 3 Working Canvas" (30-07 '26) §3.6: the minimise tray labels the Role Graph
+  // with the taxonomy it is currently reading ("Role Graph · ESCO"). RoleGraphPanel owns
+  // that choice internally and §2.2 forbids changing it, so it just REPORTS the mode via an
+  // additive optional callback - no change to the graph's data, toggle or interactions.
+  const [rgTaxonomy, setRgTaxonomy] = useState("ESCO");
   // The resolved ESCO skills (name + description) shown openly DURING the analysis wait - the v2
   // "skills list" reading experience. Set the moment skills resolve; cleared when loading ends.
   const [loadingSkills, setLoadingSkills] = useState([]);
@@ -17670,6 +17684,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           const reviewSource = result.source === "posting"
             ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
             : result.source === "corpus" ? "from live SG postings" : "from ESCO";
+          // PR 1 §3.8: Company Information becomes the canvas's right drawer. Both panels
+          // passed as `companyPane` are the EXISTING deterministic reads - ACRA register
+          // facts (CompanyBackground) and the poster-vs-hirer employer check over the live
+          // postings (EmployerReality). Both had been stranded in the five-pillar result
+          // view retired on 07-07 '26; they are wired back in here, not rewritten. No
+          // Company Graph in this PR (§2.3).
           // LOOP-1: retry for the live-postings pipeline. A transient MCF failure used to be
           // permanent until a full re-analysis; everything the rebuild needs is on `result`.
           const retryDuties = () => {
@@ -17687,7 +17707,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 title={toTitleCase(sel?.title || "")}
                 employer={result?.employer || ""}
                 source={reviewSource}
-                rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} />}
+                rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} onModeChange={setRgTaxonomy} />}
+                roleGraphMode={rgTaxonomy}
+                companyPane={<><CompanyBackground result={result} /><EmployerReality result={result} /></>}
                 posting={analysingPosting}
                 bgRunning={bgRunning}
                 bgStep={bgStep}

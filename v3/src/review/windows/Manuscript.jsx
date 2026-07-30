@@ -10,6 +10,31 @@ export function renderWinManuscript(ctx) {
   const T = (txt) => (rsTermSpans ? rsTermSpans(txt, skillTermRe, focusTerm, setFocusTerm) : txt);
   const dutySpans = dissection.spans.filter((x) => x.sec !== "req");
   const jumpToLine = (sp) => { setActiveSpan(sp.id); const el = document.getElementById("li-" + sp.id); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); };
+  // PR 1 "Step 3 Working Canvas" (30-07 '26) §3.9: "when the user clicks a duty,
+  // requirement or graph node, open the evidence drawer". Until now only the underlined
+  // EVIDENCE PHRASE inside a line was clickable, so a line the engine found no phrase in
+  // had no way to open its own O-I-A read at all - and even on a line that had one, the
+  // rest of the line was inert. Two additions, both narrow:
+  //   lineActivate  - a click anywhere on the line activates its span. It bails out when
+  //                   the click came from a control that already handles it (the phrase
+  //                   span, the link handle), so nothing double-toggles.
+  //   plainActivate - for a line with NO phrase, the line text itself becomes the
+  //                   role="button" target, which is also the KEYBOARD path such lines
+  //                   never had. Lines that do have a phrase keep it as their tab stop, so
+  //                   this adds no extra tab stops beyond one per line either way.
+  // The verbatim text, the plain-line doctrine (no decoration without evidence) and the
+  // amber connector's activeSpan contract are all unchanged.
+  const lineActivate = (id) => (e) => {
+    if (e.target && e.target.closest && e.target.closest('button,[role="button"]')) return;
+    setActiveSpan(activeSpan === id ? null : id);
+  };
+  const plainActivate = (id, label) => ({
+    role: "button", tabIndex: 0, "aria-pressed": activeSpan === id,
+    "aria-label": label + ". No evidence phrase found in this line - open its analysis.",
+    onClick: () => setActiveSpan(activeSpan === id ? null : id),
+    onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(activeSpan === id ? null : id); } },
+    style: { cursor: "pointer" },
+  });
   return (
 
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
@@ -117,7 +142,7 @@ export function renderWinManuscript(ctx) {
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
                     const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}{T(s.text)}{linkBtn}</li>;
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}<span {...plainActivate(s.id, s.text)}>{T(s.text)}</span>{linkBtn}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
@@ -128,7 +153,7 @@ export function renderWinManuscript(ctx) {
                         style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                     );
                     return (
-                      <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} style={{ ...manuP, marginBottom: 8, ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
+                      <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
                         {lineNo}{ev.pre ? <>{T(ev.pre)} </> : ""}{mark}{ev.post ? T(ev.post) : ""}{linkBtn}
                       </li>
                     );
@@ -148,7 +173,10 @@ export function renderWinManuscript(ctx) {
                       if (!sp || showClean) return <li key={li} style={{ ...manuP, marginBottom: 7 }}>{ln}</li>;
                       // RS-EV: same doctrine as duties - evidence phrase or fully plain.
                       const ev = rsEvidencePhrase(ln, skillTermRe, skills);
-                      if (!ev) return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ln}</li>;
+                      // No id/data-anchor-block added here on purpose: giving requirement
+                      // lines a "#li-" anchor would make them new endpoints for the
+                      // auto-link layer, and this PR changes the shell, not the connector.
+                      if (!ev) return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer" }}><span {...plainActivate(sp.id, ln)}>{ln}</span></li>;
                       const on = activeSpan === sp.id; const st = SPAN_STYLE_WITHHELD;
                       const mark = (
                         <span role="button" tabIndex={0} aria-pressed={on}
@@ -158,7 +186,7 @@ export function renderWinManuscript(ctx) {
                           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
                           style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                       );
-                      return <li key={li} style={{ ...manuP, marginBottom: 8 }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
+                      return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer" }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
                     })}
                   </ul>
                 </div>

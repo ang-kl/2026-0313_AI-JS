@@ -19,6 +19,9 @@ import { fetchEmployerRegistration, fetchEmployerPostings, claudeCall, extractJS
 import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP , RS_LAYERS} from "./review/rs-rules.js";
 import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, critH3 } from "./review/shared.jsx";
 import Desk from "./review/Desk.jsx";
+// PR 1 "Step 3 Working Canvas" (Human Lead, 30-07 '26): the persistent workspace shell -
+// main document + one managed floating Role Graph + company/evidence drawers + tray.
+import Canvas, { WS_TOOLS, WS_PLACEMENT, wsInitial } from "./review/Canvas.jsx";
 // PR 2 (Part B.3): the declarative window registry is the single source of truth -
 // window render functions, labels, tab placement and the connector anchor contract
 // all derive from it. The 14 individual window imports live inside the registry now.
@@ -692,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -705,12 +708,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // Goal §5: focus restoration - when the build modal closes (auto-settle, minimise
   // or error dismissal), move focus to the first tab so keyboard users land on a
   // stable, meaningful control instead of nowhere.
+  // PR 1: in canvas mode the tabs row is unmounted (it lives behind "More analysis"), so
+  // the fallback target is the workspace toolbar - keyboard users still land on a stable,
+  // meaningful control rather than nowhere.
   const tabsRef = useRef(null);
+  const wsBarRef = useRef(null);
   const bgModalOpen = (bgRunning && !bgModalMin) || (!!bgError && !bgErrDismissed);
   const bgModalWasOpen = useRef(false);
   useEffect(() => {
-    if (bgModalWasOpen.current && !bgModalOpen && tabsRef.current) {
-      const b = tabsRef.current.querySelector("button");
+    if (bgModalWasOpen.current && !bgModalOpen) {
+      const host = tabsRef.current || wsBarRef.current;
+      const b = host && host.querySelector("button, select");
       if (b) b.focus();
     }
     bgModalWasOpen.current = bgModalOpen;
@@ -1136,6 +1144,37 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const sheetCloseRef = useRef(null);
   const openSheet = (title, kind, payload, e) => { sheetTriggerRef.current = (e && e.currentTarget) || null; setSheet({ title, kind, payload }); };
   const [dockHover, setDockHover] = useState(null); // "left"|"right" while dragging a float
+  // ── PR 1: Step 3 Working Canvas (Human Lead, 30-07 '26) ───────────────────────────
+  // The canvas is now the DEFAULT surface: job ad as the main document, Role Graph as one
+  // managed floating window, Company Information in a right drawer, Evidence in a bottom
+  // drawer, plus a minimise tray. The six analysis tabs are NOT deleted (§4.1) - they sit
+  // behind "More analysis" while their components migrate in PR 2. Canvas.jsx is layout
+  // only; every piece of state it touches lives here (the standing Option 1 rule).
+  const [ws, setWs] = useState(wsInitial);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const setWinState = (id, state) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), state } }));
+  const setGeom = (id, patch) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), ...patch } }));
+  // "Arrange" opens everything in a tidy default; "Minimise all" clears to the document;
+  // "Reset workspace" returns to the starting arrangement (§3.1). Three distinct meanings.
+  const wsArrange = () => setWs((p) => ({
+    roleGraph: { ...p.roleGraph, state: "docked" },
+    company: { ...p.company, state: "open" },
+    evidence: { ...p.evidence, state: "open" },
+  }));
+  const wsMinimiseAll = () => setWs((p) => ({
+    roleGraph: { ...p.roleGraph, state: "minimized" },
+    company: { ...p.company, state: "minimized" },
+    evidence: { ...p.evidence, state: "minimized" },
+  }));
+  const wsReset = () => setWs(wsInitial());
+  // §3.9: clicking a duty, requirement or graph node already sets activeSpan/focusSkill -
+  // the evidence drawer follows that existing selection rather than inventing a second
+  // one, so the O-I-A card the Inspector already builds (source wording, passage,
+  // explanation, confidence, provenance, invoking relationships) is what opens.
+  useEffect(() => {
+    if (!activeSpan && focusSkill == null) return;
+    setWs((p) => (p.evidence && p.evidence.state === "minimized" ? { ...p, evidence: { ...p.evidence, state: "open" } } : p));
+  }, [activeSpan, focusSkill]);
   const splitDragRef = useRef(null);
   const deskRef = useRef(null);
   const zTopRef = useRef(RS_LAYERS.float);
@@ -1168,6 +1207,26 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       // docked-panel overrides, pins) persists; torn-off floats start empty each visit.
       const d = all && all.desk && all.desk[postingKey];
       if (d) { if (typeof d.splitPct === "number") setSplitPct(Math.max(30, Math.min(75, d.splitPct))); if (d.overrides) setOverrides(d.overrides); if (Array.isArray(d.pinned)) setPinned(d.pinned); }
+      // PR 1 §3.5: reopening a tool must preserve its docked/floating state and its size.
+      // POSITION is deliberately NOT restored - §3.4 fixes the desktop default at
+      // upper-right, and the existing goal §7 rule keeps a dragged-off-screen window from
+      // becoming permanently unreachable across reloads.
+      if (d && d.ws) setWs((cur) => {
+        const next = { ...cur };
+        WS_TOOLS.forEach((id) => {
+          const s = d.ws[id];
+          if (!s) return;
+          const allowed = WS_PLACEMENT[id] === "window"
+            ? ["floating", "docked", "expanded", "minimized"]
+            : ["open", "minimized"];
+          const patch = {};
+          if (allowed.includes(s.state)) patch.state = s.state;
+          if (typeof s.w === "number" && s.w > 0) patch.w = Math.min(s.w, 1400);
+          if (typeof s.h === "number" && s.h > 0) patch.h = Math.min(s.h, 1200);
+          next[id] = { ...next[id], ...patch };
+        });
+        return next;
+      });
     });
   }, [postingKey]);
   const persistFloats = (/* next */) => {
@@ -1179,7 +1238,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       // clear any float snapshot a previous build may have written for this posting.
       if (all.floats) delete all.floats[postingKey];
       all.desk = all.desk || {};
-      all.desk[postingKey] = { splitPct, overrides, pinned };
+      // PR 1: the workspace arrangement rides along in the same per-posting desk blob -
+      // state + size only (see the §3.4/§3.5 note in the loader above).
+      const wsSlim = {};
+      WS_TOOLS.forEach((id) => { const s = ws[id] || {}; wsSlim[id] = { state: s.state, w: s.w, h: s.h }; });
+      all.desk[postingKey] = { splitPct, overrides, pinned, ws: wsSlim };
       saveState("boards", all);
     } catch (_) {}
   };
@@ -1234,8 +1297,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     if (sheet && sheetCloseRef.current) sheetCloseRef.current.focus();
     if (!sheet && sheetTriggerRef.current) { sheetTriggerRef.current.focus(); sheetTriggerRef.current = null; }
   }, [sheet]);
-  useEffect(() => { persistFloats(floats); /* also captures splitPct/overrides/pinned via desk blob */ // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [splitPct, overrides, pinned]);
+  useEffect(() => { persistFloats(floats); /* also captures splitPct/overrides/pinned/ws via desk blob */ // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [splitPct, overrides, pinned, ws]);
   const startFloatDrag = (e, id) => {
     if (e.target && e.target.closest && e.target.closest("button")) return;
     const f = floats.find((x) => x.id === id); if (!f) return;
@@ -1471,6 +1534,43 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           go. The AN1 "STILL LOADING" strip above is the real, live analysis progress;
           engineering build status stays in blueprint-status.json, not in the UI. */}
 
+      {/* ── PR 1: the persistent Step 3 canvas is the default surface ──────────────────
+          Always mounted, even while "More analysis" is open, so the Role Graph's own
+          ESCO/SSOC selection and selected node survive the round trip (§3.5) - React
+          only preserves subtree state for a subtree it never unmounts. */}
+      <div style={{ flex: moreOpen ? "none" : 1, minHeight: 0, display: moreOpen ? "none" : "flex", flexDirection: "column" }}>
+        <Canvas
+          isNarrow={isNarrow}
+          mainLabel="Job Advertisement"
+          mainEl={renderWindow("manuscript")}
+          barRef={wsBarRef}
+          mainToolbar={[["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
+            <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={{ ...pillStyle(markup === k), minHeight: 44 }}>{lbl}</button>
+          ))}
+          toolEl={{
+            roleGraph: rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>,
+            company: companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>,
+            evidence: renderWindow("inspector"),
+          }}
+          trayNote={{ roleGraph: roleGraphMode || null }}
+          ws={ws} setWinState={setWinState} setGeom={setGeom}
+          onArrange={wsArrange} onMinimiseAll={wsMinimiseAll} onResetWorkspace={wsReset}
+          moreOpen={moreOpen} setMoreOpen={setMoreOpen} moreEl={null}
+        />
+      </div>
+
+      {/* §4.1: the six analysis tabs are NOT deleted in this PR. They open as a full
+          surface over the canvas (which stays mounted underneath) until their components
+          migrate into windows/drawers in PR 2. */}
+      {moreOpen && (
+      <div style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.sheet - 1, display: "flex", flexDirection: "column", background: "#e9edf3" }}>
+      <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 14px", background: "#14204f" }}>
+        <span style={{ flex: 1, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#c9d2ee" }}>MORE ANALYSIS {String.fromCharCode(0x00b7)} THE SIX ANALYSIS VIEWS</span>
+        <button type="button" onClick={() => setMoreOpen(false)}
+          style={{ flex: "none", minHeight: 44, padding: "0 14px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#14204f", background: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>
+          {String.fromCharCode(0x2190)} Back to workspace
+        </button>
+      </div>
       {/* No.137 T1: TABS row (Report View anatomy) - folder-style, active tab attaches to
           its toolbar; each tab owns row 3's controls so nothing exists out of context. */}
       <div ref={tabsRef} className="wis-scroll" role="tablist" aria-label="Analysis views" style={{ flex: "none", display: "flex", alignItems: "flex-end", gap: 4, padding: "3px 10px 0", background: "#f3f1ea", borderBottom: "1px solid #d9dee6", overflowX: "auto" }}>
@@ -1603,6 +1703,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
       <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} suggestLinks={suggestLinks} />
+      </div>
+      )}
 
       {/* P2: floating confirm for a selected phrase. onMouseDown preventDefault keeps the
           selection alive through the click; clicking arms the phrase (or completes the
