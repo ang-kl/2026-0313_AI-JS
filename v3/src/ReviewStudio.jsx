@@ -21,7 +21,7 @@ import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, 
 import Desk from "./review/Desk.jsx";
 // PR 1 "Step 3 Working Canvas" (Human Lead, 30-07 '26): the persistent workspace shell -
 // main document + one managed floating Role Graph + company/evidence drawers + tray.
-import Canvas, { WS_TOOLS, WS_PLACEMENT, wsInitial } from "./review/Canvas.jsx";
+import Canvas, { WS_LABELS, WS_SHORT, WS_ALREADY_PLACED, wsPlacementOf, wsInitial, wsNewWindow } from "./review/Canvas.jsx";
 // PR 2 (Part B.3): the declarative window registry is the single source of truth -
 // window render functions, labels, tab placement and the connector anchor contract
 // all derive from it. The 14 individual window imports live inside the registry now.
@@ -1162,20 +1162,51 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // behind "More analysis" while their components migrate in PR 2. Canvas.jsx is layout
   // only; every piece of state it touches lives here (the standing Option 1 rule).
   const [ws, setWs] = useState(wsInitial);
-  const setWinState = (id, state) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), state } }));
+  // PR 2 (§6.1): the workspace holds an OPEN SET, not a fixed three. A registry window
+  // enters `ws` the first time it is opened and stays - `ws`'s keys ARE the mounted set, so
+  // "lazy mount, then keep" (see Canvas.jsx) needs no second piece of state: nothing runs a
+  // window's effects until the reader asks for it, and minimising never unmounts it.
+  const zRef = useRef(1);
+  const setWinState = (id, state) => {
+    const z = ++zRef.current;
+    setWs((p) => {
+      if (p[id]) return { ...p, [id]: { ...p[id], state, z: state === "minimized" ? p[id].z : z } };
+      // First open of a registry window: cascade it off the windows already on the canvas
+      // so a second and third do not land exactly on top of the first.
+      const openCount = Object.keys(p).filter((k) => wsPlacementOf(k) === "window" && p[k].state !== "minimized").length;
+      return { ...p, [id]: { ...wsNewWindow(openCount), state, z } };
+    });
+  };
   const setGeom = (id, patch) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), ...patch } }));
+  // Named wsBringToFront: the legacy Desk float layer already owns a `bringToFront`.
+  const wsBringToFront = (id) => { const z = ++zRef.current; setWs((p) => (p[id] && p[id].z !== z ? { ...p, [id]: { ...p[id], z } } : p)); };
   // "Arrange" opens everything in a tidy default; "Minimise all" clears to the document;
   // "Reset workspace" returns to the starting arrangement (§3.1). Three distinct meanings.
-  const wsArrange = () => setWs((p) => ({
-    roleGraph: { ...p.roleGraph, state: "docked" },
-    company: { ...p.company, state: "open" },
-    evidence: { ...p.evidence, state: "open" },
-  }));
-  const wsMinimiseAll = () => setWs((p) => ({
-    roleGraph: { ...p.roleGraph, state: "minimized" },
-    company: { ...p.company, state: "minimized" },
-    evidence: { ...p.evidence, state: "minimized" },
-  }));
+  // PR 2: all three act over the whole open set, not just the original three - a reader who
+  // has added four analysis windows still gets one control that tidies or clears them.
+  const wsMap = (fn) => setWs((p) => {
+    const next = {};
+    Object.keys(p).forEach((id) => { next[id] = { ...p[id], state: fn(id, p[id]) }; });
+    return next;
+  });
+  // Arrange docks at most two windows. The dock column is a fixed width split evenly, so
+  // docking six would give six ~70px strips - every provenance chip still renders, but a
+  // chip you must scroll a 70px box to see is weak provenance. The rest float, where they
+  // keep a readable size. Manual docking is left to the reader's own judgement; they can
+  // see the result and undock. (Conformance audit W3, 30-07 '26.)
+  const WS_ARRANGE_DOCK_MAX = 2;
+  const wsArrange = () => setWs((p) => {
+    const next = {}; let docked = 0;
+    Object.keys(p).forEach((id) => {
+      if (wsPlacementOf(id) !== "window") { next[id] = { ...p[id], state: "open" }; return; }
+      next[id] = { ...p[id], state: docked < WS_ARRANGE_DOCK_MAX ? "docked" : "floating" };
+      docked += 1;
+    });
+    return next;
+  });
+  const wsMinimiseAll = () => wsMap(() => "minimized");
+  // Reset drops any added analysis windows back off the canvas - starting over is the whole
+  // point of the control, and the three core tools return to their opening arrangement.
   const wsReset = () => setWs(wsInitial());
   // §3.9: clicking a duty, requirement or graph node already sets activeSpan/focusSkill -
   // the evidence drawer follows that existing selection rather than inventing a second
@@ -1223,17 +1254,22 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       // becoming permanently unreachable across reloads.
       if (d && d.ws) setWs((cur) => {
         const next = { ...cur };
-        WS_TOOLS.forEach((id) => {
+        // PR 2: restores the whole open set, including analysis windows added last visit -
+        // ids are validated against the registry so a stale or hand-edited blob can never
+        // conjure a window that does not exist.
+        const known = new Set(WINDOWS.map((w) => w.id).filter((id) => !WS_ALREADY_PLACED.includes(id)).concat(Object.keys(cur)));
+        Object.keys(d.ws).forEach((id) => {
           const s = d.ws[id];
-          if (!s) return;
-          const allowed = WS_PLACEMENT[id] === "window"
+          if (!s || !known.has(id)) return;
+          const allowed = wsPlacementOf(id) === "window"
             ? ["floating", "docked", "expanded", "minimized"]
             : ["open", "minimized"];
-          const patch = {};
-          if (allowed.includes(s.state)) patch.state = s.state;
+          if (!allowed.includes(s.state)) return;
+          const base = next[id] || wsNewWindow(0);
+          const patch = { state: s.state };
           if (typeof s.w === "number" && s.w > 0) patch.w = Math.min(s.w, 1400);
           if (typeof s.h === "number" && s.h > 0) patch.h = Math.min(s.h, 1200);
-          next[id] = { ...next[id], ...patch };
+          next[id] = { ...base, ...patch };
         });
         return next;
       });
@@ -1251,7 +1287,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       // PR 1: the workspace arrangement rides along in the same per-posting desk blob -
       // state + size only (see the §3.4/§3.5 note in the loader above).
       const wsSlim = {};
-      WS_TOOLS.forEach((id) => { const s = ws[id] || {}; wsSlim[id] = { state: s.state, w: s.w, h: s.h }; });
+      Object.keys(ws).forEach((id) => { const s = ws[id] || {}; wsSlim[id] = { state: s.state, w: s.w, h: s.h }; });
       all.desk[postingKey] = { splitPct, overrides, pinned, ws: wsSlim };
       saveState("boards", all);
     } catch (_) {}
@@ -1364,6 +1400,26 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const winEls = {};
   WINDOWS.forEach((w) => { winEls[w.id] = w.render(winCtx); });
   const renderWindow = (id) => (winEls[id] !== undefined ? winEls[id] : winEls.inspector);
+  // ── PR 2: the canvas's window set, derived from the same registry the desk uses ──────
+  // Labels come from the registry so a window is named identically whether it is opened on
+  // the canvas or found on a tab. The three core tools keep their own, friendlier names.
+  const wsLabelOf = (id) => WS_LABELS[id] || (WINDOWS.find((w) => w.id === id) || {}).label || id;
+  const wsShortOf = (id) => WS_SHORT[id] || wsLabelOf(id);
+  // Offerable = every registry window that is not already surfaced elsewhere on the canvas
+  // (manuscript is the document, inspector is the evidence drawer, graphs is the Role
+  // Graph) and is not already open. Rendering one of those twice would mount it twice.
+  const wsAddable = WINDOWS
+    .filter((w) => !WS_ALREADY_PLACED.includes(w.id) && !ws[w.id])
+    .map((w) => ({ id: w.id, label: w.label }));
+  // Bodies for the mounted set. `ws`'s keys are exactly the tools that have been opened at
+  // least once, so nothing is built into the tree before the reader asks for it.
+  const wsToolEl = {};
+  Object.keys(ws).forEach((id) => {
+    if (id === "roleGraph") wsToolEl[id] = rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>;
+    else if (id === "company") wsToolEl[id] = companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>;
+    else if (id === "evidence") wsToolEl[id] = renderWindow("inspector");
+    else wsToolEl[id] = renderWindow(id);
+  });
   // P1: resolve the persisted links to DOM selectors for the connector overlay. Duty
   // line -> "#li-<id>" (Manuscript), O-I-A card -> [data-oia-anchor]. Drawn blue, always
   // (not gated on the active span), so a locked link stays visible without hover.
@@ -1559,13 +1615,10 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           readMode={markup} setReadMode={setMarkup}
           navOpen={navOpen} setNavOpen={setNavOpen}
           onOpenJobAd={onOpenJobAd}
-          toolEl={{
-            roleGraph: rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>,
-            company: companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>,
-            evidence: renderWindow("inspector"),
-          }}
+          toolEl={wsToolEl}
+          labelOf={wsLabelOf} shortOf={wsShortOf} addable={wsAddable}
           trayNote={{ roleGraph: roleGraphMode || null }}
-          ws={ws} setWinState={setWinState} setGeom={setGeom}
+          ws={ws} setWinState={setWinState} setGeom={setGeom} bringToFront={wsBringToFront}
           onArrange={wsArrange} onMinimiseAll={wsMinimiseAll} onResetWorkspace={wsReset}
           moreOpen={moreOpen} setMoreOpen={setMoreOpen} moreEl={null}
         />
@@ -1574,10 +1627,27 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* §4.1: the six analysis tabs are NOT deleted in this PR. They open as a full
           surface over the canvas (which stays mounted underneath) until their components
           migrate into windows/drawers in PR 2. */}
+      {/* IN-FLOW, not a fixed overlay. A full-viewport fixed overlay (z 1393) painted the
+          honesty footer ("AI-assisted / human decides" plus Source / Confidence /
+          Time-window) and the sub-header's source chip underneath it - and CLAUDE.md
+          section 4 makes that footer a merge gate on every user-facing result surface, not
+          merely on the default one. Caught by the conformance audit, 30-07 '26. The canvas
+          above is already display:none while this is open, so it occupies no space and an
+          ordinary flex child restores exactly the pre-canvas stacking: header, surface,
+          footer. Nothing needs a z-index. */}
       {moreOpen && (
-      <div style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.sheet - 1, display: "flex", flexDirection: "column", background: "#e9edf3" }}>
-      <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 14px", background: "#14204f" }}>
-        <span style={{ flex: 1, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#c9d2ee" }}>MORE ANALYSIS {String.fromCharCode(0x00b7)} THE SIX ANALYSIS VIEWS</span>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", background: "#e9edf3" }}>
+      <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 14px", background: "#14204f", flexWrap: "wrap" }}>
+        <span style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#c9d2ee" }}>MORE ANALYSIS {String.fromCharCode(0x00b7)} THE SIX ANALYSIS VIEWS</span>
+        {/* The unsectioned posting is this page's rawest "from MCF" artefact. Its entry
+            point moved to the canvas navigator, which is hidden here - so it needs one on
+            this surface too, or six of the seven views lose access to it entirely. */}
+        {onOpenJobAd && (
+          <button type="button" onClick={onOpenJobAd}
+            style={{ flex: "none", minHeight: 44, padding: "0 12px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#dbe2ff", background: "transparent", border: "1px solid #3a4a86", borderRadius: 8, cursor: "pointer" }}>
+            {String.fromCharCode(0x2197)} Original ad
+          </button>
+        )}
         <button type="button" onClick={() => setMoreOpen(false)}
           style={{ flex: "none", minHeight: 44, padding: "0 14px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#14204f", background: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>
           {String.fromCharCode(0x2190)} Back to workspace

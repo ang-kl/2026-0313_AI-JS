@@ -33,8 +33,14 @@ export function renderWinManuscript(ctx) {
     "aria-label": label + ". No evidence phrase found in this line - open its analysis.",
     onClick: () => setActiveSpan(activeSpan === id ? null : id),
     onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(activeSpan === id ? null : id); } },
-    style: { cursor: "pointer" },
+    // 44px floor (CLAUDE.md section 4). manuP's line box is ~22.5px, so a SHORT duty line
+    // would otherwise be a ~22px tap target - the defect only shows on lines that don't
+    // wrap, which is exactly why it survives casual testing. display:block so the padding
+    // applies; the visible typography is unchanged.
+    style: { cursor: "pointer", display: "block", minHeight: 44, paddingTop: 10, paddingBottom: 10 },
   });
+  // A line whose evidence phrase carries the interaction gets the same floor on the row.
+  const lineRowMin = { minHeight: 44, display: "flex", alignItems: "center", flexWrap: "wrap" };
   return (
 
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
