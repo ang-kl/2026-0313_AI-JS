@@ -695,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1089,6 +1089,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // strip collapse into ONE floating navigator at bottom-left, so the document keeps the
   // rows they used to occupy. This is its open/closed state.
   const [navOpen, setNavOpen] = useState(false);
+  // Which window has its settings panel open (the gear on its bottom strip), or null.
+  const [settingsFor, setSettingsFor] = useState(null);
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
   const _classified = dissection.spans.filter((s) => s.band).length;
@@ -1615,6 +1617,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           readMode={markup} setReadMode={setMarkup}
           navOpen={navOpen} setNavOpen={setNavOpen}
           onOpenJobAd={onOpenJobAd}
+          settingsEl={settingsEl} settingsFor={settingsFor} setSettingsFor={setSettingsFor}
           toolEl={wsToolEl}
           labelOf={wsLabelOf} shortOf={wsShortOf} addable={wsAddable}
           trayNote={{ roleGraph: roleGraphMode || null }}

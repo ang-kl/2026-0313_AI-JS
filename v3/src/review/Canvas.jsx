@@ -115,6 +115,7 @@ export default function Canvas({
   onArrange, onMinimiseAll, onResetWorkspace,
   moreOpen, setMoreOpen, moreEl, barRef,
   navOpen, setNavOpen, onOpenJobAd,
+  settingsEl, settingsFor, setSettingsFor,
 }) {
   const canvasRef = useRef(null);
   const dragRef = useRef(null);
@@ -354,7 +355,26 @@ export default function Canvas({
                 <button type="button" onClick={() => setWinState(id, "minimized")} style={ctlBtn(false)}
                   aria-label={"Minimise the " + label + " to the tray"} title="Minimise to tray">{String.fromCharCode(0x2013)}</button>
               </div>
-              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: CLIP_GUTTER + "px 12px 12px" }}>{toolEl[id]}</div>
+              <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: CLIP_GUTTER + "px 12px 8px" }}>{toolEl[id]}</div>
+              {/* Bottom strip (Human Lead, 30-07 '26): a window's own tool rail. The gear is
+                  the first tenant - it carries the text-size control that used to sit
+                  permanently in the masthead. More icons land here as PR 3 moves the ad and
+                  its section tabs into a window of their own. */}
+              <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 4, padding: "2px 6px", borderTop: "1px solid #e2e0d8", background: "#f4f6fa" }}>
+                <button type="button" onClick={() => setSettingsFor(settingsFor === id ? null : id)}
+                  aria-expanded={settingsFor === id} aria-label={"Settings for the " + label + " window"} title="Settings"
+                  style={{ ...ctlBtn(settingsFor === id), background: settingsFor === id ? "#142a8e" : "transparent", border: "none", fontSize: "0.875rem" }}>
+                  <span aria-hidden="true">{String.fromCharCode(0x2699)}</span>
+                </button>
+                <span style={{ flex: 1 }} />
+                <span style={{ fontFamily: mono, fontSize: "0.625rem", color: "#8a8272", paddingRight: 4 }}>{g.state}</span>
+              </div>
+              {settingsFor === id && (
+                <div role="group" aria-label={"Settings for the " + label + " window"}
+                  style={{ flex: "none", padding: "8px 12px 10px", borderTop: "1px solid #e2e0d8", background: "#fbfaf8" }}>
+                  {settingsEl}
+                </div>
+              )}
             </div>
           );
         })}

@@ -5980,13 +5980,16 @@ function DeviceNote() {
 const PERSONA_SHORT = { fresh: "Foundation skills plan for entering a new field", crossover: "See which skills travel across to a new field" };
 const safePersona = (p) => PERSONA_CONFIG[p] || { label:"", icon:"", color:C.muted, bg:C.bg, border:C.border };
 
-function PersonaToggle({ persona, onChange, disabled }) {
+// `reason` (Human Lead, 30-07 '26): the add-on greys out until a job is actually being
+// chosen, and SAYS WHY rather than sitting inert with no explanation - the same
+// withhold-with-disclosure rule the result pages follow.
+function PersonaToggle({ persona, onChange, disabled, reason }) {
   return (
     <div style={{ marginBottom:10 }}>
       <div aria-disabled={disabled || undefined} style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:10, padding: "10px 14px", opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? "none" : "auto" }}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:10, flexWrap:"wrap", marginBottom:10 }}>
           <p style={{ margin:0, fontSize: "0.75rem", fontWeight:700, color:C.text }}>Adds a foundation skills plan to the analysis</p>
-          <span style={{ fontSize: "0.6875rem", color:C.mutedLight, fontStyle:"italic" }}>{disabled ? "n/a for employer search" : "optional"}</span>
+          <span style={{ fontSize: "0.75rem", color:C.textSub, fontStyle:"italic" }}>{disabled ? (reason || "not available here") : "optional"}</span>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(min(200px, 100%), 1fr))", gap:8 }}>
           {Object.entries(PERSONA_CONFIG).map(([key, cfg]) => {
@@ -17322,9 +17325,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
       {/* LUX1: ambient Three.js field behind the landing + analysis screens (decorative only;
           lazy chunk - three stays out of the main bundle; reduced-motion/WebGL-less -> CSS wash) */}
-      {(step === "idle" || step === "error" || step === "searching" || step === "loading") && (
+      {/* Human Lead, 30-07 '26: "the first page doesn't have the network effect of nodes
+          and swivel, only between step 1 & 2 and step 2 & 3". The node field is a TRANSITION
+          effect, not landing decoration - it now renders only while a step is actually being
+          crossed ("searching" = 1 -> 2, "loading" = 2 -> 3), so the landing and the error
+          state are quiet and the motion means something when it appears. */}
+      {(step === "searching" || step === "loading") && (
         <Suspense fallback={null}>
-          <AmbientBackdrop mode={step === "searching" || step === "loading" ? "active" : "calm"} />
+          <AmbientBackdrop mode="active" />
         </Suspense>
       )}
 
@@ -17356,8 +17364,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             New Search
           </button>
         )}
-        {/* Global text-size control: mounted once here so it shows in both wide and phone layouts */}
-        <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} steps={UI_SCALE_STEPS} />
+        {/* Human Lead, 30-07 '26: "remove the text -/+ from header". The A- / A / A+ stepper
+            was three permanent buttons in the masthead for a control most readers set once
+            and never touch. It moves into the Step 3 floating-window settings (the gear on
+            the window's bottom strip); the scale itself, its persistence and its keyboard
+            shortcuts are untouched - only the entry point moved. */}
         <AccountControl />
       </div>
 
@@ -17411,7 +17422,22 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
 
               {/* v3.2: mode toggle - analyse a role (ESCO) vs browse live SG job postings */}
               {/* CO1: third card - company-name search (employer lookup + posting count) */}
-              <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:10 }}>
+              {/* Human Lead, 30-07 '26: ONE row of four on desktop. The old flex "1 1 30%"
+                  made four cards wrap to 2x2, and the type had drifted down to 11px, which
+                  reads as fine print on the app's single most important decision. The grid
+                  lives in .lx-modes (App CSS) so it can hold real breakpoints: 4-up on
+                  desktop, 2-up on tablet, stacked on a phone. Type is standardised on the
+                  house floor - 14px label, 12px supporting text at 100% browser zoom. */}
+              {/* The rule is mounted HERE, beside the grid it styles, rather than in the
+                  main App stylesheet - the landing renders through an earlier return that
+                  never mounts that block, so a class defined there silently does nothing
+                  (the four cards stayed stacked). Local and self-contained. */}
+              <style>{`
+                .lx-modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+                @media (max-width: 900px) { .lx-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+                @media (max-width: 520px) { .lx-modes { grid-template-columns: 1fr; } }
+              `}</style>
+              <div className="lx-modes" style={{ marginBottom:10 }}>
                 {[
                   { k:"role", label:"Analyse role", sub:"Type a job title first", desc:"Select the closest matching role before analysis." },
                   { k:"jobs", label:"Browse SG jobs", source:"Sources: MyCareersFuture + careers.gov.sg", desc:"Explore current Singapore openings - public service and private sector - and compare what employers are asking for." },
@@ -17419,15 +17445,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                   { k:"wiki", label:"Career WikiGraph", desc:"See a role as a living ecosystem - one centre, branch out." },
                 ].map(m => (
                   <div key={m.k}
-                    style={{ flex:"1 1 30%", minWidth:0, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
+                    style={{ minWidth:0, display:"flex", flexDirection:"column", borderRadius: 10, overflow:"hidden",
                       border:`2px solid ${searchMode===m.k ? "#93c5fd" : C.border}`,
                       background: C.surface }}>
                     <button type="button" aria-pressed={searchMode===m.k}
                       onClick={() => { setSearchMode(m.k); setOccs([]); setErr(""); setSsocOccs([]); setSsocQuery(""); wikiDestRef.current = (m.k === "wiki"); if (m.k === "company") setPersona(null); document.getElementById("job-title-search")?.focus(); }}
-                      style={{ textAlign:"left", padding: "8px 12px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
-                      <span style={{ display:"block", fontSize: "0.8125rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.textSub }}>{m.label}</span>
-                      {m.source && <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
-                      <span style={{ display:"block", marginTop:2, fontSize: "0.6875rem", color:C.muted, lineHeight:1.35 }}>{m.desc || m.sub}</span>
+                      style={{ flex:1, textAlign:"left", padding: "10px 13px", minHeight:44, background:"transparent", border:"none", cursor:"pointer", font:"inherit" }}>
+                      <span style={{ display:"block", fontSize: "0.875rem", fontWeight:700, color: searchMode===m.k ? C.accent : C.text }}>{m.label}</span>
+                      {m.source && <span style={{ display:"block", marginTop:3, fontSize: "0.75rem", fontWeight:700, color:C.textSub }}>{m.source}</span>}
+                      <span style={{ display:"block", marginTop:3, fontSize: "0.75rem", color:C.textSub, lineHeight:1.45 }}>{m.desc || m.sub}</span>
                     </button>
                   </div>
                 ))}
@@ -17582,7 +17608,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             {/* Intro card - below search box */}
             <IntroCard onPersonaSelect={setPersona} toggleRef={toggleRef} />
             {/* Persona toggle - after intro card. LUX3: staggered entrance down the stack. */}
-            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona} disabled={searchMode === "company" || searchMode === "wiki"} /></div>
+            <div ref={toggleRef} className="lux-rise" style={{ "--lux-d":"0.12s" }}><PersonaToggle persona={persona} onChange={setPersona}
+              disabled={searchMode === "company" || searchMode === "wiki" || !query.trim()}
+              reason={searchMode === "company" ? "n/a for employer search" : searchMode === "wiki" ? "n/a for the WikiGraph" : "type a job title first"} /></div>
             {/* CommunityNote moved into SiteFooter (11-07 '26) - one home, no duplication */}
             <div className="lux-rise" style={{ "--lux-d":"0.18s" }}>
               <Tagline />
@@ -17743,6 +17771,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 onRetryDuties={retryDuties}
                 onOpenOkf={() => setOkfRole(true)}
                 onOpenJobAd={jobAdAvailable(result) ? () => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); } : null}
+                settingsEl={<div>
+                  <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#8a8272" }}>TEXT SIZE</p>
+                  <TextSizeControl uiTextScale={uiTextScale} applyTextScale={applyTextScale} steps={UI_SCALE_STEPS} />
+                </div>}
               />
               {okfRole && <OkfModal doc={{ path: "role.md", ...step3BuildOkf(sel, result) }} onClose={() => setOkfRole(false)} />}
               {/* Step 3 canvas revision (Human Lead, 30-07 '26): the Job-Ad FAB is no longer

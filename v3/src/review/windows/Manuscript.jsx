@@ -46,7 +46,11 @@ export function renderWinManuscript(ctx) {
   return (
 
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
-              <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".16em", color: "#6b6357", marginBottom: 8 }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
+              {/* Human Lead, 30-07 '26: "the black-metal-clip style be the same for the
+                  header in landing Step 3". The document's own header now wears the same
+                  clip the floating windows do, so the page reads as one workspace instead
+                  of a clipped window sitting over an unrelated panel. */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10, padding: "3px 10px", borderRadius: 6, background: "linear-gradient(#3a4356, #1c2333)", border: "1px solid #0d1119", boxShadow: "0 2px 5px rgba(15,23,42,.35), inset 0 1px 0 rgba(255,255,255,.22)", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".08em", color: "#eef1f7", textTransform: "uppercase" }}>MANUSCRIPT {String.fromCharCode(0x00b7)} {(employer || "LIVE POSTING").toUpperCase()}</div>
               <h1 style={{ fontFamily: "'Source Serif 4','Newsreader',serif", fontWeight: 600, fontSize: "1.55rem", lineHeight: 1.18, color: "#16202e", margin: "0 0 10px" }}>{title || "this role"}</h1>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
                 {/* Chip scopes to the overview paragraph only. The Responsibilities heading
