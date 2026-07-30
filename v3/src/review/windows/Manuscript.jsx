@@ -33,14 +33,16 @@ export function renderWinManuscript(ctx) {
     "aria-label": label + ". No evidence phrase found in this line - open its analysis.",
     onClick: () => setActiveSpan(activeSpan === id ? null : id),
     onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(activeSpan === id ? null : id); } },
-    // 44px floor (CLAUDE.md section 4). manuP's line box is ~22.5px, so a SHORT duty line
-    // would otherwise be a ~22px tap target - the defect only shows on lines that don't
-    // wrap, which is exactly why it survives casual testing. display:block so the padding
-    // applies; the visible typography is unchanged.
-    style: { cursor: "pointer", display: "block", minHeight: 44, paddingTop: 10, paddingBottom: 10 },
+    // Stays INLINE. An earlier pass put display:block + padding here to reach the 44px
+    // floor, which pushed the line number onto its own row and doubled every line's
+    // height - the reading column turned into a ragged, double-spaced list. The pointer
+    // target that has to meet 44px is the <li> (it carries lineActivate); this span only
+    // has to be the KEYBOARD target, and target-size rules do not apply to keyboard focus.
+    style: { cursor: "pointer" },
   });
-  // A line whose evidence phrase carries the interaction gets the same floor on the row.
-  const lineRowMin = { minHeight: 44, display: "flex", alignItems: "center", flexWrap: "wrap" };
+  // The 44px floor lives on the ROW, which is the pointer target. 11px top and bottom over
+  // manuP's ~22.5px line box clears 44 without touching the typography or the line number.
+  const lineRow = { minHeight: 44, paddingTop: 11, paddingBottom: 11 };
   return (
 
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
@@ -148,7 +150,7 @@ export function renderWinManuscript(ctx) {
                     // no evidence -> the line renders fully plain (Human Lead doctrine).
                     const ev = rsEvidencePhrase(s.text, skillTermRe, skills);
                     const navOn = activeSpan === s.id; // reciprocal jump feedback (nav ring, not decoration)
-                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}<span {...plainActivate(s.id, s.text)}>{T(s.text)}</span>{linkBtn}</li>;
+                    if (!ev) return <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, ...lineRow, marginBottom: 2, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>{lineNo}<span {...plainActivate(s.id, s.text)}>{T(s.text)}</span>{linkBtn}</li>;
                     const withheld = !s.band; const st = s.band ? SPAN_STYLE[s.band] : SPAN_STYLE_WITHHELD; const on = activeSpan === s.id;
                     const mark = (
                       <span role="button" tabIndex={0} aria-pressed={on}
@@ -159,7 +161,7 @@ export function renderWinManuscript(ctx) {
                         style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px " + (withheld ? "dashed " : "solid ") + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                     );
                     return (
-                      <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
+                      <li key={s.id} id={"li-" + s.id} data-anchor-block={s.id} onClick={lineActivate(s.id)} style={{ ...manuP, ...lineRow, marginBottom: 2, cursor: "pointer", ...(navOn ? { outline: "2px solid #c7d6ff", outlineOffset: 3, borderRadius: 6 } : {}) }}>
                         {lineNo}{ev.pre ? <>{T(ev.pre)} </> : ""}{mark}{ev.post ? T(ev.post) : ""}{linkBtn}
                       </li>
                     );
@@ -182,7 +184,7 @@ export function renderWinManuscript(ctx) {
                       // No id/data-anchor-block added here on purpose: giving requirement
                       // lines a "#li-" anchor would make them new endpoints for the
                       // auto-link layer, and this PR changes the shell, not the connector.
-                      if (!ev) return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer" }}><span {...plainActivate(sp.id, ln)}>{ln}</span></li>;
+                      if (!ev) return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, ...lineRow, marginBottom: 2, cursor: "pointer" }}><span {...plainActivate(sp.id, ln)}>{ln}</span></li>;
                       const on = activeSpan === sp.id; const st = SPAN_STYLE_WITHHELD;
                       const mark = (
                         <span role="button" tabIndex={0} aria-pressed={on}
@@ -192,7 +194,7 @@ export function renderWinManuscript(ctx) {
                           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveSpan(on ? null : sp.id); } }}
                           style={{ cursor: "pointer", background: st.bg, color: st.color, borderBottom: "2px dashed " + st.under, borderRadius: 3, padding: "0 2px", boxShadow: on ? "0 0 0 3px rgba(26,86,219,.28)" : "none" }}>{ev.phrase}</span>
                       );
-                      return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, marginBottom: 8, cursor: "pointer" }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
+                      return <li key={li} onClick={lineActivate(sp.id)} style={{ ...manuP, ...lineRow, marginBottom: 2, cursor: "pointer" }}>{ev.pre ? ev.pre + " " : ""}{mark}{ev.post || ""}</li>;
                     })}
                   </ul>
                 </div>
