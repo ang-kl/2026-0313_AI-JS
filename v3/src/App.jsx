@@ -17721,12 +17721,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 version={APP_VERSION}
                 onRetryDuties={retryDuties}
                 onOpenOkf={() => setOkfRole(true)}
+                onOpenJobAd={jobAdAvailable(result) ? () => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); } : null}
               />
               {okfRole && <OkfModal doc={{ path: "role.md", ...step3BuildOkf(sel, result) }} onClose={() => setOkfRole(false)} />}
-              {/* Step 3: mount the same Job-Ad FAB the plain result view carries, so the posting
-                  picked in Step 2 is one tap away in the Review Studio too. Uses the app-level
-                  drawer state so the FAB and drawer stay in sync across step transitions. */}
-              {jobAdAvailable(result) && !adDrawerOpen && <JobAdFab onClick={() => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); }} />}
+              {/* Step 3 canvas revision (Human Lead, 30-07 '26): the Job-Ad FAB is no longer
+                  mounted here. It was a second round control in the very corner the workspace
+                  navigator now occupies, and in the canvas the advertisement IS the main
+                  document - so the FAB duplicated what the reader is already looking at. The
+                  drawer itself is preserved and reachable from the navigator ("Original ad,
+                  unsectioned"), driven by the same app-level state as before. */}
               <JobAdDrawer result={result} open={adDrawerOpen} onClose={() => setAdDrawerOpen(false)} />
             </>
           );
