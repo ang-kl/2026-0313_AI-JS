@@ -1189,7 +1189,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     Object.keys(p).forEach((id) => { next[id] = { ...p[id], state: fn(id, p[id]) }; });
     return next;
   });
-  const wsArrange = () => wsMap((id) => (wsPlacementOf(id) === "window" ? "docked" : "open"));
+  // Arrange docks at most two windows. The dock column is a fixed width split evenly, so
+  // docking six would give six ~70px strips - every provenance chip still renders, but a
+  // chip you must scroll a 70px box to see is weak provenance. The rest float, where they
+  // keep a readable size. Manual docking is left to the reader's own judgement; they can
+  // see the result and undock. (Conformance audit W3, 30-07 '26.)
+  const WS_ARRANGE_DOCK_MAX = 2;
+  const wsArrange = () => setWs((p) => {
+    const next = {}; let docked = 0;
+    Object.keys(p).forEach((id) => {
+      if (wsPlacementOf(id) !== "window") { next[id] = { ...p[id], state: "open" }; return; }
+      next[id] = { ...p[id], state: docked < WS_ARRANGE_DOCK_MAX ? "docked" : "floating" };
+      docked += 1;
+    });
+    return next;
+  });
   const wsMinimiseAll = () => wsMap(() => "minimized");
   // Reset drops any added analysis windows back off the canvas - starting over is the whole
   // point of the control, and the three core tools return to their opening arrangement.
@@ -1613,10 +1627,27 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* §4.1: the six analysis tabs are NOT deleted in this PR. They open as a full
           surface over the canvas (which stays mounted underneath) until their components
           migrate into windows/drawers in PR 2. */}
+      {/* IN-FLOW, not a fixed overlay. A full-viewport fixed overlay (z 1393) painted the
+          honesty footer ("AI-assisted / human decides" plus Source / Confidence /
+          Time-window) and the sub-header's source chip underneath it - and CLAUDE.md
+          section 4 makes that footer a merge gate on every user-facing result surface, not
+          merely on the default one. Caught by the conformance audit, 30-07 '26. The canvas
+          above is already display:none while this is open, so it occupies no space and an
+          ordinary flex child restores exactly the pre-canvas stacking: header, surface,
+          footer. Nothing needs a z-index. */}
       {moreOpen && (
-      <div style={{ position: "fixed", inset: 0, zIndex: RS_LAYERS.sheet - 1, display: "flex", flexDirection: "column", background: "#e9edf3" }}>
-      <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 14px", background: "#14204f" }}>
-        <span style={{ flex: 1, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#c9d2ee" }}>MORE ANALYSIS {String.fromCharCode(0x00b7)} THE SIX ANALYSIS VIEWS</span>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", background: "#e9edf3" }}>
+      <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 10, padding: "6px 14px", background: "#14204f", flexWrap: "wrap" }}>
+        <span style={{ flex: 1, minWidth: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".12em", color: "#c9d2ee" }}>MORE ANALYSIS {String.fromCharCode(0x00b7)} THE SIX ANALYSIS VIEWS</span>
+        {/* The unsectioned posting is this page's rawest "from MCF" artefact. Its entry
+            point moved to the canvas navigator, which is hidden here - so it needs one on
+            this surface too, or six of the seven views lose access to it entirely. */}
+        {onOpenJobAd && (
+          <button type="button" onClick={onOpenJobAd}
+            style={{ flex: "none", minHeight: 44, padding: "0 12px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#dbe2ff", background: "transparent", border: "1px solid #3a4a86", borderRadius: 8, cursor: "pointer" }}>
+            {String.fromCharCode(0x2197)} Original ad
+          </button>
+        )}
         <button type="button" onClick={() => setMoreOpen(false)}
           style={{ flex: "none", minHeight: 44, padding: "0 14px", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#14204f", background: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>
           {String.fromCharCode(0x2190)} Back to workspace
@@ -1753,7 +1784,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Body: No.138 U2 - the two-panel study desk, float layer, pinned strip,
           slide-over and bottom sheet - JSX moved verbatim to ./review/Desk.jsx.
           Option 1: all state stays here and passes down as props. */}
-      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={wsBringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} suggestLinks={suggestLinks} />
+      <Desk deskRef={deskRef} linkData={linkData} onStubActivate={onStubActivate} splitPct={splitPct} setSplitPct={setSplitPct} splitDragRef={splitDragRef} persistFloats={persistFloats} floats={floats} tab={tab} overrides={overrides} setOverrides={setOverrides} pinned={pinned} activeWin={activeWin} setActiveWin={setActiveWin} dockHover={dockHover} renderWindow={renderWindow} tearOff={tearOff} startFloatDrag={startFloatDrag} moveFloatDrag={moveFloatDrag} stopFloatDrag={stopFloatDrag} bringToFront={bringToFront} dockBack={dockBack} resetFloat={resetFloat} setPinned={setPinned} slideOpen={slideOpen} setSlideOpen={setSlideOpen} sheet={sheet} setSheet={setSheet} sheetCloseRef={sheetCloseRef} renderSheet={renderSheet} isNarrow={isNarrow} userLinks={userLinks} linkDrag={linkDrag} autoLinks={autoLinks} suggestLinks={suggestLinks} />
       </div>
       )}
 

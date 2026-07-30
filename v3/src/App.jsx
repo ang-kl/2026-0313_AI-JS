@@ -7562,6 +7562,23 @@ function CompanyBackground({ result }) {
   );
 }
 
+// hasCompanyRead(result): does the Step 3 company drawer have anything real to show?
+// Both panels above return null on thin input (CompanyBackground needs a named hirer on a
+// single-posting analysis; EmployerReality only speaks when it has an agency signal to
+// flag), and a JSX fragment wrapping two nulls is still truthy - so the drawer's own
+// "nothing is shown rather than guessed" copy could never render and an ESCO-only analysis
+// opened an empty panel with no reason given. Withhold WITH disclosure is the house rule,
+// so the shell needs to know emptiness in advance. Mirrors both panels' own guards.
+// (Conformance audit finding C2, 30-07 '26.)
+function hasCompanyRead(result) {
+  const pm = result && result.postingMeta;
+  const hiring = String((pm && pm.hiringCompanyName) || (pm && pm.employer) || "").trim();
+  if (pm && hiring) return true;
+  const jobs = ((result && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs)) ? result.responsibilitiesData.jobs : []).filter((j) => j && j.source !== "careers.gov.sg");
+  const cr = companyReality(jobs);
+  return !!(cr && cr.flagged && cr.flagged.length > 0);
+}
+
 // PRO6: Same job, other names - sibling titles for this role, so similar-R&R ads
 // under different titles are not missed. Three deterministic sources, each labelled:
 // (1) ESCO alternative labels (registry facts, verbatim), (2) the DIFFERENT titles
@@ -10800,7 +10817,11 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
   // (§2.2). Layered and Knowledge both resolve via ESCO; the SSOC graph is Singapore-first.
   useEffect(() => {
     if (typeof onModeChange !== "function") return;
-    onModeChange(graphMode === "ssoc" ? "SSOC" : graphMode === "knowledge" ? "ESCO KG" : "ESCO");
+    // "-led", not a flat "ESCO"/"SSOC": the layered and knowledge views resolve SKILLS via
+    // ESCO but their occupation and family come from SSOC 2024 (see the two-graphs note
+    // below), so a bare "ESCO" on the tray chip would be a narrower provenance claim than
+    // the graph's own footer makes. (Conformance audit S1, 30-07 '26.)
+    onModeChange(graphMode === "ssoc" ? "SSOC-led" : graphMode === "knowledge" ? "ESCO-led KG" : "ESCO-led");
   }, [graphMode, onModeChange]);
 
   const g = isPosting ? (result && result.roleGraphData) : graphState.g;
@@ -17709,7 +17730,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 source={reviewSource}
                 rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} onModeChange={setRgTaxonomy} />}
                 roleGraphMode={rgTaxonomy}
-                companyPane={<><CompanyBackground result={result} /><EmployerReality result={result} /></>}
+                companyPane={hasCompanyRead(result) ? <><CompanyBackground result={result} /><EmployerReality result={result} /></> : null}
                 posting={analysingPosting}
                 bgRunning={bgRunning}
                 bgStep={bgStep}

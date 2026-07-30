@@ -119,6 +119,7 @@ export default function Canvas({
   const canvasRef = useRef(null);
   const dragRef = useRef(null);
   const navRef = useRef(null);
+  const menuRef = useRef(null);
   const roRef = useRef(null);
 
   const ids = Object.keys(ws);
@@ -166,14 +167,32 @@ export default function Canvas({
 
   // The navigator popover closes on Escape and on a click outside it - the same dismissal
   // contract the rest of Step 3's overlays use.
+  // FOCUS (a11y audit, 30-07 '26): the popover unmounts on close rather than hiding, so if
+  // focus were inside it when it went, focus would drop silently to <body>. Move focus to
+  // the first item on open and return it to the trigger on close.
+  const closeNav = () => { setNavOpen(false); if (barRef && barRef.current) barRef.current.focus(); };
   useEffect(() => {
     if (!navOpen) return undefined;
-    const onKey = (e) => { if (e.key === "Escape") setNavOpen(false); };
+    const first = menuRef.current && menuRef.current.querySelector("button");
+    if (first) first.focus();
+    const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeNav(); } };
     const onDown = (e) => { if (navRef.current && !navRef.current.contains(e.target)) setNavOpen(false); };
     window.addEventListener("keydown", onKey);
     window.addEventListener("pointerdown", onDown, true);
     return () => { window.removeEventListener("keydown", onKey); window.removeEventListener("pointerdown", onDown, true); };
-  }, [navOpen, setNavOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navOpen]);
+  // role="menu" carries an expectation of arrow-key navigation; Tab alone would be an ARIA
+  // pattern mismatch that screen readers announce but the widget does not honour.
+  const menuKeys = (e) => {
+    const items = menuRef.current ? Array.from(menuRef.current.querySelectorAll("button")) : [];
+    if (!items.length) return;
+    const i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); items[(i <= 0 ? items.length : i) - 1].focus(); }
+    if (e.key === "Home") { e.preventDefault(); items[0].focus(); }
+    if (e.key === "End") { e.preventDefault(); items[items.length - 1].focus(); }
+  };
 
   // Default position for a window whose x/y is still unset: upper-right (§3.4), resolved at
   // paint so it tracks the real canvas width.
@@ -207,15 +226,26 @@ export default function Canvas({
   };
   const stopDrag = () => { dragRef.current = null; };
   // Keyboard move: the clip is focusable and arrow-steppable, so a window can be positioned
-  // without a pointer.
+  // without a pointer. The native CSS resize corner is pointer-only, so SHIFT+arrow on the
+  // same handle resizes - otherwise a keyboard-only reader can move, dock, expand and
+  // minimise a window but never resize one (a11y audit, 30-07 '26).
   const keyMove = (id) => (e) => {
     if (isNarrow || (ws[id] || {}).state !== "floating") return;
-    const step = e.shiftKey ? 40 : 16;
+    const g = ws[id] || {};
+    const d = wsDefaultSize();
+    if (e.shiftKey) {
+      const w = g.w || d.w, h = g.h || d.h;
+      if (e.key === "ArrowLeft") { e.preventDefault(); setGeom(id, { w: Math.max(300, w - 40) }); }
+      if (e.key === "ArrowRight") { e.preventDefault(); setGeom(id, { w: w + 40 }); }
+      if (e.key === "ArrowUp") { e.preventDefault(); setGeom(id, { h: Math.max(220, h - 40) }); }
+      if (e.key === "ArrowDown") { e.preventDefault(); setGeom(id, { h: h + 40 }); }
+      return;
+    }
     const p = posOf(id);
-    if (e.key === "ArrowLeft") { e.preventDefault(); setGeom(id, { x: Math.max(0, p.x - step), y: p.y }); }
-    if (e.key === "ArrowRight") { e.preventDefault(); setGeom(id, { x: p.x + step, y: p.y }); }
-    if (e.key === "ArrowUp") { e.preventDefault(); setGeom(id, { x: p.x, y: Math.max(0, p.y - step) }); }
-    if (e.key === "ArrowDown") { e.preventDefault(); setGeom(id, { x: p.x, y: p.y + step }); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); setGeom(id, { x: Math.max(0, p.x - 16), y: p.y }); }
+    if (e.key === "ArrowRight") { e.preventDefault(); setGeom(id, { x: p.x + 16, y: p.y }); }
+    if (e.key === "ArrowUp") { e.preventDefault(); setGeom(id, { x: p.x, y: Math.max(0, p.y - 16) }); }
+    if (e.key === "ArrowDown") { e.preventDefault(); setGeom(id, { x: p.x, y: p.y + 16 }); }
   };
 
   // Managed-window shell per state. Narrow screens never get a draggable box: every open
@@ -254,7 +284,7 @@ export default function Canvas({
       onPointerDown={draggable ? startDrag(id) : undefined} onPointerMove={draggable ? moveDrag : undefined}
       onPointerUp={draggable ? stopDrag : undefined} onPointerCancel={draggable ? stopDrag : undefined}
       onKeyDown={draggable ? keyMove(id) : undefined} tabIndex={draggable ? 0 : undefined}
-      aria-label={draggable ? "Move the " + label + " window - arrow keys, or drag" : undefined}
+      aria-label={draggable ? "Move the " + label + " window - arrow keys to move, Shift plus arrow keys to resize, or drag" : undefined}
       style={{
         position: "absolute", left: 10, top: 8, zIndex: 3,
         display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "62%",
@@ -271,7 +301,13 @@ export default function Canvas({
   );
 
   const minimised = ids.filter((id) => (ws[id] || {}).state === "minimized");
-  const navAct = (fn) => () => { fn(); setNavOpen(false); };
+  const navAct = (fn) => () => { fn(); closeNav(); };
+  // An EXPANDED window fills the canvas exactly like a modal, so it needs a modal's
+  // semantics: without them a keyboard user tabs into duty lines and other windows that are
+  // visually covered (a11y audit, 30-07 '26). Only one can be expanded at a time in
+  // practice, but the check is over the set so it stays true if that changes.
+  const expandedId = winIds.find((id) => ws[id].state === "expanded" && !isNarrow) || null;
+  const coveredByExpanded = !!expandedId;
   const navDivider = <div aria-hidden="true" style={{ height: 1, background: "#e6e9f0", margin: "5px 0" }} />;
   const navHead = (t) => <div style={{ fontFamily: mono, fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".13em", color: "#8a8272", padding: "6px 12px 2px" }}>{t}</div>;
 
@@ -280,9 +316,9 @@ export default function Canvas({
       <div ref={canvasRef} style={{ flex: 1, position: "relative", minHeight: 0, overflow: "hidden" }}>
 
         {/* Main document: the job advertisement, always present, never a tab. */}
-        <div className="wis-scroll" aria-label={mainLabel}
+        <div className="wis-scroll" aria-label={mainLabel} aria-hidden={coveredByExpanded ? "true" : undefined}
           style={{ position: "absolute", inset: 0, paddingRight: mainPadRight, paddingBottom: mainPadBottom, overflowY: "auto", background: "#e9e7e0", transition: "padding .12s ease" }}>
-          <div style={{ padding: "12px 16px 72px" }}>{mainEl}</div>
+          <div style={{ padding: "12px 16px 72px" }} inert={coveredByExpanded ? "" : undefined}>{mainEl}</div>
         </div>
 
         {/* Managed windows. Each is ONE element in every state - see HIDE, DO NOT UNMOUNT. */}
@@ -292,10 +328,14 @@ export default function Canvas({
           return (
             <div key={id} data-ws-id={id}
               onPointerDown={isNarrow || g.state !== "floating" ? undefined : () => bringToFront(id)}
-              role={isNarrow && g.state !== "minimized" ? "dialog" : undefined}
-              aria-modal={isNarrow && g.state !== "minimized" ? "true" : undefined}
+              role={(isNarrow || g.state === "expanded") && g.state !== "minimized" ? "dialog" : undefined}
+              aria-modal={(isNarrow || g.state === "expanded") && g.state !== "minimized" ? "true" : undefined}
               aria-label={label + (isNarrow ? " (full-screen)" : " (" + g.state + " window)")}
-              aria-hidden={g.state === "minimized" ? "true" : undefined}
+              // Minimised windows are display:none, which already removes them from the tab
+              // order - aria-hidden just keeps the two signals in agreement. A window that
+              // is merely COVERED by an expanded sibling needs the stronger treatment.
+              aria-hidden={g.state === "minimized" || (coveredByExpanded && id !== expandedId) ? "true" : undefined}
+              inert={coveredByExpanded && id !== expandedId && g.state !== "minimized" ? "" : undefined}
               style={winShell(id)}>
               {clip(id, shortOf(id), trayNote && trayNote[id], !isNarrow && g.state === "floating")}
               <div style={{ position: "absolute", right: 6, top: 4, zIndex: 3, display: "flex", gap: 3 }}>
@@ -346,8 +386,23 @@ export default function Canvas({
         {/* Floating navigator (bottom-left) + minimise tray. */}
         <div ref={navRef} style={{ position: "absolute", left: 12, bottom: 12, zIndex: 14, display: "flex", alignItems: "flex-end", gap: 8, maxWidth: "calc(100% - 24px)" }}>
           <div style={{ position: "relative", flex: "none" }}>
+            {/* The trigger renders BEFORE the popover so Tab moves forward from the
+                button INTO the menu. The popover is position:absolute, so DOM order is
+                free - putting the menu first (for visual convenience) made a freshly
+                opened menu reachable only by Shift+Tab, last item first (a11y audit). */}
+            <button ref={barRef} type="button" onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}
+              aria-label={navOpen ? "Close the workspace navigator" : "Open the workspace navigator"}
+              title="Workspace navigator"
+              style={{
+                width: 48, height: 48, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                fontSize: "1.25rem", lineHeight: 1, cursor: "pointer",
+                background: navOpen ? "#142a8e" : "#fbfaf8", border: "1px solid " + (navOpen ? "#142a8e" : "#c9cfda"),
+                boxShadow: "0 6px 18px rgba(15,23,42,.22)",
+              }}>
+              <span aria-hidden="true" style={{ filter: navOpen ? "grayscale(1) brightness(3)" : "none" }}>{String.fromCodePoint(0x1f9ed)}</span>
+            </button>
             {navOpen && (
-              <div role="menu" aria-label="Workspace navigator"
+              <div ref={menuRef} role="menu" aria-label="Workspace navigator" onKeyDown={menuKeys}
                 style={{ position: "absolute", left: 0, bottom: 52, width: 264, maxHeight: "62vh", overflowY: "auto", padding: "4px 0 6px", background: "#fff", border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 16px 44px rgba(15,23,42,.24)" }}>
                 {navHead("Read the ad as")}
                 {/* "Read clean / Evidence view / Comments" were three peer tabs for two
@@ -411,17 +466,6 @@ export default function Canvas({
                 </button>
               </div>
             )}
-            <button ref={barRef} type="button" onClick={() => setNavOpen(!navOpen)} aria-expanded={navOpen}
-              aria-label={navOpen ? "Close the workspace navigator" : "Open the workspace navigator"}
-              title="Workspace navigator"
-              style={{
-                width: 48, height: 48, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center",
-                fontSize: "1.25rem", lineHeight: 1, cursor: "pointer",
-                background: navOpen ? "#142a8e" : "#fbfaf8", border: "1px solid " + (navOpen ? "#142a8e" : "#c9cfda"),
-                boxShadow: "0 6px 18px rgba(15,23,42,.22)",
-              }}>
-              <span aria-hidden="true" style={{ filter: navOpen ? "grayscale(1) brightness(3)" : "none" }}>{String.fromCodePoint(0x1f9ed)}</span>
-            </button>
           </div>
           {/* Tray: a chip per MINIMISED tool, so restoring stays one tap without a permanent
               strip. Nothing minimised -> nothing here. */}
