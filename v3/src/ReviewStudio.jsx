@@ -695,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1259,7 +1259,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         // PR 2: restores the whole open set, including analysis windows added last visit -
         // ids are validated against the registry so a stale or hand-edited blob can never
         // conjure a window that does not exist.
-        const known = new Set(WINDOWS.map((w) => w.id).filter((id) => !WS_ALREADY_PLACED.includes(id)).concat(Object.keys(cur)));
+        const known = new Set(WINDOWS.map((w) => w.id).filter((id) => !WS_ALREADY_PLACED.includes(id))
+          .concat(analysisPanes ? Object.keys(analysisPanes) : [])
+          .concat(Object.keys(cur)));
         Object.keys(d.ws).forEach((id) => {
           const s = d.ws[id];
           if (!s || !known.has(id)) return;
@@ -1405,14 +1407,20 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // ── PR 2: the canvas's window set, derived from the same registry the desk uses ──────
   // Labels come from the registry so a window is named identically whether it is opened on
   // the canvas or found on a tab. The three core tools keep their own, friendlier names.
-  const wsLabelOf = (id) => WS_LABELS[id] || (WINDOWS.find((w) => w.id === id) || {}).label || id;
+  const wsLabelOf = (id) => WS_LABELS[id] || (analysisLabels && analysisLabels[id]) || (WINDOWS.find((w) => w.id === id) || {}).label || id;
   const wsShortOf = (id) => WS_SHORT[id] || wsLabelOf(id);
   // Offerable = every registry window that is not already surfaced elsewhere on the canvas
   // (manuscript is the document, inspector is the evidence drawer, graphs is the Role
   // Graph) and is not already open. Rendering one of those twice would mount it twice.
-  const wsAddable = WINDOWS
-    .filter((w) => !WS_ALREADY_PLACED.includes(w.id) && !ws[w.id])
-    .map((w) => ({ id: w.id, label: w.label }));
+  // The six ANALYSIS windows come first: they carry the reads that were unreachable after
+  // the 07-07 '26 redesign, so they are what a reader most likely came for.
+  const wsAnalysisIds = analysisPanes ? Object.keys(analysisPanes) : [];
+  const wsAddable = wsAnalysisIds
+    .filter((id) => !ws[id])
+    .map((id) => ({ id, label: wsLabelOf(id) }))
+    .concat(WINDOWS
+      .filter((w) => !WS_ALREADY_PLACED.includes(w.id) && !ws[w.id])
+      .map((w) => ({ id: w.id, label: w.label })));
   // Bodies for the mounted set. `ws`'s keys are exactly the tools that have been opened at
   // least once, so nothing is built into the tree before the reader asks for it.
   const wsToolEl = {};
@@ -1420,6 +1428,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     if (id === "roleGraph") wsToolEl[id] = rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>;
     else if (id === "company") wsToolEl[id] = companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>;
     else if (id === "evidence") wsToolEl[id] = renderWindow("inspector");
+    // An analysis window's tree is built HERE, not up front: analysisPanes holds thunks so
+    // opening one window never constructs the other five.
+    else if (analysisPanes && analysisPanes[id]) wsToolEl[id] = analysisPanes[id]();
     else wsToolEl[id] = renderWindow(id);
   });
   // P1: resolve the persisted links to DOM selectors for the connector overlay. Duty

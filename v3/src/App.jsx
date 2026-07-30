@@ -7565,6 +7565,36 @@ function CompanyBackground({ result }) {
   );
 }
 
+// PaneTabs - the section switcher inside a Step 3 analysis window (Human Lead, 30-07 '26:
+// sections belong on tabs, and no surface should run past ~3 screens). Tabs whose section
+// rendered nothing are dropped rather than shown empty: renderSection already returns null
+// when a section has no data, so an absent tab means "the engine had nothing here", which is
+// the withhold rule expressed as navigation.
+function PaneTabs({ tabs }) {
+  const live = (tabs || []).filter((t) => t && t.el);
+  const [active, setActive] = useState(0);
+  if (!live.length) {
+    return <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted, lineHeight: 1.55 }}>Nothing to show here for this analysis - these reads need data this role did not produce, so they are withheld rather than filled in.</p>;
+  }
+  const i = Math.min(active, live.length - 1);
+  return (
+    <div>
+      {live.length > 1 && (
+        <div role="tablist" aria-label="Sections" className="wis-scroll" style={{ display: "flex", gap: 4, overflowX: "auto", marginBottom: 12, borderBottom: `1px solid ${C.border}`, paddingBottom: 4 }}>
+          {live.map((t, k) => (
+            <button key={t.label} type="button" role="tab" aria-selected={k === i} onClick={() => setActive(k)}
+              style={{ flexShrink: 0, minHeight: 44, padding: "0 12px", borderRadius: "8px 8px 0 0", cursor: "pointer",
+                fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: k === i ? 700 : 500,
+                color: k === i ? C.accent : C.textSub, background: k === i ? C.surface : "transparent",
+                border: `1px solid ${k === i ? C.border : "transparent"}`, borderBottom: "none" }}>{t.label}</button>
+          ))}
+        </div>
+      )}
+      {live[i].el}
+    </div>
+  );
+}
+
 // hasCompanyRead(result): does the Step 3 company drawer have anything real to show?
 // Both panels above return null on thin input (CompanyBackground needs a named hirer on a
 // single-posting analysis; EmployerReality only speaks when it has an agency signal to
@@ -17052,6 +17082,60 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     return null;
   }
 
+  // ── Step 3 analysis windows (Human Lead, 30-07 '26: "I still want the v2+ analysis
+  // which was in earlier v3 [and] is now removed") ─────────────────────────────────────
+  // renderPillarView was defined and never called after the Step-3 redesign of 07-07 '26,
+  // which left TWENTY-FIVE analysis components alive in this file but unreachable - the
+  // AI-Exposure Index headline, the exposure bar, skill segments, the agentic shift, task
+  // prep, demand proof, progression, crossover and the WikiGraph among them. Step 3 had
+  // rebuilt a different, smaller set beside them rather than moving them.
+  //
+  // These regroup the orphans into six windows the Step 3 canvas can open, each with its
+  // own section tabs. They are composed from renderSection() itself rather than by copying
+  // its twenty-five invocations, so every prop list stays exactly as it was written and
+  // cannot drift. Each entry is a THUNK: the canvas only builds a window's tree when the
+  // reader actually opens it (Canvas.jsx's "lazy mount, then keep").
+  const ANALYSIS_WINDOW_LABELS = {
+    aiReadiness: "AI Readiness",
+    understandRole: "Understand the role",
+    marketPosition: "Market position",
+    stewardship: "Stewardship",
+    prepare: "Prepare",
+    wikigraph: "Career WikiGraph",
+  };
+  const analysisPanes = {
+    aiReadiness: () => <PaneTabs tabs={[
+      { label: "AI exposure", el: renderSection("ai-hero") },
+      { label: "Anatomy", el: renderSection("ai-anatomy") },
+      { label: "Skills by band", el: renderSection("skills") },
+      { label: "Reusability", el: renderSection("category") },
+    ]} />,
+    understandRole: () => <PaneTabs tabs={[
+      { label: "Why this role", el: renderSection("understand-s1") },
+      { label: "Other names", el: renderSection("understand-also") },
+      { label: "Responsibilities", el: renderSection("responsibilities") },
+      { label: "Job anatomy", el: renderSection("jobanatomy") },
+      { label: "Role mix", el: renderSection("rolemix") },
+      { label: "Role context", el: renderSection("context") },
+    ]} />,
+    marketPosition: () => <PaneTabs tabs={[
+      { label: "Demand", el: renderSection("position-market") },
+      { label: "Live postings", el: renderSection("mcf_jobs") },
+      { label: "Progression", el: renderSection("progression") },
+      { label: "Crossover", el: renderSection("crossover") },
+    ]} />,
+    stewardship: () => <PaneTabs tabs={[
+      { label: "Deep read", el: renderSection("deepread") },
+    ]} />,
+    prepare: () => <PaneTabs tabs={[
+      { label: "Task prep", el: renderSection("taskprep") },
+      { label: "Foundation", el: renderSection("foundation") },
+    ]} />,
+    wikigraph: () => <PaneTabs tabs={[
+      { label: "WikiGraph", el: renderSection("wikigraph") },
+    ]} />,
+  };
+
   // PL4: renderPillarView - renders the lead-question header then each section for the
   // active pillar, stacked vertically. Sections whose data is absent render nothing (guarded
   // inside renderSection). Lead question is a real heading (a11y: PL10/section-7).
@@ -17759,6 +17843,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} onModeChange={setRgTaxonomy} />}
                 roleGraphMode={rgTaxonomy}
                 companyPane={hasCompanyRead(result) ? <><CompanyBackground result={result} /><EmployerReality result={result} /></> : null}
+                analysisPanes={analysisPanes}
+                analysisLabels={ANALYSIS_WINDOW_LABELS}
                 posting={analysingPosting}
                 bgRunning={bgRunning}
                 bgStep={bgStep}
