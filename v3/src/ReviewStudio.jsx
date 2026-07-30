@@ -695,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1082,11 +1082,22 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   );
   const cr = result && result.criticalRead; // batched advisory LLM pass (may still be loading -> null)
   const spanBand = {}; dissection.spans.forEach((s) => { spanBand[s.id] = s.band; });
+  // PR 1 canvas: declared up here because showClean below reads moreOpen (the rest of the
+  // workspace state block sits with the other layout state further down).
+  const [moreOpen, setMoreOpen] = useState(false);
+  // Revision (Human Lead, 30-07 '26, first live look): the workspace toolbar and the tray
+  // strip collapse into ONE floating navigator at bottom-left, so the document keeps the
+  // rows they used to occupy. This is its open/closed state.
+  const [navOpen, setNavOpen] = useState(false);
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
   const _classified = dissection.spans.filter((s) => s.band).length;
   const footerConf = dissection.spans.length === 0 ? "withheld" : _classified === dissection.spans.length ? "high (engine-classified)" : _classified === 0 ? "withheld" : _classified + " of " + dissection.spans.length + " duties classified";
-  const showClean = tab === "ad" && markup === "clean";
+  // Revision (Human Lead, 30-07 '26): the canvas has no tabs, so gating the read mode on
+  // `tab === "ad"` silently disabled it there - picking "Clean, as published" in the
+  // navigator did nothing, because the canvas sits on the default "overview" tab. The gate
+  // now applies only where tabs actually exist: inside "More analysis".
+  const showClean = (!moreOpen || tab === "ad") && markup === "clean";
   const showDissect = tab === "duties" && dutyView === "oia";
   const showCritical = tab === "critical";
   // Inspector (right) is persistent on every tab; the comments LIST joins it on The Ad tab.
@@ -1151,7 +1162,6 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // behind "More analysis" while their components migrate in PR 2. Canvas.jsx is layout
   // only; every piece of state it touches lives here (the standing Option 1 rule).
   const [ws, setWs] = useState(wsInitial);
-  const [moreOpen, setMoreOpen] = useState(false);
   const setWinState = (id, state) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), state } }));
   const setGeom = (id, patch) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), ...patch } }));
   // "Arrange" opens everything in a tidy default; "Minimise all" clears to the document;
@@ -1391,7 +1401,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     <div style={{ display: "flex", flexDirection: "column", minHeight: "calc(100vh - 50px)", background: "#e9edf3" }}>
       {/* Sub-header (fixed, does not scroll) */}
       <div style={{ position: "sticky", top: 0, zIndex: 30, flex: "none", display: "flex", alignItems: "center", gap: 14, padding: "10px 18px", background: "#14204f", borderBottom: "1px solid #0d1636" }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#dbe2ff", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none" }}><span aria-hidden="true">&#8592;</span> Postings</button>
+        {/* 44px touch target (CLAUDE.md section 4) - this control had been a 17px-high text
+            button since the sub-header was written. */}
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "#dbe2ff", fontFamily: "'Spline Sans',sans-serif", fontWeight: 500, fontSize: "0.8125rem", flex: "none", minHeight: 44, display: "inline-flex", alignItems: "center", gap: 5, padding: "0 4px" }}><span aria-hidden="true">&#8592;</span> Postings</button>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 3 }}>
             <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: ".14em", color: "rgba(255,255,255,0.72)" }}>REVIEWING</span>
@@ -1544,9 +1556,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           mainLabel="Job Advertisement"
           mainEl={renderWindow("manuscript")}
           barRef={wsBarRef}
-          mainToolbar={[["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
-            <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={{ ...pillStyle(markup === k), minHeight: 44 }}>{lbl}</button>
-          ))}
+          readMode={markup} setReadMode={setMarkup}
+          navOpen={navOpen} setNavOpen={setNavOpen}
+          onOpenJobAd={onOpenJobAd}
           toolEl={{
             roleGraph: rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>,
             company: companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>,
