@@ -413,7 +413,26 @@ function _forceLayout(nodes, edges, width, height) {
 //   layout        - optional; "lanes" (default), "force" (neural/spring), or "workflow"
 //                   (deterministic left-to-right DAG). Back-compatible: omitting layout
 //                   defaults to "lanes". The lanes view is the a11y/keyboard path.
-export function KGGraph({ kg, onNodeTap, layout, embedded }) {
+// PR 4 (build order, 31-07 '26): the "this role" marker.
+// A double ring (a second edge sitting OUTSIDE the node's own border, with a gap, so it
+// reads as two rings rather than one thick one) plus a literal text label. Shape and text,
+// never colour alone - the mark survives greyscale, forced-colours mode and colour-blind
+// reading, per the house contract. Additive: no highlightIds renders exactly as before.
+//
+// Drawn with box-shadow, NOT outline, on purpose: the app's global keyboard focus ring is
+// an `outline` rule that is deliberately not !important, so an inline outline here would
+// silently swallow the focus indicator on precisely the nodes a reader most wants to reach.
+function kgMineRing(baseShadow) {
+  const ring = "0 0 0 2px " + P.surface + ", 0 0 0 4px " + P.text;
+  return { boxShadow: baseShadow ? ring + ", " + baseShadow : ring };
+}
+const KG_MINE_CHIP = {
+  fontSize: 9, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
+  color: P.text, background: "transparent",
+  border: "1px solid " + P.text, borderRadius: 6, padding: "1px 6px",
+};
+
+export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlightLabel }) {
   const effectiveLayout = layout === "force" ? "force" : layout === "workflow" ? "workflow" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [wide, setWide] = useState(true);
@@ -445,6 +464,13 @@ export function KGGraph({ kg, onNodeTap, layout, embedded }) {
   kg.edges.forEach((e) => { edgeSet.add(e.source + "|" + e.target); edgeSet.add(e.target + "|" + e.source); });
   const isConnected = (a, b) => edgeSet.has(a + "|" + b);
   const isHighlighted = (n) => !traced || n.id === traced || isConnected(traced, n.id);
+
+  // PR 4: node ids the caller says trace back to the role being read. Membership only -
+  // this component never decides WHICH nodes those are, so it cannot invent a match.
+  const mineIds = Array.isArray(highlightIds) ? highlightIds : [];
+  const mineSet = useMemo(function() { return new Set(mineIds); }, [mineIds.join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mineLabel = highlightLabel || "This role";
+  const isMine = (id) => mineSet.has(id);
 
   // CO2: wire onNodeTap alongside the existing tap-to-trace. The traced highlight
   // logic is untouched; onNodeTap is an additional notification to the host.
@@ -481,14 +507,22 @@ export function KGGraph({ kg, onNodeTap, layout, embedded }) {
           ))}
         </div>
 
+        {/* PR 4: the marker's own key, shown only when something is actually marked. */}
+        {mineSet.size > 0 && (
+          <p style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 7, margin: "0 0 12px", fontSize: 12, color: P.textSub, lineHeight: 1.5 }}>
+            <span style={KG_MINE_CHIP}>{mineLabel}</span>
+            <span>{mineSet.size} node{mineSet.size === 1 ? " is" : "s are"} marked with this label and a double outline - the ring and the words carry the mark, not colour.</span>
+          </p>
+        )}
+
         {/* CO2.2: force (neural) view with pan/zoom + LOD */}
         {effectiveLayout === "force" && (
-          <KGForceView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} wide={wide} />
+          <KGForceView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} isMine={isMine} mineLabel={mineLabel} wide={wide} />
         )}
 
         {/* CO2.2: workflow (streamline) view */}
         {effectiveLayout === "workflow" && (
-          <KGWorkflowView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} wide={wide} />
+          <KGWorkflowView kg={kg} traced={traced} onNodeClick={handleNodeClick} isHighlighted={isHighlighted} isMine={isMine} mineLabel={mineLabel} wide={wide} />
         )}
 
         {/* Cluster lanes (default + a11y path) */}
@@ -508,7 +542,7 @@ export function KGGraph({ kg, onNodeTap, layout, embedded }) {
                 )}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                   {clNodes.map((n) => (
-                    <KGNodeCard key={n.id} node={n} traced={traced} highlighted={isHighlighted(n)} onClick={handleNodeClick} wide={wide} />
+                    <KGNodeCard key={n.id} node={n} traced={traced} highlighted={isHighlighted(n)} mine={isMine(n.id)} mineLabel={mineLabel} onClick={handleNodeClick} wide={wide} />
                   ))}
                 </div>
               </section>
@@ -670,7 +704,8 @@ function _ZoomToolbar({ onZoomIn, onZoomOut, onFit, zoom }) {
 // CO2.2: force-directed layout view with pan/zoom viewport and LOD.
 // Renders the SAME nodes/edges as the lane view, positioned by _forceLayout.
 // Layout is presentation-only; data and provenance chips are unchanged.
-function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
+function KGForceView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLabel, wide }) {
+  const mineOf = typeof isMine === "function" ? isMine : function() { return false; };
   const W = 900, H = 560;
   // _forceLayout is byte-frozen; memoize so a pan/zoom re-render only updates the
   // viewport transform - not re-run the 120-iteration simulation (perf, Codex P2).
@@ -735,7 +770,7 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
                 tabIndex={eligible ? 0 : -1}
                 aria-pressed={isT}
                 aria-hidden={!eligible}
-                aria-label={n.type + ": " + n.label + (isT ? ". Tap to collapse." : ". Tap to read in full.")}
+                aria-label={n.type + ": " + n.label + (mineOf(n.id) ? ". Traces back to the role you are reading." : "") + (isT ? ". Tap to collapse." : ". Tap to read in full.")}
                 style={{
                   position: "absolute",
                   left: Math.round(p.x - boxW / 2), top: Math.round(p.y - 20),
@@ -755,10 +790,14 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
                   WebkitLineClamp: isT ? "unset" : 3,
                   WebkitBoxOrient: "vertical",
                   pointerEvents: eligible ? "auto" : "none",
+                  ...(mineOf(n.id) ? kgMineRing(isT ? "0 8px 22px rgba(2,6,23,0.22)" : "") : null),
                 }}>
                 {isT ? (
                   <span>
                     <span style={{ display: "block", fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", opacity: 0.65, marginBottom: 4 }}>{n.type}</span>
+                    {mineOf(n.id) && (
+                      <span style={{ display: "inline-block", ...KG_MINE_CHIP, marginBottom: 4 }}>{mineLabel}</span>
+                    )}
                     {n.label}
                     <span style={{ display: "block", marginTop: 6, fontSize: 10, fontWeight: 700, color: "#1e40af" }}>tap to collapse</span>
                   </span>
@@ -778,7 +817,8 @@ function KGForceView({ kg, traced, onNodeClick, isHighlighted, wide }) {
 // CO2.2: workflow (streamline) view - deterministic left->right column DAG.
 // Three columns: functions | duties | agent candidates.
 // Orthogonal left->right edge paths with verb labels. Same LOD + pan/zoom as force view.
-function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
+function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLabel, wide }) {
+  const mineOf = typeof isMine === "function" ? isMine : function() { return false; };
   const COL_COUNT = 3;
   const W = Math.max(900, WORKFLOW_COL_GAP * COL_COUNT + 80);
   const H = 560;
@@ -862,13 +902,14 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
             const hi = isHighlighted(n);
             const isT = traced === n.id;
             const eligible = _nodeTier(n) <= WF_BAND;
+            const mine = mineOf(n.id);
             return (
               <button key={n.id}
                 onClick={function() { if (eligible) onNodeClick(n.id); }}
                 tabIndex={eligible ? 0 : -1}
                 aria-pressed={isT}
                 aria-hidden={!eligible}
-                aria-label={n.type + ": " + n.label + ". Tap to trace."}
+                aria-label={n.type + ": " + n.label + (mine ? ". Traces back to the role you are reading." : "") + ". Tap to trace."}
                 style={{
                   position: "absolute",
                   left: Math.round(p.x - 52), top: Math.round(p.y - 20),
@@ -883,7 +924,11 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
                   boxShadow: isT ? "0 2px 8px " + st.color + "44" : "none",
                   overflow: "hidden", lineHeight: 1.3, wordBreak: "break-word",
                   pointerEvents: eligible ? "auto" : "none",
+                  ...(mine ? kgMineRing(isT ? "0 2px 8px " + st.color + "44" : "") : null),
                 }}>
+                {mine && (
+                  <span aria-hidden="true" style={{ display: "block", fontSize: 8, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: P.text, marginBottom: 2 }}>{mineLabel}</span>
+                )}
                 {n.label}
               </button>
             );
@@ -897,7 +942,7 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, wide }) {
   );
 }
 
-function KGNodeCard({ node, traced, highlighted, onClick, wide }) {
+function KGNodeCard({ node, traced, highlighted, mine, mineLabel, onClick, wide }) {
   const st = KG_TYPE_STYLE[node.type] || KG_TYPE_STYLE.skill;
   const provKey = KG_SRC_PROV[node.source] || "none";
   const pv = PROV[provKey];
@@ -907,7 +952,7 @@ function KGNodeCard({ node, traced, highlighted, onClick, wide }) {
     <button
       onClick={handleClick}
       aria-pressed={isTraced}
-      aria-label={`${node.type}: ${node.label}. Source: ${pv.label}. Confidence: ${node.confidence || "unset"}. ${isTraced ? "Tap again to clear." : "Tap to trace connections."}`}
+      aria-label={`${node.type}: ${node.label}. ${mine ? "Traces back to the role you are reading. " : ""}Source: ${pv.label}. Confidence: ${node.confidence || "unset"}. ${isTraced ? "Tap again to clear." : "Tap to trace connections."}`}
       style={{
         cursor: "pointer", border: `${isTraced ? 2 : 1}px solid ${isTraced ? st.color : st.border}`,
         borderRadius: 10, background: isTraced ? st.bg : P.surface, padding: "9px 12px",
@@ -915,8 +960,10 @@ function KGNodeCard({ node, traced, highlighted, onClick, wide }) {
         opacity: highlighted ? 1 : P.dim, transition: "opacity .15s, border-color .15s",
         boxShadow: isTraced ? `0 3px 12px ${st.color}33` : "0 1px 3px rgba(16,24,40,.06)",
         display: "flex", flexDirection: "column", gap: 4,
+        ...(mine ? kgMineRing(isTraced ? `0 3px 12px ${st.color}33` : "0 1px 3px rgba(16,24,40,.06)") : null),
       }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        {mine && <span aria-hidden="true" style={KG_MINE_CHIP}>{mineLabel}</span>}
         <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 800, color: st.color, background: st.bg, border: `1px solid ${st.border}`, borderRadius: 6, padding: "1px 6px" }}>{st.label}</span>
         <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 700, color: pv.color, background: pv.bg, borderRadius: 6, padding: "1px 6px" }}>{pv.icon} {pv.label}</span>
         {node.confidence && <span aria-hidden="true" style={{ fontSize: 10, color: P.muted }}>{node.confidence}</span>}

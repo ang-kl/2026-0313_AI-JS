@@ -10874,6 +10874,18 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graphMode, coName]);
 
+  // PR 4 (build order, 31-07 '26): where THIS role sits in the company graph.
+  // The company read draws the employer's whole shape; without a mark the reader has to
+  // guess which part of it is the job in front of them. companyNodesForRole answers that
+  // by set membership only - see its comment for the two bases and why they are named on
+  // screen. Computed here (not inside the render branch) so the hook order never varies.
+  const coMineUuid = String((result && result.postingMeta && result.postingMeta.uuid) || (posting && posting.uuid) || "");
+  const coMineTitle = String((posting && posting.title) || title || "");
+  const coMine = useMemo(
+    () => (coState.model ? companyNodesForRole(coState.model, coMineUuid, coMineTitle) : { ids: [], basis: null, clusterCount: 0 }),
+    [coState.model, coMineUuid, coMineTitle]
+  );
+
   // PR 1 (Step 3 Working Canvas, 30-07 '26) §3.6: REPORT the taxonomy this graph is
   // currently reading so the workspace's minimise tray can label it ("Role Graph · ESCO").
   // Read-only and additive - graphMode, the toggle and every interaction are untouched
@@ -11140,7 +11152,22 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
               )}
               {coState.kg && coState.model.agents && coState.model.agents.length > 0 && (
                 <>
-                  <KGGraph kg={coState.kg} onNodeTap={setCoNode} layout="workflow" embedded />
+                  <KGGraph kg={coState.kg} onNodeTap={setCoNode} layout="workflow" embedded
+                    highlightIds={coMine.ids} highlightLabel="This role" />
+                  {/* PR 4: say HOW the mark was made, every time - including when nothing
+                      matched. A reader who cannot tell "this exact advert" from "an advert
+                      with the same title" cannot weigh what the mark is worth. */}
+                  <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
+                    {coMine.basis === "uuid" && (
+                      <>Marked: the {coMine.clusterCount} duty cluster{coMine.clusterCount === 1 ? "" : "s"} this posting itself contributed to, matched on its MyCareersFuture posting ID, plus the function and agent candidate each one sits under.</>
+                    )}
+                    {coMine.basis === "title" && (
+                      <>Marked on job title, not posting ID: this advert is not among the {(coState.model.stats && coState.model.stats.postings) || 0} postings read here, so the mark shows where {coMineTitle ? <>a posting titled &ldquo;{coMineTitle}&rdquo;</> : "a posting with the same title"} sits - which may be a different advert for a similar role.</>
+                    )}
+                    {!coMine.basis && (
+                      <>Nothing is marked for this role: neither this posting&rsquo;s ID nor its title appears among the {(coState.model.stats && coState.model.stats.postings) || 0} postings read here, so its position in this employer&rsquo;s shape is withheld rather than guessed.</>
+                    )}
+                  </p>
                   {coNode && <CompanyAgentSidePanel inline nodeId={coNode} kgPayload={coState.kg} onClose={() => setCoNode(null)} />}
                 </>
               )}
@@ -14680,6 +14707,55 @@ function companyAgentsToKgPayload(model) {
     // Carry the full model so the side panel can look up details by node id.
     _agentsModel: model,
   };
+}
+
+// PR 4 (build order, 31-07 '26): which company-graph nodes trace back to THIS posting.
+// Pure set membership over the model's own roleUuids / roleTitles - no scoring, no
+// similarity, no LLM. Two bases, and the caller names whichever one was used on screen so
+// the reader knows how strong the claim is:
+//   "uuid"  - this posting's own MCF id is among the ids the cluster was built from. The
+//             cluster genuinely contains work from this advert.
+//   "title" - the id is NOT among the sampled postings (the employer fetch is capped), so
+//             the fallback is an exact normalised job-title match. That says "a posting
+//             titled the same sits here", not "this posting sits here".
+// Neither matching: returns an empty set, and the caller says nothing is marked rather
+// than guessing a position for the role.
+// Returns { ids, basis, clusterCount }.
+function companyNodesForRole(model, myUuid, myTitle) {
+  const empty = { ids: [], basis: null, clusterCount: 0 };
+  if (!model || !Array.isArray(model.clusters)) return empty;
+  const uuid = String(myUuid || "").trim();
+  const tnorm = _phraseNorm(myTitle);
+
+  // A matched cluster carries its function (tier 1) and any agent candidate built from it
+  // (tier 3) with it, so the mark reads as a path through the graph rather than a lone dot.
+  function collect(pred) {
+    const matched = model.clusters.filter(pred);
+    if (matched.length === 0) return null;
+    const ids = new Set();
+    const clusterIds = new Set();
+    matched.forEach(function(c) {
+      ids.add(c.id);
+      clusterIds.add(c.id);
+      if (c.functionId) ids.add(c.functionId);
+    });
+    (model.agents || []).forEach(function(a) {
+      if (clusterIds.has(a.clusterId)) ids.add(a.id);
+    });
+    return { ids: Array.from(ids), clusterCount: clusterIds.size };
+  }
+
+  if (uuid) {
+    const byUuid = collect(function(c) { return (c.roleUuids || []).indexOf(uuid) !== -1; });
+    if (byUuid) return { ids: byUuid.ids, basis: "uuid", clusterCount: byUuid.clusterCount };
+  }
+  if (tnorm) {
+    const byTitle = collect(function(c) {
+      return (c.roleTitles || []).some(function(t) { return _phraseNorm(t) === tnorm; });
+    });
+    if (byTitle) return { ids: byTitle.ids, basis: "title", clusterCount: byTitle.clusterCount };
+  }
+  return empty;
 }
 
 // CO2.8: CompanyAgentSidePanel - node-detail side panel opened via onNodeTap.
