@@ -10821,6 +10821,10 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
   // "loading", "nothing to show" and "failed" can each say what they mean.
   const [coState, setCoState] = useState({ status: "idle", kg: null, model: null });
   const [coNode, setCoNode] = useState(null);
+  // Retry counter, not a status reset: coState is deliberately NOT a dependency of the fetch
+  // effect (it would re-fire on its own writes), so setting status back to "idle" re-renders
+  // without re-running anything. Bumping this nonce is what actually re-runs the read.
+  const [coRetry, setCoRetry] = useState(0);
   const graphScrollRef = useRef(null);
   const roleGraphDragRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
@@ -10865,14 +10869,92 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http"))))
       .then((data) => {
         if (!live) return;
-        const group = (Array.isArray(data.matches) && data.matches.length === 1) ? data.matches[0] : { displayName: coName, jobs: [] };
-        const model = buildCompanyAgents(group);
+        // Three outcomes, not two. A zero-match response is NOT evidence about the employer:
+        // api/mcf.js answers 200 with matches:[] and fallback:true for a timeout, an upstream
+        // error, an unnormalisable query AND a genuine miss alike - and an outage is swallowed
+        // into that same shape. Only matches.length >= 2 is real ambiguity; everything else
+        // that fails to resolve to one group is a failed read, and must say so.
+        const matches = Array.isArray(data.matches) ? data.matches : [];
+        if (matches.length >= 2) {
+          setCoState({ status: "ambiguous", kg: null, model: null, matchCount: matches.length });
+          return;
+        }
+        if (matches.length !== 1 || data.fallback === true) {
+          setCoState({ status: "error", kg: null, model: null });
+          return;
+        }
+        const model = buildCompanyAgents(matches[0]);
         setCoState({ status: "done", kg: companyAgentsToKgPayload(model), model });
       })
       .catch(() => { if (live) setCoState({ status: "error", kg: null, model: null }); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphMode, coName]);
+  }, [graphMode, coName, coRetry]);
+
+  // PR 4 (build order, 31-07 '26): where THIS role sits in the company graph.
+  // The company read draws the employer's whole shape; without a mark the reader has to
+  // guess which part of it is the job in front of them. companyNodesForRole answers that
+  // by set membership only - see its comment for the two bases and why they are named on
+  // screen. Computed here (not inside the render branch) so the hook order never varies.
+  const coMineUuid = String((result && result.postingMeta && result.postingMeta.uuid) || (posting && posting.uuid) || "");
+  const coMineTitle = String((posting && posting.title) || title || "");
+  const coMine = useMemo(
+    function() {
+      if (!coState.model || !coState.kg) return { ids: [], basis: null, clusterCount: 0, presence: "unknown" };
+      // Only ids the payload actually DREW are eligible to be marked or counted. The duty
+      // tier is capped, so a cluster can match in the model and have no node on screen -
+      // counting it would promise the reader a ring they cannot find.
+      const drawn = new Set(coState.kg.nodes.map(function(n) { return n.id; }));
+      return companyNodesForRole(coState.model, coMineUuid, coMineTitle, drawn);
+    },
+    [coState.model, coState.kg, coMineUuid, coMineTitle]
+  );
+  // A function node is a container, not the role: "This role" on "Information Technology"
+  // would read as though the function WERE the job. Duty and agent nodes get the plain mark.
+  const coMineLabels = useMemo(
+    function() {
+      const map = {};
+      if (!coState.kg) return map;
+      const byId = {};
+      coState.kg.nodes.forEach(function(n) { byId[n.id] = n; });
+      coMine.ids.forEach(function(id) {
+        const n = byId[id];
+        map[id] = (n && n.cluster === "functions") ? "Contains this role" : "This role";
+      });
+      return map;
+    },
+    [coState.kg, coMine.ids]
+  );
+  // Why this advert did or did not reach a cluster - stated as the fact the data supports,
+  // never as the stronger "not among the postings read here" (which the model cannot verify
+  // and which is simply wrong for an advert that was listed but never duty-fetched).
+  // Every clause below is bound to one model field, and says only what that field licenses.
+  // Both of this PR's honesty defects were clauses asserting a MECHANISM ("only the newest
+  // were read", "not among the postings read here") that no field could confirm, so the rule
+  // here is: name the field, or do not write the sentence.
+  const coMinePresenceNote = (function() {
+    if (!coState.model) return "";
+    const nPost = (coState.model.stats && coState.model.stats.postings) || 0;
+    if (coMine.presence === "cross-source") {                 // <- uuid namespace
+      return "This advert comes from careers.gov.sg while this employer graph is read from MyCareersFuture, so the two ID systems cannot be compared at all.";
+    }
+    if (coMine.presence === "listed-not-read") {              // <- roster row, dutyRead false
+      return "This advert is one of the " + nPost + " postings found, but no duty text came back with it in this read.";
+    }
+    if (coMine.presence === "duty-read") {                    // <- roster row, dutyRead true
+      // "text", not "duty text": extractResponsibilities falls back to the whole cleaned ad
+      // when it finds no section header, so a true dutyRead cannot tell a real duty section
+      // from any text at all. Same overclaim the false branch was just fixed for.
+      return "This advert's text was read, but no line of it reached a cluster drawn here.";
+    }
+    if (coMine.presence === "matched-undrawn") {              // <- cluster match, none drawn
+      return "This advert was identified by ID, but the duty clusters it contributed to fall outside the tier drawn here.";
+    }
+    if (coMine.presence === "absent") {                       // <- roster lookup miss
+      return "This advert's ID is not among the " + nPost + " postings this read found.";
+    }
+    return "";                                                 // <- no id, or no roster
+  })();
 
   // PR 1 (Step 3 Working Canvas, 30-07 '26) §3.6: REPORT the taxonomy this graph is
   // currently reading so the workspace's minimise tray can label it ("Role Graph · ESCO").
@@ -11117,13 +11199,39 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
 
       {/* SSOCRG: SSOC-grounded second graph (opt-in). Populated in the background by doAnalyse. */}
       {graphMode === "company" && (
-        <div style={{ marginTop: 12 }}>
-          {coState.status === "loading" && (
+        // aria-live: loading -> error -> ambiguous were silent transitions for a screen
+        // reader, so a failed read read as nothing happening at all.
+        <div style={{ marginTop: 12 }} aria-live="polite">
+          {/* "idle" shares the loading line: the effect fires on the very next tick, so the
+              alternative is a frame of blank panel after a retry. */}
+          {(coState.status === "loading" || coState.status === "idle") && (
             <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>Reading {coName}&rsquo;s live postings&hellip;</p>
           )}
           {coState.status === "error" && (
             <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.55 }}>
-              Couldn&rsquo;t reach the postings source for {coName} just now, so nothing is drawn - withheld rather than guessed. Switch away and back to retry.
+              {/* Deliberately says nothing about the employer. A zero-match answer arrives in
+                  the same shape whether the name genuinely has no live postings, the query
+                  could not be normalised, the source timed out, or MCF is down - so any
+                  sentence naming a cause would be picking one of four at random. */}
+              This read didn&rsquo;t return a single employer for {coName}, so nothing is drawn - withheld rather than guessed.{" "}
+              <button type="button" onClick={() => { setCoState({ status: "idle", kg: null, model: null }); setCoRetry((n) => n + 1); }}
+                style={{ minHeight: 44, padding: "0 14px", border: "1px solid " + C.border, borderRadius: 8, background: C.surface, color: C.text, fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}>
+                Try again
+              </button>
+            </p>
+          )}
+          {coState.status === "ambiguous" && (
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.55 }}>
+              {/* Every noun here is a property of THIS read, not of MyCareersFuture: the
+                  groups are minted by our own name normaliser over the pages we polled. */}
+              &ldquo;{coName}&rdquo; matched {coState.matchCount} different employer names in this read, so there is no single employer to read - withheld rather than merging names that may be different companies.
+            </p>
+          )}
+          {/* CLAUDE.md §4 applies to every state, not only the one that draws a graph: a
+              reader who only ever sees the withhold still needs the source and the footer. */}
+          {(coState.status === "error" || coState.status === "ambiguous") && (
+            <p style={{ margin: "8px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>
+              Source: MyCareersFuture employer search. Confidence: nothing computed - this read produced no employer to draw. Time-window: this lookup. AI-assisted {String.fromCharCode(0x00b7)} human decides.
             </p>
           )}
           {coState.status === "done" && coState.model && (
@@ -11140,12 +11248,40 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
               )}
               {coState.kg && coState.model.agents && coState.model.agents.length > 0 && (
                 <>
-                  <KGGraph kg={coState.kg} onNodeTap={setCoNode} layout="workflow" embedded />
+                  <KGGraph kg={coState.kg} onNodeTap={setCoNode} layout="workflow" embedded
+                    highlightIds={coMine.ids} highlightLabel="This role" highlightLabels={coMineLabels}
+                    highlightNote={coMine.basis === "uuid" ? "matched on this posting's own ID" : coMine.basis === "title" ? "matched on job title only, so this may be a different advert for a similar role" : ""} />
+                  {/* PR 4: say HOW the mark was made, every time - including when nothing
+                      matched. A reader who cannot tell "this exact advert" from "an advert
+                      with the same title" cannot weigh what the mark is worth. Two facts are
+                      kept apart on purpose: whether the advert was READ (presence) and what
+                      the mark RESTS ON (basis). The employer read lists many postings but
+                      only fetches duties for the newest few, so "no mark" almost never means
+                      "not in the sample" - saying so would be a false claim about provenance. */}
+                  <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: C.textSub, lineHeight: 1.55 }}>
+                    {/* "derived", not "computed": reproducible for this sample of postings,
+                        but not a verbatim posting fact. (The graph's own nodes map derived
+                        onto its "inferred" chip - same idea, different vocabulary.) */}
+                    <Prov kind="derived" small />{" "}
+                    {coMine.basis === "uuid" && (
+                      <>Marked on this posting&rsquo;s own MyCareersFuture ID: the {coMine.clusterCount} duty cluster{coMine.clusterCount === 1 ? "" : "s"} drawn here that it contributed to, plus the function each sits under and any agent candidate built from it.</>
+                    )}
+                    {/* "a posting whose title matches", not a quote: coMineTitle is the
+                        tidied title, so quoting it would imply the ad's literal wording. */}
+                    {coMine.basis === "title" && (
+                      <>Marked on job title, not posting ID - so this shows where a posting whose title matches {coMineTitle || "this one"} sits, which may be a different advert for a similar role.{coMinePresenceNote ? " " + coMinePresenceNote : ""}</>
+                    )}
+                    {!coMine.basis && (
+                      <>Nothing is marked for this role.{coMinePresenceNote ? " " + coMinePresenceNote : ""} Its position in this employer&rsquo;s shape is withheld rather than guessed.</>
+                    )}
+                  </p>
                   {coNode && <CompanyAgentSidePanel inline nodeId={coNode} kgPayload={coState.kg} onClose={() => setCoNode(null)} />}
                 </>
               )}
               <p style={{ margin: "8px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>
-                No AI in this read - duties are clustered from {coName}&rsquo;s live postings by shared terms, and every node traces to the postings it came from. Source: MyCareersFuture ({(coState.model.stats && coState.model.stats.postings) || 0} postings). Confidence: recurrence across postings, not a judgement about the employer. Time-window: postings live at this lookup. AI-assisted {String.fromCharCode(0x00b7)} human decides.
+                {/* Attribute to the employer group MCF actually resolved, not to the name
+                    printed on this one advert - they can differ. */}
+                No AI in this read - duties are clustered from {coState.model.company || coName}&rsquo;s live postings by shared terms, and every node traces to the postings it came from. Source: MyCareersFuture ({(coState.model.stats && coState.model.stats.postings) || 0} postings). Confidence: recurrence across postings, not a judgement about the employer. Time-window: postings live at this lookup. AI-assisted {String.fromCharCode(0x00b7)} human decides.
               </p>
             </>
           )}
@@ -14394,6 +14530,39 @@ function buildOrgRead(activeMatch, empReg, csgGroups, csgRetrievedAt) {
   return { signals, registry, govRead, scope: n };
 }
 
+// PR 4: the roster of every posting the employer read returned, and whether a duty section
+// could actually be read from it. "In the sample" and "contributed duties" are two different
+// facts, and only the second can produce cluster membership - conflating them makes an advert
+// that yielded no duty text look absent, which is a false statement about provenance rather
+// than just a missing mark.
+//
+// `dutyRead` is exactly the predicate the clusterer consumes: a non-empty responsibilitiesText.
+// api/mcf.js sets that on EVERY listed job from the search description (normaliseJob), not only
+// on the few that get a detail fetch, and extractResponsibilities falls back to the whole
+// cleaned text when it finds no section header - so it returns "" only when the ad carried no
+// readable text at all in this read. A false `dutyRead` therefore licenses exactly one claim:
+// "no duty text came back with this posting". It does NOT license "this ad was too old to be
+// fetched" (that is sat.qoi.detailFetched, a different predicate) and it does NOT license
+// "a duty section could not be parsed" (the fallback makes that failure mode unreachable).
+function _companyRoster(jobs) {
+  return (Array.isArray(jobs) ? jobs : []).map(function(j) {
+    return { uuid: j.uuid || "", title: j.title || "", dutyRead: !!(j.responsibilitiesText || "").trim() };
+  });
+}
+
+// PR 4: job-title normalisation for the title fallback ONLY.
+// _phraseNorm strips "/" and "-" without substituting a space, so "Senior Manager/Assistant
+// Director" - a very common SG title form - collapses to "senior managerassistant director"
+// and can never match. Fixed here rather than in _phraseNorm, which the duty clusterer depends
+// on: changing it would move cluster output and break the snapshot fixtures.
+// This is a TRADE, not a strict improvement. It gains "Manager/Ops" == "Manager Ops" and loses
+// "E-Commerce" == "eCommerce" and "Co-ordinator" == "Coordinator", which _phraseNorm matched by
+// deleting the separator. Both directions stay exact equality - no fuzzy widening - so the cost
+// of the trade is a missed mark, never a wrong one.
+function _companyTitleNorm(s) {
+  return _phraseNorm(String(s || "").replace(/[\/\-_,()]+/g, " "));
+}
+
 // Main CO2.7 engine: buildCompanyAgents(matchGroup) -> deterministic model.
 // matchGroup: { displayName, count, jobs } - jobs carry responsibilitiesText, skills, title,
 // categories, uuid, mcfUrl, postedDate, dutyDetail.
@@ -14404,8 +14573,12 @@ function buildCompanyAgents(matchGroup) {
 
   // ---- withhold: insufficient postings ----
   if (jobs.length < COMPANY_AGENT_MIN_POSTINGS) {
-    withheld.push("Too few of \"" + company + "\"'s postings carry detailed duties to read recurring AI-exposable work reliably - showing the postings only. (" + jobs.length + " posting" + (jobs.length === 1 ? "" : "s") + " found; need at least " + COMPANY_AGENT_MIN_POSTINGS + ")");
-    return { company, functions: [], clusters: [], agents: [], sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: 0, detailFetched: 0, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: 0, clusters: 0, agents: 0 } };
+    // The gate counts POSTINGS, so the sentence must too - "postings carrying detailed
+    // duties" named a filter this branch never applies. And it no longer promises "showing
+    // the postings only": the employer-search page does list them, but the graph panel that
+    // also renders this string does not, so the promise was false on one of its two surfaces.
+    withheld.push("Too few postings found for \"" + company + "\" to read recurring AI-exposable work reliably. (" + jobs.length + " posting" + (jobs.length === 1 ? "" : "s") + " found; need at least " + COMPANY_AGENT_MIN_POSTINGS + ")");
+    return { company, functions: [], clusters: [], agents: [], postings: _companyRoster(jobs), sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: 0, detailFetched: 0, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: 0, clusters: 0, agents: 0 } };
   }
 
   // ---- Step 0: duty harvest ----
@@ -14442,7 +14615,7 @@ function buildCompanyAgents(matchGroup) {
   // ---- withhold: insufficient duties ----
   if (dutyInstances.length < COMPANY_AGENT_MIN_DUTIES) {
     withheld.push("Too few structured duty lines found across \"" + company + "\"'s postings to cluster reliably - showing the postings only. (" + dutyInstances.length + " lines found; need at least " + COMPANY_AGENT_MIN_DUTIES + ")");
-    return { company, functions: [], clusters: [], agents: [], sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: dutyInstances.length, detailFetched: jobs.filter(function(j) { return j.dutyDetail; }).length, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: dutyInstances.length, clusters: 0, agents: 0 } };
+    return { company, functions: [], clusters: [], agents: [], postings: _companyRoster(sortedJobs), sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: dutyInstances.length, detailFetched: jobs.filter(function(j) { return j.dutyDetail; }).length, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: dutyInstances.length, clusters: 0, agents: 0 } };
   }
 
   // ---- Step 1: greedy single-pass clustering ----
@@ -14598,7 +14771,7 @@ function buildCompanyAgents(matchGroup) {
     qoi: { postingsAnalysed: jobs.length, dutiesClustered: dutyInstances.length, detailFetched: detailFetchedCount, tag: qoiTag },
   };
 
-  return { company, functions, clusters: sortedClusters, agents, sat, withheld, stats };
+  return { company, functions, clusters: sortedClusters, agents, postings: _companyRoster(sortedJobs), sat, withheld, stats };
 }
 
 function _keyAssumptions() {
@@ -14680,6 +14853,101 @@ function companyAgentsToKgPayload(model) {
     // Carry the full model so the side panel can look up details by node id.
     _agentsModel: model,
   };
+}
+
+// PR 4 (build order, 31-07 '26): which company-graph nodes trace back to THIS posting.
+// Pure set membership over the model's own roleUuids / roleTitles - no scoring, no
+// similarity, no LLM. Two bases, and the caller names whichever one was used on screen so
+// the reader knows how strong the claim is:
+//   "uuid"  - this posting's own MCF id is among the ids the cluster was built from. The
+//             cluster genuinely contains work from this advert.
+//   "title" - no cluster was built from this advert, so the fallback is an exact normalised
+//             job-title match. That says "a posting titled the same sits here", not "this
+//             posting sits here".
+// Neither matching: returns an empty set, and the caller says nothing is marked rather
+// than guessing a position for the role.
+//
+// `presence` is a SEPARATE fact and must not be inferred from the basis. The employer read
+// lists up to 50 postings but only detail-fetches the newest few, so an advert can be in
+// the sample and still contribute no duties - reporting that as "not among the postings
+// read here" would be a false provenance claim, not merely a missing mark:
+//   "duty-read"       - in the roster, and a duty section was read from it.
+//   "listed-not-read" - in the roster, but no duty text came back with it in this read.
+//                       Nothing it says could have reached a cluster, whatever the mark is.
+//   "absent"          - has an id, and that id is not in the roster.
+//   "matched-undrawn" - the id matched clusters, but none of them made the drawn duty tier.
+//                       Nothing to mark, and NOT a title-fallback case: the advert was
+//                       identified exactly, so saying "may be a different advert" would be
+//                       a worse claim than saying nothing.
+//   "cross-source"    - this advert came from careers.gov.sg, whose uuids are synthetic
+//                       ("csg:{platform}:{jobId}:{postingNo}", see api/careers.js). The
+//                       employer graph is read from MyCareersFuture, so the two id spaces
+//                       cannot meet: an id comparison here can only ever fail, and reporting
+//                       that failure as "not found" would blame the data for the mismatch.
+//   "unknown"         - the model predates the roster (defensive; no roster shipped).
+//
+// `presentIds`, when given, is the set of node ids the payload actually DREW. The duty tier
+// is capped, so a matched cluster can exist in the model with no node on screen; counting it
+// would tell the reader something is marked that they cannot find. Ids and clusterCount are
+// both reported post-intersection - what is claimed is what is drawn.
+// Returns { ids, basis, clusterCount, presence }.
+function companyNodesForRole(model, myUuid, myTitle, presentIds) {
+  const uuid = String(myUuid || "").trim();
+  const tnorm = _companyTitleNorm(myTitle);
+  const roster = Array.isArray(model && model.postings) ? model.postings : null;
+  let presence = "unknown";
+  if (uuid.indexOf("csg:") === 0) {
+    presence = "cross-source";
+  } else if (roster && uuid) {
+    // Only claim "absent" about an id that exists. With no id there is nothing to look up,
+    // and saying "this advert's ID is not among the postings" would describe a missing thing.
+    const row = roster.find(function(p) { return p.uuid === uuid; });
+    presence = row ? (row.dutyRead ? "duty-read" : "listed-not-read") : "absent";
+  }
+  const empty = { ids: [], basis: null, clusterCount: 0, presence };
+  if (!model || !Array.isArray(model.clusters)) return empty;
+
+  const drawn = presentIds instanceof Set ? presentIds : null;
+  const isDrawn = function(id) { return !drawn || drawn.has(id); };
+
+  // A matched cluster carries its function (tier 1) and any agent candidate built from it
+  // (tier 3) with it, so the mark reads as a path through the graph rather than a lone dot.
+  function collect(pred) {
+    const matched = model.clusters.filter(pred);
+    if (matched.length === 0) return null;
+    const ids = new Set();
+    const clusterIds = new Set();
+    matched.forEach(function(c) {
+      if (!isDrawn(c.id)) return; // capped out of the duty tier - claim only what is on screen
+      ids.add(c.id);
+      clusterIds.add(c.id);
+      if (c.functionId && isDrawn(c.functionId)) ids.add(c.functionId);
+    });
+    (model.agents || []).forEach(function(a) {
+      if (clusterIds.has(a.clusterId) && isDrawn(a.id)) ids.add(a.id);
+    });
+    if (ids.size === 0) return null; // matched in the model, drawn nowhere - nothing to claim
+    return { ids: Array.from(ids), clusterCount: clusterIds.size };
+  }
+
+  if (uuid && presence !== "cross-source") {
+    const uuidPred = function(c) { return (c.roleUuids || []).indexOf(uuid) !== -1; };
+    const byUuid = collect(uuidPred);
+    if (byUuid) return { ids: byUuid.ids, basis: "uuid", clusterCount: byUuid.clusterCount, presence };
+    // The id DID match clusters, but every one of them is outside the drawn duty tier.
+    // Falling through to the title fallback here would print "matched on job title, not
+    // posting ID ... may be a different advert" about an advert we matched by ID exactly.
+    if (model.clusters.some(uuidPred)) {
+      return { ids: [], basis: null, clusterCount: 0, presence: "matched-undrawn" };
+    }
+  }
+  if (tnorm) {
+    const byTitle = collect(function(c) {
+      return (c.roleTitles || []).some(function(t) { return _companyTitleNorm(t) === tnorm; });
+    });
+    if (byTitle) return { ids: byTitle.ids, basis: "title", clusterCount: byTitle.clusterCount, presence };
+  }
+  return empty;
 }
 
 // CO2.8: CompanyAgentSidePanel - node-detail side panel opened via onNodeTap.
