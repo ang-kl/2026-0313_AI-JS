@@ -33,13 +33,17 @@ import { RS_LAYERS } from "./rs-rules.js";
 
 // The three tools the canvas ships with. Everything else is a registry window opened on
 // demand; PR 1's fixed list becomes the CORE list.
-export const WS_CORE = ["roleGraph", "company", "evidence"];
-export const WS_LABELS = { roleGraph: "Role Graph", company: "Company Information", evidence: "Evidence / Explanation" };
+// (c) Human Lead, 30-07 '26: "the job ads rehash to structured has to be floating window
+// as well but on the left". The advertisement stops being the canvas background and becomes
+// a managed window like everything else - so it can be moved, resized, docked, maximised
+// and parked, which it never could as the backdrop.
+export const WS_CORE = ["adDoc", "roleGraph", "company", "evidence"];
+export const WS_LABELS = { adDoc: "Job Advertisement", roleGraph: "Role Graph", company: "Company Information", evidence: "Evidence / Explanation" };
 // Short forms for the tray chips and clips - long labels do not fit a quiet corner cluster.
-export const WS_SHORT = { roleGraph: "Role Graph", company: "Company", evidence: "Evidence" };
+export const WS_SHORT = { adDoc: "Job Ad", roleGraph: "Role Graph", company: "Company", evidence: "Evidence" };
 // Placement: "window" = a managed window (4 states); "right"/"bottom" = an edge drawer
 // (open | minimized). Anything not named here is a registry window, so it is a window.
-const WS_CORE_PLACEMENT = { roleGraph: "window", company: "right", evidence: "bottom" };
+const WS_CORE_PLACEMENT = { adDoc: "window", roleGraph: "window", company: "right", evidence: "bottom" };
 export function wsPlacementOf(id) { return WS_CORE_PLACEMENT[id] || "window"; }
 // Registry windows already surfaced elsewhere on the canvas - offering them again would
 // mount the same element twice. manuscript IS the document, inspector IS the evidence
@@ -68,8 +72,14 @@ export const WS_DEFAULT_GEOM = { company: { w: 400 }, evidence: { h: 320 } };
 // graph floats over it; the two drawers wait in the tray so the first read is quiet.
 export function wsInitial() {
   const g = wsDefaultSize();
+  const vw = typeof window !== "undefined" && window.innerWidth ? window.innerWidth : 1440;
+  const vh = typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 900;
+  // The two open side by side: ad on the LEFT, graph on the right, each about half. Taller
+  // than wsDefaultSize's half-height because the ad is the thing being read.
+  const tall = Math.round(Math.max(360, vh * 0.72));
   return {
-    roleGraph: { state: "floating", x: null, y: null, w: g.w, h: g.h, z: 1 },
+    adDoc: { state: "floating", x: 12, y: 96, w: g.w, h: tall, z: 1 },
+    roleGraph: { state: "floating", x: Math.max(12, vw - g.w - 16), y: 96, w: g.w, h: tall, z: 2 },
     company: { state: "minimized", w: WS_DEFAULT_GEOM.company.w },
     evidence: { state: "minimized", h: WS_DEFAULT_GEOM.evidence.h },
   };
@@ -245,8 +255,12 @@ export default function Canvas({
     if (!r) return;
     const dx = e.clientX - r.sx, dy = e.clientY - r.sy;
     const patch = {};
-    if (r.k.includes("e")) patch.w = Math.max(300, r.w + dx);
-    if (r.k.includes("s")) patch.h = Math.max(220, r.h + dy);
+    // Clamped so growing east or south can never push the window's own chrome off-screen.
+    // The controls live at the top-right, so an unclamped east drag walks the close button
+    // out of the viewport and the window becomes unreachable without a reset - the same
+    // recoverability rule the drag clamp follows.
+    if (r.k.includes("e")) patch.w = Math.max(300, Math.min(r.w + dx, window.innerWidth - r.x - 4));
+    if (r.k.includes("s")) patch.h = Math.max(220, Math.min(r.h + dy, window.innerHeight - r.y - 4));
     // Dragging a west or north edge moves the origin as well as the size, otherwise the
     // opposite edge walks across the screen instead of staying put.
     if (r.k.includes("w")) { const w = Math.max(300, r.w - dx); patch.w = w; patch.x = r.x + (r.w - w); }
@@ -346,6 +360,7 @@ export default function Canvas({
   );
 
   const minimised = ids.filter((id) => (ws[id] || {}).state === "minimized");
+  const minimisedAll = ids.length > 0 && minimised.length === ids.length;
   const navAct = (fn) => () => { fn(); closeNav(); };
   // An EXPANDED window fills the canvas exactly like a modal, so it needs a modal's
   // semantics: without them a keyboard user tabs into duty lines and other windows that are
@@ -360,10 +375,18 @@ export default function Canvas({
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, background: "#e9edf3" }}>
       <div ref={canvasRef} style={{ flex: 1, position: "relative", minHeight: 0, overflow: "hidden" }}>
 
-        {/* Main document: the job advertisement, always present, never a tab. */}
-        <div className="wis-scroll" aria-label={mainLabel} aria-hidden={coveredByExpanded ? "true" : undefined}
+        {/* The workspace surface. The advertisement used to BE this background; it is a
+            window now (see WS_CORE), so what is left is the desk itself - and a line that
+            says so when every tool is parked, rather than a blank rectangle. */}
+        <div className="wis-scroll" aria-label="Workspace"
           style={{ position: "absolute", inset: 0, paddingRight: mainPadRight, paddingBottom: mainPadBottom, overflowY: "auto", background: "#e9e7e0", transition: "padding .12s ease" }}>
-          <div style={{ padding: "12px 16px 72px" }} inert={coveredByExpanded ? "" : undefined}>{mainEl}</div>
+          {minimisedAll && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60%", padding: "24px 16px" }}>
+              <p style={{ margin: 0, maxWidth: "44ch", textAlign: "center", fontSize: "0.8125rem", lineHeight: 1.6, color: "#8a8272" }}>
+                Everything is parked. Open the advertisement, the role graph or an analysis window from the compass below - or from a chip beside it.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Managed windows. Each is ONE element in every state - see HIDE, DO NOT UNMOUNT. */}
@@ -459,7 +482,12 @@ export default function Canvas({
         </div>
 
         {/* Floating navigator (bottom-left) + minimise tray. */}
-        <div ref={navRef} style={{ position: "absolute", left: 12, bottom: 12, zIndex: 14, display: "flex", alignItems: "flex-end", gap: 8, maxWidth: "calc(100% - 24px)" }}>
+        {/* FIXED and above the float layer. Windows became position:fixed at RS_LAYERS.float,
+            so a navigator sitting inside the canvas at z-index 14 was painted over by the
+            first window that covered the bottom-left corner - the compass and the whole tray
+            went unreachable. RS_LAYERS.menu is exactly where a menu belongs: above every
+            floating window, below the blocking modal. */}
+        <div ref={navRef} style={{ position: "fixed", left: 12, bottom: 12, zIndex: RS_LAYERS.menu, display: "flex", alignItems: "flex-end", gap: 8, maxWidth: "calc(100vw - 24px)" }}>
           <div style={{ position: "relative", flex: "none" }}>
             {/* The trigger renders BEFORE the popover so Tab moves forward from the
                 button INTO the menu. The popover is position:absolute, so DOM order is
