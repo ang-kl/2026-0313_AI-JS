@@ -1091,6 +1091,9 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const [navOpen, setNavOpen] = useState(false);
   // Which window has its settings panel open (the gear on its bottom strip), or null.
   const [settingsFor, setSettingsFor] = useState(null);
+  // Which section tab the job-advertisement window is showing. Lives here, not in the
+  // window body, per the standing rule that all user state stays in this component.
+  const [manuTab, setManuTab] = useState("overview");
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
   const _classified = dissection.spans.filter((s) => s.band).length;
@@ -1409,7 +1412,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // winCtx is the component-state closure they used to capture. Built here, AFTER the
   // layout-state block, because openSheet is a const declared above (TDZ) - the win*
   // consts are only consumed by renderWindow below, so later construction is identical.
-  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm };
+  const winCtx = { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, setPreviewSpan, linkMode, linkDraft, onLinkPick, onLinkDragStart, linkDrag, rsTermSpans, focusTerm, setFocusTerm, manuTab, setManuTab };
   // PR 2 (Part B.3): windows render straight off the registry - the hand-maintained
   // ternary chain is gone; an unknown id falls back to the inspector, as before.
   const winEls = {};
@@ -1436,7 +1439,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // least once, so nothing is built into the tree before the reader asks for it.
   const wsToolEl = {};
   Object.keys(ws).forEach((id) => {
-    if (id === "roleGraph") wsToolEl[id] = rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>;
+    if (id === "adDoc") wsToolEl[id] = renderWindow("manuscript");
+    else if (id === "roleGraph") wsToolEl[id] = rolePane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>The role graph appears once the role resolves duties and skills.</p>;
     else if (id === "company") wsToolEl[id] = companyPane || <p style={{ fontSize: "0.8125rem", color: "#94a0b0", lineHeight: 1.5 }}>Company facts appear for a single live posting - this analysis has no employer record to read, so nothing is shown rather than guessed.</p>;
     else if (id === "evidence") wsToolEl[id] = renderWindow("inspector");
     // An analysis window's tree is built HERE, not up front: analysisPanes holds thunks so

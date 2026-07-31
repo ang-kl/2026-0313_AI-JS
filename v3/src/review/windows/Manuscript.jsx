@@ -5,7 +5,7 @@ import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, C
 import { RS_DOT } from "../rs-rules.js";
 
 export function renderWinManuscript(ctx) {
-  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick, onLinkDragStart, rsTermSpans, focusTerm, setFocusTerm } = ctx;
+  const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, rsTokens, linkMode, linkDraft, onLinkPick, onLinkDragStart, rsTermSpans, focusTerm, setFocusTerm, manuTab, setManuTab } = ctx;
   // Layer 2 helper: wrap known terms in a line so clicking one traces it across panels.
   const T = (txt) => (rsTermSpans ? rsTermSpans(txt, skillTermRe, focusTerm, setFocusTerm) : txt);
   const dutySpans = dissection.spans.filter((x) => x.sec !== "req");
@@ -43,6 +43,20 @@ export function renderWinManuscript(ctx) {
   // The 44px floor lives on the ROW, which is the pointer target. 11px top and bottom over
   // manuP's ~22.5px line box clears 44 without touching the typography or the line number.
   const lineRow = { minHeight: 44, paddingTop: 11, paddingBottom: 11 };
+  // (d)+(e) Human Lead, 30-07 '26: the posting's own sections become TABS instead of one
+  // endless scroll, with "Skills the posting asks for" as one of them. This is also what
+  // buys (f) - the <=3-screen budget - because a reader is never handed the whole ad at
+  // once. Tabs are built from the sectioniser's real output, so a posting that names its
+  // sections differently gets its own tabs, and a section the ad does not have never
+  // appears as an empty one.
+  const manuSecs = adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0);
+  const hasDuties = dissection.spans.filter((x) => x.sec !== "req").length > 0;
+  const manuTabs = [{ k: "overview", label: "Overview" }]
+    .concat(hasDuties ? [{ k: "duties", label: "Responsibilities" }] : [])
+    .concat(manuSecs.map((sec, si) => ({ k: "sec" + si, label: sec.canon || sec.title })))
+    .concat(skills.length > 0 ? [{ k: "skills", label: "Skills A-Z" }] : []);
+  const manuK = manuTabs.some((t) => t.k === manuTab) ? manuTab : (manuTabs[0] || {}).k;
+
   return (
 
             <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, padding: "18px 22px 24px", boxShadow: "0 1px 3px rgba(20,32,46,.05)" }}>
@@ -83,12 +97,25 @@ export function renderWinManuscript(ctx) {
                   </div>
                 );
               })()}
+              {/* Section tabs. One section at a time - the reader is never handed the whole
+                  posting in one scroll (the <=3-screen rule). */}
+              {manuTabs.length > 1 && (
+                <div role="tablist" aria-label="Posting sections" className="wis-scroll" style={{ display: "flex", gap: 4, overflowX: "auto", margin: "0 0 14px", borderBottom: "1px solid #e6e3db", paddingBottom: 4 }}>
+                  {manuTabs.map((t) => (
+                    <button key={t.k} type="button" role="tab" aria-selected={t.k === manuK} onClick={() => setManuTab(t.k)}
+                      style={{ flexShrink: 0, minHeight: 44, padding: "0 12px", borderRadius: "8px 8px 0 0", cursor: "pointer",
+                        fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: t.k === manuK ? 700 : 500,
+                        color: t.k === manuK ? "#142a8e" : "#5b6878", background: t.k === manuK ? "#fbfaf7" : "transparent",
+                        borderTop: "1px solid " + (t.k === manuK ? "#e6e3db" : "transparent"), borderLeft: "1px solid " + (t.k === manuK ? "#e6e3db" : "transparent"), borderRight: "1px solid " + (t.k === manuK ? "#e6e3db" : "transparent"), borderBottom: "none" }}>{t.label}</button>
+                  ))}
+                </div>
+              )}
               {/* Composite (PR #306 x v3.0.228): verbatim-first overview (trust-loop rule 4 -
                   posting's own words when present, skill terms underlined for emphasis only),
                   falling back to the sectioniser, then the ESCO taxonomy description (verbatim,
                   deterministic - the role path's real data when no live ads exist), then the
                   corpus summary. */}
-              {(() => {
+              {manuK === "overview" && (() => {
                 if (hasVerbatimOverview) return <><h2 style={manuH2}>Role overview</h2><p style={manuP}>{rsUnderlineSkillTerms(overview, skillTermRe)}</p></>;
                 const ov = adSections.find((sec) => sec.canon === "Role overview" && sec.lines.length > 0);
                 if (ov) return <><h2 style={manuH2}>Role overview</h2>{ov.lines.map((ln, i) => <p key={i} style={manuP}>{rsUnderlineSkillTerms(ln, skillTermRe)}</p>)}</>;
@@ -121,7 +148,7 @@ export function renderWinManuscript(ctx) {
                   </div>
                 );
               })()}
-              {dissection.spans.filter((x) => x.sec !== "req").length > 0 && <>
+              {manuK === "duties" && hasDuties && <>
                 {/* Interactive duty spans (nucleus highlights, band-styled, tappable) - the
                     text is AI-extracted (jobAnatomy normalise pass), so the heading chip says
                     so rather than claiming verbatim. Trust-loop rule 4. */}
@@ -176,7 +203,7 @@ export function renderWinManuscript(ctx) {
                   section the ad names itself) - verbatim, with the ad's own heading + a chip that
                   says so; skill terms underlined for emphasis (words untouched). Requirement
                   lines that joined the analysis are tappable like duties (exposure withheld). */}
-              {adSections.filter((sec) => sec.canon !== "Role overview" && sec.canon !== "Responsibilities" && sec.lines.length > 0).map((sec, si) => (
+              {manuSecs.map((sec, si) => (manuK !== "sec" + si ? null : (
                 <div key={"sec" + si}>
                   <h2 style={manuH2}>{sec.canon || sec.title} <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>verbatim · from posting</span></h2>
                   <ul style={{ margin: "0 0 18px", paddingLeft: 18 }}>
@@ -202,8 +229,8 @@ export function renderWinManuscript(ctx) {
                     })}
                   </ul>
                 </div>
-              ))}
-              {skills.length > 0 && <>
+              )))}
+              {manuK === "skills" && skills.length > 0 && <>
                 <h2 style={manuH2}>Skills the posting asks for <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#0b5e74", background: "#ecfeff", border: "1px solid #a5f3fc", borderRadius: 5, padding: "1px 6px", marginLeft: 8, verticalAlign: "middle" }}>A-Z {String.fromCharCode(0x00b7)} tap to expand {String.fromCharCode(0x00b7)} number = duty line above</span>
                   {/* W2: say HOW the skill set was anchored - SG-first when SSOC steered it. */}
                   {result && result.ssocResolution && <span title={"Occupation resolved in SSOC 2024 (" + result.ssocResolution.code + " " + result.ssocResolution.title + ", confidence " + result.ssocResolution.confidence + "), crosswalked to ISCO-08 " + result.ssocResolution.iscoTitle + ", then ESCO skills fetched on that clean occupation name - not a blind title match."} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: "#1d4ed8", background: "#eaf0ff", border: "1px solid #c7d6ff", borderRadius: 5, padding: "1px 6px", marginLeft: 6, verticalAlign: "middle" }}>{String.fromCodePoint(0x1f1f8, 0x1f1ec)} anchored via SSOC {result.ssocResolution.code}</span>}

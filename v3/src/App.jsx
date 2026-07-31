@@ -7586,7 +7586,7 @@ function PaneTabs({ tabs }) {
               style={{ flexShrink: 0, minHeight: 44, padding: "0 12px", borderRadius: "8px 8px 0 0", cursor: "pointer",
                 fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: k === i ? 700 : 500,
                 color: k === i ? C.accent : C.textSub, background: k === i ? C.surface : "transparent",
-                border: `1px solid ${k === i ? C.border : "transparent"}`, borderBottom: "none" }}>{t.label}</button>
+                borderTop: `1px solid ${k === i ? C.border : "transparent"}`, borderLeft: `1px solid ${k === i ? C.border : "transparent"}`, borderRight: `1px solid ${k === i ? C.border : "transparent"}`, borderBottom: "none" }}>{t.label}</button>
           ))}
         </div>
       )}
