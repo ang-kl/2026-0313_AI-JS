@@ -532,8 +532,11 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
             {mineKeyLabels.map((lbl) => (
               <span key={lbl} style={KG_MINE_CHIP}>{lbl}</span>
             ))}
-            <span style={chip(PROV.computed.color, PROV.computed.bg)}>{PROV.computed.icon} {PROV.computed.label}</span>
+            {/* The chip belongs to the COUNT, which is a cardinality of drawn nodes, and to
+                nothing else. Sitting beside the label chips it read as certifying the mark
+                itself - which may rest on a title match, not a computed fact. */}
             <span>
+              <span style={{ ...chip(PROV.computed.color, PROV.computed.bg), marginRight: 6 }}>{PROV.computed.icon} {PROV.computed.label}</span>
               {mineDrawn} node{mineDrawn === 1 ? " is" : "s are"} marked with a label and a double ring - the ring and the words carry the mark, not colour.
               {mineNote ? " Marked how: " + mineNote + "." : ""}
             </span>
