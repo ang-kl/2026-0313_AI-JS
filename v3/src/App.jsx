@@ -10814,7 +10814,13 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
   const [roleGraphOpen, setRoleGraphOpen] = useState(true); // RIN3: centre graph can collapse without losing place
   const [roleGraphFloat, setRoleGraphFloat] = useState(false); // RIN3: graph can expand into a floating window
   const [roleGraphFloatPos, setRoleGraphFloatPos] = useState({ x: 24, y: 72 });
-  const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge" | "ssoc"
+  const [graphMode, setGraphMode] = useState("layered"); // KG1: "layered" | "knowledge" | "ssoc" | "company"
+  // PR 3: the company perspective. Null until the Company mode is opened for the first
+  // time - the postings fetch costs a network round trip, so it never runs for a reader who
+  // does not ask for it. Status is explicit rather than inferred from empty data, so
+  // "loading", "nothing to show" and "failed" can each say what they mean.
+  const [coState, setCoState] = useState({ status: "idle", kg: null, model: null });
+  const [coNode, setCoNode] = useState(null);
   const graphScrollRef = useRef(null);
   const roleGraphDragRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
@@ -10844,6 +10850,30 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleKey, (result && result.source) || "", _rgRespCount, _rgDutyCount]);
 
+  // The employer this posting names. Company mode is offered only when there is one -
+  // an ESCO-only or corpus analysis has no employer to read, so the button is absent
+  // rather than present-and-dead.
+  const coName = String((result && result.postingMeta && (result.postingMeta.hiringCompanyName || result.postingMeta.employer)) || "").trim();
+  useEffect(() => {
+    if (graphMode !== "company" || !coName || coState.status !== "idle") return undefined;
+    let live = true;
+    setCoState({ status: "loading", kg: null, model: null });
+    fetch("/api/mcf", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "company", company: coName, duties: true, detailLimit: 5, limit: 50 }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http"))))
+      .then((data) => {
+        if (!live) return;
+        const group = (Array.isArray(data.matches) && data.matches.length === 1) ? data.matches[0] : { displayName: coName, jobs: [] };
+        const model = buildCompanyAgents(group);
+        setCoState({ status: "done", kg: companyAgentsToKgPayload(model), model });
+      })
+      .catch(() => { if (live) setCoState({ status: "error", kg: null, model: null }); });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphMode, coName]);
+
   // PR 1 (Step 3 Working Canvas, 30-07 '26) §3.6: REPORT the taxonomy this graph is
   // currently reading so the workspace's minimise tray can label it ("Role Graph · ESCO").
   // Read-only and additive - graphMode, the toggle and every interaction are untouched
@@ -10854,7 +10884,7 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
     // ESCO but their occupation and family come from SSOC 2024 (see the two-graphs note
     // below), so a bare "ESCO" on the tray chip would be a narrower provenance claim than
     // the graph's own footer makes. (Conformance audit S1, 30-07 '26.)
-    onModeChange(graphMode === "ssoc" ? "SSOC-led" : graphMode === "knowledge" ? "ESCO-led KG" : "ESCO-led");
+    onModeChange(graphMode === "company" ? "Company" : graphMode === "ssoc" ? "SSOC-led" : graphMode === "knowledge" ? "ESCO-led KG" : "ESCO-led");
   }, [graphMode, onModeChange]);
 
   const g = isPosting ? (result && result.roleGraphData) : graphState.g;
@@ -11073,9 +11103,54 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
         <button type="button" aria-pressed={graphMode === "ssoc"} onClick={() => setGraphMode("ssoc")} style={graphToggleBtn(graphMode === "ssoc")}>
           {String.fromCodePoint(0x1f1f8, 0x1f1ec)} SSOC graph
         </button>
+        {/* PR 3 (build order, 30-07 '26): the COMPANY perspective, inside the same Graph
+            window rather than a screen of its own. Same deterministic engine the employer
+            search uses - buildCompanyAgents over this employer's live postings - so nothing
+            new is inferred here; it is the existing read pointed at the employer named on
+            THIS posting. Fetched only when the mode is first opened. */}
+        {coName && (
+          <button type="button" aria-pressed={graphMode === "company"} onClick={() => setGraphMode("company")} style={graphToggleBtn(graphMode === "company")}>
+            {String.fromCharCode(0x1f3e2)} Company
+          </button>
+        )}
       </div>
 
       {/* SSOCRG: SSOC-grounded second graph (opt-in). Populated in the background by doAnalyse. */}
+      {graphMode === "company" && (
+        <div style={{ marginTop: 12 }}>
+          {coState.status === "loading" && (
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>Reading {coName}&rsquo;s live postings&hellip;</p>
+          )}
+          {coState.status === "error" && (
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.55 }}>
+              Couldn&rsquo;t reach the postings source for {coName} just now, so nothing is drawn - withheld rather than guessed. Switch away and back to retry.
+            </p>
+          )}
+          {coState.status === "done" && coState.model && (
+            <>
+              {/* The engine's OWN withhold text, verbatim. It states how many postings it
+                  found and how many it needs, so a thin employer reads as thin rather than
+                  as an empty graph. */}
+              {coState.model.withheld && coState.model.withheld.length > 0 && (
+                <div style={{ marginBottom: 10, padding: "8px 12px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8 }}>
+                  {coState.model.withheld.map((w, i) => (
+                    <p key={i} style={{ margin: i ? "6px 0 0" : 0, fontSize: "0.75rem", color: "#92400e", lineHeight: 1.5 }}>{w}</p>
+                  ))}
+                </div>
+              )}
+              {coState.kg && coState.model.agents && coState.model.agents.length > 0 && (
+                <>
+                  <KGGraph kg={coState.kg} onNodeTap={setCoNode} layout="workflow" embedded />
+                  {coNode && <CompanyAgentSidePanel inline nodeId={coNode} kgPayload={coState.kg} onClose={() => setCoNode(null)} />}
+                </>
+              )}
+              <p style={{ margin: "8px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>
+                No AI in this read - duties are clustered from {coName}&rsquo;s live postings by shared terms, and every node traces to the postings it came from. Source: MyCareersFuture ({(coState.model.stats && coState.model.stats.postings) || 0} postings). Confidence: recurrence across postings, not a judgement about the employer. Time-window: postings live at this lookup. AI-assisted {String.fromCharCode(0x00b7)} human decides.
+              </p>
+            </>
+          )}
+        </div>
+      )}
       {graphMode === "ssoc" && (() => {
         const sg = result && result.ssocGraph;
         if (!sg) {
