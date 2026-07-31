@@ -21,7 +21,7 @@ import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, 
 import Desk from "./review/Desk.jsx";
 // PR 1 "Step 3 Working Canvas" (Human Lead, 30-07 '26): the persistent workspace shell -
 // main document + one managed floating Role Graph + company/evidence drawers + tray.
-import Canvas, { WS_LABELS, WS_SHORT, WS_ALREADY_PLACED, wsPlacementOf, wsInitial, wsNewWindow } from "./review/Canvas.jsx";
+import Canvas, { WS_CORE, WS_LABELS, WS_SHORT, WS_ALREADY_PLACED, wsPlacementOf, wsInitial, wsNewWindow } from "./review/Canvas.jsx";
 // PR 2 (Part B.3): the declarative window registry is the single source of truth -
 // window render functions, labels, tab placement and the connector anchor contract
 // all derive from it. The 14 individual window imports live inside the registry now.
@@ -1182,6 +1182,17 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   const setGeom = (id, patch) => setWs((p) => ({ ...p, [id]: { ...(p[id] || {}), ...patch } }));
   // Named wsBringToFront: the legacy Desk float layer already owns a `bringToFront`.
   const wsBringToFront = (id) => { const z = ++zRef.current; setWs((p) => (p[id] && p[id].z !== z ? { ...p, [id]: { ...p[id], z } } : p)); };
+  // CLOSE vs MINIMISE (Human Lead: "when closed it disappeared"). Two different promises,
+  // both recoverable, and the labels say which is which:
+  //   minimise - stays mounted, parks in the tray, keeps everything it had open inside.
+  //   close    - leaves the workspace and unmounts, and returns to the navigator's add
+  //              list. State inside it is genuinely gone, which is what closing means.
+  // The three core tools can never be closed, only minimised - they are the workspace, and
+  // a canvas with no ad, no company drawer and no evidence drawer is not a workspace.
+  const wsClose = (id) => setWs((p) => {
+    if (WS_CORE.includes(id)) return { ...p, [id]: { ...p[id], state: "minimized" } };
+    const next = { ...p }; delete next[id]; return next;
+  });
   // "Arrange" opens everything in a tidy default; "Minimise all" clears to the document;
   // "Reset workspace" returns to the starting arrangement (§3.1). Three distinct meanings.
   // PR 2: all three act over the whole open set, not just the original three - a reader who
@@ -1632,7 +1643,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           toolEl={wsToolEl}
           labelOf={wsLabelOf} shortOf={wsShortOf} addable={wsAddable}
           trayNote={{ roleGraph: roleGraphMode || null }}
-          ws={ws} setWinState={setWinState} setGeom={setGeom} bringToFront={wsBringToFront}
+          ws={ws} setWinState={setWinState} setGeom={setGeom} bringToFront={wsBringToFront} onClose={wsClose}
           onArrange={wsArrange} onMinimiseAll={wsMinimiseAll} onResetWorkspace={wsReset}
           moreOpen={moreOpen} setMoreOpen={setMoreOpen} moreEl={null}
         />
