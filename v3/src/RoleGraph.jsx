@@ -485,7 +485,11 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
   const isMine = (id) => mineSet.has(id);
   // Count what is DRAWN, not what was handed in: an id with no node behind it must not be
   // announced as a mark the reader could go and find.
-  const mineDrawn = kg.nodes.filter((n) => mineSet.has(n.id)).length;
+  const mineDrawnNodes = kg.nodes.filter((n) => mineSet.has(n.id));
+  const mineDrawn = mineDrawnNodes.length;
+  // The key must show every wording that is actually on screen - a reader seeing "Contains
+  // this role" on a node needs it in the key, not just the label the caller led with.
+  const mineKeyLabels = Array.from(new Set(mineDrawnNodes.map((n) => mineLabelOf(n.id))));
 
   // CO2: wire onNodeTap alongside the existing tap-to-trace. The traced highlight
   // logic is untouched; onNodeTap is an additional notification to the host.
@@ -525,7 +529,10 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
         {/* PR 4: the marker's own key, shown only when something is actually marked. */}
         {mineDrawn > 0 && (
           <p style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 7, margin: "0 0 12px", fontSize: 12, color: P.textSub, lineHeight: 1.5 }}>
-            <span style={KG_MINE_CHIP}>{mineLabel}</span>
+            {mineKeyLabels.map((lbl) => (
+              <span key={lbl} style={KG_MINE_CHIP}>{lbl}</span>
+            ))}
+            <span style={chip(PROV.computed.color, PROV.computed.bg)}>{PROV.computed.icon} {PROV.computed.label}</span>
             <span>
               {mineDrawn} node{mineDrawn === 1 ? " is" : "s are"} marked with a label and a double ring - the ring and the words carry the mark, not colour.
               {mineNote ? " Marked how: " + mineNote + "." : ""}
