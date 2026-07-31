@@ -111,7 +111,7 @@ export default function Canvas({
   labelOf, shortOf,          // id -> display name (core labels + the registry's own)
   addable,                   // [{ id, label }] registry windows not yet open
   trayNote,                  // { roleGraph: "ESCO" | "SSOC" | ... }
-  ws, setWinState, setGeom, bringToFront,
+  ws, setWinState, setGeom, bringToFront, onClose,
   onArrange, onMinimiseAll, onResetWorkspace,
   moreOpen, setMoreOpen, moreEl, barRef,
   navOpen, setNavOpen, onOpenJobAd,
@@ -119,9 +119,9 @@ export default function Canvas({
 }) {
   const canvasRef = useRef(null);
   const dragRef = useRef(null);
+  const resizeRef = useRef(null);
   const navRef = useRef(null);
   const menuRef = useRef(null);
-  const roRef = useRef(null);
 
   const ids = Object.keys(ws);
   const co = ws.company || {};
@@ -136,35 +136,12 @@ export default function Canvas({
   const mainPadRight = (!isNarrow && dockedIds.length ? DOCK_W : 0) + (!isNarrow && rightOpen ? rightW : 0);
   const mainPadBottom = !isNarrow && bottomOpen ? bottomH : 0;
 
-  // §3.5: preserve WINDOW SIZE. Windows are CSS-resizable (resize:both, the same affordance
-  // the original float layer used), so the authoritative size lives in the DOM. One observer
-  // watches every window and writes its size back, guarded so the state -> style -> observer
-  // round trip settles instead of looping.
-  useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return undefined;
-    let raf = 0;
-    const pending = new Set();
-    const ro = new ResizeObserver((entries) => {
-      entries.forEach((e) => pending.add(e.target));
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        pending.forEach((el) => {
-          const id = el.getAttribute("data-ws-id");
-          const g = id && ws[id];
-          if (!g || g.state !== "floating") return;
-          const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
-          if (!w || !h) return;
-          if (Math.abs(w - g.w) > 2 || Math.abs(h - g.h) > 2) setGeom(id, { w, h });
-        });
-        pending.clear();
-      });
-    });
-    roRef.current = ro;
-    document.querySelectorAll("[data-ws-id]").forEach((el) => ro.observe(el));
-    return () => { if (raf) cancelAnimationFrame(raf); ro.disconnect(); roRef.current = null; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [winIds.join("|"), winIds.map((id) => ws[id].state).join("|")]);
+  // §3.5's "preserve window size" used to need a ResizeObserver, because the size lived in
+  // the DOM (CSS `resize: both`) and had to be read back into state. The eight edge handles
+  // replaced that: they write w/h straight to state, so state is now the single source and
+  // the observer would only be a second writer racing the first. Removed rather than left
+  // running - a feedback loop between the two is exactly the sort of bug that is invisible
+  // until a window jitters under the cursor.
 
   // The navigator popover closes on Escape and on a click outside it - the same dismissal
   // contract the rest of Step 3's overlays use.
@@ -195,37 +172,103 @@ export default function Canvas({
     if (e.key === "End") { e.preventDefault(); items[items.length - 1].focus(); }
   };
 
-  // Default position for a window whose x/y is still unset: upper-right (§3.4), resolved at
-  // paint so it tracks the real canvas width.
+  // Default position for a window whose x/y is still unset: upper-right of the canvas.
+  // Coordinates are VIEWPORT coordinates now that floating windows are position:fixed
+  // (Human Lead: a window "is block within the panel of the result" - it was absolutely
+  // positioned inside the canvas, so it could never be dragged outside that box). The
+  // default still opens over the canvas, but the window is free to go anywhere after that.
   const posOf = (id) => {
     const g = ws[id] || {};
     if (isNarrow) return { x: 0, y: 0 };
     const box = canvasRef.current ? canvasRef.current.getBoundingClientRect() : null;
     const w = g.w || wsDefaultSize().w;
-    const x = g.x == null ? Math.max(12, (box ? box.width : 1200) - w - 20 - (rightOpen ? rightW : 0)) : g.x;
-    const y = g.y == null ? 14 : g.y;
+    const left = box ? box.left : 0, top = box ? box.top : 0, cw = box ? box.width : 1200;
+    const x = g.x == null ? Math.max(8, left + cw - w - 20 - (rightOpen ? rightW : 0)) : g.x;
+    const y = g.y == null ? top + 14 : g.y;
     return { x, y };
   };
 
+  const moveDrag = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    // Clamped to the VIEWPORT, not the canvas: a window may be dragged anywhere on screen,
+    // but never so far that its clip and controls leave the screen with it.
+    setGeom(d.id, {
+      x: Math.max(-d.w + 160, Math.min(window.innerWidth - 120, d.ox + e.clientX - d.sx)),
+      y: Math.max(0, Math.min(window.innerHeight - 60, d.oy + e.clientY - d.sy)),
+    });
+  };
+  // Same document-level listeners as the resize handles, for the same reason: a drag that
+  // outruns the pointer leaves the clip behind, and capture alone did not hold.
   const startDrag = (id) => (e) => {
     if (isNarrow || (ws[id] || {}).state !== "floating") return;
     if (e.target && e.target.closest && e.target.closest("button")) return;
     const p = posOf(id);
-    dragRef.current = { id, sx: e.clientX, sy: e.clientY, ox: p.x, oy: p.y };
+    dragRef.current = { id, sx: e.clientX, sy: e.clientY, ox: p.x, oy: p.y, w: (ws[id] || {}).w || wsDefaultSize().w };
     bringToFront(id);
-    if (e.currentTarget.setPointerCapture) e.currentTarget.setPointerCapture(e.pointerId);
+    const onMove = (ev) => moveDrag(ev);
+    const onUp = () => {
+      dragRef.current = null;
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
   };
-  const moveDrag = (e) => {
-    const d = dragRef.current;
-    if (!d || !canvasRef.current) return;
-    const box = canvasRef.current.getBoundingClientRect();
-    // Clamp inside the canvas so a dragged window is always recoverable without a reset.
-    setGeom(d.id, {
-      x: Math.max(0, Math.min(box.width - 120, d.ox + e.clientX - d.sx)),
-      y: Math.max(0, Math.min(box.height - 60, d.oy + e.clientY - d.sy)),
-    });
+  // Edge and corner resize (Human Lead: "border resize"). The native CSS resize corner is
+  // one grip in one corner; these are the eight a window is expected to have. Pointer only
+  // by nature - the keyboard path is Shift+arrow on the clip.
+  // Handles sit ENTIRELY INSIDE the window. Straddling the border (the obvious first
+  // instinct) puts half of each handle outside a container with overflow:hidden, which
+  // clips it away - the grab area collapsed to about 4px and the edge became a pixel hunt.
+  // 8px inside, 18px at the corners, is a normal window's target.
+  const RESIZE_EDGES = [
+    { k: "n", cur: "ns-resize", s: { top: 0, left: 18, right: 18, height: 8 } },
+    { k: "s", cur: "ns-resize", s: { bottom: 0, left: 18, right: 18, height: 8 } },
+    { k: "w", cur: "ew-resize", s: { left: 0, top: 18, bottom: 18, width: 8 } },
+    { k: "e", cur: "ew-resize", s: { right: 0, top: 18, bottom: 18, width: 8 } },
+    { k: "nw", cur: "nwse-resize", s: { top: 0, left: 0, width: 18, height: 18 } },
+    { k: "ne", cur: "nesw-resize", s: { top: 0, right: 0, width: 18, height: 18 } },
+    { k: "sw", cur: "nesw-resize", s: { bottom: 0, left: 0, width: 18, height: 18 } },
+    { k: "se", cur: "nwse-resize", s: { bottom: 0, right: 0, width: 18, height: 18 } },
+  ];
+  // DOCUMENT-LEVEL listeners for the duration of a resize, not setPointerCapture. Dragging
+  // an edge outward takes the cursor OFF the window almost immediately - that is the whole
+  // gesture - and if capture does not hold, every later pointermove lands on whatever is
+  // underneath instead. The window then stops following the cursor after a few pixels.
+  // Caught by a real mouse drag in the browser: synthetic events dispatched straight at the
+  // handle resized correctly and hid the bug completely.
+  const moveResize = (e) => {
+    const r = resizeRef.current;
+    if (!r) return;
+    const dx = e.clientX - r.sx, dy = e.clientY - r.sy;
+    const patch = {};
+    if (r.k.includes("e")) patch.w = Math.max(300, r.w + dx);
+    if (r.k.includes("s")) patch.h = Math.max(220, r.h + dy);
+    // Dragging a west or north edge moves the origin as well as the size, otherwise the
+    // opposite edge walks across the screen instead of staying put.
+    if (r.k.includes("w")) { const w = Math.max(300, r.w - dx); patch.w = w; patch.x = r.x + (r.w - w); }
+    if (r.k.includes("n")) { const h = Math.max(220, r.h - dy); patch.h = h; patch.y = r.y + (r.h - h); }
+    setGeom(r.id, patch);
   };
-  const stopDrag = () => { dragRef.current = null; };
+  const startResize = (id, k) => (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const g = ws[id] || {}; const p = posOf(id);
+    resizeRef.current = { id, k, sx: e.clientX, sy: e.clientY, w: g.w || wsDefaultSize().w, h: g.h || wsDefaultSize().h, x: p.x, y: p.y };
+    bringToFront(id);
+    const onMove = (ev) => moveResize(ev);
+    const onUp = () => {
+      resizeRef.current = null;
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("pointercancel", onUp);
+  };
   // Keyboard move: the clip is focusable and arrow-steppable, so a window can be positioned
   // without a pointer. The native CSS resize corner is pointer-only, so SHIFT+arrow on the
   // same handle resizes - otherwise a keyboard-only reader can move, dock, expand and
@@ -265,8 +308,10 @@ export default function Canvas({
         height: "calc((100% - " + mainPadBottom + "px) / " + n + ")",
         borderLeft: "1px solid #d9dee6", borderTop: k > 0 ? "1px solid #d9dee6" : "none" };
     }
+    // FLOATING is position:fixed - the window belongs to the screen, not to the result
+    // panel. `resize: both` is gone; the eight edge handles below replace it.
     const p = posOf(id);
-    return { ...base, position: "absolute", left: p.x, top: p.y, width: g.w || wsDefaultSize().w, height: g.h || wsDefaultSize().h, zIndex: 12 + (g.z || 1), border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", resize: "both", minWidth: 300, minHeight: 220, maxWidth: "98%", maxHeight: "96%" };
+    return { ...base, position: "fixed", left: p.x, top: p.y, width: g.w || wsDefaultSize().w, height: g.h || wsDefaultSize().h, zIndex: RS_LAYERS.float + (g.z || 1), border: "1px solid #d9dee6", borderRadius: 12, boxShadow: "0 18px 50px rgba(15,23,42,0.28)", minWidth: 300, minHeight: 220 };
   };
 
   const drawerShell = (kind, open) => {
@@ -282,8 +327,7 @@ export default function Canvas({
   // corner like a black-metal-clip"). On a managed window it is also the drag handle.
   const clip = (id, label, note, draggable) => (
     <div
-      onPointerDown={draggable ? startDrag(id) : undefined} onPointerMove={draggable ? moveDrag : undefined}
-      onPointerUp={draggable ? stopDrag : undefined} onPointerCancel={draggable ? stopDrag : undefined}
+      onPointerDown={draggable ? startDrag(id) : undefined}
       onKeyDown={draggable ? keyMove(id) : undefined} tabIndex={draggable ? 0 : undefined}
       aria-label={draggable ? "Move the " + label + " window - arrow keys to move, Shift plus arrow keys to resize, or drag" : undefined}
       style={{
@@ -339,22 +383,33 @@ export default function Canvas({
               inert={coveredByExpanded && id !== expandedId && g.state !== "minimized" ? "" : undefined}
               style={winShell(id)}>
               {clip(id, shortOf(id), trayNote && trayNote[id], !isNarrow && g.state === "floating")}
-              <div style={{ position: "absolute", right: 6, top: 4, zIndex: 3, display: "flex", gap: 3 }}>
+              {/* Standard window controls (Human Lead: "the standard buttons of min, max").
+                  Dock stays as a labelled word - it is this workspace's own idea, not a
+                  convention - then the three every window is expected to have. */}
+              <div style={{ position: "absolute", right: 6, top: 4, zIndex: 4, display: "flex", gap: 2 }}>
                 {!isNarrow && (
-                  <>
-                    <button type="button" onClick={() => setWinState(id, g.state === "docked" ? "floating" : "docked")}
-                      aria-pressed={g.state === "docked"} style={ctlBtn(g.state === "docked")}
-                      aria-label={g.state === "docked" ? "Float the " + label + " window" : "Dock the " + label + " to the side"}
-                      title={g.state === "docked" ? "Float" : "Dock"}>{g.state === "docked" ? "float" : "dock"}</button>
-                    <button type="button" onClick={() => setWinState(id, g.state === "expanded" ? "floating" : "expanded")}
-                      aria-pressed={g.state === "expanded"} style={ctlBtn(g.state === "expanded")}
-                      aria-label={g.state === "expanded" ? "Shrink the " + label + " back to a floating window" : "Expand the " + label + " to fill the canvas"}
-                      title={g.state === "expanded" ? "Restore" : "Expand"}>{g.state === "expanded" ? String.fromCharCode(0x2921) : String.fromCharCode(0x2922)}</button>
-                  </>
+                  <button type="button" onClick={() => setWinState(id, g.state === "docked" ? "floating" : "docked")}
+                    aria-pressed={g.state === "docked"} style={{ ...ctlBtn(g.state === "docked"), marginRight: 4 }}
+                    aria-label={g.state === "docked" ? "Float the " + label + " window" : "Dock the " + label + " to the side"}
+                    title={g.state === "docked" ? "Float" : "Dock"}>{g.state === "docked" ? "float" : "dock"}</button>
                 )}
                 <button type="button" onClick={() => setWinState(id, "minimized")} style={ctlBtn(false)}
-                  aria-label={"Minimise the " + label + " to the tray"} title="Minimise to tray">{String.fromCharCode(0x2013)}</button>
+                  aria-label={"Minimise the " + label + " to the tray - it stays open, parked"} title="Minimise">{String.fromCharCode(0x2013)}</button>
+                {!isNarrow && (
+                  <button type="button" onClick={() => setWinState(id, g.state === "expanded" ? "floating" : "expanded")}
+                    aria-pressed={g.state === "expanded"} style={ctlBtn(g.state === "expanded")}
+                    aria-label={g.state === "expanded" ? "Restore the " + label + " to a floating window" : "Maximise the " + label}
+                    title={g.state === "expanded" ? "Restore" : "Maximise"}>{g.state === "expanded" ? String.fromCharCode(0x2750) : String.fromCharCode(0x25a1)}</button>
+                )}
+                <button type="button" onClick={() => onClose(id)} style={ctlBtn(false)}
+                  aria-label={"Close the " + label + (WS_CORE.includes(id) ? " - it returns to the tray" : " - it returns to the navigator's add list")}
+                  title="Close">{String.fromCharCode(0x2715)}</button>
               </div>
+              {/* Eight resize handles, floating state only. */}
+              {!isNarrow && g.state === "floating" && RESIZE_EDGES.map((r) => (
+                <div key={r.k} onPointerDown={startResize(id, r.k)} aria-hidden="true"
+                  style={{ position: "absolute", zIndex: 5, cursor: r.cur, touchAction: "none", ...r.s }} />
+              ))}
               <div className="wis-scroll" style={{ flex: 1, overflowY: "auto", padding: CLIP_GUTTER + "px 12px 8px" }}>{toolEl[id]}</div>
               {/* Bottom strip (Human Lead, 30-07 '26): a window's own tool rail. The gear is
                   the first tenant - it carries the text-size control that used to sit
