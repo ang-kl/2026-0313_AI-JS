@@ -10821,6 +10821,10 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
   // "loading", "nothing to show" and "failed" can each say what they mean.
   const [coState, setCoState] = useState({ status: "idle", kg: null, model: null });
   const [coNode, setCoNode] = useState(null);
+  // Retry counter, not a status reset: coState is deliberately NOT a dependency of the fetch
+  // effect (it would re-fire on its own writes), so setting status back to "idle" re-renders
+  // without re-running anything. Bumping this nonce is what actually re-runs the read.
+  const [coRetry, setCoRetry] = useState(0);
   const graphScrollRef = useRef(null);
   const roleGraphDragRef = useRef(null);
   const roleKey = (title || "").trim().toLowerCase();
@@ -10865,20 +10869,27 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("http"))))
       .then((data) => {
         if (!live) return;
-        // An employer name that matches more than one MCF group is AMBIGUOUS, not empty.
-        // Feeding an empty group to the engine made it report "0 postings found" - a claim
-        // about the employer, when the truth is that the name could not be resolved to one.
-        if (!Array.isArray(data.matches) || data.matches.length !== 1) {
-          setCoState({ status: "ambiguous", kg: null, model: null, matchCount: Array.isArray(data.matches) ? data.matches.length : 0 });
+        // Three outcomes, not two. A zero-match response is NOT evidence about the employer:
+        // api/mcf.js answers 200 with matches:[] and fallback:true for a timeout, an upstream
+        // error, an unnormalisable query AND a genuine miss alike - and an outage is swallowed
+        // into that same shape. Only matches.length >= 2 is real ambiguity; everything else
+        // that fails to resolve to one group is a failed read, and must say so.
+        const matches = Array.isArray(data.matches) ? data.matches : [];
+        if (matches.length >= 2) {
+          setCoState({ status: "ambiguous", kg: null, model: null, matchCount: matches.length });
           return;
         }
-        const model = buildCompanyAgents(data.matches[0]);
+        if (matches.length !== 1 || data.fallback === true) {
+          setCoState({ status: "error", kg: null, model: null });
+          return;
+        }
+        const model = buildCompanyAgents(matches[0]);
         setCoState({ status: "done", kg: companyAgentsToKgPayload(model), model });
       })
       .catch(() => { if (live) setCoState({ status: "error", kg: null, model: null }); });
     return () => { live = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [graphMode, coName]);
+  }, [graphMode, coName, coRetry]);
 
   // PR 4 (build order, 31-07 '26): where THIS role sits in the company graph.
   // The company read draws the employer's whole shape; without a mark the reader has to
@@ -10931,7 +10942,10 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
       return "This advert is one of the " + nPost + " postings found, but no duty text came back with it in this read.";
     }
     if (coMine.presence === "duty-read") {                    // <- roster row, dutyRead true
-      return "This advert's duty text was read, but no line of it reached a cluster drawn here.";
+      // "text", not "duty text": extractResponsibilities falls back to the whole cleaned ad
+      // when it finds no section header, so a true dutyRead cannot tell a real duty section
+      // from any text at all. Same overclaim the false branch was just fixed for.
+      return "This advert's text was read, but no line of it reached a cluster drawn here.";
     }
     if (coMine.presence === "matched-undrawn") {              // <- cluster match, none drawn
       return "This advert was identified by ID, but the duty clusters it contributed to fall outside the tier drawn here.";
@@ -11185,18 +11199,22 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
 
       {/* SSOCRG: SSOC-grounded second graph (opt-in). Populated in the background by doAnalyse. */}
       {graphMode === "company" && (
-        <div style={{ marginTop: 12 }}>
-          {coState.status === "loading" && (
+        // aria-live: loading -> error -> ambiguous were silent transitions for a screen
+        // reader, so a failed read read as nothing happening at all.
+        <div style={{ marginTop: 12 }} aria-live="polite">
+          {/* "idle" shares the loading line: the effect fires on the very next tick, so the
+              alternative is a frame of blank panel after a retry. */}
+          {(coState.status === "loading" || coState.status === "idle") && (
             <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>Reading {coName}&rsquo;s live postings&hellip;</p>
           )}
           {coState.status === "error" && (
             <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.55 }}>
-              {/* Not "couldn't reach the source": this catch also fires on a bad response
-                  body or a throw inside the engine, so naming the network would blame the
-                  wrong thing. And the retry is now a real control - the old copy told the
-                  reader to switch away and back, which the fetch guard silently forbids. */}
-              Couldn&rsquo;t complete the employer read for {coName} just now, so nothing is drawn - withheld rather than guessed.{" "}
-              <button type="button" onClick={() => setCoState({ status: "idle", kg: null, model: null })}
+              {/* Deliberately says nothing about the employer. A zero-match answer arrives in
+                  the same shape whether the name genuinely has no live postings, the query
+                  could not be normalised, the source timed out, or MCF is down - so any
+                  sentence naming a cause would be picking one of four at random. */}
+              This read didn&rsquo;t return a single employer for {coName}, so nothing is drawn - withheld rather than guessed.{" "}
+              <button type="button" onClick={() => { setCoState({ status: "idle", kg: null, model: null }); setCoRetry((n) => n + 1); }}
                 style={{ minHeight: 44, padding: "0 14px", border: "1px solid " + C.border, borderRadius: 8, background: C.surface, color: C.text, fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}>
                 Try again
               </button>
@@ -11204,7 +11222,16 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
           )}
           {coState.status === "ambiguous" && (
             <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.55 }}>
-              &ldquo;{coName}&rdquo; matches {coState.matchCount === 0 ? "no employer" : coState.matchCount + " separate employer groups"} on MyCareersFuture, so there is no single employer to read - withheld rather than merging groups that may be different companies.
+              {/* Every noun here is a property of THIS read, not of MyCareersFuture: the
+                  groups are minted by our own name normaliser over the pages we polled. */}
+              &ldquo;{coName}&rdquo; matched {coState.matchCount} different employer names in this read, so there is no single employer to read - withheld rather than merging names that may be different companies.
+            </p>
+          )}
+          {/* CLAUDE.md §4 applies to every state, not only the one that draws a graph: a
+              reader who only ever sees the withhold still needs the source and the footer. */}
+          {(coState.status === "error" || coState.status === "ambiguous") && (
+            <p style={{ margin: "8px 0 0", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: C.textSub, fontStyle: "italic", lineHeight: 1.5 }}>
+              Source: MyCareersFuture employer search. Confidence: nothing computed - this read produced no employer to draw. Time-window: this lookup. AI-assisted {String.fromCharCode(0x00b7)} human decides.
             </p>
           )}
           {coState.status === "done" && coState.model && (
@@ -14547,8 +14574,10 @@ function buildCompanyAgents(matchGroup) {
   // ---- withhold: insufficient postings ----
   if (jobs.length < COMPANY_AGENT_MIN_POSTINGS) {
     // The gate counts POSTINGS, so the sentence must too - "postings carrying detailed
-    // duties" named a filter this branch never applies.
-    withheld.push("Too few postings found for \"" + company + "\" to read recurring AI-exposable work reliably - showing the postings only. (" + jobs.length + " posting" + (jobs.length === 1 ? "" : "s") + " found; need at least " + COMPANY_AGENT_MIN_POSTINGS + ")");
+    // duties" named a filter this branch never applies. And it no longer promises "showing
+    // the postings only": the employer-search page does list them, but the graph panel that
+    // also renders this string does not, so the promise was false on one of its two surfaces.
+    withheld.push("Too few postings found for \"" + company + "\" to read recurring AI-exposable work reliably. (" + jobs.length + " posting" + (jobs.length === 1 ? "" : "s") + " found; need at least " + COMPANY_AGENT_MIN_POSTINGS + ")");
     return { company, functions: [], clusters: [], agents: [], postings: _companyRoster(jobs), sat: { indicators: [], ach: [], keyAssumptions: _keyAssumptions(), qoi: { postingsAnalysed: jobs.length, dutiesClustered: 0, detailFetched: 0, tag: "thin" } }, withheld, stats: { postings: jobs.length, duties: 0, clusters: 0, agents: 0 } };
   }
 
