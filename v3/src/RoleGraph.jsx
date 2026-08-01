@@ -273,6 +273,15 @@ function _workflowColumn(n) {
 // Workflow layout spacing consts (R005-greppable).
 const WORKFLOW_COL_GAP = 300; // px between column centres
 const WORKFLOW_ROW_GAP = 80;  // px between row centres
+// PR 5: the workflow node is a FIXED height, and the row pitch may never fall below it.
+// Previously the node had only a minHeight and grew to fit a 220-character duty label - up
+// to 240px - while the pitch compressed to height/count (29px for a 19-node column). Rows
+// were spaced for 44px boxes and drawn 240px tall, which is why the tier overlapped itself.
+// The full label still reaches the reader: it is in the node's aria-label and in the side
+// panel on tap. A 104px-wide chip was never going to show 220 characters.
+const WORKFLOW_NODE_H = 62;   // px, every workflow node
+const WORKFLOW_ROW_MIN = WORKFLOW_NODE_H + 12; // pitch floor: node + breathing room
+const WORKFLOW_HEADER_BAND = 26; // visual px reserved for the pinned column headers
 
 // _workflowLayout(nodes, edges, width, height): deterministic tier->column DAG.
 // Pure function; no Math.random; no Date/performance read.
@@ -323,7 +332,10 @@ function _workflowLayout(nodes, edges, width, height) {
       return ra.id.localeCompare(rb.id);             // id asc tie-break
     });
     const cx = colX(c);
-    const effectiveRowGap = Math.min(WORKFLOW_ROW_GAP, height / Math.max(1, col.length));
+    // Pitch may shrink to fit the viewport, but never below a node's own height - that
+    // trade (a taller column the reader zooms or pans) is the honest one; overlapping
+    // nodes are not a denser view, they are an unreadable one.
+    const effectiveRowGap = Math.max(WORKFLOW_ROW_MIN, Math.min(WORKFLOW_ROW_GAP, height / Math.max(1, col.length)));
     col.forEach(function(n, r) {
       pos[n.id] = { x: cx, y: effectiveRowGap * (r + 0.5) };
     });
@@ -609,8 +621,12 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
 // CO2.2: shared pan/zoom + LOD viewport hook.
 // Returns { zoom, panX, panY, band, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut }
 // initialBand computed from node count (LOD_NODE_CEILING).
-function _useViewport(nodeCount) {
-  const initialZoom = nodeCount > LOD_NODE_CEILING ? 0.7 : 1.0; // L0 or L1 opening
+function _useViewport(nodeCount, fitZoom) {
+  // PR 5: a caller that knows its content extent can open at a zoom that actually shows it.
+  // Without this, honouring the row-pitch floor would just push the lower rows out of view.
+  const initialZoom = typeof fitZoom === "number" && fitZoom > 0
+    ? Math.max(ZOOM_MIN, Math.min(1, fitZoom))
+    : (nodeCount > LOD_NODE_CEILING ? 0.7 : 1.0); // L0 or L1 opening
   const [vp, setVp] = useState({ zoom: initialZoom, panX: 0, panY: 0 });
   const band = _lodBand(vp.zoom);
   const containerRef = useRef(null);
@@ -872,8 +888,23 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
   const nodeById = {};
   kg.nodes.forEach(function(n) { nodeById[n.id] = n; });
 
+  // Content extent after the pitch floor is applied, so the view opens fitted rather than
+  // with the bottom of the tallest column hidden below the fold.
+  const contentH = Math.max.apply(null, [1].concat(Object.keys(pos).map(function(k) { return pos[k].y + WORKFLOW_NODE_H / 2 + 8; })));
+  // The drawing layer must COVER the content, not the frame. The node buttons are absolutely
+  // positioned and simply overflow a short parent, but an SVG clips to its own height - so a
+  // layer fixed at H silently dropped every edge below y=H once the pitch floor pushed a long
+  // column past it. The reader would pan down to nodes with no connections drawn at all.
+  const layerH = Math.max(H, Math.ceil(contentH));
   const { zoom, panX, panY, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
-    _useViewport(kg.nodes.length);
+    // Fit to the content, but never so far out that a node stops being a 44px target - the
+    // house floor wins over seeing the whole column at once. Past that point the reader pans.
+    // 47, not 44: below the 1153px breakpoint there is no html zoom to round the rendered
+    // size up, so a bare 44 leaves a scaled transform sitting on exactly the limit with no
+    // room for sub-pixel rounding. The headroom costs nothing and keeps the floor a floor.
+    _useViewport(kg.nodes.length, contentH > (H - WORKFLOW_HEADER_BAND)
+      ? Math.max(47 / WORKFLOW_NODE_H, (H - WORKFLOW_HEADER_BAND) / contentH)
+      : 1);
   // CO2.2 fix: the structured Workflow ALWAYS shows all 3 columns (Functions |
   // Recurring Duties | Agent Candidates). The semantic-zoom LOD collapse-to-hubs
   // is a Neural-view declutter only; hiding the middle column would break the
@@ -903,7 +934,11 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
 
         {/* Column header labels (outside the transform so they stay fixed). */}
         {colLabels.map(function(lbl, c) {
-          const cx = WORKFLOW_COL_GAP * (c + 0.5) + panX;
+          // PR 5: the headers sit OUTSIDE the transformed layer so they stay pinned to the
+          // top, but their x must still follow the same zoom as the columns they name -
+          // otherwise "Agent Candidates" floats away from the agent column the moment the
+          // view opens at anything other than 100%.
+          const cx = WORKFLOW_COL_GAP * (c + 0.5) * zoom + panX;
           return (
             <div key={c} aria-hidden="true" style={{
               position: "absolute", top: 8,
@@ -914,17 +949,21 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
           );
         })}
 
-        {/* Single transformed parent: SVG edge layer + node-button layer. */}
+        {/* Single transformed parent: SVG edge layer + node-button layer.
+            PR 5: shifted down by the header band. The column headers are pinned outside this
+            layer at full size, so when the view opens zoomed out to fit, the first row of
+            (now small) nodes rode up underneath them. The band is applied in visual px, so
+            it clears the headers at every zoom rather than only at 100%. */}
         <div style={{
-          position: "absolute", left: 0, top: 0, width: W, height: H,
-          transform: "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")",
+          position: "absolute", left: 0, top: 0, width: W, height: layerH,
+          transform: "translate(" + panX + "px," + (panY + WORKFLOW_HEADER_BAND) + "px) scale(" + zoom + ")",
           transformOrigin: "0 0",
         }}>
-          <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+          <svg width={W} height={layerH} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
             {/* Column divider lines */}
             {[1, 2].map(function(c) {
               const x = WORKFLOW_COL_GAP * c;
-              return <line key={c} x1={x} y1={0} x2={x} y2={H} stroke={P.border} strokeWidth={1} strokeDasharray="4 4" />;
+              return <line key={c} x1={x} y1={0} x2={x} y2={layerH} stroke={P.border} strokeWidth={1} strokeDasharray="4 4" />;
             })}
             {kg.edges.map(function(e, i) {
               const a = pos[e.source], b = pos[e.target];
@@ -958,8 +997,10 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
                 aria-label={n.type + ": " + n.label + ". " + (mine ? kgMineAria(labelOf(n.id), mineNote) : "") + "Tap to trace."}
                 style={{
                   position: "absolute",
-                  left: Math.round(p.x - 52), top: Math.round(p.y - 20),
-                  width: 104, minHeight: 44,
+                  left: Math.round(p.x - 52), top: Math.round(p.y - WORKFLOW_NODE_H / 2),
+                  // Fixed height, not minHeight: the layout spaces rows by this number, so a
+                  // node that grows past it lands on its neighbour.
+                  width: 104, height: WORKFLOW_NODE_H,
                   border: (isT ? 2 : 1) + "px solid " + (isT ? st.color : st.border),
                   borderRadius: 8, background: isT ? st.bg : P.surface,
                   fontSize: 10, fontWeight: 600, color: st.color,
@@ -975,7 +1016,9 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
                 {mine && (
                   <span aria-hidden="true" style={{ display: "block", fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", color: P.text, marginBottom: 2 }}>{labelOf(n.id)}</span>
                 )}
-                {n.label}
+                {/* Clamped rather than cut mid-word. The whole label is on the aria-label
+                    and in the side panel a tap away. */}
+                <span style={{ display: "-webkit-box", WebkitLineClamp: mine ? 3 : 4, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{n.label}</span>
               </button>
             );
           })}

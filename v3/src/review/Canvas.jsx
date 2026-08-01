@@ -58,9 +58,40 @@ const CLIP_GUTTER = 30;  // top padding that keeps content clear of the clip + c
 // wsDefaultSize(): a managed window opens at HALF the viewport (Human Lead, 30-07 '26).
 // Computed rather than constant so a 13" laptop and a 27" display both get a window that
 // reads as a working surface. Clamped so it always fits with room for the document behind.
+// PR 5: this workspace lives in TWO coordinate spaces, and mixing them is what pushed the
+// windows off screen. index.html applies `html { zoom: 1.1 }` above 1153px, and under it:
+//   - a style value ("width: 800px") is in UNZOOMED space and renders 1.1x larger;
+//   - getBoundingClientRect() and pointer clientX/clientY are in VISUAL (zoomed) space;
+//   - window.innerWidth AND document.documentElement.clientWidth both still report 1600,
+//     so neither one reveals the zoom (measured, not assumed - clientWidth is not adjusted).
+// Sizing a window from innerWidth and writing it back as px therefore produced a box drawn
+// 10% wider than the maths believed, and two half-width windows overflowed by ~144px. The
+// same mix made drags track ~10% faster than the cursor.
+//
+// vpZoom measures the factor off a probe element, so it is exact and self-correcting: with
+// no zoom in play it returns 1 and every calculation below is unchanged.
+export function vpZoom() {
+  if (typeof document === "undefined" || !document.body) return 1;
+  try {
+    const el = document.createElement("div");
+    el.style.cssText = "position:fixed;left:0;top:0;width:100px;height:0;visibility:hidden;pointer-events:none";
+    document.body.appendChild(el);
+    const w = el.getBoundingClientRect().width;
+    el.remove();
+    return w > 0 ? w / 100 : 1;
+  } catch (_) { return 1; }
+}
+// The viewport expressed in STYLE px - the space every x/y/w/h we store is written in.
+export function vpSize() {
+  const z = vpZoom();
+  if (typeof window !== "undefined" && window.innerWidth) {
+    return { vw: Math.round(window.innerWidth / z), vh: Math.round(window.innerHeight / z), z };
+  }
+  return { vw: 1440, vh: 900, z };
+}
+
 export function wsDefaultSize() {
-  const vw = typeof window !== "undefined" && window.innerWidth ? window.innerWidth : 1440;
-  const vh = typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 900;
+  const { vw, vh } = vpSize();
   return {
     w: Math.round(Math.max(340, Math.min(vw - 48, vw * 0.5))),
     h: Math.round(Math.max(280, Math.min(vh - 180, vh * 0.5))),
@@ -72,8 +103,7 @@ export const WS_DEFAULT_GEOM = { company: { w: 400 }, evidence: { h: 320 } };
 // graph floats over it; the two drawers wait in the tray so the first read is quiet.
 export function wsInitial() {
   const g = wsDefaultSize();
-  const vw = typeof window !== "undefined" && window.innerWidth ? window.innerWidth : 1440;
-  const vh = typeof window !== "undefined" && window.innerHeight ? window.innerHeight : 900;
+  const { vw, vh } = vpSize();
   // The two open side by side: ad on the LEFT, graph on the right, each about half. Taller
   // than wsDefaultSize's half-height because the ad is the thing being read.
   const tall = Math.round(Math.max(360, vh * 0.72));
@@ -192,7 +222,9 @@ export default function Canvas({
     if (isNarrow) return { x: 0, y: 0 };
     const box = canvasRef.current ? canvasRef.current.getBoundingClientRect() : null;
     const w = g.w || wsDefaultSize().w;
-    const left = box ? box.left : 0, top = box ? box.top : 0, cw = box ? box.width : 1200;
+    // The rect is VISUAL px; g.w and the x/y we return are STYLE px. Convert before mixing.
+    const z = vpZoom();
+    const left = box ? box.left / z : 0, top = box ? box.top / z : 0, cw = box ? box.width / z : 1200;
     const x = g.x == null ? Math.max(8, left + cw - w - 20 - (rightOpen ? rightW : 0)) : g.x;
     const y = g.y == null ? top + 14 : g.y;
     return { x, y };
@@ -203,9 +235,12 @@ export default function Canvas({
     if (!d) return;
     // Clamped to the VIEWPORT, not the canvas: a window may be dragged anywhere on screen,
     // but never so far that its clip and controls leave the screen with it.
+    // Pointer deltas arrive in VISUAL px; d.ox/d.oy are STYLE px. Scale the delta, or the
+    // window travels 1.1x the distance the cursor does and slides out from under it.
+    const { vw, vh, z } = vpSize();
     setGeom(d.id, {
-      x: Math.max(-d.w + 160, Math.min(window.innerWidth - 120, d.ox + e.clientX - d.sx)),
-      y: Math.max(0, Math.min(window.innerHeight - 60, d.oy + e.clientY - d.sy)),
+      x: Math.max(-d.w + 160, Math.min(vw - 120, d.ox + (e.clientX - d.sx) / z)),
+      y: Math.max(0, Math.min(vh - 60, d.oy + (e.clientY - d.sy) / z)),
     });
   };
   // Same document-level listeners as the resize handles, for the same reason: a drag that
@@ -253,14 +288,15 @@ export default function Canvas({
   const moveResize = (e) => {
     const r = resizeRef.current;
     if (!r) return;
-    const dx = e.clientX - r.sx, dy = e.clientY - r.sy;
+    const { vw, vh, z } = vpSize();
+    const dx = (e.clientX - r.sx) / z, dy = (e.clientY - r.sy) / z; // visual -> style px
     const patch = {};
     // Clamped so growing east or south can never push the window's own chrome off-screen.
     // The controls live at the top-right, so an unclamped east drag walks the close button
     // out of the viewport and the window becomes unreachable without a reset - the same
     // recoverability rule the drag clamp follows.
-    if (r.k.includes("e")) patch.w = Math.max(300, Math.min(r.w + dx, window.innerWidth - r.x - 4));
-    if (r.k.includes("s")) patch.h = Math.max(220, Math.min(r.h + dy, window.innerHeight - r.y - 4));
+    if (r.k.includes("e")) patch.w = Math.max(300, Math.min(r.w + dx, vw - r.x - 4));
+    if (r.k.includes("s")) patch.h = Math.max(220, Math.min(r.h + dy, vh - r.y - 4));
     // Dragging a west or north edge moves the origin as well as the size, otherwise the
     // opposite edge walks across the screen instead of staying put.
     if (r.k.includes("w")) { const w = Math.max(300, r.w - dx); patch.w = w; patch.x = r.x + (r.w - w); }
