@@ -891,11 +891,19 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
   // Content extent after the pitch floor is applied, so the view opens fitted rather than
   // with the bottom of the tallest column hidden below the fold.
   const contentH = Math.max.apply(null, [1].concat(Object.keys(pos).map(function(k) { return pos[k].y + WORKFLOW_NODE_H / 2 + 8; })));
+  // The drawing layer must COVER the content, not the frame. The node buttons are absolutely
+  // positioned and simply overflow a short parent, but an SVG clips to its own height - so a
+  // layer fixed at H silently dropped every edge below y=H once the pitch floor pushed a long
+  // column past it. The reader would pan down to nodes with no connections drawn at all.
+  const layerH = Math.max(H, Math.ceil(contentH));
   const { zoom, panX, panY, transDur, containerRef, viewportHandlers, resetFit, zoomIn, zoomOut } =
     // Fit to the content, but never so far out that a node stops being a 44px target - the
     // house floor wins over seeing the whole column at once. Past that point the reader pans.
+    // 47, not 44: below the 1153px breakpoint there is no html zoom to round the rendered
+    // size up, so a bare 44 leaves a scaled transform sitting on exactly the limit with no
+    // room for sub-pixel rounding. The headroom costs nothing and keeps the floor a floor.
     _useViewport(kg.nodes.length, contentH > (H - WORKFLOW_HEADER_BAND)
-      ? Math.max(44 / WORKFLOW_NODE_H, (H - WORKFLOW_HEADER_BAND) / contentH)
+      ? Math.max(47 / WORKFLOW_NODE_H, (H - WORKFLOW_HEADER_BAND) / contentH)
       : 1);
   // CO2.2 fix: the structured Workflow ALWAYS shows all 3 columns (Functions |
   // Recurring Duties | Agent Candidates). The semantic-zoom LOD collapse-to-hubs
@@ -947,15 +955,15 @@ function KGWorkflowView({ kg, traced, onNodeClick, isHighlighted, isMine, mineLa
             (now small) nodes rode up underneath them. The band is applied in visual px, so
             it clears the headers at every zoom rather than only at 100%. */}
         <div style={{
-          position: "absolute", left: 0, top: 0, width: W, height: H,
+          position: "absolute", left: 0, top: 0, width: W, height: layerH,
           transform: "translate(" + panX + "px," + (panY + WORKFLOW_HEADER_BAND) + "px) scale(" + zoom + ")",
           transformOrigin: "0 0",
         }}>
-          <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
+          <svg width={W} height={layerH} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden="true">
             {/* Column divider lines */}
             {[1, 2].map(function(c) {
               const x = WORKFLOW_COL_GAP * c;
-              return <line key={c} x1={x} y1={0} x2={x} y2={H} stroke={P.border} strokeWidth={1} strokeDasharray="4 4" />;
+              return <line key={c} x1={x} y1={0} x2={x} y2={layerH} stroke={P.border} strokeWidth={1} strokeDasharray="4 4" />;
             })}
             {kg.edges.map(function(e, i) {
               const a = pos[e.source], b = pos[e.target];
