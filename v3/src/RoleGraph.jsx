@@ -1109,6 +1109,10 @@ function KGNodeCard({ node, traced, highlighted, mine, mineLabel, mineNote, onCl
 // traverses to it - so duty -> skill -> who else needs that skill is two taps, not a guess.
 // Nothing here is inferred: it is kg.edges, read in both directions.
 function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
+  // Each hop replaces the whole list, so without this a keyboard user loses their place and
+  // has to Tab back in from the top of the page for every step. Focus moves only on in-panel
+  // navigation - a mouse tap on a card elsewhere is left alone.
+  const hereRef = useRef(null);
   if (!traced) return null;
   const nodeById = {};
   kg.nodes.forEach((n) => { nodeById[n.id] = n; });
@@ -1117,21 +1121,25 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
 
   const out = [], inb = [];
   kg.edges.forEach((e) => {
-    if (e.source === traced && nodeById[e.target]) out.push({ verb: e.verb, node: nodeById[e.target] });
-    else if (e.target === traced && nodeById[e.source]) inb.push({ verb: e.verb, node: nodeById[e.source] });
+    // source_tag travels with the row: this panel shows the SAME edges as the edges panel
+    // directly below it, and a relationship carrying a provenance tag in one place and not
+    // the other invites the reader to treat the untagged one as better established.
+    if (e.source === traced && nodeById[e.target]) out.push({ verb: e.verb, node: nodeById[e.target], tag: e.source_tag });
+    else if (e.target === traced && nodeById[e.source]) inb.push({ verb: e.verb, node: nodeById[e.source], tag: e.source_tag });
   });
   const total = out.length + inb.length;
 
   const hopBtn = (row, dir) => {
     const st = KG_TYPE_STYLE[row.node.type] || KG_TYPE_STYLE.skill;
+    const pv = PROV[KG_SRC_PROV[row.tag] || "none"];
     return (
-      <button key={dir + row.node.id + row.verb} type="button" onClick={() => onGo(row.node.id)}
-        aria-label={dir === "out" ? `This ${here.type} ${row.verb} ${row.node.type} ${row.node.label}. Go to it.`
-                                  : `${row.node.type} ${row.node.label} ${row.verb} this ${here.type}. Go to it.`}
+      <button key={dir + row.node.id + row.verb} type="button" onClick={() => { onGo(row.node.id); if (hereRef.current) hereRef.current.focus(); }}
+        aria-label={(dir === "out" ? `This ${here.type} ${row.verb} ${row.node.type} ${row.node.label}.` : `${row.node.type} ${row.node.label} ${row.verb} this ${here.type}.`) + ` Source: ${pv.label}. Go to it.`}
         style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, textAlign: "left",
           padding: "6px 10px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, cursor: "pointer" }}>
         <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 800, color: P.muted, minWidth: 26 }}>{dir === "out" ? "out" : "in"}</span>
         <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 800, color: "#1e40af", background: "#eef2ff", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>{row.verb}</span>
+        <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 700, color: pv.color, background: pv.bg, borderRadius: 6, padding: "1px 6px", whiteSpace: "nowrap" }}>{pv.icon} {pv.label}</span>
         <span style={{ fontSize: "0.75rem", fontWeight: 600, color: st.color, overflowWrap: "anywhere" }}>{row.node.label}</span>
       </button>
     );
@@ -1143,7 +1151,7 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
       <div style={{ fontSize: "0.6875rem", fontWeight: 800, color: P.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
         Here
       </div>
-      <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: P.text, margin: "2px 0 8px", overflowWrap: "anywhere" }}>
+      <div ref={hereRef} tabIndex={-1} style={{ fontSize: "0.8125rem", fontWeight: 700, color: P.text, margin: "2px 0 8px", overflowWrap: "anywhere", outlineOffset: 3 }}>
         {here.type}: {here.label}
       </div>
 
@@ -1172,7 +1180,7 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
 
       <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
         {trail.length > 1 && (
-          <button type="button" onClick={onBack} style={{ minHeight: 44, padding: "0 14px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, color: P.text, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
+          <button type="button" onClick={() => { onBack(); if (hereRef.current) hereRef.current.focus(); }} style={{ minHeight: 44, padding: "0 14px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, color: P.text, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
             Back one step
           </button>
         )}
