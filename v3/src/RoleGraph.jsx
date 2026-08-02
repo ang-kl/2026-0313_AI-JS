@@ -455,6 +455,7 @@ const KG_MINE_CHIP = {
 export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlightLabel, highlightLabels, highlightNote }) {
   const effectiveLayout = layout === "force" ? "force" : layout === "workflow" ? "workflow" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
+  const [trail, setTrail] = useState([]);     // PR 6: the path traversed, oldest first
   const [wide, setWide] = useState(true);
 
   useEffect(() => {
@@ -464,7 +465,7 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
     return () => window.removeEventListener("resize", onResize);
   }, []);
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") setTraced(null); };
+    const onKey = (e) => { if (e.key === "Escape") { setTraced(null); setTrail([]); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -508,8 +509,18 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
   const tapCallback = typeof onNodeTap === "function" ? onNodeTap : function() {};
   function handleNodeClick(id) {
     setTraced(function(t) { return t === id ? null : id; });
+    // PR 6: tapping the same node clears; tapping a new one extends the path. Revisiting a
+    // node already on the path truncates back to it rather than looping forever.
+    setTrail(function(t) {
+      if (t[t.length - 1] === id) return [];
+      const at = t.indexOf(id);
+      return at >= 0 ? t.slice(0, at + 1) : t.concat([id]);
+    });
     tapCallback(id);
   }
+  function traverseTo(id) { setTraced(id); setTrail(function(t) { const at = t.indexOf(id); return at >= 0 ? t.slice(0, at + 1) : t.concat([id]); }); tapCallback(id); }
+  function traverseBack() { setTrail(function(t) { const next = t.slice(0, -1); setTraced(next[next.length - 1] || null); return next; }); }
+  function traverseReset() { setTraced(null); setTrail([]); }
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
@@ -593,6 +604,13 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
             );
           })}
         </div>
+        )}
+
+        {/* PR 6: traversal for the lane view. Scoped to lanes on purpose - the force and
+            workflow layouts already hand their tap to the host's own side panel, and two
+            detail panels answering the same tap would compete. */}
+        {effectiveLayout === "lanes" && (
+          <KGTraversePanel kg={kg} traced={traced} trail={trail} onGo={traverseTo} onBack={traverseBack} onReset={traverseReset} />
         )}
 
         {/* Edges panel: verb-labelled connections, filtered by tap-to-trace */}
@@ -1053,19 +1071,102 @@ function KGNodeCard({ node, traced, highlighted, mine, mineLabel, mineNote, onCl
       }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
         {mine && <span aria-hidden="true" style={KG_MINE_CHIP}>{mineLabel}</span>}
-        <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 800, color: st.color, background: st.bg, border: `1px solid ${st.border}`, borderRadius: 6, padding: "1px 6px" }}>{st.label}</span>
-        <span aria-hidden="true" style={{ fontSize: 10, fontWeight: 700, color: pv.color, background: pv.bg, borderRadius: 6, padding: "1px 6px" }}>{pv.icon} {pv.label}</span>
-        {node.confidence && <span aria-hidden="true" style={{ fontSize: 10, color: P.muted }}>{node.confidence}</span>}
+        <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 800, color: st.color, background: st.bg, border: `1px solid ${st.border}`, borderRadius: 6, padding: "1px 6px" }}>{st.label}</span>
+        <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 700, color: pv.color, background: pv.bg, borderRadius: 6, padding: "1px 6px" }}>{pv.icon} {pv.label}</span>
+        {node.confidence && <span aria-hidden="true" style={{ fontSize: "0.625rem", color: P.muted }}>{node.confidence}</span>}
       </div>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: st.color, lineHeight: 1.4, overflowWrap: "anywhere" }}>{node.label}</div>
+      <div style={{ fontSize: "0.78125rem", fontWeight: 600, color: st.color, lineHeight: 1.4, overflowWrap: "anywhere" }}>{node.label}</div>
       {node.level && node.level !== "HUMAN" && (
-        <div style={{ fontSize: 10, color: P.muted }}>AI level: {node.level}</div>
+        <div style={{ fontSize: "0.625rem", color: P.muted }}>AI level: {node.level}</div>
       )}
     </button>
   );
 }
 
 // Edge panel: shows the verb-labelled edges as a list.
+// PR 6: traversal, which is what makes this a knowledge graph rather than a card list.
+// Before this, tapping a node only DIMMED the unconnected ones - a signal carried by opacity
+// alone, and a dead end: you could see that something was connected but not what the
+// relationship was, and you could not follow it. This names each relationship in words, in
+// the direction the edge was actually written, and every neighbour is a control that
+// traverses to it - so duty -> skill -> who else needs that skill is two taps, not a guess.
+// Nothing here is inferred: it is kg.edges, read in both directions.
+function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
+  if (!traced) return null;
+  const nodeById = {};
+  kg.nodes.forEach((n) => { nodeById[n.id] = n; });
+  const here = nodeById[traced];
+  if (!here) return null;
+
+  const out = [], inb = [];
+  kg.edges.forEach((e) => {
+    if (e.source === traced && nodeById[e.target]) out.push({ verb: e.verb, node: nodeById[e.target] });
+    else if (e.target === traced && nodeById[e.source]) inb.push({ verb: e.verb, node: nodeById[e.source] });
+  });
+  const total = out.length + inb.length;
+
+  const hopBtn = (row, dir) => {
+    const st = KG_TYPE_STYLE[row.node.type] || KG_TYPE_STYLE.skill;
+    return (
+      <button key={dir + row.node.id + row.verb} type="button" onClick={() => onGo(row.node.id)}
+        aria-label={dir === "out" ? `This ${here.type} ${row.verb} ${row.node.type} ${row.node.label}. Go to it.`
+                                  : `${row.node.type} ${row.node.label} ${row.verb} this ${here.type}. Go to it.`}
+        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", minHeight: 44, textAlign: "left",
+          padding: "6px 10px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, cursor: "pointer" }}>
+        <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 800, color: P.muted, minWidth: 26 }}>{dir === "out" ? "out" : "in"}</span>
+        <span aria-hidden="true" style={{ fontSize: "0.625rem", fontWeight: 800, color: "#1e40af", background: "#eef2ff", borderRadius: 6, padding: "1px 7px", whiteSpace: "nowrap" }}>{row.verb}</span>
+        <span style={{ fontSize: "0.75rem", fontWeight: 600, color: st.color, overflowWrap: "anywhere" }}>{row.node.label}</span>
+      </button>
+    );
+  };
+
+  return (
+    <section aria-label="Traverse from the selected node"
+      style={{ marginTop: 14, background: P.surface, border: "1px solid " + P.border, borderRadius: 12, padding: "12px 14px" }}>
+      <div style={{ fontSize: "0.6875rem", fontWeight: 800, color: P.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        Here
+      </div>
+      <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: P.text, margin: "2px 0 8px", overflowWrap: "anywhere" }}>
+        {here.type}: {here.label}
+      </div>
+
+      {/* The path taken, so a reader who has followed three hops can see how they got here. */}
+      {trail.length > 1 && (
+        <p style={{ margin: "0 0 8px", fontSize: "0.6875rem", color: P.textSub, lineHeight: 1.5 }}>
+          Path: {trail.map((id) => (nodeById[id] ? nodeById[id].label : id)).join("  >  ")}
+        </p>
+      )}
+
+      {total === 0 ? (
+        <p style={{ margin: 0, fontSize: "0.75rem", color: P.textSub, lineHeight: 1.55 }}>
+          Nothing is wired to this node in the data behind this graph - so there is nowhere to traverse from here, rather than a path being hidden.
+        </p>
+      ) : (
+        <>
+          <p style={{ margin: "0 0 8px", fontSize: "0.75rem", color: P.textSub, lineHeight: 1.55 }}>
+            {total} connection{total === 1 ? "" : "s"} - {out.length} out, {inb.length} in. Each names the relationship as the data records it; tap one to move there.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {out.map((r) => hopBtn(r, "out"))}
+            {inb.map((r) => hopBtn(r, "in"))}
+          </div>
+        </>
+      )}
+
+      <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+        {trail.length > 1 && (
+          <button type="button" onClick={onBack} style={{ minHeight: 44, padding: "0 14px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, color: P.text, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
+            Back one step
+          </button>
+        )}
+        <button type="button" onClick={onReset} style={{ minHeight: 44, padding: "0 14px", borderRadius: 8, border: "1px solid " + P.border, background: P.surface, color: P.text, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}>
+          Clear selection
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function KGEdgesPanel({ kg, traced }) {
   const [expanded, setExpanded] = useState(false);
   const toggle = () => setExpanded((v) => !v);
@@ -1082,14 +1183,14 @@ function KGEdgesPanel({ kg, traced }) {
         onClick={toggle}
         aria-expanded={expanded}
         style={{ cursor: "pointer", border: "none", background: "transparent", padding: 0, textAlign: "left", minHeight: 44, display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color: P.text }}>
+        <span style={{ fontWeight: 700, fontSize: "0.8125rem", color: P.text }}>
           Verb-labelled edges {traced ? `(${edges.length} for selected node)` : `(${edges.length} total)`}
         </span>
-        <span aria-hidden="true" style={{ color: P.muted, fontSize: 12 }}>{expanded ? "hide" : "show"}</span>
+        <span aria-hidden="true" style={{ color: P.muted, fontSize: "0.75rem" }}>{expanded ? "hide" : "show"}</span>
       </button>
       {expanded && (
         <div style={{ marginTop: 10 }}>
-          {edges.length === 0 && <div style={{ fontSize: 12, color: P.muted }}>No edges to display.</div>}
+          {edges.length === 0 && <div style={{ fontSize: "0.75rem", color: P.muted }}>No edges to display.</div>}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {edges.map((e, i) => {
               const src = nodeById[e.source];
@@ -1097,12 +1198,12 @@ function KGEdgesPanel({ kg, traced }) {
               const provKey = KG_SRC_PROV[e.source_tag] || "none";
               const pv = PROV[provKey];
               return (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: 12, color: P.textSub, borderBottom: `1px solid ${P.border}`, paddingBottom: 5 }}>
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", fontSize: "0.75rem", color: P.textSub, borderBottom: `1px solid ${P.border}`, paddingBottom: 5 }}>
                   <span style={{ fontWeight: 600, color: P.text, maxWidth: 220, overflowWrap: "anywhere" }}>{src ? src.label : e.source}</span>
                   <span style={{ fontWeight: 800, color: "#1e40af", background: "#eef2ff", borderRadius: 6, padding: "1px 8px", whiteSpace: "nowrap" }}>{e.verb}</span>
                   <span style={{ fontWeight: 600, color: P.text, maxWidth: 220, overflowWrap: "anywhere" }}>{tgt ? tgt.label : e.target}</span>
                   <span aria-hidden="true" style={{ color: P.muted }}>w={e.weight}</span>
-                  <span aria-hidden="true" style={{ fontSize: 10, color: pv.color, background: pv.bg, borderRadius: 4, padding: "1px 5px" }}>{pv.icon} {pv.label}</span>
+                  <span aria-hidden="true" style={{ fontSize: "0.625rem", color: pv.color, background: pv.bg, borderRadius: 4, padding: "1px 5px" }}>{pv.icon} {pv.label}</span>
                 </div>
               );
             })}
@@ -1115,13 +1216,13 @@ function KGEdgesPanel({ kg, traced }) {
 
 function KGFooter({ kg }) {
   return (
-    <footer style={{ marginTop: 22, paddingTop: 14, borderTop: `1px solid ${P.border}`, fontSize: 11.5, color: P.muted, lineHeight: 1.6 }}>
+    <footer style={{ marginTop: 22, paddingTop: 14, borderTop: `1px solid ${P.border}`, fontSize: "0.71875rem", color: P.muted, lineHeight: 1.6 }}>
       <div>
         <b>Source:</b> duties from MCF posting (verbatim); skills from ESCO; occupation from ESCO/ISCO-08.
         <b> Confidence:</b> high = verified; medium = inferred from ESCO overlap; low = sparse evidence.
         <b> Time-window:</b> snapshot of the analysed posting.
       </div>
-      <div style={{ marginTop: 6, fontSize: 11, color: P.muted }}>
+      <div style={{ marginTop: 6, fontSize: "0.6875rem", color: P.muted }}>
         AI-assisted; human decides. Knowledge graph is computed deterministically from the MCF posting data - no LLM authoring any node, edge, verb, or cluster.
         Version: {kg.version}. Generated: {kg.generatedAt ? kg.generatedAt.slice(0, 10) : "unknown"}.
       </div>
