@@ -14577,13 +14577,18 @@ function _companyTitleNorm(s) {
 // PR 7: does this duty line describe the same work as a cluster's representative?
 //
 // The clusterer used _phraseMatch, which joins any two lines sharing TWO content words. On a
-// real employer read that produced bags, not clusters: one labelled "Develop and execute the
-// strategic vision for the Wealth Solutions Platform" also contained market-trend analysis,
-// team KPI reviews, and "we will provide you with structured training" - because each shared
-// two words with the label. Mean intra-cluster similarity was 0.35, and one bag held twelve
-// unrelated lines. That made `recurrence` mean "N postings contained a sentence sharing two
-// words with this one", not "N postings want this duty" - so nothing downstream could
-// honestly be said about what an employer keeps hiring for.
+// real employer read that produced bags, not clusters. The worked example, quoted in full so
+// it can be re-checked (truncating these lines hides the very tokens that caused the merge):
+//   rep: "Develop and execute the strategic vision for the Wealth Solutions Platform across
+//         Asia, aligning with the overall DBS Wealth Continuum strategy"
+//   also in the same cluster: "We will provide you with structured training and on-the-job
+//         training to help you develop the skillsets you need for a career in financial
+//         planning and wealth management."
+// Shared tokens: "develop", "wealth". Two words, nothing to do with each other, same cluster.
+// Mean intra-cluster similarity was 0.35 and one bag held twelve unrelated lines. That made
+// `recurrence` mean "N postings contained a sentence sharing two words with this one", not
+// "N postings want this duty" - so nothing downstream could honestly be said about what an
+// employer keeps hiring for.
 //
 // The fix scales the bar with sentence length: at least two shared tokens AND at least half
 // the shorter line. Measured over two live employer reads, that roughly doubles cohesion
@@ -14597,10 +14602,15 @@ function _dutyMatch(a, b) {
   if (na === nb) return true;
   const ta = _phraseToks(a), tb = _phraseToks(b);
   if (!ta.length || !tb.length) return false;
-  const sa = new Set(ta); let shared = 0;
-  tb.forEach(function(t) { if (sa.has(t)) shared++; });
+  // DISTINCT shared terms, not occurrences. Counting occurrences let one repeated word carry
+  // the whole match: "vendor contracts and procurement" against "vendor management, vendor
+  // onboarding, vendor performance, vendor risk" scores 4 shared and a ratio of 1.00 off the
+  // single word "vendor" - and the rule this app states on screen promises two terms.
+  const sa = new Set(ta);
+  const shared = new Set(tb.filter(function(t) { return sa.has(t); })).size;
   if (shared < 2) return false;
-  return shared / Math.min(ta.length, tb.length) >= COMPANY_DUTY_OVERLAP_MIN;
+  const da = new Set(ta).size, db = new Set(tb).size;
+  return shared / Math.min(da, db) >= COMPANY_DUTY_OVERLAP_MIN;
 }
 
 // Main CO2.7 engine: buildCompanyAgents(matchGroup) -> deterministic model.
@@ -14820,7 +14830,7 @@ function _keyAssumptions() {
     "MCF categories map cleanly to business functions - a posting filed under 'Information Technology' may include non-IT duties.",
     "The sampled postings represent the employer's current hiring priorities, not the full workforce.",
     "Recurrence across ads is a proxy for recurrence of work - a duty appearing in 3 ads does not guarantee it happens 3 times per day.",
-    "Duty lines are grouped when they share at least two terms AND at least half the shorter line - close enough to be the same work, but still a text match, so it may merge two duties or split one in two. The provenance panel lets you verify.",
+    "Two identical duty lines always group. Otherwise a line joins a group when it shares at least two distinct terms with the line that OPENED that group - not with every line already in it - and those shared terms cover at least half the distinctive words of whichever of the two lines has fewer. Short and very common words are ignored, so 'the', 'and' and 'ensure' never count. It is still a text match, so it can merge two duties or split one in two - the provenance panel lets you verify.",
   ];
 }
 
@@ -15501,7 +15511,11 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "#0369a1" }}>{"AI moments at " + activeMatch.displayName}</div>
                       <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>
-                        {agentsModel.stats.clusters} duty cluster{agentsModel.stats.clusters === 1 ? "" : "s"} - {agentsModel.stats.agents} agent candidate{agentsModel.stats.agents === 1 ? "" : "s"} - {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} sampled
+                        {/* "N of M drawn": the header sat above a graph showing at most
+                            COMPANY_AGENT_MAX_DUTIES, so a bare cluster count invited the
+                            reader to take everything counted as everything shown. The gap
+                            widened once finer clustering raised the total. */}
+                        {Math.min(agentsModel.stats.clusters, COMPANY_AGENT_MAX_DUTIES)} of {agentsModel.stats.clusters} duty cluster{agentsModel.stats.clusters === 1 ? "" : "s"} drawn - {agentsModel.stats.agents} agent candidate{agentsModel.stats.agents === 1 ? "" : "s"} - {agentsModel.stats.postings} posting{agentsModel.stats.postings === 1 ? "" : "s"} sampled
                         <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#0c4a6e", background: "#bae6fd", border: "1px solid #7dd3fc", borderRadius: 8, padding: "1px 6px" }}>{"QoI: " + agentsModel.sat.qoi.tag}</span>
                         <span style={{ marginLeft: 4, fontSize: 10, fontWeight: 700, color: "#6b7a8d", background: "#f1f5f9", border: "1px solid #cbd5e1", borderRadius: 8, padding: "1px 6px" }}>{"detail-fetched: " + agentsModel.sat.qoi.detailFetched}</span>
                       </div>
