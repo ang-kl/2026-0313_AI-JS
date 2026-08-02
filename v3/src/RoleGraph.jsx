@@ -456,6 +456,7 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
   const effectiveLayout = layout === "force" ? "force" : layout === "workflow" ? "workflow" : "lanes";
   const [traced, setTraced] = useState(null); // id of the tapped node
   const [trail, setTrail] = useState([]);     // PR 6: the path traversed, oldest first
+  const escRef = useRef(null);                // holds the current reset handler for Escape
   const [wide, setWide] = useState(true);
 
   useEffect(() => {
@@ -465,7 +466,9 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
     return () => window.removeEventListener("resize", onResize);
   }, []);
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") { setTraced(null); setTrail([]); } };
+    // Via a ref so Escape clears the HOST's selection too, without the effect capturing a
+    // stale onNodeTap from first render.
+    const onKey = (e) => { if (e.key === "Escape" && escRef.current) escRef.current(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -507,20 +510,34 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
   // CO2: wire onNodeTap alongside the existing tap-to-trace. The traced highlight
   // logic is untouched; onNodeTap is an additional notification to the host.
   const tapCallback = typeof onNodeTap === "function" ? onNodeTap : function() {};
+  // PR 6: the path may only record steps the graph can actually justify.
+  //   - tapping the node you are on clears;
+  //   - revisiting a node already on the path truncates back to it, rather than looping;
+  //   - a node ADJACENT to where you are extends the path;
+  //   - anything else starts a new path. Tapping an unrelated card is a jump, not a
+  //     traversal, and drawing the two as one "Path" would claim an edge that is not there.
+  function nextTrail(t, id) {
+    if (t[t.length - 1] === id) return [];
+    const at = t.indexOf(id);
+    if (at >= 0) return t.slice(0, at + 1);
+    const from = t[t.length - 1];
+    return from && isConnected(from, id) ? t.concat([id]) : [id];
+  }
   function handleNodeClick(id) {
     setTraced(function(t) { return t === id ? null : id; });
-    // PR 6: tapping the same node clears; tapping a new one extends the path. Revisiting a
-    // node already on the path truncates back to it rather than looping forever.
-    setTrail(function(t) {
-      if (t[t.length - 1] === id) return [];
-      const at = t.indexOf(id);
-      return at >= 0 ? t.slice(0, at + 1) : t.concat([id]);
-    });
+    setTrail(function(t) { return nextTrail(t, id); });
     tapCallback(id);
   }
-  function traverseTo(id) { setTraced(id); setTrail(function(t) { const at = t.indexOf(id); return at >= 0 ? t.slice(0, at + 1) : t.concat([id]); }); tapCallback(id); }
-  function traverseBack() { setTrail(function(t) { const next = t.slice(0, -1); setTraced(next[next.length - 1] || null); return next; }); }
-  function traverseReset() { setTraced(null); setTrail([]); }
+  // Back and Clear tell the HOST what the graph is now showing. Without this, a host that
+  // opens its own side panel on tap keeps describing the node you just stepped away from.
+  function traverseTo(id) { setTraced(id); setTrail(function(t) { return nextTrail(t, id); }); tapCallback(id); }
+  function traverseBack() {
+    const next = trail.slice(0, -1);
+    const to = next[next.length - 1] || null;
+    setTrail(next); setTraced(to); tapCallback(to);
+  }
+  function traverseReset() { setTraced(null); setTrail([]); tapCallback(null); }
+  escRef.current = traverseReset;
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
