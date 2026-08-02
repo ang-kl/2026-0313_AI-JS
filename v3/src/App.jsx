@@ -11175,8 +11175,10 @@ function RoleGraphPanel({ result, title, posting, onModeChange }) {
 
       {/* KG1: view toggle - Layered (default) / Knowledge graph */}
       <div role="group" aria-label="Graph view" style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        {/* The tab now says what the panel it opens says: "Layered" named the drawing
+            technique, not the thing drawn. */}
         <button type="button" aria-pressed={graphMode === "layered"} onClick={handleSetLayered} style={graphToggleBtn(graphMode === "layered")}>
-          Layered
+          The role-skill graph
         </button>
         <button type="button" aria-pressed={graphMode === "knowledge"} onClick={handleSetKnowledge} style={graphToggleBtn(graphMode === "knowledge")}>
           Knowledge graph
