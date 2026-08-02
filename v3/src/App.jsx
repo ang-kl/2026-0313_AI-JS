@@ -14206,7 +14206,16 @@ const COMPANY_AGENT_MIN_POSTINGS   = 4;
 const COMPANY_AGENT_MIN_DUTIES     = 6;
 const COMPANY_AGENT_MIN_RECURRENCE = 2;
 const COMPANY_AGENT_MAX_AGENTS     = 8;  // CO2.1: cap the candidate shortlist (rank-truncate)
-const COMPANY_AGENT_MAX_DUTIES     = 15; // CO2.1: cap the recurring-duties tier (top by recurrence)
+// PR 7: 15 -> 24. The cap was tuned when the looser match produced ~71 clusters for a
+// mid-size employer; the tighter one produces ~142, so the same number showed half the
+// proportion and four of eighteen postings ended up with nothing marked at all. Measured
+// across two employers: 24 recovers most of that coverage (DBS 14/18 -> 15/18, Metta 16/19
+// -> 18/19) for six more nodes. Beyond 24 the returns flatten and the tier just crowds.
+const COMPANY_AGENT_MAX_DUTIES     = 24; // CO2.1: cap the recurring-duties tier (top by recurrence)
+// PR 7: how much of the shorter duty line must overlap the cluster's representative before
+// the two are treated as the same work. Chosen by sweeping candidate rules over two live
+// employer reads and measuring mean intra-cluster similarity - see _dutyMatch.
+const COMPANY_DUTY_OVERLAP_MIN     = 0.5;
 
 // Boilerplate filter for duty lines (CO2.7 step 0). R007: ASCII only.
 const _AGENT_BOILER_RE = /^\s*(equal opportunity|we offer|apply now|please apply|about us|about the company|what we offer|benefits|perks|join us|our culture|work with us|be part of|why join|salary|compensation|who we are)\b/i;
@@ -14565,6 +14574,35 @@ function _companyTitleNorm(s) {
   return _phraseNorm(String(s || "").replace(/[\/\-_,()]+/g, " "));
 }
 
+// PR 7: does this duty line describe the same work as a cluster's representative?
+//
+// The clusterer used _phraseMatch, which joins any two lines sharing TWO content words. On a
+// real employer read that produced bags, not clusters: one labelled "Develop and execute the
+// strategic vision for the Wealth Solutions Platform" also contained market-trend analysis,
+// team KPI reviews, and "we will provide you with structured training" - because each shared
+// two words with the label. Mean intra-cluster similarity was 0.35, and one bag held twelve
+// unrelated lines. That made `recurrence` mean "N postings contained a sentence sharing two
+// words with this one", not "N postings want this duty" - so nothing downstream could
+// honestly be said about what an employer keeps hiring for.
+//
+// The fix scales the bar with sentence length: at least two shared tokens AND at least half
+// the shorter line. Measured over two live employer reads, that roughly doubles cohesion
+// (0.35 -> 0.64 and 0.28 -> 0.50) and cuts the largest bag from twelve lines to four, while
+// the agent tier still fills. Recurrence numbers get smaller - and start being true.
+//
+// Deliberately NOT a change to _phraseMatch, which two unrelated features also depend on.
+function _dutyMatch(a, b) {
+  const na = _phraseNorm(a), nb = _phraseNorm(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  const ta = _phraseToks(a), tb = _phraseToks(b);
+  if (!ta.length || !tb.length) return false;
+  const sa = new Set(ta); let shared = 0;
+  tb.forEach(function(t) { if (sa.has(t)) shared++; });
+  if (shared < 2) return false;
+  return shared / Math.min(ta.length, tb.length) >= COMPANY_DUTY_OVERLAP_MIN;
+}
+
 // Main CO2.7 engine: buildCompanyAgents(matchGroup) -> deterministic model.
 // matchGroup: { displayName, count, jobs } - jobs carry responsibilitiesText, skills, title,
 // categories, uuid, mcfUrl, postedDate, dutyDetail.
@@ -14627,7 +14665,7 @@ function buildCompanyAgents(matchGroup) {
   dutyInstances.forEach(function(inst) {
     var found = null;
     for (var i = 0; i < clusterList.length; i++) {
-      if (_phraseMatch(clusterList[i].repDuty, inst.text)) { found = clusterList[i]; break; }
+      if (_dutyMatch(clusterList[i].repDuty, inst.text)) { found = clusterList[i]; break; }
     }
     if (found) {
       found.instances.push(inst);
@@ -14782,7 +14820,7 @@ function _keyAssumptions() {
     "MCF categories map cleanly to business functions - a posting filed under 'Information Technology' may include non-IT duties.",
     "The sampled postings represent the employer's current hiring priorities, not the full workforce.",
     "Recurrence across ads is a proxy for recurrence of work - a duty appearing in 3 ads does not guarantee it happens 3 times per day.",
-    "Token-overlap clustering (>= 2 shared tokens) may merge semantically different duties or split one duty into two - the provenance panel lets you verify.",
+    "Duty lines are grouped when they share at least two terms AND at least half the shorter line - close enough to be the same work, but still a text match, so it may merge two duties or split one in two. The provenance panel lets you verify.",
   ];
 }
 
