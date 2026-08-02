@@ -14830,7 +14830,7 @@ function _keyAssumptions() {
     "MCF categories map cleanly to business functions - a posting filed under 'Information Technology' may include non-IT duties.",
     "The sampled postings represent the employer's current hiring priorities, not the full workforce.",
     "Recurrence across ads is a proxy for recurrence of work - a duty appearing in 3 ads does not guarantee it happens 3 times per day.",
-    "A duty line joins a group when it shares at least two distinct terms with the line that OPENED that group - not with every line already in it - and those shared terms cover at least half the distinctive words of whichever of the two lines has fewer. Short and very common words are ignored, so 'the', 'and' and 'ensure' never count. It is still a text match, so it can merge two duties or split one in two - the provenance panel lets you verify.",
+    "Two identical duty lines always group. Otherwise a line joins a group when it shares at least two distinct terms with the line that OPENED that group - not with every line already in it - and those shared terms cover at least half the distinctive words of whichever of the two lines has fewer. Short and very common words are ignored, so 'the', 'and' and 'ensure' never count. It is still a text match, so it can merge two duties or split one in two - the provenance panel lets you verify.",
   ];
 }
 
