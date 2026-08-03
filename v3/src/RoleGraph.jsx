@@ -538,6 +538,51 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
   }
   function traverseReset() { setTraced(null); setTrail([]); tapCallback(null); }
   escRef.current = traverseReset;
+
+  // PR 9: the shortest CONNECTING path between the node you're on and any other node in
+  // this graph - pure breadth-first search over kg.edges, direction ignored (this answers
+  // "how are these related at all", not "who points at whom" - that question is already
+  // answered per-hop in the panel above). Deterministic: same graph, same two endpoints,
+  // same path, every time. It either returns a path made of real edges, or null - and the
+  // caller says plainly that none exists rather than inventing a connection.
+  const [pathMissing, setPathMissing] = useState(null); // id last searched for with no path found
+  function findPath(startId, targetId) {
+    if (!startId || !targetId || startId === targetId) return null;
+    const adj = {};
+    kg.edges.forEach(function(e) {
+      (adj[e.source] = adj[e.source] || []).push(e.target);
+      (adj[e.target] = adj[e.target] || []).push(e.source);
+    });
+    const prev = {}; prev[startId] = null;
+    const queue = [startId];
+    while (queue.length) {
+      const cur = queue.shift();
+      if (cur === targetId) break;
+      (adj[cur] || []).forEach(function(next) {
+        if (!(next in prev)) { prev[next] = cur; queue.push(next); }
+      });
+    }
+    if (!(targetId in prev)) return null;
+    const path = [];
+    for (let n = targetId; n != null; n = prev[n]) path.unshift(n);
+    return path;
+  }
+  // Returns whether it found (or didn't need to find) a path, so the caller can tell a real
+  // BFS miss apart from every other outcome - only a real miss should say "no path exists".
+  function traversePath(targetId) {
+    // Already standing on it: not a claim about the graph's shape, just nothing to do. The
+    // reset effect in KGTraversePanel should make this unreachable via the UI, but findPath's
+    // own same-id guard would otherwise report it as indistinguishable from a genuine BFS
+    // miss - checked here explicitly so that conflation can never happen, belt and braces.
+    if (!targetId || targetId === traced) { setPathMissing(null); return true; }
+    const path = findPath(traced, targetId);
+    if (!path) { setPathMissing(targetId); return false; }
+    setTrail(path);
+    setTraced(path[path.length - 1]);
+    setPathMissing(null);
+    tapCallback(path[path.length - 1]);
+    return true;
+  }
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
   return (
@@ -627,7 +672,8 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
             workflow layouts already hand their tap to the host's own side panel, and two
             detail panels answering the same tap would compete. */}
         {effectiveLayout === "lanes" && (
-          <KGTraversePanel kg={kg} traced={traced} trail={trail} onGo={traverseTo} onBack={traverseBack} onReset={traverseReset} />
+          <KGTraversePanel kg={kg} traced={traced} trail={trail} onGo={traverseTo} onBack={traverseBack} onReset={traverseReset}
+            onPath={traversePath} pathMissing={pathMissing} />
         )}
 
         {/* Edges panel: verb-labelled connections, filtered by tap-to-trace */}
@@ -1108,11 +1154,23 @@ function KGNodeCard({ node, traced, highlighted, mine, mineLabel, mineNote, onCl
 // the direction the edge was actually written, and every neighbour is a control that
 // traverses to it - so duty -> skill -> who else needs that skill is two taps, not a guess.
 // Nothing here is inferred: it is kg.edges, read in both directions.
-function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
+function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset, onPath, pathMissing }) {
   // Each hop replaces the whole list, so without this a keyboard user loses their place and
   // has to Tab back in from the top of the page for every step. Focus moves only on in-panel
   // navigation - a mouse tap on a card elsewhere is left alone.
   const hereRef = useRef(null);
+  // PR 9: "find the path to..." - a second, explicit way to traverse, for when the reader
+  // knows WHERE they want to end up (e.g. a specific skill) but not which of several hops
+  // gets there. Local to this render since it resets whenever the traced node changes.
+  const [pathTarget, setPathTarget] = useState("");
+  // Reset whenever the node we're standing ON changes - by a hop, Back, a successful path
+  // search, or Clear. Without this, a successful search leaves the destination id sitting in
+  // pathTarget after it's dropped from the select's own options (it is now `traced`, and the
+  // options list excludes traced) - the control LOOKS reset but isn't, "Find path" stays
+  // enabled, and clicking it again searches the node against itself: findPath's same-id guard
+  // returns null, which this panel then reports as "no path exists" - a false claim about a
+  // node that is very much reachable, since it's the one you're on.
+  useEffect(() => { setPathTarget(""); }, [traced]);
   if (!traced) return null;
   const nodeById = {};
   kg.nodes.forEach((n) => { nodeById[n.id] = n; });
@@ -1188,6 +1246,44 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset }) {
           Clear selection
         </button>
       </div>
+
+      {/* PR 9: pick a destination directly, rather than clicking through hop by hop. Only
+          offered when there is more than one other node to reach - on a two-node graph a
+          picker offering a single, already-obvious choice is noise. */}
+      {kg.nodes.length > 1 && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid " + P.border }}>
+          <label htmlFor="kg-path-target" style={{ display: "block", fontSize: "0.6875rem", fontWeight: 800, color: P.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+            Find the path from here to another node
+          </label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <select id="kg-path-target" value={pathTarget}
+              onChange={(e) => setPathTarget(e.target.value)}
+              style={{ flex: "1 1 180px", minHeight: 44, borderRadius: 8, border: "1px solid " + P.border, padding: "0 10px", fontSize: "0.75rem", color: P.text, background: P.surface }}>
+              <option value="">Choose a node...</option>
+              {kg.nodes.filter((n) => n.id !== traced).map((n) => (
+                <option key={n.id} value={n.id}>{n.type}: {n.label.slice(0, 60)}</option>
+              ))}
+            </select>
+            {/* Focus only moves on a genuine find. On a miss, the role="alert" below needs to
+                announce on its own - yanking focus onto the unchanged "Here" heading in the
+                same tick would compete with it for some screen readers. */}
+            <button type="button" disabled={!pathTarget}
+              onClick={() => { if (onPath(pathTarget) && hereRef.current) hereRef.current.focus(); }}
+              style={{ minHeight: 44, padding: "0 16px", borderRadius: 8, border: "1px solid " + P.border,
+                background: pathTarget ? P.accentSoft : P.surface, color: pathTarget ? P.accent : P.muted,
+                fontSize: "0.75rem", fontWeight: 700, cursor: pathTarget ? "pointer" : "default", opacity: pathTarget ? 1 : 0.6 }}>
+              Find path
+            </button>
+          </div>
+          {/* Only a real BFS result changes the trail above; a miss says so here, in place,
+              rather than leaving the picker's silence to be read as "still working" or bugged. */}
+          {pathMissing && pathMissing === pathTarget && (
+            <p role="alert" style={{ margin: "8px 0 0", fontSize: "0.75rem", color: P.textSub, lineHeight: 1.5 }}>
+              No path exists between these two nodes in this graph - they sit in separate, unconnected parts of it. Withheld rather than guessed.
+            </p>
+          )}
+        </div>
+      )}
     </section>
   );
 }
