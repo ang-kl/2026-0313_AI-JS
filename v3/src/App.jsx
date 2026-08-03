@@ -5449,28 +5449,41 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
         <div className="lux-rise ldx-card ldx-note" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"14px 18px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
          <div className="ldx-note-row">
           <div className="ldx-note-left">
-          {/* progress ring */}
-          <div aria-hidden="true" style={{ width:64, height:64, margin:"0 0 8px", position:"relative" }}>
+          {/* progress ring. aria-hidden covers only the decorative gradient layers below -
+              NOT the text overlay, which is the numeric readout a screen reader needs. That
+              text used to live in the now-deleted step-dot rail's plain caption; nesting it
+              inside an aria-hidden ring silently dropped it from the accessibility tree
+              entirely, which is worse than the colour-only issue that rail never had. */}
+          <div style={{ width:64, height:64, margin:"0 0 8px", position:"relative" }}>
             {determinate ? (
-              <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
+              <div aria-hidden="true" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
             ) : (
-              <div className="ldx" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(from 0deg, transparent 0deg 40deg, ${C.accent} 170deg, ${C.teal} 260deg, transparent 320deg 360deg)`, WebkitMask:ringMask, mask:ringMask, animation:"sp 1.1s linear infinite" }} />
+              <div aria-hidden="true" className="ldx" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(from 0deg, transparent 0deg 40deg, ${C.accent} 170deg, ${C.teal} 260deg, transparent 320deg 360deg)`, WebkitMask:ringMask, mask:ringMask, animation:"sp 1.1s linear infinite" }} />
             )}
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
               {determinate ? (
                 <>
-                  <span style={{ fontSize: "1.0625rem", fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
-                  <span style={{ fontSize: "0.5625rem", fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                  <span aria-hidden="true" style={{ fontSize: "1.0625rem", fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
+                  <span aria-hidden="true" style={{ fontSize: "0.5625rem", fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                  {/* Visually hidden, not display:none: this is what a screen reader actually
+                      reads, kept in sync with the visible digits above rather than duplicated
+                      by hand. role="status" on the outer container announces it on change. */}
+                  <span style={{ position:"absolute", width:1, height:1, padding:0, margin:-1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>Step {step} of {total}, {pct}% complete.</span>
                 </>
               ) : (
-                <span className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
+                <span aria-hidden="true" className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
               )}
             </div>
           </div>
-          {processMode && <ProcessAnimation mode={processMode} />}
           </div>
           {/* The checklist sits BESIDE the ring rather than under the whole card. */}
           <div className="ldx-note-right">
+            {/* PR feedback: this indeterminate sorting animation needs its own ~220px canvas
+                (three bins + moving tags) - it was inheriting the fixed-width ring column's
+                64px and the bins overlapped. It only ever renders when determinate is false
+                (the "searching" step passes no step/total), so it belongs in the flexible
+                right column, never the narrow left one. */}
+            {processMode && <ProcessAnimation mode={processMode} />}
             <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0", fontWeight:700, lineHeight:1.5, letterSpacing:"-0.012em" }}>{label}</p>
             {determinate && <StageChecklist step={step} skillCount={list.length} />}
             {elapsed >= 8 && (
