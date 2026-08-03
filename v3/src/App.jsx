@@ -5427,68 +5427,88 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
           .ldx-info{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         }
         @media (min-width:900px){.ldx-skills-grid{grid-template-columns:repeat(3,1fr)}}
-        @media (min-width:1180px){.ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}`}</style>
+        @media (min-width:1180px){.ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}
+        /* The note. Declared AFTER the 680px block on purpose: both selectors are a single
+           class, so source order is what lets .ldx-note keep its width there. */
+        .ldx-note{max-width:540px;margin:0}
+        .ldx-note-row{display:flex;gap:16px;align-items:flex-start}
+        .ldx-note-left{flex:none;display:flex;flex-direction:column;align-items:center}
+        .ldx-note-right{flex:1;min-width:0}
+        /* Below ~540px the two columns stop being two columns and simply stack. */
+        @media (max-width:560px){
+          .ldx-note-row{flex-direction:column;gap:10px}
+          .ldx-note-left{align-items:flex-start}
+        }`}</style>
       <div className="ldx-shell">
-        <div className="lux-rise ldx-card" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"18px 22px 16px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"center" }}>
-          {/* progress ring */}
-          <div aria-hidden="true" style={{ width:64, height:64, margin:"0 auto 10px", position:"relative" }}>
+        {/* The note (Human Lead, 03-08 '26): the ring, the step rail and the stage
+            checklist were three stacked blocks saying overlapping things down the middle of
+            the screen. They are now one left-aligned note - progress on the left, the
+            checklist beside it - with the skills listed underneath. The step-dot rail is
+            gone rather than moved: it repeated the ring's own "STEP n/total" and its
+            "n of total" caption, so it was the duplicate to drop. */}
+        <div className="lux-rise ldx-card ldx-note" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"14px 18px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
+         <div className="ldx-note-row">
+          <div className="ldx-note-left">
+          {/* progress ring. aria-hidden covers only the decorative gradient layers below -
+              NOT the text overlay, which is the numeric readout a screen reader needs. That
+              text used to live in the now-deleted step-dot rail's plain caption; nesting it
+              inside an aria-hidden ring silently dropped it from the accessibility tree
+              entirely, which is worse than the colour-only issue that rail never had. */}
+          <div style={{ width:64, height:64, margin:"0 0 8px", position:"relative" }}>
             {determinate ? (
-              <div style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
+              <div aria-hidden="true" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(${C.accent} ${pct}%, ${C.border} ${pct}% 100%)`, WebkitMask:ringMask, mask:ringMask, transition:"background 0.6s ease" }} />
             ) : (
-              <div className="ldx" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(from 0deg, transparent 0deg 40deg, ${C.accent} 170deg, ${C.teal} 260deg, transparent 320deg 360deg)`, WebkitMask:ringMask, mask:ringMask, animation:"sp 1.1s linear infinite" }} />
+              <div aria-hidden="true" className="ldx" style={{ position:"absolute", inset:0, borderRadius:"50%", background:`conic-gradient(from 0deg, transparent 0deg 40deg, ${C.accent} 170deg, ${C.teal} 260deg, transparent 320deg 360deg)`, WebkitMask:ringMask, mask:ringMask, animation:"sp 1.1s linear infinite" }} />
             )}
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center" }}>
               {determinate ? (
                 <>
-                  <span style={{ fontSize: "1.0625rem", fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
-                  <span style={{ fontSize: "0.5625rem", fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                  <span aria-hidden="true" style={{ fontSize: "1.0625rem", fontWeight:800, color:C.accent, lineHeight:1, fontVariantNumeric:"tabular-nums" }}>{pct}%</span>
+                  <span aria-hidden="true" style={{ fontSize: "0.5625rem", fontWeight:700, color:C.muted, letterSpacing:"0.08em", marginTop:3 }}>STEP {step}/{total}</span>
+                  {/* Visually hidden, not display:none: this is what a screen reader actually
+                      reads, kept in sync with the visible digits above rather than duplicated
+                      by hand. role="status" on the outer container announces it on change. */}
+                  <span style={{ position:"absolute", width:1, height:1, padding:0, margin:-1, overflow:"hidden", clip:"rect(0,0,0,0)", whiteSpace:"nowrap" }}>Step {step} of {total}, {pct}% complete.</span>
                 </>
               ) : (
-                <span className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
+                <span aria-hidden="true" className="ldx" style={{ width:9, height:9, borderRadius:"50%", background:C.accent, animation:"ldxBreathe 1.3s ease-in-out infinite" }} />
               )}
             </div>
           </div>
-          {processMode && <ProcessAnimation mode={processMode} />}
-          <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0 auto", fontWeight:700, lineHeight:1.55, maxWidth:340, letterSpacing:"-0.012em", textWrap:"balance" }}>{label}</p>
+          </div>
+          {/* The checklist sits BESIDE the ring rather than under the whole card. */}
+          <div className="ldx-note-right">
+            {/* PR feedback: this indeterminate sorting animation needs its own ~220px canvas
+                (three bins + moving tags) - it was inheriting the fixed-width ring column's
+                64px and the bins overlapped. It only ever renders when determinate is false
+                (the "searching" step passes no step/total), so it belongs in the flexible
+                right column, never the narrow left one. */}
+            {processMode && <ProcessAnimation mode={processMode} />}
+            <p style={{ color:C.text, fontSize: "0.84375rem", margin:"0", fontWeight:700, lineHeight:1.5, letterSpacing:"-0.012em" }}>{label}</p>
+            {determinate && <StageChecklist step={step} skillCount={list.length} />}
+            {elapsed >= 8 && (
+              <p aria-live="polite" style={{ color:C.muted, fontSize: "0.71875rem", margin:"8px 0 0", lineHeight:1.5 }}>
+                Still working ({elapsed}s) - less common titles can take up to a minute to look up.
+              </p>
+            )}
+            {/* gradient sweep bar - the one remaining motion cue that the work is live */}
+            <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", margin:"10px 0 0" }}>
+              {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
+              <div className="ldx" style={{ position:"absolute", top:0, bottom:0, left:0, width:"34%", background:"linear-gradient(90deg, transparent, rgba(26,86,219,0.35), transparent)", animation:"ldxSweep 1.5s ease-in-out infinite" }} />
+            </div>
+          </div>
+         </div>
           {/* Corpus "analyse all as one role" build: an explicit please-wait callout naming
               the three sources it draws on, so the longer multi-posting build never reads as
-              stuck and the user knows to keep the tab open (Human Lead request). */}
+              stuck and the user knows to keep the tab open (Human Lead request). Full width
+              under the row - it is a paragraph, not a status chip. */}
           {corpus && (
-            <div style={{ margin:"12px auto 0", maxWidth:360, background:"rgba(26,86,219,0.06)", border:`1px solid ${C.border}`, borderRadius:12, padding:"11px 14px", textAlign:"left" }}>
+            <div style={{ margin:"12px 0 0", background:"rgba(26,86,219,0.06)", border:`1px solid ${C.border}`, borderRadius:12, padding:"11px 14px", textAlign:"left" }}>
               <p style={{ margin:0, fontSize:"0.78125rem", fontWeight:700, color:C.text, lineHeight:1.5 }}>Building one combined role from {corpus.count} live posting{corpus.count === 1 ? "" : "s"} - please wait.</p>
               <p style={{ margin:"5px 0 0", fontSize:"0.71875rem", color:C.muted, lineHeight:1.5 }}>Drawing on all three sources: skills via <strong>ESCO (v2)</strong>, live jobs from <strong>MyCareersFuture</strong> and <strong>careers.gov.sg</strong>. This takes longer than a single posting - keep this tab open.</p>
             </div>
           )}
-          {elapsed >= 8 && (
-            <p aria-live="polite" style={{ color:C.muted, fontSize: "0.71875rem", margin:"6px auto 0", maxWidth:320, lineHeight:1.5 }}>
-              Still working ({elapsed}s) - less common titles can take up to a minute to look up.
-            </p>
-          )}
-          {/* gradient sweep bar */}
-          <div aria-hidden="true" style={{ position:"relative", height:4, borderRadius:2, background:C.border, overflow:"hidden", maxWidth:320, margin:"10px auto 0" }}>
-            {determinate && <div style={{ position:"absolute", top:0, bottom:0, left:0, width:`${pct}%`, borderRadius:2, background:`linear-gradient(90deg, ${C.accent}, ${C.teal})`, transition:"width 0.6s ease" }} />}
-            <div className="ldx" style={{ position:"absolute", top:0, bottom:0, left:0, width:"34%", background:"linear-gradient(90deg, transparent, rgba(26,86,219,0.35), transparent)", animation:"ldxSweep 1.5s ease-in-out infinite" }} />
-          </div>
-          {/* step rail - done = filled + check, current = outlined + pulse, pending = muted */}
-          {determinate && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginTop:10, flexWrap:"wrap" }}>
-              {Array.from({ length: total }).map((_, i) => {
-                const done = i < step - 1, current = i === step - 1;
-                return (
-                  <span key={i} className={current ? "ldx" : undefined} style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", minWidth:26, height:26, padding:"0 7px", borderRadius:13, fontSize: "0.6875rem", fontWeight:800, fontVariantNumeric:"tabular-nums",
-                    background: done ? C.accent : current ? C.accentSoft : "transparent",
-                    border: `1.5px solid ${done || current ? C.accent : C.border}`,
-                    color: done ? "#fff" : current ? C.accent : C.mutedLight,
-                    animation: current ? "ldxBreathe 1.3s ease-in-out infinite" : "none" }}>
-                    {done ? "✓" : i + 1}
-                  </span>
-                );
-              })}
-              <span style={{ fontSize: "0.6875rem", color:C.muted, fontWeight:600, marginLeft:4 }}>{step} of {total}</span>
-            </div>
-          )}
         </div>
-      {determinate && <StageChecklist step={step} skillCount={list.length} />}
       {list.length > 0 && (
         <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
           <p style={{ margin:"0 0 8px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
