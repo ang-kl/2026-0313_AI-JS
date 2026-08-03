@@ -567,13 +567,21 @@ export function KGGraph({ kg, onNodeTap, layout, embedded, highlightIds, highlig
     for (let n = targetId; n != null; n = prev[n]) path.unshift(n);
     return path;
   }
+  // Returns whether it found (or didn't need to find) a path, so the caller can tell a real
+  // BFS miss apart from every other outcome - only a real miss should say "no path exists".
   function traversePath(targetId) {
+    // Already standing on it: not a claim about the graph's shape, just nothing to do. The
+    // reset effect in KGTraversePanel should make this unreachable via the UI, but findPath's
+    // own same-id guard would otherwise report it as indistinguishable from a genuine BFS
+    // miss - checked here explicitly so that conflation can never happen, belt and braces.
+    if (!targetId || targetId === traced) { setPathMissing(null); return true; }
     const path = findPath(traced, targetId);
-    if (!path) { setPathMissing(targetId); return; }
+    if (!path) { setPathMissing(targetId); return false; }
     setTrail(path);
     setTraced(path[path.length - 1]);
     setPathMissing(null);
     tapCallback(path[path.length - 1]);
+    return true;
   }
   const hasEdges = Array.isArray(kg.edges) && kg.edges.length > 0;
 
@@ -1155,6 +1163,14 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset, onPath, pat
   // knows WHERE they want to end up (e.g. a specific skill) but not which of several hops
   // gets there. Local to this render since it resets whenever the traced node changes.
   const [pathTarget, setPathTarget] = useState("");
+  // Reset whenever the node we're standing ON changes - by a hop, Back, a successful path
+  // search, or Clear. Without this, a successful search leaves the destination id sitting in
+  // pathTarget after it's dropped from the select's own options (it is now `traced`, and the
+  // options list excludes traced) - the control LOOKS reset but isn't, "Find path" stays
+  // enabled, and clicking it again searches the node against itself: findPath's same-id guard
+  // returns null, which this panel then reports as "no path exists" - a false claim about a
+  // node that is very much reachable, since it's the one you're on.
+  useEffect(() => { setPathTarget(""); }, [traced]);
   if (!traced) return null;
   const nodeById = {};
   kg.nodes.forEach((n) => { nodeById[n.id] = n; });
@@ -1248,8 +1264,11 @@ function KGTraversePanel({ kg, traced, trail, onGo, onBack, onReset, onPath, pat
                 <option key={n.id} value={n.id}>{n.type}: {n.label.slice(0, 60)}</option>
               ))}
             </select>
+            {/* Focus only moves on a genuine find. On a miss, the role="alert" below needs to
+                announce on its own - yanking focus onto the unchanged "Here" heading in the
+                same tick would compete with it for some screen readers. */}
             <button type="button" disabled={!pathTarget}
-              onClick={() => { onPath(pathTarget); if (hereRef.current) hereRef.current.focus(); }}
+              onClick={() => { if (onPath(pathTarget) && hereRef.current) hereRef.current.focus(); }}
               style={{ minHeight: 44, padding: "0 16px", borderRadius: 8, border: "1px solid " + P.border,
                 background: pathTarget ? P.accentSoft : P.surface, color: pathTarget ? P.accent : P.muted,
                 fontSize: "0.75rem", fontWeight: 700, cursor: pathTarget ? "pointer" : "default", opacity: pathTarget ? 1 : 0.6 }}>
