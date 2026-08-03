@@ -2572,8 +2572,24 @@ function _stripHtml(s) {
     .replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 const _PHRASE_STOP = new Set(["with","from","that","this","your","their","they","them","into","onto","upon","will","shall","must","have","been","were","does","done","using","within","across","along","other","others","more","most","some","such","each","both","when","where","which","while","also","over","than","being","make","made","take","taken","take","ensure","provide","support","manage","handle","perform","carry","drive"]);
-function _phraseNorm(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
-function _phraseToks(s) { return _phraseNorm(s).split(" ").filter(t => t.length > 3 && !_PHRASE_STOP.has(t)); }
+const _phraseNormCache = new Map();
+function _phraseNorm(s) {
+  const key = String(s || "");
+  const hit = _phraseNormCache.get(key);
+  if (hit !== undefined) return hit;
+  const v = key.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  _phraseNormCache.set(key, v);
+  return v;
+}
+const _phraseToksCache = new Map();
+function _phraseToks(s) {
+  const key = String(s || "");
+  const hit = _phraseToksCache.get(key);
+  if (hit !== undefined) return hit;
+  const v = _phraseNorm(s).split(" ").filter(t => t.length > 3 && !_PHRASE_STOP.has(t));
+  _phraseToksCache.set(key, v);
+  return v;
+}
 function _phraseMatch(a, b) {
   const na = _phraseNorm(a), nb = _phraseNorm(b);
   if (!na || !nb) return false;
