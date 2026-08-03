@@ -1,3 +1,21 @@
+// v3.1.0 - 2026-08-02 - Step 3 Working Canvas + Company perspective (Human Lead approved this
+// bump). Minor, not patch: new features and a change to what the Company graph draws.
+//   - Step 3 rebuilt as a persistent workspace: the job ad and the Role Graph as floating
+//     windows with standard controls, drawers for Company and Evidence, a minimise tray.
+//   - The Company perspective inside the Graph window, and "This role" marking of the nodes
+//     that trace back to the posting being read - by posting ID where possible, by title
+//     where not, and withheld where neither, each stated on screen.
+//   - The Knowledge graph traverses: every connection named in words with its provenance,
+//     each a control that moves there, with the path taken shown.
+//   - Duty clustering tightened (_dutyMatch): two DISTINCT shared terms covering at least
+//     half the shorter line, against the line that opened the group. Cohesion on live
+//     employer data 0.35 -> 0.75; `recurrence` now means what its name says.
+//   - Layout arithmetic fixed: windows no longer overflow under the 1.1x html zoom, and the
+//     workflow graph no longer overlaps itself.
+// NOTE ON NUMBERING: an out-of-sequence "v3.1.0" entry from 2026-05-11 sits below (the
+// Responsibilities Analysis work); numbering reverted to 3.0.x straight after it and ran to
+// 3.0.329. This entry is the APP_VERSION 3.1.0. The ledger itself lapsed after v3.0.150
+// (2026-06-24) - roughly 179 versions are unrecorded here, so treat it as partial history.
 // v3.0.0 - 2026-05-10 - HDR #037 - MyCareersFuture live jobs + MOM vacancy-rate trend
 // Changes vs v2.0.5: two new result tabs (Live SG Jobs, Vacancy Trend),
 // new /api/mcf and /api/datagov proxies, ESCO proxy now returns occupation
@@ -1463,7 +1481,7 @@ import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
 // Single source for the visible build tag shown in Step 2 / Step 3 footers.
 // Bump alongside package.json - not read from it (build-time JSON import
 // would pull in the whole file); keep the two in sync by hand each release.
-const APP_VERSION = "3.0.329";
+const APP_VERSION = "3.1.0";
 
 // ── Step 2 (Posting Evidence Picker) - per-posting deterministic classification ──
 // Exposure band tokens (4-level automation model; blue/orange, no red/green meaning).
