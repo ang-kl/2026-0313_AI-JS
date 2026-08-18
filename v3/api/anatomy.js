@@ -23,13 +23,16 @@
 if (!process.env.POSTGRES_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
 }
-// @vercel/postgres's `sql` tagged template needs a POOLED connection string;
-// POSTGRES_URL here is a direct one (confirmed live in production logs:
-// VercelPostgresError 'invalid_connection_string' - same finding as
-// scripts/seed-acra.mjs and api/ssoc.js). createClient() is the direct-
-// connection variant with the same tagged-template `.sql` API - one client
-// is opened per request and closed in the handler's finally block below.
-import { createClient } from '@vercel/postgres';
+// Was @vercel/postgres's createClient() - its `sql` tagged template needs a
+// POOLED connection string, POSTGRES_URL here is a direct one (confirmed live in
+// production logs: VercelPostgresError 'invalid_connection_string' - same finding
+// as scripts/seed-acra.mjs and api/ssoc.js), and its underlying Neon WebSocket
+// driver couldn't reach a Prisma Accelerate-backed Postgres at all ("Unexpected
+// server response: 404"). Plain `pg` (a real TCP client) plus the attachSqlTag()
+// shim keeps every `client.sql\`...\`` call site below unchanged. One client is
+// opened per request and closed in the handler's finally block below.
+import pg from 'pg';
+import { attachSqlTag } from '../lib/pg-sql-tag.js';
 
 export const config = { api: { bodyParser: true }, maxDuration: 15 };
 
@@ -201,15 +204,18 @@ export default async function handler(req, res) {
   // otherwise 500 instead of degrading the same way as every other DB error).
   let client;
   try {
-    client = createClient({ connectionString: process.env.POSTGRES_URL });
-    // Bounded connect: the configured Postgres (db.prisma.io) is Accelerate-only
-    // and rejects this driver's WebSocket (seen live as "Unexpected server
-    // response: 404") - without a timeout every request stalled on the doomed
-    // connect attempt before degrading. 2.5s cap matches api/ssoc.js/ssic.js.
+    client = new pg.Client({
+      connectionString: process.env.POSTGRES_URL,
+      ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+    });
+    // Bounded connect - without a timeout a bad connection string leaves every
+    // request stalled on the doomed connect attempt before degrading. 2.5s cap
+    // matches api/ssoc.js/ssic.js.
     await Promise.race([
       client.connect(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('connect timeout')), 2500)),
     ]);
+    attachSqlTag(client);
   } catch (err) {
     console.error('[anatomy] connect:', err && err.message);
     // Fire-and-forget: NEVER await end() on a client whose connect failed -

@@ -14,14 +14,12 @@ if (!process.env.POSTGRES_URL) {
 }
 
 import { readFileSync } from 'node:fs';
-import { createClient } from '@vercel/postgres';
-// @vercel/postgres (not raw `pg`) - matches api/anatomy.js and api/ssic.js's proven
-// pattern. Vercel's bundler does not include `pg` (it's only a transitive dependency
-// of @vercel/postgres, not a declared one), so importing it directly 500s in
-// production ("Cannot find package 'pg'") - this endpoint silently fell back to its
-// in-memory dataset because of that bug. createClient() (not the `sql` tagged
-// template) because POSTGRES_URL from `vercel env pull` is a direct, non-pooled
-// connection string - see scripts/seed-acra.mjs for the same finding.
+import pg from 'pg';
+// Plain `pg` (Railway migration) - was @vercel/postgres's createClient(), which only
+// existed as a workaround for Vercel's bundler not declaring `pg` as a dependency.
+// This endpoint already built its own `db.sql` tagged-template wrapper around
+// client.query() rather than using @vercel/postgres's own `sql` export, so the swap
+// below is just the client constructor - everything else is unchanged.
 
 export const config = { api: { bodyParser: true }, maxDuration: 300 };
 
@@ -47,7 +45,10 @@ function withTimeout(promise, label = 'db') {
 }
 
 async function withDb(fn, label = 'ssoc db') {
-  const client = createClient({ connectionString: process.env.POSTGRES_URL });
+  const client = new pg.Client({
+    connectionString: process.env.POSTGRES_URL,
+    ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+  });
   await withTimeout(client.connect(), `${label} connect`);
   const db = {
     sql(strings, ...values) {

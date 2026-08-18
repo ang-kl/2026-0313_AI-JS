@@ -35,7 +35,8 @@ if (!process.env.POSTGRES_URL) {
 }
 
 import { readFileSync } from 'node:fs';
-import { createClient } from '@vercel/postgres';
+import pg from 'pg';
+import { attachSqlTag } from '../lib/pg-sql-tag.js';
 
 export const config = { api: { bodyParser: true }, maxDuration: 60 };
 
@@ -189,7 +190,6 @@ function withTimeout(promise, label = 'db') {
 }
 
 async function withDb(fn, label = 'ssic db') {
-  const pg = (await import('pg')).default;
   const client = new pg.Client({
     connectionString: process.env.POSTGRES_URL,
     ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
@@ -281,18 +281,22 @@ function mapAcraRow(r) {
   };
 }
 
-// Uses @vercel/postgres's createClient() - the pooled `sql` tagged-template
-// export requires a POOLED connection string, but POSTGRES_URL is a direct
-// one, so every lookup failed live with 'invalid_connection_string' (seen in
-// production logs) and silently fell through to the live data.gov.sg path.
-// Same finding/fix as api/anatomy.js, api/ssoc.js, scripts/seed-acra.mjs.
+// Was @vercel/postgres's createClient() - its pooled `sql` tagged-template export
+// requires a POOLED connection string, but POSTGRES_URL is a direct one, so every
+// lookup failed live with 'invalid_connection_string' and silently fell through to
+// the live data.gov.sg path. Plain `pg` + the attachSqlTag() shim below fixes that
+// (same finding/fix as api/anatomy.js, api/ssoc.js, scripts/seed-acra.mjs).
 async function acraDbLookup(rawQuery) {
   if (!process.env.POSTGRES_URL) return { matched: 'none', reason: 'no_database' };
   let client = null;
   try {
     const query = String(rawQuery || '').trim();
-    client = createClient({ connectionString: process.env.POSTGRES_URL });
+    client = new pg.Client({
+      connectionString: process.env.POSTGRES_URL,
+      ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+    });
     await withTimeout(client.connect(), 'acra connect');
+    attachSqlTag(client);
     if (isUen(query)) {
       const { rows } = await withTimeout(client.sql`SELECT * FROM acra_entities WHERE uen = ${query.toUpperCase()} LIMIT 1`, 'acra lookup');
       if (rows.length) return { matched: 'exact', source: 'acra', ...mapAcraRow(rows[0]) };
