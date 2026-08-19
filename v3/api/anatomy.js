@@ -16,13 +16,15 @@
 // connection string is set / the DB is down, every call returns a graceful empty
 // result and the app behaves exactly as without the store.
 
-// Vercel's @vercel/postgres reads POSTGRES_URL. A "Prisma Postgres" store on Vercel
-// usually exposes the connection string as DATABASE_URL (and a prisma+postgres://
-// Accelerate URL that this driver can't parse - in that case set a direct
-// postgres:// URL as POSTGRES_URL). Fall back through the common env-var names.
-if (!process.env.POSTGRES_URL) {
-  process.env.POSTGRES_URL = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
-}
+// A "Prisma Postgres" store usually exposes the connection string as DATABASE_URL
+// (and a prisma+postgres:// Accelerate URL that plain `pg` can't parse - in that
+// case set a direct postgres:// URL as POSTGRES_URL). Fall back through the common
+// env-var names. Resolved locally (not written back to process.env): server.js runs
+// every api/*.js handler in one shared process now, so mutating
+// process.env.POSTGRES_URL here would leak into every other handler's own fallback
+// resolution - each file used to run in its own isolated Vercel serverless process,
+// where that was harmless.
+const POSTGRES_URL = process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL_UNPOOLED || "";
 // Was @vercel/postgres's createClient() - its `sql` tagged template needs a
 // POOLED connection string, POSTGRES_URL here is a direct one (confirmed live in
 // production logs: VercelPostgresError 'invalid_connection_string' - same finding
@@ -205,8 +207,8 @@ export default async function handler(req, res) {
   let client;
   try {
     client = new pg.Client({
-      connectionString: process.env.POSTGRES_URL,
-      ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+      connectionString: POSTGRES_URL,
+      ssl: POSTGRES_URL && /sslmode=require/i.test(POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
     });
     // Bounded connect - without a timeout a bad connection string leaves every
     // request stalled on the doomed connect attempt before degrading. 2.5s cap

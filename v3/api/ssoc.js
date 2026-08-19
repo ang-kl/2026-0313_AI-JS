@@ -4,14 +4,17 @@
 // Postgres copy for lookup/search and falls back to the compiled JSON files if
 // the database is not configured.
 
-if (!process.env.POSTGRES_URL) {
-  process.env.POSTGRES_URL = process.env.SSOC_POSTGRES_URL
-    || process.env.DATABASE_URL
-    || process.env.POSTGRES_PRISMA_URL
-    || process.env.POSTGRES_URL_NON_POOLING
-    || process.env.DATABASE_URL_UNPOOLED
-    || "";
-}
+// Resolved locally (not written back to process.env): server.js runs every api/*.js
+// handler in one shared process now, so mutating process.env.POSTGRES_URL here would
+// leak into every other handler's own fallback resolution - each file used to run in
+// its own isolated Vercel serverless process, where that was harmless.
+const POSTGRES_URL = process.env.POSTGRES_URL
+  || process.env.SSOC_POSTGRES_URL
+  || process.env.DATABASE_URL
+  || process.env.POSTGRES_PRISMA_URL
+  || process.env.POSTGRES_URL_NON_POOLING
+  || process.env.DATABASE_URL_UNPOOLED
+  || "";
 
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
@@ -46,8 +49,8 @@ function withTimeout(promise, label = 'db') {
 
 async function withDb(fn, label = 'ssoc db') {
   const client = new pg.Client({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+    connectionString: POSTGRES_URL,
+    ssl: POSTGRES_URL && /sslmode=require/i.test(POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
   });
   await withTimeout(client.connect(), `${label} connect`);
   const db = {

@@ -61,7 +61,11 @@ app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
 // --- API routes: same paths as the old /api/*.js Vercel functions. ---
 const api = express.Router();
-api.use(express.json());
+// api/claude.js's own guardrails accept assembled prompts up to 200,000 characters
+// (MAX_PROMPT_CHARS in that file) - Express's express.json() defaults to a 100kb
+// limit, which would reject a valid large request before the handler ever saw it.
+// 2mb covers that with headroom for multi-byte UTF-8 plus the rest of the JSON body.
+api.use(express.json({ limit: "2mb" }));
 
 api.all("/claude", claude);
 api.all("/esco", esco);
