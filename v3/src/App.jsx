@@ -5446,10 +5446,25 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
         @media (min-width:1180px){.ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}
         /* The note. Declared AFTER the 680px block on purpose: both selectors are a single
            class, so source order is what lets .ldx-note keep its width there. */
-        .ldx-note{max-width:540px;margin:0}
-        .ldx-note-row{display:flex;gap:16px;align-items:flex-start}
+        .ldx-note{max-width:540px;margin:0;position:fixed;top:24px;left:24px;z-index:40}
+        .ldx-note-row{display:flex;gap:18px;align-items:flex-start}
         .ldx-note-left{flex:none;display:flex;flex-direction:column;align-items:center}
         .ldx-note-right{flex:1;min-width:0}
+        /* Pinned to the corner (Human Lead, 03-08 '26): a fixed-position note, not part of
+           the page's own vertical flow, so the rest of the page - the skills grid below,
+           once entries start resolving - fills the space the note used to occupy inline.
+           Capped height + its own scroll so it can never grow past the space the skills
+           grid reserves for it below, however long the "still working" / corpus copy gets. */
+        .ldx-note{max-height:calc(100vh - 48px);overflow-y:auto}
+        .ldx-skills-reserve{margin-top:16px}
+        @media (max-width:600px){
+          .ldx-note{position:static;top:auto;left:auto;max-width:none;max-height:none;overflow-y:visible}
+        }
+        /* >=600px the note leaves the flow (fixed) - reserve its rough footprint at the
+           top so the grid starts clear of it instead of running underneath. */
+        @media (min-width:600px){
+          .ldx-skills-reserve{margin-top:0;padding-top:280px}
+        }
         /* Below ~540px the two columns stop being two columns and simply stack. */
         @media (max-width:560px){
           .ldx-note-row{flex-direction:column;gap:10px}
@@ -5461,8 +5476,16 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
             the screen. They are now one left-aligned note - progress on the left, the
             checklist beside it - with the skills listed underneath. The step-dot rail is
             gone rather than moved: it repeated the ring's own "STEP n/total" and its
-            "n of total" caption, so it was the duplicate to drop. */}
-        <div className="lux-rise ldx-card ldx-note" style={{ background:"rgba(255,255,255,0.86)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:16, padding:"14px 18px", boxShadow:"0 10px 40px rgba(15,40,105,0.10), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
+            "n of total" caption, so it was the duplicate to drop.
+            Pinned to the corner, not centred in the flow (see .ldx-note media rule above) -
+            deliberately parked out of the way so the skills grid below has the page to
+            itself as it fills in. No entrance animation (Human Lead, 03-08 '26): a note
+            that's meant to sit still and be read while work continues shouldn't also be
+            sliding into place - dropped the lux-rise class rather than keep a beat of
+            motion that always fires. Padding and radius both opened up (14px/16px ->
+            20px/20px) so the ring has real clearance from the corner instead of nearly
+            touching it. */}
+        <div className="ldx-card ldx-note" style={{ background:"rgba(255,255,255,0.94)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:20, padding:"20px 22px", boxShadow:"0 10px 40px rgba(15,40,105,0.14), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
          <div className="ldx-note-row">
           <div className="ldx-note-left">
           {/* progress ring. aria-hidden covers only the decorative gradient layers below -
@@ -5526,7 +5549,7 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
           )}
         </div>
       {list.length > 0 && (
-        <div style={{ marginTop:16, animation:"fadeInUp 0.5s ease both" }} className="ldx">
+        <div style={{ animation:"fadeInUp 0.5s ease both" }} className="ldx ldx-skills-reserve">
           <p style={{ margin:"0 0 8px", fontSize: "0.625rem", fontWeight:700, color:C.muted, textTransform:"uppercase", letterSpacing:"0.06em" }}>The skills in this role - from the <Term k="ESCO">ESCO</Term> taxonomy</p>
           {/* Categorised + sorted (Human Lead 11-07 '26): ESCO's own skillType split
               (skill/competence = what you DO, knowledge = what you KNOW), A-Z inside
