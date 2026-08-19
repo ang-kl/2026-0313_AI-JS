@@ -24,18 +24,22 @@
 // A-Z export) - falling back to the text classifier only when ACRA has no
 // exact match for the given name/UEN.
 
-if (!process.env.POSTGRES_URL) {
-  process.env.POSTGRES_URL = process.env.SSOC_POSTGRES_URL
-    || process.env.DATABASE_URL
-    || process.env.PRISMA_DATABASE_URL
-    || process.env.POSTGRES_PRISMA_URL
-    || process.env.POSTGRES_URL_NON_POOLING
-    || process.env.DATABASE_URL_UNPOOLED
-    || "";
-}
+// Resolved locally (not written back to process.env) - see api/ssoc.js's identical
+// comment: server.js runs every api/*.js handler in one shared process now, so
+// mutating process.env.POSTGRES_URL here would leak into every other handler's own
+// fallback resolution.
+const POSTGRES_URL = process.env.POSTGRES_URL
+  || process.env.SSOC_POSTGRES_URL
+  || process.env.DATABASE_URL
+  || process.env.PRISMA_DATABASE_URL
+  || process.env.POSTGRES_PRISMA_URL
+  || process.env.POSTGRES_URL_NON_POOLING
+  || process.env.DATABASE_URL_UNPOOLED
+  || "";
 
 import { readFileSync } from 'node:fs';
-import { createClient } from '@vercel/postgres';
+import pg from 'pg';
+import { attachSqlTag } from '../lib/pg-sql-tag.js';
 
 export const config = { api: { bodyParser: true }, maxDuration: 60 };
 
@@ -189,10 +193,9 @@ function withTimeout(promise, label = 'db') {
 }
 
 async function withDb(fn, label = 'ssic db') {
-  const pg = (await import('pg')).default;
   const client = new pg.Client({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: process.env.POSTGRES_URL && /sslmode=require/i.test(process.env.POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+    connectionString: POSTGRES_URL,
+    ssl: POSTGRES_URL && /sslmode=require/i.test(POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
   });
   await withTimeout(client.connect(), `${label} connect`);
   const db = {
@@ -281,18 +284,22 @@ function mapAcraRow(r) {
   };
 }
 
-// Uses @vercel/postgres's createClient() - the pooled `sql` tagged-template
-// export requires a POOLED connection string, but POSTGRES_URL is a direct
-// one, so every lookup failed live with 'invalid_connection_string' (seen in
-// production logs) and silently fell through to the live data.gov.sg path.
-// Same finding/fix as api/anatomy.js, api/ssoc.js, scripts/seed-acra.mjs.
+// Was @vercel/postgres's createClient() - its pooled `sql` tagged-template export
+// requires a POOLED connection string, but POSTGRES_URL is a direct one, so every
+// lookup failed live with 'invalid_connection_string' and silently fell through to
+// the live data.gov.sg path. Plain `pg` + the attachSqlTag() shim below fixes that
+// (same finding/fix as api/anatomy.js, api/ssoc.js, scripts/seed-acra.mjs).
 async function acraDbLookup(rawQuery) {
-  if (!process.env.POSTGRES_URL) return { matched: 'none', reason: 'no_database' };
+  if (!POSTGRES_URL) return { matched: 'none', reason: 'no_database' };
   let client = null;
   try {
     const query = String(rawQuery || '').trim();
-    client = createClient({ connectionString: process.env.POSTGRES_URL });
+    client = new pg.Client({
+      connectionString: POSTGRES_URL,
+      ssl: POSTGRES_URL && /sslmode=require/i.test(POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+    });
     await withTimeout(client.connect(), 'acra connect');
+    attachSqlTag(client);
     if (isUen(query)) {
       const { rows } = await withTimeout(client.sql`SELECT * FROM acra_entities WHERE uen = ${query.toUpperCase()} LIMIT 1`, 'acra lookup');
       if (rows.length) return { matched: 'exact', source: 'acra', ...mapAcraRow(rows[0]) };
@@ -415,7 +422,7 @@ export default async function handler(req, res) {
   }
 
   if (action === 'seed') {
-    if (!process.env.POSTGRES_URL) return res.status(200).json({ ok: false, reason: 'no_database' });
+    if (!POSTGRES_URL) return res.status(200).json({ ok: false, reason: 'no_database' });
     try { return res.status(200).json({ ok: true, ...(await seedDatabase()) }); }
     catch (err) { console.error('[ssic] seed:', err && err.message); return res.status(200).json({ ok: false, reason: 'db_error' }); }
   }

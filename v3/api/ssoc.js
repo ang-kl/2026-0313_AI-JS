@@ -4,24 +4,25 @@
 // Postgres copy for lookup/search and falls back to the compiled JSON files if
 // the database is not configured.
 
-if (!process.env.POSTGRES_URL) {
-  process.env.POSTGRES_URL = process.env.SSOC_POSTGRES_URL
-    || process.env.DATABASE_URL
-    || process.env.POSTGRES_PRISMA_URL
-    || process.env.POSTGRES_URL_NON_POOLING
-    || process.env.DATABASE_URL_UNPOOLED
-    || "";
-}
+// Resolved locally (not written back to process.env): server.js runs every api/*.js
+// handler in one shared process now, so mutating process.env.POSTGRES_URL here would
+// leak into every other handler's own fallback resolution - each file used to run in
+// its own isolated Vercel serverless process, where that was harmless.
+const POSTGRES_URL = process.env.POSTGRES_URL
+  || process.env.SSOC_POSTGRES_URL
+  || process.env.DATABASE_URL
+  || process.env.POSTGRES_PRISMA_URL
+  || process.env.POSTGRES_URL_NON_POOLING
+  || process.env.DATABASE_URL_UNPOOLED
+  || "";
 
 import { readFileSync } from 'node:fs';
-import { createClient } from '@vercel/postgres';
-// @vercel/postgres (not raw `pg`) - matches api/anatomy.js and api/ssic.js's proven
-// pattern. Vercel's bundler does not include `pg` (it's only a transitive dependency
-// of @vercel/postgres, not a declared one), so importing it directly 500s in
-// production ("Cannot find package 'pg'") - this endpoint silently fell back to its
-// in-memory dataset because of that bug. createClient() (not the `sql` tagged
-// template) because POSTGRES_URL from `vercel env pull` is a direct, non-pooled
-// connection string - see scripts/seed-acra.mjs for the same finding.
+import pg from 'pg';
+// Plain `pg` (Railway migration) - was @vercel/postgres's createClient(), which only
+// existed as a workaround for Vercel's bundler not declaring `pg` as a dependency.
+// This endpoint already built its own `db.sql` tagged-template wrapper around
+// client.query() rather than using @vercel/postgres's own `sql` export, so the swap
+// below is just the client constructor - everything else is unchanged.
 
 export const config = { api: { bodyParser: true }, maxDuration: 300 };
 
@@ -47,7 +48,10 @@ function withTimeout(promise, label = 'db') {
 }
 
 async function withDb(fn, label = 'ssoc db') {
-  const client = createClient({ connectionString: process.env.POSTGRES_URL });
+  const client = new pg.Client({
+    connectionString: POSTGRES_URL,
+    ssl: POSTGRES_URL && /sslmode=require/i.test(POSTGRES_URL) ? { rejectUnauthorized: false } : undefined,
+  });
   await withTimeout(client.connect(), `${label} connect`);
   const db = {
     sql(strings, ...values) {
