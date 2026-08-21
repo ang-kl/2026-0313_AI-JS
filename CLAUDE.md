@@ -10,10 +10,21 @@
 
 ```yaml
 contract:
-  version: 1.1.0
+  version: 1.2.0
   supersedes: CLAUDE-FULL.md v0.0.3
-  last_updated: 23-07 '26   # see git log for this file's exact commit timestamp
+  last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.2.0
+      date: 22-08 '26
+      change: >
+        Added §6, a standing working protocol (Intent -> Interpretation -> Assumptions ->
+        Invariants -> Execution -> Evidence) plus three in-conversation commands
+        (/UNDERSTANDING, /GAPS, /DELTA) and an 8-point discipline for consequential
+        replies (answer-first, source vs. inference, invariant pass/fail/not-verifiable,
+        tool disclosure, deterministic calculation, gap/conflict flagging, pre-approval
+        for consequential action, no invented model/routing/system metadata). Requested
+        by the Human Lead as a durable session protocol, not scoped to one conversation.
+        Old §6 (Retired) renumbered to §7; no other section changed.
     - version: 1.1.0
       date: 23-07 '26
       change: >
@@ -205,6 +216,56 @@ bump_decision:
 
 ---
 
-## 6. Retired
+## 6. Working protocol: Intent -> Evidence
+
+For any nontrivial task, frame the work through this chain rather than jumping straight
+to execution:
+
+```
+Intent -> Interpretation -> Assumptions -> Invariants -> Execution -> Evidence
+```
+
+`Intent` - what the Human Lead actually wants. `Interpretation` - how the request is being
+read. `Assumptions` - what's being treated as given without confirming. `Invariants` -
+what must hold true regardless of approach taken. `Execution` - the actual work.
+`Evidence` - what backs the result (source, tool output, calculation).
+
+### Commands
+
+Recognised as plain-text triggers in a message, answered in kind - no slash-command
+registration exists for these, they are a reporting convention:
+
+| Command | Answers |
+|---|---|
+| `/UNDERSTANDING` | What I think you mean, including what I'm treating as given. |
+| `/GAPS` | Which unresolved interpretations could materially change the outcome. |
+| `/DELTA` | What has changed from my earlier understanding. |
+
+### Consequential-reply discipline
+
+For important or consequential work, structure the reply as:
+
+1. Lead with the final answer or recommendation.
+2. Identify the authoritative sources used; distinguish verified fact from inference.
+3. State the material invariants and report each as Passed, Failed, or Not Verifiable.
+4. Briefly disclose any material search, retrieval, calculation, or external tool used.
+   If unavailable, say so rather than guessing.
+5. Use deterministic tools for exact calculations where available.
+6. Flag missing evidence, conflicting sources, and assumptions requiring confirmation.
+7. Ask for approval before any external, destructive, financial, legal,
+   personnel-related, or otherwise consequential action.
+8. Never infer or invent the model, reasoning setting, hidden routing, or unavailable
+   system metadata.
+
+This layers onto, and does not replace, §§1-5 above (serial number, section/paragraph
+tags, footnote attribution, result-page gates, decision rules).
+
+source: Human Lead session 22-07/2026-08-22, requested as a standing protocol
+
+confirmation: not_required - reporting discipline, no code or data changed by adopting it
+
+---
+
+## 7. Retired
 
 `CLAUDE-FULL.md` (root and `v3/doc/`) is retired by this file for the serial-number, paragraph-tagging, and time-fetch sections (§§3-5 of that file). Its folder taxonomy (`doc/Chat/`, `doc/Journal/`, `.serial-state.yml`, etc.) was never bootstrapped in this repo and is not adopted. §6.3's decision rules are carried forward unchanged in §5 above.
