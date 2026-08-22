@@ -20,10 +20,36 @@ and §4 (result-page gates) exist only here.
 
 ```yaml
 contract:
-  version: 1.3.0
+  version: 1.4.0
   supersedes: CLAUDE-FULL.md v0.0.3
   last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.4.0
+      date: 22-08 '26
+      covers: [scripts/count-interactions.js, serial rebase record]
+      change: >
+        Ports the counting script the imported protocol has required since 1.3.0 and
+        records this repo's serial rebase base, which together move protocol §1 out of
+        carried-forward mode. Until now `node scripts/count-interactions.js --serial`
+        failed with MODULE_NOT_FOUND here - the exact shape CLAUDE-protocol.md §1 calls
+        out as "a mandatory instruction it cannot execute" - and §1's partial-corpus
+        ratchet could not fire either, because it compares a measurement against a
+        recorded baseline and no baseline existed in this file. Both halves are needed;
+        one without the other leaves §1 half-on.
+        The script implements the CURRENT protocol text, not the older draft in the
+        deployment prompt: it matches BOTH subagent tool names (Task on older CLI
+        builds, Agent on newer), prints tool_use_blocks_seen so a zero can be told from
+        no-tool-calls-at-all, dedupes token usage on message.id (the transcript repeats
+        one usage object per content block; summing per entry inflates every figure,
+        measured at 1.91x), and reconciles the three input fields into tokens_in_total
+        rather than reporting input_tokens alone. It also implements the ratchet: given
+        --base, a measurement BELOW the base prints PARTIAL CORPUS and refuses to emit
+        a next_serial, instead of letting the smaller number pass as diligence.
+        No per-turn mode was added, so protocol §6 (the reply footer) stays OFF - §6
+        turns on only in the same change that gives it real per-turn figures.
+        Bump rationale: new_feature_added by this file's own bump_decision, which
+        requires Human Lead confirmation (Rule V-1). Surfaced rather than assumed - the
+        draft PR is the confirmation gate, and the diff is not merged until reviewed.
     - version: 1.3.0
       date: 22-08 '26
       covers: [PR 448, PR 450]
@@ -99,6 +125,36 @@ Prefix every substantive reply with a serial tag on its own line:
 | `TZ` | short zone label (`SGT`, `UTC`, ...); default `SGT` unless the user states another zone, which then stays active until changed |
 
 Example: `№ 1,024 · 23-07'26 20:08 SGT`
+
+### Serial rebase record
+
+```yaml
+serial_rebase:
+  - base: 49
+    date: 22-08 '26
+    measured: false
+    source: >
+      Carried forward from the last serial of the 2026-08-22 Vercel->Railway
+      migration session, stated by the Human Lead in the handoff that opened the
+      next session. It is a CARRIED figure, not a measurement - no full-corpus
+      run of scripts/count-interactions.js has ever been made, because the script
+      did not exist until this entry's own commit.
+    corpus_note: >
+      The first run of the new script, in the remote container of session
+      0a895e14, measured serial 2 against this base of 49 and correctly printed
+      PARTIAL CORPUS: that container held exactly one transcript - its own. This
+      is the protocol §1 case, not a correction, and the base stands.
+    next_action: >
+      Run `node scripts/count-interactions.js --sessions --all --base 49` on the
+      machine holding the FULL local transcript set. If the measurement comes
+      back at or above 49, replace this entry with a measured one and set
+      measured: true. If it comes back below, the corpus is still partial and
+      this base continues to hold.
+```
+
+Run the script with the base: `node scripts/count-interactions.js --serial --base 49`.
+Protocol §1's write-back rule applies - a session whose corpus was partial appends its
+reached count here at the end, because the file is the ledger and a container is not.
 
 **Time source (fresh every response).** Before stamping the serial on any substantive reply, run `date -u` via Bash and convert from UTC to the active TZ (default SGT = UTC+8; see the TZ table if another zone is active). This is a genuine, no-egress, per-response live clock - not a passive wait for context evidence. Cross-check opportunistically against any timestamp present in context (a GitHub webhook, a system date-change notice); if the sandbox clock and a context timestamp disagree by more than a few minutes, trust the more specific/freshest source and note the discrepancy once.
 
