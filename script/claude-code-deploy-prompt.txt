@@ -77,11 +77,25 @@ STEP 5 - Establish the serial base. THIS IS THE STEP THAT IS USUALLY WRONG.
       derived from the working directory. Run this - it needs no script
       file, no git state, and no correctly-derived folder name:
 
+      CORRECTED 22-08 '26. As first shipped this snippet matched the RAW
+      basename of the working directory against folder names in which
+      Claude Code had already munged "_", "." and spaces to "-", so in any
+      repo whose directory name contains one of those it reported "no
+      folder matching" and measured nothing. It failed safely - it exits
+      before printing SERIAL_MEASURED, so there was no wrong number to
+      adopt - but the step billed as the one most often wrong could not
+      run. The fix is the munge on the NAME line below.
+
         node -e '
         const fs=require("fs"),path=require("path"),os=require("os");
         const root=path.join(os.homedir(),".claude","projects");
         if(!fs.existsSync(root)){console.log("no ~/.claude/projects");process.exit(0);}
-        const NAME=path.basename(process.cwd());
+        // Munge BEFORE matching: basename(cwd) still carries "_", "." and
+        // spaces, while the folder name has had them replaced by "-", so a
+        // raw compare makes an exact-named folder look absent. Measured
+        // 22-08 '26: cwd basename "2026-0313_AI-JS" did not match folder
+        // "-home-user-2026-0313-AI-JS" until the underscore was munged.
+        const NAME=path.basename(process.cwd()).replace(/[\/\\._ ]/g,"-");
         const dirs=fs.readdirSync(root).filter(d=>d.toLowerCase().includes(NAME.toLowerCase()));
         if(!dirs.length){console.log("no folder matching "+NAME+". Present:");fs.readdirSync(root).forEach(d=>console.log("  "+d));process.exit(0);}
         let total=0,files=0;

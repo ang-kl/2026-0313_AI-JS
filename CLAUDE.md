@@ -20,10 +20,44 @@ and §4 (result-page gates) exist only here.
 
 ```yaml
 contract:
-  version: 1.4.0
+  version: 1.5.0
   supersedes: CLAUDE-FULL.md v0.0.3
   last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.5.0
+      date: 22-08 '26
+      covers: [scripts/count-interactions.js, script/claude-code-deploy-prompt.txt, serial rebase records]
+      change: >
+        Closes the fourth defect named by the 22-08 '26 revision of the deployment
+        prompt - the one the earlier three fixes left standing. Transcripts are keyed
+        on the cwd PATH, not on the repository, so a repo opened at more than one path
+        owns SEVERAL folders under ~/.claude/projects, and reading only the folder
+        derived from the current cwd undercounts silently. The script now matches every
+        folder whose name contains the munged repo-directory name, and prints each
+        folder with its own session count so the scope of a measurement is visible
+        rather than implied.
+        The munge must happen BEFORE the compare, and this is where the deployment
+        prompt's own STEP 5a scan was broken: it matched the RAW basename of the
+        working directory against folder names in which Claude Code had already
+        replaced "_", "." and spaces with "-". In this repo that meant
+        "2026-0313_AI-JS" never matched "-home-user-2026-0313-AI-JS", so the step
+        billed as the one most often got wrong could not run at all. It failed safely,
+        exiting before SERIAL_MEASURED rather than printing a zero, but it measured
+        nothing. Corrected in script/claude-code-deploy-prompt.txt, which entered the
+        repo at 801aa83, and the corrected snippet was extracted from the tracked file
+        and run to prove it.
+        Also: --sessions on its own now implies --all. It is a scope flag, not a report
+        flag, and alone it named a scope with nothing to report and printed usage -
+        while STEP 6 asks for exactly that invocation.
+        CLAUDE-protocol.md is deliberately UNCHANGED. The revision's PROTOCOL block
+        would have removed §1's carried-forward-mode passage and reintroduced a
+        cross-repo project name into §4 that PR #454 removed on the grounds that the
+        file's own header forbids it; its SCRIPT block carries neither the multi-folder
+        fix nor the partial-corpus ratchet. Adopting either verbatim would have traded
+        merged decisions for a regression.
+        Bump rationale: new_feature_added (the Serial rebase records section) alongside
+        bug_fix (the folder scan), confirmed by the Human Lead in session before the
+        work began.
     - version: 1.4.0
       date: 22-08 '26
       covers: [scripts/count-interactions.js, serial rebase record]
@@ -126,7 +160,7 @@ Prefix every substantive reply with a serial tag on its own line:
 
 Example: `№ 1,024 · 23-07'26 20:08 SGT`
 
-### Serial rebase record
+### Serial rebase records
 
 ```yaml
 serial_rebase:
@@ -150,6 +184,32 @@ serial_rebase:
       back at or above 49, replace this entry with a measured one and set
       measured: true. If it comes back below, the corpus is still partial and
       this base continues to hold.
+
+  - row: 2
+    date: 22-08 '26
+    where: >
+      Remote container of session 0a895e14 (Claude Code on the web), project
+      folder -home-user-2026-0313-AI-JS. One folder, one transcript - its own.
+    measured: 16
+    is_new_base: false
+    derivation: >
+      scripts/count-interactions.js --sessions --base 49, and independently the
+      STEP 5a scan extracted verbatim from script/claude-code-deploy-prompt.txt.
+      Both read the same single folder and agreed.
+    ratchet: >
+      16 is BELOW the base of 49, so it is refused as a reading and recorded
+      only as a write-back. It is NOT a new base. This is the protocol §1 case
+      working as intended, not a correction to row 1.
+    why_recorded: >
+      Protocol §1's write-back rule. Replies made in a container the local
+      corpus never sees would otherwise leave no trace, so a later local
+      re-measure reads low, gets discarded as partial corpus, and the count
+      thereafter advances only by context-carried increments - the same drift
+      arriving through the opposite door. The file is the ledger; a container
+      is not.
+    caveat: >
+      Taken at commit time, not at session end, so it undercounts the replies
+      made after it. Append a further row rather than editing this one.
 ```
 
 Run the script with the base: `node scripts/count-interactions.js --serial --base 49`.
