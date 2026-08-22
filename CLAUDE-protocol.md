@@ -109,7 +109,7 @@ Counting rule: assistant entries whose content includes a `tool_use`
 block named `Task` (older CLI builds) OR `Agent` (newer ones); group by
 `input.subagent_type`. MATCH BOTH — matching one name reported a confident
 `agents_total: 0` on a corpus that really contained subagent calls, and
-fixing it moved bot-trade's own count from 0 to 2. The output also prints
+fixing it moved that corpus's count from 0 to 2. The output also prints
 `tool_use_blocks_seen`, because 0 agents out of 0 tool calls and 0 out of
 4,263 are different facts and a bare zero cannot tell them apart.
 
