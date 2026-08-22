@@ -1,3 +1,5 @@
+@CLAUDE-protocol.md
+
 # CLAUDE.md
 
 > Auto-loaded by Claude Code at the start of every session in this repo. Supersedes the
@@ -10,10 +12,24 @@
 
 ```yaml
 contract:
-  version: 1.2.0
+  version: 1.3.0
   supersedes: CLAUDE-FULL.md v0.0.3
   last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.3.0
+      date: 22-08 '26
+      change: >
+        Imported the project-neutral `CLAUDE-protocol.md` at the top of this file and
+        reduced §6 to a pointer at it, so the Intent -> Evidence chain, the three
+        commands and the consequential-work discipline are stated once, in a file shared
+        across bot-trade / gia / 2026-0313_AI-JS / wherewithal, instead of being
+        duplicated per repo. §6's own text (added in 1.2.0, one day old) is superseded by
+        protocol §§9-11, which say the same thing. Registered the commands as real
+        slash-commands under `.claude/commands/`; they were a plain-text convention
+        before. §§0-5 and §7 unchanged. Recorded in §6 that protocol §1 (serial measured
+        via scripts/count-interactions.js) and protocol §6 (agents/tokens reply footer)
+        are NOT executable in this repo - that script lives in bot-trade and has not been
+        ported - so §1 above remains the serial authority here until it is.
     - version: 1.2.0
       date: 22-08 '26
       change: >
@@ -218,51 +234,27 @@ bump_decision:
 
 ## 6. Working protocol: Intent -> Evidence
 
-For any nontrivial task, frame the work through this chain rather than jumping straight
-to execution:
+Moved to `CLAUDE-protocol.md`, imported at the top of this file. That document is the
+single source for:
 
-```
-Intent -> Interpretation -> Assumptions -> Invariants -> Execution -> Evidence
-```
+- the `Intent -> Interpretation -> Assumptions -> Invariants -> Execution -> Evidence`
+  chain (protocol §9);
+- the `/UNDERSTANDING`, `/GAPS`, `/DELTA` commands (protocol §10), registered in this
+  repo as `.claude/commands/understanding.md`, `gaps.md`, `delta.md`;
+- the eight-point discipline for important or consequential work (protocol §11).
 
-`Intent` - what the Human Lead actually wants. `Interpretation` - how the request is being
-read. `Assumptions` - what's being treated as given without confirming. `Invariants` -
-what must hold true regardless of approach taken. `Execution` - the actual work.
-`Evidence` - what backs the result (source, tool output, calculation).
+Do not restate any of it here - edit `CLAUDE-protocol.md` instead, and remember that file
+is shared across repos, so a change there lands everywhere.
 
-### Commands
+The protocol layers onto, and does not replace, §§1-5 above (serial number,
+section/paragraph tags, footnote attribution, result-page gates, decision rules).
 
-Recognised as plain-text triggers in a message, answered in kind - no slash-command
-registration exists for these, they are a reporting convention:
-
-| Command | Answers |
-|---|---|
-| `/UNDERSTANDING` | What I think you mean, including what I'm treating as given. |
-| `/GAPS` | Which unresolved interpretations could materially change the outcome. |
-| `/DELTA` | What has changed from my earlier understanding. |
-
-### Consequential-reply discipline
-
-For important or consequential work, structure the reply as:
-
-1. Lead with the final answer or recommendation.
-2. Identify the authoritative sources used; distinguish verified fact from inference.
-3. State the material invariants and report each as Passed, Failed, or Not Verifiable.
-4. Briefly disclose any material search, retrieval, calculation, or external tool used.
-   If unavailable, say so rather than guessing.
-5. Use deterministic tools for exact calculations where available.
-6. Flag missing evidence, conflicting sources, and assumptions requiring confirmation.
-7. Ask for approval before any external, destructive, financial, legal,
-   personnel-related, or otherwise consequential action.
-8. Never infer or invent the model, reasoning setting, hidden routing, or unavailable
-   system metadata.
-
-This layers onto, and does not replace, §§1-5 above (serial number, section/paragraph
-tags, footnote attribution, result-page gates, decision rules).
-
-source: Human Lead session 22-07/2026-08-22, requested as a standing protocol
-
-confirmation: not_required - reporting discipline, no code or data changed by adopting it
+**Known conflict, unresolved.** Protocol §1 makes `scripts/count-interactions.js --serial`
+the sole authority for the reply serial, and protocol §6 mandates an
+`[agents: ...] [tokens: ...]` footer sourced from the same script. That script does not
+exist in this repo (it lives in `bot-trade`), so both are currently unexecutable here and
+§1 above stays in force for the serial. Port the script, or amend the protocol, before
+treating protocol §§1 and 6 as binding in this repo.
 
 ---
 
