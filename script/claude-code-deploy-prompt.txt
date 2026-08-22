@@ -29,6 +29,38 @@ ways, each of which produced a confident wrong number rather than an error:
 All four are fixed in the PROTOCOL and SCRIPT blocks below. Deploy those,
 not any copy you may already have.
 
+SYNCED 22-08 '26. The two blocks below are now copies of THIS repo's live
+CLAUDE-protocol.md and scripts/count-interactions.js, replacing the versions
+this revision shipped with. Until the sync they were BEHIND the repo they sat
+in, while still instructing a reader to deploy them over what was already
+there - so following the file faithfully would have regressed the repo. What
+the sync restored, and what a re-paste of the old blocks would undo:
+
+  - PROTOCOL §1 regains the passage on what a repo with NO counting script
+    must do (carry the serial forward, say once that it is carried, never
+    present it as a measurement). §1 has no off switch, so a repo without the
+    script inherits a mandatory instruction it cannot execute; the shipped
+    block omitted the answer.
+  - PROTOCOL §4 loses a cross-repo project name. The file's own header states
+    it contains no project names; PR #454 removed that one, and the shipped
+    block put it back. The measurement it illustrates is kept - only the name
+    goes.
+  - SCRIPT gains the multi-folder fix, which defect 4 above describes but the
+    shipped SCRIPT block did not contain: its projectDirCandidates was
+    unchanged from the superseded version, so the fix existed only in the
+    STEP 5a snippet. A repo owning several project folders would still have
+    been undercounted by the script itself.
+  - SCRIPT gains the partial-corpus ratchet IN CODE. STEP 5b states the rule
+    for a human to apply; the shipped block printed serial_rebased
+    unconditionally, so a below-base measurement was presented as a serial
+    rather than refused. It now prints PARTIAL CORPUS and withholds
+    next_serial.
+  - SCRIPT gains tokens_in_total, the per-folder scope listing, the
+    per-session split, and --sessions implying --all.
+
+Keep this sync in step with the repo: if either file changes, re-copy it here
+in the same commit, or this block silently becomes stale advice again.
+
 STEP 1 - Create CLAUDE-protocol.md in this repo's root with exactly the
 content between the PROTOCOL BEGIN/END markers below.
 
@@ -175,6 +207,24 @@ text block. Tool calls and subagent chatter are excluded. Never restart at
 1; re-measure rather than guess if the thread is lost. Any rebase of the
 count is recorded in the project's own `CLAUDE.md`, not here.
 
+**IF THIS REPO HAS NO COUNTING SCRIPT, §1 IS NOT SATISFIABLE — SAY SO.**
+`scripts/count-interactions.js` is the reference implementation and it lives
+in ONE repo; the command above fails with `MODULE_NOT_FOUND` everywhere it
+has not been ported. Unlike §6, §1 has no off switch, so a repo without the
+script inherits a mandatory instruction it cannot execute — which is the
+whole shape this document exists to refuse. Until the script is ported:
+
+- carry the serial forward from the last one visible in the conversation,
+- state, once per session, that it is carried and not measured, and
+- do not present it as a measurement in any reply.
+
+The same holds where the script EXISTS but the project's `CLAUDE.md` records
+no rebase baseline: the partial-corpus rule below compares a measurement
+against that baseline, and with nothing to compare against it cannot fire.
+A project adopting this protocol should record its starting count in its own
+`CLAUDE.md` at adoption, or accept that §1 runs in carried-forward mode.
+Porting the script and writing down a baseline are what turn §1 on.
+
 **WHICH DISK. The script measures the corpus it can see, and that is not
 always the whole corpus.** A remote or web session runs in a fresh container
 holding only the transcripts of sessions that ran there; a local machine
@@ -243,7 +293,7 @@ Counting rule: assistant entries whose content includes a `tool_use`
 block named `Task` (older CLI builds) OR `Agent` (newer ones); group by
 `input.subagent_type`. MATCH BOTH — matching one name reported a confident
 `agents_total: 0` on a corpus that really contained subagent calls, and
-fixing it moved bot-trade's own count from 0 to 2. The output also prints
+fixing it moved that corpus's count from 0 to 2. The output also prints
 `tool_use_blocks_seen`, because 0 agents out of 0 tool calls and 0 out of
 4,263 are different facts and a bare zero cannot tell them apart.
 
@@ -375,40 +425,51 @@ P8. Never infer or invent the model, reasoning setting, hidden routing or
 #!/usr/bin/env node
 /**
  * count-interactions.js
+ *
  * Measures serial, agent and token counts from Claude Code session
- * transcripts (JSONL) on disk. Transcript is the sole authority - nothing
- * is remembered from context.
+ * transcripts (JSONL) on disk. The transcript is the sole authority -
+ * nothing is remembered from context.
  *
  * Usage:
  *   node scripts/count-interactions.js --serial
  *   node scripts/count-interactions.js --agents
  *   node scripts/count-interactions.js --tokens
  *   node scripts/count-interactions.js --all
- *   node scripts/count-interactions.js --file <path-to-session.jsonl> [--serial|--agents|--tokens|--all]
- *   node scripts/count-interactions.js --sessions        # aggregate across ALL sessions of this project
- *   node scripts/count-interactions.js --base <n>        # add rebase offset to serial (e.g. --base 1773)
+ *   node scripts/count-interactions.js --file <session.jsonl> [--all]
+ *   node scripts/count-interactions.js --sessions      # aggregate ALL sessions of this project
+ *   node scripts/count-interactions.js --base <n>      # rebase offset, e.g. --base 49
  *
- * Counting rules (protocol §1, §4, §5):
- *   serial  = assistant entries on the MAIN thread (isSidechain !== true)
- *             carrying at least one non-empty text block. Tool-only turns
- *             and subagent chatter are excluded.
- *   agents  = tool_use blocks named "Task" (older CLI builds) OR "Agent"
- *             (newer ones), grouped by input.subagent_type. Sidechain entries
- *             are excluded so a subagent spawning nothing is not double-counted.
- *             MATCHING ONLY ONE NAME reports a confident agents_total: 0 on a
- *             corpus that really contains subagent calls - protocol §4 names
- *             this exact failure. tool_use_blocks_seen is printed alongside,
- *             because "0 of 0" and "0 of 1,810" are different facts and a bare
- *             zero cannot tell them apart.
- *   tokens  = sum of usage.input_tokens, usage.output_tokens,
- *             usage.cache_read_input_tokens, usage.cache_creation_input_tokens
- *             across main-thread assistant entries, DEDUPED ON message.id.
- *             Usage is per MESSAGE, not per transcript line: the transcript
- *             writes one line per content block and repeats the identical usage
- *             object on each, so summing per entry inflates every figure by
- *             blocks-per-message. Measured on this repo's own transcript:
- *             1.938x (2,799,020 -> 1,444,213 output tokens). Protocol §5.
- *             Absent usage blocks are counted as "unavailable", never estimated.
+ * Counting rules - CLAUDE-protocol.md SS1, SS4, SS5:
+ *
+ *   serial = assistant entries on the MAIN thread (isSidechain !== true)
+ *            carrying at least one non-empty text block. Tool-only turns and
+ *            subagent chatter are excluded.
+ *
+ *   agents = tool_use blocks named "Task" (older CLI builds) OR "Agent"
+ *            (newer ones), grouped by input.subagent_type. MATCH BOTH:
+ *            matching one name reported a confident agents_total of 0 on a
+ *            corpus that really contained subagent calls. tool_use_blocks_seen
+ *            is printed alongside, because 0 agents out of 0 tool calls and
+ *            0 out of 4,263 are different facts and a bare zero cannot tell
+ *            them apart.
+ *
+ *   tokens = input_tokens + cache_creation_input_tokens +
+ *            cache_read_input_tokens (these three reconcile into
+ *            tokens_in_total) and output_tokens, DEDUPED ON message.id.
+ *            The transcript writes one line per content block and repeats the
+ *            identical usage object on each; summing per entry inflates every
+ *            figure by blocks-per-message - measured at 1.91x. Absent usage
+ *            blocks are reported as unavailable, never estimated.
+ *
+ * There is no per-turn accounting here, by design: protocol SS6 (the reply
+ * footer) stays OFF until some script emits per-turn figures, and SS5 forbids
+ * estimating one. agents_latest_session and latest_session_* are per-SESSION.
+ *
+ * WHICH DISK: this measures the corpus THIS MACHINE can see. A remote or web
+ * container holds only the transcripts of sessions that ran there. A measured
+ * serial BELOW a recorded rebase base is evidence of a partial corpus, not a
+ * correction - the script says so rather than letting the smaller number pass
+ * as diligence.
  */
 
 'use strict';
@@ -422,59 +483,90 @@ const argv = process.argv.slice(2);
 const has = (f) => argv.includes(f);
 const val = (f) => {
   const i = argv.indexOf(f);
-  return i !== -1 && argv[i + 1] ? argv[i + 1] : null;
+  return i !== -1 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : null;
 };
 
-const wantSerial = has('--serial') || has('--all');
-const wantAgents = has('--agents') || has('--all');
-const wantTokens = has('--tokens') || has('--all');
-const wantAny = wantSerial || wantAgents || wantTokens;
+let wantSerial = has('--serial') || has('--all');
+let wantAgents = has('--agents') || has('--all');
+let wantTokens = has('--tokens') || has('--all');
 const allSessions = has('--sessions');
 const explicitFile = val('--file');
 const base = parseInt(val('--base') || '0', 10) || 0;
 
-if (!wantAny && !allSessions) {
-  console.log('Usage: count-interactions.js [--serial|--agents|--tokens|--all] [--file <session.jsonl>] [--sessions] [--base <n>]');
+// --sessions is a SCOPE flag, not a report flag. On its own it named a scope
+// with nothing to report and printed usage; treat it as implying --all.
+if (allSessions && !wantSerial && !wantAgents && !wantTokens) {
+  wantSerial = wantAgents = wantTokens = true;
+}
+
+if (!wantSerial && !wantAgents && !wantTokens) {
+  console.log(
+    'Usage: count-interactions.js [--serial|--agents|--tokens|--all] ' +
+      '[--file <session.jsonl>] [--sessions] [--base <n>]'
+  );
   process.exit(0);
 }
 
 // ---------- Locate transcript(s) ----------
 // Claude Code stores transcripts under ~/.claude/projects/<munged-cwd>/*.jsonl
-// where <munged-cwd> is the absolute project path with '/', '.', '_' and
-// spaces replaced by '-'. We munge defensively and fall back to a scan.
+// where <munged-cwd> is the absolute project path with '/', '\', '.', '_' and
+// spaces replaced by '-'.
+//
+// ONE REPO CAN OWN SEVERAL FOLDERS. Transcripts are keyed on the cwd PATH, not
+// on the repository, so a repo opened at more than one path - from a
+// subdirectory, from a worktree, from a differently-rooted checkout - has a
+// folder per path. Reading only the folder derived from the current cwd is a
+// silent undercount that looks like a clean answer.
+//
+// So: match EVERY folder whose name contains the munged repo-directory name,
+// and print each folder with its own subtotal (see printScope) so a reader can
+// see which were included rather than trusting a bare sum.
+//
+// Munge the repo name BEFORE comparing. basename(cwd) still carries '_', '.'
+// and spaces, while the folder name has had them replaced by '-'; comparing the
+// two raw makes an exact-named folder look absent. Measured here 2026-08-22:
+// cwd basename '2026-0313_AI-JS' did not match folder '-home-user-2026-0313-AI-JS'
+// until the underscore was munged.
 function mungePath(p) {
-  return p.replace(/[\/\\._ ]/g, '-');
+  return p.replace(/[/\\._ ]/g, '-');
 }
 
 function projectDirCandidates() {
   const root = path.join(os.homedir(), '.claude', 'projects');
   if (!fs.existsSync(root)) return [];
-  const cwdMunged = mungePath(process.cwd());
-  const dirs = fs.readdirSync(root)
+  const dirs = fs
+    .readdirSync(root)
     .map((d) => path.join(root, d))
     .filter((d) => fs.statSync(d).isDirectory());
-  const exact = dirs.filter((d) => path.basename(d) === cwdMunged);
-  if (exact.length) return exact;
-  // Fallback: any project dir whose munged name ends with this folder's name
-  const tail = mungePath(path.basename(process.cwd()));
-  return dirs.filter((d) => path.basename(d).endsWith(tail));
+
+  const needle = mungePath(path.basename(process.cwd())).toLowerCase();
+  const matched = dirs.filter((d) => path.basename(d).toLowerCase().includes(needle));
+  if (matched.length) return matched;
+
+  // Last resort: the exact full-path folder, in case the repo directory name is
+  // itself absent from the folder name.
+  const cwdMunged = mungePath(process.cwd());
+  return dirs.filter((d) => path.basename(d) === cwdMunged);
 }
+
+// Folders contributing to this run, with their file counts - printed so the
+// scope of a measurement is visible rather than implied.
+const folderScope = [];
 
 function sessionFiles() {
   if (explicitFile) return [path.resolve(explicitFile)];
-  const dirs = projectDirCandidates();
   const files = [];
-  for (const d of dirs) {
-    for (const f of fs.readdirSync(d)) {
-      if (f.endsWith('.jsonl')) files.push(path.join(d, f));
-    }
+  for (const d of projectDirCandidates()) {
+    const own = fs.readdirSync(d).filter((f) => f.endsWith('.jsonl'));
+    folderScope.push({ dir: d, count: own.length });
+    for (const f of own) files.push(path.join(d, f));
   }
   files.sort((a, b) => fs.statSync(a).mtimeMs - fs.statSync(b).mtimeMs);
   if (!files.length) {
     console.error('No session transcripts found. Pass --file <session.jsonl>.');
     process.exit(1);
   }
-  return allSessions ? files : [files[files.length - 1]]; // newest only by default
+  return allSessions ? files : [files[files.length - 1]];
 }
 
 // ---------- Measure ----------
@@ -484,14 +576,17 @@ function freshTally() {
     userTurns: 0,
     agentsTotal: 0,
     agentsBreakdown: {},
+    toolUseBlocks: 0,
     tokens: { input: 0, output: 0, cache_read: 0, cache_creation: 0 },
     usageMissing: 0,
-    toolUseBlocks: 0,
-    seenMessageIds: new Set(),
     lines: 0,
     badLines: 0,
   };
 }
+
+// message.id values already counted, so a repeated usage object on the next
+// content-block line is not summed twice. Shared across files: ids are unique.
+const seenMessageIds = new Set();
 
 function measureFile(file, t) {
   const raw = fs.readFileSync(file, 'utf8');
@@ -499,50 +594,46 @@ function measureFile(file, t) {
     if (!line.trim()) continue;
     t.lines++;
     let e;
-    try { e = JSON.parse(line); } catch { t.badLines++; continue; }
+    try {
+      e = JSON.parse(line);
+    } catch {
+      t.badLines++;
+      continue;
+    }
 
     const sidechain = e.isSidechain === true;
     const msg = e.message || {};
     const content = Array.isArray(msg.content) ? msg.content : [];
 
     if (e.type === 'user' && !sidechain) t.userTurns++;
+    if (e.type !== 'assistant' || sidechain) continue;
 
-    if (e.type === 'assistant' && !sidechain) {
-      // serial: non-empty text block on main thread
-      const hasText = content.some(
-        (b) => b && b.type === 'text' && typeof b.text === 'string' && b.text.trim().length > 0
-      );
-      if (hasText) t.serial++;
+    const hasText = content.some(
+      (b) => b && b.type === 'text' && typeof b.text === 'string' && b.text.trim().length > 0
+    );
+    if (hasText) t.serial++;
 
-      // agents: Task tool invocations
-      for (const b of content) {
-        if (!b || b.type !== 'tool_use') continue;
-        t.toolUseBlocks++;
-        // Both names, per protocol §4 - 'Task' on older CLI builds, 'Agent' on newer.
-        if (b.name === 'Task' || b.name === 'Agent') {
-          t.agentsTotal++;
-          const st = (b.input && b.input.subagent_type) || 'unspecified';
-          t.agentsBreakdown[st] = (t.agentsBreakdown[st] || 0) + 1;
-        }
+    for (const b of content) {
+      if (!b || b.type !== 'tool_use') continue;
+      t.toolUseBlocks++;
+      if (b.name === 'Task' || b.name === 'Agent') {
+        t.agentsTotal++;
+        const st = (b.input && b.input.subagent_type) || 'unspecified';
+        t.agentsBreakdown[st] = (t.agentsBreakdown[st] || 0) + 1;
       }
+    }
 
-      // tokens
-      const u = msg.usage;
-      // Dedupe on message.id: the same usage object is repeated on every content
-      // block of a message, so a per-entry sum inflates by blocks-per-message (§5).
-      const mid = msg.id;
-      if (mid && t.seenMessageIds.has(mid)) {
-        continue;
-      }
-      if (mid) t.seenMessageIds.add(mid);
-      if (u && typeof u === 'object') {
-        t.tokens.input += u.input_tokens || 0;
-        t.tokens.output += u.output_tokens || 0;
-        t.tokens.cache_read += u.cache_read_input_tokens || 0;
-        t.tokens.cache_creation += u.cache_creation_input_tokens || 0;
-      } else if (hasText) {
-        t.usageMissing++;
-      }
+    const u = msg.usage;
+    const id = msg.id;
+    if (u && typeof u === 'object') {
+      if (id && seenMessageIds.has(id)) continue; // usage already counted
+      if (id) seenMessageIds.add(id);
+      t.tokens.input += u.input_tokens || 0;
+      t.tokens.output += u.output_tokens || 0;
+      t.tokens.cache_read += u.cache_read_input_tokens || 0;
+      t.tokens.cache_creation += u.cache_creation_input_tokens || 0;
+    } else if (hasText) {
+      t.usageMissing++;
     }
   }
   return t;
@@ -550,42 +641,77 @@ function measureFile(file, t) {
 
 // ---------- Run ----------
 const files = sessionFiles();
-const t = freshTally();
-for (const f of files) measureFile(f, t);
+const total = freshTally();
+for (const f of files) measureFile(f, total);
+
+// Latest session measured on its own, so per-SESSION figures are separable
+// from the aggregate. Not per-turn: a session runs to thousands of replies.
+const latestFile = files[files.length - 1];
+let latest = total;
+if (files.length > 1) {
+  seenMessageIds.clear();
+  latest = measureFile(latestFile, freshTally());
+}
 
 const fmt = (n) => n.toLocaleString('en-SG');
-const scope = allSessions ? `${files.length} session(s)` : path.basename(files[0]);
+const scope = allSessions ? `${files.length} session(s)` : path.basename(latestFile);
 
-console.log(`# Transcript scope: ${scope}`);
-if (t.badLines) console.log(`# Warning: ${t.badLines} unparseable line(s) skipped`);
+console.log(`# Transcript scope   : ${scope}`);
+console.log(`# Project folders    : ${folderScope.length || 1}`);
+for (const f of folderScope) {
+  console.log(`#   ${path.basename(f.dir)}  ->  ${fmt(f.count)} session(s)`);
+}
+if (total.badLines) console.log(`# Warning: ${fmt(total.badLines)} unparseable line(s) skipped`);
 
-if (wantSerial || allSessions) {
-  console.log(`serial_measured   : ${fmt(t.serial)}  (main-thread assistant text replies)`);
-  console.log(`user_turns        : ${fmt(t.userTurns)}`);
-  if (base) console.log(`serial_rebased    : ${fmt(base + t.serial)}  (base ${fmt(base)} + measured)`);
-  console.log(`next_serial       : ${fmt((base || 0) + t.serial + 1)}`);
+if (wantSerial) {
+  console.log(`serial_measured      : ${fmt(total.serial)}  (main-thread assistant text replies)`);
+  console.log(`user_turns           : ${fmt(total.userTurns)}`);
+  if (base) {
+    console.log(`serial_base          : ${fmt(base)}  (rebase recorded in CLAUDE.md)`);
+    if (total.serial < base) {
+      console.log('serial_verdict       : PARTIAL CORPUS - measurement is BELOW the recorded');
+      console.log('                       base, which is evidence this machine holds only some');
+      console.log('                       of the transcripts, NOT that the count should drop.');
+      console.log('                       Treat as unavailable: continue from the base plus the');
+      console.log('                       replies since, and say which you used. Protocol SS1.');
+      console.log(`next_serial          : unavailable (>= ${fmt(base + 1)}; carry forward)`);
+    } else {
+      console.log(`serial_rebased       : ${fmt(base + total.serial)}  (base + measured)`);
+      console.log(`next_serial          : ${fmt(base + total.serial + 1)}`);
+    }
+  } else {
+    console.log('serial_base          : none passed (--base <n>); result is corpus-relative only');
+    console.log(`next_serial          : ${fmt(total.serial + 1)}  (no base - verify against CLAUDE.md)`);
+  }
 }
 
-if (wantAgents || allSessions) {
-  console.log(`agents_total      : ${fmt(t.agentsTotal)}  (Task + Agent tool invocations)`);
-  const entries = Object.entries(t.agentsBreakdown).sort((a, b) => b[1] - a[1]);
+if (wantAgents) {
+  console.log(`agents_total         : ${fmt(total.agentsTotal)}  (Task/Agent tool_use blocks)`);
+  console.log(`tool_use_blocks_seen : ${fmt(total.toolUseBlocks)}`);
+  const entries = Object.entries(total.agentsBreakdown).sort((a, b) => b[1] - a[1]);
   if (entries.length) {
-    console.log('agents_breakdown  :');
+    console.log('agents_breakdown     :');
     for (const [k, v] of entries) console.log(`  ${k.padEnd(24)} ${fmt(v)}`);
   } else {
-    console.log('agents_breakdown  : none');
+    console.log('agents_breakdown     : none');
   }
-  // §4: a bare zero cannot distinguish "no subagents" from "nothing was read".
-  console.log(`tool_use_blocks_seen: ${fmt(t.toolUseBlocks)}`);
+  console.log(`agents_latest_session: ${fmt(latest.agentsTotal)}  (per SESSION, not per turn)`);
 }
 
-if (wantTokens || allSessions) {
-  console.log(`tokens_input      : ${fmt(t.tokens.input)}`);
-  console.log(`tokens_output     : ${fmt(t.tokens.output)}`);
-  console.log(`tokens_cache_read : ${fmt(t.tokens.cache_read)}`);
-  console.log(`tokens_cache_new  : ${fmt(t.tokens.cache_creation)}`);
-  if (t.usageMissing) {
-    console.log(`tokens_note       : ${fmt(t.usageMissing)} reply(ies) had no usage block - reported, not estimated`);
+if (wantTokens) {
+  const tIn = total.tokens.input + total.tokens.cache_creation + total.tokens.cache_read;
+  console.log(`tokens_input_uncached: ${fmt(total.tokens.input)}`);
+  console.log(`tokens_cache_new     : ${fmt(total.tokens.cache_creation)}`);
+  console.log(`tokens_cache_read    : ${fmt(total.tokens.cache_read)}`);
+  console.log(`tokens_in_total      : ${fmt(tIn)}  (uncached + cache_new + cache_read)`);
+  console.log(`tokens_output        : ${fmt(total.tokens.output)}`);
+  console.log(`latest_session_in    : ${fmt(latest.tokens.input + latest.tokens.cache_creation + latest.tokens.cache_read)}`);
+  console.log(`latest_session_out   : ${fmt(latest.tokens.output)}`);
+  if (total.usageMissing) {
+    console.log(
+      `tokens_note          : ${fmt(total.usageMissing)} reply(ies) had no usage block - ` +
+        'reported, not estimated'
+    );
   }
 }
 ================================= SCRIPT END =================================
