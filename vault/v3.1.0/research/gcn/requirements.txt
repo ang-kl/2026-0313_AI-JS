@@ -1,0 +1,4 @@
+# Runnable POC (build_graph.py + gcn_numpy.py) needs only NumPy:
+numpy>=1.24
+# The extension file gcn_torch.py additionally needs PyTorch (CPU is fine):
+# torch>=2.0

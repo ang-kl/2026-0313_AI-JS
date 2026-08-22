@@ -1,0 +1,5 @@
+# v3-scoped ignores (keep debug session logs out of git; never commit captured prompts)
+debug/*.jsonl
+debug/*.log
+!debug/.gitkeep
+!debug/README.md
