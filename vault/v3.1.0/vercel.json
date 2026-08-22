@@ -1,0 +1,57 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "regions": ["sin1", "hnd1"],
+  "functions": {
+    "api/claude.js":  { "maxDuration": 300 },
+    "api/esco.js":    { "maxDuration": 60  },
+    "api/mcf.js":     { "maxDuration": 60  },
+    "api/careers.js": { "maxDuration": 30  },
+    "api/datagov.js": { "maxDuration": 30  },
+    "api/ssic.js":    { "maxDuration": 60  },
+    "api/geocode.js": { "maxDuration": 15  },
+    "api/anatomy.js": { "maxDuration": 15  },
+    "api/engine.js":  { "maxDuration": 15  }
+  },
+  "fluid": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://cdn.vercel-insights.com https://telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.openai.com https://api.mycareersfuture.gov.sg https://api-production.data.gov.sg https://vitals.vercel-insights.com https://va.vercel-scripts.com; object-src 'none'; base-uri 'self'; frame-src https://oauth.telegram.org; img-src 'self' data: https://t.me;" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/demo",
+      "destination": "/demo.html"
+    },
+    {
+      "source": "/((?!api/|_vercel/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+graph.npz
+graph.bin
+meta.json
+__pycache__/
+*.pyc
+
+# Phase 0 raw harvest outputs (regenerate with harvest_*.py)
+data/*.jsonl
+data/*.json
+!data/PHASE0-FINDINGS.md
+substrate.npz
+substrate_meta.json
+
+# C++ port build artifacts (source is tracked; binaries and the local substrate are not)
+cpp/build_substrate
+cpp/linkpred
+cpp/gcn
+cpp/server
+cpp/substrate.bin
+cpp/substrate_meta.json
+cpp/*.o
