@@ -1,5 +1,15 @@
 # CLAUDE.md
 
+@CLAUDE-protocol.md
+
+The line above imports the project-neutral reply protocol — serial, time,
+paragraph numbering, agent/token counts, the mental model, the custom
+commands, and protocol points P1–P8. Same file in every repo. §§1–5 below
+are this project's own and are NOT in the neutral copy: the serial rules
+here carry detail the neutral §1 does not, and §3 (footnote attribution)
+and §4 (result-page gates) exist only here.
+
+
 > Auto-loaded by Claude Code at the start of every session in this repo. Supersedes the
 > live-fetch and folder-taxonomy portions of `CLAUDE-FULL.md` v0.0.3 (see §0 below); carries
 > forward its proven decision rules (§6.3) unchanged.
@@ -232,33 +242,21 @@ what must hold true regardless of approach taken. `Execution` - the actual work.
 
 ### Commands
 
-Recognised as plain-text triggers in a message, answered in kind - no slash-command
-registration exists for these, they are a reporting convention:
-
-| Command | Answers |
-|---|---|
-| `/UNDERSTANDING` | What I think you mean, including what I'm treating as given. |
-| `/GAPS` | Which unresolved interpretations could materially change the outcome. |
-| `/DELTA` | What has changed from my earlier understanding. |
+REGISTERED, not merely conventional (changed 2026-08-22): the three
+commands now exist as project slash-commands in
+`.claude/commands/{understanding,gaps,delta}.md`, so typing `/UNDERSTANDING`
+resolves against a real command instead of coming back unknown. The earlier
+text here said no registration existed; that was accurate when written and
+is no longer true. Their question text is in `CLAUDE-protocol.md` §10.
 
 ### Consequential-reply discipline
 
-For important or consequential work, structure the reply as:
-
-1. Lead with the final answer or recommendation.
-2. Identify the authoritative sources used; distinguish verified fact from inference.
-3. State the material invariants and report each as Passed, Failed, or Not Verifiable.
-4. Briefly disclose any material search, retrieval, calculation, or external tool used.
-   If unavailable, say so rather than guessing.
-5. Use deterministic tools for exact calculations where available.
-6. Flag missing evidence, conflicting sources, and assumptions requiring confirmation.
-7. Ask for approval before any external, destructive, financial, legal,
-   personnel-related, or otherwise consequential action.
-8. Never infer or invent the model, reasoning setting, hidden routing, or unavailable
-   system metadata.
-
-This layers onto, and does not replace, §§1-5 above (serial number, section/paragraph
-tags, footnote attribution, result-page gates, decision rules).
+The eight points moved to `CLAUDE-protocol.md` P1–P8, imported at the top of
+this file — same substance, lettered P1–P8 there so a bare "#N" in any repo
+still means whatever that repo already numbers. What remains specific to
+this project: the discipline layers onto, and does not replace, §§1-5 above
+(serial number, section/paragraph tags, footnote attribution, result-page
+gates, decision rules).
 
 source: Human Lead session 22-07/2026-08-22, requested as a standing protocol
 
