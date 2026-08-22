@@ -26,16 +26,29 @@ contract:
   changelog:
     - version: 1.3.0
       date: 22-08 '26
+      covers: [PR 448, PR 450]
       change: >
         §6's own text replaced by an import of the shared CLAUDE-protocol.md at the repo
-        root, and the three commands registered as real slash-commands under
-        .claude/commands/ - previously §6 said, accurately, that no registration existed,
-        so typing /UNDERSTANDING came back as an unknown command. The eight-point
-        discipline moved to the shared file as P1-P8; §§1-5 are unchanged and remain
-        authoritative here. Recorded late: the import landed in #448 WITHOUT this bump,
-        which the file's own bump_decision rule requires (identity_change / new_feature).
-        PR #449 - a parallel session's take on the same task - caught the omission; it is
-        closed as superseded and this entry is the part of it worth keeping.
+        root, and the commands registered as real slash-commands under .claude/commands/
+        - previously §6 said, accurately, that no registration existed, so typing
+        /UNDERSTANDING came back as an unknown command. FOUR commands now exist:
+        /UNDERSTANDING, /GAPS, /DELTA and /INVARIANTS, the last added as the handle on
+        P3 (state each material invariant Passed / Failed / Not Verifiable), which until
+        then was the only protocol point without one. The eight-point discipline moved to
+        the shared file as P1-P8; §§1-5 are unchanged and remain authoritative here.
+        This version also covers #450's corrections to the imported protocol, each
+        measured against a real corpus before landing: §4 matches both subagent tool
+        names (Task on older CLI builds, Agent on newer - matching one reported a
+        confident agents_total of 0 on a corpus that had subagent calls); §5 dedupes
+        usage on message.id, because the transcript repeats one usage object per content
+        block and summing per entry inflated every token figure 1.91x; and §1 gained the
+        write-back rule for sessions whose transcript corpus was only partial.
+        Recorded late: the import landed in #448 WITHOUT any bump, which the file's own
+        bump_decision rule requires (identity_change / new_feature), and #450 then
+        shipped a fourth command - also a new_feature - under the same unchanged version.
+        PR #449, a parallel session's take on the same task, caught the first omission;
+        Codex caught the second on this PR. 1.3.0 is declared as the contents of #448 and
+        #450 together, so the version names what is actually in the file.
     - version: 1.2.0
       date: 22-08 '26
       change: >
