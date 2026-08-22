@@ -20,10 +20,22 @@ and §4 (result-page gates) exist only here.
 
 ```yaml
 contract:
-  version: 1.2.0
+  version: 1.3.0
   supersedes: CLAUDE-FULL.md v0.0.3
   last_updated: 22-08 '26   # see git log for this file's exact commit timestamp
   changelog:
+    - version: 1.3.0
+      date: 22-08 '26
+      change: >
+        §6's own text replaced by an import of the shared CLAUDE-protocol.md at the repo
+        root, and the three commands registered as real slash-commands under
+        .claude/commands/ - previously §6 said, accurately, that no registration existed,
+        so typing /UNDERSTANDING came back as an unknown command. The eight-point
+        discipline moved to the shared file as P1-P8; §§1-5 are unchanged and remain
+        authoritative here. Recorded late: the import landed in #448 WITHOUT this bump,
+        which the file's own bump_decision rule requires (identity_change / new_feature).
+        PR #449 - a parallel session's take on the same task - caught the omission; it is
+        closed as superseded and this entry is the part of it worth keeping.
     - version: 1.2.0
       date: 22-08 '26
       change: >
