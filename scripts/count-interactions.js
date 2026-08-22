@@ -62,12 +62,18 @@ const val = (f) => {
   return i !== -1 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : null;
 };
 
-const wantSerial = has('--serial') || has('--all');
-const wantAgents = has('--agents') || has('--all');
-const wantTokens = has('--tokens') || has('--all');
+let wantSerial = has('--serial') || has('--all');
+let wantAgents = has('--agents') || has('--all');
+let wantTokens = has('--tokens') || has('--all');
 const allSessions = has('--sessions');
 const explicitFile = val('--file');
 const base = parseInt(val('--base') || '0', 10) || 0;
+
+// --sessions is a SCOPE flag, not a report flag. On its own it named a scope
+// with nothing to report and printed usage; treat it as implying --all.
+if (allSessions && !wantSerial && !wantAgents && !wantTokens) {
+  wantSerial = wantAgents = wantTokens = true;
+}
 
 if (!wantSerial && !wantAgents && !wantTokens) {
   console.log(
@@ -80,7 +86,23 @@ if (!wantSerial && !wantAgents && !wantTokens) {
 // ---------- Locate transcript(s) ----------
 // Claude Code stores transcripts under ~/.claude/projects/<munged-cwd>/*.jsonl
 // where <munged-cwd> is the absolute project path with '/', '\', '.', '_' and
-// spaces replaced by '-'. Munge defensively, then fall back to a tail match.
+// spaces replaced by '-'.
+//
+// ONE REPO CAN OWN SEVERAL FOLDERS. Transcripts are keyed on the cwd PATH, not
+// on the repository, so a repo opened at more than one path - from a
+// subdirectory, from a worktree, from a differently-rooted checkout - has a
+// folder per path. Reading only the folder derived from the current cwd is a
+// silent undercount that looks like a clean answer.
+//
+// So: match EVERY folder whose name contains the munged repo-directory name,
+// and print each folder with its own subtotal (see printScope) so a reader can
+// see which were included rather than trusting a bare sum.
+//
+// Munge the repo name BEFORE comparing. basename(cwd) still carries '_', '.'
+// and spaces, while the folder name has had them replaced by '-'; comparing the
+// two raw makes an exact-named folder look absent. Measured here 2026-08-22:
+// cwd basename '2026-0313_AI-JS' did not match folder '-home-user-2026-0313-AI-JS'
+// until the underscore was munged.
 function mungePath(p) {
   return p.replace(/[/\\._ ]/g, '-');
 }
@@ -92,20 +114,28 @@ function projectDirCandidates() {
     .readdirSync(root)
     .map((d) => path.join(root, d))
     .filter((d) => fs.statSync(d).isDirectory());
+
+  const needle = mungePath(path.basename(process.cwd())).toLowerCase();
+  const matched = dirs.filter((d) => path.basename(d).toLowerCase().includes(needle));
+  if (matched.length) return matched;
+
+  // Last resort: the exact full-path folder, in case the repo directory name is
+  // itself absent from the folder name.
   const cwdMunged = mungePath(process.cwd());
-  const exact = dirs.filter((d) => path.basename(d) === cwdMunged);
-  if (exact.length) return exact;
-  const tail = mungePath(path.basename(process.cwd()));
-  return dirs.filter((d) => path.basename(d).endsWith(tail));
+  return dirs.filter((d) => path.basename(d) === cwdMunged);
 }
+
+// Folders contributing to this run, with their file counts - printed so the
+// scope of a measurement is visible rather than implied.
+const folderScope = [];
 
 function sessionFiles() {
   if (explicitFile) return [path.resolve(explicitFile)];
   const files = [];
   for (const d of projectDirCandidates()) {
-    for (const f of fs.readdirSync(d)) {
-      if (f.endsWith('.jsonl')) files.push(path.join(d, f));
-    }
+    const own = fs.readdirSync(d).filter((f) => f.endsWith('.jsonl'));
+    folderScope.push({ dir: d, count: own.length });
+    for (const f of own) files.push(path.join(d, f));
   }
   files.sort((a, b) => fs.statSync(a).mtimeMs - fs.statSync(b).mtimeMs);
   if (!files.length) {
@@ -203,7 +233,10 @@ const fmt = (n) => n.toLocaleString('en-SG');
 const scope = allSessions ? `${files.length} session(s)` : path.basename(latestFile);
 
 console.log(`# Transcript scope   : ${scope}`);
-console.log(`# Corpus root        : ${path.dirname(latestFile)}`);
+console.log(`# Project folders    : ${folderScope.length || 1}`);
+for (const f of folderScope) {
+  console.log(`#   ${path.basename(f.dir)}  ->  ${fmt(f.count)} session(s)`);
+}
 if (total.badLines) console.log(`# Warning: ${fmt(total.badLines)} unparseable line(s) skipped`);
 
 if (wantSerial) {
