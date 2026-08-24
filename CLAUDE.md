@@ -210,6 +210,41 @@ serial_rebase:
     caveat: >
       Taken at commit time, not at session end, so it undercounts the replies
       made after it. Append a further row rather than editing this one.
+
+  - row: 3
+    date: 22-08 '26
+    where: >
+      Same container and same single folder as row 2, later in the session.
+      Supersedes row 2 as this container's write-back; row 2 is kept because
+      rows are appended, never edited.
+    measured: 41
+    is_new_base: false
+    derivation: >
+      scripts/count-interactions.js --sessions --all --base 49, run at
+      22:56 UTC. One project folder, one transcript. 41 main-thread assistant
+      replies carrying a non-empty text block.
+    ratchet: >
+      41 is still BELOW the base of 49, so it is again refused as a reading and
+      recorded only as a write-back. NOT a new base.
+    running_count: >
+      base 49 + 41 measured = 90 replies to this point. This is the figure
+      protocol §1 prescribes - "continue from the recorded rebase plus the
+      replies since" - and it is what the serial stamp must use.
+    correction: >
+      The stamps drifted BELOW this. Replies in this session were stamped by
+      hand from a carried counter and reached only № 60, because short
+      check-in and acknowledgement replies were judged "not substantive" and
+      left unstamped. Protocol §8 invariant 2 admits no such judgement: the
+      transcript is the sole authority and EVERY text reply counts. The
+      measured 41 includes those replies; the hand count of 11 did not. The
+      stamp is corrected to № 91 for the next reply, an upward correction of
+      30, which leaves invariant 1 intact - the serial never decreased.
+    lesson: >
+      A hand-carried serial does not merely risk drift, it drifted here, in the
+      same session that built the tool to prevent it. Measure before stamping
+      whenever the script can see a corpus at all, even a partial one: the
+      ratchet governs whether a measurement may become a BASE, not whether it
+      may be added to one.
 ```
 
 Run the script with the base: `node scripts/count-interactions.js --serial --base 49`.
