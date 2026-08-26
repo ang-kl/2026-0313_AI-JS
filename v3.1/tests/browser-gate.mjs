@@ -69,13 +69,9 @@ for (const id of graphIds) {
   if (await signals.count() !== 3) throw new Error(`Canonical graph ${id} must expose exactly three first-order signals`);
 }
 
-// R3F is progressive enhancement. Record whether the headless Chromium runner
-// exposes WebGL; the DOM projection remains the authoritative accessible path.
 const r3fCount = await page.getByTestId('work-universe-r3f').count();
 console.log(`R3F canvas present: ${r3fCount > 0}`);
 
-// Select a real Labour signal, keep that selection across the round trip, and
-// use the production drill-down action rather than calling wrapper state.
 await page.getByTestId('graph-labour').locator('.wu-signal').nth(1).click();
 const detail = page.getByTestId('wu-detail');
 await requireVisible(detail, 'Labour first-order signal did not open its evidence detail');
@@ -92,10 +88,30 @@ await requireVisible(fab, 'Existing FAB/workspace navigator is missing');
 if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('FAB should begin closed on first workspace entry');
 await screenshot('05-role-graph-workspace.png');
 await fab.click();
+await page.waitForTimeout(350);
 const fabMenu = page.locator('[role="menu"][aria-label="Workspace navigator"]');
-await requireVisible(fabMenu, 'FAB did not render the existing workspace navigator menu');
-if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB did not expose aria-expanded=true after opening');
-await screenshot('06-fab-open.png');
+const fabState = await fab.evaluate((el) => ({
+  expanded: el.getAttribute('aria-expanded'),
+  label: el.getAttribute('aria-label'),
+  disabled: el.disabled,
+  rect: el.getBoundingClientRect().toJSON(),
+}));
+const menuState = await page.locator('[role="menu"]').evaluateAll((els) => els.map((el) => ({
+  label: el.getAttribute('aria-label'),
+  display: getComputedStyle(el).display,
+  visibility: getComputedStyle(el).visibility,
+  opacity: getComputedStyle(el).opacity,
+  rect: el.getBoundingClientRect().toJSON(),
+  text: (el.innerText || '').slice(0, 500),
+})));
+console.log('=== FAB STATE AFTER CLICK ===');
+console.log(JSON.stringify({ fabState, menuState }, null, 2));
+fs.writeFileSync('test-results/fab-state.json', JSON.stringify({ fabState, menuState }, null, 2));
+await screenshot('06-fab-after-click.png');
+if (fabState.expanded !== 'true') throw new Error(`FAB click did not persist open state: ${JSON.stringify(fabState)}`);
+if (!menuState.some((m) => m.label === 'Workspace navigator' && m.display !== 'none' && m.visibility !== 'hidden' && Number(m.rect?.width || 0) > 0 && Number(m.rect?.height || 0) > 0)) {
+  throw new Error(`FAB open state did not produce a visible workspace navigator menu: ${JSON.stringify(menuState)}`);
+}
 
 const backUniverse = page.getByTestId('return-work-universe');
 await requireVisible(backUniverse, 'Workspace has no return path to Work Universe');
@@ -105,17 +121,13 @@ await requireVisible(detail, 'Selected Work Universe signal was lost on return')
 if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error('Selected Work Universe detail changed during workspace round trip');
 await screenshot('07-work-universe-return.png');
 
-// Re-enter. Because the legacy workspace remains mounted rather than recreated,
-// the open FAB/menu state must still be present. This verifies the requested
-// round-trip preservation rather than merely proving two independent renders.
 await page.getByTestId('open-role-graph').click();
 await requireVisible(workspace, 'Role Graph workspace did not reopen');
-await requireVisible(fabMenu, 'FAB menu state reset across Work Universe round trip');
+await page.waitForTimeout(200);
 if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB aria-expanded state reset across Work Universe round trip');
+if (!await fabMenu.isVisible()) throw new Error('FAB menu state reset across Work Universe round trip');
 await screenshot('08-role-graph-return.png');
 
-// Preserve and exercise the existing back-to-Step-2 path. This intentionally
-// calls the legacy onBack contract instead of introducing a new route.
 await page.getByTestId('return-work-universe').click();
 const step2Back = page.getByRole('button', { name: '← Step 2' });
 await requireVisible(step2Back, 'Existing Step 2 return control is missing from Work Universe');
