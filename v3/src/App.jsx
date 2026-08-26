@@ -1471,6 +1471,7 @@ import { Toaster, toast as sonnerToast } from "sonner";
 import NumberFlow from "@number-flow/react";
 import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 import { loadState, saveState } from "./persist.js";
+import { downloadJson, envelope, block, exportFilename, ORIGIN } from "./export-json.js";
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
@@ -12065,9 +12066,62 @@ function ResponsibilitiesPanel({ data, skills, persona, firstAnalysis }) {
   );
 }
 
+// EXP1 (2026-08-25): the download control for every JSON export in the app.
+//
+// Geometry deserves a note, because two requirements pull against each other.
+// The Human Lead asked for an icon "small in proportion to the card size"; spec
+// §7 mandates 44px touch targets. Both are met by separating the GLYPH from the
+// HIT AREA: a 14px glyph centred in a 44x44 button. The negative vertical
+// margin then pulls the row back to the height of its neighbours (the sibling
+// action buttons are ~30px), so the card does not grow to accommodate a target
+// the user never sees. Shrinking the button to match would have been the easy
+// read of "small" and would have broken the contract.
+//
+// The glyph is inline SVG rather than the supplied PNG so it scales, inherits
+// currentColor for hover/focus, costs no extra request, and can carry the
+// aria-label §7 requires on every SVG.
+function DownloadJsonButton({ onClick, label, title, size = 14 }) {
+  const [hot, setHot] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHot(true)}
+      onMouseLeave={() => setHot(false)}
+      onFocus={() => setHot(true)}
+      onBlur={() => setHot(false)}
+      aria-label={label}
+      title={title || label}
+      style={{
+        width: 44, height: 44, margin: "-7px 0", padding: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        background: "transparent", border: "none", borderRadius: 6,
+        color: hot ? "#0e7490" : C.muted, cursor: "pointer",
+        outline: hot ? "2px solid #0e7490" : "2px solid transparent",
+        outlineOffset: -2,
+        flexShrink: 0,
+      }}
+    >
+      {/* Arrow into an open tray. aria-hidden: the button already carries the label. */}
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+        <path d="M10 3h4v6h-4z" />
+        <path d="M6.2 9h11.6L12 17.2z" />
+        <path d="M4 14.4v5.6h16v-5.6h-2.7v2.9H6.7v-2.9z" />
+      </svg>
+    </button>
+  );
+}
+
 // v3.1: a single live-job card, with an expandable "responsibilities & skills"
 // section sourced from the scraped posting text.
-function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue }) {
+//
+// EXP1: `onExport` is OPTIONAL and the card renders byte-identically without it.
+// That is deliberate, not incidental: this card is also rendered by the Browse
+// SG jobs path, which spec §1 lists as a FROZEN surface. Making the control
+// opt-in means the frozen path is untouched until the Human Lead asks for it,
+// and follows the same shape as the AU-7 amendment that gave getEscoSkills an
+// optional second argument.
+function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue, onExport }) {
   const [open, setOpen] = useState(false);
   const detail = (job.responsibilitiesText || job.description || "").trim();
   const hasSkills = Array.isArray(job.skills) && job.skills.length > 0;
@@ -12170,8 +12224,8 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
           )}
         </>
       )}
-      {(onAnalysePosting || onQueuePosting) && (
-        <div style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
+      {(onAnalysePosting || onQueuePosting || onExport) && (
+        <div style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", alignItems: "center", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
           {onAnalysePosting && (
             <button onClick={() => onAnalysePosting(job)}
               style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
@@ -12183,6 +12237,13 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
               style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
               ＋ Compare
             </button>
+          )}
+          {onExport && (
+            <DownloadJsonButton
+              onClick={() => onExport(job)}
+              label={`Download this posting as JSON: ${job.title || "untitled"}`}
+              title="Download this posting as JSON"
+            />
           )}
         </div>
       )}
@@ -13748,6 +13809,67 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     setJobTocOpen(false);
   };
+  // EXP1: one posting, and every posting matching this role. `_matchBucket` is
+  // this app's own ranking of how well a posting matched the searched role, so
+  // it travels as derived, separately from the verbatim posting fields.
+  const exportPosting = useCallback(function(job) {
+    downloadJson(
+      exportFilename("posting", (job.employer ? job.employer + "-" : "") + (job.title || "")),
+      envelope({
+        scope: "posting",
+        appVersion: APP_VERSION,
+        query: { role: sel?.title || null },
+        blocks: {
+          posting: block(ORIGIN.VERBATIM,
+            { source: job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture",
+              retrievedAt: new Date().toISOString(), timeWindow: "live at retrieval" },
+            job),
+          searchMatch: block(ORIGIN.DERIVED,
+            { source: "job-search bucketing in this app",
+              note: "How closely this posting matched the searched role. Computed here, not supplied by the source." },
+            job._matchBucket || null),
+        },
+      })
+    );
+  }, [sel]);
+
+  const exportRolePostings = useCallback(function() {
+    const now = new Date().toISOString();
+    downloadJson(
+      exportFilename("role-openings", sel?.title || "role"),
+      envelope({
+        scope: "role-postings",
+        appVersion: APP_VERSION,
+        query: {
+          role: sel?.title || null,
+          iscoCode: sel?.iscoCode || null,
+          escoOccupation: escoOccupation || null,
+          freshGradFilter: !!freshGrad,
+        },
+        blocks: {
+          mcfPostings: block(ORIGIN.VERBATIM,
+            { source: "MyCareersFuture", retrievedAt: now, timeWindow: "live at retrieval",
+              note: state.capped ? "Result set was capped; this is not every matching posting." : undefined },
+            state.jobs),
+          csgPostings: block(ORIGIN.VERBATIM,
+            { source: "careers.gov.sg", retrievedAt: now,
+              timeWindow: "careers.gov.sg does not expose its own refresh window; this is when this client retrieved it" },
+            state.csgJobs),
+          searchMatchCounts: block(ORIGIN.DERIVED,
+            { source: "countJobSearchBuckets() in this app" },
+            { mcf: mcfMatchCounts, csg: csgMatchCounts }),
+          searchTier: block(ORIGIN.DERIVED,
+            { source: "this app's search widening ladder",
+              note: "Which widening tier produced this set; higher tiers are looser matches." },
+            { tier: state.tier, approximate: !!state.approximate, capped: !!state.capped, message: state.message || null }),
+          roleSkills: block(ORIGIN.DERIVED,
+            { source: "ESCO via /api/esco", note: "Skills for the searched occupation, not for any one posting." },
+            skills || null),
+        },
+      })
+    );
+  }, [sel, escoOccupation, freshGrad, state, mcfMatchCounts, csgMatchCounts, skills]);
+
   const renderJobCards = (jobs, sourcePrefix, seenEnabled) => (
     <div className="mcf-grid">
       {jobs.map((job, idx) => {
@@ -13758,7 +13880,8 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
             {showBreak && <JobMatchBreak bucket={job._matchBucket} id={`${sourcePrefix}-${job._matchBucket}`} />}
             <McfJobCard job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
               seen={seenEnabled ? seenInfo[job.uuid] : undefined} fmtSeenDate={fmtSeenDate}
-              onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+              onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue}
+              onExport={exportPosting} />
           </div>
         );
       })}
@@ -13768,7 +13891,18 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
   return (
     <div id="sg-jobs-top" style={{ position: "relative" }}>
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
-        <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.375rem", fontWeight: 800, color: C.text }}>&#127480;&#127468; SG Job Postings</h2>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+          <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.375rem", fontWeight: 800, color: C.text, flex: 1, minWidth: 0 }}>&#127480;&#127468; SG Job Postings</h2>
+          {/* EXP1: every posting matching this role, both sources, plus the derived
+              match counts and search tier so the set is reproducible later. */}
+          {!state.loading && totalPostings > 0 && (
+            <DownloadJsonButton
+              onClick={exportRolePostings}
+              label={"Download all " + totalPostings + " postings for this role as JSON"}
+              title="Download these postings as JSON"
+            />
+          )}
+        </div>
         <p style={{ margin: 0, fontSize: "0.875rem", color: C.textSub, lineHeight: 1.5 }}>
           Current openings from <a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>MyCareersFuture</a> and <a href="https://careers.gov.sg/" target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none" }}>careers.gov.sg</a> matching this role. Tap <strong>Analyse this posting</strong> on any job to run a skill analysis grounded in that listing{onAnalyseCorpus ? " - or analyse all of them as one role" : ""}. Postings refresh daily.
         </p>
@@ -15439,6 +15573,71 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   // "no roles" panel and let the MyCareersFuture results take the full width.
   const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0);
 
+  // EXP1: exports. Every block is provenance-tagged (see src/export-json.js) -
+  // postings and registry facts are verbatim, orgRead and the match buckets are
+  // derived, the overview and the agents model are AI-authored. Empty blocks are
+  // kept rather than dropped: "we looked and found nothing" and "we never
+  // looked" are different facts and the file should be able to tell them apart.
+  const exportPosting = useCallback(function(job) {
+    downloadJson(
+      exportFilename("posting", (job.employer ? job.employer + "-" : "") + (job.title || "")),
+      envelope({
+        scope: "posting",
+        appVersion: APP_VERSION,
+        query: { employer: state.query || companyQuery || null },
+        blocks: {
+          posting: block(
+            ORIGIN.VERBATIM,
+            { source: job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture",
+              retrievedAt: new Date().toISOString(), timeWindow: "live at retrieval" },
+            job
+          ),
+        },
+      })
+    );
+  }, [state.query, companyQuery]);
+
+  const exportOrganisation = useCallback(function() {
+    const name = (activeMatch && activeMatch.name) || state.query || companyQuery || "organisation";
+    const now = new Date().toISOString();
+    downloadJson(
+      exportFilename("openings", name),
+      envelope({
+        scope: "organisation",
+        appVersion: APP_VERSION,
+        query: { employer: name, typed: companyQuery || null, queryKey: state.queryKey || null },
+        blocks: {
+          mcfPostings: block(ORIGIN.VERBATIM,
+            { source: "MyCareersFuture", retrievedAt: now, timeWindow: "live at retrieval",
+              note: "Polled " + (state.pagesPolled || 0) + " page(s); a fuzzy poll may miss postings filed under a differently-spelled employer name." },
+            mcfFilteredSorted),
+          csgPostings: block(ORIGIN.VERBATIM,
+            { source: "careers.gov.sg", retrievedAt: csgRetrievedAt || now,
+              timeWindow: "careers.gov.sg does not expose its own refresh window; this is when this client retrieved it" },
+            csgState.jobs),
+          employerMatches: block(ORIGIN.VERBATIM,
+            { source: "MyCareersFuture", retrievedAt: now }, state.matches),
+          registration: block(ORIGIN.VERBATIM,
+            { source: "ACRA (data.gov.sg)", retrievedAt: now }, empReg),
+          location: block(ORIGIN.VERBATIM,
+            { source: "OneMap", retrievedAt: now }, empGeo),
+          organisationRead: block(ORIGIN.DERIVED,
+            { source: "buildOrgRead() in this app", note: "Deterministic signals computed from the verbatim blocks above." },
+            orgRead),
+          companyOverview: block(ORIGIN.AI,
+            { source: "Language model via /api/claude",
+              confidence: companyOverview.status === "ready" ? "draft" : companyOverview.status,
+              note: "Prose written by a language model from the facts above. Treat as draft, not fact." },
+            companyOverview.status === "ready" ? companyOverview.data : null),
+          agentsModel: block(ORIGIN.AI,
+            { source: "Language model via /api/claude", confidence: agentsView === "ready" ? "draft" : agentsView },
+            agentsView === "ready" ? agentsModel : null),
+        },
+      })
+    );
+  }, [activeMatch, state, companyQuery, mcfFilteredSorted, csgState.jobs, csgRetrievedAt,
+      empReg, empGeo, orgRead, companyOverview, agentsModel, agentsView]);
+
   return (
     <div className={showCsg ? "csg-cols" : ""}>
       {/* LEFT COLUMN: MyCareersFuture company results */}
@@ -15447,6 +15646,18 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>&#127480;&#127468; MyCareersFuture</span>
           {!state.fallback && state.matches.length > 0 && activeMatch && (
             <span style={{ fontSize: 11.5, color: C.muted }}>({activeMatch.count} posting{activeMatch.count === 1 ? "" : "s"})</span>
+          )}
+          {/* EXP1: exports everything this panel holds, not just the MCF column -
+              postings from both sources, the registry match, the map, the derived
+              read and the AI overview, each tagged with its origin. */}
+          {!state.loading && (state.matches.length > 0 || csgState.jobs.length > 0) && (
+            <span style={{ marginLeft: "auto" }}>
+              <DownloadJsonButton
+                onClick={exportOrganisation}
+                label={"Download all openings and organisation data as JSON for " + ((activeMatch && activeMatch.name) || state.query || companyQuery || "this employer")}
+                title="Download everything on this page as JSON"
+              />
+            </span>
           )}
         </div>
 
@@ -15725,7 +15936,8 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                   return (
                     <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                       seen={undefined} fmtSeenDate={undefined}
-                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                      onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue}
+                      onExport={exportPosting} />
                   );
                 })}
                 {mcfFilteredSorted.length === 0 && (
@@ -15782,7 +15994,8 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                       return (
                         <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                           seen={undefined} fmtSeenDate={undefined}
-                          onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                          onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue}
+                      onExport={exportPosting} />
                       );
                     })}
                   </div>
@@ -15803,7 +16016,8 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                 return (
                   <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                     seen={undefined} fmtSeenDate={undefined}
-                    onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue} />
+                    onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue}
+                    onExport={exportPosting} />
                 );
               })}
             </div>
@@ -18330,6 +18544,59 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 version={APP_VERSION}
                 onRetryDuties={retryDuties}
                 onOpenOkf={() => setOkfRole(true)}
+                onExportJson={() => {
+                  // EXP1: the analysis itself. `result` mixes deterministic engine output
+                  // with LLM prose (the per-skill prompt/promptTech/nextPhase fields), so
+                  // the two are split into separate blocks rather than shipped as one
+                  // undifferentiated object - a reader must be able to tell which is which.
+                  const aiFields = ["prompt", "promptTech", "nextPhase"];
+                  const skillsDeterministic = (result.skills || []).map((s) => {
+                    const copy = { ...s };
+                    aiFields.forEach((f) => { delete copy[f]; });
+                    return copy;
+                  });
+                  const skillsProse = (result.skills || [])
+                    .map((s) => {
+                      const only = { skill: s.skill || s.name || null };
+                      aiFields.forEach((f) => { if (s[f]) only[f] = s[f]; });
+                      return Object.keys(only).length > 1 ? only : null;
+                    })
+                    .filter(Boolean);
+                  const { skills: _omit, ...resultRest } = result;
+                  downloadJson(
+                    exportFilename("role-analysis", sel?.title || "role"),
+                    envelope({
+                      scope: "role-analysis",
+                      appVersion: APP_VERSION,
+                      query: {
+                        role: sel?.title || null,
+                        iscoCode: sel?.iscoCode || null,
+                        iscoGroup: sel?.iscoGroup || null,
+                        analysisSource: result.source || null,
+                      },
+                      blocks: {
+                        occupation: block(ORIGIN.VERBATIM,
+                          { source: "ESCO / ISCO via /api/esco" },
+                          { title: sel?.title || "", iscoCode: sel?.iscoCode || "", iscoGroup: sel?.iscoGroup || "", description: sel?.description || "" }),
+                        posting: block(ORIGIN.VERBATIM,
+                          { source: (result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture",
+                            note: result.source === "posting" ? "The single advertisement this analysis was grounded in." : "Not a posting-grounded analysis." },
+                          result.source === "posting" ? (result.postingMeta || null) : null),
+                        engine: block(ORIGIN.DERIVED,
+                          { source: "engine-core.js in this app",
+                            note: "Deterministic: the same inputs produce byte-identical output." },
+                          resultRest),
+                        skills: block(ORIGIN.DERIVED,
+                          { source: "ESCO + this app's engine" },
+                          skillsDeterministic),
+                        skillProse: block(ORIGIN.AI,
+                          { source: "Language model via /api/claude", confidence: "draft",
+                            note: "Per-skill narrative fields. Written by a language model; treat as draft, not fact." },
+                          skillsProse),
+                      },
+                    })
+                  );
+                }}
                 onOpenJobAd={jobAdAvailable(result) ? () => { setAdDrawerOpen(true); track("job_ad_opened", { occupation: sel?.title || "", step: "review" }); } : null}
                 settingsEl={<div>
                   <p style={{ margin: "0 0 6px", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", fontWeight: 700, letterSpacing: ".1em", color: "#8a8272" }}>TEXT SIZE</p>
