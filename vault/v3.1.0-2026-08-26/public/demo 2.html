@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Readiness across Skills and Competences · JobAds from Singapore</title>
+<style>
+  /* tokens + neumorphic NEO shadows matched to the current v3 app (C palette + NEO in App.jsx) */
+  :root{
+    --bg:#e6ebf2; --surface:#e9eef4; --border:#d6deea;
+    --text:#1a202c; --sub:#4a5568; --muted:#5b6878;
+    --blue:#1e40af; --blueBg:#e8f0fe; --blueBd:#c7d2fe; --accent:#1a56db; --eu:#003399; --navy:#0a2a5e;
+    --teal:#0e7490; --tealBg:#ecfeff; --tealBd:#a5f3fc;
+    --orange:#b45309; --orangeBg:#fffbeb; --orangeBd:#fcd9a0;
+    --slate:#7c3aed; --slateBg:#f3e8ff; --slateBd:#ddd6fe;
+    --neo:6px 6px 14px rgba(174,189,212,.5), -6px -6px 13px rgba(255,255,255,.85);
+    --neoSm:4px 4px 9px rgba(174,189,212,.45), -4px -4px 9px rgba(255,255,255,.85);
+    --neoIn:inset 3px 3px 7px rgba(174,189,212,.5), inset -3px -3px 7px rgba(255,255,255,.85);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    background-image:radial-gradient(rgba(120,150,200,.18) 1px, transparent 1.5px);
+    background-size:26px 26px;
+    font-family:'IBM Plex Sans','Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px 64px}
+
+  header.bar{position:sticky;top:0;z-index:5;background:linear-gradient(100deg,var(--navy),var(--eu));border-bottom:1px solid rgba(255,255,255,.12)}
+  .bar-in{max-width:1200px;margin:0 auto;padding:10px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+  .brand{font-weight:800;font-size:.9375rem;letter-spacing:-.01em;color:#fff;line-height:1.25;min-width:0}
+  .bar .btn{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:none}
+  .bar .btn:hover:not(:disabled){background:rgba(255,255,255,.24)}
+  .demo-badge{font-size:.625rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--orange);background:var(--orangeBg);border:1px solid var(--orangeBd);border-radius:999px;padding:2px 8px}
+  .spacer{flex:1}
+  button{font:inherit;cursor:pointer}
+  .btn{min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;font-size:.8125rem}
+  .btn:hover{border-color:var(--blueBd)}
+  .btn:disabled{opacity:.4;cursor:default}
+
+  .hero{padding:28px 0 8px}
+  .hero h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em;background:linear-gradient(95deg,var(--text) 0%,var(--accent) 55%,var(--teal) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{margin:0;color:var(--sub);font-size:.9375rem}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:20px}
+  @media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
+  .pcard{display:flex;flex-direction:column;text-align:left;align-items:flex-start;gap:8px;min-height:140px;padding:18px;border-radius:14px;border:1px solid var(--border);background:var(--surface);transition:border-color .15s,transform .15s}
+  .pcard:hover{border-color:var(--blueBd);transform:translateY(-2px)}
+  .pcard .ico{font-size:1.5rem;line-height:1}
+  .pcard .t{font-weight:800;font-size:1rem}
+  .pcard .d{color:var(--sub);font-size:.8125rem}
+  .pcard .intent{color:var(--muted);font-size:.75rem;font-style:italic;margin-top:auto}
+
+  .ptabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 14px}
+  .ptab{min-height:40px;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem;box-shadow:var(--neoSm)}
+  .ptab.active{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue);box-shadow:var(--neoIn)}
+  .ptab:hover{border-color:var(--blueBd)}
+
+  .searchcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:4px}
+  .searchcard h2{margin:0 0 2px;font-size:1.2rem}
+  .searchcard .intent{color:var(--muted);font-style:italic;font-size:.8125rem;margin:0 0 14px}
+  label.fld{display:block;margin:0 0 6px;font-size:.75rem;font-weight:700;color:var(--text)}
+  .searchrow{display:flex;gap:8px}
+  .searchrow input{flex:1;background:#fbfcfe;border:1.5px solid var(--accent);border-radius:8px;color:var(--text);padding:12px 14px;font-size:1rem;font-family:inherit;box-shadow:var(--neoIn)}
+  .searchrow input:focus{outline:2px solid var(--blueBd);outline-offset:1px}
+  .go{background:var(--eu);color:#fff;border:none;border-radius:8px;padding:0 20px;min-height:48px;font-weight:700;font-size:.8125rem;white-space:nowrap}
+  .go:hover{filter:brightness(1.12)}
+  .criteria{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 4px;padding:12px;border-radius:10px;background:#f1f5f9;border:1px solid var(--border)}
+  .criteria .clab{font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .criteria select{min-height:38px;border:1px solid var(--border);border-radius:8px;background:#fff;padding:6px 10px;font:inherit;font-size:.8125rem;color:var(--text)}
+  .tog{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:.8125rem;font-weight:700;color:var(--sub)}
+  .tog input{width:16px;height:16px;accent-color:var(--blue)}
+  .tog.on{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue)}
+  .srcchip{display:inline-flex;align-items:center;gap:5px;min-height:38px;padding:6px 11px;border-radius:999px;border:1px solid var(--tealBd);background:var(--tealBg);color:var(--teal);font-size:.75rem;font-weight:700}
+  .crit-note{font-size:.6875rem;color:var(--muted);margin-top:8px}
+  .picker{margin-top:12px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .pick-head{padding:7px 12px;font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:#f8fafc;border-bottom:1px solid var(--border)}
+  .pick-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid var(--border);padding:11px 12px;min-height:48px}
+  .pick-item:last-child{border-bottom:none}
+  .pick-item:hover,.pick-item:focus{background:var(--blueBg);outline:none}
+  .pick-item .pi-t{font-weight:700;font-size:.875rem}
+  .pick-item .pi-s{color:var(--muted);font-size:.75rem}
+  .pick-item .pi-go{margin-left:auto;color:var(--blue);font-weight:800}
+  .pick-item.dim{opacity:.55}
+  .pick-empty{padding:12px;color:var(--muted);font-size:.8125rem}
+
+  .nextmove{display:flex;gap:10px;align-items:flex-start;margin:18px 0 16px;padding:12px 14px;border-radius:12px;background:var(--orangeBg);border:1px solid var(--orangeBd)}
+  .nextmove .nm-ico{font-size:1.1rem}
+  .nextmove .nm-t{font-size:.875rem;color:#7c4a06}
+  .nextmove .nm-t b{color:var(--orange)}
+  .crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:14px;font-size:.75rem;color:var(--muted)}
+  .crumbs button{background:none;border:none;color:var(--blue);font-weight:700;padding:2px 4px;border-radius:6px}
+  .crumbs button:hover{background:var(--blueBg)}
+  .note{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:6px}
+  .note-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px}
+  .type-chip{font-size:.6875rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;border-radius:999px;padding:3px 9px}
+  .note h2{margin:8px 0 4px;font-size:1.25rem;letter-spacing:-.01em}
+  .note .body{font-size:.9375rem;color:var(--text)}
+  .note .body p{margin:10px 0}
+  .field{display:flex;gap:8px;font-size:.8125rem;margin:6px 0}
+  .field .k{color:var(--muted);min-width:120px;font-weight:600}
+  .field .v{color:var(--text)}
+  .wl{display:inline;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);font-weight:700;border-radius:7px;padding:1px 7px;margin:0 1px;font-size:.9em;line-height:1.9}
+  .wl:hover,.wl:focus{background:#ccfbf1;outline:2px solid var(--tealBd);outline-offset:1px}
+  .wl::before{content:"\1F517\00a0";font-size:.75em;opacity:.6}
+  .section-t{margin:22px 0 8px;font-size:.8125rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .linkchip{min-height:34px;background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal);font-weight:700;border-radius:8px;padding:5px 11px;font-size:.8125rem}
+  .linkchip:hover{background:#ccfbf1}
+  .prov{display:inline-flex;align-items:center;gap:4px;font-size:.6875rem;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .prov.mcf{background:var(--tealBg);border:1px solid var(--tealBd);color:var(--teal)}
+  .prov.computed{background:var(--blueBg);border:1px solid var(--blueBd);color:var(--blue)}
+  .prov.derived{background:var(--orangeBg);border:1px solid var(--orangeBd);color:var(--orange)}
+  .prov.ai{background:var(--slateBg);border:1px solid var(--slateBd);color:var(--slate)}
+  .prov.unverified{background:#f1f5f9;border:1px solid #cbd5e1;color:#64748b}
+
+  .graph-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;margin-top:8px}
+  svg#graph{display:block;width:100%;height:clamp(420px,64vh,640px);touch-action:none}
+  .gnode{cursor:pointer}
+  .gnode text{pointer-events:none}
+  .gtools{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}
+  .gtools .ghint{font-size:.75rem;color:var(--muted)}
+  .gtools .spacer{flex:1}
+  .gtools button{min-height:38px;min-width:38px;padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-weight:700;font-size:.8125rem;color:var(--text);box-shadow:var(--neoSm)}
+  .gtools button:hover{border-color:var(--blueBd)}
+  .gtools button:active{box-shadow:var(--neoIn)}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 2px 0;font-size:.6875rem;color:var(--sub)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  footer.note-foot{margin-top:18px;padding:12px 14px;border-radius:12px;background:#f1f5f9;border:1px solid var(--border);font-size:.75rem;color:var(--sub)}
+  footer.note-foot b{color:var(--text)}
+  /* lens toggle + candidate / organisation panels + ecotone */
+  .lensbar{display:flex;gap:6px;margin:12px 0 0;flex-wrap:wrap}
+  .lenspill{min-height:38px;padding:7px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--sub);font-weight:700;font-size:.8125rem;box-shadow:var(--neoSm)}
+  .lenspill.on{border-color:var(--blueBd);background:var(--blueBg);color:var(--blue);box-shadow:var(--neoIn)}
+  .lblock{margin-top:14px;border:1px solid var(--border);border-radius:14px;padding:14px}
+  .lblock h4{margin:0 0 8px;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)}
+  .expo{display:flex;align-items:center;gap:10px;margin:8px 0 4px}
+  .expo-track{flex:1;height:10px;background:#d6deea;border-radius:999px;overflow:hidden}
+  .expo-fill{height:100%;background:linear-gradient(90deg,#0e7490,#1a56db,#b45309)}
+  .expo-val{font-size:.75rem;font-weight:800;color:var(--text);min-width:120px}
+  .vstream{display:flex;flex-wrap:wrap;align-items:stretch;gap:18px 18px;margin:10px 0 6px}
+  .vstep{flex:1;min-width:96px;padding:9px 8px;border-radius:10px;position:relative;font-size:.75rem;font-weight:700;text-align:center;border:1px solid}
+  .vstep::after{content:"\2192";position:absolute;right:-15px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:800}
+  .vstep:last-child::after{content:""}
+  .vstep.create{background:#ecfeff;border-color:#a5f3fc;color:#0e7490}
+  .vstep.capture{background:#e8f0fe;border-color:#c7d2fe;color:#1a56db}
+  .vstep.erode{background:#fffbeb;border-color:#fcd9a0;color:#b45309}
+  .vstep .vk{display:block;font-size:.5625rem;font-weight:800;opacity:.85;margin-top:3px;letter-spacing:.03em}
+  .vmeta{font-size:.75rem;color:var(--sub);margin-top:8px}
+  .edge-call{margin-top:14px;border-radius:12px;padding:12px 14px;background:#fffbeb;border:1px solid #fcd9a0;font-size:.8125rem;color:#7c4a06}
+  .edge-call b{color:#b45309}
+  .gtools button.on{background:var(--blueBg);border-color:var(--blueBd);color:var(--blue)}
+  .jstep{border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px;box-shadow:var(--neoSm)}
+  .jstep h4{margin:0 0 9px;font-size:.8125rem;color:var(--text);display:flex;align-items:center;gap:8px}
+  .jnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--eu);color:#fff;font-size:.6875rem;font-weight:800;flex-shrink:0}
+  .ai-chip{display:inline-block;font-size:.6875rem;font-weight:700;border-radius:7px;padding:2px 8px;margin:3px 4px 0 0;border:1px solid}
+  .ai-auto{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+  .ai-aug{background:#fffbeb;border-color:#fcd9a0;color:#b45309}
+  .ai-assist{background:#e8f0fe;border-color:#c7d2fe;color:#1a56db}
+  .ai-human{background:#ecfeff;border-color:#a5f3fc;color:#0e7490}
+  .lbar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.75rem}
+  .lbar-t{min-width:138px;color:var(--sub)}
+  .lbar-track{flex:1;height:9px;background:#d6deea;border-radius:999px;overflow:hidden}
+  .lbar-fill{height:100%}
+  .plan{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .plan-c{flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:8px;font-size:.75rem}
+  .plan-c b{display:block;color:var(--eu);font-size:.6875rem;margin-bottom:3px}
+  .brief{margin-top:14px;border:1px solid var(--blueBd);border-radius:14px;padding:16px;background:linear-gradient(180deg,#f4f8ff,var(--surface));box-shadow:var(--neo)}
+  .brief-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .brief-head .bt{font-size:1rem;font-weight:800;color:var(--text)}
+  .brief-print{min-height:36px;padding:6px 12px;border-radius:8px;border:1px solid var(--blueBd);background:var(--blueBg);color:var(--blue);font-weight:700;font-size:.75rem}
+  .brief-row{display:flex;gap:10px;font-size:.8125rem;margin:7px 0}
+  .brief-row .bk{min-width:108px;color:var(--muted);font-weight:700}
+  .brief-row .bv{flex:1;color:var(--text)}
+  .brief-foot{margin-top:10px;font-size:.6875rem;color:var(--muted);border-top:1px solid var(--border);padding-top:8px}
+  @media print {
+    body *{visibility:hidden}
+    .brief, .brief *{visibility:visible}
+    .brief{position:absolute;left:0;top:0;width:100%;box-shadow:none;border:none;background:#fff}
+    .brief-print{display:none}
+    body{background:#fff;background-image:none}
+  }
+  /* v3 surfaces are neumorphic: same tone as the page, raised by dual light/dark shadows */
+  .note,.searchcard,.graph-card,.pcard{box-shadow:var(--neo)}
+  .picker{box-shadow:var(--neoSm)}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <span class="brand"><span aria-hidden="true" style="color:#ffcc00">&#9733;</span> AI Readiness across Skills and Competences <span style="opacity:.55;font-weight:400">&middot;</span> JobAds from Singapore</span>
+    <span class="demo-badge">MVP demo</span>
+    <span class="spacer"></span>
+    <button class="btn" id="homeBtn">Home</button>
+    <button class="btn" id="backBtn" disabled>&larr; Back</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="home">
+    <div class="hero">
+      <h1>A job ad is the visible surface of a system.</h1>
+      <p>Pick a starting point, then read down the ecosystem: Organisation &rarr; Department &rarr; Role &rarr; Job Ad &rarr; stakeholders, risks, AI impact. Sample data only; no live jobs are fetched.</p>
+    </div>
+    <div class="grid" id="personaGrid"></div>
+  </section>
+
+  <section id="searchView" class="hidden">
+    <div class="ptabs" id="ptabs"></div>
+    <div class="searchcard" id="searchCard"></div>
+  </section>
+
+  <section id="noteView" class="hidden">
+    <div class="crumbs" id="crumbs"></div>
+    <div class="lensbar" id="lensbar"></div>
+    <div class="nextmove" id="nextmove"></div>
+    <div class="note" id="note"></div>
+    <div class="section-t" id="gTitle">Ecosystem graph</div>
+    <div class="gtools">
+      <span class="ghint" id="gHint"></span>
+      <span class="spacer"></span>
+      <button id="gEco" type="button">Ecotone overlay</button>
+      <button id="gOpen" type="button">Open note &#8599;</button>
+      <button id="gReset" type="button" aria-label="Back to the centre">Reset</button>
+      <button id="gZin" type="button" aria-label="Zoom in">+</button>
+      <button id="gZout" type="button" aria-label="Zoom out">&minus;</button>
+    </div>
+    <div class="graph-card"><svg id="graph" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ecosystem graph - radial or top-down org chart"></svg></div>
+    <div class="legend" id="legend"></div>
+    <footer class="note-foot">
+      <b>AI-assisted; human decides.</b> &nbsp;Source: sample data (demo) &middot; Confidence: shown per item &middot; Time-window: illustrative.
+      Node size = how often it repeats; colour = ecosystem layer. In the real product, job fields are verbatim from MyCareersFuture / careers.gov.sg; stakeholders, risks and AI reads are inferred and tagged; links appear only when evidence exists.
+    </footer>
+  </section>
+</div>
+
+<script>
+const PROV={mcf:{c:"mcf",i:"●",t:"verbatim from posting"},computed:{c:"computed",i:"✓",t:"computed"},derived:{c:"derived",i:"◐",t:"derived"},ai:{c:"ai",i:"~",t:"AI estimate"},unverified:{c:"unverified",i:"?",t:"unverified"}};
+/* ecosystem layers - colour by layer, never red/green; text label always carries the meaning too */
+/* layer colours pulled into the v3 token families (blue / teal / purple / amber; no red/green) */
+const LAYER={
+  organisation:{c:"#1a56db",b:"#e8f0fe",bd:"#c7d2fe",t:"Organisation"},
+  department:{c:"#0369a1",b:"#e0f2fe",bd:"#bae6fd",t:"Department"},
+  agency:{c:"#4338ca",b:"#e0e7ff",bd:"#c7d2fe",t:"Statutory board / agency"},
+  pressure:{c:"#5b6878",b:"#eef2f7",bd:"#d6deea",t:"Pressure / friction"},
+  role:{c:"#7c3aed",b:"#f3e8ff",bd:"#ddd6fe",t:"Role"},
+  job_ad:{c:"#0e7490",b:"#ecfeff",bd:"#a5f3fc",t:"Job ad"},
+  skill:{c:"#0e7490",b:"#cffafe",bd:"#67e8f9",t:"Skill / ESCO"},
+  stakeholder:{c:"#b45309",b:"#fffbeb",bd:"#fcd9a0",t:"Stakeholder"},
+  risk:{c:"#9a3412",b:"#fff7ed",bd:"#fdba74",t:"Risk"},
+  ai_impact:{c:"#6d28d9",b:"#f5f3ff",bd:"#ddd6fe",t:"AI impact"},
+  positioning:{c:"#0d9488",b:"#ecfeff",bd:"#99f6e4",t:"Positioning"}
+};
+
+/* ===== ecosystem sample data (DBS) - follows the two Obsidian papers ===== */
+const NODES = {
+  "org:dbs":{layer:"organisation",typeLabel:"Organisation",title:"DBS Bank",prov:"mcf",count:3,
+    fields:[["Type","Public-listed bank"],["Sector","Banking & Finance"],["Why it hires now","[[pressure:ai|AI disruption pressure]]"]],
+    body:"DBS is a public-listed bank. Read the causal spine: [[pressure:ai|AI disruption]] raises pressure on the [[dept:analytics|Data & Analytics]] department, which creates [[pressure:reporting|workflow friction]] in monthly reporting, which becomes role pressure - and a [[role:da|Data Analyst]] job ad appears.",
+    kids:["dept:analytics","dept:risk","pressure:ai"],
+    nextMove:"compare what the bank repeatedly hires for before applying - <b>SQL</b> and <b>Stakeholder Management</b> recur across roles.",
+    patterns:{title:"Repeated across DBS ads (3 roles sampled)",rows:[{label:"SQL",count:2,prov:"derived"},{label:"Stakeholder Management",count:3,prov:"derived"},{label:"Degree",count:3,prov:"mcf"}]}},
+  "pressure:ai":{layer:"pressure",typeLabel:"Pressure",title:"AI disruption pressure",prov:"ai",
+    fields:[["Read","Inferred - advisory"]],
+    body:"Org-level AI pressure pushes [[dept:analytics|Data & Analytics]] to do more with less. This is an inferred read, tagged as an AI estimate, not a verbatim fact.",
+    kids:["dept:analytics","pressure:reporting"],
+    nextMove:"position yourself as someone who uses AI to absorb routine load while keeping human judgement."},
+  "dept:analytics":{layer:"department",typeLabel:"Department",title:"Group Data & Analytics",prov:"derived",
+    fields:[["Parent","[[org:dbs|DBS Bank]]"],["Function","Turn data into decisions"]],
+    body:"This department serves business units with reporting and models. Its main friction is [[pressure:reporting|manual monthly reporting]], which drives demand for a [[role:da|Data Analyst]] and a [[role:ba|Business Analyst]].",
+    kids:["role:da","role:ba","pressure:reporting"],
+    nextMove:"show you can reduce reporting turnaround - that is this department's pain."},
+  "dept:risk":{layer:"department",typeLabel:"Department",title:"Risk & Compliance",prov:"derived",
+    fields:[["Parent","[[org:dbs|DBS Bank]]"],["Function","Keep the bank within the rules"]],
+    body:"Risk & Compliance answers to [[stake:mas|MAS]] and owns a [[role:rm|Risk Manager]] role.",
+    kids:["role:rm"],
+    nextMove:"evidence a time you caught a compliance gap before it became an issue."},
+  "pressure:reporting":{layer:"pressure",typeLabel:"Workflow friction",title:"Manual monthly reporting",prov:"derived",
+    fields:[["Cause","Fragmented data, manual steps"]],
+    body:"Slow, manual monthly reporting is the friction that turns into role pressure - and is why [[role:da|the Data Analyst ad]] exists. Much of it is [[ai:reporting|AI-assistable]].",
+    kids:["role:da","ai:reporting"],
+    nextMove:"a small project that automates one recurring report is direct proof against this friction."},
+  "role:da":{layer:"role",typeLabel:"Role",title:"Data Analyst",prov:"mcf",count:2,
+    fields:[["Department","[[dept:analytics|Group Data & Analytics]]"],["Organisation","[[org:dbs|DBS Bank]]"],["Job ad","[[jobad:da|Data Analyst - 2026-06]]"],["System role","Analyst + Integrator"]],
+    body:"Hired to turn data into monthly decisions. Branches: the [[jobad:da|job ad]], its [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]] skills, the [[stake:finance|Finance]] stakeholder, a [[risk:dataquality|data-quality risk]], the [[ai:reporting|AI impact]], and how to [[pos:da|position yourself]].",
+    kids:["jobad:da","skill:sql","skill:stakeholder","stake:finance","risk:dataquality","ai:reporting","pos:da"],
+    nextMove:"strengthen evidence for <b>Stakeholder Management</b> - it recurs in every DBS data role and is the least automatable part."},
+  "role:ba":{layer:"role",typeLabel:"Role",title:"Business Analyst",prov:"mcf",
+    fields:[["Department","[[dept:analytics|Group Data & Analytics]]"],["Job ad","[[jobad:ba|Business Analyst - 2026-06]]"],["System role","Coordinator + Analyst"]],
+    body:"Bridges business and delivery. Shares [[skill:sql|SQL]] and [[skill:stakeholder|Stakeholder Management]] with [[role:da|the Data Analyst]] - a repeatable pattern across the department.",
+    kids:["jobad:ba","skill:sql","skill:requirements","stake:bu"],
+    nextMove:"this role needs 3-5 years; if you are a fresh grad, start from [[role:da|the Data Analyst entry path]]."},
+  "role:rm":{layer:"role",typeLabel:"Role",title:"Risk Manager",prov:"mcf",
+    fields:[["Department","[[dept:risk|Risk & Compliance]]"],["System role","Guardian"]],
+    body:"Owns regulatory risk; reports into [[stake:mas|MAS]] expectations and needs [[skill:compliance|Compliance]] depth.",
+    kids:["skill:compliance","stake:mas"],
+    nextMove:"lead with a concrete control you designed or improved."},
+  "jobad:da":{layer:"job_ad",typeLabel:"Job ad",title:"Data Analyst - DBS - 2026-06",prov:"mcf",
+    fields:[["Experience","[[exp:02|0-2 Years]]"],["Qualification","[[qual:degree|Degree]]"]],
+    body:"Requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and [[skill:python|Python]]. Maps to [[esco:dataanalysis|ESCO - Data Analysis]]. Routine [[ai:reporting|monthly reporting]] is AI-assistable; stakeholder judgement stays human-led.",
+    kids:["skill:sql","skill:stakeholder","skill:python","qual:degree","exp:02","esco:dataanalysis"],
+    nextMove:"mirror the ad's own words back in your resume, with one proof per required skill."},
+  "jobad:ba":{layer:"job_ad",typeLabel:"Job ad",title:"Business Analyst - DBS - 2026-06",prov:"mcf",
+    fields:[["Experience","[[exp:35|3-5 Years]]"],["Qualification","[[qual:degree|Degree]]"]],
+    body:"Requires [[skill:sql|SQL]], [[skill:stakeholder|Stakeholder Management]] and [[skill:requirements|Requirements Gathering]].",
+    kids:["skill:sql","skill:stakeholder","skill:requirements","qual:degree","exp:35"],
+    nextMove:"bring a short requirements document you wrote as proof."},
+  "skill:sql":{layer:"skill",typeLabel:"Skill",title:"SQL",prov:"derived",count:2,
+    fields:[["Seen in","2 of 2 sampled data roles"],["ESCO","[[esco:dataanalysis|Data Analysis]] (related)"]],
+    body:"Recurs in [[role:da|Data Analyst]] and [[role:ba|Business Analyst]]. A foundation for [[esco:dataanalysis|ESCO Data Analysis]].",
+    kids:["role:da","role:ba","esco:dataanalysis"],
+    nextMove:"a short project that queries real data is strong, evidenceable proof."},
+  "skill:stakeholder":{layer:"skill",typeLabel:"Skill",title:"Stakeholder Management",prov:"derived",count:3,
+    fields:[["Seen in","3 of 3 sampled roles"],["AI exposure","Low - human-led"]],
+    body:"Recurs across [[role:da|Data Analyst]], [[role:ba|Business Analyst]] and the [[role:rm|Risk Manager]]. Human-led, so it resists automation more than [[ai:reporting|routine reporting]].",
+    kids:["role:da","role:ba","ai:reporting"],
+    nextMove:"build one concrete example of coordinating a cross-team outcome."},
+  "skill:python":{layer:"skill",typeLabel:"Skill",title:"Python",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled data roles"]],
+    body:"Appears in [[jobad:da|the Data Analyst ad]]. Lower frequency than [[skill:sql|SQL]], so a lower-confidence must-have.",
+    kids:["jobad:da","skill:sql"],nextMove:"nice-to-have here; prioritise [[skill:sql|SQL]] first."},
+  "skill:requirements":{layer:"skill",typeLabel:"Skill",title:"Requirements Gathering",prov:"derived",
+    fields:[["Seen in","1 of 2 sampled data roles"]],
+    body:"Appears in [[jobad:ba|the Business Analyst ad]]; tied to [[skill:stakeholder|Stakeholder Management]].",
+    kids:["jobad:ba","skill:stakeholder"],nextMove:"evidence it with a short requirements doc."},
+  "skill:compliance":{layer:"skill",typeLabel:"Skill",title:"Regulatory Compliance",prov:"derived",
+    fields:[["Seen in","[[role:rm|Risk Manager]]"]],
+    body:"Core to [[role:rm|the Risk Manager]]; answerable to [[stake:mas|MAS]].",
+    kids:["role:rm","stake:mas"],nextMove:"cite a specific regulation you have worked under."},
+  "esco:dataanalysis":{layer:"skill",typeLabel:"ESCO skill",title:"Data Analysis (ESCO)",prov:"computed",
+    fields:[["Standard","ESCO v1.2 - resolved"],["Group","[[isco:bizadmin|ISCO 24]]"]],
+    body:"The standardised concept. Linked only because it resolved - if a skill had no ESCO match we would withhold the link, not invent one.",
+    kids:["isco:bizadmin","skill:sql"],nextMove:"use the standard concept to find adjacent roles sharing this cluster."},
+  "isco:bizadmin":{layer:"skill",typeLabel:"ISCO group",title:"Business & Admin Professionals (ISCO 24)",prov:"computed",
+    fields:[["Standard","ISCO-08 major group 24"]],
+    body:"The occupation group for [[role:da|Data Analyst]] and similar roles; maps to AI-exposure data via the engine.",
+    kids:["role:da","esco:dataanalysis"],nextMove:"widen your search to other occupations in this group."},
+  "stake:finance":{layer:"stakeholder",typeLabel:"Internal stakeholder",title:"Finance (internal)",prov:"derived",
+    fields:[["Relationship","collaborates_with"],["Power","medium"],["Interest","medium"]],
+    body:"Finance depends on [[role:da|the Data Analyst]] for timely numbers; their need is budget discipline.",
+    kids:["role:da"],nextMove:"show you can give Finance clean numbers on time."},
+  "stake:bu":{layer:"stakeholder",typeLabel:"Internal stakeholder",title:"Business Units (internal)",prov:"derived",
+    fields:[["Relationship","serves"],["Power","high"]],
+    body:"Business units are served by [[role:ba|the Business Analyst]]; their need is reliable delivery.",
+    kids:["role:ba"],nextMove:"frame your work as outcomes for the business, not tasks."},
+  "stake:mas":{layer:"stakeholder",typeLabel:"External stakeholder",title:"MAS (regulator)",prov:"derived",
+    fields:[["Relationship","regulates"],["Power","high"]],
+    body:"The regulator. Sets the rules that [[role:rm|the Risk Manager]] must satisfy.",
+    kids:["role:rm","skill:compliance"],nextMove:"speak the regulator's language: controls, evidence, audit trail."},
+  "risk:dataquality":{layer:"risk",typeLabel:"Risk",title:"Data quality risk",prov:"derived",
+    fields:[["Cause","Manual entry"],["Control","Validation"]],
+    body:"Poor data quality leads to wrong decisions. [[role:da|The Data Analyst]] mitigates it through validation; partly [[ai:reporting|AI-assistable]].",
+    kids:["role:da","ai:reporting"],nextMove:"mention a validation step you introduced that caught errors."},
+  "ai:reporting":{layer:"ai_impact",typeLabel:"AI impact",title:"AI-assisted: Monthly Reporting",prov:"ai",
+    fields:[["Read","Inferred - advisory"],["Human-led part","[[skill:stakeholder|Stakeholder judgement]]"]],
+    body:"Routine monthly reporting is AI-assistable - an inferred, advisory read tagged as an AI estimate. [[skill:stakeholder|Stakeholder Management]] stays human-led.",
+    kids:["pressure:reporting","skill:stakeholder","role:da"],
+    nextMove:"let AI take the routine reporting; invest your proof in the human-led parts."},
+  "pos:da":{layer:"positioning",typeLabel:"Candidate positioning",title:"Positioning: Data Analyst",prov:"derived",
+    fields:[["Thesis","Connector of data, stakeholders and decisions"]],
+    body:"Position yourself as someone who understands the [[stake:finance|stakeholder]] ecosystem, uses AI to speed [[ai:reporting|routine reporting]], and keeps [[skill:stakeholder|human judgement]] where trust matters.",
+    kids:["role:da","skill:stakeholder","ai:reporting"],
+    nextMove:"open your cover letter with the system, not the duties: who you connect and what value you create."},
+  "qual:degree":{layer:"skill",typeLabel:"Qualification",title:"Degree",prov:"mcf",count:3,
+    fields:[["Seen in","3 of 3 sampled roles"]],
+    body:"All sampled DBS roles ask for a degree - verbatim from the postings, high confidence.",
+    kids:["role:da","role:ba"],nextMove:"lead with relevant coursework or projects."},
+  "exp:02":{layer:"role",typeLabel:"Experience",title:"0-2 Years",prov:"mcf",
+    fields:[["Source","Verbatim from the posting"]],
+    body:"[[jobad:da|The Data Analyst ad]] accepts 0-2 years - friendly to a fresh grad.",
+    kids:["jobad:da"],nextMove:"target this entry-friendly band while building proof."},
+  "exp:35":{layer:"role",typeLabel:"Experience",title:"3-5 Years",prov:"mcf",
+    fields:[["Source","Verbatim from the posting"]],
+    body:"[[jobad:ba|The Business Analyst ad]] needs 3-5 years - not a fresh-grad entry point.",
+    kids:["jobad:ba"],nextMove:"if you lack this, pivot to a 0-2 yr role first."},
+
+  /* ----- real government org chart, mapped from the Singapore Government Directory (sgdi.gov.sg) ----- */
+  "org:moh":{layer:"organisation",typeLabel:"Organisation (ministry)",title:"Ministry of Health",prov:"derived",
+    fields:[["Type","Government ministry"],["Structure source","Singapore Government Directory (sgdi.gov.sg)"],["Roles via","careers.gov.sg"]],
+    body:"The Ministry of Health, mapped from the Singapore Government Directory. Three policy pillars, statutory boards such as [[sb:hsa|HSA]] and [[sb:hpb|HPB]], and three healthcare clusters. Government roles are advertised on careers.gov.sg, not MyCareersFuture.",
+    kids:["moh:policy","moh:services","moh:dev","sb:cda","sb:hpb","sb:hsa","sb:aic","cl:nhg","cl:nuhs","cl:shs"],
+    nextMove:"pick a cluster or board - that is where the hiring body actually sits."},
+  "moh:policy":{layer:"department",typeLabel:"Division",title:"Policy Pillar",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"One of MOH's three pillars - sets national health policy.",kids:[],nextMove:"policy roles favour analysis + stakeholder skills."},
+  "moh:services":{layer:"department",typeLabel:"Division",title:"Services Pillar",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Connects policy to the [[cl:nuhs|clusters]] that deliver care.",kids:["cl:nuhs"],nextMove:"service-delivery roles bridge HQ and the clusters."},
+  "moh:dev":{layer:"department",typeLabel:"Division",title:"Development Pillar",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Builds future health-system capacity.",kids:[],nextMove:"capacity + transformation roles sit here."},
+  "sb:hsa":{layer:"agency",typeLabel:"Statutory board",title:"Health Sciences Authority (HSA)",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Regulates health products; hires scientists and regulatory officers on careers.gov.sg. A typed acronym 'HSA' now resolves in the live employer search.",kids:[],nextMove:"regulatory + scientific roles; cite a specific standard you have worked under."},
+  "sb:hpb":{layer:"agency",typeLabel:"Statutory board",title:"Health Promotion Board (HPB)",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Runs national health-promotion programmes.",kids:[],nextMove:"programme + outreach roles."},
+  "sb:cda":{layer:"agency",typeLabel:"Statutory board",title:"Communicable Diseases Agency",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Coordinates communicable-disease readiness and response.",kids:[],nextMove:"epidemiology + data roles."},
+  "sb:aic":{layer:"agency",typeLabel:"Agency",title:"Agency for Integrated Care (AIC)",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"Coordinates aged and community care across providers.",kids:[],nextMove:"care-integration + coordination roles."},
+  "cl:nhg":{layer:"agency",typeLabel:"Healthcare cluster",title:"NHG Health",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"National Healthcare Group - one of three clusters that run the hospitals.",kids:[],nextMove:"clusters run the hospitals that hire clinicians."},
+  "cl:nuhs":{layer:"agency",typeLabel:"Healthcare cluster",title:"National University Health System (NUHS)",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"NUHS runs hospitals including [[hosp:nuh|National University Hospital]].",kids:["hosp:nuh"],nextMove:"open a hospital to reach a clinical department."},
+  "cl:shs":{layer:"agency",typeLabel:"Healthcare cluster",title:"Singapore Health Services (SingHealth)",prov:"derived",fields:[["Parent","[[org:moh|Ministry of Health]]"]],body:"SingHealth - the largest cluster, with many specialty centres.",kids:[],nextMove:"largest cluster; many national specialty centres."},
+  "hosp:nuh":{layer:"agency",typeLabel:"Hospital",title:"National University Hospital (NUH)",prov:"derived",fields:[["Cluster","[[cl:nuhs|NUHS]]"]],body:"A tertiary hospital under [[cl:nuhs|NUHS]], with clinical departments including [[dept:neurosurg|Neurosurgery]] and [[dept:neuro|Neurology]].",kids:["dept:neurosurg","dept:neuro"],nextMove:"clinical departments are where doctors are actually hired."},
+  "dept:neurosurg":{layer:"department",typeLabel:"Clinical department",title:"Neurosurgery (NUH)",prov:"derived",fields:[["Hospital","[[hosp:nuh|National University Hospital]]"]],body:"The Neurosurgery department. Hires consultants and registrars; routine [[ai:imaging|brain-imaging triage]] is AI-assistable, but surgical judgement is human-led.",kids:["role:neurosurg","ai:imaging"],nextMove:"see the consultant role and where AI fits clinical imaging."},
+  "dept:neuro":{layer:"department",typeLabel:"Clinical department",title:"Neurology (NUH)",prov:"derived",fields:[["Hospital","[[hosp:nuh|National University Hospital]]"]],body:"Neurology - shares the [[ai:imaging|imaging-AI]] context with [[dept:neurosurg|Neurosurgery]].",kids:["ai:imaging"],nextMove:"adjacent to neurosurgery; overlapping imaging workflows."},
+  "role:neurosurg":{layer:"role",typeLabel:"Role",title:"Consultant, Neurosurgery",prov:"mcf",fields:[["Department","[[dept:neurosurg|Neurosurgery (NUH)]]"],["Source","careers.gov.sg"]],body:"A consultant role advertised on careers.gov.sg. Branches: the [[jobad:neurosurg|job ad]] and the [[ai:imaging|AI-imaging]] impact. Surgical judgement and patient trust stay human-led.",kids:["jobad:neurosurg","ai:imaging"],nextMove:"position around judgement and outcomes AI cannot own."},
+  "jobad:neurosurg":{layer:"job_ad",typeLabel:"Job ad",title:"Consultant Neurosurgery - careers.gov.sg",prov:"mcf",fields:[["Source","careers.gov.sg (illustrative)"]],body:"Illustrative careers.gov.sg posting for a neurosurgery consultant under [[hosp:nuh|NUH]]. Gov clinical roles list on careers.gov.sg, not MyCareersFuture.",kids:["role:neurosurg"],nextMove:"search careers.gov.sg, not MyCareersFuture, for public clinical roles."},
+  "ai:imaging":{layer:"ai_impact",typeLabel:"AI impact",title:"AI-assisted: brain-imaging triage",prov:"ai",fields:[["Read","Inferred - advisory"]],body:"Research on graph neural networks for brain imaging (e.g. Brain Sci. 2023) shows AI can help triage and flag scans - an assistive, advisory read. Diagnosis, the surgical decision, and patient trust remain human-led.",kids:["dept:neurosurg"],nextMove:"let AI pre-read routine scans; keep the diagnosis and the operating decision human."},
+
+  /* ----- more of government: top level + two more ministries (mapped from SGDI) ----- */
+  "gov:sg":{layer:"organisation",typeLabel:"Government",title:"Singapore Government",prov:"derived",
+    fields:[["Source","Singapore Government Directory (sgdi.gov.sg)"],["Ministries","16"]],
+    body:"The 16 ministries of the Singapore Government. Three are mapped in detail - [[org:moh|Health]], [[org:moe|Education]] and [[org:mha|Home Affairs]]; the rest are listed (full structure is in SGDI).",
+    kids:["org:moh","org:moe","org:mha","gov:pmo","gov:mof","gov:mti","gov:mnd","gov:mom","gov:mse","gov:mot","gov:mccy","gov:msf","gov:mfa","gov:minlaw","gov:mindef","gov:mddi"],
+    nextMove:"open a ministry to see its boards and the bodies that actually hire."},
+  "gov:pmo":{layer:"organisation",typeLabel:"Ministry",title:"Prime Minister's Office",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mof":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Finance",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mti":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Trade and Industry",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mnd":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of National Development",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mom":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Manpower",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mse":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Sustainability and the Environment",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mot":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Transport",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo. Statutory boards here include LTA.",kids:[],nextMove:"a typed 'LTA' resolves in the live employer search."},
+  "gov:mccy":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Culture, Community and Youth",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:msf":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Social and Family Development",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mfa":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Foreign Affairs",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:minlaw":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Law",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mindef":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Defence",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+  "gov:mddi":{layer:"organisation",typeLabel:"Ministry",title:"Ministry of Digital Development and Information",prov:"derived",fields:[["Source","SGDI"]],body:"Listed in the Singapore Government Directory; sub-structure not mapped in this demo.",kids:[],nextMove:"explore the full structure on sgdi.gov.sg."},
+
+  "org:moe":{layer:"organisation",typeLabel:"Organisation (ministry)",title:"Ministry of Education",prov:"derived",
+    fields:[["Type","Government ministry"],["Structure source","SGDI"],["Roles via","careers.gov.sg"]],
+    body:"MOE, mapped from SGDI: statutory boards like [[moe:ssg|SkillsFuture Singapore]] and [[moe:ite|ITE]], national assessment via [[moe:seab|SEAB]], the [[moe:poly|polytechnics]], and the [[moe:univ|autonomous universities]].",
+    kids:["moe:schools","moe:ssg","moe:ite","moe:seab","moe:poly","moe:univ"],
+    nextMove:"public-education roles list on careers.gov.sg."},
+  "moe:schools":{layer:"department",typeLabel:"Division",title:"Schools Division",prov:"derived",fields:[["Parent","[[org:moe|Ministry of Education]]"]],body:"MOE HQ division overseeing schools.",kids:[],nextMove:"education-officer + policy roles."},
+  "moe:ssg":{layer:"agency",typeLabel:"Statutory board",title:"SkillsFuture Singapore (SSG)",prov:"derived",fields:[["Parent","[[org:moe|Ministry of Education]]"]],body:"Drives skills and lifelong learning.",kids:[],nextMove:"skills-policy + programme roles."},
+  "moe:ite":{layer:"agency",typeLabel:"Statutory board",title:"Institute of Technical Education (ITE)",prov:"derived",fields:[["Parent","[[org:moe|Ministry of Education]]"]],body:"Technical-education provider.",kids:[],nextMove:"lecturer + training roles."},
+  "moe:seab":{layer:"agency",typeLabel:"Statutory board",title:"Singapore Examinations and Assessment Board (SEAB)",prov:"derived",fields:[["Parent","[[org:moe|Ministry of Education]]"]],body:"Runs national examinations.",kids:[],nextMove:"assessment + psychometrics roles."},
+  "moe:poly":{layer:"agency",typeLabel:"Statutory boards",title:"Polytechnics (5)",prov:"derived",fields:[["Members","SP, NP, TP, NYP, RP"]],body:"The five polytechnics: Singapore, Ngee Ann, Temasek, Nanyang, Republic.",kids:[],nextMove:"academic + industry-liaison roles."},
+  "moe:univ":{layer:"agency",typeLabel:"Autonomous universities",title:"Autonomous Universities (6)",prov:"derived",fields:[["Members","NUS, NTU, SMU, SUTD, SIT, SUSS"]],body:"The six autonomous universities under MOE.",kids:["uni:nus","uni:ntu"],nextMove:"faculty + research + administration roles."},
+  "uni:nus":{layer:"agency",typeLabel:"University",title:"National University of Singapore (NUS)",prov:"derived",fields:[["Parent","[[moe:univ|Autonomous Universities]]"]],body:"NUS - cross-links to health via [[cl:nuhs|NUHS]] (a loop between Education and Health).",kids:["cl:nuhs"],nextMove:"notice the loop: NUS connects to the NUHS health cluster."},
+  "uni:ntu":{layer:"agency",typeLabel:"University",title:"Nanyang Technological University (NTU)",prov:"derived",fields:[["Parent","[[moe:univ|Autonomous Universities]]"]],body:"NTU - research-intensive university.",kids:[],nextMove:"faculty + research roles."},
+
+  "org:mha":{layer:"organisation",typeLabel:"Organisation (ministry)",title:"Ministry of Home Affairs",prov:"derived",
+    fields:[["Type","Government ministry"],["Structure source","SGDI"],["Roles via","careers.gov.sg"]],
+    body:"MHA and the Home Team, mapped from SGDI: [[mha:spf|Police]], [[mha:scdf|Civil Defence]], [[mha:ica|ICA]], [[mha:isd|ISD]], [[mha:cnb|CNB]], plus [[mha:htx|HTX]] and [[mha:hta|the Home Team Academy]].",
+    kids:["mha:spf","mha:scdf","mha:ica","mha:isd","mha:cnb","mha:htx","mha:hta"],
+    nextMove:"Home Team roles list on careers.gov.sg; a typed acronym (SPF, HTX) resolves in the live search."},
+  "mha:spf":{layer:"agency",typeLabel:"Home Team department",title:"Singapore Police Force (SPF)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"The police force.",kids:[],nextMove:"officer + investigation + analyst roles."},
+  "mha:scdf":{layer:"agency",typeLabel:"Home Team department",title:"Singapore Civil Defence Force (SCDF)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"Fire and emergency services.",kids:[],nextMove:"emergency-services + engineering roles."},
+  "mha:ica":{layer:"agency",typeLabel:"Home Team department",title:"Immigration & Checkpoints Authority (ICA)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"Immigration and checkpoints.",kids:[],nextMove:"operations + systems roles."},
+  "mha:isd":{layer:"agency",typeLabel:"Home Team department",title:"Internal Security Department (ISD)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"National security.",kids:[],nextMove:"analyst roles."},
+  "mha:cnb":{layer:"agency",typeLabel:"Home Team department",title:"Central Narcotics Bureau (CNB)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"Anti-drug enforcement.",kids:[],nextMove:"enforcement + analyst roles."},
+  "mha:htx":{layer:"agency",typeLabel:"Statutory board",title:"Home Team Science and Technology Agency (HTX)",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"],["Live roles","careers.gov.sg returns ~73 for 'HTX'"]],body:"The science and engineering arm of the Home Team; advertises engineering roles on careers.gov.sg.",kids:["role:htx"],nextMove:"a typed 'HTX' now resolves in the live employer search."},
+  "mha:hta":{layer:"agency",typeLabel:"Home Team department",title:"Home Team Academy",prov:"derived",fields:[["Parent","[[org:mha|Ministry of Home Affairs]]"]],body:"Training academy for the Home Team.",kids:[],nextMove:"trainer + curriculum roles."},
+  "role:htx":{layer:"role",typeLabel:"Role",title:"Engineer, HTX",prov:"mcf",fields:[["Agency","[[mha:htx|HTX]]"],["Source","careers.gov.sg"]],body:"An engineering role under [[mha:htx|HTX]], advertised on careers.gov.sg. Sensor and data work; human judgement on deployment.",kids:["mha:htx"],nextMove:"frame projects where you turned technology into an operational outcome."}
+};
+
+/* agencies whose branches load LIVE roles from careers.gov.sg (same-origin /api/careers) on tap */
+const LIVEMAP={
+  "sb:hsa":"Health Sciences Authority","sb:hpb":"Health Promotion Board","sb:cda":"Communicable Diseases Agency","sb:aic":"Agency for Integrated Care",
+  "cl:nhg":"National Healthcare Group","cl:shs":"Singapore Health Services",
+  "mha:spf":"Singapore Police Force","mha:scdf":"Singapore Civil Defence Force","mha:ica":"Immigration & Checkpoints Authority","mha:isd":"Internal Security Department","mha:cnb":"Central Narcotics Bureau","mha:hta":"Home Team Academy",
+  "moe:ssg":"SkillsFuture Singapore","moe:ite":"Institute of Technical Education","moe:seab":"Singapore Examinations and Assessment Board"
+};
+Object.entries(LIVEMAP).forEach(([id,q])=>{ if(NODES[id]) NODES[id].live=q; });
+
+/* ===== ecotone realms + candidate/organisation lens data (illustrative) ===== */
+Object.assign(NODES, {
+  "ext:customers":{layer:"stakeholder",typeLabel:"External stakeholder",title:"Customers",prov:"derived",realm:"external",fields:[["Relationship","served by the role"]],body:"The bank's customers - outside the organisation. The value the role creates ultimately reaches them.",kids:["role:da"],nextMove:"frame your work as outcomes customers feel, not internal tasks."},
+  "ext:vendor":{layer:"stakeholder",typeLabel:"External stakeholder",title:"Data Vendor",prov:"derived",realm:"external",fields:[["Relationship","supplies data"]],body:"An external supplier of market data that [[role:da|the Data Analyst]] depends on.",kids:["role:da"],nextMove:"managing this vendor is edge work - it spans inside and outside."},
+  "ext:patients":{layer:"stakeholder",typeLabel:"External stakeholder",title:"Citizens / Patients",prov:"derived",realm:"external",fields:[["Relationship","served by the role"]],body:"The people a public hospital ultimately serves - outside the organisation.",kids:["role:neurosurg"],nextMove:"clinical trust with patients is the least automatable, highest-value edge."}
+});
+if(NODES["skill:stakeholder"]) NODES["skill:stakeholder"].realm="edge";
+if(NODES["stake:mas"]) NODES["stake:mas"].realm="external";
+if(NODES["role:da"]) NODES["role:da"].kids.push("ext:customers","ext:vendor");
+if(NODES["role:neurosurg"]) NODES["role:neurosurg"].kids.push("ext:patients");
+if(NODES["role:da"]) NODES["role:da"].candidate={
+  exposure:"Moderate", exposurePct:54, resilience:62,
+  anatomy:[{l:"Routine data processing",pct:35,ai:"auto"},{l:"Analysis & judgement",pct:30,ai:"aug"},{l:"Coordination",pct:20,ai:"assist"},{l:"Stakeholder / relational",pct:15,ai:"human"}],
+  skills:[{s:"Monthly reporting",ai:"auto"},{s:"Data Visualisation",ai:"aug"},{s:"SQL",ai:"assist"},{s:"Stakeholder Management",ai:"human"},{s:"Requirements Gathering",ai:"human"}],
+  demand:[["Postings","~25 sampled"],["Recency","active - within 30 days"],["Salary","~$4.5k-6.5k (rough)"],["Experience","0-2 yrs friendly"],["Verdict","Active demand"]],
+  gaps:[{need:"SQL",have:true},{need:"Stakeholder Management",have:false,proof:"coordinate one cross-team outcome"},{need:"Data Visualisation",have:false,proof:"build one dashboard"}],
+  plan:[["7 days","Ship a SQL query project on real data"],["14 days","Turn it into one dashboard (SQL + viz)"],["30 days","Write a stakeholder-coordination story"]],
+  edge:"Aim at Stakeholder Management + Requirements - the human-led edge AI cannot own. That share is your AI-readiness.",
+  progression:["Data Analyst","Senior Analyst","Analytics Lead"],
+  crossover:["Business Analyst","Data Scientist (add Python)"],
+  positioning:"I connect data, stakeholders and decisions - I use AI to speed routine reporting and keep judgement where trust matters."
+};
+if(NODES["role:neurosurg"]) NODES["role:neurosurg"].candidate={
+  exposure:"Low", exposurePct:22, resilience:84,
+  anatomy:[{l:"Routine scan review",pct:20,ai:"aug"},{l:"Diagnosis & planning",pct:30,ai:"assist"},{l:"Surgical execution",pct:30,ai:"human"},{l:"Patient trust & consent",pct:20,ai:"human"}],
+  skills:[{s:"Scan triage",ai:"aug"},{s:"Imaging interpretation",ai:"assist"},{s:"Surgical judgement",ai:"human"},{s:"Patient communication",ai:"human"},{s:"Multidisciplinary coordination",ai:"human"}],
+  demand:[["Source","careers.gov.sg (public service)"],["Setting","NUH / restructured hospitals"],["Experience","Specialist accreditation"],["Verdict","Specialised, steady demand"]],
+  gaps:[{need:"Specialist accreditation",have:true},{need:"AI-imaging literacy",have:false,proof:"show you can supervise an AI triage tool, not be replaced by it"}],
+  plan:[["7 days","Read the GNN brain-imaging evidence (Brain Sci. 2023)"],["14 days","Audit one AI triage tool's false-negative risk"],["30 days","Draft a human-in-the-loop scan-triage protocol"]],
+  edge:"Your edge is surgical judgement and patient trust - the deepest human-led zone. AI triages scans; you decide and operate.",
+  progression:["Consultant","Senior Consultant","Head of Department"],
+  crossover:["Neurology","Clinical informatics (AI + imaging)"],
+  positioning:"I use AI to pre-read routine scans and protect my time for the judgement, surgery and trust that AI cannot own."
+};
+if(NODES["role:ba"]) NODES["role:ba"].candidate={
+  exposure:"Moderate", exposurePct:48, resilience:66,
+  anatomy:[{l:"Documentation",pct:30,ai:"auto"},{l:"Analysis",pct:25,ai:"aug"},{l:"Requirements elicitation",pct:25,ai:"human"},{l:"Stakeholder alignment",pct:20,ai:"human"}],
+  skills:[{s:"Documentation",ai:"auto"},{s:"Process mapping",ai:"aug"},{s:"SQL",ai:"assist"},{s:"Requirements Gathering",ai:"human"},{s:"Stakeholder Management",ai:"human"}],
+  demand:[["Postings","DBS + similar"],["Experience","3-5 yrs"],["Salary","~$5k-7k (rough)"],["Verdict","Steady demand"]],
+  gaps:[{need:"Requirements Gathering",have:false,proof:"a requirements doc you wrote"},{need:"Stakeholder Management",have:false,proof:"a cross-team alignment story"}],
+  plan:[["7 days","Write one crisp requirements doc"],["14 days","Map one process end-to-end"],["30 days","Run a stakeholder alignment session"]],
+  edge:"Requirements elicitation + stakeholder alignment are your edge - human, ambiguous, trust-based.",
+  progression:["Business Analyst","Senior BA","Product Owner"],
+  crossover:["Data Analyst","Project Manager"],
+  positioning:"I translate between business and delivery - AI drafts the docs, I own the ambiguity and the alignment."
+};
+if(NODES["dept:neurosurg"]) NODES["dept:neurosurg"].org={
+  outcome:"Safe, timely neurosurgical care with the best possible patient outcomes.",
+  valueStream:{leadTime:"referral -> surgery: days to weeks",steps:[{n:"Referral",k:"erode"},{n:"Scan + triage",k:"create"},{n:"Diagnosis",k:"create"},{n:"Surgery decision",k:"capture"},{n:"Operation",k:"capture"},{n:"Recovery",k:"capture"}]},
+  capability:{constraint:"Scan triage + reporting turnaround",rootCause:"Radiology backlog; manual triage",measure:"AI triage can flag urgent scans faster"},
+  dependencies:[{name:"Radiology",realm:"internal",rel:"reads the scans"},{name:"Patients / families",realm:"external",rel:"consent + trust"},{name:"MOH standards",realm:"external",rel:"clinical governance"}],
+  edge:[{lens:"Product edge",note:"AI-assisted triage to surface urgent scans first"},{lens:"Journey edge",note:"Clearer consent + recovery guidance for patients"},{lens:"Enterprise edge",note:"Share the imaging-AI capability across Neurology too"}],
+  future:[{step:"Scan triage",v:"AI absorbs - flags urgent scans (Brain Sci. 2023 GNN)"},{step:"Diagnosis",v:"AI-augmented, clinician confirms"},{step:"Surgery decision",v:"stays human-led (judgement + trust)"}],
+  hiring:"Hire a [[role:neurosurg|Consultant Neurosurgeon]] who supervises AI triage and owns the surgical-judgement edge."
+};
+if(NODES["dept:analytics"]) NODES["dept:analytics"].valueStream={leadTime:"~10 days each month-end",friction:"Manual data pull is the bottleneck (value-eroding) - and is why the Data Analyst role exists. AI can absorb it.",steps:[{n:"Pull data",k:"erode"},{n:"Validate",k:"create"},{n:"Build report",k:"create"},{n:"Stakeholder review",k:"capture"},{n:"Decision",k:"capture"}]};
+if(NODES["dept:analytics"]) NODES["dept:analytics"].org={
+  outcome:"Faster, trustworthy monthly decisions for the business units.",
+  valueStream:{leadTime:"~10 days each month-end",steps:[{n:"Pull data",k:"erode"},{n:"Validate",k:"create"},{n:"Build report",k:"create"},{n:"Stakeholder review",k:"capture"},{n:"Decision",k:"capture"}]},
+  capability:{constraint:"Month-end reporting lead time",rootCause:"Manual, fragmented data pull (value-eroding)",measure:"~10 days now -> target ~3 days"},
+  dependencies:[{name:"Finance",realm:"internal",rel:"consumes the numbers"},{name:"Data Vendor",realm:"external",rel:"supplies market data"},{name:"Customers",realm:"external",rel:"ultimately served"}],
+  edge:[{lens:"Product edge",note:"Self-serve dashboards the business units read directly"},{lens:"Journey edge",note:"Help them act on the numbers, not just receive them"},{lens:"Enterprise edge",note:"Reuse the data pipeline for Risk & Compliance"}],
+  future:[{step:"Pull data",v:"AI absorbs - routine, value-eroding"},{step:"Build report",v:"AI-augmented first draft"},{step:"Stakeholder review",v:"stays human-led (trust)"}],
+  hiring:"Hire a [[role:da|Data Analyst]] who automates the data pull and owns the stakeholder edge - the candidate who stands at the boundary."
+};
+if(NODES["role:da"]) NODES["role:da"].valueStream={leadTime:"~3 days per report",friction:"The hand-off from raw data to clean numbers leaks time - the edge-of-core to fix.",steps:[{n:"Raw data",k:"erode"},{n:"SQL clean",k:"create"},{n:"Dashboard",k:"create"},{n:"Brief Finance",k:"capture"}]};
+
+const PERSONAS=[
+  {key:"standards",ico:"📐",t:"Standards / Skills",d:"Find standard skills and occupations (ESCO / ISCO).",
+    intent:"“Show me the standard concept and who hires for it.”",label:"Skill or occupation",ph:"e.g. Data Analysis, Stakeholder Management",
+    criteria:[{type:"select",lab:"Standard",opts:["ESCO v1.2","ISCO-08"]},{type:"toggle",lab:"Include fresh-grad relevance",on:true}],
+    suggestions:[{t:"Data Analysis",s:"ESCO v1.2 · ISCO 24",go:"esco:dataanalysis"},{t:"Stakeholder Management",s:"ESCO skill · human-led",go:"skill:stakeholder"},{t:"Quantum Welding",s:"no ESCO match - link withheld",go:null}],start:"esco:dataanalysis"},
+  {key:"mcf",ico:"🇸🇬",t:"Find SG Jobs",d:"Current openings, turned into a linked ecosystem.",
+    intent:"“Find current jobs and the system behind them.”",label:"Job title or role",ph:"e.g. Data Analyst, Business Analyst",
+    criteria:[{type:"select",lab:"Sector",opts:["All sectors","Banking & Finance","Public Service"]},{type:"select",lab:"Posted",opts:["Any time","Last 7 days","Last 30 days"]},{type:"toggle",lab:"Fresh grads · < 4 yrs",on:false}],
+    suggestions:[{t:"Data Analyst",s:"DBS · 0-2 yrs",go:"role:da"},{t:"Business Analyst",s:"DBS · 3-5 yrs",go:"role:ba"},{t:"Data Scientist",s:"no sample here",go:null}],start:"role:da"},
+  {key:"fresh",ico:"🎓",t:"Fresh Grad Pathways",d:"Realistic entry pathways and the proof to build.",
+    intent:"“I am a fresh grad - where do I start?”",label:"Your degree / interest / starting skill",ph:"e.g. Business graduate, no full-time experience",
+    criteria:[{type:"select",lab:"Max experience",opts:["0-2 yrs (entry)","< 4 yrs"]},{type:"toggle",lab:"Fresh-grad filter",on:true,locked:true}],
+    suggestions:[{t:"Data Analyst (entry)",s:"0-2 yrs · positioning",go:"pos:da"},{t:"Business Analyst",s:"3-5 yrs · filtered out",go:null}],start:"pos:da"},
+  {key:"employer",ico:"🏢",t:"Employer Search",d:"What an employer repeatedly hires for, top-down.",
+    intent:"“What does this employer expect?”",label:"Company or agency name",ph:"e.g. DBS Bank, Ministry of Health",
+    criteria:[{type:"src",lab:"Sources",opts:["MyCareersFuture","careers.gov.sg"]}],
+    suggestions:[{t:"Singapore Government",s:"all 16 ministries · SGDI org chart",go:"gov:sg"},{t:"DBS Bank",s:"private · MyCareersFuture",go:"org:dbs"},{t:"Ministry of Health",s:"government · SGDI + careers.gov.sg",go:"org:moh"},{t:"Ministry of Education",s:"government · SGDI",go:"org:moe"},{t:"Ministry of Home Affairs",s:"government · Home Team",go:"org:mha"},{t:"HTX",s:"acronym · resolves live",go:"mha:htx"}],start:"gov:sg"}
+];
+const P_BY_KEY=Object.fromEntries(PERSONAS.map(p=>[p.key,p]));
+
+/* ===== screen stack + lens ===== */
+let stack=[], cur=null, LENS="candidate";
+const $=id=>document.getElementById(id);
+const REALMC={internal:{c:"#1a56db",t:"Internal"},edge:{c:"#b45309",t:"Edge (ecotone)"},external:{c:"#0e7490",t:"External"}};
+function realmOf(id){ const n=NODES[id]; if(!n) return "internal"; if(n.realm) return n.realm; return (n.typeLabel||"").toLowerCase().includes("external")?"external":"internal"; }
+function show(which){ ["home","searchView","noteView"].forEach(s=>$(s).classList.toggle("hidden",s!==which)); if(which!=="noteView") stopGraph(); }
+function go(state,push=true){ if(push&&cur) stack.push(cur); cur=state; render(); }
+function render(){ if(cur.kind==="home"){ stack=[]; renderHome(); } else if(cur.kind==="search"){ renderSearch(cur.persona); } else if(cur.kind==="note"){ renderNote(cur.id); } $("backBtn").disabled=stack.length===0; window.scrollTo({top:0,behavior:"smooth"}); }
+function back(){ if(stack.length){ cur=stack.pop(); render(); } }
+
+function renderHome(){
+  show("home"); const g=$("personaGrid"); g.innerHTML="";
+  PERSONAS.forEach(p=>{ const b=document.createElement("button"); b.className="pcard";
+    b.innerHTML=`<span class="ico" aria-hidden="true">${p.ico}</span><span class="t">${p.t}</span><span class="d">${p.d}</span><span class="intent">${p.intent}</span>`;
+    b.onclick=()=>go({kind:"search",persona:p.key}); g.appendChild(b); });
+}
+function critHTML(p){
+  const parts=p.criteria.map(c=>{
+    if(c.type==="select") return `<span class="clab">${c.lab}</span><select aria-label="${c.lab}">${c.opts.map(o=>`<option>${o}</option>`).join("")}</select>`;
+    if(c.type==="toggle") return `<label class="tog ${c.on?'on':''}"><input type="checkbox" ${c.on?'checked':''} ${c.locked?'disabled':''} onchange="this.closest('.tog').classList.toggle('on',this.checked)"><span>${c.lab}</span></label>`;
+    if(c.type==="src") return `<span class="clab">${c.lab}</span>`+c.opts.map(o=>`<span class="srcchip">● ${o}</span>`).join("");
+    return ""; });
+  return `<div class="criteria">${parts.join("")}</div><div class="crit-note">Criteria are illustrative in this demo - in the real app they filter the live results.</div>`;
+}
+function renderSearch(key){
+  show("searchView"); const p=P_BY_KEY[key];
+  const tabs=$("ptabs"); tabs.innerHTML="";
+  PERSONAS.forEach(pp=>{ const b=document.createElement("button"); b.className="ptab"+(pp.key===key?" active":""); b.setAttribute("aria-pressed",pp.key===key);
+    b.innerHTML=`<span aria-hidden="true">${pp.ico}</span> ${pp.t}`; b.onclick=()=>go({kind:"search",persona:pp.key}); tabs.appendChild(b); });
+  const c=$("searchCard");
+  c.innerHTML=`<h2>${p.ico} ${p.t}</h2><p class="intent">${p.intent}</p>
+    <label class="fld" for="q">${p.label}</label>
+    <div class="searchrow"><input id="q" type="search" autocomplete="off" placeholder="${p.ph}" aria-label="${p.label}"><button class="go" id="goBtn">Analyse &rarr;</button></div>
+    ${critHTML(p)}<div class="picker" id="picker"></div>`;
+  const input=$("q");
+  const renderPicker=()=>{ const term=input.value.trim().toLowerCase(); const list=p.suggestions.filter(s=>!term||s.t.toLowerCase().includes(term)||s.s.toLowerCase().includes(term)); const pk=$("picker");
+    pk.innerHTML=`<div class="pick-head">${term?'Matches for "'+input.value.trim()+'"':'Closest matches - start typing to filter'}</div>`;
+    if(!list.length){ pk.innerHTML+=`<div class="pick-empty">No match in this sample. In the real app we withhold rather than invent.</div>`; return; }
+    list.forEach(s=>{ const b=document.createElement("button"); b.className="pick-item"+(s.go?"":" dim"); b.type="button";
+      b.innerHTML=`<span><span class="pi-t">${s.t}</span><br><span class="pi-s">${s.s}</span></span><span class="pi-go" aria-hidden="true">${s.go?"&rarr;":"withheld"}</span>`;
+      if(s.go){ b.onclick=()=>go({kind:"note",id:s.go}); b.setAttribute("aria-label","Open "+s.t); } else b.disabled=true; pk.appendChild(b); }); };
+  input.addEventListener("input",renderPicker);
+  $("goBtn").onclick=()=>go({kind:"note",id:p.start});
+  input.addEventListener("keydown",e=>{ if(e.key==="Enter") go({kind:"note",id:p.start}); });
+  renderPicker(); setTimeout(()=>input.focus(),30);
+}
+
+function provChip(key){ const p=PROV[key]||PROV.unverified; return `<span class="prov ${p.c}" title="${p.t}">${p.i} ${p.t}</span>`; }
+function renderRich(str){
+  const frag=document.createElement("span"); const re=/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g; let last=0,m;
+  while((m=re.exec(str))){ if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
+    const id=m[1].trim(), text=(m[2]||(NODES[id]?NODES[id].title:id)).trim();
+    const btn=document.createElement("button"); btn.className="wl"; btn.type="button"; btn.textContent=text; btn.setAttribute("aria-label","Open note: "+text);
+    if(NODES[id]) btn.onclick=()=>go({kind:"note",id}); else { btn.disabled=true; btn.title="No note (withheld)"; }
+    frag.appendChild(btn); last=re.lastIndex; }
+  if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last))); return frag;
+}
+function renderNote(id, keepGraph){
+  const n=NODES[id]; if(!n) return; show("noteView"); renderLens(id);
+  const cr=$("crumbs"); cr.innerHTML=""; const h=document.createElement("button"); h.textContent="Home"; h.onclick=()=>go({kind:"home"}); cr.appendChild(h);
+  cr.appendChild(document.createTextNode(" / "+n.typeLabel+" / ")); const ce=document.createElement("span"); ce.textContent=n.title; ce.style.color="var(--text)"; ce.style.fontWeight="700"; cr.appendChild(ce);
+  const nm=$("nextmove"); nm.innerHTML=`<span class="nm-ico" aria-hidden="true">🧭</span><span class="nm-t">Your next best move is to </span>`; nm.querySelector(".nm-t").appendChild(renderRich(n.nextMove));
+  const note=$("note"); note.innerHTML="";
+  const head=document.createElement("div"); head.className="note-head"; const lay=LAYER[n.layer]||LAYER.skill;
+  head.innerHTML=`<span class="type-chip" style="background:${lay.b};color:${lay.c}">${n.typeLabel}</span>${provChip(n.prov)}`; note.appendChild(head);
+  const h2=document.createElement("h2"); h2.textContent=n.title; note.appendChild(h2);
+  (n.fields||[]).forEach(([k,v])=>{ const f=document.createElement("div"); f.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.appendChild(renderRich(v)); f.appendChild(kk); f.appendChild(vv); note.appendChild(f); });
+  const body=document.createElement("div"); body.className="body"; const pp=document.createElement("p"); pp.appendChild(renderRich(n.body)); body.appendChild(pp); note.appendChild(body);
+  if(n.url){ const a=document.createElement("a"); a.href=n.url; a.target="_blank"; a.rel="noopener noreferrer"; a.textContent="Open on careers.gov.sg ↗"; a.style.cssText="display:inline-block;margin-top:2px;font-size:.8125rem;font-weight:700;color:var(--blue)"; note.appendChild(a); }
+  renderLensInto(n,id,note);
+  if(n.kids&&n.kids.length){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Branches"; note.appendChild(st);
+    const chips=document.createElement("div"); chips.className="chips"; n.kids.forEach(lid=>{ const ln=NODES[lid]; if(!ln) return; const cc=document.createElement("button"); cc.className="linkchip"; cc.type="button"; cc.textContent=ln.title; cc.onclick=()=>go({kind:"note",id:lid}); chips.appendChild(cc); }); note.appendChild(chips); }
+  if(n.patterns){ const st=document.createElement("div"); st.className="section-t"; st.textContent="Common patterns"; note.appendChild(st);
+    const card=document.createElement("div"); card.style.cssText="border:1px solid var(--border);border-radius:12px;padding:12px"; const tt=document.createElement("div"); tt.style.cssText="font-size:.8125rem;color:var(--sub);margin-bottom:8px;font-weight:600"; tt.textContent=n.patterns.title; card.appendChild(tt);
+    const maxC=Math.max(...n.patterns.rows.map(r=>r.count)); n.patterns.rows.forEach(r=>{ const row=document.createElement("div"); row.style.cssText="display:flex;align-items:center;gap:10px;padding:6px 0";
+      const pl=document.createElement("span"); pl.style.cssText="flex:1;font-size:.875rem"; pl.textContent=r.label; const tr=document.createElement("span"); tr.style.cssText="width:90px;height:8px;background:var(--border);border-radius:999px;overflow:hidden"; const fl=document.createElement("span"); fl.style.cssText="display:block;height:100%;background:var(--teal);width:"+(r.count/maxC*100)+"%"; tr.appendChild(fl);
+      const pc=document.createElement("span"); pc.style.cssText="font-size:.75rem;color:var(--muted);min-width:64px;text-align:right"; pc.innerHTML=r.count+"× "+provChip(r.prov); row.appendChild(pl); row.appendChild(tr); row.appendChild(pc); card.appendChild(row); }); note.appendChild(card); }
+  renderLegend(); if(!keepGraph) seedGraph(id);
+}
+function renderLens(id){ const el=$("lensbar"); if(!el) return; el.innerHTML="";
+  [["candidate","🧑 Candidate view"],["org","🏢 Organisation view"]].forEach(([k,label])=>{
+    const b=document.createElement("button"); b.className="lenspill"+(LENS===k?" on":""); b.type="button"; b.textContent=label; b.setAttribute("aria-pressed",LENS===k);
+    b.onclick=()=>{ LENS=k; renderNote(id,true); }; el.appendChild(b); }); }
+function renderLensInto(n,id,note){
+  if(realmOf(id)==="edge"){ const e=document.createElement("div"); e.className="edge-call"; e.innerHTML="<b>Edge zone (ecotone).</b> This sits where the organisation meets the outside world - the boundary where value and interaction are richest, and where work is least automatable. Candidate: stand here. Organisation: the edge of the core is where growth hides."; note.appendChild(e); }
+  if(LENS==="candidate" && n.candidate && n.candidate.anatomy){ renderCandidateJourney(n.candidate, n, note); }
+  else if(LENS==="candidate" && n.candidate){ const c=n.candidate; const d=document.createElement("div"); d.className="lblock"; d.innerHTML="<h4>Candidate view - from the v3 result engine</h4>";
+    const ex=document.createElement("div"); ex.className="expo"; ex.innerHTML='<span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+(c.exposurePct||40)+'%"></span></span>'; d.appendChild(ex);
+    [["Most automatable",c.automatable],["Human-led core",c.resilient],["Your fit",c.fit],["Edge position",c.edge]].forEach(([k,v])=>{ if(!v) return; const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); });
+    const m=document.createElement("div"); m.className="vmeta"; m.textContent="Illustrative - the real app fills this from Skill Analysis, Job Anatomy, AI-exposure and Positioning."; d.appendChild(m); note.appendChild(d); }
+  else if(LENS==="candidate" && n.layer==="role"){ const m=document.createElement("div"); m.className="vmeta"; m.style.marginTop="12px"; m.textContent="Candidate summary not mapped for this role in the demo."; note.appendChild(m); }
+  if(LENS==="org" && n.org){ renderOrgJourney(n.org, note); }
+  else if(LENS==="org" && n.valueStream){ const vs=n.valueStream; const d=document.createElement("div"); d.className="lblock"; d.innerHTML="<h4>Organisation view - value stream (Flow Engineering)</h4>";
+    const strip=document.createElement("div"); strip.className="vstream"; const KIND={create:"value-creating",capture:"value-capturing",erode:"value-eroding"};
+    vs.steps.forEach(s=>{ const st=document.createElement("div"); st.className="vstep "+s.k; st.innerHTML=s.n+'<span class="vk">'+(KIND[s.k]||"")+"</span>"; strip.appendChild(st); }); d.appendChild(strip);
+    const lt=document.createElement("div"); lt.className="vmeta"; lt.innerHTML="Lead time: <b>"+vs.leadTime+"</b>"; d.appendChild(lt);
+    const fr=document.createElement("div"); fr.className="vmeta"; fr.textContent="Friction: "+vs.friction; d.appendChild(fr); note.appendChild(d); }
+  else if(LENS==="org"){ const m=document.createElement("div"); m.className="vmeta"; m.style.marginTop="12px"; m.textContent="No value stream mapped here - try a Department or Role (e.g. Group Data & Analytics, Data Analyst)."; note.appendChild(m); }
+}
+const AI_LABEL={auto:"Full Automation",aug:"AI-Augmented",assist:"AI-Assisted",human:"Human-Led"};
+const AI_CLS={auto:"ai-auto",aug:"ai-aug",assist:"ai-assist",human:"ai-human"};
+const AI_COLOR={auto:"#b45309",aug:"#d97706",assist:"#1a56db",human:"#0e7490"};
+function renderBrief(c, n, note){
+  const edge=c.skills.filter(s=>s.ai==="human").map(s=>s.s).join(", ");
+  const d=document.createElement("div"); d.className="brief";
+  const head=document.createElement("div"); head.className="brief-head";
+  const t=document.createElement("span"); t.className="bt"; t.textContent="Candidate Brief - "+n.title;
+  const pr=document.createElement("button"); pr.className="brief-print"; pr.type="button"; pr.innerHTML="&#128424; Print / save as PDF"; pr.onclick=()=>window.print();
+  head.appendChild(t); head.appendChild(pr); d.appendChild(head);
+  const row=(k,vNode)=>{ const r=document.createElement("div"); r.className="brief-row"; const kk=document.createElement("span"); kk.className="bk"; kk.textContent=k; const vv=document.createElement("span"); vv.className="bv"; if(typeof vNode==="string") vv.textContent=vNode; else vv.appendChild(vNode); r.appendChild(kk); r.appendChild(vv); d.appendChild(r); };
+  row("AI-readiness", c.exposure+" exposure - resilience "+c.resilience+"/100 (higher = more human-led)");
+  row("Your edge", edge+" - the human-led core AI cannot own");
+  row("Build next", c.plan.map(p=>p[0]+": "+p[1]).join("   "));
+  row("Position", "“"+c.positioning+"”");
+  row("Next move", renderRich(n.nextMove));
+  const f=document.createElement("div"); f.className="brief-foot"; f.textContent="AI-assisted; human decides. Source: sample data (demo). Build your proof, then re-read.";
+  d.appendChild(f); note.appendChild(d);
+}
+function renderCandidateJourney(c, n, note){
+  renderBrief(c, n, note);
+  const head=document.createElement("div"); head.className="lblock";
+  head.innerHTML="<h4>Candidate guidance - a guided read, chained from your v3 result panels</h4>"+
+    '<div class="expo"><span class="expo-val">AI exposure: '+c.exposure+'</span><span class="expo-track"><span class="expo-fill" style="width:'+c.exposurePct+'%"></span></span></div>'+
+    '<div class="vmeta">Illustrative - in the real app each step pulls live engine output.</div>';
+  note.appendChild(head);
+  let step=0;
+  const jstep=(title,build)=>{ step++; const d=document.createElement("div"); d.className="jstep"; const h=document.createElement("h4"); h.innerHTML='<span class="jnum">'+step+"</span>"+title; d.appendChild(h); build(d); note.appendChild(d); };
+  jstep("What this role really is (Job Anatomy)", d=>{
+    c.anatomy.forEach(a=>{ const r=document.createElement("div"); r.className="lbar"; r.innerHTML='<span class="lbar-t">'+a.l+'</span><span class="lbar-track"><span class="lbar-fill" style="width:'+a.pct+"%;background:"+AI_COLOR[a.ai]+'"></span></span><span style="min-width:104px;font-size:.6875rem;color:'+AI_COLOR[a.ai]+';font-weight:700">'+AI_LABEL[a.ai]+"</span>"; d.appendChild(r); });
+    const m=document.createElement("div"); m.className="vmeta"; m.innerHTML="AI-resilience score: <b>"+c.resilience+"/100</b> - higher = more human-led."; d.appendChild(m); });
+  jstep("What it asks for, by AI level (Skill Analysis)", d=>{
+    ["human","assist","aug","auto"].forEach(k=>{ const sk=c.skills.filter(s=>s.ai===k); if(!sk.length) return; const row=document.createElement("div"); row.style.margin="4px 0"; row.innerHTML='<span style="font-size:.6875rem;font-weight:800;color:'+AI_COLOR[k]+'">'+AI_LABEL[k]+"</span> "+sk.map(s=>'<span class="ai-chip '+AI_CLS[k]+'">'+s.s+"</span>").join(""); d.appendChild(row); });
+    const m=document.createElement("div"); m.className="vmeta"; m.textContent="Build proof on the Human-Led skills first - they are your edge and the least automatable."; d.appendChild(m); });
+  jstep("Is the demand real (Demand Proof)", d=>{ c.demand.forEach(([k,v])=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); }); });
+  jstep("Your gaps and a 7 / 14 / 30-day plan (Foundation)", d=>{
+    c.gaps.forEach(g=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=g.need; const vv=document.createElement("span"); vv.className="v"; vv.textContent=g.have?"you likely have this":"build proof: "+g.proof; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); });
+    const plan=document.createElement("div"); plan.className="plan"; c.plan.forEach(([w,t])=>{ const c2=document.createElement("div"); c2.className="plan-c"; c2.innerHTML="<b>"+w+"</b>"+t; plan.appendChild(c2); }); d.appendChild(plan); });
+  jstep("The edge to aim for (ecotone)", d=>{ const e=document.createElement("div"); e.className="edge-call"; e.style.marginTop="0"; e.innerHTML="<b>Stand at the edge.</b> "+c.edge; d.appendChild(e); });
+  jstep("Where you can go (Progression + Crossover)", d=>{
+    const p=document.createElement("div"); p.innerHTML='<span class="vmeta">Progression:</span> '+c.progression.map(x=>'<span class="ai-chip ai-assist">'+x+"</span>").join(' <span style="color:var(--muted)">&rarr;</span> '); d.appendChild(p);
+    const x=document.createElement("div"); x.style.marginTop="6px"; x.innerHTML='<span class="vmeta">Crossover:</span> '+c.crossover.map(y=>'<span class="ai-chip ai-human">'+y+"</span>").join(" "); d.appendChild(x); });
+  jstep("Your positioning + next move (Candidate Positioning)", d=>{ const p=document.createElement("div"); p.style.cssText="font-style:italic;color:var(--text);font-size:.875rem"; p.textContent="“"+c.positioning+"”"; d.appendChild(p); });
+}
+function renderOrgJourney(o, note){
+  const head=document.createElement("div"); head.className="lblock"; head.innerHTML="<h4>Organisation guidance - a value-stream read (Flow Engineering + edge of core)</h4><div class='vmeta'>Illustrative - in the real app flow is derived from the role corpus + the engine.</div>"; note.appendChild(head);
+  let step=0; const jstep=(title,build)=>{ step++; const d=document.createElement("div"); d.className="jstep"; const h=document.createElement("h4"); h.innerHTML='<span class="jnum">'+step+"</span>"+title; d.appendChild(h); build(d); note.appendChild(d); };
+  const field=(d,k,v)=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.textContent=k; const vv=document.createElement("span"); vv.className="v"; vv.textContent=v; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); };
+  jstep("The outcome we want (Outcome Map)", d=>{ const p=document.createElement("div"); p.style.cssText="font-size:.875rem;color:var(--text)"; p.textContent=o.outcome; d.appendChild(p); });
+  jstep("Current value stream (Value Stream Map)", d=>{ const strip=document.createElement("div"); strip.className="vstream"; const KIND={create:"value-creating",capture:"value-capturing",erode:"value-eroding"}; o.valueStream.steps.forEach(s=>{ const st=document.createElement("div"); st.className="vstep "+s.k; st.innerHTML=s.n+'<span class="vk">'+(KIND[s.k]||"")+"</span>"; strip.appendChild(st); }); d.appendChild(strip); const lt=document.createElement("div"); lt.className="vmeta"; lt.innerHTML="Lead time: <b>"+o.valueStream.leadTime+"</b>"; d.appendChild(lt); });
+  jstep("The constraint (Capability Map)", d=>{ field(d,"Bottleneck",o.capability.constraint); field(d,"Root cause",o.capability.rootCause); field(d,"Measure",o.capability.measure); });
+  jstep("Dependencies (Dependency Map)", d=>{ o.dependencies.forEach(dep=>{ const r=document.createElement("div"); r.className="field"; const kk=document.createElement("span"); kk.className="k"; kk.innerHTML='<span class="ai-chip" style="border-color:'+REALMC[dep.realm].c+';color:'+REALMC[dep.realm].c+';background:#fff">'+REALMC[dep.realm].t+"</span> "+dep.name; const vv=document.createElement("span"); vv.className="v"; vv.textContent=dep.rel; r.appendChild(kk); r.appendChild(vv); d.appendChild(r); }); const m=document.createElement("div"); m.className="vmeta"; m.textContent="External dependencies sit across the boundary - the ecotone, where value and risk concentrate."; d.appendChild(m); });
+  jstep("The edge of core - where growth hides (Edge Strategy)", d=>{ o.edge.forEach(e=>field(d,e.lens,e.note)); });
+  jstep("AI reshapes the flow (Future State)", d=>{ o.future.forEach(f=>field(d,f.step,f.v)); });
+  jstep("So who do we hire (back to the job ad)", d=>{ const e=document.createElement("div"); e.className="edge-call"; e.style.marginTop="0"; e.appendChild(renderRich(o.hiring)); d.appendChild(e); });
+}
+
+/* ===== ecosystem graph: radial focus-browser + top-down org chart ===== */
+const CX=500, CY=300, RING=210;
+const G={mode:"radial",root:null,stack:[],expanded:new Set(),sel:null,pos:{},target:{},from:{},scaleT:{},order:[],parent:{},edges:[],view:{x:0,y:0,k:1},els:null,raf:null,t0:0,ecotone:false};
+const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+function curNode(){ return G.stack[G.stack.length-1] || G.root; }
+function countBump(id){ const c=NODES[id]&&NODES[id].count; return c?Math.min(0.5,(c-1)*0.13):0; }
+
+function layoutRadial(){
+  const cur=curNode(), kids=(NODES[cur].kids||[]).filter(k=>NODES[k]), order=[], target={}, scaleT={}; G.parent={};
+  const trail=G.stack.slice(0,-1);
+  trail.forEach((id,i)=>{ target[id]={x:130+i*92,y:50}; scaleT[id]=0.55; if(i>0) G.parent[id]=trail[i-1]; order.push(id); });
+  target[cur]={x:CX,y:CY}; scaleT[cur]=1.18; if(trail.length) G.parent[cur]=trail[trail.length-1]; order.push(cur);
+  kids.forEach((k,i)=>{ const a=(i/kids.length)*Math.PI*2 - Math.PI/2; target[k]={x:CX+Math.cos(a)*RING,y:CY+Math.sin(a)*RING}; scaleT[k]=0.82+countBump(k); G.parent[k]=cur; order.push(k); });
+  G.order=order; G.target=target; G.scaleT=scaleT;
+  G.edges=[]; for(let i=1;i<G.stack.length;i++) G.edges.push([G.stack[i-1],G.stack[i]]); kids.forEach(k=>G.edges.push([cur,k]));
+}
+function layoutOrg(){
+  const root=G.root, visited=new Set([root]), parent={}, tree={}, order=[];
+  (function dfs(id){ order.push(id); const ks=G.expanded.has(id)?(NODES[id].kids||[]).filter(k=>NODES[k]&&!visited.has(k)):[]; tree[id]=ks; ks.forEach(k=>{visited.add(k);parent[k]=id;}); ks.forEach(dfs); })(root);
+  const depth={}, xs={}; let leaf=0;
+  (function assign(id,d){ depth[id]=d; const ks=tree[id]; if(!ks.length){ xs[id]=leaf; leaf++; } else { ks.forEach(k=>assign(k,d+1)); xs[id]=(xs[ks[0]]+xs[ks[ks.length-1]])/2; } })(root,0);
+  const total=Math.max(1,leaf), COLW=200, ROWH=124, target={}, scaleT={};
+  order.forEach(id=>{ target[id]={x:CX+(xs[id]-(total-1)/2)*COLW, y:70+depth[id]*ROWH}; scaleT[id]=0.95+countBump(id); });
+  G.order=order; G.parent=parent; G.target=target; G.scaleT=scaleT;
+  G.edges=order.filter(id=>parent[id]!=null).map(id=>[parent[id],id]);
+}
+function layout(){ if(G.mode==="org") layoutOrg(); else layoutRadial(); }
+
+function wrapLabel(s,maxChars){ const words=String(s).split(/\s+/).filter(Boolean), lines=[]; let cur="";
+  for(let w of words){ while(w.length>maxChars){ if(cur){lines.push(cur);cur="";} lines.push(w.slice(0,maxChars)); w=w.slice(maxChars); }
+    if(!cur) cur=w; else if((cur+" "+w).length<=maxChars) cur+=" "+w; else { lines.push(cur); cur=w; } }
+  if(cur) lines.push(cur); return lines.length?lines:[""]; }
+function pillOf(id){ const n=NODES[id]; const txt=n.title+(n.count?(" ("+n.count+")"):""); const maxChars=18; const lines=wrapLabel(txt,maxChars); const longest=Math.max(1,...lines.map(l=>l.length)); const lh=15; return {lines, w:Math.max(66,longest*7.0+26), h:Math.max(32,lines.length*lh+14), lh}; }
+function orgExpandable(id){ return ((NODES[id].kids||[]).filter(k=>NODES[k]).length>0) || (NODES[id].live && !NODES[id]._loaded); }
+async function loadLive(id){
+  const n=NODES[id]; if(!n||!n.live||n._loaded||n._loading) return; n._loading=true;
+  const key=id.replace(/[^a-z0-9]/gi,"");
+  NODES["live:"+key+":loading"]={layer:"pressure",typeLabel:"Loading",title:"Loading live roles…",prov:"unverified",fields:[],body:"Fetching current roles from careers.gov.sg…",kids:[id]};
+  n.kids=["live:"+key+":loading"]; if(G.mode==="org") G.expanded.add(id); relayout();
+  let kids=[];
+  try{
+    const res=await fetch("/api/careers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"company",company:n.live,limit:8})});
+    const d=await res.json(); const jobs=(d&&d.jobs)||[];
+    jobs.forEach((j,i)=>{ const rid="live:"+key+":"+i; NODES[rid]={layer:"role",typeLabel:"Live role (careers.gov.sg)",title:(j.title||"Role"),prov:"mcf",
+      fields:[["Agency",n.title],["Source","careers.gov.sg (live, fetched just now)"]],body:"A live role at "+n.title+", fetched from careers.gov.sg.",kids:[id],url:(j.mcfUrl||j.url||"")}; kids.push(rid); });
+    if(!kids.length){ NODES["live:"+key+":none"]={layer:"pressure",typeLabel:"Note",title:"No current roles",prov:"unverified",fields:[],body:"careers.gov.sg returned no open roles for "+n.title+" right now. We withhold rather than invent.",kids:[id]}; kids=["live:"+key+":none"]; }
+    n._total=d&&d.total;
+  }catch(e){ NODES["live:"+key+":err"]={layer:"risk",typeLabel:"Note",title:"Could not load live roles",prov:"unverified",fields:[],body:"Could not reach careers.gov.sg (this works on the live site, not a local file).",kids:[id]}; kids=["live:"+key+":err"]; }
+  n.kids=kids; n._loaded=true; n._loading=false; relayout();
+}
+function ensureDOM(){
+  const NS="http://www.w3.org/2000/svg", svg=$("graph"); svg.innerHTML="";
+  const view=document.createElementNS(NS,"g"); svg.appendChild(view); G.els={view,line:{},node:{}};
+  G.edges.forEach(([a,b])=>{ const cross=G.ecotone && realmOf(a)!==realmOf(b); const l=document.createElementNS(NS,"path"); l.setAttribute("fill","none"); l.setAttribute("stroke",cross?"#b45309":"#cbd5e1"); l.setAttribute("stroke-width",cross?"2.6":"1.6"); view.appendChild(l); G.els.line[a+">"+b]={l,a,b}; });
+  G.order.forEach(id=>{ const n=NODES[id], lay=LAYER[n.layer]||LAYER.skill, pw=pillOf(id);
+    const g=document.createElementNS(NS,"g"); g.setAttribute("class","gnode"); g.setAttribute("tabindex","0"); g.setAttribute("role","button"); g.setAttribute("aria-label",n.title+", "+(lay.t||""));
+    const rlm=realmOf(id), eco=G.ecotone;
+    if(eco && rlm==="edge"){ const halo=document.createElementNS(NS,"rect"); halo.setAttribute("x",-pw.w/2-5); halo.setAttribute("y",-pw.h/2-5); halo.setAttribute("width",pw.w+10); halo.setAttribute("height",pw.h+10); halo.setAttribute("rx",Math.min(20,pw.h/2+5)); halo.setAttribute("fill","none"); halo.setAttribute("stroke","#fcd34d"); halo.setAttribute("stroke-width","6"); halo.setAttribute("opacity",".75"); g.appendChild(halo); }
+    const rect=document.createElementNS(NS,"rect"); rect.setAttribute("x",-pw.w/2); rect.setAttribute("y",-pw.h/2); rect.setAttribute("width",pw.w); rect.setAttribute("height",pw.h); rect.setAttribute("rx",Math.min(16,pw.h/2)); rect.setAttribute("fill",lay.b); rect.setAttribute("stroke",eco?REALMC[rlm].c:(id===G.sel?lay.c:lay.bd)); rect.setAttribute("stroke-width",eco?(rlm==="edge"?3:2.4):(id===G.sel?3:1.6)); g.appendChild(rect);
+    const t=document.createElementNS(NS,"text"); t.setAttribute("text-anchor","middle"); t.setAttribute("fill",lay.c); t.setAttribute("font-size","12.5"); t.setAttribute("font-weight","700");
+    const sy=-((pw.lines.length-1)*pw.lh)/2; pw.lines.forEach((ln,li)=>{ const ts=document.createElementNS(NS,"tspan"); ts.setAttribute("x",0); ts.setAttribute("y",sy+li*pw.lh); ts.setAttribute("dy","0.32em"); ts.textContent=ln; t.appendChild(ts); });
+    g.appendChild(t);
+    if(G.mode==="org" && orgExpandable(id)){ const bx=pw.w/2; const bc=document.createElementNS(NS,"circle"); bc.setAttribute("cx",bx); bc.setAttribute("cy",0); bc.setAttribute("r",9); bc.setAttribute("fill","#fff"); bc.setAttribute("stroke",lay.c); bc.setAttribute("stroke-width","1.6"); g.appendChild(bc); const bt=document.createElementNS(NS,"text"); bt.setAttribute("x",bx); bt.setAttribute("text-anchor","middle"); bt.setAttribute("dy","0.32em"); bt.setAttribute("fill",lay.c); bt.setAttribute("font-size","13"); bt.setAttribute("font-weight","800"); bt.textContent=G.expanded.has(id)?"−":"+"; g.appendChild(bt); }
+    g.addEventListener("click",e=>{e.stopPropagation();onNodeTap(id);});
+    g.addEventListener("dblclick",e=>{e.stopPropagation();go({kind:"note",id});});
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault();onNodeTap(id);} });
+    view.appendChild(g); G.els.node[id]=g; });
+  applyView();
+}
+function applyView(){ if(G.els&&G.els.view) G.els.view.setAttribute("transform",`translate(${G.view.x},${G.view.y}) scale(${G.view.k})`); }
+function paint(){
+  G.order.forEach(id=>{ const g=G.els.node[id], p=G.pos[id]; if(g&&p) g.setAttribute("transform",`translate(${p.x},${p.y}) scale(${p.s||1})`); });
+  Object.values(G.els.line).forEach(e=>{ const a=G.pos[e.a], b=G.pos[e.b]; if(!a||!b) return; if(G.mode==="org"){ const my=(a.y+b.y)/2; e.l.setAttribute("d",`M${a.x},${a.y} L${a.x},${my} L${b.x},${my} L${b.x},${b.y}`); } else { e.l.setAttribute("d",`M${a.x},${a.y} L${b.x},${b.y}`); } });
+}
+function relayout(){
+  layout(); G.from={};
+  G.order.forEach(id=>{ if(G.pos[id]) G.from[id]={...G.pos[id]}; else { const par=G.parent[id], pp=par!=null&&G.pos[par]; G.from[id]= pp ? {x:pp.x,y:pp.y,s:0.3} : {x:CX,y:CY,s:0.3}; } });
+  ensureDOM(); G.t0=Date.now(); if(G.raf)cancelAnimationFrame(G.raf); G.raf=requestAnimationFrame(animate);
+}
+function animate(){
+  const p=Math.min(1,(Date.now()-G.t0)/380), e=1-Math.pow(1-p,3);
+  G.order.forEach(id=>{ const f=G.from[id]||G.target[id], t=G.target[id], st=G.scaleT[id]||1, fs=(f.s==null?st:f.s); G.pos[id]={x:f.x+(t.x-f.x)*e, y:f.y+(t.y-f.y)*e, s:fs+(st-fs)*e}; });
+  paint(); if(p<1) G.raf=requestAnimationFrame(animate); else G.raf=null;
+}
+function onNodeTap(id){
+  G.sel=id; updateOpenBtn();
+  if(G.mode==="org"){ if(G.expanded.has(id)) G.expanded.delete(id); else G.expanded.add(id); }
+  else { const idx=G.stack.indexOf(id); if(idx>=0) G.stack=G.stack.slice(0,idx+1); else G.stack.push(id); }
+  relayout();
+  if(NODES[id].live && !NODES[id]._loaded && !NODES[id]._loading) loadLive(id);
+}
+function updateOpenBtn(){ const b=$("gOpen"); if(!b) return; const n=NODES[G.sel]; b.innerHTML=(n?("Open: "+(n.title.length>20?n.title.slice(0,19)+"…":n.title)):"Open note")+" &#8599;"; }
+function stopGraph(){ if(G.raf){cancelAnimationFrame(G.raf);G.raf=null;} }
+function seedGraph(id){ G.root=id; G.stack=[id]; G.expanded= G.mode==="org" ? new Set([id,...(NODES[id].kids||[]).filter(k=>NODES[k])]) : new Set([id]); G.sel=id; G.pos={}; G.from={}; G.view={x:0,y:0,k:1}; G.pos[id]={x:CX,y:CY,s:1}; updateOpenBtn(); relayout(); syncModeUI(); }
+function gZoom(f){ const k2=clampN(G.view.k*f,0.4,2.8),wx=(CX-G.view.x)/G.view.k,wy=(CY-G.view.y)/G.view.k; G.view.k=k2; G.view.x=CX-wx*k2; G.view.y=CY-wy*k2; applyView(); }
+function setMode(m){ G.mode=m; if(m==="org"){ G.expanded=new Set([G.root,...(NODES[G.root].kids||[]).filter(k=>NODES[k])]); } else { G.stack=[G.root]; } G.sel=G.root; G.pos={}; relayout(); syncModeUI(); }
+function syncModeUI(){ const tt=$("gTitle"); if(tt) tt.textContent="Ecosystem graph - one centre, tap a bubble to dive in"; const h=$("gHint"); if(h) h.textContent="Centre = where you are · ring = its branches (tap to dive, depth loops) · small top row = your path (tap to go back) · double-tap to read"; }
+function renderLegend(){ const el=$("legend"); if(!el) return;
+  if(G.ecotone){ el.innerHTML='<span style="font-weight:700;color:var(--text)">Ecotone:</span>'+["internal","edge","external"].map(k=>'<span><i style="background:'+REALMC[k].c+'"></i>'+REALMC[k].t+"</span>").join("")+'<span style="color:var(--muted)">Edge (amber glow) = where internal meets external: richest value, least automatable. Amber links cross the boundary.</span>'; return; }
+  const layers=["organisation","department","agency","pressure","role","job_ad","skill","stakeholder","risk","ai_impact","positioning"]; const sw=layers.map(k=>`<span><i style="background:${LAYER[k].b};border:1px solid ${LAYER[k].bd}"></i>${LAYER[k].t}</span>`).join(""); el.innerHTML=`<span style="font-weight:700;color:var(--text)">Colour = layer:</span>${sw}<span style="font-weight:700;color:var(--text)">Bigger bubble = repeats more often.</span>`; }
+(function gInit(){
+  const svg=$("graph"); let pan=null;
+  svg.addEventListener("pointerdown",e=>{ if(e.target.closest(".gnode")) return; const f=1000/(svg.clientWidth||1000); pan={x:e.clientX,y:e.clientY,vx:G.view.x,vy:G.view.y,f}; try{svg.setPointerCapture(e.pointerId);}catch(_){} });
+  svg.addEventListener("pointermove",e=>{ if(!pan)return; G.view.x=pan.vx+(e.clientX-pan.x)*pan.f; G.view.y=pan.vy+(e.clientY-pan.y)*pan.f; applyView(); });
+  svg.addEventListener("pointerup",()=>{pan=null;}); svg.addEventListener("pointercancel",()=>{pan=null;});
+  svg.addEventListener("wheel",e=>{ e.preventDefault(); gZoom(e.deltaY<0?1.12:0.9); },{passive:false});
+  $("gEco").onclick=()=>{ G.ecotone=!G.ecotone; $("gEco").classList.toggle("on",G.ecotone); relayout(); renderLegend(); };
+  $("gOpen").onclick=()=>{ if(G.sel) go({kind:"note",id:G.sel}); };
+  $("gReset").onclick=()=>{ if(G.root) setMode(G.mode); };
+  $("gZin").onclick=()=>gZoom(1.2); $("gZout").onclick=()=>gZoom(1/1.2);
+})();
+
+$("homeBtn").onclick=()=>go({kind:"home"});
+$("backBtn").onclick=back;
+go({kind:"home"},false);
+</script>
+</body>
+</html>
