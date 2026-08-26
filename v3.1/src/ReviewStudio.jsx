@@ -11,6 +11,7 @@ function workspaceIntentKey(intent) {
   if (!intent) return "evidence";
   if (typeof intent === "string") return intent;
   if (intent.kind === "roleGraph") return "roleGraph";
+  if (intent.kind === "print") return "print";
   if (intent.kind === "evidence") return `evidence-${intent.evidenceId || "selected"}`;
   if (intent.kind === "graph") return `graph-${intent.graphId || "selected"}`;
   return "evidence";
@@ -49,6 +50,7 @@ export default function ReviewStudio(props) {
           onBack={props.onBack}
           onEnterStudio={(intent) => openWorkspace(intent || { kind: "evidence" })}
           onOpenRoleGraph={() => openWorkspace({ kind: "roleGraph" })}
+          onPrintPackage={() => openWorkspace({ kind: "print" })}
         />
       </div>
 

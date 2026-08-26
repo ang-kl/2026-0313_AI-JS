@@ -454,7 +454,7 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph,
+  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onPrintPackage,
 }) {
   const frameRef = useRef(null);
   const [anchor, setAnchor] = useState("role");
@@ -965,6 +965,7 @@ export default function WorkUniverseLanding({
           <div className="wu-cmdGroup" aria-label="Commands">
             {onBack && <button className="wu-cmdBtn" type="button" onClick={onBack}>← Step 2</button>}
             <button className="wu-cmdBtn" type="button" onClick={resetUniverse}>Reset</button>
+            {onPrintPackage && <button data-testid="wu-open-print-package" className="wu-cmdBtn" type="button" onClick={onPrintPackage}>Print / PDF</button>}
           </div>
           <div className="wu-stateGroup"><span className="wu-pill">Level 1</span><span className="wu-stateText"><b>{footer.label}</b> · {footer.detail}</span><span className="wu-pill">AI-assisted · human decides</span></div>
         </footer>

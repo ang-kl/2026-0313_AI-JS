@@ -26,6 +26,7 @@ import Canvas, { WS_CORE, WS_LABELS, WS_SHORT, WS_ALREADY_PLACED, wsPlacementOf,
 // window render functions, labels, tab placement and the connector anchor contract
 // all derive from it. The 14 individual window imports live inside the registry now.
 import { WINDOWS, TAB_WINDOWS } from "./review/registry.jsx";
+import PrintPackage from "./review/PrintPackage.jsx";
 
 // Doctrine exposure bands (fixed order, S1.2) - colour encodes band only.
 // Build-status percentages for the strip above the tabs now come from
@@ -699,6 +700,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
+  const [printOpen, setPrintOpen] = useState(false);
+  const [printVariant, setPrintVariant] = useState("clean");
   // Modal spec (11-07 '26): the build-progress modal starts open (centred, blocking);
   // "Read the page while it builds" minimises it to the inline strip. The error state
   // is dismissable separately and re-arms if a new error arrives.
@@ -1236,6 +1239,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     setNavOpen(false);
     if (intent.evidenceId) setActiveSpan(intent.evidenceId);
 
+    if (intent.kind === "print") {
+      setPrintOpen(true);
+      return;
+    }
+
     const openWindow = (id) => setWinState(id, "floating");
     if (intent.kind === "roleGraph" || intent.kind === "graph-1" || (intent.kind === "graph" && intent.graphId === 1)) {
       openWindow("roleGraph");
@@ -1553,6 +1561,11 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         <div style={{ flex: "none", display: "flex", alignItems: "center", gap: 8 }}>
           {bandTok && <span style={{ display: "flex", alignItems: "center", gap: 6, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: bandTok.ink, background: bandTok.bg, border: "1px solid " + bandTok.border, borderRadius: 6, padding: "4px 9px" }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: bandTok.dot }} />{bandTok.label}</span>}
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#fff", border: "1px solid #e6e3db", borderRadius: 6, padding: "4px 9px" }}>{duties.length} duties {String.fromCharCode(0x00b7)} {skills.length} skills</span>
+          <button data-testid="open-print-package" type="button" onClick={() => setPrintOpen(true)}
+            title="Preview the editorial review package for print or PDF"
+            style={{ minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, color: "#14204f", background: "#ffffff", border: "1px solid #aab8da", borderRadius: 6, padding: "0 10px", cursor: "pointer" }}>
+            Print / PDF
+          </button>
           {onOpenOkf && (
             <button type="button" onClick={onOpenOkf} title="View this analysis as an OKF concept document" style={{ minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "0 9px", cursor: "pointer" }}>{"{ } OKF"}</button>
           )}
@@ -1900,6 +1913,21 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
         </div>
       </div>
     </div>
+    <PrintPackage
+      open={printOpen}
+      variant={printVariant}
+      setVariant={setPrintVariant}
+      onClose={() => setPrintOpen(false)}
+      result={result}
+      title={title}
+      employer={employer}
+      source={source}
+      confidence={footerConf}
+      dissection={dissection}
+      comments={dissection.comments}
+      decisions={commentStatus}
+      critical={critical}
+    />
     </>
   );
 }

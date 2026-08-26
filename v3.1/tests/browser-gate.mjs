@@ -73,6 +73,30 @@ for (const id of graphIds) {
 const r3fCount = await page.getByTestId('work-universe-r3f').count();
 console.log(`R3F canvas present: ${r3fCount > 0}`);
 
+// The Work Universe utility route must open a real editorial package, not print the dashboard.
+await page.getByTestId('wu-open-print-package').click();
+await requireVisible(page.getByTestId('v31-workspace-print'), 'Print intent did not reach the existing Step 3 workspace');
+const printPreview = page.getByTestId('print-package-preview');
+await requireVisible(printPreview, 'Printable editorial package did not open');
+const cleanPrintText = await printPreview.innerText();
+for (const heading of ['Clean role read', 'Candidate action brief', 'Interview question sheet', 'Resume alignment rationale']) {
+  if (!cleanPrintText.includes(heading)) throw new Error(`Clean print package is missing ${heading}`);
+}
+if (!cleanPrintText.includes('WITHHELD')) throw new Error('Print package guessed absent candidate/source evidence instead of withholding');
+await page.getByRole('button', { name: 'Full review' }).click();
+const reviewPrintText = await printPreview.innerText();
+for (const heading of ['All-markup review', 'Reviewer summary and decision ledger']) {
+  if (!reviewPrintText.includes(heading)) throw new Error(`Full review print package is missing ${heading}`);
+}
+await screenshot('08-print-package.png');
+await page.emulateMedia({ media: 'print' });
+await page.pdf({ path: 'test-results/step3-review-package.pdf', format: 'A4', printBackground: true });
+await page.emulateMedia({ media: 'screen' });
+if (fs.statSync('test-results/step3-review-package.pdf').size < 10000) throw new Error('Generated Step 3 PDF is unexpectedly small');
+await page.locator('.v31-print-controls .close').click();
+await page.getByTestId('return-work-universe').click();
+await requireVisible(universe, 'Work Universe did not restore after print-package review');
+
 await page.getByTestId('graph-labour').locator('.wu-signal').filter({ hasText: 'Canonical skills' }).click();
 const detail = page.getByTestId('wu-detail');
 await requireVisible(detail, 'Labour first-order signal did not open its evidence detail');
@@ -184,7 +208,7 @@ fs.writeFileSync('test-results/claude-contract.json', JSON.stringify(claudeReque
 fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, null, 2));
 fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
-  roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
+  roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
   materialBrowserErrors: errors,
 }, null, 2));
 
