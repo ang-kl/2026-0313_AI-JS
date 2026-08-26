@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   browser-gate:
@@ -70,3 +70,18 @@ jobs:
             v3.1/test-results/
             /tmp/v31-server.log
           if-no-files-found: warn
+
+      - name: Normalise final v3.1 package version
+        if: success() && github.ref_name == 'chatgpt/v3.1-production-gate-20260826'
+        working-directory: v3.1
+        run: |
+          if node -e "process.exit(require('./package.json').version === '3.1.0' ? 0 : 1)"; then
+            echo "v3.1 package version already normalised"
+            exit 0
+          fi
+          npm version 3.1.0 --no-git-tag-version
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore(v3.1): normalise package version"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
