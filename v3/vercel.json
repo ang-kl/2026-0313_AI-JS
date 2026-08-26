@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -rf api && cp -R ../v3.1/api api && npm --prefix ../v3.1 install && npm --prefix ../v3.1 run build && rm -rf dist && cp -R ../v3.1/dist dist",
   "outputDirectory": "dist",
   "regions": ["sin1", "hnd1"],
   "functions": {
