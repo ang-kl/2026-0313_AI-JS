@@ -72,7 +72,7 @@ for (const id of graphIds) {
 const r3fCount = await page.getByTestId('work-universe-r3f').count();
 console.log(`R3F canvas present: ${r3fCount > 0}`);
 
-await page.getByTestId('graph-labour').locator('.wu-signal').nth(1).click();
+await page.getByTestId('graph-labour').locator('.wu-signal').filter({ hasText: 'Canonical skills' }).click();
 const detail = page.getByTestId('wu-detail');
 await requireVisible(detail, 'Labour first-order signal did not open its evidence detail');
 if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error('Labour detail did not retain selected Canonical skills signal');

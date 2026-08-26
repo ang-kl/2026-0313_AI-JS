@@ -1,126 +1,282 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
 const C = {
-  ink: "#17343a", muted: "#64777a", line: "#c8d6d3", accent: "#176775",
-  soft: "#e5f0ed", panel: "#ffffff", bg: "#f4f1e8", withheld: "#8a6a16",
-  navy: "#274d72", paper: "#fbfaf6",
+  bg: "#f5f7fa",
+  panel: "#ffffff",
+  panel2: "#f8fafc",
+  ink: "#1a202c",
+  muted: "#6b7a8d",
+  line: "#dde3ec",
+  line2: "#e7edf4",
+  accent: "#1a56db",
+  soft: "#e8f0fe",
+};
+
+const GRAPH_DEFS = [
+  { id: 1, key: "labour", name: "LABOUR GRAPH", title: "Labour Graph", flow: "Role → Task → Skill" },
+  { id: 2, key: "organisation", name: "ORGANISATION WORK", title: "Organisation Work Graph", flow: "Purpose → Outcome → Work" },
+  { id: 3, key: "intelligence", name: "INTELLIGENCE GRAPH", title: "Intelligence Graph", flow: "Human ↔ Org ↔ Agent ↔ External" },
+  { id: 4, key: "human-agent", name: "HUMAN–AGENT GRAPH", title: "Human-Agent Graph", flow: "Acquire → Analyse → Select → Commit" },
+  { id: 5, key: "transition", name: "TRANSITION GRAPH", title: "Transition Graph", flow: "Future Work − Individual Capital" },
+];
+const GRAPH_BY_ID = Object.fromEntries(GRAPH_DEFS.map((g) => [g.id, g]));
+
+const PROV_LABEL = {
+  direct: { label: "from posting", tone: "mcf" },
+  computed: { label: "computed", tone: "computed" },
+  derived: { label: "derived", tone: "derived" },
+  withheld: { label: "withheld", tone: "withheld" },
 };
 
 function arr(v) { return Array.isArray(v) ? v : []; }
+function clean(v) { return String(v || "").replace(/\s+/g, " ").trim(); }
+function textOf(v) {
+  if (typeof v === "string") return clean(v);
+  if (!v || typeof v !== "object") return "";
+  return clean(v.text || v.label || v.name || v.title || v.description || "");
+}
 function n(v) { return typeof v === "number" && Number.isFinite(v) ? v : null; }
-function labelValue(v) { return v === null || v === undefined || v === "" ? "—" : String(v); }
 function firstDefined(...vals) {
   for (const v of vals) if (v !== undefined && v !== null && v !== "") return v;
   return null;
 }
-function signal(label, value, method, detail, boundary, status = "available") {
-  return { label, value: labelValue(value), method, detail, boundary, status };
+function valueLabel(v) { return v === null || v === undefined || v === "" ? "—" : String(v); }
+function uniq(items) {
+  const seen = new Set();
+  return arr(items).filter((item) => {
+    const key = clean(typeof item === "string" ? item : item && (item.id || item.label || item.name || item.text));
+    if (!key || seen.has(key.toLowerCase())) return false;
+    seen.add(key.toLowerCase());
+    return true;
+  });
 }
-function withheld(label, detail, boundary) {
-  return signal(label, "—", "WITHHELD", detail, boundary, "withheld");
+function uniqNums(items) {
+  return [...new Set(arr(items).map((item) => Number(item)).filter((item) => Number.isFinite(item)))].sort((a, b) => a - b);
 }
+function compactLabel(text, fallback) {
+  const s = clean(text);
+  if (!s) return fallback;
+  const words = s.replace(/[.;:]+$/g, "").split(/\s+/).slice(0, 7).join(" ");
+  return words.length > 72 ? `${words.slice(0, 69)}...` : words;
+}
+function graphLinksFor(text, kind) {
+  const s = clean(text).toLowerCase();
+  const graphs = new Set([1]);
+  if (kind === "req") graphs.add(5);
+  if (/\b(govern|policy|compliance|stakeholder|business|department|organisation|organization|vendor|supplier|budget|audit|risk|outcome|kpi|performance)\b/.test(s)) graphs.add(2);
+  if (/\b(data|analytic|analysis|report|dashboard|model|evidence|audit|risk|intelligence|knowledge|system|policy|metric)\b/.test(s)) graphs.add(3);
+  if (/\b(ai|agent|automat|workflow|process|system|tool|approve|authori[sz]e|commit|verify|select|recommend|implement)\b/.test(s)) graphs.add(4);
+  if (/\b(change|transition|future|transform|automation|develop|train|adapt|capability|skill|career|learn|strategy|optimis|optimiz)\b/.test(s)) graphs.add(5);
+  return [...graphs].sort((a, b) => a - b);
+}
+function chipKind(methods, status) {
+  if (status === "withheld" || arr(methods).some((m) => /withheld/i.test(m))) return "withheld";
+  if (arr(methods).some((m) => /computed|rule/i.test(m))) return "computed";
+  if (arr(methods).some((m) => /derived|inferred|llm|esco/i.test(m))) return "derived";
+  return "direct";
+}
+function methodList(...values) {
+  return values.flatMap((v) => Array.isArray(v) ? v : [v]).map((v) => clean(v)).filter(Boolean);
+}
+function makeSignal(id, graphId, name, value, methods, desc, items, production, boundary, status) {
+  const cleanItems = arr(items).map((item) => typeof item === "string" ? item : item && item.id).filter(Boolean);
+  const finalStatus = status || (value === null || value === undefined || value === "WITHHELD" || value === "—" ? "withheld" : "available");
+  return {
+    id,
+    graphId,
+    name,
+    value: finalStatus === "withheld" ? "WITHHELD" : valueLabel(value),
+    methods: methodList(methods),
+    provenance: chipKind(methods, finalStatus),
+    desc,
+    items: cleanItems,
+    production,
+    boundary,
+    status: finalStatus,
+  };
+}
+function withheldSignal(id, graphId, name, desc, items, boundary) {
+  return makeSignal(id, graphId, name, "WITHHELD", ["WITHHELD", "RULE"], desc, items, "Evidence gate failed before a value was produced.", boundary, "withheld");
+}
+function skillLabel(skill) {
+  return clean(skill && (skill.skill || skill.label || skill.name || skill.preferredLabel || skill.title)) || "";
+}
+function dutyLayer(duty) { return clean(duty && (duty.layer || duty.workLayer || duty.category)); }
+function dutyExposure(duty) { return clean(duty && firstDefined(duty.exposureNow, duty.band, duty.exposure, duty.level)); }
+function functionVocabulary(evidence) {
+  const text = evidence.map((e) => e.text).join(" ").toLowerCase();
+  const out = [];
+  [
+    ["Acquire", /\b(source|gather|collect|procure|obtain|scan|research)\b/],
+    ["Analyse", /\b(analy[sz]e|assess|evaluate|review|audit|monitor|interpret)\b/],
+    ["Generate", /\b(write|draft|prepare|develop|create|produce|build)\b/],
+    ["Recommend", /\b(recommend|advise|propose|strategy|optimis|optimiz)\b/],
+    ["Select", /\b(select|prioriti[sz]e|decide|shortlist|choose)\b/],
+    ["Authorise", /\b(authori[sz]e|approve|govern|sign.?off|commit)\b/],
+    ["Implement", /\b(implement|execute|roll.?out|deliver|manage|lead|drive)\b/],
+    ["Verify", /\b(verify|validate|check|ensure|compliance|risk|control)\b/],
+  ].forEach(([label, re]) => { if (re.test(text)) out.push(label); });
+  return out;
+}
+function detectCoverage(evidence) {
+  const joined = evidence.map((e) => e.text).join(" ").toLowerCase();
+  const dimensions = [
+    ["Purpose", /\b(objective|purpose|mission|strateg)\b/],
+    ["Outcome", /\b(outcome|deliver|kpi|performance|result)\b/],
+    ["Work", /\b(manage|lead|drive|support|develop|implement|review)\b/],
+    ["Actor", /\b(stakeholder|team|vendor|supplier|department|partner)\b/],
+    ["Capability", /\b(capability|skill|expertise|experience|competenc)\b/],
+    ["Resource", /\b(system|tool|budget|resource|data|platform)\b/],
+    ["Policy", /\b(policy|compliance|governance|regulatory|framework)\b/],
+    ["Dependency", /\b(cross-functional|liais|coordinate|partner|dependency)\b/],
+    ["Evidence", /\b(report|metric|data|audit|analysis|evidence)\b/],
+    ["Risk", /\b(risk|control|audit|issue|remediation)\b/],
+    ["Authority", /\b(approve|approval|authori[sz]e|sign.?off|mandate)\b/],
+    ["Economics", /\b(cost|budget|commercial|savings|procurement|tender)\b/],
+  ];
+  return dimensions.filter(([, re]) => re.test(joined)).map(([label]) => label);
+}
+function buildEvidence(result, posting) {
+  const anatomyDuties = arr(result && result.jobAnatomy && result.jobAnatomy.duties);
+  const rdDuties = arr(result && result.responsibilitiesData && result.responsibilitiesData.responsibilities);
+  const dutySource = anatomyDuties.length ? anatomyDuties : rdDuties;
+  const duties = dutySource.map((d, i) => ({
+    id: `D${i + 1}`,
+    kind: "duty",
+    text: textOf(d),
+    quote: clean(d && d.quote),
+    layer: dutyLayer(d),
+    exposure: dutyExposure(d),
+  })).filter((e) => e.text);
 
+  const postingSkills = uniq(arr(posting && posting.skills).map((s) => clean(s))).slice(0, 8);
+  const reqs = postingSkills.map((s, i) => ({
+    id: `R${i + 1}`,
+    kind: "req",
+    text: s,
+    quote: "",
+    layer: "",
+    exposure: "",
+  }));
+
+  return duties.concat(reqs).map((e) => ({ ...e, graphs: graphLinksFor(e.text, e.kind) }));
+}
+function buildInterpretations(evidence, result) {
+  const duties = evidence.filter((e) => e.kind === "duty");
+  const workUnits = duties.map((e, i) => ({
+    id: `WU${i + 1}`,
+    type: "Work Unit",
+    name: e.layer ? `${e.layer}: ${compactLabel(e.text, `Work unit ${i + 1}`)}` : compactLabel(e.text, `Work unit ${i + 1}`),
+    src: [e.id],
+  }));
+  const intelligence = duties
+    .filter((e) => /data|analysis|report|policy|audit|risk|system|stakeholder|govern|metric|kpi|evidence/i.test(e.text))
+    .map((e, i) => ({
+      id: `INT${i + 1}`,
+      type: "Intelligence",
+      name: compactLabel(e.text, `Intelligence object ${i + 1}`),
+      src: [e.id],
+    }));
+  const supplied = arr(result && result.workUniverse && (result.workUniverse.interpretations || result.workUniverse.objects))
+    .map((x, i) => ({ id: clean(x.id) || `INTS${i + 1}`, type: clean(x.type) || "Supplied", name: textOf(x), src: arr(x.src || x.sourceIds) }))
+    .filter((x) => x.name);
+  return workUnits.concat(intelligence, supplied);
+}
 function buildUniverse(result, title, employer, band, posting) {
-  const anatomy = result && result.jobAnatomy;
-  const rd = result && result.responsibilitiesData;
-  const duties = arr(anatomy && anatomy.duties).length ? arr(anatomy.duties) : arr(rd && rd.responsibilities);
-  const skills = arr(result && result.skills);
-  const classified = duties.filter((d) => d && typeof d === "object" && firstDefined(d.exposureNow, d.band, d.exposure));
+  const evidence = buildEvidence(result, posting);
+  const interpretations = buildInterpretations(evidence, result);
+  const duties = evidence.filter((e) => e.kind === "duty");
+  const skills = uniq(arr(result && result.skills).map(skillLabel).filter(Boolean));
+  const classified = duties.filter((d) => d.exposure);
+  const workUnits = interpretations.filter((i) => i.type === "Work Unit");
+  const intelObjects = interpretations.filter((i) => i.type === "Intelligence");
   const wu = (result && result.workUniverse) || {};
   const org = wu.organisation || wu.organization || {};
   const intel = wu.intelligence || {};
   const ha = wu.humanAgent || wu.human_agent || {};
   const tr = wu.transition || {};
-
-  const labour = [
-    duties.length
-      ? signal("Source duties", duties.length, "DIRECT", "Duties carried from the Step 2 posting and analysed result evidence.", "The count does not establish effort, frequency or hidden responsibilities.")
-      : withheld("Source duties", "No duty evidence is available to count.", "The Work Universe does not invent duties."),
-    skills.length
-      ? signal("Canonical skills", skills.length, "DERIVED", "Skills already present in the role-analysis result passed into Step 3.", "A role skill does not prove that a particular person possesses it.")
-      : withheld("Canonical skills", "No mapped skills are available in the current result.", "No taxonomy count is guessed."),
-    classified.length
-      ? signal("Classified duties", classified.length, "COMPUTED", "Duties carrying an existing engine classification.", "Unclassified duties remain unclassified; missing exposure is never converted to zero.")
-      : withheld("Classified duties", "No per-duty classification is available.", "No exposure class is inferred on this landing."),
-  ];
-
-  const employerKnown = !!String(employer || (posting && posting.employer) || "").trim();
-  const caps = arr(firstDefined(org.capabilities, result && result.organisationCapabilities, result && result.organizationCapabilities));
+  const coverage = detectCoverage(evidence);
+  const functions = functionVocabulary(evidence);
   const authority = firstDefined(org.authority, result && result.authority);
-  const orgSignals = [
-    employerKnown
-      ? signal("Employer evidence", "Available", "DIRECT", "The selected Step 2 role context carries an employer.", "Employer identity alone does not establish internal workflow or maturity.")
-      : withheld("Employer evidence", "No employer evidence is attached to this role context.", "Organisation claims remain withheld."),
-    caps.length
-      ? signal("Capabilities", caps.length, "DERIVED", "Organisation capability objects supplied by the current result.", "Count does not establish maturity, capacity or performance.")
-      : withheld("Capabilities", "No organisation capability objects are available yet.", "A job advertisement is not enough to invent organisation capabilities."),
-    authority !== null
-      ? signal("Authority", authority, "DIRECT / DERIVED", "Authority evidence supplied by the current result.", "Only the supplied scope is shown.")
-      : withheld("Authority", "Approval or commit authority is not established.", "Never infer authority from title or seniority."),
-  ];
-
-  const intelObjects = arr(firstDefined(intel.objects, result && result.intelligenceObjects));
+  const suppliedCaps = arr(firstDefined(org.capabilities, result && result.organisationCapabilities, result && result.organizationCapabilities));
   const actionable = n(firstDefined(intel.agentActionableCount, intel.agent_actionable_count));
   const humanHeavy = n(firstDefined(intel.humanHeavyCount, intel.human_heavy_count));
-  const intelSignals = [
-    intelObjects.length
-      ? signal("Intelligence objects", intelObjects.length, "DERIVED", "Intelligence objects supplied by Work Universe data.", "Existence does not establish access rights or completeness.")
-      : withheld("Intelligence objects", "No Intelligence Graph objects have been produced yet.", "No object count is fabricated from role wording."),
-    actionable !== null
-      ? signal("Agent-actionable", actionable, "COMPUTED", "Count supplied by the governed Intelligence Graph computation.", "Agent-actionable does not mean reliably delegable.")
-      : withheld("Agent-actionable", "Agent actionability has not been established.", "Requires access, reliability and environment evidence."),
-    humanHeavy !== null
-      ? signal("Human-heavy", humanHeavy, "COMPUTED", "Count supplied by the governed Intelligence Graph computation.", "Current human-heavy is not a permanent human-only claim.")
-      : withheld("Human-heavy", "Human-heavy intelligence has not been established.", "No permanence claim is made."),
-  ];
-
   const allocation = firstDefined(ha.allocation, ha.hha, result && result.humanAgentAllocation);
-  const functions = n(firstDefined(ha.functionCount, ha.functionsCount, Array.isArray(ha.functions) ? ha.functions.length : null));
-  const exposureBand = firstDefined(band, result && result.band, result && result.exposureBand);
-  const haSignals = [
-    functions !== null
-      ? signal("Functions", functions, "COMPUTED", "Canonical execution functions supplied by Human-Agent analysis.", "A function is not a job or a person.")
-      : withheld("Functions", "No Human-Agent function analysis has been produced yet.", "No function count is inferred from title text."),
-    exposureBand !== null
-      ? signal("Exposure band", exposureBand, "COMPUTED", "Existing deterministic role-exposure result carried into the Work Universe.", "Exposure is not an H/HY/A replacement ratio.")
-      : withheld("Exposure band", "No deterministic exposure band is available.", "Missing exposure remains withheld."),
-    allocation !== null
-      ? signal("H / HY / A", typeof allocation === "string" ? allocation : JSON.stringify(allocation), "RULE + PROJECTED", "Human / Hybrid / Agent allocation supplied by Work Universe data.", "Scenario allocation is not a headcount replacement forecast.")
-      : withheld("H / HY / A", "Human / Hybrid / Agent allocation is not established by the current evidence.", "Requires work, capability, reliability, authority and adoption evidence."),
-  ];
-
+  const suppliedFunctions = n(firstDefined(ha.functionCount, ha.functionsCount, Array.isArray(ha.functions) ? ha.functions.length : null));
+  const exposureBand = firstDefined(band, result && result.band, result && result.exposureBand, result && result.occExposure && result.occExposure.band);
   const changing = firstDefined(tr.changingFirst, tr.changing_first);
   const formation = firstDefined(tr.highFormationCount, tr.high_formation_count);
   const delta = firstDefined(tr.personalDelta, tr.personal_delta);
+  const allDutyIds = duties.map((d) => d.id);
+  const allEvidenceIds = evidence.map((d) => d.id);
+
+  const labour = [
+    duties.length
+      ? makeSignal("L1", 1, "Source duties", duties.length, ["OBSERVED", "DIRECT"], "Explicit responsibility lines carried from the selected role source.", allDutyIds, "Direct count of visible duty rows.", "Does not establish hidden work, frequency or effort.")
+      : withheldSignal("L1", 1, "Source duties", "No duty evidence is available to count.", [], "The Work Universe does not invent duties."),
+    workUnits.length
+      ? makeSignal("L2", 1, "Distilled Work Units", workUnits.length, ["DERIVED", "RULE"], "Work-unit rows derived from the duty evidence currently available.", workUnits.map((w) => w.id), "One auditable work unit is produced per duty/layer row unless supplied data already gives one.", "Work-unit boundaries are interpretation, not source wording.")
+      : withheldSignal("L2", 1, "Distilled Work Units", "No duty set is available to distil.", [], "No work-unit count is guessed from title text."),
+    skills.length
+      ? makeSignal("L3", 1, "Canonical skills", skills.length, ["DERIVED", "ESCO / RULE"], "Role skill concepts already present in the analysis result.", skills.map((_, i) => `SK${i + 1}`), "Counts the canonical role skills supplied to Step 3.", "Role requirements are not proof that any person possesses the skill.")
+      : withheldSignal("L3", 1, "Canonical skills", "No mapped skill evidence is available in the current result.", [], "No taxonomy count is guessed."),
+  ];
+  const orgSignals = [
+    coverage.length
+      ? makeSignal("O1", 2, "OWG evidence coverage", `${Math.round((coverage.length / 12) * 100)}%`, ["DERIVED", "RULE"], "Organisation Work Graph dimensions with visible evidence in the selected source.", allEvidenceIds, "Keyword-gated coverage across 12 canonical organisation-work dimensions.", "Coverage is not organisation truth or maturity.")
+      : withheldSignal("O1", 2, "OWG evidence coverage", "The source does not expose enough organisation-work dimensions to score.", allEvidenceIds, "A job title alone cannot establish organisation structure."),
+    suppliedCaps.length || workUnits.length
+      ? makeSignal("O2", 2, "Capabilities", suppliedCaps.length || workUnits.length, ["DERIVED", suppliedCaps.length ? "SUPPLIED" : "RULE"], suppliedCaps.length ? "Capability objects supplied by the current result." : "Capability clusters mirrored from the available work units.", suppliedCaps.length ? suppliedCaps.map((_, i) => `CAP${i + 1}`) : workUnits.map((w) => w.id), "Capabilities are counted only from supplied objects or visible work-unit evidence.", "Count does not establish maturity, capacity or ownership.")
+      : withheldSignal("O2", 2, "Capabilities", "No organisation capability objects or duty-derived work units are available.", [], "The app does not fabricate organisation capabilities."),
+    authority !== null
+      ? makeSignal("O3", 2, "Authority", authority, ["DIRECT", "DERIVED"], "Authority evidence supplied by the current result.", allEvidenceIds, "Only the supplied authority scope is shown.", "No stronger approval or commit scope is inferred.")
+      : withheldSignal("O3", 2, "Authority", "Approval or irreversible commit authority is not established.", allEvidenceIds, "Never infer authority from title, seniority, lead, drive or oversee."),
+  ];
+  const intelSignals = [
+    intelObjects.length
+      ? makeSignal("I1", 3, "Intelligence objects", intelObjects.length, ["DERIVED", "RULE"], "Distinct intelligence domains detected from duties and source rows.", intelObjects.map((x) => x.id), "Source rows are converted into named intelligence objects by auditable text rules.", "Object existence does not prove access, storage, API availability or data quality.")
+      : withheldSignal("I1", 3, "Intelligence objects", "No Intelligence Graph objects have been produced yet.", allEvidenceIds, "No object count is fabricated from role wording."),
+    actionable !== null
+      ? makeSignal("I2", 3, "Agent-actionable", actionable, ["COMPUTED"], "Count supplied by governed Intelligence Graph computation.", allEvidenceIds, "Reads only the supplied agent-actionability value.", "Agent-actionable does not mean reliably delegable.")
+      : withheldSignal("I2", 3, "Agent-actionable", "Agent actionability has not been established.", allEvidenceIds, "Requires access, reliability, environment and authority evidence."),
+    humanHeavy !== null || classified.length
+      ? makeSignal("I3", 3, "Human-heavy", humanHeavy !== null ? humanHeavy : classified.filter((d) => /human|low|accountability|relational|judgment/i.test(`${d.exposure} ${d.layer}`)).length, ["DERIVED", humanHeavy !== null ? "COMPUTED" : "RULE"], "Human-heavy signals supplied by the graph or derived from classified duty layers.", classified.map((d) => d.id), "Counts supplied human-heavy objects, or classified duties in accountability/relational/judgment bands.", "Current human-heavy does not mean permanently human-only.")
+      : withheldSignal("I3", 3, "Human-heavy", "Human-heavy intelligence has not been established.", allEvidenceIds, "No permanence claim is made."),
+  ];
+  const haSignals = [
+    suppliedFunctions !== null || functions.length
+      ? makeSignal("H1", 4, "Functions evaluated", suppliedFunctions !== null ? suppliedFunctions : functions.length, ["DERIVED", suppliedFunctions !== null ? "COMPUTED" : "RULE"], "Canonical execution functions visible in the evidence.", allEvidenceIds, "Maps source verbs to Acquire / Analyse / Generate / Recommend / Select / Authorise / Implement / Verify.", "A function is not a job or a person.")
+      : withheldSignal("H1", 4, "Functions evaluated", "No Human-Agent function analysis has been produced yet.", allEvidenceIds, "No function count is inferred from title alone."),
+    allocation !== null
+      ? makeSignal("H2", 4, "H / HY / A", typeof allocation === "string" ? allocation : JSON.stringify(allocation), ["RULE", "PROJECTED"], "Human / Hybrid / Agent allocation supplied by Work Universe data.", allEvidenceIds, "Reads the supplied scenario allocation.", "Scenario allocation is not a headcount replacement forecast.")
+      : withheldSignal("H2", 4, "H / HY / A", "Human / Hybrid / Agent allocation is not established by the current evidence.", allEvidenceIds, "Requires work, capability, reliability, authority and adoption evidence."),
+    exposureBand !== null
+      ? makeSignal("H3", 4, "Exposure band", exposureBand, ["COMPUTED"], "Existing deterministic role-exposure result carried into the Work Universe.", classified.map((d) => d.id), "Reuses the existing exposure result; no value is recomputed here.", "Exposure is not an H/HY/A replacement ratio.")
+      : withheldSignal("H3", 4, "Authority gate", "The public source does not establish exact approval or irreversible commit authority.", allEvidenceIds, "No autonomous commit can be inferred."),
+  ];
+  const formationCount = formation !== null ? formation : classified.filter((d) => /accountability|relational|judgment|human/i.test(`${d.layer} ${d.exposure}`)).length;
   const transitionSignals = [
     changing !== null
-      ? signal("Changing first", changing, "PROJECTED", "Scenario projection supplied by the Transition Graph.", "Projection is not observed displacement.")
-      : withheld("Changing first", "No governed future-work projection is available yet.", "The landing does not predict change from exposure alone."),
-    formation !== null
-      ? signal("High formation", formation, "DERIVED / RULE", "Formation-value result supplied by the Transition Graph.", "High formation does not mean permanently human-only.")
-      : withheld("High formation", "Formation value has not been established.", "No developmental judgement is invented."),
+      ? makeSignal("T1", 5, "Changing first", changing, ["PROJECTED"], "Scenario projection supplied by the Transition Graph.", allEvidenceIds, "Reads the supplied future-work projection.", "Projection is not observed displacement.")
+      : withheldSignal("T1", 5, "Changing first", "No governed future-work projection is available yet.", allEvidenceIds, "The landing does not predict change from exposure alone."),
+    formation !== null || formationCount > 0
+      ? makeSignal("T2", 5, "High formation", formationCount, ["DERIVED", formation !== null ? "SUPPLIED" : "RULE"], "Formation value visible in supplied data or resilient work-layer evidence.", classified.map((d) => d.id), "Counts supplied formation rows, or duties in accountability/relational/judgment layers.", "Formation value does not mean permanent human reservation.")
+      : withheldSignal("T2", 5, "High formation", "Formation value has not been established.", allEvidenceIds, "No developmental judgement is invented."),
     delta !== null
-      ? signal("Personal delta", delta, "USER + RULE", "Transition delta calculated from person evidence and future requirements.", "Must remain withheld without person evidence.")
-      : withheld("Personal delta", "No person evidence has been supplied for a personalised transition delta.", "Role evidence alone cannot establish an individual's capability gap."),
+      ? makeSignal("T3", 5, "Personal delta", delta, ["USER", "RULE"], "Transition delta calculated from person evidence and future requirements.", allEvidenceIds, "Reads supplied person-transition data.", "Must remain withheld without person evidence.")
+      : withheldSignal("T3", 5, "Personal delta", "No person evidence has been supplied for a personalised transition delta.", allEvidenceIds, "Role evidence alone cannot establish an individual's capability gap."),
   ];
-
-  return [
-    { id: 1, key: "labour", name: "LABOUR GRAPH", flow: "Role → Task → Skill", signals: labour, action: "Open Role Graph" },
-    { id: 2, key: "organisation", name: "ORGANISATION WORK", flow: "Purpose → Outcome → Work", signals: orgSignals, action: "Open evidence workspace" },
-    { id: 3, key: "intelligence", name: "INTELLIGENCE GRAPH", flow: "Human ↔ Org ↔ Agent ↔ External", signals: intelSignals, action: "Open evidence workspace" },
-    { id: 4, key: "human-agent", name: "HUMAN–AGENT GRAPH", flow: "Acquire → Analyse → Select → Commit", signals: haSignals, action: "Open evidence workspace" },
-    { id: 5, key: "transition", name: "TRANSITION GRAPH", flow: "Future Work − Individual Capital", signals: transitionSignals, action: "Open evidence workspace" },
-  ];
-}
-
-function btn(active) {
+  const signalGroups = { 1: labour, 2: orgSignals, 3: intelSignals, 4: haSignals, 5: transitionSignals };
   return {
-    minHeight: 44, padding: "0 13px", borderRadius: 999,
-    border: `1px solid ${active ? C.accent : C.line}`,
-    background: active ? C.accent : C.panel, color: active ? "#fff" : C.ink,
-    fontSize: 12, fontWeight: 800, cursor: "pointer",
+    evidence,
+    interpretations,
+    skills,
+    duties,
+    coverage,
+    functions,
+    graphs: GRAPH_DEFS.map((g) => ({ ...g, signals: signalGroups[g.id] })),
   };
 }
 
@@ -129,18 +285,82 @@ function webglAvailable() {
   try {
     const canvas = document.createElement("canvas");
     return !!(canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl"));
-  } catch (_) { return false; }
+  } catch (_) {
+    return false;
+  }
+}
+function buttonClass(on) { return on ? "on" : ""; }
+function sourceHref(posting, result) {
+  return clean((posting && (posting.mcfUrl || posting.url)) || (result && result.postingMeta && result.postingMeta.mcfUrl));
+}
+function sourceName(source, result, posting) {
+  return clean(source || (result && result.postingMeta && result.postingMeta.postingSource) || (posting && posting.source) || "source pending");
+}
+function roleSubject(anchor, roleTitle, orgName) {
+  if (anchor === "org") {
+    return {
+      eyebrow: "Organisation universe",
+      title: orgName,
+      meta: "Organisation centre · role evidence re-projected",
+      boundary: "The same evidence is being read from the employer side; missing operating-model facts stay withheld.",
+    };
+  }
+  if (anchor === "person") {
+    return {
+      eyebrow: "Person universe",
+      title: "Person evidence not supplied",
+      meta: "Person centre · USER-PROVEN evidence required",
+      boundary: "Role evidence cannot be silently promoted into personal capability evidence.",
+    };
+  }
+  return {
+    eyebrow: "Role universe",
+    title: roleTitle,
+    meta: "Role centre · selected evidence root",
+    boundary: "The role source is the root; organisation and person claims remain bounded by supplied evidence.",
+  };
+}
+function graphNames(ids) {
+  return arr(ids).map((id) => GRAPH_BY_ID[id] && GRAPH_BY_ID[id].title).filter(Boolean).join(" · ");
+}
+function DetailMethods({ methods }) {
+  return (
+    <div className="wu-methods">
+      {arr(methods).map((method) => <span key={method} className="wu-method">{method}</span>)}
+    </div>
+  );
+}
+function ProvChip({ kind }) {
+  const p = PROV_LABEL[kind] || PROV_LABEL.withheld;
+  return <span className={`wu-prov ${p.tone}`}>{p.label}</span>;
 }
 
 export default function WorkUniverseLanding({
   result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph,
 }) {
+  const frameRef = useRef(null);
   const [anchor, setAnchor] = useState("role");
+  const [mode, setMode] = useState("universe");
+  const [sourceTab, setSourceTab] = useState("o");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedGraph, setSelectedGraph] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [selectedSignal, setSelectedSignal] = useState(null);
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [selectedInterpretation, setSelectedInterpretation] = useState(null);
+  const [detail, setDetail] = useState({ kind: "summary" });
+  const [tocActive, setTocActive] = useState("overview");
+  const [footer, setFooter] = useState({ label: "Neutral", detail: "five canonical graphs visible" });
+  const [geo, setGeo] = useState({ node: 230, nodeSm: 212, anchor: 205 });
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hasWebgl, setHasWebgl] = useState(false);
-  const graphs = useMemo(() => buildUniverse(result, title, employer, band, posting), [result, title, employer, band, posting]);
+  const data = useMemo(() => buildUniverse(result, title, employer, band, posting), [result, title, employer, band, posting]);
+  const roleTitle = clean(title || (posting && posting.title) || (result && result.title)) || "Role evidence pending";
+  const orgName = clean(employer || (posting && (posting.employer || posting.companyName)) || (result && result.employer) || (result && result.postingMeta && result.postingMeta.employer)) || "Organisation evidence pending";
+  const sourceLabel = sourceName(source, result, posting);
+  const srcHref = sourceHref(posting, result);
+  const subject = roleSubject(anchor, roleTitle, orgName);
+  const allSignals = useMemo(() => data.graphs.flatMap((graph) => graph.signals.map((signal) => ({ graph, signal }))), [data.graphs]);
+  const filteredEvidence = data.evidence.filter((e) => sourceFilter === "all" || e.kind === sourceFilter);
 
   useEffect(() => {
     setHasWebgl(webglAvailable());
@@ -152,148 +372,465 @@ export default function WorkUniverseLanding({
     return () => mq.removeEventListener?.("change", sync);
   }, []);
 
-  const roleTitle = title || (posting && posting.title) || "Role evidence pending";
-  const orgName = employer || (posting && (posting.employer || posting.companyName)) || "Organisation evidence pending";
-  const anchorName = anchor === "role" ? roleTitle : anchor === "org" ? orgName : "Person evidence not supplied";
-  const anchorSub = anchor === "role"
-    ? "ROLE centre · analysed Step 2 evidence"
-    : anchor === "org"
-      ? "ORGANISATION centre · same evidence universe"
-      : "PERSON centre · USER-PROVEN evidence required";
-  const sourceLabel = source || (posting && posting.source) || "analysed posting";
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return undefined;
+    const fit = () => {
+      const r = frame.getBoundingClientRect();
+      const w = Math.max(1, r.width);
+      const h = Math.max(1, r.height - 32);
+      const clamp = (min, val, max) => Math.max(min, Math.min(max, val));
+      if (w < 480) {
+        setGeo({
+          node: Math.round(clamp(145, Math.min(w * 0.42, h * 0.24), 162)),
+          nodeSm: Math.round(clamp(140, Math.min(w * 0.39, h * 0.23), 154)),
+          anchor: Math.round(clamp(142, Math.min(w * 0.4, h * 0.23), 158)),
+        });
+        return;
+      }
+      if (w < 700) {
+        setGeo({
+          node: Math.round(clamp(170, Math.min(w * 0.34, h * 0.3), 220)),
+          nodeSm: Math.round(clamp(164, Math.min(w * 0.31, h * 0.28), 205)),
+          anchor: Math.round(clamp(160, Math.min(w * 0.29, h * 0.27), 198)),
+        });
+        return;
+      }
+      setGeo({
+        node: Math.round(clamp(204, Math.min(w * 0.31, h * 0.36), 360)),
+        nodeSm: Math.round(clamp(204, Math.min(w * 0.3, h * 0.34), 330)),
+        anchor: Math.round(clamp(190, Math.min(w * 0.25, h * 0.3), 305)),
+      });
+    };
+    fit();
+    const ro = "ResizeObserver" in window ? new ResizeObserver(fit) : null;
+    if (ro) ro.observe(frame);
+    window.addEventListener("resize", fit);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, []);
 
-  const selectGraph = (graphId) => {
+  const resetUniverse = () => {
+    setMode("universe");
+    setSourceTab("o");
+    setSelectedGraph(null);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "summary" });
+    setTocActive("overview");
+    setFooter({ label: "Role summary", detail: `${roleTitle} · five canonical graphs visible` });
+  };
+  const openSourceFromAnchor = () => {
+    setMode("source");
+    setSourceTab("o");
+    setSelectedGraph(null);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "anchor" });
+    setTocActive("role-anchor");
+    setFooter({ label: "Source / O-I-A", detail: "role anchor opened against the left evidence panel" });
+  };
+  const showGraph = (graphId) => {
+    const graph = data.graphs.find((g) => g.id === graphId);
+    if (!graph) return;
+    setMode("universe");
     setSelectedGraph(graphId);
-    const graph = graphs.find((g) => g.id === graphId);
-    if (graph && !selected) setSelected({ kind: "graph", graph });
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "graph", graph });
+    setTocActive(`graph-${graphId}`);
+    setFooter({ label: graph.title, detail: "parent Work Universe detail loaded" });
   };
-  const selectSignal = (graph, item) => {
+  const showSignal = (graph, signal) => {
+    setMode("lineage");
+    setSourceTab("a");
     setSelectedGraph(graph.id);
-    setSelected({ kind: "signal", graph, signal: item });
+    setSelectedSignal(signal.id);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "signal", graph, signal });
+    setTocActive(`graph-${graph.id}`);
+    setFooter({ label: signal.name, detail: `${signal.value} · ${graph.title} · claim detail active` });
   };
-  const selectAnchor = () => setSelected({
-    kind: "anchor",
-    label: anchor === "role" ? "Role source anchor" : anchor === "org" ? "Organisation anchor" : "Person anchor",
-    detail: anchor === "role"
-      ? `The Work Universe was entered from the selected role evidence: ${roleTitle}.`
-      : anchor === "org"
-        ? `The same evidence universe is re-projected around ${orgName}.`
-        : "Person-centred claims stay withheld until USER-PROVEN evidence is supplied.",
-    boundary: anchor === "person" ? "Role or organisation evidence cannot be silently promoted into personal capability evidence." : "Changing centre changes the projection, not the underlying evidence.",
-    method: anchor === "person" ? "USER-PROVEN / WITHHELD" : "DIRECT",
-  });
-
-  const openSelected = () => {
-    const graphId = selected && selected.graph ? selected.graph.id : selectedGraph;
+  const selectEvidence = (id) => {
+    const evidence = data.evidence.find((e) => e.id === id);
+    if (!evidence) return;
+    setMode("source");
+    setSourceTab("a");
+    setSelectedEvidence(id);
+    setSelectedSignal(null);
+    setSelectedInterpretation(null);
+    setSelectedGraph(null);
+    setDetail({ kind: "evidence", evidence });
+    setTocActive("evidence");
+    setFooter({ label: evidence.id, detail: `${evidence.graphs.length} graph projections highlighted` });
+  };
+  const selectInterpretation = (id) => {
+    const interpretation = data.interpretations.find((x) => x.id === id);
+    if (!interpretation) return;
+    const graphIds = uniqNums(interpretation.src.flatMap((sid) => {
+      const e = data.evidence.find((row) => row.id === sid);
+      return e ? e.graphs : [];
+    }));
+    setMode("source");
+    setSourceTab("a");
+    setSelectedInterpretation(id);
+    setSelectedEvidence(null);
+    setSelectedSignal(null);
+    setSelectedGraph(null);
+    setDetail({ kind: "interpretation", interpretation, graphIds });
+    setTocActive("evidence");
+    setFooter({ label: interpretation.id, detail: `${interpretation.type} selected in the O-I-A trace` });
+  };
+  const openRoleGraph = () => {
+    setMode("rolegraph");
+    setTocActive("role-graph");
+    setDetail({ kind: "rolegraph" });
+    setFooter({ label: "Role Graph", detail: "existing Role Graph workspace requested" });
+    if (onOpenRoleGraph) onOpenRoleGraph();
+  };
+  const openEvidenceWorkspace = () => {
+    const graphId = detail && detail.graph ? detail.graph.id : selectedGraph;
     if (graphId === 1 && onOpenRoleGraph) onOpenRoleGraph();
     else if (onEnterStudio) onEnterStudio(graphId || null);
   };
+  const highlightedGraphs = useMemo(() => {
+    if (selectedEvidence) {
+      const e = data.evidence.find((row) => row.id === selectedEvidence);
+      return e ? e.graphs : [];
+    }
+    if (selectedInterpretation) {
+      const i = data.interpretations.find((row) => row.id === selectedInterpretation);
+      return uniqNums(arr(i && i.src).flatMap((sid) => {
+        const e = data.evidence.find((row) => row.id === sid);
+        return e ? e.graphs : [];
+      }));
+    }
+    return selectedGraph ? [selectedGraph] : [];
+  }, [data.evidence, data.interpretations, selectedEvidence, selectedGraph, selectedInterpretation]);
+  const relatedSignals = selectedEvidence
+    ? allSignals.filter(({ signal }) => signal.items.includes(selectedEvidence))
+    : selectedInterpretation
+      ? allSignals.filter(({ signal }) => signal.items.includes(selectedInterpretation) || arr(data.interpretations.find((i) => i.id === selectedInterpretation)?.src).some((sid) => signal.items.includes(sid)))
+      : selectedSignal
+        ? allSignals.filter(({ signal }) => signal.id === selectedSignal)
+        : [];
 
   return (
     <div data-testid="work-universe" className="wu-root">
       <style>{`
-        .wu-root{min-height:100vh;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif}
-        .wu-main{max-width:1220px;margin:0 auto;padding:18px}
-        .wu-stage{position:relative;min-height:720px;border:1px solid ${C.line};border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 43%,rgba(229,240,237,.86),rgba(255,255,255,.96) 42%,rgba(251,250,246,.98) 74%);box-shadow:0 10px 34px rgba(23,52,58,.07)}
-        .wu-scene{position:absolute;inset:0;opacity:.78;pointer-events:auto}
-        .wu-centre{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);width:190px;height:190px;border-radius:50%;background:rgba(251,250,246,.93);border:3px solid ${C.accent};display:flex;align-items:center;justify-content:center;padding:17px;box-sizing:border-box;z-index:4;box-shadow:0 12px 30px rgba(23,52,58,.12)}
-        .wu-centre button{border:0;background:transparent;color:inherit;cursor:pointer;text-align:center;width:100%;min-height:120px;border-radius:50%}
-        .wu-graph{position:absolute;width:226px;height:226px;border-radius:50%;background:rgba(255,255,255,.92);border:2px solid ${C.line};padding:24px 20px 18px;box-sizing:border-box;z-index:5;box-shadow:0 9px 22px rgba(23,52,58,.08);transition:transform .18s ease,border-color .18s ease,background .18s ease}
-        .wu-graph[data-selected="true"]{border:3px solid ${C.accent};background:rgba(229,240,237,.95);transform:scale(1.025)}
-        .wu-g1{left:5%;top:4%}.wu-g2{right:5%;top:4%}.wu-g3{left:3%;bottom:7%}.wu-g4{right:3%;bottom:7%}.wu-g5{left:50%;bottom:-1%;transform:translateX(-50%)}
-        .wu-g5[data-selected="true"]{transform:translateX(-50%) scale(1.025)}
-        .wu-graph-title{width:100%;border:0;background:transparent;color:${C.accent};font-weight:900;font-size:10px;letter-spacing:.035em;cursor:pointer;text-align:center;min-height:28px;padding:0 4px}
-        .wu-flow{text-align:center;font-weight:800;font-size:10px;margin:2px 0 8px;color:${C.ink}}
-        .wu-signal{width:100%;min-height:40px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;align-items:center;text-align:left;border:1px solid ${C.line};border-radius:9px;background:rgba(255,255,255,.91);padding:5px 7px;margin:4px 0;cursor:pointer;color:${C.ink}}
-        .wu-signal[data-withheld="true"]{border-color:#d8c784;background:#fffdf4}
-        .wu-signal-label{font-size:9px;font-weight:800;line-height:1.15}.wu-signal-value{font-size:10px;font-weight:900;color:${C.accent};max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wu-signal[data-withheld="true"] .wu-signal-value{color:${C.withheld}}
-        .wu-context{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.wu-source{margin-left:auto;font-size:11px;color:${C.muted};max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .wu-detail{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:start;border:1px solid ${C.line};border-radius:14px;background:${C.panel};padding:14px 16px}
-        .wu-kicker{font-size:10px;font-weight:900;letter-spacing:.07em;color:${C.accent};text-transform:uppercase}.wu-detail h2{font-family:Georgia,serif;font-size:20px;margin:5px 0 7px}.wu-detail p{font-size:12px;line-height:1.5;margin:5px 0;color:${C.ink}}.wu-boundary{color:${C.muted}!important}.wu-method{display:inline-flex;padding:4px 8px;border-radius:999px;border:1px solid ${C.line};font-size:10px;font-weight:900;letter-spacing:.03em;background:${C.paper}}
-        .wu-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 2px 4px;font-size:10px;color:${C.muted}}
-        @media(max-width:900px){.wu-scene{display:none}.wu-stage{min-height:0;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;overflow:visible}.wu-centre,.wu-graph{position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none!important;width:100%;height:auto;min-height:190px;border-radius:18px}.wu-centre{grid-column:1/-1}.wu-graph{padding:18px}.wu-detail{grid-template-columns:1fr}.wu-source{margin-left:0;width:100%;max-width:none}}
-        @media(max-width:560px){.wu-stage{grid-template-columns:1fr}.wu-centre{grid-column:auto}.wu-main{padding:12px}.wu-graph{min-height:210px}.wu-context{gap:6px}}
-        @media(prefers-reduced-motion:reduce){.wu-graph{transition:none}}
+        .wu-root{min-height:100svh;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
+        .wu-root *{box-sizing:border-box;min-width:0}.wu-root button{font:inherit;color:inherit}
+        .wu-appShell{min-height:100svh;display:grid;grid-template-rows:48px 42px minmax(0,1fr) 46px;background:var(--bg)}
+        .wu-globalNav{height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line2)}
+        .wu-brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:900;letter-spacing:.02em}.wu-mark{width:24px;height:24px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--accent);font-size:11px;font-weight:900}
+        .wu-navMeta{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);white-space:nowrap}.wu-pill{display:inline-flex;align-items:center;min-height:24px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;background:var(--panel2);font-size:10px;font-weight:800;color:var(--muted)}
+        .wu-secondaryBar{height:42px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;background:#eee;border-bottom:1px solid var(--line2)}
+        .wu-modeTab{height:42px;flex:0 0 auto;border:0;border-bottom:2px solid transparent;background:transparent;padding:0 12px;font-size:12px;cursor:pointer;color:#4d5a5c}.wu-modeTab.on{border-bottom-color:var(--ink);color:var(--ink);font-weight:800}
+        .wu-modeTab:focus-visible,.wu-cmdBtn:focus-visible,.wu-tab:focus-visible,.wu-filter:focus-visible,.wu-outlineBtn:focus-visible,.wu-signal:focus-visible,.wu-anchorAction:focus-visible,.wu-graph:focus-visible,.wu-anchorNode:focus-visible,.wu-itemBtn:focus-visible,.wu-evidenceRow:focus-visible,.wu-interpRow:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+        .wu-workbench{min-height:0;display:grid;grid-template-columns:clamp(310px,20vw,560px) minmax(560px,1fr) clamp(350px,23vw,620px);border-bottom:1px solid var(--line2)}
+        .wu-leftRail,.wu-centrePane,.wu-rightRail{min-height:0;background:var(--panel)}.wu-leftRail{border-right:1px solid var(--line2);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto}.wu-centrePane{display:grid;grid-template-rows:38px minmax(0,1fr);background:var(--bg)}.wu-rightRail{border-left:1px solid var(--line2);display:grid;grid-template-rows:minmax(240px,32%) minmax(0,68%)}
+        .wu-railHead,.wu-centreHead,.wu-rightHead{height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 clamp(16px,1.1vw,26px);border-bottom:1px solid var(--line2);background:var(--panel)}.wu-railHead>div,.wu-centreHead>div,.wu-rightHead>div{min-width:0}.wu-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:900;line-height:1}.wu-railTitle{font-size:12px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wu-meta{font-size:10px;color:var(--muted)}.wu-anchorSwitch{display:flex;gap:4px;flex:0 0 auto}.wu-anchorSwitch button{min-height:28px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:10px;font-weight:900;padding:0 7px;cursor:pointer}.wu-anchorSwitch button.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+        .wu-tabs,.wu-filters{display:flex;flex-wrap:wrap;gap:6px;padding:clamp(10px,.75vw,14px) clamp(14px,1vw,24px);border-bottom:1px solid var(--line2);background:var(--panel)}.wu-tab,.wu-filter{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800;min-height:34px}.wu-tab.on,.wu-filter.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+        .wu-subjectCard{margin:clamp(12px,.9vw,22px) clamp(14px,1.05vw,28px);border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:clamp(11px,.85vw,18px) clamp(12px,.95vw,22px)}.wu-subjectName{font-family:Georgia,serif;font-size:15px;font-weight:800;line-height:1.15;margin:3px 0}.wu-subjectStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.wu-subjectStat{border:1px solid var(--line2);border-radius:7px;background:var(--panel);padding:6px;font-size:9px}.wu-subjectStat b{display:block;font-size:12px}
+        .wu-sourceBody{min-height:0;overflow:auto;padding:clamp(10px,.8vw,18px) clamp(14px,1vw,24px) clamp(16px,1vw,26px)}.wu-evidenceRow,.wu-interpRow{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;margin:0 0 7px;background:var(--panel);cursor:pointer;text-align:left;font-size:11px;line-height:1.32}.wu-evidenceRow:hover,.wu-evidenceRow.selected,.wu-interpRow:hover,.wu-interpRow.selected{border-color:var(--accent);background:var(--soft)}
+        .wu-srcid{font-size:9px;color:var(--accent);font-weight:900;letter-spacing:.04em}.wu-kind{font-size:9px;color:var(--muted);margin-top:3px}.wu-quote{color:var(--muted);font-style:italic}.wu-sourceLinkOut{display:block;margin:10px clamp(14px,1vw,24px) 12px;color:var(--accent);font-size:11px;text-decoration:none}.wu-empty{border:1px dashed var(--line);border-radius:8px;padding:10px;font-size:11px;color:var(--muted);background:var(--panel2)}
+        .wu-universeFrame{position:relative;min-height:0;margin:clamp(10px,.8vw,18px);background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}.wu-universe{--node:${geo.node}px;--node-sm:${geo.nodeSm}px;--anchor:${geo.anchor}px;--node-pad:clamp(12px,calc(var(--node)*.085),25px);--anchor-pad:clamp(12px,calc(var(--anchor)*.095),22px);position:absolute;inset:32px 0 0;z-index:2}.wu-canvasHead{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(12px,.8vw,20px);border-bottom:1px solid var(--line2);font-size:11px;color:var(--muted);background:var(--panel);position:relative;z-index:4}.wu-connectors{position:absolute;inset:32px 0 0;width:100%;height:calc(100% - 32px);pointer-events:none;z-index:1}.wu-connectors line{stroke:var(--line);stroke-width:.22}.wu-connectors line.active{stroke:var(--accent);stroke-width:.48}.wu-scene{position:absolute;inset:32px 0 0;opacity:.2;pointer-events:none;z-index:0}
+        .wu-graph,.wu-anchorNode{position:absolute;border:2px solid var(--line);border-radius:50%;background:rgba(255,255,255,.96);z-index:2;display:flex;flex-direction:column;align-items:stretch;justify-content:center;text-align:center;cursor:pointer;transition:width .14s,height .14s,border-color .12s,background-color .12s,box-shadow .12s,opacity .12s;user-select:none;overflow:hidden}.wu-graph:hover,.wu-anchorNode:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}.wu-graph.active,.wu-anchorNode.active{border-color:var(--accent);background:var(--soft);border-width:3px}.wu-graph.dim{opacity:.42}.wu-g1,.wu-g2,.wu-g3,.wu-g4{width:var(--node);height:var(--node)}.wu-g5{width:var(--node-sm);height:var(--node-sm)}.wu-g1{left:4%;top:7.2%}.wu-g2{right:4%;top:7.2%}.wu-g3{left:3.4%;bottom:12%}.wu-g4{right:3.4%;bottom:12%}.wu-g5{left:50%;bottom:2.6%;transform:translateX(-50%)}.wu-anchorNode{width:var(--anchor);height:var(--anchor);left:50%;top:47%;transform:translate(-50%,-50%);border-color:var(--accent);background:var(--soft)}
+        .wu-nodeInner{padding:var(--node-pad);width:100%;overflow:hidden}.wu-anchorNode .wu-nodeInner{padding:var(--anchor-pad)}.wu-g5 .wu-nodeInner{padding:clamp(11px,calc(var(--node-sm)*.075),21px)}
+        .wu-graphTitle{width:100%;border:0;background:transparent;cursor:pointer;text-align:center;font-size:clamp(10px,calc(var(--node)*.045),13px);font-weight:900;color:var(--accent);letter-spacing:.04em;line-height:1.08;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance;padding:0}
+        .wu-nodeFlow{font-size:clamp(9px,calc(var(--node)*.038),12px);font-weight:800;margin:4px 0 7px;line-height:1.12;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance}.wu-anchorType{font-size:clamp(8px,calc(var(--anchor)*.046),10px);font-weight:900;color:var(--accent);letter-spacing:.08em}.wu-anchorName{font-family:Georgia,serif;font-size:clamp(14px,calc(var(--anchor)*.087),22px);font-weight:800;line-height:1.05;margin:5px auto 4px;max-width:calc(var(--anchor)*.84);white-space:normal;overflow-wrap:anywhere;text-wrap:balance}.wu-anchorSub{font-size:clamp(8px,calc(var(--anchor)*.04),10px);color:var(--muted);line-height:1.18}.wu-anchorActions{display:grid;gap:4px;margin-top:7px}.wu-anchorAction{cursor:pointer;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font-size:clamp(8px,calc(var(--anchor)*.04),10px);font-weight:900;line-height:1.08;padding:clamp(5px,calc(var(--anchor)*.032),8px) 7px;white-space:normal;overflow-wrap:anywhere;hyphens:auto}.wu-anchorAction:hover{border-color:var(--accent);background:var(--panel);color:var(--accent)}
+        .wu-signal{cursor:pointer;width:100%;min-height:clamp(32px,calc(var(--node)*.155),44px);border:1px solid var(--line);border-radius:8px;background:#fff;padding:clamp(4px,calc(var(--node)*.024),7px) clamp(6px,calc(var(--node)*.032),9px);margin:3px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;text-align:left;align-items:center}.wu-signal:hover,.wu-signal.active{border-color:var(--accent);background:var(--soft)}.wu-signal.withheld{background:#fffbeb;border-style:dashed}.wu-signalLabel{font-size:clamp(9px,calc(var(--node)*.039),11px);font-weight:800;line-height:1.08;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalMethod{font-size:clamp(7px,calc(var(--node)*.03),8px);color:var(--muted);margin-top:1px;line-height:1.05;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalValue{font-size:clamp(11px,calc(var(--node)*.048),14px);font-weight:900;white-space:nowrap}
+        .wu-outlinePane{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-bottom:1px solid var(--line2)}.wu-tocScope{padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) 7px}.wu-tocSelect{width:100%;min-height:32px;border:0;background:#edf1f7;border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;font-size:12px;text-align:left}.wu-outlineList{min-height:0;overflow:auto;padding:7px clamp(14px,1vw,24px) 14px;scroll-behavior:smooth}.wu-outlineBtn{width:100%;border:0;border-left:2px solid transparent;border-radius:0;background:transparent;color:#7b8796;display:block;padding:7px 0 7px 13px;margin:0;text-align:left;font-size:11px;line-height:1.35;cursor:pointer;transition:color .14s,border-color .14s,background-color .14s,transform .14s}.wu-outlineBtn:hover{color:var(--ink);background:#f7f9fc}.wu-outlineBtn.on{border-left-color:var(--accent);color:var(--ink);font-weight:800;background:linear-gradient(90deg,var(--soft),transparent)}
+        .wu-drillPane{min-height:0;display:grid;grid-template-rows:38px minmax(0,1fr)}.wu-drillBody{min-height:0;overflow:auto;padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) clamp(16px,1vw,26px);scroll-behavior:smooth}.wu-summaryBlock{padding-bottom:10px}.wu-detailBlock{border-top:1px solid var(--line2);margin-top:10px;padding-top:10px}.wu-detailBlock.empty{display:none}.wu-summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wu-summaryMetric{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:8px;font-size:10px}.wu-summaryMetric b{display:block;font-size:15px;color:var(--ink)}.wu-detailTitle{font-family:Georgia,serif;font-size:19px;font-weight:800;margin:2px 0}.wu-big{font-size:24px;font-weight:900}.wu-method{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 6px;font-size:8px;font-weight:900;margin:2px 3px 2px 0}.wu-desc{font-size:11px;color:var(--muted);line-height:1.5}.wu-item,.wu-itemBtn{background:var(--soft);border-radius:7px;padding:7px 8px;margin:6px 0;font-size:10px}.wu-itemBtn{width:100%;border:1px solid transparent;text-align:left;cursor:pointer}.wu-itemBtn:hover{border-color:var(--accent)}.wu-itemGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wu-prov{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:900;margin:2px 4px 2px 0}.wu-prov.mcf{color:#0f766e;background:#ecfeff}.wu-prov.computed{color:#1e40af;background:#eef2ff}.wu-prov.derived{color:#b45309;background:#fffbeb}.wu-prov.withheld{color:#64748b;background:#f1f5f9}
+        .wu-footerBar{height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;background:var(--panel);border-top:1px solid var(--line2);font-size:11px}.wu-cmdGroup,.wu-stateGroup{display:flex;align-items:center;gap:6px;min-width:0}.wu-cmdBtn{min-height:38px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:0 10px;font-size:10px;font-weight:900;cursor:pointer}.wu-cmdBtn:hover{border-color:var(--accent);color:var(--accent);background:var(--soft)}.wu-stateText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}.wu-stateText b{color:var(--ink)}
+        @media(min-width:1800px){.wu-rightRail{grid-template-rows:minmax(280px,30%) minmax(0,70%)}.wu-subjectName{font-size:17px}.wu-detailTitle{font-size:21px}.wu-summaryGrid{grid-template-columns:repeat(3,1fr)}}
+        @media(max-width:1500px){.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8.5px,calc(var(--node)*.038),10px);line-height:1.03}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.03),8.5px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:24px;padding:2px 6px;margin:2px 0;border-radius:7px;gap:4px}.wu-signalLabel{font-size:7.5px;line-height:1.02}.wu-signalMethod{font-size:6px;line-height:1}.wu-signalValue{font-size:9.5px}.wu-anchorName{font-size:clamp(15px,calc(var(--anchor)*.078),19px)}.wu-anchorSub{font-size:8px}.wu-anchorActions{gap:5px}.wu-anchorAction{font-size:clamp(9px,calc(var(--anchor)*.04),10px);padding:5px 7px}}
+        @media(max-width:1280px){.wu-workbench{grid-template-columns:270px minmax(520px,1fr) 310px}.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8px,calc(var(--node)*.04),10px);line-height:1.02}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.033),9px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:20px;padding:2px 5px;margin:1px 0;border-radius:6px;gap:3px}.wu-signalLabel{font-size:8px;line-height:1}.wu-signalMethod{display:none}.wu-signalValue{font-size:10px}.wu-anchorType{font-size:8px}.wu-anchorName{font-size:clamp(13px,calc(var(--anchor)*.076),17px);line-height:1.02;margin:2px auto}.wu-anchorSub{display:none}.wu-anchorActions{gap:3px;margin-top:4px}.wu-anchorAction{font-size:8px;padding:3px 5px}}
+        @media(max-width:1100px){.wu-appShell{height:auto;min-height:100svh;grid-template-rows:48px 42px auto auto}.wu-workbench{grid-template-columns:1fr;grid-template-rows:auto minmax(620px,72vh) auto}.wu-leftRail{min-height:360px;border-right:0;border-bottom:1px solid var(--line2)}.wu-rightRail{border-left:0;border-top:1px solid var(--line2);grid-template-rows:300px 380px}.wu-footerBar{position:static}.wu-itemGrid{grid-template-columns:1fr}.wu-scene{display:none}}
+        @media(max-width:560px){.wu-globalNav{padding:0 10px}.wu-secondaryBar{justify-content:flex-start;overflow:auto}.wu-modeTab{white-space:nowrap}.wu-workbench{grid-template-rows:auto minmax(1040px,1040px) auto}.wu-anchorNode{top:42%;width:calc(var(--anchor)*1.1);height:calc(var(--anchor)*1.1)}.wu-anchorAction{font-size:7.5px;white-space:nowrap;padding:4px 5px}.wu-g1{left:3%;top:6%}.wu-g2{right:3%;top:6%}.wu-g3{left:3%;bottom:20%}.wu-g4{right:3%;bottom:20%}.wu-g5{bottom:2%}.wu-footerBar{position:static;align-items:stretch;flex-direction:column;height:auto;min-height:62px;padding:6px 10px}.wu-cmdGroup{overflow:auto}.wu-stateGroup{width:100%}.wu-navMeta{display:none}.wu-subjectStats,.wu-summaryGrid{grid-template-columns:1fr}}
+        @media(prefers-reduced-motion:reduce){.wu-graph,.wu-anchorNode,.wu-outlineBtn{transition:none}}
       `}</style>
-
-      <header style={{ position: "sticky", top: 0, zIndex: 20, background: "rgba(244,241,232,.96)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.line}`, padding: "10px 18px" }}>
-        <div style={{ maxWidth: 1220, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: ".08em", color: C.accent }}>STEP 3 · SHARED WORK UNIVERSE</div>
-            <div style={{ fontSize: 13, color: C.muted }}>One evidence universe · five canonical graphs · centre changes the projection</div>
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {onBack && <button type="button" onClick={onBack} style={btn(false)}>← Step 2</button>}
-            {onEnterStudio && <button data-testid="open-workspace" type="button" onClick={() => onEnterStudio(null)} style={btn(true)}>Open evidence workspace →</button>}
-          </div>
+      <div className="wu-appShell">
+        <header className="wu-globalNav">
+          <div className="wu-brand"><div className="wu-mark">V3</div><div>Role Reality Fixture</div></div>
+          <div className="wu-navMeta"><span>{orgName}</span><span className="wu-pill">v3.1 Step 3</span></div>
+        </header>
+        <div className="wu-secondaryBar" role="tablist" aria-label="Work modes">
+          <button className={`wu-modeTab ${buttonClass(mode === "universe")}`} type="button" onClick={resetUniverse}>Work Universe</button>
+          <button className={`wu-modeTab ${buttonClass(mode === "source")}`} type="button" onClick={openSourceFromAnchor}>O-I-A Trace</button>
+          <button className={`wu-modeTab ${buttonClass(mode === "rolegraph")}`} type="button" onClick={openRoleGraph}>Role Graph</button>
+          <button className={`wu-modeTab ${buttonClass(mode === "lineage")}`} type="button" onClick={() => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); setFooter({ label: "Evidence lineage", detail: "select a source row or statistic to inspect lineage" }); }}>Evidence Lineage</button>
         </div>
-      </header>
-
-      <main className="wu-main">
-        <div className="wu-context" aria-label="Work Universe centre">
-          <span style={{ fontSize: 10, fontWeight: 900, color: C.muted, letterSpacing: ".08em" }}>CENTRE</span>
-          {[["role", "Role"], ["org", "Organisation"], ["person", "Person"]].map(([key, label]) => (
-            <button key={key} data-testid={`wu-anchor-${key}`} type="button" onClick={() => { setAnchor(key); setSelected(null); setSelectedGraph(null); }} style={btn(anchor === key)}>{label}</button>
-          ))}
-          <span className="wu-source">Source · {sourceLabel}</span>
-        </div>
-
-        <section className="wu-stage" aria-label="Shared Work Universe five-graph projection">
-          {hasWebgl && (
-            <div className="wu-scene">
-              <Suspense fallback={null}>
-                <WorkUniverseScene selectedGraph={selectedGraph} reducedMotion={reducedMotion} onSelectGraph={selectGraph} />
-              </Suspense>
+        <main className="wu-workbench">
+          <aside className="wu-leftRail" aria-label="Job advertisement and source trace" data-testid="wu-oia-panel">
+            <div className="wu-railHead">
+              <div><div className="wu-eyebrow">Job ad / O-I-A</div><div className="wu-railTitle">{roleTitle}</div></div>
+              <div className="wu-meta">{orgName}</div>
             </div>
-          )}
-
-          <div className="wu-centre">
-            <button data-testid="wu-source-anchor" type="button" onClick={selectAnchor} aria-label={`Open ${anchor} source context`}>
-              <div style={{ fontSize: 10, fontWeight: 900, color: C.accent, letterSpacing: ".08em" }}>{anchor.toUpperCase()} ANCHOR</div>
-              <div style={{ fontFamily: "Georgia,serif", fontSize: 18, fontWeight: 800, lineHeight: 1.2, margin: "9px 0" }}>{anchorName}</div>
-              <div style={{ fontSize: 10, color: C.muted, lineHeight: 1.35 }}>{anchorSub}</div>
-            </button>
-          </div>
-
-          {graphs.map((graph) => (
-            <div key={graph.id} className={`wu-graph wu-g${graph.id}`} data-selected={selectedGraph === graph.id ? "true" : "false"} data-testid={`graph-${graph.key}`}>
-              <button type="button" className="wu-graph-title" onClick={() => { setSelectedGraph(graph.id); setSelected({ kind: "graph", graph }); }} aria-label={`Select ${graph.name}`}>
-                {graph.id} · {graph.name}
-              </button>
-              <div className="wu-flow">{graph.flow}</div>
-              {graph.signals.map((item, index) => (
-                <button key={`${graph.id}-${index}`} type="button" className="wu-signal" data-withheld={item.status === "withheld" ? "true" : "false"} onClick={() => selectSignal(graph, item)}>
-                  <span className="wu-signal-label">{item.label}</span>
-                  <span className="wu-signal-value">{item.value}</span>
-                </button>
+            <section className="wu-subjectCard" aria-label="Current projection">
+              <div className="wu-eyebrow">{subject.eyebrow}</div>
+              <div className="wu-subjectName">{subject.title}</div>
+              <div className="wu-meta">{subject.meta}</div>
+              <div className="wu-subjectStats">
+                <div className="wu-subjectStat"><b>{data.duties.length || "—"}</b>Duties</div>
+                <div className="wu-subjectStat"><b>{data.interpretations.filter((x) => x.type === "Work Unit").length || "—"}</b>Work units</div>
+                <div className="wu-subjectStat"><b>{allSignals.length}</b>Signals</div>
+              </div>
+            </section>
+            <div className="wu-tabs" role="tablist" aria-label="Observation Interpretation Application">
+              {[["o", "O · Observation"], ["i", "I · Interpretation"], ["a", "A · Application"]].map(([key, label]) => (
+                <button key={key} className={`wu-tab ${buttonClass(sourceTab === key)}`} type="button" onClick={() => setSourceTab(key)}>{label}</button>
               ))}
             </div>
-          ))}
-        </section>
+            <section className="wu-sourceBody">
+              {sourceTab === "o" && (
+                <div>
+                  <div className="wu-filters">
+                    {[["all", "ALL"], ["duty", "DUTIES"], ["req", "REQUIREMENTS"]].map(([key, label]) => (
+                      <button key={key} className={`wu-filter ${buttonClass(sourceFilter === key)}`} type="button" onClick={() => setSourceFilter(key)}>{label}</button>
+                    ))}
+                  </div>
+                  {filteredEvidence.length ? filteredEvidence.map((e) => (
+                    <button key={e.id} data-testid="wu-evidence-row" className={`wu-evidenceRow ${selectedEvidence === e.id ? "selected" : ""}`} type="button" onClick={() => selectEvidence(e.id)}>
+                      <div className="wu-srcid">{e.id} · {e.kind.toUpperCase()}</div>
+                      <div>{e.text} {e.quote && <span className="wu-quote">{e.quote}</span>}</div>
+                      <div className="wu-kind">supports: {graphNames(e.graphs)}</div>
+                    </button>
+                  )) : <div className="wu-empty">No source rows are available yet. Connect a role payload or job advertisement.</div>}
+                </div>
+              )}
+              {sourceTab === "i" && (
+                <div>
+                  {data.interpretations.length ? data.interpretations.map((i) => (
+                    <button key={i.id} className={`wu-interpRow ${selectedInterpretation === i.id ? "selected" : ""}`} type="button" onClick={() => selectInterpretation(i.id)}>
+                      <div className="wu-srcid">{i.id} · {i.type}</div>
+                      <b>{i.name}</b>
+                      <div className="wu-kind">source: {arr(i.src).join(", ") || "withheld"}</div>
+                    </button>
+                  )) : <div className="wu-empty">No interpreted rows are available yet. Nothing is inferred from title text alone.</div>}
+                </div>
+              )}
+              {sourceTab === "a" && (
+                <div>
+                  {selectedEvidence && (
+                    <div className="wu-interpRow selected">
+                      <div className="wu-srcid">{selectedEvidence} → WORK UNIVERSE</div>
+                      <b>{data.evidence.find((e) => e.id === selectedEvidence)?.text}</b>
+                      <div className="wu-kind">supports graph(s): {graphNames(data.evidence.find((e) => e.id === selectedEvidence)?.graphs)}</div>
+                    </div>
+                  )}
+                  {selectedSignal && (
+                    <div className="wu-interpRow selected">
+                      <div className="wu-srcid">SIGNAL CLAIM {selectedSignal}</div>
+                      <b>{relatedSignals[0]?.signal.name}: {relatedSignals[0]?.signal.value}</b>
+                      <div className="wu-kind">{relatedSignals[0]?.signal.methods.join(" · ")}</div>
+                    </div>
+                  )}
+                  {selectedInterpretation && (
+                    <div className="wu-interpRow selected">
+                      <div className="wu-srcid">{selectedInterpretation} → SOURCE</div>
+                      <b>{data.interpretations.find((i) => i.id === selectedInterpretation)?.name}</b>
+                      <div className="wu-kind">source: {arr(data.interpretations.find((i) => i.id === selectedInterpretation)?.src).join(", ") || "withheld"}</div>
+                    </div>
+                  )}
+                  {relatedSignals.length ? relatedSignals.map(({ graph, signal }) => (
+                    <button key={`${graph.id}-${signal.id}`} type="button" className="wu-interpRow" onClick={() => showSignal(graph, signal)}>
+                      <b>{signal.name}</b>
+                      <div className="wu-kind">{signal.id} · {graph.title} · {signal.methods.join(" · ")}</div>
+                    </button>
+                  )) : <div className="wu-empty">No applied trace selected.</div>}
+                </div>
+              )}
+            </section>
+            {srcHref ? <a className="wu-sourceLinkOut" href={srcHref} target="_blank" rel="noreferrer">Open original advertisement ↗</a> : <div className="wu-sourceLinkOut">Original source link withheld</div>}
+          </aside>
 
-        {selected && (
-          <section className="wu-detail" data-testid="wu-detail" aria-live="polite">
-            <div>
-              <div className="wu-kicker">{selected.kind === "anchor" ? "Evidence anchor" : selected.graph.name}</div>
-              <h2>{selected.kind === "signal" ? selected.signal.label : selected.kind === "graph" ? selected.graph.flow : selected.label}</h2>
-              {selected.kind === "signal" && <div className="wu-method">{selected.signal.method}</div>}
-              {selected.kind === "anchor" && <div className="wu-method">{selected.method}</div>}
-              <p>{selected.kind === "signal" ? selected.signal.detail : selected.kind === "graph" ? "Select one of the three first-order signals inside this graph to inspect its evidence and boundary." : selected.detail}</p>
-              <p className="wu-boundary"><strong>Boundary:</strong> {selected.kind === "signal" ? selected.signal.boundary : selected.kind === "graph" ? "The graph can only expose claims supported by the current evidence universe; missing claims stay withheld." : selected.boundary}</p>
+          <section className="wu-centrePane" aria-label="Work Universe">
+            <div className="wu-centreHead">
+              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">Graphify Work Universe</span></div>
+              <div className="wu-anchorSwitch" role="group" aria-label="Projection centre">
+                {[["role", "Role"], ["org", "Organisation"], ["person", "Person"]].map(([key, label]) => (
+                  <button
+                    key={key}
+                    data-testid={`wu-anchor-${key}`}
+                    type="button"
+                    className={anchor === key ? "on" : ""}
+                    onClick={() => { setAnchor(key); setDetail({ kind: "summary" }); setTocActive("overview"); setFooter({ label: `${label} centre`, detail: "same evidence universe re-projected" }); }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-            {selected.kind !== "anchor" && (
-              <button data-testid={selected.graph.id === 1 ? "open-role-graph" : "open-graph-workspace"} type="button" onClick={openSelected} style={btn(true)}>
-                {selected.graph.action} →
-              </button>
-            )}
+            <div className="wu-universeFrame" ref={frameRef}>
+              <div className="wu-canvasHead">
+                <span>Level 1 · canonical five-graph projection</span>
+                <span>{highlightedGraphs.length ? `${highlightedGraphs.length} graph${highlightedGraphs.length === 1 ? "" : "s"} highlighted` : "neutral"}</span>
+              </div>
+              {hasWebgl && !reducedMotion && (
+                <div className="wu-scene">
+                  <Suspense fallback={null}>
+                    <WorkUniverseScene selectedGraph={selectedGraph} reducedMotion={reducedMotion} />
+                  </Suspense>
+                </div>
+              )}
+              <svg className="wu-connectors" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+                {[1, 2, 3, 4, 5].map((id) => {
+                  const coords = { 1: [50, 47, 17, 19], 2: [50, 47, 83, 19], 3: [50, 47, 17, 78], 4: [50, 47, 83, 78], 5: [50, 47, 50, 88] }[id];
+                  return <line key={id} className={highlightedGraphs.includes(id) ? "active" : ""} x1={coords[0]} y1={coords[1]} x2={coords[2]} y2={coords[3]} />;
+                })}
+              </svg>
+              <div className="wu-universe">
+                <div className={`wu-anchorNode ${detail.kind === "anchor" ? "active" : ""}`} data-testid="wu-source-anchor" role="button" tabIndex={0} aria-label={`Role Anchor for ${roleTitle}`} onClick={openSourceFromAnchor} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSourceFromAnchor(); } }}>
+                  <div className="wu-nodeInner">
+                    <div className="wu-anchorType">{anchor.toUpperCase()} ANCHOR</div>
+                    <div className="wu-anchorName">{anchor === "role" ? roleTitle : anchor === "org" ? orgName : "Person evidence not supplied"}</div>
+                    <div className="wu-anchorSub">{anchor === "role" ? `${sourceLabel} · selected role evidence` : anchor === "org" ? "same universe · organisation-centred" : "USER-PROVEN evidence required"}</div>
+                    <div className="wu-anchorActions">
+                      <button className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openSourceFromAnchor(); }}>Source / O-I-A</button>
+                      <button data-testid="wu-anchor-role-graph" className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openRoleGraph(); }}>Role Graph →</button>
+                    </div>
+                  </div>
+                </div>
+                {data.graphs.map((graph) => {
+                  const highlighted = highlightedGraphs.includes(graph.id);
+                  const dim = highlightedGraphs.length > 0 && !highlighted;
+                  return (
+                    <div key={graph.id} data-testid={`graph-${graph.key}`} className={`wu-graph wu-g${graph.id} ${highlighted ? "active" : ""} ${dim ? "dim" : ""}`} role="button" tabIndex={0} onClick={(e) => { if (!e.target.closest(".wu-signal")) showGraph(graph.id); }} onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".wu-signal")) { e.preventDefault(); showGraph(graph.id); } }}>
+                      <div className="wu-nodeInner">
+                        <button type="button" className="wu-graphTitle" onClick={() => showGraph(graph.id)} aria-label={`Select ${graph.title}`}>{graph.id} · {graph.name}</button>
+                        <div className="wu-nodeFlow">{graph.flow}</div>
+                        {graph.signals.map((signal) => (
+                          <button key={signal.id} type="button" className={`wu-signal ${signal.status === "withheld" ? "withheld" : ""} ${selectedSignal === signal.id ? "active" : ""}`} data-withheld={signal.status === "withheld" ? "true" : "false"} onClick={(e) => { e.stopPropagation(); showSignal(graph, signal); }}>
+                            <span><span className="wu-signalLabel">{signal.name}</span><span className="wu-signalMethod">{signal.methods[0]}</span></span>
+                            <span className="wu-signalValue">{signal.value}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </section>
-        )}
 
-        <div className="wu-footer">
-          <span>Production method is shown per claim · WITHHELD is a valid result</span>
-          <span>AI-assisted · human decides</span>
-        </div>
-      </main>
+          <aside className="wu-rightRail" aria-label="Work Universe contents and drilldown">
+            <section className="wu-outlinePane">
+              <div className="wu-rightHead"><div><div className="wu-eyebrow">Contents</div><div className="wu-railTitle">Role Work Universe</div></div><div className="wu-meta">live</div></div>
+              <div className="wu-tocScope"><div className="wu-tocSelect"><span>{tocActive === "overview" ? "Role Work Universe" : tocActive === "role-anchor" ? "Role Anchor" : tocActive === "role-graph" ? "Open Role Graph" : tocActive === "evidence" ? "Evidence lineage" : GRAPH_BY_ID[Number(tocActive.replace("graph-", ""))]?.title || "Role Work Universe"}</span><span>⌄</span></div></div>
+              <div className="wu-outlineList">
+                {[
+                  ["overview", "Overview", resetUniverse],
+                  ["role-anchor", "Role Anchor", openSourceFromAnchor],
+                  ...GRAPH_DEFS.map((g) => [`graph-${g.id}`, g.title, () => showGraph(g.id)]),
+                  ["role-graph", "Open Role Graph", openRoleGraph],
+                  ["evidence", "Evidence lineage", () => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); }],
+                ].map(([key, label, fn]) => (
+                  <button key={key} type="button" className={`wu-outlineBtn ${tocActive === key ? "on" : ""}`} onClick={fn}>{label}</button>
+                ))}
+              </div>
+            </section>
+            <section className="wu-drillPane" data-testid="wu-detail" aria-live="polite">
+              <div className="wu-rightHead"><div><div className="wu-eyebrow">Summary / detail</div><div className="wu-railTitle">{anchor === "role" ? "Role view" : anchor === "org" ? "Organisation view" : "Person view"}</div></div><div className="wu-meta">{detail.kind}</div></div>
+              <div className="wu-drillBody">
+                <section className="wu-summaryBlock">
+                  <div className="wu-srcid">{anchor.toUpperCase()} SUMMARY</div>
+                  <div className="wu-detailTitle">{subject.title}</div>
+                  <p className="wu-desc">{anchor === "role" ? "The visible Level-1 read is a role anchor projected across five canonical graphs." : anchor === "org" ? `The same evidence is re-projected around ${orgName}; employer facts remain limited to supplied source data.` : "The person projection is intentionally gated until a CV, proof ledger or user-proven work history is supplied."}</p>
+                  <div className="wu-summaryGrid">
+                    <div className="wu-summaryMetric"><b>{data.duties.length || "WITHHELD"}</b>source duties</div>
+                    <div className="wu-summaryMetric"><b>{data.skills.length || "WITHHELD"}</b>canonical skills</div>
+                    <div className="wu-summaryMetric"><b>{data.coverage.length ? `${Math.round((data.coverage.length / 12) * 100)}%` : "WITHHELD"}</b>OWG evidence coverage</div>
+                    <div className="wu-summaryMetric"><b>{data.functions.length || "WITHHELD"}</b>execution functions</div>
+                  </div>
+                  <p className="wu-desc"><b>Boundary:</b> {subject.boundary}</p>
+                </section>
+                <section className={`wu-detailBlock ${detail.kind === "summary" ? "empty" : ""}`}>
+                  {detail.kind === "anchor" && (
+                    <>
+                      <div className="wu-srcid">ROLE ANCHOR</div>
+                      <div className="wu-detailTitle">Source / O-I-A</div>
+                      <DetailMethods methods={["DIRECT"]} />
+                      <p className="wu-desc">{roleTitle} is the active evidence root. The left panel remains open so Observation, Interpretation and Application stay visible while the Universe stays in view.</p>
+                      <div className="wu-itemGrid"><div className="wu-item"><b>Source</b><br />{sourceLabel}</div><div className="wu-item"><b>Evidence rows</b><br />{data.evidence.length || "withheld"}</div></div>
+                    </>
+                  )}
+                  {detail.kind === "graph" && detail.graph && (
+                    <>
+                      <div className="wu-srcid">PARENT · WORK UNIVERSE</div>
+                      <div className="wu-detailTitle">{detail.graph.title}</div>
+                      <p className="wu-desc">{detail.graph.flow}</p>
+                      <div className="wu-itemGrid">{detail.graph.signals.map((signal) => <button key={signal.id} type="button" className="wu-itemBtn" onClick={() => showSignal(detail.graph, signal)}><b>{signal.name}</b><br />{signal.value} · {signal.methods.join(" / ")}</button>)}</div>
+                    </>
+                  )}
+                  {detail.kind === "signal" && detail.signal && (
+                    <>
+                      <div className="wu-srcid">GRAPH {detail.graph.id} · SIGNAL CLAIM {detail.signal.id}</div>
+                      <div className="wu-detailTitle">{detail.signal.name}</div>
+                      <div className="wu-big">{detail.signal.value}</div>
+                      <ProvChip kind={detail.signal.provenance} />
+                      <DetailMethods methods={detail.signal.methods} />
+                      <p className="wu-desc">{detail.signal.desc}</p>
+                      <div className="wu-srcid">Constituents / trace</div>
+                      {detail.signal.items.length ? detail.signal.items.map((item) => <div key={item} className="wu-item">{item}</div>) : <div className="wu-empty">No constituent rows are available.</div>}
+                      <p className="wu-desc"><b>Production:</b> {detail.signal.production}</p>
+                      <p className="wu-desc"><b>Boundary:</b> {detail.signal.boundary}</p>
+                      <button data-testid={detail.graph.id === 1 ? "open-role-graph" : "open-graph-workspace"} type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>{detail.graph.id === 1 ? "Open Role Graph" : "Open evidence workspace"} →</button>
+                    </>
+                  )}
+                  {detail.kind === "evidence" && detail.evidence && (
+                    <>
+                      <div className="wu-srcid">{detail.evidence.id} · {detail.evidence.kind.toUpperCase()}</div>
+                      <div className="wu-detailTitle">Evidence → Work Universe</div>
+                      <p className="wu-desc">{detail.evidence.text}</p>
+                      <div className="wu-item"><b>Supports graphs</b><br />{graphNames(detail.evidence.graphs)}</div>
+                      {relatedSignals.length ? relatedSignals.map(({ graph, signal }) => <button key={`${graph.id}-${signal.id}`} type="button" className="wu-itemBtn" onClick={() => showSignal(graph, signal)}><b>{signal.name}</b><br />{signal.id} · {signal.methods.join(" / ")}</button>) : <div className="wu-empty">No signal claims cite this row yet.</div>}
+                    </>
+                  )}
+                  {detail.kind === "interpretation" && detail.interpretation && (
+                    <>
+                      <div className="wu-srcid">{detail.interpretation.id} · {detail.interpretation.type.toUpperCase()}</div>
+                      <div className="wu-detailTitle">{detail.interpretation.name}</div>
+                      <p className="wu-desc">Interpretation rows cite their source rows before being used by graph claims.</p>
+                      <div className="wu-item"><b>Source rows</b><br />{arr(detail.interpretation.src).join(", ") || "withheld"}</div>
+                      <div className="wu-item"><b>Projected graphs</b><br />{graphNames(detail.graphIds)}</div>
+                    </>
+                  )}
+                  {detail.kind === "rolegraph" && (
+                    <>
+                      <div className="wu-srcid">ROLE GRAPH</div>
+                      <div className="wu-detailTitle">Existing Role Graph workspace</div>
+                      <p className="wu-desc">The Role Graph/FAB surface is preserved as the existing Step 3 workspace. Opening it keeps this Work Universe mounted so the selected graph or statistic survives the round trip.</p>
+                      <button data-testid="open-role-graph" type="button" className="wu-cmdBtn" onClick={openRoleGraph}>Open Role Graph →</button>
+                    </>
+                  )}
+                  {detail.kind === "lineage" && (
+                    <>
+                      <div className="wu-srcid">EVIDENCE LINEAGE</div>
+                      <div className="wu-detailTitle">Evidence Lineage</div>
+                      <p className="wu-desc">Source rows and statistic chips update this panel with the claim, constituents, production method and boundary.</p>
+                      <div className="wu-itemGrid"><div className="wu-item"><b>Source rows</b><br />Duties and requirements</div><div className="wu-item"><b>Statistic chips</b><br />Claim-level drill paths</div></div>
+                    </>
+                  )}
+                </section>
+              </div>
+            </section>
+          </aside>
+        </main>
+        <footer className="wu-footerBar">
+          <div className="wu-cmdGroup" aria-label="Commands">
+            {onBack && <button className="wu-cmdBtn" type="button" onClick={onBack}>← Step 2</button>}
+            <button className="wu-cmdBtn" type="button" onClick={resetUniverse}>Reset</button>
+          </div>
+          <div className="wu-stateGroup"><span className="wu-pill">Level 1</span><span className="wu-stateText"><b>{footer.label}</b> · {footer.detail}</span><span className="wu-pill">AI-assisted · human decides</span></div>
+        </footer>
+      </div>
     </div>
   );
 }

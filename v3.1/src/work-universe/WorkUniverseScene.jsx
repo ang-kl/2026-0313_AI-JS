@@ -30,8 +30,8 @@ function Connector({ graphId, selected }) {
 
   return (
     <mesh position={geometry.midpoint} quaternion={geometry.quaternion}>
-      <cylinderGeometry args={[selected ? 0.032 : 0.018, selected ? 0.032 : 0.018, geometry.length, 10]} />
-      <meshBasicMaterial color={selected ? "#2c6672" : "#a8b8b7"} transparent opacity={selected ? 0.82 : 0.38} />
+      <cylinderGeometry args={[selected ? 0.018 : 0.011, selected ? 0.018 : 0.011, geometry.length, 10]} />
+      <meshBasicMaterial color={selected ? "#2c6672" : "#a8b8b7"} transparent opacity={selected ? 0.38 : 0.16} />
     </mesh>
   );
 }
@@ -62,19 +62,19 @@ function Orb({ graphId, selected, reducedMotion, onSelectGraph }) {
         if (onSelectGraph) onSelectGraph(graphId);
       }}
     >
-      <sphereGeometry args={[0.72, 40, 40]} />
+      <sphereGeometry args={[0.48, 40, 40]} />
       <meshStandardMaterial
         color={color}
         roughness={0.34}
         metalness={0.08}
         transparent
-        opacity={selected ? 0.94 : 0.78}
+        opacity={selected ? 0.42 : 0.24}
         emissive={selected ? color : "#000000"}
-        emissiveIntensity={selected ? 0.18 : 0}
+        emissiveIntensity={selected ? 0.08 : 0}
       />
       <mesh scale={1.12}>
-        <sphereGeometry args={[0.72, 28, 28]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={selected ? 0.08 : 0.025} wireframe />
+        <sphereGeometry args={[0.48, 28, 28]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={selected ? 0.05 : 0.018} wireframe />
       </mesh>
     </mesh>
   );
@@ -90,12 +90,12 @@ function CentreOrb({ reducedMotion }) {
   return (
     <group position={CENTER} ref={ref}>
       <mesh>
-        <sphereGeometry args={[0.94, 48, 48]} />
+        <sphereGeometry args={[0.62, 48, 48]} />
         <meshStandardMaterial color="#dce9e6" roughness={0.56} metalness={0.03} />
       </mesh>
       <mesh scale={1.07}>
-        <icosahedronGeometry args={[0.94, 2]} />
-        <meshBasicMaterial color="#43717a" transparent opacity={0.15} wireframe />
+        <icosahedronGeometry args={[0.62, 2]} />
+        <meshBasicMaterial color="#43717a" transparent opacity={0.08} wireframe />
       </mesh>
     </group>
   );
@@ -127,7 +127,7 @@ export default function WorkUniverseScene({ selectedGraph, reducedMotion = false
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0.1, 10.4], fov: 49, near: 0.1, far: 50 }}
       onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-      style={{ width: "100%", height: "100%", pointerEvents: "auto" }}
+      style={{ width: "100%", height: "100%", pointerEvents: "none" }}
     >
       <Scene selectedGraph={selectedGraph} reducedMotion={reducedMotion} onSelectGraph={onSelectGraph} />
     </Canvas>
