@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import OrganisationMap from "./OrganisationMap.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -459,6 +460,7 @@ export default function WorkUniverseLanding({
   const frameRef = useRef(null);
   const [anchor, setAnchor] = useState("role");
   const [mode, setMode] = useState("universe");
+  const [organisationMapOpen, setOrganisationMapOpen] = useState(false);
   const [sourceTab, setSourceTab] = useState("o");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedGraph, setSelectedGraph] = useState(null);
@@ -534,6 +536,7 @@ export default function WorkUniverseLanding({
 
   const resetUniverse = () => {
     setMode("universe");
+    setOrganisationMapOpen(false);
     setSourceTab("o");
     setSelectedGraph(null);
     setSelectedSignal(null);
@@ -545,6 +548,7 @@ export default function WorkUniverseLanding({
   };
   const openSourceFromAnchor = () => {
     setMode("source");
+    setOrganisationMapOpen(false);
     setSourceTab("o");
     setSelectedGraph(null);
     setSelectedSignal(null);
@@ -558,6 +562,7 @@ export default function WorkUniverseLanding({
     const graph = data.graphs.find((g) => g.id === graphId);
     if (!graph) return;
     setMode("universe");
+    setOrganisationMapOpen(false);
     setSelectedGraph(graphId);
     setSelectedSignal(null);
     setSelectedEvidence(null);
@@ -568,6 +573,7 @@ export default function WorkUniverseLanding({
   };
   const showSignal = (graph, signal) => {
     setMode("lineage");
+    setOrganisationMapOpen(false);
     setSourceTab("a");
     setSelectedGraph(graph.id);
     setSelectedSignal(signal.id);
@@ -581,6 +587,7 @@ export default function WorkUniverseLanding({
     const evidence = data.evidence.find((e) => e.id === id);
     if (!evidence) return;
     setMode("source");
+    setOrganisationMapOpen(false);
     setSourceTab("a");
     setSelectedEvidence(id);
     setSelectedSignal(null);
@@ -598,6 +605,7 @@ export default function WorkUniverseLanding({
       return e ? e.graphs : [];
     }));
     setMode("source");
+    setOrganisationMapOpen(false);
     setSourceTab("a");
     setSelectedInterpretation(id);
     setSelectedEvidence(null);
@@ -609,10 +617,24 @@ export default function WorkUniverseLanding({
   };
   const openRoleGraph = () => {
     setMode("rolegraph");
+    setOrganisationMapOpen(false);
     setTocActive("role-graph");
     setDetail({ kind: "rolegraph" });
     setFooter({ label: "Role Graph", detail: "existing Role Graph workspace requested" });
     if (onOpenRoleGraph) onOpenRoleGraph();
+  };
+  const showOrganisationMap = () => {
+    const graph = data.graphs.find((item) => item.id === 2);
+    setAnchor("org");
+    setMode("organisation-map");
+    setOrganisationMapOpen(true);
+    setSelectedGraph(2);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "organisationMap", graph });
+    setTocActive("organisation-map");
+    setFooter({ label: "Organisation Map", detail: "functions · boundaries · dependencies · capabilities · authority · process ownership" });
   };
   const openEvidenceWorkspace = () => {
     const graphId = detail && detail.graph ? detail.graph.id : selectedGraph;
@@ -673,7 +695,7 @@ export default function WorkUniverseLanding({
         .wu-graphTitle{width:100%;border:0;background:transparent;cursor:pointer;text-align:center;font-size:clamp(10px,calc(var(--node)*.045),13px);font-weight:900;color:var(--accent);letter-spacing:.04em;line-height:1.08;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance;padding:0}
         .wu-nodeFlow{font-size:clamp(9px,calc(var(--node)*.038),12px);font-weight:800;margin:4px 0 7px;line-height:1.12;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance}.wu-anchorType{font-size:clamp(8px,calc(var(--anchor)*.046),10px);font-weight:900;color:var(--accent);letter-spacing:.08em}.wu-anchorName{font-family:Georgia,serif;font-size:clamp(14px,calc(var(--anchor)*.087),22px);font-weight:800;line-height:1.05;margin:5px auto 4px;max-width:calc(var(--anchor)*.84);white-space:normal;overflow-wrap:anywhere;text-wrap:balance}.wu-anchorSub{font-size:clamp(8px,calc(var(--anchor)*.04),10px);color:var(--muted);line-height:1.18}.wu-anchorActions{display:grid;gap:4px;margin-top:7px}.wu-anchorAction{cursor:pointer;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font-size:clamp(8px,calc(var(--anchor)*.04),10px);font-weight:900;line-height:1.08;padding:clamp(5px,calc(var(--anchor)*.032),8px) 7px;white-space:normal;overflow-wrap:anywhere;hyphens:auto}.wu-anchorAction:hover{border-color:var(--accent);background:var(--panel);color:var(--accent)}
         .wu-signal{cursor:pointer;width:100%;min-height:clamp(32px,calc(var(--node)*.155),44px);border:1px solid var(--line);border-radius:8px;background:#fff;padding:clamp(4px,calc(var(--node)*.024),7px) clamp(6px,calc(var(--node)*.032),9px);margin:3px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;text-align:left;align-items:center}.wu-signal:hover,.wu-signal.active{border-color:var(--accent);background:var(--soft)}.wu-signal.withheld{background:#fffbeb;border-style:dashed}.wu-signalLabel{font-size:clamp(9px,calc(var(--node)*.039),11px);font-weight:800;line-height:1.08;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalMethod{font-size:clamp(7px,calc(var(--node)*.03),8px);color:var(--muted);margin-top:1px;line-height:1.05;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalValue{font-size:clamp(11px,calc(var(--node)*.048),14px);font-weight:900;white-space:nowrap}
-        .wu-outlinePane{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-bottom:1px solid var(--line2)}.wu-tocScope{padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) 7px}.wu-tocSelect{width:100%;min-height:32px;border:0;background:#edf1f7;border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;font-size:12px;text-align:left}.wu-outlineList{min-height:0;overflow:auto;padding:7px clamp(14px,1vw,24px) 14px;scroll-behavior:smooth}.wu-outlineBtn{width:100%;border:0;border-left:2px solid transparent;border-radius:0;background:transparent;color:#7b8796;display:block;padding:7px 0 7px 13px;margin:0;text-align:left;font-size:11px;line-height:1.35;cursor:pointer;transition:color .14s,border-color .14s,background-color .14s,transform .14s}.wu-outlineBtn:hover{color:var(--ink);background:#f7f9fc}.wu-outlineBtn.on{border-left-color:var(--accent);color:var(--ink);font-weight:800;background:linear-gradient(90deg,var(--soft),transparent)}
+        .wu-outlinePane{min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);border-bottom:1px solid var(--line2)}.wu-tocScope{padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) 7px}.wu-tocSelect{width:100%;min-height:32px;border:0;background:#edf1f7;border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;font-size:12px;text-align:left}.wu-outlineList{min-height:0;overflow:auto;padding:7px clamp(14px,1vw,24px) 14px;scroll-behavior:smooth}.wu-outlineBtn{width:100%;border:0;border-left:2px solid transparent;border-radius:0;background:transparent;color:#7b8796;display:block;padding:7px 0 7px 13px;margin:0;text-align:left;font-size:11px;line-height:1.35;cursor:pointer;transition:color .14s,border-color .14s,background-color .14s,transform .14s}.wu-outlineBtn:hover{color:var(--ink);background:#f7f9fc}.wu-outlineBtn.on{border-left-color:var(--accent);color:var(--ink);font-weight:800;background:linear-gradient(90deg,var(--soft),transparent)}
         .wu-drillPane{min-height:0;display:grid;grid-template-rows:38px minmax(0,1fr)}.wu-drillBody{min-height:0;overflow:auto;padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) clamp(16px,1vw,26px);scroll-behavior:smooth}.wu-summaryBlock{padding-bottom:10px}.wu-detailBlock{border-top:1px solid var(--line2);margin-top:10px;padding-top:10px}.wu-detailBlock.empty{display:none}.wu-summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wu-summaryMetric{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:8px;font-size:10px}.wu-summaryMetric b{display:block;font-size:15px;color:var(--ink)}.wu-detailTitle{font-family:Georgia,serif;font-size:19px;font-weight:800;margin:2px 0}.wu-big{font-size:24px;font-weight:900}.wu-method{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 6px;font-size:8px;font-weight:900;margin:2px 3px 2px 0}.wu-desc{font-size:11px;color:var(--muted);line-height:1.5}.wu-item,.wu-itemBtn{background:var(--soft);border-radius:7px;padding:7px 8px;margin:6px 0;font-size:10px}.wu-itemBtn{width:100%;border:1px solid transparent;text-align:left;cursor:pointer}.wu-itemBtn:hover{border-color:var(--accent)}.wu-itemGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wu-prov{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:900;margin:2px 4px 2px 0}.wu-prov.mcf{color:#0f766e;background:#ecfeff}.wu-prov.computed{color:#1e40af;background:#eef2ff}.wu-prov.derived{color:#b45309;background:#fffbeb}.wu-prov.withheld{color:#64748b;background:#f1f5f9}
         .wu-footerBar{height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;background:var(--panel);border-top:1px solid var(--line2);font-size:11px}.wu-cmdGroup,.wu-stateGroup{display:flex;align-items:center;gap:6px;min-width:0}.wu-cmdBtn{min-height:38px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:0 10px;font-size:10px;font-weight:900;cursor:pointer}.wu-cmdBtn:hover{border-color:var(--accent);color:var(--accent);background:var(--soft)}.wu-stateText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}.wu-stateText b{color:var(--ink)}
         @media(min-width:1800px){.wu-rightRail{grid-template-rows:minmax(280px,30%) minmax(0,70%)}.wu-subjectName{font-size:17px}.wu-detailTitle{font-size:21px}.wu-summaryGrid{grid-template-columns:repeat(3,1fr)}}
@@ -790,6 +812,7 @@ export default function WorkUniverseLanding({
                     className={anchor === key ? "on" : ""}
                     onClick={() => {
                       setAnchor(key);
+                      setOrganisationMapOpen(false);
                       setSelectedGraph(null);
                       setSelectedSignal(null);
                       setSelectedEvidence(null);
@@ -805,24 +828,35 @@ export default function WorkUniverseLanding({
               </div>
             </div>
             <div className="wu-universeFrame" ref={frameRef}>
-              <div className="wu-canvasHead">
-                <span>Level 1 · canonical five-graph projection</span>
-                <span>{highlightedGraphs.length ? `${highlightedGraphs.length} graph${highlightedGraphs.length === 1 ? "" : "s"} highlighted` : "neutral"}</span>
-              </div>
-              {hasWebgl && !reducedMotion && (
-                <div className="wu-scene">
-                  <Suspense fallback={null}>
-                    <WorkUniverseScene selectedGraph={selectedGraph} reducedMotion={reducedMotion} />
-                  </Suspense>
-                </div>
-              )}
-              <svg className="wu-connectors" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
-                {[1, 2, 3, 4, 5].map((id) => {
-                  const coords = { 1: [50, 47, 17, 19], 2: [50, 47, 83, 19], 3: [50, 47, 17, 78], 4: [50, 47, 83, 78], 5: [50, 47, 50, 88] }[id];
-                  return <line key={id} className={highlightedGraphs.includes(id) ? "active" : ""} x1={coords[0]} y1={coords[1]} x2={coords[2]} y2={coords[3]} />;
-                })}
-              </svg>
-              <div className="wu-universe">
+              {organisationMapOpen ? (
+                <OrganisationMap
+                  result={result}
+                  roleTitle={roleTitle}
+                  organisationName={orgName}
+                  onBack={() => showGraph(2)}
+                  onEvidenceSelect={selectEvidence}
+                  onOpenCompanyEvidence={openEvidenceWorkspace}
+                />
+              ) : (
+                <>
+                  <div className="wu-canvasHead">
+                    <span>Level 1 · canonical five-graph projection</span>
+                    <span>{highlightedGraphs.length ? `${highlightedGraphs.length} graph${highlightedGraphs.length === 1 ? "" : "s"} highlighted` : "neutral"}</span>
+                  </div>
+                  {hasWebgl && !reducedMotion && (
+                    <div className="wu-scene">
+                      <Suspense fallback={null}>
+                        <WorkUniverseScene selectedGraph={selectedGraph} reducedMotion={reducedMotion} />
+                      </Suspense>
+                    </div>
+                  )}
+                  <svg className="wu-connectors" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    {[1, 2, 3, 4, 5].map((id) => {
+                      const coords = { 1: [50, 47, 17, 19], 2: [50, 47, 83, 19], 3: [50, 47, 17, 78], 4: [50, 47, 83, 78], 5: [50, 47, 50, 88] }[id];
+                      return <line key={id} className={highlightedGraphs.includes(id) ? "active" : ""} x1={coords[0]} y1={coords[1]} x2={coords[2]} y2={coords[3]} />;
+                    })}
+                  </svg>
+                  <div className="wu-universe">
                 <div className={`wu-anchorNode ${detail.kind === "anchor" ? "active" : ""}`} data-testid="wu-source-anchor" role="button" tabIndex={0} aria-label={`Role Anchor for ${roleTitle}`} onClick={openSourceFromAnchor} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSourceFromAnchor(); } }}>
                   <div className="wu-nodeInner">
                     <div className="wu-anchorType">{anchor.toUpperCase()} ANCHOR</div>
@@ -852,19 +886,22 @@ export default function WorkUniverseLanding({
                     </div>
                   );
                 })}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
           <aside className="wu-rightRail" aria-label="Work Universe contents and drilldown">
             <section className="wu-outlinePane">
               <div className="wu-rightHead"><div><div className="wu-eyebrow">Contents</div><div className="wu-railTitle">Role Work Universe</div></div><div className="wu-meta">live</div></div>
-              <div className="wu-tocScope"><div className="wu-tocSelect"><span>{tocActive === "overview" ? "Role Work Universe" : tocActive === "role-anchor" ? "Role Anchor" : tocActive === "role-graph" ? "Open Role Graph" : tocActive === "evidence" ? "Evidence lineage" : GRAPH_BY_ID[Number(tocActive.replace("graph-", ""))]?.title || "Role Work Universe"}</span><span>⌄</span></div></div>
+              <div className="wu-tocScope"><div className="wu-tocSelect"><span>{tocActive === "overview" ? "Role Work Universe" : tocActive === "role-anchor" ? "Role Anchor" : tocActive === "role-graph" ? "Open Role Graph" : tocActive === "organisation-map" ? "Organisation Map" : tocActive === "evidence" ? "Evidence lineage" : GRAPH_BY_ID[Number(tocActive.replace("graph-", ""))]?.title || "Role Work Universe"}</span><span>⌄</span></div></div>
               <div className="wu-outlineList">
                 {[
                   ["overview", "Overview", resetUniverse],
                   ["role-anchor", "Role Anchor", openSourceFromAnchor],
                   ...GRAPH_DEFS.map((g) => [`graph-${g.id}`, g.title, () => showGraph(g.id)]),
+                  ["organisation-map", "Organisation Map", showOrganisationMap],
                   ["role-graph", "Open Role Graph", openRoleGraph],
                   ["evidence", "Evidence lineage", () => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); }],
                 ].map(([key, label, fn]) => (
@@ -903,6 +940,7 @@ export default function WorkUniverseLanding({
                       <div className="wu-detailTitle">{detail.graph.title}</div>
                       <p className="wu-desc">{detail.graph.flow}</p>
                       <div className="wu-itemGrid">{detail.graph.signals.map((signal) => <button key={signal.id} type="button" className="wu-itemBtn" onClick={() => showSignal(detail.graph, signal)}><b>{signal.name}</b><br />{signal.value} · {signal.methods.join(" / ")}</button>)}</div>
+                      {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
                     </>
                   )}
                   {detail.kind === "signal" && detail.signal && (
@@ -918,7 +956,18 @@ export default function WorkUniverseLanding({
                       {detail.signal.items.length ? detail.signal.items.map((item) => <div key={item} className="wu-item">{item}</div>) : <div className="wu-empty">No constituent rows are available.</div>}
                       <p className="wu-desc"><b>Production:</b> {detail.signal.production}</p>
                       <p className="wu-desc"><b>Boundary:</b> {detail.signal.boundary}</p>
+                      {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
                       <button data-testid={detail.graph.id === 1 ? "open-role-graph" : "open-graph-workspace"} type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>{detail.graph.id === 1 ? "Open Role Graph" : "Open evidence workspace"} →</button>
+                    </>
+                  )}
+                  {detail.kind === "organisationMap" && (
+                    <>
+                      <div className="wu-srcid">ORGANISATION WORK GRAPH · VISUAL</div>
+                      <div className="wu-detailTitle">Organisation Map</div>
+                      <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED"]} />
+                      <p className="wu-desc">The centre map separates functions, reporting boundaries, dependencies, capabilities, authority and process ownership. Missing dimensions remain visibly withheld.</p>
+                      <p className="wu-desc"><b>Boundary:</b> No organisation maturity, hierarchy, staffing condition or process quality is inferred from the posting.</p>
+                      <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
                     </>
                   )}
                   {detail.kind === "evidence" && detail.evidence && (

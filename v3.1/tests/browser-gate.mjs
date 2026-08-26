@@ -73,6 +73,56 @@ for (const id of graphIds) {
 const r3fCount = await page.getByTestId('work-universe-r3f').count();
 console.log(`R3F canvas present: ${r3fCount > 0}`);
 
+// The Organisation Work Graph owns a dedicated, evidence-gated Organisation Map.
+// Its six dimensions remain visible even when the current posting supplies none of
+// them; absence must render as WITHHELD rather than an inferred org chart.
+await page.getByTestId('graph-organisation').locator('.wu-graphTitle').click();
+await page.getByTestId('open-organisation-map').click();
+const organisationMap = page.getByTestId('organisation-map');
+await requireVisible(organisationMap, 'Organisation Work Graph did not open the dedicated Organisation Map');
+for (const dimension of ['functions', 'reportingBoundaries', 'dependencies', 'capabilities', 'authority', 'processOwnership']) {
+  await requireVisible(page.getByTestId(`organisation-map-${dimension}`), `Organisation Map is missing ${dimension}`);
+}
+const organisationMapText = await organisationMap.innerText();
+if (!organisationMapText.includes('WITHHELD')) throw new Error('Organisation Map guessed missing organisation evidence instead of withholding');
+if (!/does not infer organisation maturity/i.test(organisationMapText)) throw new Error('Organisation Map maturity boundary is not visible');
+
+for (const visual of [
+  { name: 'desktop', width: 1440, height: 1000, columns: 3 },
+  { name: 'tablet', width: 820, height: 1180, columns: 2 },
+  { name: 'mobile', width: 390, height: 844, columns: 1 },
+]) {
+  await page.setViewportSize({ width: visual.width, height: visual.height });
+  await page.waitForTimeout(250);
+  await requireVisible(organisationMap, `Organisation Map is not visible at ${visual.name} width`);
+  const gridColumns = await organisationMap.locator('.om-grid').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length);
+  if (gridColumns !== visual.columns) throw new Error(`Organisation Map expected ${visual.columns} columns at ${visual.name}, received ${gridColumns}`);
+  await screenshot(`03-organisation-map-${visual.name}.png`);
+  if (visual.name === 'mobile') {
+    const scrollState = await organisationMap.locator('.om-map').evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      return { scrollTop: element.scrollTop, scrollHeight: element.scrollHeight, clientHeight: element.clientHeight };
+    });
+    await page.waitForTimeout(150);
+    if (scrollState.scrollHeight > scrollState.clientHeight && scrollState.scrollTop <= 0) throw new Error('Organisation Map mobile detail cannot scroll to explicit relationships');
+    const relationshipVisible = await organisationMap.evaluate((root) => {
+      const scroller = root.querySelector('.om-map');
+      const relationship = root.querySelector('[data-testid="organisation-map-relationships"]');
+      if (!scroller || !relationship) return false;
+      const outer = scroller.getBoundingClientRect();
+      const inner = relationship.getBoundingClientRect();
+      return inner.bottom > outer.top && inner.top < outer.bottom;
+    });
+    if (!relationshipVisible) throw new Error('Organisation Map explicit relationships are not reachable on mobile');
+    await screenshot('03-organisation-map-mobile-relationships.png');
+    await organisationMap.locator('.om-map').evaluate((element) => { element.scrollTop = 0; });
+  }
+}
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByTestId('organisation-map-back').click();
+await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Organisation Map');
+await page.getByTestId('wu-anchor-role').click();
+
 // The Work Universe utility route must open a real editorial package, not print the dashboard.
 await page.getByTestId('wu-open-print-package').click();
 await requireVisible(page.getByTestId('v31-workspace-print'), 'Print intent did not reach the existing Step 3 workspace');
@@ -208,7 +258,7 @@ fs.writeFileSync('test-results/claude-contract.json', JSON.stringify(claudeReque
 fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, null, 2));
 fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
-  roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
+  organisationMap: 'PASS', organisationMapResponsive: 'PASS', organisationMapWithholding: 'PASS', roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
   materialBrowserErrors: errors,
 }, null, 2));
 
