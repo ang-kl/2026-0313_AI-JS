@@ -1,0 +1,5 @@
+{"ssoc_title":"Data Analyst","skills":[{"skill":"sql","isEssential":true},{"skill":"python","isEssential":true},{"skill":"data visualisation","isEssential":true},{"skill":"statistics","isEssential":true}]}
+{"ssoc_title":"Software Engineer","skills":[{"skill":"python","isEssential":true},{"skill":"java","isEssential":true},{"skill":"git","isEssential":true},{"skill":"system design","isEssential":true}]}
+{"ssoc_title":"Product Manager","skills":[{"skill":"roadmapping","isEssential":true},{"skill":"stakeholder management","isEssential":true},{"skill":"analytics","isEssential":true},{"skill":"sql","isEssential":false}]}
+{"ssoc_title":"UX Designer","skills":[{"skill":"figma","isEssential":true},{"skill":"user research","isEssential":true},{"skill":"prototyping","isEssential":true},{"skill":"design systems","isEssential":true}]}
+{"ssoc_title":"DevOps Engineer","skills":[{"skill":"python","isEssential":true},{"skill":"kubernetes","isEssential":true},{"skill":"aws","isEssential":true},{"skill":"ci/cd","isEssential":true}]}
