@@ -1,0 +1,10 @@
+{
+  "updated": "2026-07-08",
+  "note": "Single source of truth for in-progress blueprint workstreams. Edit this file when a workstream's status changes - do not hand-edit percentages in ReviewStudio.jsx. Finished workstreams (pct: 100) are kept here for the record but the UI filters them out of the 'still building' strip.",
+  "workstreams": [
+    { "name": "Ad Intelligence", "spec": "v3-ad-intelligence-spec.md", "pct": 100, "status": "shipped" },
+    { "name": "Workspace Desk", "spec": "v3-workspace-panels-spec.md", "pct": 100, "status": "shipped" },
+    { "name": "Visual Grammar", "spec": null, "pct": 20, "status": "in-progress", "note": "Only the AI-trace visual pill is built; blueprint calls for 10 occupation-sensitive visual types." },
+    { "name": "Generative Panels", "spec": "v3-generative-ui-spec.md", "pct": 5, "status": "spec-only", "note": "Spec written (No.136), no code shipped yet." }
+  ]
+}

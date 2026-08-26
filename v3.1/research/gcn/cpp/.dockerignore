@@ -1,0 +1,7 @@
+# Keep the build context tiny and reproducible: never ship local build artifacts.
+build_substrate
+linkpred
+server
+substrate.bin
+substrate_meta.json
+*.o
