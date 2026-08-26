@@ -8,11 +8,14 @@ const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 const claudeRequests = [];
+const apiTraffic = [];
 
-page.on('console', (msg) => {
-  if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
-});
+page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`console: ${msg.text()}`); });
 page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
+page.on('response', async (response) => {
+  const url = response.url();
+  if (url.includes('/api/')) apiTraffic.push({ url: url.replace(base, ''), status: response.status(), method: response.request().method() });
+});
 
 const roleFixture = [
   { title: 'Data Engineer', iscoCode: '2529', iscoGroup: 'Database and network professionals not elsewhere classified', industry: 'Technology', description: 'Designs and maintains data pipelines and platforms that make reliable data available for analysis and operations.', isAltLabel: false },
@@ -30,33 +33,24 @@ await page.route('**/api/claude', async (route) => {
   const prompt = String(body?.messages?.[0]?.content || '');
   console.log('=== CLAUDE REQUEST SUMMARY ===');
   console.log(JSON.stringify({ system: system.slice(0, 300), prompt: prompt.slice(0, 1000) }, null, 2));
-
   let text = '[]';
-  if (/occupational classification expert/i.test(system) && /Search term:/i.test(prompt)) {
-    text = JSON.stringify(roleFixture);
-  }
+  if (/occupational classification expert/i.test(system) && /Search term:/i.test(prompt)) text = JSON.stringify(roleFixture);
   await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ content: [{ type: 'text', text }], model: 'browser-gate-fixture' }) });
 });
 
 async function dump(label, screenshot) {
   const text = (await page.locator('body').innerText()).trim();
-  const controls = await page.locator('button, a, input, textarea, select, [role="option"], [role="listbox"], [tabindex]').evaluateAll((els) =>
-    els.map((el, i) => ({
-      i,
-      tag: el.tagName,
-      role: el.getAttribute('role'),
-      text: (el.innerText || el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.value || '').trim(),
-      type: el.getAttribute('type'),
-      name: el.getAttribute('name'),
-      tabindex: el.getAttribute('tabindex'),
-      disabled: !!el.disabled,
-      ariaSelected: el.getAttribute('aria-selected'),
-    }))
-  );
+  const controls = await page.locator('button, a, input, textarea, select, [role="option"], [role="listbox"], [tabindex]').evaluateAll((els) => els.map((el, i) => ({
+    i, tag: el.tagName, role: el.getAttribute('role'),
+    text: (el.innerText || el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.value || '').trim(),
+    type: el.getAttribute('type'), name: el.getAttribute('name'), tabindex: el.getAttribute('tabindex'), disabled: !!el.disabled,
+  })));
   console.log(`=== ${label} BODY (first 18000 chars) ===`);
   console.log(text.slice(0, 18000));
   console.log(`=== ${label} CONTROLS ===`);
   console.log(JSON.stringify(controls, null, 2));
+  console.log(`=== ${label} API TRAFFIC ===`);
+  console.log(JSON.stringify(apiTraffic, null, 2));
   if (screenshot) await page.screenshot({ path: `test-results/${screenshot}`, fullPage: true });
   return { text, controls };
 }
@@ -71,33 +65,16 @@ await page.waitForTimeout(2200);
 const suggestions = await dump('STEP 1 SUGGESTIONS', '02-step1-suggestions.png');
 if (!suggestions.text.includes('Data Engineer')) throw new Error('Step 1 did not render the deterministic Data Engineer role fixture');
 
-// The existing picker is not a native button. Click its exact visible title so
-// the browser exercises the production onClick attached to the suggestion row.
 const dataEngineerChoice = page.getByText('Data Engineer', { exact: true }).first();
 if (!await dataEngineerChoice.count()) throw new Error('Step 1 Data Engineer role choice not found');
 await dataEngineerChoice.click();
-await page.waitForTimeout(500);
-await dump('STEP 1 SELECTED', '03-step1-selected.png');
-
-const analyseButtons = page.getByRole('button', { name: /Analyse role/i });
-let clickedAnalyse = false;
-for (let i = await analyseButtons.count() - 1; i >= 0; i -= 1) {
-  const button = analyseButtons.nth(i);
-  if (await button.isVisible() && await button.isEnabled()) {
-    await button.click();
-    clickedAnalyse = true;
-    break;
-  }
-}
-if (!clickedAnalyse) throw new Error('Enabled Analyse role control not found after selecting Data Engineer');
-await page.waitForTimeout(3500);
-await dump('AFTER ANALYSE ROLE', '04-after-analyse.png');
+await page.waitForTimeout(12000);
+await dump('AFTER ROLE PIPELINE', '03-after-role-pipeline.png');
 
 fs.writeFileSync('test-results/claude-contract.json', JSON.stringify(claudeRequests, null, 2));
+fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, null, 2));
 console.log('=== BROWSER ERRORS ===');
 console.log(JSON.stringify(errors, null, 2));
-if (errors.some((e) => /Rendered more hooks|is not exported|ReferenceError|TypeError/i.test(e))) {
-  throw new Error(`Material browser error detected: ${errors.join(' | ')}`);
-}
+if (errors.some((e) => /Rendered more hooks|is not exported|ReferenceError|TypeError/i.test(e))) throw new Error(`Material browser error detected: ${errors.join(' | ')}`);
 
 await browser.close();
