@@ -87,12 +87,14 @@ await openRoleGraph.click();
 
 const workspace = page.getByTestId('v31-workspace-roleGraph');
 await requireVisible(workspace, 'Existing Step 3 workspace did not open from Labour graph');
-const fabOpen = page.getByRole('button', { name: 'Open the workspace navigator' });
-await requireVisible(fabOpen, 'Existing FAB/workspace navigator is missing');
+const fab = page.locator('button[title="Workspace navigator"]');
+await requireVisible(fab, 'Existing FAB/workspace navigator is missing');
+if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('FAB should begin closed on first workspace entry');
 await screenshot('05-role-graph-workspace.png');
-await fabOpen.click();
-const fabClose = page.getByRole('button', { name: 'Close the workspace navigator' });
-await requireVisible(fabClose, 'FAB did not open the existing workspace navigator');
+await fab.click();
+const fabMenu = page.locator('[role="menu"][aria-label="Workspace navigator"]');
+await requireVisible(fabMenu, 'FAB did not render the existing workspace navigator menu');
+if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB did not expose aria-expanded=true after opening');
 await screenshot('06-fab-open.png');
 
 const backUniverse = page.getByTestId('return-work-universe');
@@ -104,28 +106,37 @@ if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error(
 await screenshot('07-work-universe-return.png');
 
 // Re-enter. Because the legacy workspace remains mounted rather than recreated,
-// the FAB open state must still be present. This verifies the requested
+// the open FAB/menu state must still be present. This verifies the requested
 // round-trip preservation rather than merely proving two independent renders.
 await page.getByTestId('open-role-graph').click();
 await requireVisible(workspace, 'Role Graph workspace did not reopen');
-await requireVisible(fabClose, 'FAB state reset across Work Universe round trip');
+await requireVisible(fabMenu, 'FAB menu state reset across Work Universe round trip');
+if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB aria-expanded state reset across Work Universe round trip');
 await screenshot('08-role-graph-return.png');
 
-// Preserve the existing back-to-Step-2 control and inspect where this role mode
-// returns. This does not alter that legacy navigation; it asserts it remains a
-// working visible control after the new Step 3 wrapper is introduced.
+// Preserve and exercise the existing back-to-Step-2 path. This intentionally
+// calls the legacy onBack contract instead of introducing a new route.
 await page.getByTestId('return-work-universe').click();
 const step2Back = page.getByRole('button', { name: '← Step 2' });
 await requireVisible(step2Back, 'Existing Step 2 return control is missing from Work Universe');
+await step2Back.click();
+await page.waitForTimeout(800);
+if (await universe.isVisible()) throw new Error('Step 2 return control did not leave Work Universe');
+const step2Body = (await page.locator('body').innerText()).trim();
+if (!step2Body || step2Body.length < 100) throw new Error('Step 2 return produced an empty application surface');
+fs.writeFileSync('test-results/step2-return.txt', step2Body.slice(0, 20000));
+await screenshot('09-step2-return.png');
 
 fs.writeFileSync('test-results/claude-contract.json', JSON.stringify(claudeRequests, null, 2));
 fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, null, 2));
 fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
-  step1: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
+  step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
   roleGraph: 'PASS', fabRoundTrip: 'PASS', r3fCanvasPresent: r3fCount > 0,
   materialBrowserErrors: errors,
 }, null, 2));
 
+console.log('=== STEP 2 RETURN (first 4000 chars) ===');
+console.log(step2Body.slice(0, 4000));
 console.log('=== BROWSER ERRORS ===');
 console.log(JSON.stringify(errors, null, 2));
 if (errors.some((e) => /Rendered more hooks|is not exported|ReferenceError|TypeError|Minified React error/i.test(e))) {
