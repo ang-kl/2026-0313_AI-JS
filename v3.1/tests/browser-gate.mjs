@@ -40,7 +40,7 @@ await page.route('**/api/claude', async (route) => {
 
 async function dump(label, screenshot) {
   const text = (await page.locator('body').innerText()).trim();
-  const controls = await page.locator('button, a, input, textarea, select, [role="option"], [role="listbox"]').evaluateAll((els) =>
+  const controls = await page.locator('button, a, input, textarea, select, [role="option"], [role="listbox"], [tabindex]').evaluateAll((els) =>
     els.map((el, i) => ({
       i,
       tag: el.tagName,
@@ -48,7 +48,7 @@ async function dump(label, screenshot) {
       text: (el.innerText || el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.value || '').trim(),
       type: el.getAttribute('type'),
       name: el.getAttribute('name'),
-      placeholder: el.getAttribute('placeholder'),
+      tabindex: el.getAttribute('tabindex'),
       disabled: !!el.disabled,
       ariaSelected: el.getAttribute('aria-selected'),
     }))
@@ -71,11 +71,13 @@ await page.waitForTimeout(2200);
 const suggestions = await dump('STEP 1 SUGGESTIONS', '02-step1-suggestions.png');
 if (!suggestions.text.includes('Data Engineer')) throw new Error('Step 1 did not render the deterministic Data Engineer role fixture');
 
-const dataEngineerButton = page.getByRole('button', { name: /Data Engineer/i }).first();
-if (!await dataEngineerButton.count()) throw new Error('Step 1 Data Engineer role button not found');
-await dataEngineerButton.click();
+// The existing picker is not a native button. Click its exact visible title so
+// the browser exercises the production onClick attached to the suggestion row.
+const dataEngineerChoice = page.getByText('Data Engineer', { exact: true }).first();
+if (!await dataEngineerChoice.count()) throw new Error('Step 1 Data Engineer role choice not found');
+await dataEngineerChoice.click();
 await page.waitForTimeout(500);
-const selected = await dump('STEP 1 SELECTED', '03-step1-selected.png');
+await dump('STEP 1 SELECTED', '03-step1-selected.png');
 
 const analyseButtons = page.getByRole('button', { name: /Analyse role/i });
 let clickedAnalyse = false;
