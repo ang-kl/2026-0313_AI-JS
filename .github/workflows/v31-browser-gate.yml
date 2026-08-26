@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   browser-gate:
@@ -24,17 +24,7 @@ jobs:
 
       - name: Install v3.1 dependencies
         working-directory: v3.1
-        run: npm install
-
-      - name: Persist dependency lock update
-        run: |
-          if ! git diff --quiet -- v3.1/package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add v3.1/package-lock.json
-            git commit -m "chore(v3.1): sync R3F dependency lock"
-            git push
-          fi
+        run: npm ci
 
       - name: Install Playwright Chromium
         working-directory: v3.1
