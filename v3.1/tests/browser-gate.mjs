@@ -121,11 +121,17 @@ await requireVisible(detail, 'Selected Work Universe signal was lost on return')
 if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error('Selected Work Universe detail changed during workspace round trip');
 await screenshot('07-work-universe-return.png');
 
+// The existing Canvas contract closes an open navigator when the user clicks
+// outside it. Returning to Work Universe is such an outside click. What must
+// persist is the workspace itself and the FAB functionality, not an open popover.
 await page.getByTestId('open-role-graph').click();
 await requireVisible(workspace, 'Role Graph workspace did not reopen');
 await page.waitForTimeout(200);
-if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB aria-expanded state reset across Work Universe round trip');
-if (!await fabMenu.isVisible()) throw new Error('FAB menu state reset across Work Universe round trip');
+if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('FAB did not honour its existing click-outside close contract');
+await fab.click();
+await page.waitForTimeout(200);
+if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB did not reopen after Work Universe round trip');
+if (!await fabMenu.isVisible()) throw new Error('Workspace navigator menu did not reopen after Work Universe round trip');
 await screenshot('08-role-graph-return.png');
 
 await page.getByTestId('return-work-universe').click();
