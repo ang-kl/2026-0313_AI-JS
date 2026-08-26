@@ -7,6 +7,15 @@ import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
 // the preserved implementation.
 export { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudioLegacy.jsx";
 
+function workspaceIntentKey(intent) {
+  if (!intent) return "evidence";
+  if (typeof intent === "string") return intent;
+  if (intent.kind === "roleGraph") return "roleGraph";
+  if (intent.kind === "evidence") return `evidence-${intent.evidenceId || "selected"}`;
+  if (intent.kind === "graph") return `graph-${intent.graphId || "selected"}`;
+  return "evidence";
+}
+
 // v3.1 Step 3 is one persistent experience with two surfaces:
 //   Work Universe -> existing evidence workspace (Role Graph + FAB + O-I-A)
 // Both surfaces stay mounted after the workspace is first opened. That matters:
@@ -18,7 +27,7 @@ export default function ReviewStudio(props) {
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
 
   const openWorkspace = (intent) => {
-    setWorkspaceIntent(intent || "evidence");
+    setWorkspaceIntent(intent || { kind: "evidence" });
     setWorkspaceMounted(true);
     setSurface("workspace");
   };
@@ -38,14 +47,14 @@ export default function ReviewStudio(props) {
           band={props.band}
           posting={props.posting}
           onBack={props.onBack}
-          onEnterStudio={(graphId) => openWorkspace(graphId ? `graph-${graphId}` : "evidence")}
-          onOpenRoleGraph={() => openWorkspace("roleGraph")}
+          onEnterStudio={(intent) => openWorkspace(intent || { kind: "evidence" })}
+          onOpenRoleGraph={() => openWorkspace({ kind: "roleGraph" })}
         />
       </div>
 
       {workspaceMounted && (
         <div
-          data-testid={`v31-workspace-${workspaceIntent || "evidence"}`}
+          data-testid={`v31-workspace-${workspaceIntentKey(workspaceIntent)}`}
           aria-hidden={surface === "workspace" ? undefined : "true"}
           style={{ display: surface === "workspace" ? "block" : "none", position: "relative" }}
         >
@@ -64,7 +73,7 @@ export default function ReviewStudio(props) {
           >
             ← Work Universe
           </button>
-          <ReviewStudioLegacy {...props} />
+          <ReviewStudioLegacy {...props} initialIntent={workspaceIntent} />
         </div>
       )}
     </>

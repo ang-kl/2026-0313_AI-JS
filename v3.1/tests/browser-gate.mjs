@@ -9,6 +9,7 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 const claudeRequests = [];
 const apiTraffic = [];
+let evidenceRoundTrip = 'WITHHELD_NO_SOURCE_ROWS';
 
 page.on('console', (msg) => { if (msg.type() === 'error') errors.push(`console: ${msg.text()}`); });
 page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
@@ -121,6 +122,40 @@ await requireVisible(detail, 'Selected Work Universe signal was lost on return')
 if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error('Selected Work Universe detail changed during workspace round trip');
 await screenshot('07-work-universe-return.png');
 
+// Anchor reprojection must change the claims, not only the centre label.
+await page.getByTestId('wu-anchor-org').click();
+const orgGraph = page.getByTestId('graph-organisation');
+if (!((await orgGraph.innerText()).includes('Operating-model coverage'))) throw new Error('Organisation projection did not reframe organisation claims');
+await orgGraph.locator('.wu-signal').first().click();
+await page.getByTestId('open-graph-workspace').click();
+await requireVisible(page.getByTestId('v31-workspace-graph-2'), 'Organisation graph intent did not reach the existing workspace');
+await requireVisible(page.locator('[aria-label="Company Information"]'), 'Organisation graph did not open Company Information');
+await page.getByTestId('return-work-universe').click();
+
+await page.getByTestId('wu-anchor-person').click();
+const personLabour = page.getByTestId('graph-labour');
+if (!((await personLabour.innerText()).includes('Person skills evidenced'))) throw new Error('Person projection did not expose person-specific skill evidence');
+if (!((await personLabour.innerText()).includes('WITHHELD'))) throw new Error('Person projection guessed a personal claim without person evidence');
+await screenshot('08-person-projection.png');
+
+// Source evidence carries the same span id used by the Review Studio O-I-A engine.
+await page.getByTestId('wu-source-anchor').click();
+const firstEvidence = page.getByTestId('wu-evidence-row').first();
+if (await firstEvidence.count()) {
+  await requireVisible(firstEvidence, 'Source evidence row exists but is not visible');
+  await firstEvidence.click();
+  await page.getByTestId('open-evidence-workspace').click();
+  await requireVisible(page.getByTestId('v31-workspace-evidence-s0'), 'Evidence span intent did not reach the existing workspace');
+  await requireVisible(page.locator('[aria-label="Evidence / Explanation"]'), 'Evidence intent did not open the evidence drawer');
+  await page.getByTestId('return-work-universe').click();
+  evidenceRoundTrip = 'PASS';
+} else if (!((await page.locator('.wu-sourceBody').innerText()).includes('No source rows are available yet'))) {
+  throw new Error('Missing source evidence did not render the required withheld empty state');
+}
+
+await page.getByTestId('wu-anchor-role').click();
+await page.getByTestId('graph-labour').locator('.wu-signal').filter({ hasText: 'Canonical skills' }).click();
+
 // The existing Canvas contract closes an open navigator when the user clicks
 // outside it. Returning to Work Universe is such an outside click. What must
 // persist is the workspace itself and the FAB functionality, not an open popover.
@@ -132,7 +167,7 @@ await fab.click();
 await page.waitForTimeout(200);
 if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB did not reopen after Work Universe round trip');
 if (!await fabMenu.isVisible()) throw new Error('Workspace navigator menu did not reopen after Work Universe round trip');
-await screenshot('08-role-graph-return.png');
+await screenshot('09-role-graph-return.png');
 
 await page.getByTestId('return-work-universe').click();
 const step2Back = page.getByRole('button', { name: '← Step 2' });
@@ -143,13 +178,13 @@ if (await universe.isVisible()) throw new Error('Step 2 return control did not l
 const step2Body = (await page.locator('body').innerText()).trim();
 if (!step2Body || step2Body.length < 100) throw new Error('Step 2 return produced an empty application surface');
 fs.writeFileSync('test-results/step2-return.txt', step2Body.slice(0, 20000));
-await screenshot('09-step2-return.png');
+await screenshot('10-step2-return.png');
 
 fs.writeFileSync('test-results/claude-contract.json', JSON.stringify(claudeRequests, null, 2));
 fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, null, 2));
 fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
-  roleGraph: 'PASS', fabRoundTrip: 'PASS', r3fCanvasPresent: r3fCount > 0,
+  roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
   materialBrowserErrors: errors,
 }, null, 2));
 

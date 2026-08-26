@@ -695,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, onExportJson, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, onExportJson, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError, initialIntent }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1224,6 +1224,47 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // Reset drops any added analysis windows back off the canvas - starting over is the whole
   // point of the control, and the three core tools return to their opening arrangement.
   const wsReset = () => setWs(wsInitial());
+  const appliedIntentRef = useRef("");
+  useEffect(() => {
+    if (!initialIntent) return;
+    const intent = typeof initialIntent === "string" ? { kind: initialIntent } : initialIntent;
+    const key = JSON.stringify(intent);
+    if (appliedIntentRef.current === key) return;
+    appliedIntentRef.current = key;
+
+    setMoreOpen(false);
+    setNavOpen(false);
+    if (intent.evidenceId) setActiveSpan(intent.evidenceId);
+
+    const openWindow = (id) => setWinState(id, "floating");
+    if (intent.kind === "roleGraph" || intent.kind === "graph-1" || (intent.kind === "graph" && intent.graphId === 1)) {
+      openWindow("roleGraph");
+      return;
+    }
+    if (intent.kind === "graph" && intent.graphId === 2) {
+      setWinState("company", "open");
+      return;
+    }
+    if (intent.kind === "graph" && intent.graphId === 3) {
+      openWindow("aitrace");
+      setWinState("evidence", "open");
+      return;
+    }
+    if (intent.kind === "graph" && intent.graphId === 4) {
+      openWindow("oia");
+      openWindow("aitrace");
+      if (intent.evidenceId) setWinState("evidence", "open");
+      return;
+    }
+    if (intent.kind === "graph" && intent.graphId === 5) {
+      openWindow("trajectory");
+      return;
+    }
+    if (intent.kind === "evidence" || intent.evidenceId) {
+      setWinState("evidence", "open");
+      openWindow("oia");
+    }
+  }, [initialIntent]);
   // §3.9: clicking a duty, requirement or graph node already sets activeSpan/focusSkill -
   // the evidence drawer follows that existing selection rather than inventing a second
   // one, so the O-I-A card the Inspector already builds (source wording, passage,
@@ -1862,4 +1903,3 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
     </>
   );
 }
-

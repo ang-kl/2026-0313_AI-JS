@@ -144,6 +144,7 @@ function buildEvidence(result, posting) {
   const dutySource = anatomyDuties.length ? anatomyDuties : rdDuties;
   const duties = dutySource.map((d, i) => ({
     id: `D${i + 1}`,
+    workspaceId: `s${i}`,
     kind: "duty",
     text: textOf(d),
     quote: clean(d && d.quote),
@@ -154,6 +155,7 @@ function buildEvidence(result, posting) {
   const postingSkills = uniq(arr(posting && posting.skills).map((s) => clean(s))).slice(0, 8);
   const reqs = postingSkills.map((s, i) => ({
     id: `R${i + 1}`,
+    workspaceId: null,
     kind: "req",
     text: s,
     quote: "",
@@ -280,6 +282,122 @@ function buildUniverse(result, title, employer, band, posting) {
   };
 }
 
+function personEvidenceOf(result) {
+  const person = firstDefined(
+    result && result.personEvidence,
+    result && result.person,
+    result && result.candidate,
+    result && result.userProfile,
+    result && result.profile,
+  ) || {};
+  const skills = uniq(arr(firstDefined(person.skills, person.capabilities, person.skillEvidence)).map(skillLabel).filter(Boolean));
+  const work = arr(firstDefined(person.workHistory, person.experience, person.roles));
+  const proofs = arr(firstDefined(person.proofs, person.evidence, person.portfolio));
+  return {
+    skills,
+    work,
+    proofs,
+    authority: firstDefined(person.authority, person.commitAuthority),
+    allocation: firstDefined(person.humanAgentAllocation, person.allocation),
+    access: firstDefined(person.intelligenceAccess, person.agentAccess),
+    supplied: skills.length > 0 || work.length > 0 || proofs.length > 0,
+  };
+}
+
+function projectedSignal(signal, projection, patch) {
+  return { ...signal, projection, ...patch };
+}
+
+function projectUniverse(base, anchor, result) {
+  const projection = anchor === "org" ? "Organisation" : anchor === "person" ? "Person" : "Role";
+  if (anchor === "role") {
+    return {
+      ...base,
+      projection,
+      graphs: base.graphs.map((graph) => ({
+        ...graph,
+        signals: graph.signals.map((signal) => projectedSignal(signal, projection)),
+      })),
+    };
+  }
+
+  const groups = Object.fromEntries(base.graphs.map((graph) => [graph.id, graph.signals]));
+  if (anchor === "org") {
+    const names = {
+      L1: "Role duties in scope", L2: "Organisation work units", L3: "Capability demand",
+      O1: "Operating-model coverage", O2: "Capabilities evidenced", O3: "Commit authority",
+      I1: "Information domains", I2: "Agent-actionable objects", I3: "Human-heavy objects",
+      H1: "Functions in scope", H2: "Operating allocation", H3: "Role exposure context",
+      T1: "Changing work", T2: "Formation demand", T3: "Person delta",
+    };
+    return {
+      ...base,
+      projection,
+      graphs: base.graphs.map((graph) => ({
+        ...graph,
+        signals: graph.signals.map((signal) => projectedSignal(signal, projection, {
+          name: names[signal.id] || signal.name,
+          desc: `${signal.desc} This view reads the claim from the organisation boundary.`,
+        })),
+      })),
+    };
+  }
+
+  const person = personEvidenceOf(result);
+  const normal = (value) => clean(value).toLowerCase();
+  const personSkillSet = new Set(person.skills.map(normal));
+  const missingSkills = base.skills.filter((skill) => !personSkillSet.has(normal(skill)));
+  const allEvidenceIds = base.evidence.map((e) => e.id);
+  const personSkillSignal = person.skills.length
+    ? makeSignal("L3", 1, "Person skills evidenced", person.skills.length, ["USER-PROVEN", "DIRECT"], "Skills supplied by the person rather than inferred from the target role.", person.skills.map((_, i) => `PSK${i + 1}`), "Counts only supplied person skill evidence.", "A listed skill is not proof of proficiency without supporting evidence.")
+    : withheldSignal("L3", 1, "Person skills evidenced", "No person skill evidence has been supplied.", [], "Role requirements are not silently promoted into personal capability.");
+  const authoritySignal = person.authority !== null
+    ? makeSignal("O3", 2, "Person authority", person.authority, ["USER-PROVEN", "DIRECT"], "Commit authority supplied in person evidence.", [], "Reads only supplied person authority.", "Title or seniority does not establish authority.")
+    : withheldSignal("O3", 2, "Person authority", "No person commit-authority evidence has been supplied.", [], "Authority is never inferred from the target role.");
+  const accessSignal = person.access !== null
+    ? makeSignal("I2", 3, "Person access", person.access, ["USER-PROVEN", "DIRECT"], "Intelligence or agent access supplied by the person.", [], "Reads only supplied access evidence.", "Access does not establish reliability or permission to act.")
+    : withheldSignal("I2", 3, "Person access", "No person intelligence-access evidence has been supplied.", [], "Target-role tools do not prove personal access.");
+  const allocationSignal = person.allocation !== null
+    ? makeSignal("H2", 4, "Person H / HY / A fit", typeof person.allocation === "string" ? person.allocation : JSON.stringify(person.allocation), ["USER-PROVEN", "PROJECTED"], "Person-level allocation supplied for the current scenario.", [], "Reads only supplied scenario allocation.", "This is not a replacement or employability verdict.")
+    : withheldSignal("H2", 4, "Person H / HY / A fit", "No person-level Human / Hybrid / Agent allocation has been supplied.", [], "Role exposure cannot establish individual fit.");
+  const deltaSignal = person.skills.length
+    ? makeSignal("T3", 5, "Personal skill delta", missingSkills.length, ["USER-PROVEN", "COMPUTED"], "Canonical target-role skills not present in supplied person skill evidence.", missingSkills.map((_, i) => `GAP${i + 1}`), "Case-normalised set difference: target role skills minus supplied person skills.", "Absence from the supplied profile is not proof that the person lacks the skill.")
+    : withheldSignal("T3", 5, "Personal skill delta", "No person skill evidence is available for a target-role comparison.", allEvidenceIds, "Role evidence alone cannot establish an individual's capability gap.");
+  const personGroups = {
+    1: [
+      projectedSignal(groups[1][0], projection, { name: "Target role duties", desc: `${groups[1][0].desc} This is target-role context, not personal history.` }),
+      projectedSignal(groups[1][1], projection, { name: "Target work units", desc: `${groups[1][1].desc} This is target-role context, not work the person claims to have performed.` }),
+      projectedSignal(personSkillSignal, projection),
+    ],
+    2: [
+      projectedSignal(groups[2][0], projection, { name: "Target organisation context" }),
+      projectedSignal(groups[2][1], projection, { name: "Capabilities required" }),
+      projectedSignal(authoritySignal, projection),
+    ],
+    3: [
+      projectedSignal(groups[3][0], projection, { name: "Intelligence domains required" }),
+      projectedSignal(accessSignal, projection),
+      projectedSignal(groups[3][2], projection, { name: "Human-heavy requirements" }),
+    ],
+    4: [
+      projectedSignal(groups[4][0], projection, { name: "Functions to perform" }),
+      projectedSignal(allocationSignal, projection),
+      projectedSignal(groups[4][2], projection, { name: "Role exposure context" }),
+    ],
+    5: [
+      projectedSignal(groups[5][0], projection, { name: "Target change projection" }),
+      projectedSignal(groups[5][1], projection, { name: "Formation demand" }),
+      projectedSignal(deltaSignal, projection),
+    ],
+  };
+  return {
+    ...base,
+    projection,
+    personEvidence: person,
+    graphs: base.graphs.map((graph) => ({ ...graph, signals: personGroups[graph.id] })),
+  };
+}
+
 function webglAvailable() {
   if (typeof document === "undefined") return false;
   try {
@@ -296,7 +414,7 @@ function sourceHref(posting, result) {
 function sourceName(source, result, posting) {
   return clean(source || (result && result.postingMeta && result.postingMeta.postingSource) || (posting && posting.source) || "source pending");
 }
-function roleSubject(anchor, roleTitle, orgName) {
+function roleSubject(anchor, roleTitle, orgName, personName, hasPersonEvidence) {
   if (anchor === "org") {
     return {
       eyebrow: "Organisation universe",
@@ -308,9 +426,9 @@ function roleSubject(anchor, roleTitle, orgName) {
   if (anchor === "person") {
     return {
       eyebrow: "Person universe",
-      title: "Person evidence not supplied",
-      meta: "Person centre · USER-PROVEN evidence required",
-      boundary: "Role evidence cannot be silently promoted into personal capability evidence.",
+      title: hasPersonEvidence ? personName : "Person evidence not supplied",
+      meta: hasPersonEvidence ? "Person centre · USER-PROVEN evidence active" : "Person centre · USER-PROVEN evidence required",
+      boundary: hasPersonEvidence ? "Person claims use supplied evidence; target-role values remain clearly labelled as context." : "Role evidence cannot be silently promoted into personal capability evidence.",
     };
   }
   return {
@@ -353,12 +471,14 @@ export default function WorkUniverseLanding({
   const [geo, setGeo] = useState({ node: 230, nodeSm: 212, anchor: 205 });
   const [reducedMotion, setReducedMotion] = useState(false);
   const [hasWebgl, setHasWebgl] = useState(false);
-  const data = useMemo(() => buildUniverse(result, title, employer, band, posting), [result, title, employer, band, posting]);
+  const baseData = useMemo(() => buildUniverse(result, title, employer, band, posting), [result, title, employer, band, posting]);
+  const data = useMemo(() => projectUniverse(baseData, anchor, result), [baseData, anchor, result]);
   const roleTitle = clean(title || (posting && posting.title) || (result && result.title)) || "Role evidence pending";
   const orgName = clean(employer || (posting && (posting.employer || posting.companyName)) || (result && result.employer) || (result && result.postingMeta && result.postingMeta.employer)) || "Organisation evidence pending";
+  const personName = clean(result && firstDefined(result.personName, result.candidateName, result.person && result.person.name, result.candidate && result.candidate.name)) || "Supplied person evidence";
   const sourceLabel = sourceName(source, result, posting);
   const srcHref = sourceHref(posting, result);
-  const subject = roleSubject(anchor, roleTitle, orgName);
+  const subject = roleSubject(anchor, roleTitle, orgName, personName, !!(data.personEvidence && data.personEvidence.supplied));
   const allSignals = useMemo(() => data.graphs.flatMap((graph) => graph.signals.map((signal) => ({ graph, signal }))), [data.graphs]);
   const filteredEvidence = data.evidence.filter((e) => sourceFilter === "all" || e.kind === sourceFilter);
 
@@ -496,8 +616,15 @@ export default function WorkUniverseLanding({
   };
   const openEvidenceWorkspace = () => {
     const graphId = detail && detail.graph ? detail.graph.id : selectedGraph;
+    const evidenceId = (() => {
+      if (detail && detail.evidence && detail.evidence.workspaceId) return detail.evidence.workspaceId;
+      const signal = detail && detail.signal;
+      if (!signal) return null;
+      const evidence = data.evidence.find((row) => signal.items.includes(row.id) && row.workspaceId);
+      return evidence ? evidence.workspaceId : null;
+    })();
     if (graphId === 1 && onOpenRoleGraph) onOpenRoleGraph();
-    else if (onEnterStudio) onEnterStudio(graphId || null);
+    else if (onEnterStudio) onEnterStudio({ kind: graphId ? "graph" : "evidence", graphId: graphId || null, signalId: selectedSignal, evidenceId });
   };
   const highlightedGraphs = useMemo(() => {
     if (selectedEvidence) {
@@ -661,7 +788,16 @@ export default function WorkUniverseLanding({
                     data-testid={`wu-anchor-${key}`}
                     type="button"
                     className={anchor === key ? "on" : ""}
-                    onClick={() => { setAnchor(key); setDetail({ kind: "summary" }); setTocActive("overview"); setFooter({ label: `${label} centre`, detail: "same evidence universe re-projected" }); }}
+                    onClick={() => {
+                      setAnchor(key);
+                      setSelectedGraph(null);
+                      setSelectedSignal(null);
+                      setSelectedEvidence(null);
+                      setSelectedInterpretation(null);
+                      setDetail({ kind: "summary" });
+                      setTocActive("overview");
+                      setFooter({ label: `${label} centre`, detail: "same evidence universe re-projected with anchor-specific claim boundaries" });
+                    }}
                   >
                     {label}
                   </button>
@@ -690,8 +826,8 @@ export default function WorkUniverseLanding({
                 <div className={`wu-anchorNode ${detail.kind === "anchor" ? "active" : ""}`} data-testid="wu-source-anchor" role="button" tabIndex={0} aria-label={`Role Anchor for ${roleTitle}`} onClick={openSourceFromAnchor} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openSourceFromAnchor(); } }}>
                   <div className="wu-nodeInner">
                     <div className="wu-anchorType">{anchor.toUpperCase()} ANCHOR</div>
-                    <div className="wu-anchorName">{anchor === "role" ? roleTitle : anchor === "org" ? orgName : "Person evidence not supplied"}</div>
-                    <div className="wu-anchorSub">{anchor === "role" ? `${sourceLabel} · selected role evidence` : anchor === "org" ? "same universe · organisation-centred" : "USER-PROVEN evidence required"}</div>
+                    <div className="wu-anchorName">{anchor === "role" ? roleTitle : anchor === "org" ? orgName : subject.title}</div>
+                    <div className="wu-anchorSub">{anchor === "role" ? `${sourceLabel} · selected role evidence` : anchor === "org" ? "same universe · organisation-centred" : data.personEvidence?.supplied ? "USER-PROVEN evidence active" : "USER-PROVEN evidence required"}</div>
                     <div className="wu-anchorActions">
                       <button className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openSourceFromAnchor(); }}>Source / O-I-A</button>
                       <button data-testid="wu-anchor-role-graph" className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openRoleGraph(); }}>Role Graph →</button>
@@ -776,6 +912,7 @@ export default function WorkUniverseLanding({
                       <div className="wu-big">{detail.signal.value}</div>
                       <ProvChip kind={detail.signal.provenance} />
                       <DetailMethods methods={detail.signal.methods} />
+                      <p className="wu-desc"><b>Projection:</b> {detail.signal.projection || data.projection}</p>
                       <p className="wu-desc">{detail.signal.desc}</p>
                       <div className="wu-srcid">Constituents / trace</div>
                       {detail.signal.items.length ? detail.signal.items.map((item) => <div key={item} className="wu-item">{item}</div>) : <div className="wu-empty">No constituent rows are available.</div>}
@@ -791,6 +928,7 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc">{detail.evidence.text}</p>
                       <div className="wu-item"><b>Supports graphs</b><br />{graphNames(detail.evidence.graphs)}</div>
                       {relatedSignals.length ? relatedSignals.map(({ graph, signal }) => <button key={`${graph.id}-${signal.id}`} type="button" className="wu-itemBtn" onClick={() => showSignal(graph, signal)}><b>{signal.name}</b><br />{signal.id} · {signal.methods.join(" / ")}</button>) : <div className="wu-empty">No signal claims cite this row yet.</div>}
+                      {detail.evidence.workspaceId && <button data-testid="open-evidence-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open linked O-I-A card →</button>}
                     </>
                   )}
                   {detail.kind === "interpretation" && detail.interpretation && (
