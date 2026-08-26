@@ -12,6 +12,7 @@
   "dependencies": {
     "@formkit/auto-animate": "^0.10.0",
     "@number-flow/react": "^0.6.2",
+    "@react-three/fiber": "8.18.0",
     "express": "^4.19.2",
     "gsap": "^3.15.0",
     "pg": "^8.13.1",
