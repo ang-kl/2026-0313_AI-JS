@@ -695,7 +695,7 @@ function buildCriticalRead(result, spans, title, posting, employerData) {
   }
   return { adText, noodles: rsSignalNoise(adText), forensic: rsForensicReversal(adText), falsification: rsFalsification(effSpans, title, adText), hiringFilter: rsHiringFilter(adText, firstJob), blindSpots: rsBlindSpots(adText, firstJob), contradictions: rsContradictions(effSpans, title), qoi: rsQoI(effSpans), indicators: rsIndicators(result, firstJob, employerData), trajectory: rsTrajectory(effSpans), salaryPos: rsSalaryPosition(posting, result) };
 }
-export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
+export default function ReviewStudio({ result, title, employer, source, rolePane, companyPane, analysisPanes, analysisLabels, roleGraphMode, band, onBack, version, posting, onRetryDuties, onOpenOkf, onOpenJobAd, onExportJson, settingsEl, bgRunning, bgStep, bgStatus, bgElapsed, bgError }) {
   // No.137 T1: TABS replace the mode ribbon (Report View anatomy). markup/dutyView become
   // per-tab toolbar state; visual stays for the Market graphs.
   const [tab, setTab] = useState("overview");   // overview | ad | duties | gates | critical | market
@@ -1514,6 +1514,26 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#fff", border: "1px solid #e6e3db", borderRadius: 6, padding: "4px 9px" }}>{duties.length} duties {String.fromCharCode(0x00b7)} {skills.length} skills</span>
           {onOpenOkf && (
             <button type="button" onClick={onOpenOkf} title="View this analysis as an OKF concept document" style={{ minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "0 9px", cursor: "pointer" }}>{"{ } OKF"}</button>
+          )}
+          {/* EXP1: download this analysis as JSON. Rendered here rather than as its own
+              control row so it sits with the other artifact actions. The glyph is small;
+              the hit area is 44px, per spec §7. */}
+          {onExportJson && (
+            <button type="button" onClick={onExportJson}
+              aria-label={"Download this role analysis as JSON: " + (title || "role")}
+              title="Download this analysis as JSON"
+              style={{ width: 44, height: 44, padding: 0, display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: "transparent", border: "none", borderRadius: 6, color: "#c9d2ee", cursor: "pointer", flexShrink: 0 }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "#ffffff"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "#c9d2ee"; }}
+              onFocus={(e) => { e.currentTarget.style.color = "#ffffff"; e.currentTarget.style.outline = "2px solid #ffffff"; e.currentTarget.style.outlineOffset = "-2px"; }}
+              onBlur={(e) => { e.currentTarget.style.color = "#c9d2ee"; e.currentTarget.style.outline = "2px solid transparent"; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                <path d="M10 3h4v6h-4z" />
+                <path d="M6.2 9h11.6L12 17.2z" />
+                <path d="M4 14.4v5.6h16v-5.6h-2.7v2.9H6.7v-2.9z" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
