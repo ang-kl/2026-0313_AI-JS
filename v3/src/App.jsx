@@ -15559,20 +15559,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   }, [activeJobs, mcfFacets, mcfSort]);
   const mcfToggleFacet = function(key, val) { setMcfFacets(function(f) { return { ...f, [key]: f[key].includes(val) ? f[key].filter(function(x) { return x !== val; }) : f[key].concat(val) }; }); };
 
-  if (state.loading) {
-    return (
-      <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
-        <InlineSpinner size={30} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 12px" }} />
-        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture for "{companyQuery}"...</p>
-      </div>
-    );
-  }
-
-  // Only show the careers.gov.sg column when it is loading or actually has roles.
-  // For a private / MCF employer (e.g. DBS) there are none - so drop the redundant
-  // "no roles" panel and let the MyCareersFuture results take the full width.
-  const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0);
-
+  // EXP1: these two exports are declared HERE, above the `if (state.loading)`
+  // early return below, and must stay above it. Placing them after that return
+  // was a Rules-of-Hooks violation: the loading render bailed out before the two
+  // useCallback calls, so the next render ran two hooks more than the previous
+  // one and React threw "Rendered more hooks than during the previous render."
+  // CompanyPanel always starts with loading:true, so this crashed the employer
+  // search every time results arrived.
   // EXP1: exports. Every block is provenance-tagged (see src/export-json.js) -
   // postings and registry facts are verbatim, orgRead and the match buckets are
   // derived, the overview and the agents model are AI-authored. Empty blocks are
@@ -15637,6 +15630,21 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     );
   }, [activeMatch, state, companyQuery, mcfFilteredSorted, csgState.jobs, csgRetrievedAt,
       empReg, empGeo, orgRead, companyOverview, agentsModel, agentsView]);
+
+  if (state.loading) {
+    return (
+      <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
+        <InlineSpinner size={30} thickness={3} color="#1a56db" trackColor="#bae6fd" style={{ display: "block", margin: "0 auto 12px" }} />
+        <p style={{ margin: 0, fontSize: "0.8125rem", color: "#0369a1" }}>Searching MyCareersFuture for "{companyQuery}"...</p>
+      </div>
+    );
+  }
+
+  // Only show the careers.gov.sg column when it is loading or actually has roles.
+  // For a private / MCF employer (e.g. DBS) there are none - so drop the redundant
+  // "no roles" panel and let the MyCareersFuture results take the full width.
+  const showCsg = csgState.loading || (!csgState.fallback && csgState.jobs.length > 0);
+
 
   return (
     <div className={showCsg ? "csg-cols" : ""}>
