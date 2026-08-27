@@ -60,6 +60,7 @@ jobs:
           node tests/device-profile-contract.mjs
           node tests/organisation-map-contract.mjs
           node tests/workflow-map-contract.mjs
+          node tests/value-stream-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/browser-gate.mjs
 

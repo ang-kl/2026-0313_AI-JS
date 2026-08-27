@@ -234,6 +234,48 @@ for (const visual of [
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.getByTestId('workflow-map-back').click();
 await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Workflow Map');
+
+// Value Stream is the dedicated BPR surface for time, waste, handoffs and AI
+// leverage. With no explicit value-stream payload it must not classify duties,
+// invent durations or suggest savings/automation.
+await page.getByTestId('tree-value-stream-map').click();
+const valueStreamMap = page.getByTestId('value-stream-map');
+await requireVisible(valueStreamMap, 'Contents tree did not open the dedicated Value Stream Map');
+const valueStreamText = await valueStreamMap.innerText();
+if (!valueStreamText.includes('Where does time go?')) throw new Error('Value Stream Map does not state its blueprint question');
+if (!valueStreamText.includes('WITHHELD')) throw new Error('Value Stream Map guessed time, waste or AI leverage instead of withholding');
+if (!/not silently converted into timing/i.test(valueStreamText)) throw new Error('Value Stream Map does not disclose the duty/timing evidence boundary');
+if (await valueStreamMap.locator('.vsm-stage').count()) throw new Error('Value Stream Map rendered fabricated stages for a payload with no explicit value stream');
+for (const visual of [
+  { name: 'desktop', width: 1440, height: 1000 },
+  { name: 'tablet', width: 820, height: 1180 },
+  { name: 'mobile', width: 390, height: 844 },
+]) {
+  await page.setViewportSize({ width: visual.width, height: visual.height });
+  await page.waitForTimeout(250);
+  await requireVisible(valueStreamMap, `Value Stream Map is not visible at ${visual.name} width`);
+  const scrollState = await valueStreamMap.locator('.vsm-body').evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+    const empty = element.querySelector('[data-testid="value-stream-map-empty"]');
+    const outer = element.getBoundingClientRect();
+    const inner = empty?.getBoundingClientRect();
+    return {
+      overflowX: getComputedStyle(element).overflowX,
+      overflowY: getComputedStyle(element).overflowY,
+      scrollTop: element.scrollTop,
+      scrollHeight: element.scrollHeight,
+      clientHeight: element.clientHeight,
+      emptyVisible: Boolean(inner && inner.bottom > outer.top && inner.top < outer.bottom),
+    };
+  });
+  if (!['auto', 'scroll'].includes(scrollState.overflowX) || !['auto', 'scroll'].includes(scrollState.overflowY)) throw new Error(`Value Stream Map does not own both overflow axes at ${visual.name}: ${JSON.stringify(scrollState)}`);
+  if (!scrollState.emptyVisible) throw new Error(`Value Stream withheld state is not reachable at ${visual.name}`);
+  await screenshot(`03-value-stream-map-${visual.name}.png`);
+  await valueStreamMap.locator('.vsm-body').evaluate((element) => { element.scrollTop = 0; });
+}
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByTestId('value-stream-map-back').click();
+await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Value Stream Map');
 await page.getByTestId('wu-anchor-role').click();
 
 // The Work Universe utility route must open a real editorial package, not print the dashboard.
@@ -373,6 +415,7 @@ fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
   organisationMap: 'PASS', organisationMapResponsive: 'PASS', organisationMapWithholding: 'PASS', roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
   workflowMap: 'PASS', workflowMapResponsive: 'PASS', workflowMapWithholding: 'PASS', workflowMapMobileConnectionsReachable: 'PASS',
+  valueStreamMap: 'PASS', valueStreamMapResponsive: 'PASS', valueStreamMapWithholding: 'PASS',
   materialBrowserErrors: errors,
 }, null, 2));
 
