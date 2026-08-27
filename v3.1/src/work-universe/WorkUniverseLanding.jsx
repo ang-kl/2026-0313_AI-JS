@@ -455,8 +455,9 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onPrintPackage,
+  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onOpenAiMoments, onPrintPackage,
 }) {
+  const rootRef = useRef(null);
   const frameRef = useRef(null);
   const [anchor, setAnchor] = useState("role");
   const [mode, setMode] = useState("universe");
@@ -469,6 +470,7 @@ export default function WorkUniverseLanding({
   const [selectedInterpretation, setSelectedInterpretation] = useState(null);
   const [detail, setDetail] = useState({ kind: "summary" });
   const [tocActive, setTocActive] = useState("overview");
+  const [treeOpen, setTreeOpen] = useState({ universe: true, graphs: true, organisation: true });
   const [footer, setFooter] = useState({ label: "Neutral", detail: "five canonical graphs visible" });
   const [geo, setGeo] = useState({ node: 230, nodeSm: 212, anchor: 205 });
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -492,6 +494,24 @@ export default function WorkUniverseLanding({
     sync();
     mq.addEventListener?.("change", sync);
     return () => mq.removeEventListener?.("change", sync);
+  }, []);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof window === "undefined") return undefined;
+    const fitAvailableViewport = () => {
+      const rect = root.getBoundingClientRect();
+      const top = Math.max(0, rect.top);
+      // The preserved v3.1 shell applies html zoom on wide screens. DOM rects are
+      // visual pixels while CSS height is pre-zoom, so measure the live scale
+      // instead of assuming 1.0 or hard-coding the shell's current zoom value.
+      const visualScale = root.offsetWidth > 0 ? rect.width / root.offsetWidth : 1;
+      const cssHeight = (window.innerHeight - top) / Math.max(0.5, visualScale || 1);
+      root.style.setProperty("--wu-available-height", `${Math.max(420, Math.floor(cssHeight))}px`);
+    };
+    fitAvailableViewport();
+    window.addEventListener("resize", fitAvailableViewport);
+    return () => window.removeEventListener("resize", fitAvailableViewport);
   }, []);
 
   useEffect(() => {
@@ -556,7 +576,7 @@ export default function WorkUniverseLanding({
     setSelectedInterpretation(null);
     setDetail({ kind: "anchor" });
     setTocActive("role-anchor");
-    setFooter({ label: "Source / O-I-A", detail: "role anchor opened against the left evidence panel" });
+    setFooter({ label: "Source evidence", detail: "role anchor opened against the left evidence panel" });
   };
   const showGraph = (graphId) => {
     const graph = data.graphs.find((g) => g.id === graphId);
@@ -613,7 +633,7 @@ export default function WorkUniverseLanding({
     setSelectedGraph(null);
     setDetail({ kind: "interpretation", interpretation, graphIds });
     setTocActive("evidence");
-    setFooter({ label: interpretation.id, detail: `${interpretation.type} selected in the O-I-A trace` });
+    setFooter({ label: interpretation.id, detail: `${interpretation.type} selected in the evidence trace` });
   };
   const openRoleGraph = () => {
     setMode("rolegraph");
@@ -635,6 +655,11 @@ export default function WorkUniverseLanding({
     setDetail({ kind: "organisationMap", graph });
     setTocActive("organisation-map");
     setFooter({ label: "Organisation Map", detail: "functions · boundaries · dependencies · capabilities · authority · process ownership" });
+  };
+  const openAiMoments = () => {
+    setTocActive("ai-moments");
+    setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
+    if (onOpenAiMoments) onOpenAiMoments();
   };
   const openEvidenceWorkspace = () => {
     const graphId = detail && detail.graph ? detail.graph.id : selectedGraph;
@@ -671,23 +696,24 @@ export default function WorkUniverseLanding({
         : [];
 
   return (
-    <div data-testid="work-universe" className="wu-root">
+    <div ref={rootRef} data-testid="work-universe" className="wu-root">
       <style>{`
-        .wu-root{min-height:100svh;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
+        .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
         .wu-root *{box-sizing:border-box;min-width:0}.wu-root button{font:inherit;color:inherit}
-        .wu-appShell{min-height:100svh;display:grid;grid-template-rows:48px 42px minmax(0,1fr) 46px;background:var(--bg)}
+        .wu-appShell{height:100%;min-height:0;overflow:hidden;display:grid;grid-template-rows:48px 42px minmax(0,1fr) 46px;background:var(--bg)}
         .wu-globalNav{height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line2)}
         .wu-brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:900;letter-spacing:.02em}.wu-mark{width:24px;height:24px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--accent);font-size:11px;font-weight:900}
         .wu-navMeta{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);white-space:nowrap}.wu-pill{display:inline-flex;align-items:center;min-height:24px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;background:var(--panel2);font-size:10px;font-weight:800;color:var(--muted)}
         .wu-secondaryBar{height:42px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;background:#eee;border-bottom:1px solid var(--line2)}
         .wu-modeTab{height:42px;flex:0 0 auto;border:0;border-bottom:2px solid transparent;background:transparent;padding:0 12px;font-size:12px;cursor:pointer;color:#4d5a5c}.wu-modeTab.on{border-bottom-color:var(--ink);color:var(--ink);font-weight:800}
         .wu-modeTab:focus-visible,.wu-cmdBtn:focus-visible,.wu-tab:focus-visible,.wu-filter:focus-visible,.wu-outlineBtn:focus-visible,.wu-signal:focus-visible,.wu-anchorAction:focus-visible,.wu-graph:focus-visible,.wu-anchorNode:focus-visible,.wu-itemBtn:focus-visible,.wu-evidenceRow:focus-visible,.wu-interpRow:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-        .wu-workbench{min-height:0;display:grid;grid-template-columns:clamp(310px,20vw,560px) minmax(560px,1fr) clamp(350px,23vw,620px);border-bottom:1px solid var(--line2)}
-        .wu-leftRail,.wu-centrePane,.wu-rightRail{min-height:0;background:var(--panel)}.wu-leftRail{border-right:1px solid var(--line2);display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto}.wu-centrePane{display:grid;grid-template-rows:38px minmax(0,1fr);background:var(--bg)}.wu-rightRail{border-left:1px solid var(--line2);display:grid;grid-template-rows:minmax(240px,32%) minmax(0,68%)}
+        .wu-workbench{min-height:0;overflow:hidden;display:grid;grid-template-columns:clamp(310px,20vw,560px) minmax(560px,1fr) clamp(350px,23vw,620px);border-bottom:1px solid var(--line2)}
+        .wu-leftRail,.wu-centrePane,.wu-rightRail{min-height:0;overflow:hidden;background:var(--panel)}.wu-leftRail{border-right:1px solid var(--line2);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}.wu-centrePane{display:grid;grid-template-rows:38px minmax(0,1fr);background:var(--bg)}.wu-rightRail{border-left:1px solid var(--line2);display:grid;grid-template-rows:minmax(240px,32%) minmax(0,68%)}
         .wu-railHead,.wu-centreHead,.wu-rightHead{height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 clamp(16px,1.1vw,26px);border-bottom:1px solid var(--line2);background:var(--panel)}.wu-railHead>div,.wu-centreHead>div,.wu-rightHead>div{min-width:0}.wu-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:900;line-height:1}.wu-railTitle{font-size:12px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wu-meta{font-size:10px;color:var(--muted)}.wu-anchorSwitch{display:flex;gap:4px;flex:0 0 auto}.wu-anchorSwitch button{min-height:28px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:10px;font-weight:900;padding:0 7px;cursor:pointer}.wu-anchorSwitch button.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
-        .wu-tabs,.wu-filters{display:flex;flex-wrap:wrap;gap:6px;padding:clamp(10px,.75vw,14px) clamp(14px,1vw,24px);border-bottom:1px solid var(--line2);background:var(--panel)}.wu-tab,.wu-filter{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800;min-height:34px}.wu-tab.on,.wu-filter.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+        .wu-filters{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px;border-bottom:1px solid var(--line2);background:var(--panel)}.wu-filter{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800;min-height:34px}.wu-filter.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
         .wu-subjectCard{margin:clamp(12px,.9vw,22px) clamp(14px,1.05vw,28px);border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:clamp(11px,.85vw,18px) clamp(12px,.95vw,22px)}.wu-subjectName{font-family:Georgia,serif;font-size:15px;font-weight:800;line-height:1.15;margin:3px 0}.wu-subjectStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.wu-subjectStat{border:1px solid var(--line2);border-radius:7px;background:var(--panel);padding:6px;font-size:9px}.wu-subjectStat b{display:block;font-size:12px}
-        .wu-sourceBody{min-height:0;overflow:auto;padding:clamp(10px,.8vw,18px) clamp(14px,1vw,24px) clamp(16px,1vw,26px)}.wu-evidenceRow,.wu-interpRow{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;margin:0 0 7px;background:var(--panel);cursor:pointer;text-align:left;font-size:11px;line-height:1.32}.wu-evidenceRow:hover,.wu-evidenceRow.selected,.wu-interpRow:hover,.wu-interpRow.selected{border-color:var(--accent);background:var(--soft)}
+        .wu-sourceBody{min-height:0;overflow-y:scroll;scrollbar-gutter:stable;padding:clamp(10px,.8vw,18px) clamp(14px,1vw,24px) clamp(16px,1vw,26px)}.wu-evidenceRow,.wu-interpRow{width:100%;border:1px solid var(--line2);border-radius:8px;padding:9px 10px;margin:0 0 7px;background:var(--panel);cursor:pointer;text-align:left;font-size:11px;line-height:1.32}.wu-evidenceRow:hover,.wu-evidenceRow.selected,.wu-interpRow:hover,.wu-interpRow.selected{border-color:var(--accent);background:var(--soft)}
+        .wu-sourceBody,.wu-outlineList,.wu-drillBody,.wu-universeFrame{scrollbar-width:thin;scrollbar-color:#98a8b7 transparent}.wu-sourceBody::-webkit-scrollbar,.wu-outlineList::-webkit-scrollbar,.wu-drillBody::-webkit-scrollbar,.wu-universeFrame::-webkit-scrollbar{width:9px;height:9px}.wu-sourceBody::-webkit-scrollbar-thumb,.wu-outlineList::-webkit-scrollbar-thumb,.wu-drillBody::-webkit-scrollbar-thumb,.wu-universeFrame::-webkit-scrollbar-thumb{background:#98a8b7;border:2px solid var(--panel);border-radius:999px}
         .wu-srcid{font-size:9px;color:var(--accent);font-weight:900;letter-spacing:.04em}.wu-kind{font-size:9px;color:var(--muted);margin-top:3px}.wu-quote{color:var(--muted);font-style:italic}.wu-sourceLinkOut{display:block;margin:10px clamp(14px,1vw,24px) 12px;color:var(--accent);font-size:11px;text-decoration:none}.wu-empty{border:1px dashed var(--line);border-radius:8px;padding:10px;font-size:11px;color:var(--muted);background:var(--panel2)}
         .wu-universeFrame{position:relative;min-height:0;margin:clamp(10px,.8vw,18px);background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}.wu-universe{--node:${geo.node}px;--node-sm:${geo.nodeSm}px;--anchor:${geo.anchor}px;--node-pad:clamp(12px,calc(var(--node)*.085),25px);--anchor-pad:clamp(12px,calc(var(--anchor)*.095),22px);position:absolute;inset:32px 0 0;z-index:2}.wu-canvasHead{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(12px,.8vw,20px);border-bottom:1px solid var(--line2);font-size:11px;color:var(--muted);background:var(--panel);position:relative;z-index:4}.wu-connectors{position:absolute;inset:32px 0 0;width:100%;height:calc(100% - 32px);pointer-events:none;z-index:1}.wu-connectors line{stroke:var(--line);stroke-width:.22}.wu-connectors line.active{stroke:var(--accent);stroke-width:.48}.wu-scene{position:absolute;inset:32px 0 0;opacity:.2;pointer-events:none;z-index:0}
         .wu-graph,.wu-anchorNode{position:absolute;border:2px solid var(--line);border-radius:50%;background:rgba(255,255,255,.96);z-index:2;display:flex;flex-direction:column;align-items:stretch;justify-content:center;text-align:center;cursor:pointer;transition:width .14s,height .14s,border-color .12s,background-color .12s,box-shadow .12s,opacity .12s;user-select:none;overflow:hidden}.wu-graph:hover,.wu-anchorNode:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}.wu-graph.active,.wu-anchorNode.active{border-color:var(--accent);background:var(--soft);border-width:3px}.wu-graph.dim{opacity:.42}.wu-g1,.wu-g2,.wu-g3,.wu-g4{width:var(--node);height:var(--node)}.wu-g5{width:var(--node-sm);height:var(--node-sm)}.wu-g1{left:4%;top:7.2%}.wu-g2{right:4%;top:7.2%}.wu-g3{left:3.4%;bottom:12%}.wu-g4{right:3.4%;bottom:12%}.wu-g5{left:50%;bottom:2.6%;transform:translateX(-50%)}.wu-anchorNode{width:var(--anchor);height:var(--anchor);left:50%;top:47%;transform:translate(-50%,-50%);border-color:var(--accent);background:var(--soft)}
@@ -695,13 +721,13 @@ export default function WorkUniverseLanding({
         .wu-graphTitle{width:100%;border:0;background:transparent;cursor:pointer;text-align:center;font-size:clamp(10px,calc(var(--node)*.045),13px);font-weight:900;color:var(--accent);letter-spacing:.04em;line-height:1.08;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance;padding:0}
         .wu-nodeFlow{font-size:clamp(9px,calc(var(--node)*.038),12px);font-weight:800;margin:4px 0 7px;line-height:1.12;white-space:normal;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance}.wu-anchorType{font-size:clamp(8px,calc(var(--anchor)*.046),10px);font-weight:900;color:var(--accent);letter-spacing:.08em}.wu-anchorName{font-family:Georgia,serif;font-size:clamp(14px,calc(var(--anchor)*.087),22px);font-weight:800;line-height:1.05;margin:5px auto 4px;max-width:calc(var(--anchor)*.84);white-space:normal;overflow-wrap:anywhere;text-wrap:balance}.wu-anchorSub{font-size:clamp(8px,calc(var(--anchor)*.04),10px);color:var(--muted);line-height:1.18}.wu-anchorActions{display:grid;gap:4px;margin-top:7px}.wu-anchorAction{cursor:pointer;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font-size:clamp(8px,calc(var(--anchor)*.04),10px);font-weight:900;line-height:1.08;padding:clamp(5px,calc(var(--anchor)*.032),8px) 7px;white-space:normal;overflow-wrap:anywhere;hyphens:auto}.wu-anchorAction:hover{border-color:var(--accent);background:var(--panel);color:var(--accent)}
         .wu-signal{cursor:pointer;width:100%;min-height:clamp(32px,calc(var(--node)*.155),44px);border:1px solid var(--line);border-radius:8px;background:#fff;padding:clamp(4px,calc(var(--node)*.024),7px) clamp(6px,calc(var(--node)*.032),9px);margin:3px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;text-align:left;align-items:center}.wu-signal:hover,.wu-signal.active{border-color:var(--accent);background:var(--soft)}.wu-signal.withheld{background:#fffbeb;border-style:dashed}.wu-signalLabel{font-size:clamp(9px,calc(var(--node)*.039),11px);font-weight:800;line-height:1.08;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalMethod{font-size:clamp(7px,calc(var(--node)*.03),8px);color:var(--muted);margin-top:1px;line-height:1.05;white-space:normal;overflow-wrap:break-word;word-break:normal;hyphens:none}.wu-signalValue{font-size:clamp(11px,calc(var(--node)*.048),14px);font-weight:900;white-space:nowrap}
-        .wu-outlinePane{min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);border-bottom:1px solid var(--line2)}.wu-tocScope{padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) 7px}.wu-tocSelect{width:100%;min-height:32px;border:0;background:#edf1f7;border-radius:8px;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;font-size:12px;text-align:left}.wu-outlineList{min-height:0;overflow:auto;padding:7px clamp(14px,1vw,24px) 14px;scroll-behavior:smooth}.wu-outlineBtn{width:100%;border:0;border-left:2px solid transparent;border-radius:0;background:transparent;color:#7b8796;display:block;padding:7px 0 7px 13px;margin:0;text-align:left;font-size:11px;line-height:1.35;cursor:pointer;transition:color .14s,border-color .14s,background-color .14s,transform .14s}.wu-outlineBtn:hover{color:var(--ink);background:#f7f9fc}.wu-outlineBtn.on{border-left-color:var(--accent);color:var(--ink);font-weight:800;background:linear-gradient(90deg,var(--soft),transparent)}
-        .wu-drillPane{min-height:0;display:grid;grid-template-rows:38px minmax(0,1fr)}.wu-drillBody{min-height:0;overflow:auto;padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) clamp(16px,1vw,26px);scroll-behavior:smooth}.wu-summaryBlock{padding-bottom:10px}.wu-detailBlock{border-top:1px solid var(--line2);margin-top:10px;padding-top:10px}.wu-detailBlock.empty{display:none}.wu-summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wu-summaryMetric{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:8px;font-size:10px}.wu-summaryMetric b{display:block;font-size:15px;color:var(--ink)}.wu-detailTitle{font-family:Georgia,serif;font-size:19px;font-weight:800;margin:2px 0}.wu-big{font-size:24px;font-weight:900}.wu-method{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 6px;font-size:8px;font-weight:900;margin:2px 3px 2px 0}.wu-desc{font-size:11px;color:var(--muted);line-height:1.5}.wu-item,.wu-itemBtn{background:var(--soft);border-radius:7px;padding:7px 8px;margin:6px 0;font-size:10px}.wu-itemBtn{width:100%;border:1px solid transparent;text-align:left;cursor:pointer}.wu-itemBtn:hover{border-color:var(--accent)}.wu-itemGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wu-prov{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:900;margin:2px 4px 2px 0}.wu-prov.mcf{color:#0f766e;background:#ecfeff}.wu-prov.computed{color:#1e40af;background:#eef2ff}.wu-prov.derived{color:#b45309;background:#fffbeb}.wu-prov.withheld{color:#64748b;background:#f1f5f9}
+        .wu-outlinePane{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);border-bottom:1px solid var(--line2)}.wu-outlineList{min-height:0;overflow-y:scroll;scrollbar-gutter:stable;padding:9px clamp(12px,.9vw,20px) 14px;scroll-behavior:smooth}.wu-tree{list-style:none;margin:0;padding:0;font-size:11px}.wu-tree ul{list-style:none;margin:0 0 0 12px;padding:0 0 0 12px;border-left:1px solid #cbd5df}.wu-tree li{position:relative;margin:1px 0}.wu-tree ul>li::before{content:"";position:absolute;left:-12px;top:17px;width:10px;border-top:1px solid #cbd5df}.wu-treeRow{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;min-height:34px;border-radius:7px}.wu-treeToggle{width:22px;height:28px;border:0;background:transparent;color:#657483;cursor:pointer;font-size:12px;padding:0}.wu-treeToggle.placeholder{pointer-events:none;color:#9aa7b4;font-size:10px}.wu-outlineBtn{width:100%;min-height:32px;border:0;border-radius:6px;background:transparent;color:#596878;display:flex;align-items:center;gap:7px;padding:6px 8px;margin:0;text-align:left;font-size:11px;line-height:1.3;cursor:pointer;transition:color .14s,background-color .14s}.wu-outlineBtn::before{content:"▧";font-size:10px;color:#8b99a8}.wu-outlineBtn.folder::before{content:"▣";color:#60758b}.wu-outlineBtn:hover{color:var(--ink);background:#f2f5f8}.wu-outlineBtn.on{color:var(--accent);font-weight:900;background:var(--soft);box-shadow:inset 3px 0 0 var(--accent)}.wu-treeRoute{margin:6px 0 2px 22px;padding:7px 9px;border:1px solid var(--line2);border-radius:7px;background:#f7f9fb;color:var(--muted);font-size:9px;line-height:1.35}
+        .wu-drillPane{min-height:0;display:grid;grid-template-rows:38px minmax(0,1fr)}.wu-drillBody{min-height:0;overflow-y:scroll;scrollbar-gutter:stable;padding:clamp(12px,.85vw,20px) clamp(14px,1vw,24px) clamp(16px,1vw,26px);scroll-behavior:smooth}.wu-summaryBlock{padding-bottom:10px}.wu-detailBlock{border-top:1px solid var(--line2);margin-top:10px;padding-top:10px}.wu-detailBlock.empty{display:none}.wu-summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.wu-summaryMetric{border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:8px;font-size:10px}.wu-summaryMetric b{display:block;font-size:15px;color:var(--ink)}.wu-detailTitle{font-family:Georgia,serif;font-size:19px;font-weight:800;margin:2px 0}.wu-big{font-size:24px;font-weight:900}.wu-method{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 6px;font-size:8px;font-weight:900;margin:2px 3px 2px 0}.wu-desc{font-size:11px;color:var(--muted);line-height:1.5}.wu-item,.wu-itemBtn{background:var(--soft);border-radius:7px;padding:7px 8px;margin:6px 0;font-size:10px}.wu-itemBtn{width:100%;border:1px solid transparent;text-align:left;cursor:pointer}.wu-itemBtn:hover{border-color:var(--accent)}.wu-itemGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wu-prov{display:inline-flex;align-items:center;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-size:9px;font-weight:900;margin:2px 4px 2px 0}.wu-prov.mcf{color:#0f766e;background:#ecfeff}.wu-prov.computed{color:#1e40af;background:#eef2ff}.wu-prov.derived{color:#b45309;background:#fffbeb}.wu-prov.withheld{color:#64748b;background:#f1f5f9}
         .wu-footerBar{height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;background:var(--panel);border-top:1px solid var(--line2);font-size:11px}.wu-cmdGroup,.wu-stateGroup{display:flex;align-items:center;gap:6px;min-width:0}.wu-cmdBtn{min-height:38px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:0 10px;font-size:10px;font-weight:900;cursor:pointer}.wu-cmdBtn:hover{border-color:var(--accent);color:var(--accent);background:var(--soft)}.wu-stateText{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}.wu-stateText b{color:var(--ink)}
         @media(min-width:1800px){.wu-rightRail{grid-template-rows:minmax(280px,30%) minmax(0,70%)}.wu-subjectName{font-size:17px}.wu-detailTitle{font-size:21px}.wu-summaryGrid{grid-template-columns:repeat(3,1fr)}}
         @media(max-width:1500px){.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8.5px,calc(var(--node)*.038),10px);line-height:1.03}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.03),8.5px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:24px;padding:2px 6px;margin:2px 0;border-radius:7px;gap:4px}.wu-signalLabel{font-size:7.5px;line-height:1.02}.wu-signalMethod{font-size:6px;line-height:1}.wu-signalValue{font-size:9.5px}.wu-anchorName{font-size:clamp(15px,calc(var(--anchor)*.078),19px)}.wu-anchorSub{font-size:8px}.wu-anchorActions{gap:5px}.wu-anchorAction{font-size:clamp(9px,calc(var(--anchor)*.04),10px);padding:5px 7px}}
         @media(max-width:1280px){.wu-workbench{grid-template-columns:270px minmax(520px,1fr) 310px}.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8px,calc(var(--node)*.04),10px);line-height:1.02}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.033),9px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:20px;padding:2px 5px;margin:1px 0;border-radius:6px;gap:3px}.wu-signalLabel{font-size:8px;line-height:1}.wu-signalMethod{display:none}.wu-signalValue{font-size:10px}.wu-anchorType{font-size:8px}.wu-anchorName{font-size:clamp(13px,calc(var(--anchor)*.076),17px);line-height:1.02;margin:2px auto}.wu-anchorSub{display:none}.wu-anchorActions{gap:3px;margin-top:4px}.wu-anchorAction{font-size:8px;padding:3px 5px}}
-        @media(max-width:1100px){.wu-appShell{height:auto;min-height:100svh;grid-template-rows:48px 42px auto auto}.wu-workbench{grid-template-columns:1fr;grid-template-rows:auto minmax(620px,72vh) auto}.wu-leftRail{min-height:360px;border-right:0;border-bottom:1px solid var(--line2)}.wu-rightRail{border-left:0;border-top:1px solid var(--line2);grid-template-rows:300px 380px}.wu-footerBar{position:static}.wu-itemGrid{grid-template-columns:1fr}.wu-scene{display:none}}
+        @media(max-width:1100px){.wu-root{height:auto;min-height:100svh;overflow:visible}.wu-appShell{height:auto;min-height:100svh;overflow:visible;grid-template-rows:48px 42px auto auto}.wu-workbench{overflow:visible;grid-template-columns:1fr;grid-template-rows:auto minmax(620px,72vh) auto}.wu-leftRail{min-height:360px;border-right:0;border-bottom:1px solid var(--line2)}.wu-sourceBody{max-height:42vh}.wu-rightRail{border-left:0;border-top:1px solid var(--line2);grid-template-rows:300px 380px}.wu-footerBar{position:static}.wu-itemGrid{grid-template-columns:1fr}.wu-scene{display:none}}
         @media(max-width:560px){.wu-globalNav{padding:0 10px}.wu-secondaryBar{justify-content:flex-start;overflow:auto}.wu-modeTab{white-space:nowrap}.wu-workbench{grid-template-rows:auto minmax(1040px,1040px) auto}.wu-anchorNode{top:42%;width:calc(var(--anchor)*1.1);height:calc(var(--anchor)*1.1)}.wu-anchorAction{font-size:7.5px;white-space:nowrap;padding:4px 5px}.wu-g1{left:3%;top:6%}.wu-g2{right:3%;top:6%}.wu-g3{left:3%;bottom:20%}.wu-g4{right:3%;bottom:20%}.wu-g5{bottom:2%}.wu-footerBar{position:static;align-items:stretch;flex-direction:column;height:auto;min-height:62px;padding:6px 10px}.wu-cmdGroup{overflow:auto}.wu-stateGroup{width:100%}.wu-navMeta{display:none}.wu-subjectStats,.wu-summaryGrid{grid-template-columns:1fr}}
         @media(prefers-reduced-motion:reduce){.wu-graph,.wu-anchorNode,.wu-outlineBtn{transition:none}}
       `}</style>
@@ -712,14 +738,13 @@ export default function WorkUniverseLanding({
         </header>
         <div className="wu-secondaryBar" role="tablist" aria-label="Work modes">
           <button className={`wu-modeTab ${buttonClass(mode === "universe")}`} type="button" onClick={resetUniverse}>Work Universe</button>
-          <button className={`wu-modeTab ${buttonClass(mode === "source")}`} type="button" onClick={openSourceFromAnchor}>O-I-A Trace</button>
           <button className={`wu-modeTab ${buttonClass(mode === "rolegraph")}`} type="button" onClick={openRoleGraph}>Role Graph</button>
           <button className={`wu-modeTab ${buttonClass(mode === "lineage")}`} type="button" onClick={() => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); setFooter({ label: "Evidence lineage", detail: "select a source row or statistic to inspect lineage" }); }}>Evidence Lineage</button>
         </div>
         <main className="wu-workbench">
-          <aside className="wu-leftRail" aria-label="Job advertisement and source trace" data-testid="wu-oia-panel">
+          <aside className="wu-leftRail" aria-label="Job advertisement and source evidence" data-testid="wu-source-panel">
             <div className="wu-railHead">
-              <div><div className="wu-eyebrow">Job ad / O-I-A</div><div className="wu-railTitle">{roleTitle}</div></div>
+              <div><div className="wu-eyebrow">Job ad / evidence</div><div className="wu-railTitle">{roleTitle}</div></div>
               <div className="wu-meta">{orgName}</div>
             </div>
             <section className="wu-subjectCard" aria-label="Current projection">
@@ -732,70 +757,21 @@ export default function WorkUniverseLanding({
                 <div className="wu-subjectStat"><b>{allSignals.length}</b>Signals</div>
               </div>
             </section>
-            <div className="wu-tabs" role="tablist" aria-label="Observation Interpretation Application">
-              {[["o", "O · Observation"], ["i", "I · Interpretation"], ["a", "A · Application"]].map(([key, label]) => (
-                <button key={key} className={`wu-tab ${buttonClass(sourceTab === key)}`} type="button" onClick={() => setSourceTab(key)}>{label}</button>
-              ))}
-            </div>
             <section className="wu-sourceBody">
-              {sourceTab === "o" && (
-                <div>
-                  <div className="wu-filters">
-                    {[["all", "ALL"], ["duty", "DUTIES"], ["req", "REQUIREMENTS"]].map(([key, label]) => (
-                      <button key={key} className={`wu-filter ${buttonClass(sourceFilter === key)}`} type="button" onClick={() => setSourceFilter(key)}>{label}</button>
-                    ))}
-                  </div>
-                  {filteredEvidence.length ? filteredEvidence.map((e) => (
-                    <button key={e.id} data-testid="wu-evidence-row" className={`wu-evidenceRow ${selectedEvidence === e.id ? "selected" : ""}`} type="button" onClick={() => selectEvidence(e.id)}>
-                      <div className="wu-srcid">{e.id} · {e.kind.toUpperCase()}</div>
-                      <div>{e.text} {e.quote && <span className="wu-quote">{e.quote}</span>}</div>
-                      <div className="wu-kind">supports: {graphNames(e.graphs)}</div>
-                    </button>
-                  )) : <div className="wu-empty">No source rows are available yet. Connect a role payload or job advertisement.</div>}
+              <div>
+                <div className="wu-filters" aria-label="Source evidence filters">
+                  {[["all", "ALL"], ["duty", "DUTIES"], ["req", "REQUIREMENTS"]].map(([key, label]) => (
+                    <button key={key} className={`wu-filter ${buttonClass(sourceFilter === key)}`} type="button" onClick={() => setSourceFilter(key)}>{label}</button>
+                  ))}
                 </div>
-              )}
-              {sourceTab === "i" && (
-                <div>
-                  {data.interpretations.length ? data.interpretations.map((i) => (
-                    <button key={i.id} className={`wu-interpRow ${selectedInterpretation === i.id ? "selected" : ""}`} type="button" onClick={() => selectInterpretation(i.id)}>
-                      <div className="wu-srcid">{i.id} · {i.type}</div>
-                      <b>{i.name}</b>
-                      <div className="wu-kind">source: {arr(i.src).join(", ") || "withheld"}</div>
-                    </button>
-                  )) : <div className="wu-empty">No interpreted rows are available yet. Nothing is inferred from title text alone.</div>}
-                </div>
-              )}
-              {sourceTab === "a" && (
-                <div>
-                  {selectedEvidence && (
-                    <div className="wu-interpRow selected">
-                      <div className="wu-srcid">{selectedEvidence} → WORK UNIVERSE</div>
-                      <b>{data.evidence.find((e) => e.id === selectedEvidence)?.text}</b>
-                      <div className="wu-kind">supports graph(s): {graphNames(data.evidence.find((e) => e.id === selectedEvidence)?.graphs)}</div>
-                    </div>
-                  )}
-                  {selectedSignal && (
-                    <div className="wu-interpRow selected">
-                      <div className="wu-srcid">SIGNAL CLAIM {selectedSignal}</div>
-                      <b>{relatedSignals[0]?.signal.name}: {relatedSignals[0]?.signal.value}</b>
-                      <div className="wu-kind">{relatedSignals[0]?.signal.methods.join(" · ")}</div>
-                    </div>
-                  )}
-                  {selectedInterpretation && (
-                    <div className="wu-interpRow selected">
-                      <div className="wu-srcid">{selectedInterpretation} → SOURCE</div>
-                      <b>{data.interpretations.find((i) => i.id === selectedInterpretation)?.name}</b>
-                      <div className="wu-kind">source: {arr(data.interpretations.find((i) => i.id === selectedInterpretation)?.src).join(", ") || "withheld"}</div>
-                    </div>
-                  )}
-                  {relatedSignals.length ? relatedSignals.map(({ graph, signal }) => (
-                    <button key={`${graph.id}-${signal.id}`} type="button" className="wu-interpRow" onClick={() => showSignal(graph, signal)}>
-                      <b>{signal.name}</b>
-                      <div className="wu-kind">{signal.id} · {graph.title} · {signal.methods.join(" · ")}</div>
-                    </button>
-                  )) : <div className="wu-empty">No applied trace selected.</div>}
-                </div>
-              )}
+                {filteredEvidence.length ? filteredEvidence.map((e) => (
+                  <button key={e.id} data-testid="wu-evidence-row" className={`wu-evidenceRow ${selectedEvidence === e.id ? "selected" : ""}`} type="button" onClick={() => selectEvidence(e.id)}>
+                    <div className="wu-srcid">{e.id} · {e.kind.toUpperCase()}</div>
+                    <div>{e.text} {e.quote && <span className="wu-quote">{e.quote}</span>}</div>
+                    <div className="wu-kind">supports: {graphNames(e.graphs)}</div>
+                  </button>
+                )) : <div className="wu-empty">No source rows are available yet. Connect a role payload or job advertisement.</div>}
+              </div>
             </section>
             {srcHref ? <a className="wu-sourceLinkOut" href={srcHref} target="_blank" rel="noreferrer">Open original advertisement ↗</a> : <div className="wu-sourceLinkOut">Original source link withheld</div>}
           </aside>
@@ -836,6 +812,7 @@ export default function WorkUniverseLanding({
                   onBack={() => showGraph(2)}
                   onEvidenceSelect={selectEvidence}
                   onOpenCompanyEvidence={openEvidenceWorkspace}
+                  onOpenAiMoments={openAiMoments}
                 />
               ) : (
                 <>
@@ -863,7 +840,7 @@ export default function WorkUniverseLanding({
                     <div className="wu-anchorName">{anchor === "role" ? roleTitle : anchor === "org" ? orgName : subject.title}</div>
                     <div className="wu-anchorSub">{anchor === "role" ? `${sourceLabel} · selected role evidence` : anchor === "org" ? "same universe · organisation-centred" : data.personEvidence?.supplied ? "USER-PROVEN evidence active" : "USER-PROVEN evidence required"}</div>
                     <div className="wu-anchorActions">
-                      <button className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openSourceFromAnchor(); }}>Source / O-I-A</button>
+                      <button className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openSourceFromAnchor(); }}>Source evidence</button>
                       <button data-testid="wu-anchor-role-graph" className="wu-anchorAction" type="button" onClick={(e) => { e.stopPropagation(); openRoleGraph(); }}>Role Graph →</button>
                     </div>
                   </div>
@@ -895,18 +872,49 @@ export default function WorkUniverseLanding({
           <aside className="wu-rightRail" aria-label="Work Universe contents and drilldown">
             <section className="wu-outlinePane">
               <div className="wu-rightHead"><div><div className="wu-eyebrow">Contents</div><div className="wu-railTitle">Role Work Universe</div></div><div className="wu-meta">live</div></div>
-              <div className="wu-tocScope"><div className="wu-tocSelect"><span>{tocActive === "overview" ? "Role Work Universe" : tocActive === "role-anchor" ? "Role Anchor" : tocActive === "role-graph" ? "Open Role Graph" : tocActive === "organisation-map" ? "Organisation Map" : tocActive === "evidence" ? "Evidence lineage" : GRAPH_BY_ID[Number(tocActive.replace("graph-", ""))]?.title || "Role Work Universe"}</span><span>⌄</span></div></div>
-              <div className="wu-outlineList">
-                {[
-                  ["overview", "Overview", resetUniverse],
-                  ["role-anchor", "Role Anchor", openSourceFromAnchor],
-                  ...GRAPH_DEFS.map((g) => [`graph-${g.id}`, g.title, () => showGraph(g.id)]),
-                  ["organisation-map", "Organisation Map", showOrganisationMap],
-                  ["role-graph", "Open Role Graph", openRoleGraph],
-                  ["evidence", "Evidence lineage", () => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); }],
-                ].map(([key, label, fn]) => (
-                  <button key={key} type="button" className={`wu-outlineBtn ${tocActive === key ? "on" : ""}`} onClick={fn}>{label}</button>
-                ))}
+              <div className="wu-outlineList" data-testid="wu-contents-tree">
+                <nav aria-label="Work Universe site tree">
+                  <ul className="wu-tree" role="tree">
+                    <li role="treeitem" aria-expanded={treeOpen.universe}>
+                      <div className="wu-treeRow">
+                        <button className="wu-treeToggle" type="button" aria-label={`${treeOpen.universe ? "Collapse" : "Expand"} Work Universe`} onClick={() => setTreeOpen((open) => ({ ...open, universe: !open.universe }))}>{treeOpen.universe ? "▾" : "▸"}</button>
+                        <button type="button" className={`wu-outlineBtn folder ${tocActive === "overview" ? "on" : ""}`} onClick={resetUniverse}>Work Universe</button>
+                      </div>
+                      {treeOpen.universe && (
+                        <ul role="group">
+                          <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "role-anchor" ? "on" : ""}`} onClick={openSourceFromAnchor}>Role Anchor</button></div></li>
+                          <li role="treeitem" aria-expanded={treeOpen.graphs}>
+                            <div className="wu-treeRow">
+                              <button className="wu-treeToggle" type="button" aria-label={`${treeOpen.graphs ? "Collapse" : "Expand"} Work Graphs`} onClick={() => setTreeOpen((open) => ({ ...open, graphs: !open.graphs }))}>{treeOpen.graphs ? "▾" : "▸"}</button>
+                              <button type="button" className="wu-outlineBtn folder" onClick={() => setTreeOpen((open) => ({ ...open, graphs: true }))}>Work Graphs</button>
+                            </div>
+                            {treeOpen.graphs && (
+                              <ul role="group">
+                                {GRAPH_DEFS.map((graph) => (
+                                  <li key={graph.id} role="treeitem" aria-expanded={graph.id === 2 ? treeOpen.organisation : undefined}>
+                                    <div className="wu-treeRow">
+                                      {graph.id === 2 ? <button className="wu-treeToggle" type="button" aria-label={`${treeOpen.organisation ? "Collapse" : "Expand"} Organisation Work Graph`} onClick={() => setTreeOpen((open) => ({ ...open, organisation: !open.organisation }))}>{treeOpen.organisation ? "▾" : "▸"}</button> : <span className="wu-treeToggle placeholder">•</span>}
+                                      <button type="button" className={`wu-outlineBtn ${tocActive === `graph-${graph.id}` ? "on" : ""}`} onClick={() => showGraph(graph.id)}>{graph.title}</button>
+                                    </div>
+                                    {graph.id === 2 && treeOpen.organisation && (
+                                      <ul role="group">
+                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "organisation-map" ? "on" : ""}`} onClick={showOrganisationMap}>Organisation Map</button></div></li>
+                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-ai-moments" type="button" className={`wu-outlineBtn ${tocActive === "ai-moments" ? "on" : ""}`} onClick={openAiMoments}>AI Moments · Cards | Neural</button></div></li>
+                                      </ul>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </li>
+                          <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "role-graph" ? "on" : ""}`} onClick={openRoleGraph}>Open Role Graph</button></div></li>
+                          <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "evidence" ? "on" : ""}`} onClick={() => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); }}>Evidence lineage</button></div></li>
+                        </ul>
+                      )}
+                    </li>
+                  </ul>
+                  <div className="wu-treeRoute">Route · Organisation Work Graph → Organisation Map → AI Moments → Cards | Neural</div>
+                </nav>
               </div>
             </section>
             <section className="wu-drillPane" data-testid="wu-detail" aria-live="polite">
@@ -928,9 +936,9 @@ export default function WorkUniverseLanding({
                   {detail.kind === "anchor" && (
                     <>
                       <div className="wu-srcid">ROLE ANCHOR</div>
-                      <div className="wu-detailTitle">Source / O-I-A</div>
+                      <div className="wu-detailTitle">Source evidence</div>
                       <DetailMethods methods={["DIRECT"]} />
-                      <p className="wu-desc">{roleTitle} is the active evidence root. The left panel remains open so Observation, Interpretation and Application stay visible while the Universe stays in view.</p>
+                      <p className="wu-desc">{roleTitle} is the active evidence root. The left panel keeps the supplied job-ad rows visible while interpretations and projections remain traceable in the detail and evidence workspaces.</p>
                       <div className="wu-itemGrid"><div className="wu-item"><b>Source</b><br />{sourceLabel}</div><div className="wu-item"><b>Evidence rows</b><br />{data.evidence.length || "withheld"}</div></div>
                     </>
                   )}
@@ -967,6 +975,7 @@ export default function WorkUniverseLanding({
                       <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED"]} />
                       <p className="wu-desc">The centre map separates functions, reporting boundaries, dependencies, capabilities, authority and process ownership. Missing dimensions remain visibly withheld.</p>
                       <p className="wu-desc"><b>Boundary:</b> No organisation maturity, hierarchy, staffing condition or process quality is inferred from the posting.</p>
+                      <button data-testid="open-ai-moments" type="button" className="wu-cmdBtn" onClick={openAiMoments}>Open AI Moments · Cards | Neural →</button>
                       <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
                     </>
                   )}
@@ -977,7 +986,7 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc">{detail.evidence.text}</p>
                       <div className="wu-item"><b>Supports graphs</b><br />{graphNames(detail.evidence.graphs)}</div>
                       {relatedSignals.length ? relatedSignals.map(({ graph, signal }) => <button key={`${graph.id}-${signal.id}`} type="button" className="wu-itemBtn" onClick={() => showSignal(graph, signal)}><b>{signal.name}</b><br />{signal.id} · {signal.methods.join(" / ")}</button>) : <div className="wu-empty">No signal claims cite this row yet.</div>}
-                      {detail.evidence.workspaceId && <button data-testid="open-evidence-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open linked O-I-A card →</button>}
+                      {detail.evidence.workspaceId && <button data-testid="open-evidence-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open linked evidence review →</button>}
                     </>
                   )}
                   {detail.kind === "interpretation" && detail.interpretation && (
