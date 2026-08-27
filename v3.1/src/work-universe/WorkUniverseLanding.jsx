@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import OrganisationMap from "./OrganisationMap.jsx";
+import WorkflowMap from "./WorkflowMap.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -656,6 +657,18 @@ export default function WorkUniverseLanding({
     setTocActive("organisation-map");
     setFooter({ label: "Organisation Map", detail: "functions · boundaries · dependencies · capabilities · authority · process ownership" });
   };
+  const showWorkflowMap = () => {
+    const graph = data.graphs.find((item) => item.id === 2);
+    setMode("workflow-map");
+    setOrganisationMapOpen(false);
+    setSelectedGraph(2);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "workflowMap", graph });
+    setTocActive("workflow-map");
+    setFooter({ label: "Workflow Map", detail: "supplied order · actors · decisions · explicit handoffs" });
+  };
   const openAiMoments = () => {
     setTocActive("ai-moments");
     setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
@@ -696,7 +709,7 @@ export default function WorkUniverseLanding({
         : [];
 
   return (
-    <div ref={rootRef} data-testid="work-universe" className="wu-root">
+    <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map") ? "wu-dedicatedMap" : ""}`}>
       <style>{`
         .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
         .wu-root *{box-sizing:border-box;min-width:0}.wu-root button{font:inherit;color:inherit}
@@ -727,7 +740,7 @@ export default function WorkUniverseLanding({
         @media(min-width:1800px){.wu-rightRail{grid-template-rows:minmax(280px,30%) minmax(0,70%)}.wu-subjectName{font-size:17px}.wu-detailTitle{font-size:21px}.wu-summaryGrid{grid-template-columns:repeat(3,1fr)}}
         @media(max-width:1500px){.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8.5px,calc(var(--node)*.038),10px);line-height:1.03}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.03),8.5px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:24px;padding:2px 6px;margin:2px 0;border-radius:7px;gap:4px}.wu-signalLabel{font-size:7.5px;line-height:1.02}.wu-signalMethod{font-size:6px;line-height:1}.wu-signalValue{font-size:9.5px}.wu-anchorName{font-size:clamp(15px,calc(var(--anchor)*.078),19px)}.wu-anchorSub{font-size:8px}.wu-anchorActions{gap:5px}.wu-anchorAction{font-size:clamp(9px,calc(var(--anchor)*.04),10px);padding:5px 7px}}
         @media(max-width:1280px){.wu-workbench{grid-template-columns:270px minmax(520px,1fr) 310px}.wu-nodeInner{padding:8px}.wu-g5 .wu-nodeInner{padding:8px}.wu-graphTitle{font-size:clamp(8px,calc(var(--node)*.04),10px);line-height:1.02}.wu-nodeFlow{font-size:clamp(7px,calc(var(--node)*.033),9px);line-height:1.04;margin:2px 0 3px}.wu-signal{min-height:20px;padding:2px 5px;margin:1px 0;border-radius:6px;gap:3px}.wu-signalLabel{font-size:8px;line-height:1}.wu-signalMethod{display:none}.wu-signalValue{font-size:10px}.wu-anchorType{font-size:8px}.wu-anchorName{font-size:clamp(13px,calc(var(--anchor)*.076),17px);line-height:1.02;margin:2px auto}.wu-anchorSub{display:none}.wu-anchorActions{gap:3px;margin-top:4px}.wu-anchorAction{font-size:8px;padding:3px 5px}}
-        @media(max-width:1100px){.wu-root{height:auto;min-height:100svh;overflow:visible}.wu-appShell{height:auto;min-height:100svh;overflow:visible;grid-template-rows:48px 42px auto auto}.wu-workbench{overflow:visible;grid-template-columns:1fr;grid-template-rows:auto minmax(620px,72vh) auto}.wu-leftRail{min-height:360px;border-right:0;border-bottom:1px solid var(--line2)}.wu-sourceBody{max-height:42vh}.wu-rightRail{border-left:0;border-top:1px solid var(--line2);grid-template-rows:300px 380px}.wu-footerBar{position:static}.wu-itemGrid{grid-template-columns:1fr}.wu-scene{display:none}}
+        @media(max-width:1100px){.wu-root{height:auto;min-height:100svh;overflow:visible}.wu-appShell{height:auto;min-height:100svh;overflow:visible;grid-template-rows:48px 42px auto auto}.wu-workbench{overflow:visible;grid-template-columns:1fr;grid-template-rows:auto minmax(620px,72vh) auto}.wu-leftRail{min-height:360px;border-right:0;border-bottom:1px solid var(--line2)}.wu-sourceBody{max-height:42vh}.wu-rightRail{border-left:0;border-top:1px solid var(--line2);grid-template-rows:300px 380px}.wu-footerBar{position:static}.wu-itemGrid{grid-template-columns:1fr}.wu-scene{display:none}.wu-root.wu-dedicatedMap{height:var(--wu-available-height,100svh);min-height:0;overflow:hidden}.wu-dedicatedMap .wu-appShell{height:100%;min-height:0;overflow:hidden;grid-template-rows:48px 42px minmax(0,1fr) auto}.wu-dedicatedMap .wu-workbench{min-height:0;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.wu-dedicatedMap .wu-leftRail,.wu-dedicatedMap .wu-rightRail{display:none}.wu-dedicatedMap .wu-centrePane{height:auto;min-height:0;overflow:hidden}.wu-dedicatedMap .wu-universeFrame{min-height:0}}
         @media(max-width:560px){.wu-globalNav{padding:0 10px}.wu-secondaryBar{justify-content:flex-start;overflow:auto}.wu-modeTab{white-space:nowrap}.wu-workbench{grid-template-rows:auto minmax(1040px,1040px) auto}.wu-anchorNode{top:42%;width:calc(var(--anchor)*1.1);height:calc(var(--anchor)*1.1)}.wu-anchorAction{font-size:7.5px;white-space:nowrap;padding:4px 5px}.wu-g1{left:3%;top:6%}.wu-g2{right:3%;top:6%}.wu-g3{left:3%;bottom:20%}.wu-g4{right:3%;bottom:20%}.wu-g5{bottom:2%}.wu-footerBar{position:static;align-items:stretch;flex-direction:column;height:auto;min-height:62px;padding:6px 10px}.wu-cmdGroup{overflow:auto}.wu-stateGroup{width:100%}.wu-navMeta{display:none}.wu-subjectStats,.wu-summaryGrid{grid-template-columns:1fr}}
         @media(prefers-reduced-motion:reduce){.wu-graph,.wu-anchorNode,.wu-outlineBtn{transition:none}}
       `}</style>
@@ -778,7 +791,7 @@ export default function WorkUniverseLanding({
 
           <section className="wu-centrePane" aria-label="Work Universe">
             <div className="wu-centreHead">
-              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">Graphify Work Universe</span></div>
+              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">{mode === "workflow-map" ? "Workflow Map" : organisationMapOpen ? "Organisation Map" : "Graphify Work Universe"}</span></div>
               <div className="wu-anchorSwitch" role="group" aria-label="Projection centre">
                 {[["role", "Role"], ["org", "Organisation"], ["person", "Person"]].map(([key, label]) => (
                   <button
@@ -788,6 +801,7 @@ export default function WorkUniverseLanding({
                     className={anchor === key ? "on" : ""}
                     onClick={() => {
                       setAnchor(key);
+                      setMode("universe");
                       setOrganisationMapOpen(false);
                       setSelectedGraph(null);
                       setSelectedSignal(null);
@@ -813,6 +827,14 @@ export default function WorkUniverseLanding({
                   onEvidenceSelect={selectEvidence}
                   onOpenCompanyEvidence={openEvidenceWorkspace}
                   onOpenAiMoments={openAiMoments}
+                />
+              ) : mode === "workflow-map" ? (
+                <WorkflowMap
+                  result={result}
+                  roleTitle={roleTitle}
+                  organisationName={orgName}
+                  onBack={() => showGraph(2)}
+                  onEvidenceSelect={selectEvidence}
                 />
               ) : (
                 <>
@@ -899,6 +921,7 @@ export default function WorkUniverseLanding({
                                     {graph.id === 2 && treeOpen.organisation && (
                                       <ul role="group">
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "organisation-map" ? "on" : ""}`} onClick={showOrganisationMap}>Organisation Map</button></div></li>
+                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-workflow-map" type="button" className={`wu-outlineBtn ${tocActive === "workflow-map" ? "on" : ""}`} onClick={showWorkflowMap}>Workflow Map</button></div></li>
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-ai-moments" type="button" className={`wu-outlineBtn ${tocActive === "ai-moments" ? "on" : ""}`} onClick={openAiMoments}>AI Moments · Cards | Neural</button></div></li>
                                       </ul>
                                     )}
@@ -949,6 +972,7 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc">{detail.graph.flow}</p>
                       <div className="wu-itemGrid">{detail.graph.signals.map((signal) => <button key={signal.id} type="button" className="wu-itemBtn" onClick={() => showSignal(detail.graph, signal)}><b>{signal.name}</b><br />{signal.value} · {signal.methods.join(" / ")}</button>)}</div>
                       {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
+                      {detail.graph.id === 2 && <button data-testid="open-workflow-map" type="button" className="wu-cmdBtn" onClick={showWorkflowMap}>Open Workflow Map →</button>}
                     </>
                   )}
                   {detail.kind === "signal" && detail.signal && (
@@ -965,6 +989,7 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc"><b>Production:</b> {detail.signal.production}</p>
                       <p className="wu-desc"><b>Boundary:</b> {detail.signal.boundary}</p>
                       {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
+                      {detail.graph.id === 2 && <button data-testid="open-workflow-map" type="button" className="wu-cmdBtn" onClick={showWorkflowMap}>Open Workflow Map →</button>}
                       <button data-testid={detail.graph.id === 1 ? "open-role-graph" : "open-graph-workspace"} type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>{detail.graph.id === 1 ? "Open Role Graph" : "Open evidence workspace"} →</button>
                     </>
                   )}
@@ -976,6 +1001,16 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc">The centre map separates functions, reporting boundaries, dependencies, capabilities, authority and process ownership. Missing dimensions remain visibly withheld.</p>
                       <p className="wu-desc"><b>Boundary:</b> No organisation maturity, hierarchy, staffing condition or process quality is inferred from the posting.</p>
                       <button data-testid="open-ai-moments" type="button" className="wu-cmdBtn" onClick={openAiMoments}>Open AI Moments · Cards | Neural →</button>
+                      <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
+                    </>
+                  )}
+                  {detail.kind === "workflowMap" && (
+                    <>
+                      <div className="wu-srcid">WORKFLOW · DEDICATED VISUAL</div>
+                      <div className="wu-detailTitle">Workflow Map</div>
+                      <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED"]} />
+                      <p className="wu-desc">The centre map shows supplied process stages, actors, decisions and explicit handoffs in sequence. It does not convert duty order into workflow order.</p>
+                      <p className="wu-desc"><b>Boundary:</b> Missing workflow stages, owners and connections remain withheld; process quality and organisation maturity are not inferred.</p>
                       <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
                     </>
                   )}

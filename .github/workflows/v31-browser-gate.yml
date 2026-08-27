@@ -58,6 +58,8 @@ jobs:
           BASE_URL: http://127.0.0.1:4173
         run: |
           node tests/device-profile-contract.mjs
+          node tests/organisation-map-contract.mjs
+          node tests/workflow-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/browser-gate.mjs
 
