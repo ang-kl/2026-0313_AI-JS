@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import OrganisationMap from "./OrganisationMap.jsx";
 import WorkflowMap from "./WorkflowMap.jsx";
+import ValueStreamMap from "./ValueStreamMap.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -669,6 +670,19 @@ export default function WorkUniverseLanding({
     setTocActive("workflow-map");
     setFooter({ label: "Workflow Map", detail: "supplied order · actors · decisions · explicit handoffs" });
   };
+  const showValueStreamMap = () => {
+    const graph = data.graphs.find((item) => item.id === 2);
+    setAnchor("org");
+    setMode("value-stream-map");
+    setOrganisationMapOpen(false);
+    setSelectedGraph(2);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: "valueStreamMap", graph });
+    setTocActive("value-stream-map");
+    setFooter({ label: "Value Stream Map", detail: "supplied time · waste · handoff · AI leverage" });
+  };
   const openAiMoments = () => {
     setTocActive("ai-moments");
     setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
@@ -709,7 +723,7 @@ export default function WorkUniverseLanding({
         : [];
 
   return (
-    <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map") ? "wu-dedicatedMap" : ""}`}>
+    <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map") ? "wu-dedicatedMap" : ""}`}>
       <style>{`
         .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
         .wu-root *{box-sizing:border-box;min-width:0}.wu-root button{font:inherit;color:inherit}
@@ -791,7 +805,7 @@ export default function WorkUniverseLanding({
 
           <section className="wu-centrePane" aria-label="Work Universe">
             <div className="wu-centreHead">
-              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">{mode === "workflow-map" ? "Workflow Map" : organisationMapOpen ? "Organisation Map" : "Graphify Work Universe"}</span></div>
+              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">{mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : organisationMapOpen ? "Organisation Map" : "Graphify Work Universe"}</span></div>
               <div className="wu-anchorSwitch" role="group" aria-label="Projection centre">
                 {[["role", "Role"], ["org", "Organisation"], ["person", "Person"]].map(([key, label]) => (
                   <button
@@ -830,6 +844,14 @@ export default function WorkUniverseLanding({
                 />
               ) : mode === "workflow-map" ? (
                 <WorkflowMap
+                  result={result}
+                  roleTitle={roleTitle}
+                  organisationName={orgName}
+                  onBack={() => showGraph(2)}
+                  onEvidenceSelect={selectEvidence}
+                />
+              ) : mode === "value-stream-map" ? (
+                <ValueStreamMap
                   result={result}
                   roleTitle={roleTitle}
                   organisationName={orgName}
@@ -922,6 +944,7 @@ export default function WorkUniverseLanding({
                                       <ul role="group">
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "organisation-map" ? "on" : ""}`} onClick={showOrganisationMap}>Organisation Map</button></div></li>
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-workflow-map" type="button" className={`wu-outlineBtn ${tocActive === "workflow-map" ? "on" : ""}`} onClick={showWorkflowMap}>Workflow Map</button></div></li>
+                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-value-stream-map" type="button" className={`wu-outlineBtn ${tocActive === "value-stream-map" ? "on" : ""}`} onClick={showValueStreamMap}>Value Stream Map</button></div></li>
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-ai-moments" type="button" className={`wu-outlineBtn ${tocActive === "ai-moments" ? "on" : ""}`} onClick={openAiMoments}>AI Moments · Cards | Neural</button></div></li>
                                       </ul>
                                     )}
@@ -973,6 +996,7 @@ export default function WorkUniverseLanding({
                       <div className="wu-itemGrid">{detail.graph.signals.map((signal) => <button key={signal.id} type="button" className="wu-itemBtn" onClick={() => showSignal(detail.graph, signal)}><b>{signal.name}</b><br />{signal.value} · {signal.methods.join(" / ")}</button>)}</div>
                       {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
                       {detail.graph.id === 2 && <button data-testid="open-workflow-map" type="button" className="wu-cmdBtn" onClick={showWorkflowMap}>Open Workflow Map →</button>}
+                      {detail.graph.id === 2 && <button data-testid="open-value-stream-map" type="button" className="wu-cmdBtn" onClick={showValueStreamMap}>Open Value Stream Map →</button>}
                     </>
                   )}
                   {detail.kind === "signal" && detail.signal && (
@@ -990,6 +1014,7 @@ export default function WorkUniverseLanding({
                       <p className="wu-desc"><b>Boundary:</b> {detail.signal.boundary}</p>
                       {detail.graph.id === 2 && <button data-testid="open-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>Open Organisation Map →</button>}
                       {detail.graph.id === 2 && <button data-testid="open-workflow-map" type="button" className="wu-cmdBtn" onClick={showWorkflowMap}>Open Workflow Map →</button>}
+                      {detail.graph.id === 2 && <button data-testid="open-value-stream-map" type="button" className="wu-cmdBtn" onClick={showValueStreamMap}>Open Value Stream Map →</button>}
                       <button data-testid={detail.graph.id === 1 ? "open-role-graph" : "open-graph-workspace"} type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>{detail.graph.id === 1 ? "Open Role Graph" : "Open evidence workspace"} →</button>
                     </>
                   )}
@@ -1011,6 +1036,16 @@ export default function WorkUniverseLanding({
                       <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED"]} />
                       <p className="wu-desc">The centre map shows supplied process stages, actors, decisions and explicit handoffs in sequence. It does not convert duty order into workflow order.</p>
                       <p className="wu-desc"><b>Boundary:</b> Missing workflow stages, owners and connections remain withheld; process quality and organisation maturity are not inferred.</p>
+                      <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
+                    </>
+                  )}
+                  {detail.kind === "valueStreamMap" && (
+                    <>
+                      <div className="wu-srcid">ORGANISATION WORK GRAPH · BPR VISUAL</div>
+                      <div className="wu-detailTitle">Value Stream Map</div>
+                      <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED", "HYPOTHESIS"]} />
+                      <p className="wu-desc">The centre map separates explicitly supplied value-add work from waiting, handoffs, waste and rework, with timing and AI-leverage labels only where provided.</p>
+                      <p className="wu-desc"><b>Boundary:</b> No timing, waste, savings, layoffs, automation potential, process quality or organisation maturity is inferred from the posting.</p>
                       <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
                     </>
                   )}
