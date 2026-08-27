@@ -69,10 +69,12 @@ export function classifyDeviceProfile({
 
 export function readDeviceProfile(scope = typeof window !== "undefined" ? window : null) {
   if (!scope) return classifyDeviceProfile();
-  const viewport = scope.visualViewport;
+  // Classification uses the stable layout viewport. The visual viewport shrinks
+  // when an on-screen keyboard opens; using it here would falsely turn a portrait
+  // phone into landscape and reflow Step 2 while the user is typing.
   return classifyDeviceProfile({
-    width: viewport?.width || scope.innerWidth,
-    height: viewport?.height || scope.innerHeight,
+    width: scope.innerWidth,
+    height: scope.innerHeight,
     userAgent: scope.navigator?.userAgent || "",
     maxTouchPoints: scope.navigator?.maxTouchPoints || 0,
   });
@@ -90,12 +92,10 @@ export function useDeviceProfile() {
     assess();
     window.addEventListener("resize", assess, { passive: true });
     window.addEventListener("orientationchange", assess, { passive: true });
-    window.visualViewport?.addEventListener("resize", assess, { passive: true });
     return () => {
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("resize", assess);
       window.removeEventListener("orientationchange", assess);
-      window.visualViewport?.removeEventListener("resize", assess);
     };
   }, []);
 

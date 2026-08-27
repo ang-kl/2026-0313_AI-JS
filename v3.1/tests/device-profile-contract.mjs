@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { classifyDeviceProfile, RESPONSIVE_PROFILE_VERSION } from "../src/responsive/deviceProfile.js";
+import { classifyDeviceProfile, readDeviceProfile, RESPONSIVE_PROFILE_VERSION } from "../src/responsive/deviceProfile.js";
 
 const cases = [
   {
@@ -43,5 +43,14 @@ for (const item of cases) {
 const unknownBrand = classifyDeviceProfile({ width: 390, height: 844, userAgent: "Mozilla/5.0", maxTouchPoints: 5 });
 assert.equal(unknownBrand.formFactor, "phone");
 assert.equal(unknownBrand.deviceFamily, "generic", "Phone geometry must not be guessed as iPhone or Samsung");
+
+const keyboardOpen = readDeviceProfile({
+  innerWidth: 390,
+  innerHeight: 844,
+  visualViewport: { width: 390, height: 420 },
+  navigator: { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)", maxTouchPoints: 5 },
+});
+assert.equal(keyboardOpen.orientation, "portrait", "Software keyboard must not change device orientation");
+assert.equal(keyboardOpen.sizeTier, "phone-standard", "Software keyboard must not change the phone size tier");
 
 console.log("Responsive device preflight contract: PASS");
