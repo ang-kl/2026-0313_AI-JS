@@ -114,23 +114,51 @@ const selectorText = await visualSelector.innerText();
 if (!selectorText.includes('RECOMMENDATION WITHHELD')) throw new Error('Role-title-only fixture produced or concealed a visual recommendation');
 if (!/not used to guess a visual/i.test(selectorText)) throw new Error('Visual selector does not expose its no-guessing boundary');
 if (selectorText.includes('RECOMMENDED')) throw new Error('Visual selector inferred a recommendation from the role title');
+await screenshot('03-work-universe-2048x1280.png');
 await page.getByTestId('visual-choice-org').click();
 await requireVisible(page.getByTestId('organisation-map'), 'Manual Org visual choice did not open the Organisation Map');
 if (await page.getByTestId('visual-choice-org').getAttribute('aria-pressed') !== 'true') throw new Error('Manual Org visual choice did not expose its active state');
 await page.getByTestId('organisation-map-back').click();
-await screenshot('03-work-universe-2048x1280.png');
 await page.setViewportSize({ width: 1440, height: 1000 });
 
 const graphIds = ['labour', 'organisation', 'intelligence', 'human-agent', 'transition'];
 for (const id of graphIds) {
   const graph = page.getByTestId(`graph-${id}`);
   await requireVisible(graph, `Canonical graph ${id} is not visible`);
+  const shape = await graph.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    return { borderRadius: parseFloat(style.borderRadius), width: rect.width, height: rect.height };
+  });
+  if (shape.borderRadius > 24 || shape.width <= shape.height * 1.05) throw new Error(`Canonical graph ${id} did not render as a rounded rectangular flow card: ${JSON.stringify(shape)}`);
   const signals = graph.locator('.wu-signal');
   if (await signals.count() !== 3) throw new Error(`Canonical graph ${id} must expose exactly three first-order signals`);
 }
+if (await universe.locator('.wu-connectors path.wu-desktopPath').count() !== 5) throw new Error('Desktop Work Universe must expose five rounded branch paths');
+if (await universe.locator('.wu-connectors line').count()) throw new Error('Legacy straight-line Work Universe connectors remain');
 
 const r3fCount = await page.getByTestId('work-universe-r3f').count();
 console.log(`R3F canvas present: ${r3fCount > 0}`);
+
+await page.setViewportSize({ width: 820, height: 1180 });
+await page.waitForTimeout(250);
+await page.locator('.wu-universeFrame').screenshot({ path: 'test-results/03-work-universe-flow-tablet.png' });
+await page.setViewportSize({ width: 390, height: 844 });
+await page.waitForTimeout(250);
+const mobileFlow = await universe.evaluate((root) => {
+  const ids = ['.wu-anchorNode', '.wu-g1', '.wu-g2', '.wu-g3', '.wu-g4', '.wu-g5'];
+  return ids.map((selector) => {
+    const rect = root.querySelector(selector).getBoundingClientRect();
+    return { selector, x: rect.x, y: rect.y + window.scrollY, width: rect.width, height: rect.height };
+  });
+});
+for (let index = 1; index < mobileFlow.length; index += 1) {
+  if (Math.abs(mobileFlow[index].x - mobileFlow[0].x) > 3) throw new Error(`Mobile flow cards do not share the same branch column: ${JSON.stringify(mobileFlow)}`);
+  if (mobileFlow[index].y <= mobileFlow[index - 1].y + mobileFlow[index - 1].height) throw new Error(`Mobile flow cards overlap or imply an unreadable stack: ${JSON.stringify(mobileFlow)}`);
+}
+await page.locator('.wu-universeFrame').screenshot({ path: 'test-results/03-work-universe-flow-mobile.png' });
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.waitForTimeout(250);
 
 // The Organisation Work Graph owns a dedicated, evidence-gated Organisation Map.
 // Its six dimensions remain visible even when the current posting supplies none of
