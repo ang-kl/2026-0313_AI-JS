@@ -18,6 +18,16 @@ page.on('response', async (response) => {
   if (url.includes('/api/')) apiTraffic.push({ url: url.replace(base, ''), status: response.status(), method: response.request().method() });
 });
 
+// Keep screenshots and console evidence deterministic when the external font
+// CDN is unavailable. Production keeps Inter; this gate exercises the authored
+// local fallback without recording a network failure as an application error.
+await page.route('https://fonts.googleapis.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+await page.route('**/api/ssoc', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ results: [], classifications: [] }) }));
+await page.route('**/api/esco', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ occupations: [], skills: [] }) }));
+await page.route('**/api/mcf', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ jobs: [], tier: 1, approximate: false }) }));
+await page.route('**/api/careers', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ jobs: [] }) }));
+await page.route('**/api/anatomy', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, found: false, data: null }) }));
+
 const roleFixture = [
   { title: 'Data Engineer', iscoCode: '2529', iscoGroup: 'Database and network professionals not elsewhere classified', industry: 'Technology', description: 'Designs and maintains data pipelines and platforms that make reliable data available for analysis and operations.', isAltLabel: false },
   { title: 'Database Designer', iscoCode: '2521', iscoGroup: 'Database designers and administrators', industry: 'Technology', description: 'Designs database structures and data models for information systems.', isAltLabel: false },
@@ -171,6 +181,59 @@ for (const visual of [
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.getByTestId('organisation-map-back').click();
 await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Organisation Map');
+
+// Workflow is a dedicated process-flow surface, not another force graph. The
+// production role fixture has duties but no explicit workflow contract, so it
+// must withhold sequence rather than turning duty-array order into a process.
+await page.getByTestId('tree-workflow-map').click();
+const workflowMap = page.getByTestId('workflow-map');
+await requireVisible(workflowMap, 'Contents tree did not open the dedicated Workflow Map');
+const workflowText = await workflowMap.innerText();
+if (!workflowText.includes('Who acts when?')) throw new Error('Workflow Map does not state its blueprint question');
+if (!workflowText.includes('WITHHELD')) throw new Error('Workflow Map guessed a sequence from role duties instead of withholding');
+if (!/not silently converted into a process sequence/i.test(workflowText)) throw new Error('Workflow Map does not disclose the duty-order evidence boundary');
+if (await workflowMap.locator('.wm-step').count()) throw new Error('Workflow Map rendered fabricated stages for a payload with no explicit workflow');
+for (const visual of [
+  { name: 'desktop', width: 1440, height: 1000 },
+  { name: 'tablet', width: 820, height: 1180 },
+  { name: 'mobile', width: 390, height: 844 },
+]) {
+  await page.setViewportSize({ width: visual.width, height: visual.height });
+  await page.waitForTimeout(250);
+  await requireVisible(workflowMap, `Workflow Map is not visible at ${visual.name} width`);
+  const scrollState = await workflowMap.locator('.wm-body').evaluate((element) => ({
+    overflowX: getComputedStyle(element).overflowX,
+    overflowY: getComputedStyle(element).overflowY,
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  if (!['auto', 'scroll'].includes(scrollState.overflowX) || !['auto', 'scroll'].includes(scrollState.overflowY)) throw new Error(`Workflow Map does not own both overflow axes at ${visual.name}: ${JSON.stringify(scrollState)}`);
+  await screenshot(`03-workflow-map-${visual.name}.png`);
+  if (visual.name === 'mobile') {
+    const mobileReach = await workflowMap.locator('.wm-body').evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      const connections = element.querySelector('[data-testid="workflow-map-connections"]');
+      const outer = element.getBoundingClientRect();
+      const inner = connections?.getBoundingClientRect();
+      return {
+        scrollTop: element.scrollTop,
+        scrollHeight: element.scrollHeight,
+        clientHeight: element.clientHeight,
+        connectionsVisible: Boolean(inner && inner.bottom > outer.top && inner.top < outer.bottom),
+      };
+    });
+    await page.waitForTimeout(150);
+    if (mobileReach.scrollHeight > mobileReach.clientHeight && mobileReach.scrollTop <= 0) throw new Error('Workflow Map mobile body cannot scroll');
+    if (!mobileReach.connectionsVisible) throw new Error('Workflow Map explicit connections are not reachable on mobile');
+    await screenshot('03-workflow-map-mobile-connections.png');
+    await workflowMap.locator('.wm-body').evaluate((element) => { element.scrollTop = 0; });
+  }
+}
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.getByTestId('workflow-map-back').click();
+await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Workflow Map');
 await page.getByTestId('wu-anchor-role').click();
 
 // The Work Universe utility route must open a real editorial package, not print the dashboard.
@@ -309,6 +372,7 @@ fs.writeFileSync('test-results/api-traffic.json', JSON.stringify(apiTraffic, nul
 fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   step1: 'PASS', step2Return: 'PASS', workUniverse: 'PASS', canonicalGraphs: 'PASS', firstOrderSignals: 'PASS',
   organisationMap: 'PASS', organisationMapResponsive: 'PASS', organisationMapWithholding: 'PASS', roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
+  workflowMap: 'PASS', workflowMapResponsive: 'PASS', workflowMapWithholding: 'PASS', workflowMapMobileConnectionsReachable: 'PASS',
   materialBrowserErrors: errors,
 }, null, 2));
 

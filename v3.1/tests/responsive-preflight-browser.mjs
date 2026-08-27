@@ -42,9 +42,15 @@ for (const item of matrices) {
   const runtimeErrors = [];
   page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
+  page.on("requestfailed", (request) => runtimeErrors.push(`request failed ${request.method()} ${request.url()}: ${request.failure()?.errorText || "unknown error"}`));
+  // The geometry gate must not depend on an external font CDN. Inter remains the
+  // production preference; the browser fixture intentionally exercises the
+  // declared local Arial/sans-serif fallback with a successful empty stylesheet.
+  await page.route("https://fonts.googleapis.com/**", (route) => route.fulfill({ status: 200, contentType: "text/css", body: "" }));
   await page.route("**/api/mcf", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: makeJobs("MyCareersFuture", "mcf"), tier: 1, approximate: false }) }));
   await page.route("**/api/careers", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: makeJobs("careers.gov.sg", "csg") }) }));
   await page.route("**/api/ssoc", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ results: [], classifications: [] }) }));
+  await page.route("**/api/anatomy", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, found: false, data: null }) }));
 
   try {
     await page.goto(base, { waitUntil: "networkidle", timeout: 60000 });
