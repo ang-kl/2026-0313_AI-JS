@@ -1,9 +1,10 @@
 name: v3.1 browser production gate
 
 on:
-  push:
-    branches:
-      - chatgpt/v3.1-production-gate-20260826
+  pull_request:
+    paths:
+      - "v3.1/**"
+      - ".github/workflows/v31-browser-gate.yml"
   workflow_dispatch:
 
 permissions:
@@ -55,7 +56,10 @@ jobs:
         working-directory: v3.1
         env:
           BASE_URL: http://127.0.0.1:4173
-        run: node tests/browser-gate.mjs
+        run: |
+          node tests/device-profile-contract.mjs
+          node tests/responsive-preflight-browser.mjs
+          node tests/browser-gate.mjs
 
       - name: Show server log
         if: always()

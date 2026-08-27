@@ -1475,6 +1475,7 @@ import { downloadJson, envelope, block, exportFilename, ORIGIN } from "./export-
 import { KGGraph } from "./RoleGraph.jsx";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
+import { useDeviceProfile } from "./responsive/deviceProfile.js";
 import { exposureForIsco } from "../engine-data/engine-core.js";
 import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
 import SSOC2024_ISCO from "../engine-data/ssoc2024-isco.js";
@@ -12741,12 +12742,12 @@ const STEP2_FACETS = [
 function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
   const n = selected.length;
   return (
-    <div style={{ position: "relative", flex: "none" }}>
-      <button type="button" onClick={onOpen} aria-expanded={open} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: n ? "#eef2ff" : "#fff", color: n ? "#142a8e" : "#3a4456", border: "1px solid " + (n ? "#cdd9ff" : "#e2e0d8"), borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+    <div className="step2-facet" style={{ position: "relative", flex: "none" }}>
+      <button className="step2-facet-button" type="button" onClick={onOpen} aria-expanded={open} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: n ? "#eef2ff" : "#fff", color: n ? "#142a8e" : "#3a4456", border: "1px solid " + (n ? "#cdd9ff" : "#e2e0d8"), borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>
         {label}{n ? " " + String.fromCharCode(0x00b7) + " " + n : ""} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span>
       </button>
       {open && (
-        <div className="wis-scroll" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 230, maxWidth: 320, maxHeight: 320, overflowY: "auto", background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
+        <div className="wis-scroll step2-facet-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 230, maxWidth: 320, maxHeight: 320, overflowY: "auto", background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
           {options.length === 0 && <div style={{ padding: "8px 10px", color: "#94a0b0", fontSize: "0.75rem" }}>No options yet</div>}
           {options.map((o) => { const on = selected.includes(o.v); return (
             <button key={o.v} type="button" onClick={() => onToggle(o.v)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
@@ -12908,7 +12909,7 @@ function OkfModal({ doc, onClose }) {
   );
 }
 
-function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
+function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch, deviceProfile }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
   // Card grids animate add/remove/reorder when facets or sort change, instead of
@@ -12978,6 +12979,27 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [empReg, setEmpReg] = useState(null); // { status:"loading"|"done", data } for the open fullAd's employer
   const [empGeo, setEmpGeo] = useState(null); // { status:"loading"|"done", data } for the open fullAd's map pin
   const barRef = useRef(null);
+
+  // The responsive preflight runs at the App boundary before Step 2 mounts. Keep
+  // these decisive layout values inline so the evidence surface cannot briefly
+  // inherit its old desktop flex geometry on a phone while stylesheet rules load.
+  // Reported device family is deliberately absent: geometry controls layout; the
+  // user agent is descriptive only and never changes evidence or presentation.
+  const formFactor = deviceProfile?.formFactor || "desktop";
+  const orientation = deviceProfile?.orientation || "landscape";
+  const sizeTier = deviceProfile?.sizeTier || "desktop";
+  const isPhone = formFactor === "phone";
+  const isTablet = formFactor === "tablet";
+  const stackedBody = isPhone || (isTablet && orientation === "portrait");
+  const indexWidth = isTablet ? 236 : 276;
+  const shellPadding = isPhone
+    ? (sizeTier === "phone-compact" ? "0 8px 40px" : "0 12px 40px")
+    : isTablet ? "0 18px 52px" : "0 24px 60px";
+  const bodyColumns = stackedBody ? "minmax(0, 1fr)" : `${indexWidth}px minmax(0, 1fr)`;
+  const sourceColumns = isPhone
+    ? (orientation === "landscape" ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)")
+    : isTablet ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))";
+  const cardColumns = isPhone ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))";
 
   useEffect(() => {
     let cancelled = false;
@@ -13277,7 +13299,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const TI = String.fromCharCode(0x2502) + "   ";
 
   const sourcePanel = (name, srcCards, tone, gridRef) => (
-    <section style={{ flex: "1 1 380px", minWidth: 0 }}>
+    <section className="step2-source" style={{ minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
         <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
@@ -13285,12 +13307,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       </div>
       {srcCards.length === 0
         ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div className="step2-cards" ref={gridRef}>{srcCards.map(renderCard)}</div>}
+        : <div className="step2-cards" ref={gridRef} style={{ display: "grid", gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>}
     </section>
   );
 
   return (
-    <div className="step2-bleed" style={{ position: "relative", padding: "0 24px 60px", boxSizing: "border-box" }}>
+    <div className="step2-bleed step2-shell" data-testid="step2-responsive-surface" style={{ position: "relative", padding: shellPadding, boxSizing: "border-box" }}>
       <div className="step2-head" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
@@ -13304,12 +13326,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       </div>
 
-      <div ref={barRef} style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
+      <div ref={barRef} className="step2-filterbar" style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
         <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" title="Search postings by title, employer or keyword" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 44 }} />
-        <div style={{ position: "relative", flex: "none" }}>
+        <div className="step2-sort" style={{ position: "relative", flex: "none" }}>
           <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
           {openFacet === "sort" && (
-            <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
+            <div className="step2-sort-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
               {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
             </div>
           )}
@@ -13409,12 +13431,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         const R = 38, CIRC = 2 * Math.PI * R;
         let accFrac = 0;
         return (
-          <div style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+          <div className="step2-overview" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#6b6357", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>computed from SSOC classifications</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(180px, 240px) 1fr", gap: 18, alignItems: "center" }}>
+            <div className="step2-overview-grid" style={{ display: "grid", gridTemplateColumns: isPhone ? "minmax(0, 1fr)" : "minmax(180px, 240px) minmax(0, 1fr)", gap: isPhone ? 14 : 18, alignItems: "center" }}>
               {/* AI-exposure donut */}
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flex: "none" }} aria-hidden="true">
@@ -13471,8 +13493,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       })()}
 
       {!state.loading && sorted.length > 0 && (
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <aside style={{ flex: "none", width: 276, position: "sticky", top: 120, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 134px)", overflowY: "auto" }} className="wis-scroll">
+        <div className="step2-body" style={{ display: "grid", gridTemplateColumns: bodyColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
+          <aside style={{ width: stackedBody ? "auto" : indexWidth, position: stackedBody ? "static" : "sticky", top: stackedBody ? "auto" : 120, alignSelf: stackedBody ? "stretch" : "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: stackedBody ? 280 : "calc(100vh - 134px)", overflowY: "auto", boxSizing: "border-box" }} className="wis-scroll step2-index">
             <div>
               <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", marginBottom: 3 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               {/* UI doctrine: state the ranking rule - the rail is a curated ranking, not raw order. */}
@@ -13521,12 +13543,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             </div>
           </aside>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="step2-main" style={{ flex: 1, minWidth: 0 }}>
             {/* Badge key: the card chips must explain themselves without hover (touch + honesty). */}
             <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>
               <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
             </p>
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div className="step2-source-grid" style={{ display: "grid", gridTemplateColumns: sourceColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
             {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" }, mcfGridRef)}
             {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" }, csgGridRef)}
             </div>
@@ -16121,6 +16143,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 }
 
 export default function App({ initialSearchMode } = {}) {
+  const deviceProfile = useDeviceProfile();
   const [query,     setQuery]     = useState("");
   const [searchMode, setSearchMode] = useState(initialSearchMode || "role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture) | "company" (CO1: search by employer) | "wiki" (WIKI1: Career WikiGraph)
   const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
@@ -17918,10 +17941,88 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
-      /* Step 2 evidence cards: 2 columns max (UI doctrine - was 3, too dense to read).
-         1 column on phones, 2 from 640px up. */
+      /* Step 2 evidence cards: 2 columns max. The rules compose viewport width and
+         orientation so a landscape phone keeps readable cards while a portrait tablet
+         can use two columns after its source panels stack to full width. */
       .step2-cards { display:grid; grid-template-columns:1fr; gap:14px; align-content:start; }
-      @media (min-width:640px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:640px) and (orientation:portrait) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:900px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      .step2-source-grid { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .step2-body { display:grid !important; grid-template-columns:276px minmax(0,1fr); }
+      /* Device preflight: the v2 template supplies mobile-first sizing and 600/768/900
+         tiers; RIN3 supplies orientation/aspect behaviour. These data attributes are
+         assessed synchronously before Step 2 or Step 3 renders and update on visual-
+         viewport resize/orientation changes. A reported family never changes evidence. */
+      [data-form-factor="phone"] .step2-shell { padding: 0 12px 40px !important; }
+      [data-size-tier="phone-compact"] .step2-shell { padding-inline: 8px !important; }
+      [data-form-factor="phone"] .step2-filterbar {
+        top: 62px !important; display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch !important;
+        padding:8px !important; gap:7px !important;
+      }
+      [data-form-factor="phone"] .step2-filterbar > input { grid-column:1 / -1; width:100%; min-width:0 !important; }
+      [data-form-factor="phone"] .step2-sort,
+      [data-form-factor="phone"] .step2-facet { width:100%; min-width:0; }
+      [data-form-factor="phone"] .step2-sort > button,
+      [data-form-factor="phone"] .step2-facet-button { width:100%; min-width:0; justify-content:space-between; overflow:hidden; text-overflow:ellipsis; }
+      [data-form-factor="phone"] .step2-sort-menu,
+      [data-form-factor="phone"] .step2-facet-menu {
+        position:fixed !important; top:128px !important; left:12px !important; right:12px !important;
+        width:auto !important; min-width:0 !important; max-width:none !important;
+        max-height:calc(100dvh - 150px) !important; overflow-y:auto !important;
+      }
+      [data-size-tier="phone-compact"] .step2-filterbar { grid-template-columns:1fr; }
+      [data-size-tier="phone-compact"] .step2-filterbar > input { grid-column:1; }
+      [data-form-factor="phone"] .step2-overview > div:first-child { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
+      [data-form-factor="phone"] .step2-overview-grid { grid-template-columns:1fr !important; gap:14px !important; }
+      [data-form-factor="phone"] .step2-body,
+      [data-form-factor="tablet"][data-orientation="portrait"] .step2-body { grid-template-columns:1fr !important; }
+      [data-form-factor="phone"] .step2-index,
+      [data-form-factor="tablet"][data-orientation="portrait"] .step2-index {
+        position:static !important; top:auto !important; width:auto !important;
+        max-height:280px !important; align-self:stretch !important;
+      }
+      [data-form-factor="phone"] .step2-source-grid,
+      [data-form-factor="tablet"] .step2-source-grid { grid-template-columns:1fr !important; }
+      [data-form-factor="phone"][data-orientation="landscape"] .step2-source-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+      [data-form-factor="tablet"] .step2-shell { padding:0 18px 52px !important; }
+      [data-form-factor="tablet"][data-orientation="landscape"] .step2-body { grid-template-columns:236px minmax(0,1fr) !important; }
+      [data-form-factor="tablet"][data-orientation="landscape"] .step2-index { width:236px !important; }
+      /* Geometry fallbacks keep the layout correct even when privacy tooling strips UA
+         family details; the preflight attributes remain the more precise first choice. */
+      @media (max-width:899px) {
+        .step2-body { grid-template-columns:1fr !important; }
+        .step2-index { position:static !important; top:auto !important; width:auto !important; max-height:280px !important; align-self:stretch !important; }
+        .step2-source-grid { grid-template-columns:1fr !important; }
+      }
+      @media (min-width:700px) and (max-width:899px) and (orientation:landscape) {
+        .step2-source-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+        .step2-cards { grid-template-columns:1fr !important; }
+      }
+      @media (min-width:900px) and (max-width:1200px) and (orientation:landscape) {
+        .step2-source-grid { grid-template-columns:1fr !important; }
+        .step2-body { grid-template-columns:236px minmax(0,1fr) !important; }
+        .step2-index { width:236px !important; }
+      }
+      @media (orientation:portrait) and (max-width:1100px) {
+        .step2-body { grid-template-columns:1fr !important; }
+        .step2-index { position:static !important; top:auto !important; width:auto !important; max-height:280px !important; align-self:stretch !important; }
+        .step2-source-grid { grid-template-columns:1fr !important; }
+      }
+      @media (max-width:600px) {
+        .step2-shell { padding:0 12px 40px !important; }
+        .step2-filterbar { top:62px !important; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch !important; padding:8px !important; gap:7px !important; }
+        .step2-filterbar > input { grid-column:1 / -1; width:100%; min-width:0 !important; }
+        .step2-sort, .step2-facet { width:100%; min-width:0; }
+        .step2-sort > button, .step2-facet-button { width:100%; min-width:0; justify-content:space-between; overflow:hidden; text-overflow:ellipsis; }
+        .step2-overview > div:first-child { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
+        .step2-overview-grid { grid-template-columns:1fr !important; gap:14px !important; }
+      }
+      @media (max-width:360px) {
+        .step2-shell { padding-inline:8px !important; }
+        .step2-filterbar { grid-template-columns:1fr !important; }
+        .step2-filterbar > input { grid-column:1 !important; }
+      }
       /* CSG two-column browse: MyCareersFuture left, careers.gov.sg right; stacks below 1000px */
       .csg-cols { display:grid; grid-template-columns:1fr; gap:20px; align-items:start; }
       @media (min-width:1000px) { .csg-cols { grid-template-columns:3fr 2fr; } }
@@ -18100,7 +18201,11 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
     `}</style>
     <div data-author="Adrian K. L. Ang" data-origin="takearoundabout.com" data-build="v5-2026"
-      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", width:"100%", maxWidth:"100vw", overflowX:"clip", position:"relative" }}>
+      data-testid="responsive-preflight" data-responsive-profile={deviceProfile.profileVersion}
+      data-form-factor={deviceProfile.formFactor} data-size-tier={deviceProfile.sizeTier}
+      data-orientation={deviceProfile.orientation} data-aspect-tier={deviceProfile.aspectTier}
+      data-device-family={deviceProfile.deviceFamily}
+      style={{ minHeight:"var(--app-height, 100svh)", background:C.bg, color:C.text, fontFamily:"'IBM Plex Sans','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif", width:"100%", maxWidth:"100vw", overflowX:"clip", position:"relative", "--responsive-vw": deviceProfile.viewportWidth + "px", "--responsive-vh": deviceProfile.viewportHeight + "px" }}>
       {/* © Adrian K. L. Ang | takearoundabout.com | Original source - unauthorised redistribution is not permitted */}
 
       {/* LUX1: ambient Three.js field behind the landing + analysis screens (decorative only;
@@ -18406,6 +18511,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <PostingEvidencePicker
               query={query.trim()}
               freshGrad={freshGrad}
+              deviceProfile={deviceProfile}
               onAnalysePosting={handleAnalysePosting}
               onNewSearch={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
             />
