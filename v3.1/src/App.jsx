@@ -18513,6 +18513,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           const reviewSource = result.source === "posting"
             ? `from ${(result.postingMeta && result.postingMeta.postingSource) || "MyCareersFuture"}`
             : result.source === "corpus" ? "from live SG postings" : "from ESCO";
+          const aiMomentsCompanyQuery = result?.employer
+            || analysingPosting?.employer
+            || result?.postingMeta?.employer
+            || "";
           // PR 1 §3.8: Company Information becomes the canvas's right drawer. Both panels
           // passed as `companyPane` are the EXISTING deterministic reads - ACRA register
           // facts (CompanyBackground) and the poster-vs-hirer employer check over the live
@@ -18539,6 +18543,14 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                 rolePane={<RoleGraphPanel result={result} title={sel?.title || ""} posting={analysingPosting} onModeChange={setRgTaxonomy} />}
                 roleGraphMode={rgTaxonomy}
                 companyPane={hasCompanyRead(result) ? <><CompanyBackground result={result} /><EmployerReality result={result} /></> : null}
+                aiMomentsPane={aiMomentsCompanyQuery ? (
+                  <CompanyPanel
+                    companyQuery={aiMomentsCompanyQuery}
+                    onAnalysePosting={handleAnalysePosting}
+                    onQueuePosting={handleQueuePosting}
+                    queueCount={comparisons.length}
+                  />
+                ) : null}
                 analysisPanes={analysisPanes}
                 analysisLabels={ANALYSIS_WINDOW_LABELS}
                 posting={analysingPosting}

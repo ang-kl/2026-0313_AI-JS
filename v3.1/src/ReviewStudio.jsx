@@ -25,12 +25,17 @@ function workspaceIntentKey(intent) {
 export default function ReviewStudio(props) {
   const [surface, setSurface] = useState("universe");
   const [workspaceMounted, setWorkspaceMounted] = useState(false);
+  const [aiMomentsMounted, setAiMomentsMounted] = useState(false);
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
 
   const openWorkspace = (intent) => {
     setWorkspaceIntent(intent || { kind: "evidence" });
     setWorkspaceMounted(true);
     setSurface("workspace");
+  };
+  const openAiMoments = () => {
+    setAiMomentsMounted(true);
+    setSurface("ai-moments");
   };
 
   return (
@@ -50,9 +55,39 @@ export default function ReviewStudio(props) {
           onBack={props.onBack}
           onEnterStudio={(intent) => openWorkspace(intent || { kind: "evidence" })}
           onOpenRoleGraph={() => openWorkspace({ kind: "roleGraph" })}
+          onOpenAiMoments={openAiMoments}
           onPrintPackage={() => openWorkspace({ kind: "print" })}
         />
       </div>
+
+      {aiMomentsMounted && (
+        <section
+          data-testid="v31-ai-moments-surface"
+          aria-hidden={surface === "ai-moments" ? undefined : "true"}
+          style={{ display: surface === "ai-moments" ? "block" : "none", minHeight: "calc(100dvh - 64px)", background: "#fbfaf6", color: "#17343a" }}
+        >
+          <header style={{ position: "sticky", top: 0, zIndex: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px clamp(16px,3vw,42px)", borderBottom: "1px solid #d7dedc", background: "rgba(251,250,246,.96)", backdropFilter: "blur(8px)" }}>
+            <div>
+              <div style={{ fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: "#1a56db", fontWeight: 900 }}>Organisation Work Graph → Organisation Map → AI Moments</div>
+              <div style={{ marginTop: 2, fontFamily: "Georgia,serif", fontSize: 22, fontWeight: 800 }}>Cards | Neural</div>
+            </div>
+            <button
+              data-testid="return-organisation-map"
+              type="button"
+              onClick={() => setSurface("universe")}
+              style={{ minHeight: 44, padding: "0 14px", borderRadius: 999, border: "1px solid #b7c8c6", background: "#fff", color: "#17343a", fontSize: 12, fontWeight: 800, cursor: "pointer" }}
+            >
+              ← Organisation Map
+            </button>
+          </header>
+          <div style={{ width: "min(1180px,calc(100% - 32px))", margin: "0 auto", padding: "22px 0 48px" }}>
+            <div style={{ marginBottom: 14, padding: "12px 14px", border: "1px solid #d7dedc", borderRadius: 10, background: "#fff", fontSize: 12, lineHeight: 1.55, color: "#596878" }}>
+              AI Moments are derived from supplied employer postings and duty evidence. They suggest work that may be augmented or automated; they do not grade organisation maturity, staffing quality, or readiness.
+            </div>
+            {props.aiMomentsPane || <div style={{ padding: 18, border: "1px dashed #b7c8c6", borderRadius: 10, background: "#fff", fontSize: 13 }}>Organisation evidence is unavailable, so AI Moments are withheld.</div>}
+          </div>
+        </section>
+      )}
 
       {workspaceMounted && (
         <div

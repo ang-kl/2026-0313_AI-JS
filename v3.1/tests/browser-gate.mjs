@@ -62,6 +62,42 @@ const universe = page.getByTestId('work-universe');
 await requireVisible(universe, 'Step 3 Work Universe did not open after the preserved role-analysis pipeline', 30000);
 await screenshot('03-work-universe.png');
 
+// The desktop workbench is one available viewport, not a document three screens tall.
+// The source rail, Contents tree and detail inspector each own their overflow.
+await page.setViewportSize({ width: 2048, height: 1280 });
+await page.waitForTimeout(300);
+const workbenchMetrics = await universe.evaluate((root) => {
+  const read = (selector) => {
+    const element = root.querySelector(selector);
+    const style = element ? getComputedStyle(element) : null;
+    return element && style ? { overflowY: style.overflowY, clientHeight: element.clientHeight, scrollHeight: element.scrollHeight } : null;
+  };
+  const rect = root.getBoundingClientRect();
+  return {
+    viewportWidth: window.innerWidth,
+    top: rect.top,
+    bottom: rect.bottom,
+    viewportHeight: window.innerHeight,
+    rootHeight: getComputedStyle(root).height,
+    rootMinHeight: getComputedStyle(root).minHeight,
+    availableHeight: getComputedStyle(root).getPropertyValue('--wu-available-height'),
+    source: read('.wu-sourceBody'),
+    contents: read('.wu-outlineList'),
+    detail: read('.wu-drillBody'),
+  };
+});
+if (workbenchMetrics.bottom > workbenchMetrics.viewportHeight + 2) throw new Error(`Work Universe exceeds the available desktop viewport: ${JSON.stringify(workbenchMetrics)}`);
+for (const panel of ['source', 'contents', 'detail']) {
+  if (!['auto', 'scroll'].includes(workbenchMetrics[panel]?.overflowY)) throw new Error(`${panel} panel does not own vertical scrolling`);
+}
+await requireVisible(page.getByTestId('wu-contents-tree'), 'Website-style Contents tree is missing');
+if (await page.locator('[aria-label="Work Universe site tree"][role="tree"]').count()) throw new Error('Tree role must be on the tree list, not the nav wrapper');
+await requireVisible(page.locator('[aria-label="Work Universe site tree"] [role="tree"]'), 'Contents does not expose accessible tree semantics');
+await requireVisible(page.getByTestId('tree-ai-moments'), 'Organisation tree does not expose AI Moments / Cards / Neural');
+if (await page.getByRole('button', { name: 'O-I-A Trace', exact: true }).count()) throw new Error('Visible O-I-A navigation remains on the Work Universe landing');
+await screenshot('03-work-universe-2048x1280.png');
+await page.setViewportSize({ width: 1440, height: 1000 });
+
 const graphIds = ['labour', 'organisation', 'intelligence', 'human-agent', 'transition'];
 for (const id of graphIds) {
   const graph = page.getByTestId(`graph-${id}`);
@@ -86,6 +122,20 @@ for (const dimension of ['functions', 'reportingBoundaries', 'dependencies', 'ca
 const organisationMapText = await organisationMap.innerText();
 if (!organisationMapText.includes('WITHHELD')) throw new Error('Organisation Map guessed missing organisation evidence instead of withholding');
 if (!/does not infer organisation maturity/i.test(organisationMapText)) throw new Error('Organisation Map maturity boundary is not visible');
+
+// The approved route reuses the existing AI Moments surface and keeps the
+// organisation-maturity boundary explicit. With no employer in this role-only
+// fixture, the destination must be a truthful withheld state rather than a mock.
+await page.getByTestId('organisation-map-ai-moments').click();
+const aiMomentsSurface = page.getByTestId('v31-ai-moments-surface');
+await requireVisible(aiMomentsSurface, 'Organisation Map did not route to AI Moments');
+const aiMomentsText = await aiMomentsSurface.innerText();
+if (!aiMomentsText.includes('Cards | Neural')) throw new Error('AI Moments destination does not identify the preserved Cards / Neural views');
+if (!/do not grade organisation maturity/i.test(aiMomentsText)) throw new Error('AI Moments route omits the organisation-maturity boundary');
+if (!/withheld/i.test(aiMomentsText)) throw new Error('Role-only AI Moments route invented employer evidence instead of withholding');
+await screenshot('03-ai-moments-withheld.png');
+await page.getByTestId('return-organisation-map').click();
+await requireVisible(organisationMap, 'Organisation Map did not restore after AI Moments');
 
 for (const visual of [
   { name: 'desktop', width: 1440, height: 1000, columns: 3 },
