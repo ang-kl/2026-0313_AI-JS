@@ -173,6 +173,23 @@ for (const dimension of ['functions', 'reportingBoundaries', 'dependencies', 'ca
 const organisationMapText = await organisationMap.innerText();
 if (!organisationMapText.includes('WITHHELD')) throw new Error('Organisation Map guessed missing organisation evidence instead of withholding');
 if (!/does not infer organisation maturity/i.test(organisationMapText)) throw new Error('Organisation Map maturity boundary is not visible');
+await requireVisible(page.getByTestId('organisation-economy-agent'), 'Organisation Map does not expose the Agent economy zone');
+await requireVisible(page.getByTestId('organisation-economy-human'), 'Organisation Map does not expose the Human-reserved economy zone');
+if (!/does not derive one from role or posting text/i.test(organisationMapText)) throw new Error('Organisation economy zones omit their no-inference boundary');
+if (!/role title is not converted into an organisation chart/i.test(organisationMapText)) throw new Error('Title-only Organisation Map did not withhold chart nodes');
+if (await organisationMap.locator('.om-node').count()) throw new Error('Title-only Organisation Map invented an organisation chart node');
+const organisationLayout = await organisationMap.evaluate((map) => {
+  const root = map.closest('[data-testid="work-universe"]');
+  const workbench = root.querySelector('.wu-workbench').getBoundingClientRect();
+  const centre = root.querySelector('.wu-centrePane').getBoundingClientRect();
+  return {
+    leftDisplay: getComputedStyle(root.querySelector('.wu-leftRail')).display,
+    rightDisplay: getComputedStyle(root.querySelector('.wu-rightRail')).display,
+    workbenchWidth: workbench.width,
+    centreWidth: centre.width,
+  };
+});
+if (organisationLayout.leftDisplay !== 'none' || organisationLayout.rightDisplay !== 'none' || organisationLayout.centreWidth < organisationLayout.workbenchWidth - 2) throw new Error(`Organisation Map did not own the dedicated desktop canvas: ${JSON.stringify(organisationLayout)}`);
 
 // The approved route reuses the existing AI Moments surface and keeps the
 // organisation-maturity boundary explicit. With no employer in this role-only
