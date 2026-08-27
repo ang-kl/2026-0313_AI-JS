@@ -105,6 +105,19 @@ if (await page.locator('[aria-label="Work Universe site tree"][role="tree"]').co
 await requireVisible(page.locator('[aria-label="Work Universe site tree"] [role="tree"]'), 'Contents does not expose accessible tree semantics');
 await requireVisible(page.getByTestId('tree-ai-moments'), 'Organisation tree does not expose AI Moments / Cards / Neural');
 if (await page.getByRole('button', { name: 'O-I-A Trace', exact: true }).count()) throw new Error('Visible O-I-A navigation remains on the Work Universe landing');
+const visualSelector = page.getByTestId('occupation-visual-selector');
+await requireVisible(visualSelector, 'Occupation-sensitive visual selector is missing');
+for (const visual of ['graph', 'org', 'workflow', 'stream']) {
+  await requireVisible(page.getByTestId(`visual-choice-${visual}`), `Visual selector is missing ${visual}`);
+}
+const selectorText = await visualSelector.innerText();
+if (!selectorText.includes('RECOMMENDATION WITHHELD')) throw new Error('Role-title-only fixture produced or concealed a visual recommendation');
+if (!/not used to guess a visual/i.test(selectorText)) throw new Error('Visual selector does not expose its no-guessing boundary');
+if (selectorText.includes('RECOMMENDED')) throw new Error('Visual selector inferred a recommendation from the role title');
+await page.getByTestId('visual-choice-org').click();
+await requireVisible(page.getByTestId('organisation-map'), 'Manual Org visual choice did not open the Organisation Map');
+if (await page.getByTestId('visual-choice-org').getAttribute('aria-pressed') !== 'true') throw new Error('Manual Org visual choice did not expose its active state');
+await page.getByTestId('organisation-map-back').click();
 await screenshot('03-work-universe-2048x1280.png');
 await page.setViewportSize({ width: 1440, height: 1000 });
 
@@ -155,6 +168,11 @@ for (const visual of [
   await page.setViewportSize({ width: visual.width, height: visual.height });
   await page.waitForTimeout(250);
   await requireVisible(organisationMap, `Organisation Map is not visible at ${visual.name} width`);
+  if (visual.name === 'mobile') {
+    for (const choice of ['graph', 'org', 'workflow', 'stream']) {
+      await requireVisible(page.getByTestId(`visual-choice-${choice}`), `Visual choice ${choice} is not visible in the mobile selector`);
+    }
+  }
   const gridColumns = await organisationMap.locator('.om-grid').evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(' ').filter(Boolean).length);
   if (gridColumns !== visual.columns) throw new Error(`Organisation Map expected ${visual.columns} columns at ${visual.name}, received ${gridColumns}`);
   await screenshot(`03-organisation-map-${visual.name}.png`);
