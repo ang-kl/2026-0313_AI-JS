@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
 
@@ -28,9 +28,14 @@ export default function ReviewStudio(props) {
   const [aiMomentsMounted, setAiMomentsMounted] = useState(false);
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
   const [personEvidenceOverride, setPersonEvidenceOverride] = useState(undefined);
-  const effectiveResult = useMemo(() => personEvidenceOverride === undefined
-    ? props.result
-    : { ...props.result, personEvidence: personEvidenceOverride }, [props.result, personEvidenceOverride]);
+  const [governanceReviewState, setGovernanceReviewState] = useState({});
+  const governanceSubjectKey = props.posting?.uuid || `${props.title || ""}::${props.employer || ""}::${props.source || ""}`;
+  useEffect(() => setGovernanceReviewState({}), [governanceSubjectKey]);
+  const effectiveResult = useMemo(() => ({
+    ...props.result,
+    ...(personEvidenceOverride === undefined ? {} : { personEvidence: personEvidenceOverride }),
+    governanceReviewState,
+  }), [props.result, personEvidenceOverride, governanceReviewState]);
 
   const openWorkspace = (intent) => {
     setWorkspaceIntent(intent || { kind: "evidence" });
@@ -62,6 +67,7 @@ export default function ReviewStudio(props) {
           onOpenAiMoments={openAiMoments}
           onPrintPackage={() => openWorkspace({ kind: "print" })}
           onPersonEvidenceChange={setPersonEvidenceOverride}
+          onGovernanceDecisionChange={(key, status) => setGovernanceReviewState((current) => ({ ...current, [key]: status }))}
         />
       </div>
 

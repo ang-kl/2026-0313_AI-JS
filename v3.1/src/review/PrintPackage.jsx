@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { buildGovernanceLedgerData } from "../work-universe/governanceLedgerData.js";
 
 const clean = (value) => String(value || "").replace(/\s+/g, " ").trim();
 const list = (value) => Array.isArray(value) ? value : [];
@@ -70,6 +71,7 @@ export default function PrintPackage({
   const missingSkills = personSkills.length ? roleSkills.filter((skill) => !personSet.has(skill.toLowerCase())) : [];
   const roleName = clean(title) || "Role evidence withheld";
   const orgName = clean(employer) || "Organisation evidence withheld";
+  const governance = buildGovernanceLedgerData(result);
 
   return createPortal((
     <div className="v31-print-overlay" role="dialog" aria-modal="true" aria-label="Print review package">
@@ -148,15 +150,27 @@ export default function PrintPackage({
             </Section>
           )}
 
-          <Section number={variant === "review" ? "04" : "02"} title="Candidate action brief" pageBreak={variant === "clean"}>
+          {variant === "review" && (
+            <Section number="04" title="Governance and disagreement audit" pageBreak>
+              {governance.ledger.length ? (
+                <table className="v31-print-ledger"><thead><tr><th>Decision / evidence</th><th>Owner / risk</th><th>Allowed / forbidden</th><th>Control / human state</th><th>Audit</th></tr></thead><tbody>{governance.ledger.map((entry) => <tr key={entry.key}><td><b>{entry.decision || "Decision withheld"}</b><br />{entry.evidenceIds.length ? entry.evidenceIds.join(" · ") : "Evidence withheld"}</td><td>{entry.humanOwner || "Owner withheld"}<br />{entry.riskClass || "Risk withheld"}</td><td><b>Allowed:</b> {entry.allowedAction || "withheld"}<br /><b>Forbidden:</b> {entry.forbiddenAction || "withheld"}</td><td>{entry.controlState.toUpperCase()}<br />{entry.humanState}<br />{entry.missing.length ? `Missing: ${entry.missing.join(" · ")}` : "Required controls supplied"}</td><td>{entry.auditTrail.length ? entry.auditTrail.map((event) => [event.action, event.actor, event.at].filter(Boolean).join(" · ")).join("; ") : "Audit trail withheld"}<br />Current session state: {entry.humanState}; actor and timestamp not inferred.</td></tr>)}</tbody></table>
+              ) : <Withheld>No governance records were supplied. Owner, risk and control boundaries are not inferred from the posting.</Withheld>}
+              <h3>Reviewer disagreement</h3>
+              {governance.disagreements.length ? (
+                <table className="v31-print-ledger"><thead><tr><th>Topic</th><th>Competing claims</th><th>Human question</th><th>Decision</th></tr></thead><tbody>{governance.disagreements.map((item) => <tr key={item.key}><td>{item.topic || "Topic withheld"}<br />{item.ready ? "REVIEWABLE" : `WITHHELD · ${item.missing.join(" · ")}`}</td><td>{item.positions.length ? item.positions.map((position) => `${position.reviewer || "Reviewer withheld"}: ${position.claim || "Claim withheld"} [${position.evidenceIds.join(" · ") || "evidence withheld"}]`).join("; ") : "Positions withheld"}</td><td>{item.question || "Withheld"}</td><td>{item.humanState}</td></tr>)}</tbody></table>
+              ) : <Withheld>No competing reviewer claims were supplied. Conflict and consensus are not manufactured.</Withheld>}
+            </Section>
+          )}
+
+          <Section number={variant === "review" ? "05" : "02"} title="Candidate action brief" pageBreak={variant === "clean"}>
             {accepted.length ? <ol className="v31-print-list">{accepted.map((comment) => <li key={comment.id}><b>{comment.persona}:</b> {comment.type === "suggested rewrite" && comment.suggested ? comment.suggested : comment.reason}</li>)}</ol> : <Withheld>No reviewer actions have been accepted. Pending suggestions are not promoted into the candidate brief.</Withheld>}
           </Section>
 
-          <Section number={variant === "review" ? "05" : "03"} title="Interview question sheet">
+          <Section number={variant === "review" ? "06" : "03"} title="Interview question sheet">
             {interviewRows.length ? <ol className="v31-print-list">{interviewRows.map((row, index) => <li key={`${index}-${row.text}`}>{row.text}<br /><small>{row.provenance}</small></li>)}</ol> : <Withheld>The current source does not provide enough posting evidence for interview questions.</Withheld>}
           </Section>
 
-          <Section number={variant === "review" ? "06" : "04"} title="Resume alignment rationale">
+          <Section number={variant === "review" ? "07" : "04"} title="Resume alignment rationale">
             {personSkills.length ? (
               <>
                 <p>{personSkills.length} person-supplied skills were compared with {roleSkills.length} target-role skills using a case-normalised set difference.</p>

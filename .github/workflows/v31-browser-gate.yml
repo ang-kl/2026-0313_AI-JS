@@ -63,6 +63,7 @@ jobs:
           node tests/value-stream-map-contract.mjs
           node tests/occupation-visual-selector-contract.mjs
           node tests/person-evidence-contract.mjs
+          node tests/governance-ledger-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/browser-gate.mjs
 
