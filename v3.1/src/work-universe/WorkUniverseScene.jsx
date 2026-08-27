@@ -7,15 +7,15 @@ import * as THREE from "three";
 // This scene mirrors that state so WebGL can enrich the spatial model without
 // becoming the only way to understand or operate it.
 export const WU_POSITIONS = {
-  1: [-3.65, 2.25, 0.05],
-  2: [3.65, 2.25, 0.05],
-  3: [-4.05, -1.8, 0.0],
-  4: [4.05, -1.8, 0.0],
-  5: [0, -3.15, 0.18],
+  1: [-0.7, 2.5, 0.05],
+  2: [-0.7, 0.1, 0.05],
+  3: [-0.7, -2.4, 0.0],
+  4: [3.8, 1.45, 0.0],
+  5: [3.8, -1.45, 0.18],
 };
 
 const ORB_COLORS = ["#256b7a", "#465fa7", "#86652a", "#5d568f", "#3f7182"];
-const CENTER = new THREE.Vector3(0, 0.2, 0.65);
+const CENTER = new THREE.Vector3(-4.2, 0.1, 0.65);
 const UP = new THREE.Vector3(0, 1, 0);
 
 function Connector({ graphId, selected }) {
@@ -36,7 +36,7 @@ function Connector({ graphId, selected }) {
   );
 }
 
-function Orb({ graphId, selected, reducedMotion, onSelectGraph }) {
+function Card({ graphId, selected, reducedMotion, onSelectGraph }) {
   const ref = useRef(null);
   const position = WU_POSITIONS[graphId];
   const color = ORB_COLORS[graphId - 1];
@@ -62,7 +62,7 @@ function Orb({ graphId, selected, reducedMotion, onSelectGraph }) {
         if (onSelectGraph) onSelectGraph(graphId);
       }}
     >
-      <sphereGeometry args={[0.48, 40, 40]} />
+      <boxGeometry args={[1.55, 0.88, 0.18, 2, 2, 1]} />
       <meshStandardMaterial
         color={color}
         roughness={0.34}
@@ -72,15 +72,15 @@ function Orb({ graphId, selected, reducedMotion, onSelectGraph }) {
         emissive={selected ? color : "#000000"}
         emissiveIntensity={selected ? 0.08 : 0}
       />
-      <mesh scale={1.12}>
-        <sphereGeometry args={[0.48, 28, 28]} />
+      <mesh scale={1.08}>
+        <boxGeometry args={[1.55, 0.88, 0.18, 2, 2, 1]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={selected ? 0.05 : 0.018} wireframe />
       </mesh>
     </mesh>
   );
 }
 
-function CentreOrb({ reducedMotion }) {
+function CentreCard({ reducedMotion }) {
   const ref = useRef(null);
   useFrame((_, delta) => {
     if (!ref.current || reducedMotion) return;
@@ -90,11 +90,11 @@ function CentreOrb({ reducedMotion }) {
   return (
     <group position={CENTER} ref={ref}>
       <mesh>
-        <sphereGeometry args={[0.62, 48, 48]} />
+        <boxGeometry args={[1.75, 1.05, 0.22, 2, 2, 1]} />
         <meshStandardMaterial color="#dce9e6" roughness={0.56} metalness={0.03} />
       </mesh>
       <mesh scale={1.07}>
-        <icosahedronGeometry args={[0.62, 2]} />
+        <boxGeometry args={[1.75, 1.05, 0.22, 2, 2, 1]} />
         <meshBasicMaterial color="#43717a" transparent opacity={0.08} wireframe />
       </mesh>
     </group>
@@ -107,11 +107,11 @@ function Scene({ selectedGraph, reducedMotion, onSelectGraph }) {
       <ambientLight intensity={0.85} />
       <directionalLight position={[4, 7, 8]} intensity={1.25} />
       <directionalLight position={[-6, -2, 5]} intensity={0.45} />
-      <CentreOrb reducedMotion={reducedMotion} />
+      <CentreCard reducedMotion={reducedMotion} />
       {[1, 2, 3, 4, 5].map((graphId) => (
         <React.Fragment key={graphId}>
           <Connector graphId={graphId} selected={selectedGraph === graphId} />
-          <Orb graphId={graphId} selected={selectedGraph === graphId} reducedMotion={reducedMotion} onSelectGraph={onSelectGraph} />
+          <Card graphId={graphId} selected={selectedGraph === graphId} reducedMotion={reducedMotion} onSelectGraph={onSelectGraph} />
         </React.Fragment>
       ))}
     </>
