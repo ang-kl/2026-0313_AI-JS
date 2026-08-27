@@ -373,6 +373,39 @@ await page.getByTestId('value-stream-map-back').click();
 await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Value Stream Map');
 await page.getByTestId('wu-anchor-role').click();
 
+// Governance is a dedicated owner/risk/action/audit surface. This title-only
+// fixture supplies no governance records or reviewer conflicts, so both views
+// must expose honest empty states rather than deriving controls from duties.
+await page.getByTestId('tree-governance-ledger').click();
+const governanceLedger = page.getByTestId('governance-ledger');
+await requireVisible(governanceLedger, 'Contents tree did not open the Governance Ledger');
+if (!await page.getByTestId('governance-ledger-empty').isVisible()) throw new Error('Governance Ledger invented a control record from role evidence');
+const governanceText = await governanceLedger.innerText();
+if (!/not used to invent an owner, risk class, control boundary, or autonomous action/i.test(governanceText)) throw new Error('Governance empty state omits its no-inference boundary');
+for (const visual of [
+  { name: 'desktop', width: 1440, height: 1000 },
+  { name: 'tablet', width: 820, height: 1180 },
+  { name: 'mobile', width: 390, height: 844 },
+]) {
+  await page.setViewportSize({ width: visual.width, height: visual.height });
+  await page.waitForTimeout(250);
+  const governanceLayout = await governanceLedger.evaluate((ledger) => {
+    const rect = ledger.getBoundingClientRect();
+    const body = ledger.querySelector('.gl-body');
+    return { viewport: window.innerWidth, left: rect.left, right: rect.right, overflowY: getComputedStyle(body).overflowY };
+  });
+  if (governanceLayout.left < -1 || governanceLayout.right > governanceLayout.viewport + 1) throw new Error(`Governance Ledger overflows ${visual.name}: ${JSON.stringify(governanceLayout)}`);
+  if (!['auto', 'scroll'].includes(governanceLayout.overflowY)) throw new Error(`Governance body does not own vertical scrolling at ${visual.name}`);
+  await screenshot(`03-governance-ledger-${visual.name}.png`);
+}
+await page.getByTestId('governance-tab-disagreements').click();
+await requireVisible(page.getByTestId('governance-disagreement-empty'), 'Missing disagreement payload did not render a withheld state');
+if (!/does not manufacture conflict or consensus/i.test(await governanceLedger.innerText())) throw new Error('Disagreement empty state omits its no-fabrication boundary');
+await screenshot('03-governance-disagreement-mobile.png');
+await page.setViewportSize({ width: 1440, height: 1000 });
+await governanceLedger.getByRole('button', { name: 'Work Universe' }).click();
+await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Governance Ledger');
+
 // The Work Universe utility route must open a real editorial package, not print the dashboard.
 await page.getByTestId('wu-open-print-package').click();
 await requireVisible(page.getByTestId('v31-workspace-print'), 'Print intent did not reach the existing Step 3 workspace');
@@ -385,7 +418,7 @@ for (const heading of ['Clean role read', 'Candidate action brief', 'Interview q
 if (!cleanPrintText.includes('WITHHELD')) throw new Error('Print package guessed absent candidate/source evidence instead of withholding');
 await page.getByRole('button', { name: 'Full review' }).click();
 const reviewPrintText = await printPreview.innerText();
-for (const heading of ['All-markup review', 'Reviewer summary and decision ledger']) {
+for (const heading of ['All-markup review', 'Reviewer summary and decision ledger', 'Governance and disagreement audit']) {
   if (!reviewPrintText.includes(heading)) throw new Error(`Full review print package is missing ${heading}`);
 }
 await screenshot('08-print-package.png');
@@ -511,6 +544,7 @@ fs.writeFileSync('test-results/gate-summary.json', JSON.stringify({
   organisationMap: 'PASS', organisationMapResponsive: 'PASS', organisationMapWithholding: 'PASS', roleGraph: 'PASS', fabRoundTrip: 'PASS', projectionAlgorithms: 'PASS', workspaceIntentRouting: 'PASS', printPackage: 'PASS', printPdf: 'PASS', evidenceRoundTrip, r3fCanvasPresent: r3fCount > 0,
   workflowMap: 'PASS', workflowMapResponsive: 'PASS', workflowMapWithholding: 'PASS', workflowMapMobileConnectionsReachable: 'PASS',
   valueStreamMap: 'PASS', valueStreamMapResponsive: 'PASS', valueStreamMapWithholding: 'PASS',
+  governanceLedger: 'PASS', governanceLedgerResponsive: 'PASS', governanceLedgerWithholding: 'PASS', governanceDisagreementWithholding: 'PASS', governancePrintAudit: 'PASS',
   materialBrowserErrors: errors,
 }, null, 2));
 

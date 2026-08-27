@@ -4,6 +4,7 @@ import WorkflowMap from "./WorkflowMap.jsx";
 import ValueStreamMap from "./ValueStreamMap.jsx";
 import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
 import PersonEvidenceIngress from "./PersonEvidenceIngress.jsx";
+import GovernanceLedger from "./GovernanceLedger.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -459,13 +460,14 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onOpenAiMoments, onPrintPackage, onPersonEvidenceChange,
+  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onOpenAiMoments, onPrintPackage, onPersonEvidenceChange, onGovernanceDecisionChange,
 }) {
   const rootRef = useRef(null);
   const frameRef = useRef(null);
   const [anchor, setAnchor] = useState("role");
   const [mode, setMode] = useState("universe");
   const [organisationMapOpen, setOrganisationMapOpen] = useState(false);
+  const [governanceView, setGovernanceView] = useState("ledger");
   const [sourceTab, setSourceTab] = useState("o");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [selectedGraph, setSelectedGraph] = useState(null);
@@ -685,6 +687,18 @@ export default function WorkUniverseLanding({
     setTocActive("value-stream-map");
     setFooter({ label: "Value Stream Map", detail: "supplied time · waste · handoff · AI leverage" });
   };
+  const showGovernanceLedger = (view = "ledger") => {
+    setMode("governance-ledger");
+    setOrganisationMapOpen(false);
+    setGovernanceView(view);
+    setSelectedGraph(null);
+    setSelectedSignal(null);
+    setSelectedEvidence(null);
+    setSelectedInterpretation(null);
+    setDetail({ kind: view === "disagreements" ? "conflictReview" : "governanceLedger" });
+    setTocActive(view === "disagreements" ? "conflict-review" : "governance-ledger");
+    setFooter({ label: view === "disagreements" ? "Reviewer disagreement" : "Governance Ledger", detail: "owner · risk · action boundary · evidence · audit" });
+  };
   const selectVisual = (visual) => {
     if (visual === "graph") openRoleGraph();
     else if (visual === "org") showOrganisationMap();
@@ -740,7 +754,7 @@ export default function WorkUniverseLanding({
           : null;
 
   return (
-    <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}>
+    <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map" || mode === "governance-ledger") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}>
       <style>{`
         .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
         .wu-root *{box-sizing:border-box;min-width:0}.wu-root button{font:inherit;color:inherit}
@@ -826,7 +840,7 @@ export default function WorkUniverseLanding({
 
           <section className="wu-centrePane" aria-label="Work Universe">
             <div className="wu-centreHead">
-              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">{mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : organisationMapOpen ? "Organisation Map" : "Graphify Work Universe"}</span></div>
+              <div><span className="wu-eyebrow">Centre</span> <span className="wu-railTitle">{mode === "governance-ledger" ? "Governance Ledger" : mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : organisationMapOpen ? "Organisation Map" : "Graphify Work Universe"}</span></div>
               <div className="wu-anchorSwitch" role="group" aria-label="Projection centre">
                 {[["role", "Role"], ["org", "Organisation"], ["person", "Person"]].map(([key, label]) => (
                   <button
@@ -859,7 +873,16 @@ export default function WorkUniverseLanding({
               onEvidenceSelect={selectEvidence}
             />
             <div className="wu-universeFrame" ref={frameRef}>
-              {organisationMapOpen ? (
+              {mode === "governance-ledger" ? (
+                <GovernanceLedger
+                  key={governanceView}
+                  result={result}
+                  initialView={governanceView}
+                  onBack={resetUniverse}
+                  onEvidenceSelect={selectEvidence}
+                  onDecisionChange={onGovernanceDecisionChange}
+                />
+              ) : organisationMapOpen ? (
                 <OrganisationMap
                   result={result}
                   roleTitle={roleTitle}
@@ -993,6 +1016,8 @@ export default function WorkUniverseLanding({
                           </li>
                           <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "role-graph" ? "on" : ""}`} onClick={openRoleGraph}>Open Role Graph</button></div></li>
                           <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "evidence" ? "on" : ""}`} onClick={() => { setMode("lineage"); setSourceTab("a"); setDetail({ kind: "lineage" }); setTocActive("evidence"); }}>Evidence lineage</button></div></li>
+                          <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-governance-ledger" type="button" className={`wu-outlineBtn ${tocActive === "governance-ledger" ? "on" : ""}`} onClick={() => showGovernanceLedger("ledger")}>Governance Ledger</button></div></li>
+                          <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-conflict-review" type="button" className={`wu-outlineBtn ${tocActive === "conflict-review" ? "on" : ""}`} onClick={() => showGovernanceLedger("disagreements")}>Reviewer disagreement</button></div></li>
                         </ul>
                       )}
                     </li>
