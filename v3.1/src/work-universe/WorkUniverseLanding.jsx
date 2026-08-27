@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "rea
 import OrganisationMap from "./OrganisationMap.jsx";
 import WorkflowMap from "./WorkflowMap.jsx";
 import ValueStreamMap from "./ValueStreamMap.jsx";
+import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -683,6 +684,12 @@ export default function WorkUniverseLanding({
     setTocActive("value-stream-map");
     setFooter({ label: "Value Stream Map", detail: "supplied time · waste · handoff · AI leverage" });
   };
+  const selectVisual = (visual) => {
+    if (visual === "graph") openRoleGraph();
+    else if (visual === "org") showOrganisationMap();
+    else if (visual === "workflow") showWorkflowMap();
+    else if (visual === "stream") showValueStreamMap();
+  };
   const openAiMoments = () => {
     setTocActive("ai-moments");
     setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
@@ -721,6 +728,15 @@ export default function WorkUniverseLanding({
       : selectedSignal
         ? allSignals.filter(({ signal }) => signal.id === selectedSignal)
         : [];
+  const activeVisual = organisationMapOpen
+    ? "org"
+    : mode === "workflow-map"
+      ? "workflow"
+      : mode === "value-stream-map"
+        ? "stream"
+        : mode === "rolegraph"
+          ? "graph"
+          : null;
 
   return (
     <div ref={rootRef} data-testid="work-universe" className={`wu-root ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map") ? "wu-dedicatedMap" : ""}`}>
@@ -735,7 +751,7 @@ export default function WorkUniverseLanding({
         .wu-modeTab{height:42px;flex:0 0 auto;border:0;border-bottom:2px solid transparent;background:transparent;padding:0 12px;font-size:12px;cursor:pointer;color:#4d5a5c}.wu-modeTab.on{border-bottom-color:var(--ink);color:var(--ink);font-weight:800}
         .wu-modeTab:focus-visible,.wu-cmdBtn:focus-visible,.wu-tab:focus-visible,.wu-filter:focus-visible,.wu-outlineBtn:focus-visible,.wu-signal:focus-visible,.wu-anchorAction:focus-visible,.wu-graph:focus-visible,.wu-anchorNode:focus-visible,.wu-itemBtn:focus-visible,.wu-evidenceRow:focus-visible,.wu-interpRow:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
         .wu-workbench{min-height:0;overflow:hidden;display:grid;grid-template-columns:clamp(310px,20vw,560px) minmax(560px,1fr) clamp(350px,23vw,620px);border-bottom:1px solid var(--line2)}
-        .wu-leftRail,.wu-centrePane,.wu-rightRail{min-height:0;overflow:hidden;background:var(--panel)}.wu-leftRail{border-right:1px solid var(--line2);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}.wu-centrePane{display:grid;grid-template-rows:38px minmax(0,1fr);background:var(--bg)}.wu-rightRail{border-left:1px solid var(--line2);display:grid;grid-template-rows:minmax(240px,32%) minmax(0,68%)}
+        .wu-leftRail,.wu-centrePane,.wu-rightRail{min-height:0;overflow:hidden;background:var(--panel)}.wu-leftRail{border-right:1px solid var(--line2);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}.wu-centrePane{display:grid;grid-template-rows:38px auto minmax(0,1fr);background:var(--bg)}.wu-rightRail{border-left:1px solid var(--line2);display:grid;grid-template-rows:minmax(240px,32%) minmax(0,68%)}
         .wu-railHead,.wu-centreHead,.wu-rightHead{height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 clamp(16px,1.1vw,26px);border-bottom:1px solid var(--line2);background:var(--panel)}.wu-railHead>div,.wu-centreHead>div,.wu-rightHead>div{min-width:0}.wu-eyebrow{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:900;line-height:1}.wu-railTitle{font-size:12px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wu-meta{font-size:10px;color:var(--muted)}.wu-anchorSwitch{display:flex;gap:4px;flex:0 0 auto}.wu-anchorSwitch button{min-height:28px;border:1px solid var(--line);border-radius:7px;background:var(--panel);font-size:10px;font-weight:900;padding:0 7px;cursor:pointer}.wu-anchorSwitch button.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
         .wu-filters{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px;border-bottom:1px solid var(--line2);background:var(--panel)}.wu-filter{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 8px;font-size:10px;font-weight:800;min-height:34px}.wu-filter.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
         .wu-subjectCard{margin:clamp(12px,.9vw,22px) clamp(14px,1.05vw,28px);border:1px solid var(--line2);border-radius:8px;background:var(--panel2);padding:clamp(11px,.85vw,18px) clamp(12px,.95vw,22px)}.wu-subjectName{font-family:Georgia,serif;font-size:15px;font-weight:800;line-height:1.15;margin:3px 0}.wu-subjectStats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.wu-subjectStat{border:1px solid var(--line2);border-radius:7px;background:var(--panel);padding:6px;font-size:9px}.wu-subjectStat b{display:block;font-size:12px}
@@ -831,6 +847,12 @@ export default function WorkUniverseLanding({
                 ))}
               </div>
             </div>
+            <OccupationVisualSelector
+              result={result}
+              activeVisual={activeVisual}
+              onSelect={selectVisual}
+              onEvidenceSelect={selectEvidence}
+            />
             <div className="wu-universeFrame" ref={frameRef}>
               {organisationMapOpen ? (
                 <OrganisationMap
