@@ -114,6 +114,38 @@ const selectorText = await visualSelector.innerText();
 if (!selectorText.includes('RECOMMENDATION WITHHELD')) throw new Error('Role-title-only fixture produced or concealed a visual recommendation');
 if (!/not used to guess a visual/i.test(selectorText)) throw new Error('Visual selector does not expose its no-guessing boundary');
 if (selectorText.includes('RECOMMENDED')) throw new Error('Visual selector inferred a recommendation from the role title');
+await page.getByTestId('wu-anchor-person').click();
+const personIngress = page.getByTestId('person-evidence-ingress');
+await requireVisible(personIngress, 'Person lens did not expose the manual-paste evidence ingress');
+const proofMarker = 'MANUAL-PERSON-PROOF-DO-NOT-PERSIST';
+await page.getByTestId('person-evidence-paste').fill(`${proofMarker} Data engineering appears in raw text but is not a confirmed skill.`);
+await page.getByTestId('person-evidence-confirm').check();
+await page.getByTestId('person-evidence-apply').click();
+const personIngressText = await personIngress.innerText();
+if (!personIngressText.includes('USER-CONFIRMED · 0 skill claims · 1 unstructured proof')) throw new Error('Proof-only manual paste did not preserve the no-extraction boundary');
+const personProjectionText = await page.getByTestId('graph-labour').innerText();
+if (!/Person skills evidenced[\s\S]*WITHHELD/i.test(personProjectionText)) throw new Error('Raw pasted text was promoted into a person skill without manual selection');
+const persistedPersonText = await page.evaluate(() => `${Object.values(localStorage).join(' ')} ${Object.values(sessionStorage).join(' ')}`);
+if (persistedPersonText.includes(proofMarker)) throw new Error('Raw person evidence was written to browser storage');
+await screenshot('03-person-evidence-desktop.png');
+for (const visual of [
+  { name: 'tablet', width: 820, height: 1180 },
+  { name: 'mobile', width: 390, height: 844 },
+]) {
+  await page.setViewportSize({ width: visual.width, height: visual.height });
+  await page.waitForTimeout(250);
+  await requireVisible(personIngress, `Person evidence ingress is not visible at ${visual.name} width`);
+  const ingressGeometry = await personIngress.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const textarea = element.querySelector('textarea').getBoundingClientRect();
+    return { viewport: window.innerWidth, right: rect.right, textareaRight: textarea.right, width: rect.width };
+  });
+  if (ingressGeometry.right > ingressGeometry.viewport + 1 || ingressGeometry.textareaRight > ingressGeometry.viewport + 1) throw new Error(`Person evidence ingress overflows ${visual.name}: ${JSON.stringify(ingressGeometry)}`);
+  await screenshot(`03-person-evidence-${visual.name}.png`);
+}
+await page.setViewportSize({ width: 2048, height: 1280 });
+await page.waitForTimeout(250);
+await page.getByTestId('wu-anchor-role').click();
 await screenshot('03-work-universe-2048x1280.png');
 await page.getByTestId('visual-choice-org').click();
 await requireVisible(page.getByTestId('organisation-map'), 'Manual Org visual choice did not open the Organisation Map');

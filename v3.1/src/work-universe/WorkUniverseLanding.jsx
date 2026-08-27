@@ -3,6 +3,7 @@ import OrganisationMap from "./OrganisationMap.jsx";
 import WorkflowMap from "./WorkflowMap.jsx";
 import ValueStreamMap from "./ValueStreamMap.jsx";
 import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
+import PersonEvidenceIngress from "./PersonEvidenceIngress.jsx";
 
 const WorkUniverseScene = lazy(() => import("./WorkUniverseScene.jsx"));
 
@@ -458,7 +459,7 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onOpenAiMoments, onPrintPackage,
+  result, title, employer, source, band, posting, onBack, onEnterStudio, onOpenRoleGraph, onOpenAiMoments, onPrintPackage, onPersonEvidenceChange,
 }) {
   const rootRef = useRef(null);
   const frameRef = useRef(null);
@@ -791,16 +792,19 @@ export default function WorkUniverseLanding({
               <div><div className="wu-eyebrow">Job ad / evidence</div><div className="wu-railTitle">{roleTitle}</div></div>
               <div className="wu-meta">{orgName}</div>
             </div>
-            <section className="wu-subjectCard" aria-label="Current projection">
-              <div className="wu-eyebrow">{subject.eyebrow}</div>
-              <div className="wu-subjectName">{subject.title}</div>
-              <div className="wu-meta">{subject.meta}</div>
-              <div className="wu-subjectStats">
-                <div className="wu-subjectStat"><b>{data.duties.length || "—"}</b>Duties</div>
-                <div className="wu-subjectStat"><b>{data.interpretations.filter((x) => x.type === "Work Unit").length || "—"}</b>Work units</div>
-                <div className="wu-subjectStat"><b>{allSignals.length}</b>Signals</div>
-              </div>
-            </section>
+            <div className="wu-leftIntro">
+              <section className="wu-subjectCard" aria-label="Current projection">
+                <div className="wu-eyebrow">{subject.eyebrow}</div>
+                <div className="wu-subjectName">{subject.title}</div>
+                <div className="wu-meta">{subject.meta}</div>
+                <div className="wu-subjectStats">
+                  <div className="wu-subjectStat"><b>{data.duties.length || "—"}</b>Duties</div>
+                  <div className="wu-subjectStat"><b>{data.interpretations.filter((x) => x.type === "Work Unit").length || "—"}</b>Work units</div>
+                  <div className="wu-subjectStat"><b>{allSignals.length}</b>Signals</div>
+                </div>
+              </section>
+              {anchor === "person" && <PersonEvidenceIngress targetSkills={baseData.skills} value={result?.personEvidence} onChange={onPersonEvidenceChange} />}
+            </div>
             <section className="wu-sourceBody">
               <div>
                 <div className="wu-filters" aria-label="Source evidence filters">
