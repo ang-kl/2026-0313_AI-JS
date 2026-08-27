@@ -13307,7 +13307,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       </div>
       {srcCards.length === 0
         ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div className="step2-cards" ref={gridRef} style={{ gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>}
+        : <div className="step2-cards" ref={gridRef} style={{ display: "grid", gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>}
     </section>
   );
 

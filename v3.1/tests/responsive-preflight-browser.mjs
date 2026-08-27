@@ -59,7 +59,12 @@ for (const item of matrices) {
     const metrics = await page.getByTestId("responsive-preflight").evaluate((root) => {
       const countColumns = (selector) => {
         const element = root.querySelector(selector);
-        return element ? getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
+        if (!element) return 0;
+        const style = getComputedStyle(element);
+        // A non-grid element preserves the authored minmax()/repeat() text and
+        // spaces inside those functions are not columns. A rendered grid resolves
+        // each track to one pixel token, which is the geometry we mean to assert.
+        return style.display === "grid" ? style.gridTemplateColumns.split(" ").filter(Boolean).length : 0;
       };
       const documentWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
       const body = root.querySelector(".step2-body");
