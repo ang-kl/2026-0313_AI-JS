@@ -62,6 +62,12 @@ for (const item of matrices) {
         return element ? getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length : 0;
       };
       const documentWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+      const body = root.querySelector(".step2-body");
+      const sourceGrid = root.querySelector(".step2-source-grid");
+      const cardGrid = root.querySelector(".step2-source .step2-cards");
+      const index = root.querySelector(".step2-index");
+      const main = root.querySelector(".step2-main");
+      const geometry = (element) => element ? { display: getComputedStyle(element).display, columns: getComputedStyle(element).gridTemplateColumns, x: element.getBoundingClientRect().x, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height } : null;
       return {
         factor: root.dataset.formFactor,
         tier: root.dataset.sizeTier,
@@ -74,12 +80,14 @@ for (const item of matrices) {
         bodyColumns: countColumns(".step2-body"),
         cardColumns: countColumns(".step2-source .step2-cards"),
         touchTargets: [...root.querySelectorAll(".step2-filterbar button, .step2-filterbar input")].every((element) => element.getBoundingClientRect().height >= 43.5),
+        media: { max600: matchMedia("(max-width:600px)").matches, max899: matchMedia("(max-width:899px)").matches, portrait: matchMedia("(orientation:portrait)").matches },
+        geometry: { body: geometry(body), source: geometry(sourceGrid), cards: geometry(cardGrid), index: geometry(index), main: geometry(main) },
       };
     });
 
     const expected = { factor: item.factor, orientation: item.orientation, family: item.family, sourceColumns: item.sourceColumns, bodyColumns: item.bodyColumns, cardColumns: item.cardColumns };
     if (item.tier) expected.tier = item.tier;
-    for (const [key, value] of Object.entries(expected)) if (metrics[key] !== value) throw new Error(`${key}: expected ${value}, received ${metrics[key]}`);
+    for (const [key, value] of Object.entries(expected)) if (metrics[key] !== value) throw new Error(`${key}: expected ${value}, received ${metrics[key]}; ${JSON.stringify(metrics)}`);
     if (metrics.documentWidth > metrics.viewportWidth + 1) throw new Error(`horizontal overflow: ${metrics.documentWidth} > ${metrics.viewportWidth}`);
     if (!metrics.touchTargets) throw new Error("Step 2 filter controls fall below the 44px touch-target contract");
     if (runtimeErrors.length) throw new Error(`runtime errors: ${runtimeErrors.join(" | ")}`);

@@ -12909,7 +12909,7 @@ function OkfModal({ doc, onClose }) {
   );
 }
 
-function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch }) {
+function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch, deviceProfile }) {
   const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
   const [cls, setCls] = useState({});
   // Card grids animate add/remove/reorder when facets or sort change, instead of
@@ -12979,6 +12979,27 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const [empReg, setEmpReg] = useState(null); // { status:"loading"|"done", data } for the open fullAd's employer
   const [empGeo, setEmpGeo] = useState(null); // { status:"loading"|"done", data } for the open fullAd's map pin
   const barRef = useRef(null);
+
+  // The responsive preflight runs at the App boundary before Step 2 mounts. Keep
+  // these decisive layout values inline so the evidence surface cannot briefly
+  // inherit its old desktop flex geometry on a phone while stylesheet rules load.
+  // Reported device family is deliberately absent: geometry controls layout; the
+  // user agent is descriptive only and never changes evidence or presentation.
+  const formFactor = deviceProfile?.formFactor || "desktop";
+  const orientation = deviceProfile?.orientation || "landscape";
+  const sizeTier = deviceProfile?.sizeTier || "desktop";
+  const isPhone = formFactor === "phone";
+  const isTablet = formFactor === "tablet";
+  const stackedBody = isPhone || (isTablet && orientation === "portrait");
+  const indexWidth = isTablet ? 236 : 276;
+  const shellPadding = isPhone
+    ? (sizeTier === "phone-compact" ? "0 8px 40px" : "0 12px 40px")
+    : isTablet ? "0 18px 52px" : "0 24px 60px";
+  const bodyColumns = stackedBody ? "minmax(0, 1fr)" : `${indexWidth}px minmax(0, 1fr)`;
+  const sourceColumns = isPhone
+    ? (orientation === "landscape" ? "repeat(2, minmax(0, 1fr))" : "minmax(0, 1fr)")
+    : isTablet ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))";
+  const cardColumns = isPhone ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))";
 
   useEffect(() => {
     let cancelled = false;
@@ -13278,7 +13299,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const TI = String.fromCharCode(0x2502) + "   ";
 
   const sourcePanel = (name, srcCards, tone, gridRef) => (
-    <section className="step2-source" style={{ flex: "1 1 380px", minWidth: 0 }}>
+    <section className="step2-source" style={{ minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
         <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
@@ -13286,12 +13307,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       </div>
       {srcCards.length === 0
         ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div className="step2-cards" ref={gridRef}>{srcCards.map(renderCard)}</div>}
+        : <div className="step2-cards" ref={gridRef} style={{ gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>}
     </section>
   );
 
   return (
-    <div className="step2-bleed step2-shell" data-testid="step2-responsive-surface" style={{ position: "relative", padding: "0 24px 60px", boxSizing: "border-box" }}>
+    <div className="step2-bleed step2-shell" data-testid="step2-responsive-surface" style={{ position: "relative", padding: shellPadding, boxSizing: "border-box" }}>
       <div className="step2-head" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
@@ -13415,7 +13436,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
               <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#6b6357", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>computed from SSOC classifications</span>
             </div>
-            <div className="step2-overview-grid" style={{ display: "grid", gridTemplateColumns: "minmax(180px, 240px) 1fr", gap: 18, alignItems: "center" }}>
+            <div className="step2-overview-grid" style={{ display: "grid", gridTemplateColumns: isPhone ? "minmax(0, 1fr)" : "minmax(180px, 240px) minmax(0, 1fr)", gap: isPhone ? 14 : 18, alignItems: "center" }}>
               {/* AI-exposure donut */}
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flex: "none" }} aria-hidden="true">
@@ -13472,8 +13493,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       })()}
 
       {!state.loading && sorted.length > 0 && (
-        <div className="step2-body" style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <aside style={{ flex: "none", width: 276, position: "sticky", top: 120, alignSelf: "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: "calc(100vh - 134px)", overflowY: "auto" }} className="wis-scroll step2-index">
+        <div className="step2-body" style={{ display: "grid", gridTemplateColumns: bodyColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
+          <aside style={{ width: stackedBody ? "auto" : indexWidth, position: stackedBody ? "static" : "sticky", top: stackedBody ? "auto" : 120, alignSelf: stackedBody ? "stretch" : "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: stackedBody ? 280 : "calc(100vh - 134px)", overflowY: "auto", boxSizing: "border-box" }} className="wis-scroll step2-index">
             <div>
               <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", marginBottom: 3 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               {/* UI doctrine: state the ranking rule - the rail is a curated ranking, not raw order. */}
@@ -13527,7 +13548,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>
               <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
             </p>
-            <div className="step2-source-grid" style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div className="step2-source-grid" style={{ display: "grid", gridTemplateColumns: sourceColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
             {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" }, mcfGridRef)}
             {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" }, csgGridRef)}
             </div>
@@ -18490,6 +18511,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             <PostingEvidencePicker
               query={query.trim()}
               freshGrad={freshGrad}
+              deviceProfile={deviceProfile}
               onAnalysePosting={handleAnalysePosting}
               onNewSearch={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
             />
