@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
 
@@ -27,6 +27,10 @@ export default function ReviewStudio(props) {
   const [workspaceMounted, setWorkspaceMounted] = useState(false);
   const [aiMomentsMounted, setAiMomentsMounted] = useState(false);
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
+  const [personEvidenceOverride, setPersonEvidenceOverride] = useState(undefined);
+  const effectiveResult = useMemo(() => personEvidenceOverride === undefined
+    ? props.result
+    : { ...props.result, personEvidence: personEvidenceOverride }, [props.result, personEvidenceOverride]);
 
   const openWorkspace = (intent) => {
     setWorkspaceIntent(intent || { kind: "evidence" });
@@ -46,7 +50,7 @@ export default function ReviewStudio(props) {
         style={{ display: surface === "universe" ? "block" : "none" }}
       >
         <WorkUniverseLanding
-          result={props.result}
+          result={effectiveResult}
           title={props.title}
           employer={props.employer}
           source={props.source}
@@ -57,6 +61,7 @@ export default function ReviewStudio(props) {
           onOpenRoleGraph={() => openWorkspace({ kind: "roleGraph" })}
           onOpenAiMoments={openAiMoments}
           onPrintPackage={() => openWorkspace({ kind: "print" })}
+          onPersonEvidenceChange={setPersonEvidenceOverride}
         />
       </div>
 
@@ -110,7 +115,7 @@ export default function ReviewStudio(props) {
           >
             ← Work Universe
           </button>
-          <ReviewStudioLegacy {...props} initialIntent={workspaceIntent} />
+          <ReviewStudioLegacy {...props} result={effectiveResult} initialIntent={workspaceIntent} />
         </div>
       )}
     </>
