@@ -17920,12 +17920,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width:600px)  { .mcf-grid { grid-template-columns:repeat(2,1fr); } }
       @media (min-width:900px)  { .mcf-grid { grid-template-columns:repeat(3,1fr); } }
       @media (min-width:1440px) { .mcf-grid { grid-template-columns:repeat(4,1fr); } }
-      /* Step 2 evidence cards: 2 columns max (UI doctrine - was 3, too dense to read).
-         The viewport-only 640px rule made two tiny cards inside each half-width source
-         panel on tablets. Cards now respond to their source container instead. */
-      .step2-source { container: step2source / inline-size; }
+      /* Step 2 evidence cards: 2 columns max. The rules compose viewport width and
+         orientation so a landscape phone keeps readable cards while a portrait tablet
+         can use two columns after its source panels stack to full width. */
       .step2-cards { display:grid; grid-template-columns:1fr; gap:14px; align-content:start; }
-      @container step2source (min-width: 620px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:640px) and (orientation:portrait) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      @media (min-width:900px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       .step2-source-grid { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); }
       .step2-body { display:grid !important; grid-template-columns:276px minmax(0,1fr); }
       /* Device preflight: the v2 template supplies mobile-first sizing and 600/768/900
@@ -17967,6 +17967,41 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       [data-form-factor="tablet"] .step2-shell { padding:0 18px 52px !important; }
       [data-form-factor="tablet"][data-orientation="landscape"] .step2-body { grid-template-columns:236px minmax(0,1fr) !important; }
       [data-form-factor="tablet"][data-orientation="landscape"] .step2-index { width:236px !important; }
+      /* Geometry fallbacks keep the layout correct even when privacy tooling strips UA
+         family details; the preflight attributes remain the more precise first choice. */
+      @media (max-width:899px) {
+        .step2-body { grid-template-columns:1fr !important; }
+        .step2-index { position:static !important; top:auto !important; width:auto !important; max-height:280px !important; align-self:stretch !important; }
+        .step2-source-grid { grid-template-columns:1fr !important; }
+      }
+      @media (min-width:700px) and (max-width:899px) and (orientation:landscape) {
+        .step2-source-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+        .step2-cards { grid-template-columns:1fr !important; }
+      }
+      @media (min-width:900px) and (max-width:1200px) and (orientation:landscape) {
+        .step2-source-grid { grid-template-columns:1fr !important; }
+        .step2-body { grid-template-columns:236px minmax(0,1fr) !important; }
+        .step2-index { width:236px !important; }
+      }
+      @media (orientation:portrait) and (max-width:1100px) {
+        .step2-body { grid-template-columns:1fr !important; }
+        .step2-index { position:static !important; top:auto !important; width:auto !important; max-height:280px !important; align-self:stretch !important; }
+        .step2-source-grid { grid-template-columns:1fr !important; }
+      }
+      @media (max-width:600px) {
+        .step2-shell { padding:0 12px 40px !important; }
+        .step2-filterbar { top:62px !important; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch !important; padding:8px !important; gap:7px !important; }
+        .step2-filterbar > input { grid-column:1 / -1; width:100%; min-width:0 !important; }
+        .step2-sort, .step2-facet { width:100%; min-width:0; }
+        .step2-sort > button, .step2-facet-button { width:100%; min-width:0; justify-content:space-between; overflow:hidden; text-overflow:ellipsis; }
+        .step2-overview > div:first-child { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
+        .step2-overview-grid { grid-template-columns:1fr !important; gap:14px !important; }
+      }
+      @media (max-width:360px) {
+        .step2-shell { padding-inline:8px !important; }
+        .step2-filterbar { grid-template-columns:1fr !important; }
+        .step2-filterbar > input { grid-column:1 !important; }
+      }
       /* CSG two-column browse: MyCareersFuture left, careers.gov.sg right; stacks below 1000px */
       .csg-cols { display:grid; grid-template-columns:1fr; gap:20px; align-items:start; }
       @media (min-width:1000px) { .csg-cols { grid-template-columns:3fr 2fr; } }
