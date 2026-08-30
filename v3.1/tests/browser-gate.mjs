@@ -70,6 +70,14 @@ await dataEngineerChoice.click();
 
 const universe = page.getByTestId('work-universe');
 await requireVisible(universe, 'Step 3 Work Universe did not open after the preserved role-analysis pipeline', 30000);
+await requireVisible(page.getByTestId('wu-job-ad-tabs'), 'Work Universe Job Ad classification is missing');
+await requireVisible(page.getByTestId('wu-job-ad-tab-overview'), 'Work Universe Job Ad has no Overview tab');
+const jobAdTabMetrics = await page.getByTestId('wu-job-ad-tabs').evaluate((element) => ({
+  overflowX: getComputedStyle(element).overflowX,
+  clientWidth: element.clientWidth,
+  scrollWidth: element.scrollWidth,
+}));
+if (!['auto', 'scroll'].includes(jobAdTabMetrics.overflowX)) throw new Error(`Job Ad tabs do not own horizontal overflow: ${JSON.stringify(jobAdTabMetrics)}`);
 await screenshot('03-work-universe.png');
 
 // The desktop workbench is one available viewport, not a document three screens tall.
@@ -101,6 +109,14 @@ for (const panel of ['source', 'contents', 'detail']) {
   if (!['auto', 'scroll'].includes(workbenchMetrics[panel]?.overflowY)) throw new Error(`${panel} panel does not own vertical scrolling`);
 }
 await requireVisible(page.getByTestId('wu-contents-tree'), 'Website-style Contents tree is missing');
+if (await page.locator('.wu-secondaryBar').count()) throw new Error('Legacy full-width Work Universe / Role Graph / Evidence Lineage banner remains');
+await requireVisible(page.getByTestId('wu-left-job-ad'), 'Evidence panel does not own Job Ad navigation');
+await requireVisible(page.getByTestId('wu-left-lineage'), 'Evidence panel does not own Evidence Lineage navigation');
+await requireVisible(page.getByTestId('wu-centre-universe'), 'Centre panel does not own Work Universe navigation');
+await requireVisible(page.getByTestId('wu-centre-role-graph'), 'Centre panel does not own Role Graph navigation');
+await requireVisible(page.getByTestId('wu-start-here'), 'Work Universe does not provide a clear starting point');
+await page.getByTestId('wu-explore-full-map').click();
+if (await page.getByTestId('wu-start-here').isVisible()) throw new Error('Start-here guidance did not yield to the requested full map');
 if (await page.locator('[aria-label="Work Universe site tree"][role="tree"]').count()) throw new Error('Tree role must be on the tree list, not the nav wrapper');
 await requireVisible(page.locator('[aria-label="Work Universe site tree"] [role="tree"]'), 'Contents does not expose accessible tree semantics');
 await requireVisible(page.getByTestId('tree-ai-moments'), 'Organisation tree does not expose AI Moments / Cards / Neural');
@@ -114,7 +130,9 @@ const selectorText = await visualSelector.innerText();
 if (!selectorText.includes('RECOMMENDATION WITHHELD')) throw new Error('Role-title-only fixture produced or concealed a visual recommendation');
 if (!/not used to guess a visual/i.test(selectorText)) throw new Error('Visual selector does not expose its no-guessing boundary');
 if (selectorText.includes('RECOMMENDED')) throw new Error('Visual selector inferred a recommendation from the role title');
-await page.getByTestId('wu-anchor-person').click();
+await page.getByTestId('wu-anchor-individual').click();
+await page.getByTestId('wu-individual-person').click();
+await page.getByTestId('wu-add-person-evidence').click();
 const personIngress = page.getByTestId('person-evidence-ingress');
 await requireVisible(personIngress, 'Person lens did not expose the manual-paste evidence ingress');
 const proofMarker = 'MANUAL-PERSON-PROOF-DO-NOT-PERSIST';
@@ -134,6 +152,8 @@ for (const visual of [
 ]) {
   await page.setViewportSize({ width: visual.width, height: visual.height });
   await page.waitForTimeout(250);
+  await page.getByTestId('wu-quick-fab').click();
+  await page.getByTestId('wu-quick-job-ad').click();
   await requireVisible(personIngress, `Person evidence ingress is not visible at ${visual.name} width`);
   const ingressGeometry = await personIngress.evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -142,10 +162,16 @@ for (const visual of [
   });
   if (ingressGeometry.right > ingressGeometry.viewport + 1 || ingressGeometry.textareaRight > ingressGeometry.viewport + 1) throw new Error(`Person evidence ingress overflows ${visual.name}: ${JSON.stringify(ingressGeometry)}`);
   await screenshot(`03-person-evidence-${visual.name}.png`);
+  await page.getByTestId('wu-quick-fab').click();
+  await page.getByTestId('wu-quick-contents').click();
+  await requireVisible(page.getByTestId('wu-contents-tree'), `${visual.name} FAB did not open the Contents panel`);
+  await page.getByTestId('wu-quick-fab').click();
+  await page.getByRole('menuitem', { name: /Workspace/ }).click();
+  await requireVisible(page.getByTestId('wu-centre-universe'), `${visual.name} FAB did not return to the Workspace panel`);
 }
 await page.setViewportSize({ width: 2048, height: 1280 });
 await page.waitForTimeout(250);
-await page.getByTestId('wu-anchor-role').click();
+await page.getByTestId('wu-individual-role').click();
 await screenshot('03-work-universe-2048x1280.png');
 await page.getByTestId('visual-choice-org').click();
 await requireVisible(page.getByTestId('organisation-map'), 'Manual Org visual choice did not open the Organisation Map');
@@ -221,14 +247,14 @@ const organisationLayout = await organisationMap.evaluate((map) => {
     centreWidth: centre.width,
   };
 });
-if (organisationLayout.leftDisplay !== 'none' || organisationLayout.rightDisplay !== 'none' || organisationLayout.centreWidth < organisationLayout.workbenchWidth - 2) throw new Error(`Organisation Map did not own the dedicated desktop canvas: ${JSON.stringify(organisationLayout)}`);
+if (organisationLayout.leftDisplay === 'none' || organisationLayout.rightDisplay === 'none' || organisationLayout.centreWidth >= organisationLayout.workbenchWidth - 2) throw new Error(`Organisation Map escaped the persistent three-panel desktop workspace: ${JSON.stringify(organisationLayout)}`);
 
 // The approved route reuses the existing AI Moments surface and keeps the
 // organisation-maturity boundary explicit. With no employer in this role-only
 // fixture, the destination must be a truthful withheld state rather than a mock.
 await page.getByTestId('organisation-map-ai-moments').click();
-const aiMomentsSurface = page.getByTestId('v31-ai-moments-surface');
-await requireVisible(aiMomentsSurface, 'Organisation Map did not route to AI Moments');
+const aiMomentsSurface = page.getByTestId('wu-ai-moments');
+await requireVisible(aiMomentsSurface, 'Organisation Map did not route AI Moments into the centre panel');
 const aiMomentsText = await aiMomentsSurface.innerText();
 if (!aiMomentsText.includes('Cards | Neural')) throw new Error('AI Moments destination does not identify the preserved Cards / Neural views');
 if (!/do not grade organisation maturity/i.test(aiMomentsText)) throw new Error('AI Moments route omits the organisation-maturity boundary');
@@ -371,7 +397,8 @@ for (const visual of [
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.getByTestId('value-stream-map-back').click();
 await requireVisible(page.getByTestId('graph-organisation'), 'Five-graph universe did not restore from Value Stream Map');
-await page.getByTestId('wu-anchor-role').click();
+await page.getByTestId('wu-anchor-individual').click();
+await page.getByTestId('wu-individual-role').click();
 
 // Governance is a dedicated owner/risk/action/audit surface. This title-only
 // fixture supplies no governance records or reviewer conflicts, so both views
@@ -439,12 +466,37 @@ await requireVisible(openRoleGraph, 'Labour graph did not expose the preserved R
 await screenshot('04-labour-detail.png');
 await openRoleGraph.click();
 
-const workspace = page.getByTestId('v31-workspace-roleGraph');
-await requireVisible(workspace, 'Existing Step 3 workspace did not open from Labour graph');
-const fab = page.locator('button[title="Workspace navigator"]');
-await requireVisible(fab, 'Existing FAB/workspace navigator is missing');
-if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('FAB should begin closed on first workspace entry');
+const embeddedRoleGraph = page.getByTestId('wu-embedded-role-graph');
+await requireVisible(embeddedRoleGraph, 'Role Graph did not open inside the centre panel');
+const quickFab = page.getByTestId('wu-quick-fab');
+await requireVisible(quickFab, 'Work Universe contextual FAB is missing');
+if ((await quickFab.getAttribute('aria-expanded')) !== 'false') throw new Error('Work Universe FAB should begin closed');
+await quickFab.click();
+await requireVisible(page.getByRole('menu', { name: 'Workspace shortcuts' }), 'Work Universe FAB menu did not open');
+await requireVisible(page.getByTestId('wu-quick-contents'), 'FAB menu omits Contents tree');
+await requireVisible(page.getByTestId('wu-quick-job-ad'), 'FAB menu omits Job Ad evidence');
 await screenshot('05-role-graph-workspace.png');
+await page.getByTestId('wu-quick-contents').click();
+await page.getByTestId('wu-centre-universe').click();
+await requireVisible(page.getByTestId('graph-labour'), 'Work Universe did not restore inside the centre panel');
+
+// Anchor reprojection must change the claims, not only the centre label.
+await page.getByTestId('wu-anchor-org').click();
+const orgGraph = page.getByTestId('graph-organisation');
+if (!((await orgGraph.innerText()).includes('Operating-model coverage'))) throw new Error('Organisation projection did not reframe organisation claims');
+await quickFab.click();
+await requireVisible(page.getByTestId('wu-quick-organisation-opportunities'), 'Organisation perspective FAB omits supplied job opportunities');
+await page.getByTestId('wu-quick-organisation-opportunities').click();
+await requireVisible(page.getByTestId('wu-organisation-opportunities'), 'Organisation opportunities did not open in the Evidence panel');
+await orgGraph.locator('.wu-signal').first().click();
+await page.getByTestId('open-graph-workspace').click();
+
+const workspace = page.getByTestId('v31-workspace-graph-2');
+await requireVisible(workspace, 'Organisation graph intent did not reach the existing workspace');
+await requireVisible(page.locator('[aria-label="Company Information"]'), 'Organisation graph did not open Company Information');
+const fab = page.locator('button[title="Workspace navigator"]');
+await requireVisible(fab, 'Existing evidence-workspace FAB is missing');
+if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('Evidence-workspace FAB should begin closed');
 await fab.click();
 await page.waitForTimeout(350);
 const fabMenu = page.locator('[role="menu"][aria-label="Workspace navigator"]');
@@ -476,20 +528,10 @@ await requireVisible(backUniverse, 'Workspace has no return path to Work Univers
 await backUniverse.click();
 await requireVisible(universe, 'Work Universe did not restore after workspace round trip');
 await requireVisible(detail, 'Selected Work Universe signal was lost on return');
-if (!((await detail.innerText()).includes('Canonical skills'))) throw new Error('Selected Work Universe detail changed during workspace round trip');
 await screenshot('07-work-universe-return.png');
 
-// Anchor reprojection must change the claims, not only the centre label.
-await page.getByTestId('wu-anchor-org').click();
-const orgGraph = page.getByTestId('graph-organisation');
-if (!((await orgGraph.innerText()).includes('Operating-model coverage'))) throw new Error('Organisation projection did not reframe organisation claims');
-await orgGraph.locator('.wu-signal').first().click();
-await page.getByTestId('open-graph-workspace').click();
-await requireVisible(page.getByTestId('v31-workspace-graph-2'), 'Organisation graph intent did not reach the existing workspace');
-await requireVisible(page.locator('[aria-label="Company Information"]'), 'Organisation graph did not open Company Information');
-await page.getByTestId('return-work-universe').click();
-
-await page.getByTestId('wu-anchor-person').click();
+await page.getByTestId('wu-anchor-individual').click();
+await page.getByTestId('wu-individual-person').click();
 const personLabour = page.getByTestId('graph-labour');
 if (!((await personLabour.innerText()).includes('Person skills evidenced'))) throw new Error('Person projection did not expose person-specific skill evidence');
 if (!((await personLabour.innerText()).includes('WITHHELD'))) throw new Error('Person projection guessed a personal claim without person evidence');
@@ -504,29 +546,28 @@ if (await firstEvidence.count()) {
   await page.getByTestId('open-evidence-workspace').click();
   await requireVisible(page.getByTestId('v31-workspace-evidence-s0'), 'Evidence span intent did not reach the existing workspace');
   await requireVisible(page.locator('[aria-label="Evidence / Explanation"]'), 'Evidence intent did not open the evidence drawer');
+  if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('Evidence-workspace FAB did not honour its click-outside close contract');
   await page.getByTestId('return-work-universe').click();
   evidenceRoundTrip = 'PASS';
 } else if (!((await page.locator('.wu-sourceBody').innerText()).includes('No source rows are available yet'))) {
   throw new Error('Missing source evidence did not render the required withheld empty state');
 }
 
-await page.getByTestId('wu-anchor-role').click();
+await page.getByTestId('wu-individual-role').click();
 await page.getByTestId('graph-labour').locator('.wu-signal').filter({ hasText: 'Canonical skills' }).click();
 
-// The existing Canvas contract closes an open navigator when the user clicks
-// outside it. Returning to Work Universe is such an outside click. What must
-// persist is the workspace itself and the FAB functionality, not an open popover.
+// Role Graph now stays inside the centre panel, and the Work Universe FAB remains usable.
 await page.getByTestId('open-role-graph').click();
-await requireVisible(workspace, 'Role Graph workspace did not reopen');
+await requireVisible(embeddedRoleGraph, 'Embedded Role Graph did not reopen');
 await page.waitForTimeout(200);
-if ((await fab.getAttribute('aria-expanded')) !== 'false') throw new Error('FAB did not honour its existing click-outside close contract');
-await fab.click();
+if ((await quickFab.getAttribute('aria-expanded')) !== 'false') throw new Error('Work Universe FAB should remain closed after the Role Graph switch');
+await quickFab.click();
 await page.waitForTimeout(200);
-if ((await fab.getAttribute('aria-expanded')) !== 'true') throw new Error('FAB did not reopen after Work Universe round trip');
-if (!await fabMenu.isVisible()) throw new Error('Workspace navigator menu did not reopen after Work Universe round trip');
+if ((await quickFab.getAttribute('aria-expanded')) !== 'true') throw new Error('Work Universe FAB did not reopen in the embedded Role Graph');
+if (!await page.getByRole('menu', { name: 'Workspace shortcuts' }).isVisible()) throw new Error('Work Universe shortcut menu did not reopen');
 await screenshot('09-role-graph-return.png');
 
-await page.getByTestId('return-work-universe').click();
+await page.getByTestId('wu-centre-universe').click();
 const step2Back = page.getByRole('button', { name: '← Step 2' });
 await requireVisible(step2Back, 'Existing Step 2 return control is missing from Work Universe');
 await step2Back.click();

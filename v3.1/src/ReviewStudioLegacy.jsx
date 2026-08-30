@@ -16,7 +16,8 @@ import { fetchEmployerRegistration, fetchEmployerPostings, claudeCall, extractJS
 // PR 1 (Part B.4, v3-workflow-and-step3-remediation-spec.md): rules constants, shared
 // components/tokens, the desk layout engine, and the 14 window bodies now live under
 // ./review/ - moved verbatim, zero behaviour change. State and all rs*() logic stay here.
-import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_SEC_MAP, RS_TIME_LINE, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP , RS_LAYERS} from "./review/rs-rules.js";
+import { RS_RESP_RE, RS_REQ_RE, RS_HEAD_RE, RS_EXP_BAND, RS_STOP, RS_VERB, RS_ROUTE, RS_HALF_LIFE, RS_DOT, RS_GATES, RS_NOODLES, RS_ASPIRATION, RS_INFLATED, RS_VAGUE_DUTY, RS_COMPLIANCE, RS_BLIND_CHECKS, RS_DOMAINS, RS_EMPTYPE_MAP , RS_LAYERS} from "./review/rs-rules.js";
+import { jobAdText as rsAdText, jobAdSections as rsAdSections } from "./review/job-ad-sections.js";
 import { BANDS, PROV, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, Chip, critH3 } from "./review/shared.jsx";
 import Desk from "./review/Desk.jsx";
 // PR 1 "Step 3 Working Canvas" (Human Lead, 30-07 '26): the persistent workspace shell -
@@ -316,46 +317,6 @@ function rsSkillFocus(o, spans) {
 // Reversal + "word noodles". Scans the FULL ad copy - empty phrasing lives in the intro/benefits/
 // salary lines, not the duty spans. Every finding is a verbatim substring of the posting; when
 // there is no text, we render nothing (withhold over guess). No LLM. ─────────────────────────
-function rsAdText(job) {
-  let h = String((job && (job.description || job.responsibilitiesText)) || "");
-  return h
-    .replace(/<\s*(?:br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*>/gi, "\n")
-    .replace(/<\s*li[^>]*>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
-    .replace(/[ \t]+/g, " ");
-}
-// RS-SEC: deterministic ad sectioniser (design ref: Work Intelligence Studio, 07-07 '26).
-// Splits the verbatim ad into its own sections via the same heading heuristic as the Step 2
-// modal (short line, few words, no terminal punctuation); canonical labels map common
-// phrasings so Requirements/Qualifications/Benefits surface in the manuscript AND the
-// analysis. Verbatim text is never rewritten - grouping only.
-// Strip emoji/pictographs (Human Lead: no emoji anywhere; ads use them as heading bullets -
-// "[clipboard] Key Responsibilities" must parse AND display as plain "Key Responsibilities").
-function rsStripEmoji(x) {
-  return String(x || "").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{FE0F}\u{200D}]/gu, "").replace(/\s{2,}/g, " ").trim();
-}
-// A working-hours / schedule line must never become a section heading (live bug:
-// "Friday: 8:30 AM - 5:30 PM" was promoted while the real Requirements heading was missed).
-function rsAdSections(adText) {
-  const lines = String(adText || "").split(/\n+/).map((x) => x.trim()).filter(Boolean);
-  const isHeading = (raw) => {
-    const ln = rsStripEmoji(raw); // emoji-prefixed headings must still qualify
-    if (!ln || RS_TIME_LINE.test(ln)) return false;
-    return ln.length <= 60 && ln.split(/\s+/).length <= 7 && !/[.,;:!?]$/.test(ln) && /^[A-Za-z]/.test(ln) && !/^[-*\u2022]/.test(ln);
-  };
-  const secs = []; let cur = { title: null, lines: [] };
-  lines.forEach((ln) => {
-    if (isHeading(ln)) { if (cur.title || cur.lines.length) secs.push(cur); cur = { title: rsStripEmoji(ln), lines: [] }; }
-    else cur.lines.push(ln);
-  });
-  if (cur.title || cur.lines.length) secs.push(cur);
-  return secs.map((sec) => {
-    const hit = sec.title ? RS_SEC_MAP.find(([rx]) => rx.test(sec.title)) : null;
-    return { title: sec.title, lines: sec.lines, canon: hit ? hit[1] : (sec.title ? null : "Role overview") };
-  });
-}
 // RS-EV (Human Lead, 07-07 '26): a phrase earns a highlight ONLY when it is EVIDENCE for
 // a conclusion the engine drew - a skill match (why this skill is in the list), or a gate
 // (experience / qualification / credential line). Lines with no evidence-linked phrase
