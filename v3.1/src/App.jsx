@@ -15342,7 +15342,7 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 // the deterministic ORGANISATION READ facts - it authors no number or verdict and
 // withholds when the facts are thin.
 // R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
-function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount }) {
+function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
@@ -15358,6 +15358,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force" | "workflow"
   const [tapNodeId, setTapNodeId] = useState(null); // side-panel open state
   const [agentsError, setAgentsError] = useState("");
+  // Step 3 mounts its own organisation panel. Remember the employer for which
+  // that panel has already started AI Moments so the organisation route opens
+  // the analysis once, without duplicate requests under React Strict Mode.
+  const autoAgentsStartedRef = useRef("");
   // EMP: registered-employer facts (ACRA address/UEN + map) - reuses the same
   // fetchEmployerRegistration/fetchEmployerGeocode wrappers the Browse-SG-jobs
   // full-ad modal uses. Fixes audit finding #9: a user who explicitly searched
@@ -15402,6 +15406,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     setAgentsModel(null);
     setAgentsKgPayload(null);
     setTapNodeId(null);
+    autoAgentsStartedRef.current = "";
 
     // CSG two-column: fetch MCF + careers.gov.sg in parallel; one failing must not blank the other.
     function loadCompanyBoth() {
@@ -15500,6 +15505,21 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const activeMatch = state.ambiguous && chosenKey
     ? state.matches.find(function(m) { return m.key === chosenKey; })
     : (!state.ambiguous && state.matches.length === 1 ? state.matches[0] : null);
+
+  // Selecting AI Moments in Step 3 must reveal a new analysis, not mount a
+  // second copy of the company results with its local state reset to "off".
+  // The ordinary Step 1a panel remains user-triggered.
+  useEffect(function() {
+    const loadedQuery = String(state.query || "").trim().toLowerCase();
+    const requestedQuery = String(companyQuery || "").trim().toLowerCase();
+    if (!autoOpenAiMoments || state.loading || loadedQuery !== requestedQuery || !activeMatch || agentsView !== "off") return;
+    const employerKey = activeMatch.key || activeMatch.displayName || companyQuery;
+    if (!employerKey || autoAgentsStartedRef.current === employerKey) return;
+    autoAgentsStartedRef.current = employerKey;
+    loadDuties(activeMatch);
+    // loadDuties intentionally reads the confirmed match at this transition.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenAiMoments, activeMatch, agentsView, companyQuery, state.loading, state.query]);
 
   // careers.gov.sg has no resolveCompany-style key resolution (that's an MCF-only
   // step) - group the already-fetched, already-score-sorted jobs by their verbatim
@@ -15670,6 +15690,14 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
   return (
     <div className={showCsg ? "csg-cols" : ""}>
+      {/* Company search is an early App route and does not mount the later
+          results-workspace stylesheet. Keep its responsive reading geometry
+          beside the component so Step 1a cannot silently fall back to blocks. */}
+      <style>{`
+        .company-opportunity-grid { display:grid; grid-template-columns:1fr; gap:10px; align-items:start; }
+        @media (min-width:700px) { .company-opportunity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        [data-form-factor="phone"] .company-opportunity-grid { grid-template-columns:1fr; }
+      `}</style>
       {/* LEFT COLUMN: MyCareersFuture company results */}
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
@@ -15961,7 +15989,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
             )}
 
             {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
-              <div className="mcf-grid">
+              <div className="mcf-grid company-opportunity-grid" data-testid="company-opportunity-grid">
                 {mcfFilteredSorted.map(function(job) {
                   return (
                     <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
@@ -18655,6 +18683,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     onAnalysePosting={handleAnalysePosting}
                     onQueuePosting={handleQueuePosting}
                     queueCount={comparisons.length}
+                    autoOpenAiMoments
                   />
                 ) : null}
                 analysisPanes={analysisPanes}
