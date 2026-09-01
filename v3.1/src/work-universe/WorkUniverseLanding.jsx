@@ -805,6 +805,8 @@ export default function WorkUniverseLanding({
     setTocActive("ai-moments");
     setDetail({ kind: "aiMoments" });
     setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
+    if (usesPanelNavigator) setMobilePanel("workspace");
+    setQuickMenuOpen(false);
   };
   const openEvidenceWorkspace = () => {
     const graphId = detail && detail.graph ? detail.graph.id : selectedGraph;
