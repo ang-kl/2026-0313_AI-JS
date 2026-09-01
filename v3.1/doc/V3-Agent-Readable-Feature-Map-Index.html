@@ -181,7 +181,7 @@
     <header>
       <div class="kicker">IDX-V3-FEATURE-MAPS-001</div>
       <h1>V3 Agent-Readable Feature Map Index</h1>
-      <p class="summary">Master registry for the v3.1 role-analysis workflow maps. It links the published Step 1a map, the published Step 2 map and the planned Step 3 map while preserving separate provenance fields for implementation commit, merge commit, deployment status and physical-runtime verification.</p>
+      <p class="summary">Master registry for the v3.1 role-analysis workflow maps. It links the published Step 1a, Step 2 and Step 3 maps while preserving separate provenance fields for implementation commit, merge commit, deployment status and physical-runtime verification.</p>
       <p class="summary">Machine-readable source: <a href="v3-feature-map-index.json">v3-feature-map-index.json</a>.</p>
     </header>
 
@@ -202,7 +202,7 @@
       <article class="chain-node" data-map-id="MAP-V3-STEP3-001">
         <div class="id">MAP-V3-STEP3-001</div>
         <h3>Step 3 Work Universe</h3>
-        <p>Planned feature map for the Work Universe analysis surface.</p>
+        <p>Five canonical graphs, evidence workspace and review output.</p>
       </article>
     </section>
 
@@ -230,12 +230,12 @@
       </article>
       <article class="map-card" data-map-id="MAP-V3-STEP3-001">
         <div class="id">MAP-V3-STEP3-001</div>
-        <span class="status planned">PLANNED</span>
+        <span class="status published">PUBLISHED</span>
         <h3>Step 3 Work Universe</h3>
-        <p>Placeholder registry entry only. The Step 3 feature map must be created as its own package with its own runtime evidence.</p>
+        <p>Current Work Universe, evidence-workspace and review-output contracts. No Step 3 behaviour redesign.</p>
         <div class="links">
-          <span>Manifest: planned</span>
-          <span>HTML: planned</span>
+          <a href="V3-Step3-Agent-Readable-Feature-Map.html">V3-Step3-Agent-Readable-Feature-Map.html</a>
+          <a href="v3-step3-feature-map.manifest.json">v3-step3-feature-map.manifest.json</a>
         </div>
       </article>
     </section>
@@ -268,10 +268,10 @@
         </tr>
         <tr>
           <td><code>MAP-V3-STEP3-001</code></td>
-          <td><code>6a9367cb1860e0f15ca4faf9bbaf56e765eebed6</code> as current known source baseline</td>
-          <td><code>null</code>, <code>PLANNED_MAP_NOT_CREATED</code></td>
-          <td><code>OUT_OF_SCOPE_FOR_STEP2_MAP</code></td>
-          <td><code>OUT_OF_SCOPE_FOR_STEP2_MAP</code></td>
+          <td><code>3495b4684205170802995d26c4f6faa8dc0c0814</code></td>
+          <td><code>null</code>, <code>MAP_BRANCH_NOT_MERGED</code></td>
+          <td><code>NOT_CHANGED_OR_REVERIFIED</code></td>
+          <td><code>NOT_VERIFIED_FOR_STEP3_MAP</code></td>
         </tr>
       </tbody>
     </table>
@@ -280,7 +280,7 @@
     <section class="preserve" aria-label="Preservation boundaries">
       <div><strong>v3/</strong><br />Unchanged by this map package.</div>
       <div><strong>Railway configuration</strong><br />Unchanged by this map package.</div>
-      <div><strong>Step 2 behaviour</strong><br />Documented and tested, not redesigned.</div>
+      <div><strong>Step 1/2 and Step 3 behaviour</strong><br />Preserved; this package documents and tests existing Step 3.</div>
     </section>
 
     <h2>Index Contracts</h2>
