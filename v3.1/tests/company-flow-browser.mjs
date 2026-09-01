@@ -104,17 +104,28 @@ await page.waitForTimeout(150);
 const narrowColumns = await grid.evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").filter(Boolean).length);
 if (narrowColumns !== 1) throw new Error(`Physical phone organisation list expected one column, received ${narrowColumns}`);
 
-await page.setViewportSize({ width: 1440, height: 1000 });
-await page.locator("[data-form-factor]").first().evaluate((element) => { element.dataset.formFactor = "desktop"; });
-await page.getByRole("button", { name: /Analyse this posting/ }).first().click();
-await page.getByTestId("work-universe").waitFor({ state: "visible", timeout: 60000 });
+// Regression for the physical-phone path: FAB -> Contents -> Organisation Work Graph
+// -> AI Moments must return the panel navigator to the centre workspace. Merely
+// changing mode is insufficient because the phone CSS hides the centre pane while
+// mobilePanel remains "contents".
+await page.setViewportSize({ width: 430, height: 932 });
+await page.waitForFunction(() => document.querySelector("[data-form-factor]")?.dataset.formFactor === "phone");
+await page.getByRole("button", { name: "Analyse role", exact: true }).first().click();
+const workUniverse = page.getByTestId("work-universe");
+await workUniverse.waitFor({ state: "visible", timeout: 60000 });
+await page.waitForFunction(() => document.querySelector('[data-testid="work-universe"]')?.dataset.wuFormFactor === "phone");
+await page.getByTestId("wu-quick-fab").click();
+await page.getByTestId("wu-quick-contents").click();
+await page.waitForFunction(() => document.querySelector('[data-testid="work-universe"]')?.classList.contains("wu-mobilePanel-contents"));
 await page.getByTestId("tree-ai-moments").click();
+await page.waitForFunction(() => document.querySelector('[data-testid="work-universe"]')?.classList.contains("wu-mobilePanel-workspace"));
 await page.getByTestId("wu-ai-moments").waitFor({ state: "visible", timeout: 15000 });
+await page.getByText("Cards | Neural", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
 await page.getByText("AI moments at DBS BANK LTD", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
 if (dutyRequests !== 1) throw new Error(`Step 3 AI Moments expected one automatic duty request, received ${dutyRequests}`);
 if (await page.getByRole("button", { name: "Find AI moments at DBS BANK LTD" }).count()) throw new Error("Step 3 reset AI Moments to its dormant trigger");
-await page.screenshot({ path: "test-results/company-flow/step3-ai-moments.png", fullPage: true });
+await page.screenshot({ path: "test-results/company-flow/step3-ai-moments-phone.png", fullPage: true });
 
 if (errors.length) throw new Error(`Runtime errors: ${errors.join(" | ")}`);
 await browser.close();
-console.log("Company Step 1a + Step 3 AI Moments browser contract: PASS");
+console.log("Company Step 1a + Step 3 mobile AI Moments browser contract: PASS");
