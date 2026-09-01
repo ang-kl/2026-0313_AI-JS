@@ -90,6 +90,12 @@ const desktopGrid = await grid.evaluate((element) => ({
   width: window.innerWidth,
 }));
 if (desktopGrid.columns !== 2) throw new Error(`Desktop organisation list expected two columns: ${JSON.stringify(desktopGrid)}`);
+const desktopDetails = page.getByRole("button", { name: "More details", exact: true }).first();
+await desktopDetails.hover();
+await page.getByRole("tooltip").waitFor({ state: "visible" });
+await desktopDetails.click();
+await page.getByRole("dialog", { name: /Operations Analyst 1/ }).waitFor({ state: "visible" });
+await page.getByRole("button", { name: "Close role details" }).click();
 await page.screenshot({ path: "test-results/company-flow/step1a-desktop.png", fullPage: true });
 
 await page.setViewportSize({ width: 844, height: 390 });

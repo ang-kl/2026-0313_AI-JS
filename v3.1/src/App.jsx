@@ -10096,10 +10096,26 @@ function Disclaimer() {
 // rendered anywhere (stranded code) - now mounted at the app shell on every step
 // except the full-height Review Studio (which carries its own honesty footer).
 // Typography: footer text runs 0.825rem (+10% over the old 0.75rem, WCAG AA colours).
-function SiteFooter() {
+function SiteFooter({ compact = false }) {
   const [open, setOpen] = useState(false);
   const year = new Date().getFullYear();
   const linkBtn = { background:"transparent", border:"none", fontSize: "0.825rem", color:C.textSub, cursor:"pointer", padding: "6px 8px", minHeight:44, textDecoration:"underline", textDecorationStyle:"dotted", textUnderlineOffset:2 };
+  if (compact) {
+    return (
+      <footer role="contentinfo" style={{ marginTop:16, padding:"12px 0 calc(12px + env(safe-area-inset-bottom))", borderTop:`1px solid ${C.border}` }}>
+        <details>
+          <summary style={{ minHeight:44, display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontSize:"0.8125rem", fontWeight:700, color:C.text }}>
+            Sources, methodology and legal
+          </summary>
+          <div style={{ padding:"4px 0 10px" }}>
+            <p style={{ margin:"0 0 8px", fontSize:"0.75rem", lineHeight:1.55, color:C.textSub }}>Indicative analysis from public job-market and taxonomy evidence. Treat results as a starting point, not professional career advice.</p>
+            <p style={{ margin:0, fontSize:"0.75rem", lineHeight:1.55, color:C.muted }}>MyCareersFuture, careers.gov.sg, ACRA, SSOC 2024, ESCO v1.2 and AIOE. Missing evidence is withheld rather than guessed.</p>
+          </div>
+        </details>
+        <p style={{ margin:"6px 0 0", fontSize:"0.75rem", color:C.muted }}>SG Career View v{APP_VERSION} · AI-assisted · human decides · © {year}</p>
+      </footer>
+    );
+  }
   return (
     <footer role="contentinfo" style={{ marginTop:22, paddingTop:16, borderTop:`1px solid ${C.border}` }}>
       {/* Standing disclaimer - prominent, not faint (WCAG AA; icon + border, not colour-only) */}
@@ -12122,17 +12138,101 @@ function DownloadJsonButton({ onClick, label, title, size = 14 }) {
 // opt-in means the frozen path is untouched until the Human Lead asks for it,
 // and follows the same shape as the AU-7 amendment that gave getEscoSkills an
 // optional second argument.
-function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue, onExport }) {
-  const [open, setOpen] = useState(false);
+function McfJobDetails({ job, detailShown, hasSkills, hasCats, onQueuePosting, canQueue, onExport, showActions = false }) {
+  return (
+    <div>
+      {detailShown && <p style={{ margin: "0 0 14px", fontSize: "0.875rem", color: C.textSub, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{detailShown}</p>}
+      {hasSkills && (
+        <section style={{ marginBottom: hasCats ? 14 : 0 }}>
+          <h4 style={{ margin: "0 0 6px", fontSize: "0.75rem", fontWeight: 750, color: C.text }}>Skills listed</h4>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.65 }}>{job.skills.join(" · ")}</p>
+        </section>
+      )}
+      {hasCats && (
+        <section>
+          <h4 style={{ margin: "0 0 6px", fontSize: "0.75rem", fontWeight: 750, color: C.text }}>Job categories</h4>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub, lineHeight: 1.65 }}>{job.categories.join(" · ")}</p>
+        </section>
+      )}
+      <p style={{ margin: "14px 0 0", fontSize: "0.8125rem" }}>
+        <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: C.accent, textDecoration: "none", fontWeight: 700 }}>
+          {job.source === "careers.gov.sg" ? "Open posting on careers.gov.sg" : "Open posting on MyCareersFuture"} &#8594;
+        </a>
+      </p>
+      {showActions && (onQueuePosting || onExport) && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+          {onQueuePosting && canQueue && <button type="button" onClick={() => onQueuePosting(job)} style={{ minHeight: 44, padding: "7px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: "#fff", border: `1.5px solid ${C.tealBdr}`, borderRadius: 7, cursor: "pointer" }}>Compare</button>}
+          {onExport && <button type="button" onClick={() => onExport(job)} style={{ minHeight: 44, padding: "7px 12px", fontSize: "0.8125rem", fontWeight: 700, color: C.textSub, background: "#fff", border: `1px solid ${C.border}`, borderRadius: 7, cursor: "pointer" }}>Download JSON</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function McfJobDetailModal({ job, detailShown, hasSkills, hasCats, onQueuePosting, canQueue, onExport, onClose }) {
+  const closeRef = useRef(null);
+  const panelRef = useRef(null);
+  useEffect(() => {
+    const priorOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") { onClose(); return; }
+      if (event.key !== "Tab" || !panelRef.current) return;
+      const controls = Array.from(panelRef.current.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+      if (controls.length === 0) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => { document.body.style.overflow = priorOverflow; window.removeEventListener("keydown", onKeyDown); };
+  }, [onClose]);
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-labelledby="mcf-detail-title" onClick={onClose} style={{ position:"fixed", inset:0, zIndex:1400, background:"rgba(13,18,28,.48)", display:"flex", alignItems:"center", justifyContent:"center", padding:"max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))" }}>
+      <div ref={panelRef} onClick={(event) => event.stopPropagation()} style={{ width:620, maxWidth:"100%", maxHeight:"min(82svh,760px)", overflow:"hidden", background:"#fff", borderRadius:14, boxShadow:"0 24px 60px rgba(13,18,28,.35)", display:"flex", flexDirection:"column" }}>
+        <header style={{ flex:"none", display:"flex", alignItems:"flex-start", gap:12, padding:"14px 16px", borderBottom:`1px solid ${C.border}` }}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <p style={{ margin:"0 0 4px", fontSize:"0.6875rem", color:C.textSub }}>{job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture"}</p>
+            <h3 id="mcf-detail-title" style={{ margin:0, fontSize:"1rem", lineHeight:1.4, color:C.text }}>{job.title}</h3>
+          </div>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="Close role details" style={{ width:44, height:44, flexShrink:0, border:`1px solid ${C.border}`, borderRadius:8, background:"#fff", color:C.text, cursor:"pointer", fontSize:"1.125rem" }}>×</button>
+        </header>
+        <div className="wis-scroll" style={{ flex:1, minHeight:0, overflowY:"auto", WebkitOverflowScrolling:"touch", padding:"16px" }}>
+          <McfJobDetails job={job} detailShown={detailShown} hasSkills={hasSkills} hasCats={hasCats} onQueuePosting={onQueuePosting} canQueue={canQueue} onExport={onExport} showActions />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosting, onQueuePosting, canQueue, onExport, compactMobile = false }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [hoverPreview, setHoverPreview] = useState(false);
+  const detailButtonRef = useRef(null);
   const detail = (job.responsibilitiesText || job.description || "").trim();
   const hasSkills = Array.isArray(job.skills) && job.skills.length > 0;
   const hasCats = Array.isArray(job.categories) && job.categories.length > 0;
   const hasDetail = detail.length > 0 || hasSkills || hasCats;
   const detailShown = detail.length > 1800 ? detail.slice(0, 1800).replace(/\s+\S*$/, "") + "…" : detail;
   const matchMeta = job._matchBucket ? jobSearchBucketMeta(job._matchBucket) : null;
+  const positionLevel = Array.isArray(job.positionLevels) && job.positionLevels.length > 0 ? job.positionLevels.join(", ") : "";
+  const applicantCount = Number.isFinite(job.applicationCount) ? job.applicationCount : null;
+  const closeDetails = useCallback(() => {
+    setDetailsOpen(false);
+    window.requestAnimationFrame(() => detailButtonRef.current?.focus());
+  }, []);
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+    <div className={compactMobile ? "mcf-job-card company-job-card" : "mcf-job-card"} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+      {(positionLevel || applicantCount != null) && (
+        <p style={{ margin:"0 0 6px", fontSize:"0.6875rem", color:C.textSub, lineHeight:1.45 }}>
+          {positionLevel && <span title="Position level supplied by the job posting; it is not inferred from the role title.">Position level: <strong style={{ color:C.text }}>{positionLevel}</strong></span>}
+          {positionLevel && applicantCount != null && <span aria-hidden="true"> · </span>}
+          {applicantCount != null && <span title="Applicant count supplied by the job posting.">Applicants: <strong style={{ color:C.text }}>{applicantCount}</strong></span>}
+        </p>
+      )}
+      <div className="mcf-job-card-head" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
         <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer"
            style={{ fontSize: "1rem", fontWeight: 700, color: C.text, lineHeight: 1.35, textDecoration: "none" }}
            onMouseOver={e => e.currentTarget.style.color = "#0e7490"}
@@ -12149,11 +12249,11 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
         )
       )}
       {job.employer && (
-        <p style={{ margin: "0 0 6px", fontSize: "0.875rem", color: C.textSub }}>{job.employer}</p>
+        <p className="mcf-job-employer" style={{ margin: "0 0 6px", fontSize: "0.875rem", color: C.textSub }}>{job.employer}</p>
       )}
       {/* CSG (v3.0.92): source label - icon + text, never colour alone (a11y). */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center", marginBottom: 6 }}>
-        {job.source === "careers.gov.sg" ? (
+      {(!compactMobile || job.seenInBoth || matchMeta) && <div style={{ display: "flex", flexWrap: "wrap", gap: 5, alignItems: "center", marginBottom: 6 }}>
+        {!compactMobile && (job.source === "careers.gov.sg" ? (
           <span aria-label="Source: careers.gov.sg" style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: "0.6875rem", fontWeight: 700, color: "#374151", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 10, padding: "1px 8px" }}>
             <span aria-hidden="true">&#127963;</span> careers.gov.sg
           </span>
@@ -12161,7 +12261,7 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
           <span aria-label="Source: MyCareersFuture" style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: "0.6875rem", fontWeight: 700, color: "#374151", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 10, padding: "1px 8px" }}>
             <span aria-hidden="true">&#127480;&#127468;</span> MyCareersFuture
           </span>
-        )}
+        ))}
         {job.seenInBoth && (
           <span aria-label="Seen in both MyCareersFuture and careers.gov.sg" style={{ fontSize: "0.6875rem", fontWeight: 600, color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "1px 8px" }}>also on careers.gov.sg</span>
         )}
@@ -12170,76 +12270,49 @@ function McfJobCard({ job, fmtSalary, daysAgo, seen, fmtSeenDate, onAnalysePosti
             <span aria-hidden="true">{matchMeta.icon}</span> {matchMeta.label}
           </span>
         )}
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+      </div>}
+      <p style={{ margin:"8px 0 0", fontSize:"0.8125rem", color:C.textSub, lineHeight:1.6 }}>
         {/* CSG honesty (v3.0.92): careers.gov.sg has no salary field, so suppress the chip
             for CSG postings with no salary - "Salary on application" would wrongly imply the
             employer withheld it. MCF keeps its honest null -> "Salary on application". */}
         {(job.source !== "careers.gov.sg" || job.salaryMin != null || job.salaryMax != null) && (
-          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>
-            {fmtSalary(job.salaryMin, job.salaryMax)}
-          </span>
+          <span><strong style={{ color:C.text }}>Salary:</strong> {fmtSalary(job.salaryMin, job.salaryMax)}</span>
         )}
         {job.employmentType && (
-          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.employmentType}</span>
-        )}
-        {Array.isArray(job.positionLevels) && job.positionLevels.length > 0 && (
-          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.positionLevels.join(", ")}</span>
+          <span>{(job.source !== "careers.gov.sg" || job.salaryMin != null || job.salaryMax != null) && <span aria-hidden="true"> · </span>}<strong style={{ color:C.text }}>Type:</strong> {job.employmentType}</span>
         )}
         {job.minimumYearsExperience != null && job.minimumYearsExperience > 0 && (
-          <span style={{ fontSize: "0.8125rem", color: C.muted, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{job.minimumYearsExperience}+ yrs exp</span>
+          <span><span aria-hidden="true"> · </span><strong style={{ color:C.text }}>Experience:</strong> {job.minimumYearsExperience}+ years</span>
         )}
-      </div>
+      </p>
       {hasDetail && (
-        <>
-          <button onClick={() => setOpen(o => !o)} style={{ marginTop: 10, background: "transparent", border: "none", padding: 0, fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", cursor: "pointer" }}>
-            {open ? "▲ Hide details" : "▼ Show responsibilities & skills"}
+        <div onMouseEnter={() => { if (!compactMobile) setHoverPreview(true); }} onMouseLeave={() => setHoverPreview(false)} style={{ position:"relative", width:"fit-content", maxWidth:"100%" }}>
+          <button ref={detailButtonRef} className="mcf-job-more" onClick={() => { setHoverPreview(false); setDetailsOpen(true); }} aria-haspopup="dialog" aria-expanded={detailsOpen} aria-describedby={hoverPreview ? `mcf-preview-${job.uuid}` : undefined} title="Preview role details; click to open the scrollable detail window" style={{ marginTop: 10, background: "transparent", border: "none", padding: 0, fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", cursor: "pointer" }}>
+            More details
           </button>
-          {open && (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
-              {detailShown && (
-                <p style={{ margin: "0 0 8px", fontSize: "0.875rem", color: C.textSub, lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{detailShown}</p>
-              )}
-              {hasSkills && (
-                <div style={{ marginBottom: hasCats ? 8 : 0 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills listed</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.skills.map((s, i) => <span key={i} style={{ fontSize: "0.75rem", color: C.textSub, background: "#f5f7fa", border: `1px solid ${C.border}`, borderRadius: 10, padding: "2px 8px" }}>{s}</span>)}
-                  </div>
-                </div>
-              )}
-              {hasCats && (
-                <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "0.75rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.05em" }}>Categories</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {job.categories.map((cc, i) => <span key={i} style={{ fontSize: "0.75rem", color: "#0e7490", background: C.tealBg, border: `1px solid ${C.tealBdr}`, borderRadius: 10, padding: "2px 8px" }}>{cc}</span>)}
-                  </div>
-                </div>
-              )}
-              <p style={{ margin: "8px 0 0", fontSize: "0.8125rem" }}>
-                <a href={job.mcfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#1a56db", textDecoration: "none", fontWeight: 700 }}>
-                  {job.source === "careers.gov.sg" ? "Open posting on careers.gov.sg" : "Open posting on MyCareersFuture"} &#8594;
-                </a>
-              </p>
+          {hoverPreview && !detailsOpen && (
+            <div id={`mcf-preview-${job.uuid}`} role="tooltip" className="mcf-detail-preview" style={{ position:"absolute", left:0, top:"calc(100% + 4px)", zIndex:30, width:"min(420px, calc(100vw - 48px))", maxHeight:300, overflowY:"auto", padding:14, background:"#fff", border:`1px solid ${C.border}`, borderRadius:10, boxShadow:"0 14px 35px rgba(13,18,28,.2)" }}>
+              <McfJobDetails job={job} detailShown={detailShown} hasSkills={hasSkills} hasCats={hasCats} />
             </div>
           )}
-        </>
+        </div>
       )}
-      {(onAnalysePosting || onQueuePosting || onExport) && (
-        <div style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", alignItems: "center", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
+      {detailsOpen && <McfJobDetailModal job={job} detailShown={detailShown} hasSkills={hasSkills} hasCats={hasCats} onQueuePosting={onQueuePosting} canQueue={canQueue} onExport={onExport} onClose={closeDetails} />}
+      {(onAnalysePosting || (!compactMobile && onQueuePosting) || (!compactMobile && onExport)) && (
+        <div className="mcf-job-primary-actions" style={{ display: "flex", gap: 8, marginTop: 11, flexWrap: "wrap", alignItems: "center", borderTop: `1px dashed ${C.border}`, paddingTop: 11 }}>
           {onAnalysePosting && (
             <button onClick={() => onAnalysePosting(job)}
               style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#fff", background: "#0e7490", border: "none", borderRadius: 6, cursor: "pointer" }}>
-              📊 Analyse this posting
+              {compactMobile ? "Analyse role" : "📊 Analyse this posting"}
             </button>
           )}
-          {onQueuePosting && canQueue && (
+          {!compactMobile && onQueuePosting && canQueue && (
             <button onClick={() => onQueuePosting(job)}
               style={{ padding: "6px 12px", fontSize: "0.8125rem", fontWeight: 700, color: "#0e7490", background: "transparent", border: `1.5px solid ${C.tealBdr}`, borderRadius: 6, cursor: "pointer" }}>
               ＋ Compare
             </button>
           )}
-          {onExport && (
+          {!compactMobile && onExport && (
             <DownloadJsonButton
               onClick={() => onExport(job)}
               label={`Download this posting as JSON: ${job.title || "untitled"}`}
@@ -15342,7 +15415,7 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 // the deterministic ORGANISATION READ facts - it authors no number or verdict and
 // withholds when the facts are thin.
 // R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
-function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false }) {
+function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false, deviceProfile }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
@@ -15374,6 +15447,11 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   // is already narrowed to one employer, so most of those facets would be moot.
   const [mcfSort, setMcfSort] = useState("recent");
   const [mcfFacets, setMcfFacets] = useState({ level: [], type: [] });
+  const [mcfRoleQuery, setMcfRoleQuery] = useState("");
+  const [mobileFactsOpen, setMobileFactsOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [copyOpeningsState, setCopyOpeningsState] = useState("idle");
+  const opportunityListRef = useRef(null);
   // AI company overview (cheapest Claude): idle | loading | ready | withheld.
   const [companyOverview, setCompanyOverview] = useState({ status: "idle", data: null });
 
@@ -15407,6 +15485,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     setAgentsKgPayload(null);
     setTapNodeId(null);
     autoAgentsStartedRef.current = "";
+    setMcfRoleQuery("");
+    setMobileFactsOpen(false);
+    setMobileFiltersOpen(false);
+    setCopyOpeningsState("idle");
 
     // CSG two-column: fetch MCF + careers.gov.sg in parallel; one failing must not blank the other.
     function loadCompanyBoth() {
@@ -15588,7 +15670,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     return { level: toOpts(levels), type: toOpts(types) };
   }, [activeJobs]);
   const mcfFilteredSorted = useMemo(function() {
+    const roleNeedle = mcfRoleQuery.trim().toLowerCase();
     let w = activeJobs.filter(function(j) {
+      if (roleNeedle && !String(j.title || "").toLowerCase().includes(roleNeedle)) return false;
       if (mcfFacets.level.length && !mcfFacets.level.includes((Array.isArray(j.positionLevels) && j.positionLevels[0]) || null)) return false;
       if (mcfFacets.type.length && !mcfFacets.type.includes(j.employmentType || null)) return false;
       return true;
@@ -15598,7 +15682,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     else if (mcfSort === "title") w.sort(function(a, b) { return (a.title || "").localeCompare(b.title || ""); });
     else w.sort(function(a, b) { return (Date.parse(b.postedDate || "") || 0) - (Date.parse(a.postedDate || "") || 0); });
     return w;
-  }, [activeJobs, mcfFacets, mcfSort]);
+  }, [activeJobs, mcfFacets, mcfSort, mcfRoleQuery]);
   const mcfToggleFacet = function(key, val) { setMcfFacets(function(f) { return { ...f, [key]: f[key].includes(val) ? f[key].filter(function(x) { return x !== val; }) : f[key].concat(val) }; }); };
 
   // EXP1: these two exports are declared HERE, above the `if (state.loading)`
@@ -15673,6 +15757,31 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   }, [activeMatch, state, companyQuery, mcfFilteredSorted, csgState.jobs, csgRetrievedAt,
       empReg, empGeo, orgRead, companyOverview, agentsModel, agentsView]);
 
+  const copyLoadedOpenings = useCallback(function() {
+    const payload = JSON.stringify(activeJobs, null, 2);
+    const markCopied = function() {
+      setCopyOpeningsState("copied");
+      window.setTimeout(function() { setCopyOpeningsState("idle"); }, 2200);
+    };
+    const fallbackCopy = function() {
+      const field = document.createElement("textarea");
+      field.value = payload;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(field);
+      if (ok) markCopied(); else setCopyOpeningsState("error");
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(payload).then(markCopied).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }, [activeJobs]);
+
   if (state.loading) {
     return (
       <div style={{ background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 10, padding: "32px 20px", textAlign: "center" }}>
@@ -15689,7 +15798,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
 
   return (
-    <div className={showCsg ? "csg-cols" : ""}>
+    <div className={"company-panel" + (showCsg ? " csg-cols" : "")}>
       {/* Company search is an early App route and does not mount the later
           results-workspace stylesheet. Keep its responsive reading geometry
           beside the component so Step 1a cannot silently fall back to blocks. */}
@@ -15697,10 +15806,35 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         .company-opportunity-grid { display:grid; grid-template-columns:1fr; gap:10px; align-items:start; }
         @media (min-width:700px) { .company-opportunity-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
         [data-form-factor="phone"] .company-opportunity-grid { grid-template-columns:1fr; }
+        .company-mobile-only { display:none; }
+        [data-form-factor="phone"] .company-panel { width:100%; min-width:0; }
+        [data-form-factor="phone"] .company-desktop-source-row { display:none !important; }
+        [data-form-factor="phone"] .company-identity-card { padding:16px !important; margin-bottom:12px !important; border-radius:14px !important; }
+        [data-form-factor="phone"] .company-identity-desktop { display:none; }
+        [data-form-factor="phone"] .company-mobile-only { display:block; }
+        [data-form-factor="phone"] .company-mobile-decision { display:grid; gap:10px; margin:0 0 12px; padding:14px; background:#fff; border:1px solid #d9dee6; border-radius:14px; }
+        [data-form-factor="phone"] .company-mobile-decision button { width:100%; min-height:48px; }
+        [data-form-factor="phone"] .company-registration { padding:0 !important; overflow:hidden; }
+        [data-form-factor="phone"] .company-registration-toggle { display:flex; width:100%; min-height:48px; align-items:center; justify-content:space-between; padding:10px 14px; background:#fff; border:0; color:#1a202c; font:inherit; font-size:.875rem; font-weight:750; text-align:left; }
+        [data-form-factor="phone"] .company-registration-content { display:none; padding:0 14px 14px; }
+        [data-form-factor="phone"] .company-registration.mobile-open .company-registration-content { display:block; }
+        [data-form-factor="phone"] .company-ai-trigger-desktop { display:none !important; }
+        [data-form-factor="phone"] .company-opportunity-tools { margin:16px 0 10px; padding-top:14px; border-top:1px solid #d9dee6; }
+        [data-form-factor="phone"] .company-mobile-tool-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; }
+        [data-form-factor="phone"] .company-mobile-tool-row input { width:100%; min-width:0; min-height:48px; border:1px solid #c7d2e4; border-radius:10px; padding:10px 12px; font-size:1rem; color:#1a202c; background:#fff; }
+        [data-form-factor="phone"] .company-filter-controls { display:none !important; margin-top:10px !important; }
+        [data-form-factor="phone"] .company-filter-controls.mobile-open { display:flex !important; }
+        [data-form-factor="phone"] .company-filter-controls > * { min-height:44px !important; }
+        [data-form-factor="phone"] .company-job-card { padding:14px !important; border-radius:14px !important; content-visibility:auto; contain-intrinsic-size:260px; }
+        [data-form-factor="phone"] .company-job-card .mcf-job-card-head a { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; font-size:1rem !important; }
+        [data-form-factor="phone"] .company-job-card .mcf-job-employer { display:none; }
+        [data-form-factor="phone"] .company-job-card .mcf-job-more { min-height:44px; display:inline-flex; align-items:center; padding:0 4px !important; }
+        [data-form-factor="phone"] .company-job-card .mcf-job-primary-actions button { width:100%; min-height:48px; border-radius:9px !important; }
+        [data-form-factor="phone"] .company-source-note { display:none; }
       `}</style>
       {/* LEFT COLUMN: MyCareersFuture company results */}
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div className="company-primary-column">
+        <div className="company-desktop-source-row" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>&#127480;&#127468; MyCareersFuture</span>
           {!state.fallback && state.matches.length > 0 && activeMatch && (
             <span style={{ fontSize: 11.5, color: C.muted }}>({activeMatch.count} posting{activeMatch.count === 1 ? "" : "s"})</span>
@@ -15730,20 +15864,22 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           </div>
         ) : (
           <>
-            <div style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
+            <div className="company-identity-card" style={{ background: C.surface, border: "1px solid " + C.border, borderRadius: 10, padding: "16px 18px", marginBottom: 16 }}>
               {activeMatch ? (
                 <>
-                  <h2 className="t-heading" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
+                  <h2 className="t-heading company-identity-desktop" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
                     {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on MyCareersFuture"}
                   </h2>
+                  <h2 className="t-heading company-mobile-only" style={{ margin: "0 0 5px", fontSize: "1.375rem", lineHeight: 1.2, fontWeight: 850, color: C.text, overflowWrap: "anywhere" }}>{activeMatch.displayName}</h2>
+                  <p className="company-mobile-only" style={{ margin: "0 0 9px", fontSize: ".875rem", color: C.textSub }}>{activeMatch.count} loaded opportunit{activeMatch.count === 1 ? "y" : "ies"}</p>
                   <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
-                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, color: "#0f766e", marginRight: 10 }}>Source: MyCareersFuture</span>
                     {/* FLOW-1b: org disclosure chip - queryKey === matchKey means the typed
                         query resolved to exactly one employer key; no new fuzzy matching. */}
                     {state.queryKey && state.queryKey === activeMatch.key && (
                       <span title="The typed company name resolved to exactly one MyCareersFuture employer key" style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted, marginRight: 8 }}>= Exact employer match</span>
                     )}
-                    Company name and posting count are verbatim from MyCareersFuture.
+                    <span className="company-identity-desktop">Company name and posting count are verbatim from MyCareersFuture.</span>
                   </p>
                 </>
               ) : (
@@ -15752,7 +15888,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                     {"Several employers match \"" + (state.query || companyQuery) + "\":"}
                   </h2>
                   <p style={{ margin: "0 0 12px", fontSize: "0.8125rem", color: C.textSub }}>
-                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 10, padding: "1px 8px", color: "#0f766e", marginRight: 8 }}>● from MCF</span>
+                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, color: "#0f766e", marginRight: 10 }}>Source: MyCareersFuture</span>
                     {state.ambiguous && (
                       <span title="Several employer keys matched the typed name - pick the one you meant" style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted, marginRight: 8 }}>~ Closest employer matches - pick one</span>
                     )}
@@ -15775,11 +15911,30 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               )}
             </div>
 
+            {activeMatch && agentsView === "off" && (
+              <section className="company-mobile-only company-mobile-decision" aria-label="Choose organisation or individual analysis">
+                <button type="button" onClick={function() { loadDuties(activeMatch); }} aria-label={"Explore organisation work at " + activeMatch.displayName}
+                  style={{ padding: "10px 14px", background: C.accent, border: "none", borderRadius: 10, color: "#fff", fontSize: ".875rem", fontWeight: 800, cursor: "pointer", textAlign: "left" }}>
+                  Explore organisation work
+                  <span style={{ display: "block", marginTop: 3, fontSize: ".75rem", fontWeight: 500, opacity: .9 }}>Repeated work, capabilities and AI Moments</span>
+                </button>
+                <button type="button" onClick={function() { opportunityListRef.current && opportunityListRef.current.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                  style={{ padding: "10px 14px", background: "#fff", border: "1.5px solid " + C.border, borderRadius: 10, color: C.text, fontSize: ".875rem", fontWeight: 800, cursor: "pointer", textAlign: "left" }}>
+                  Analyse an individual role
+                  <span style={{ display: "block", marginTop: 3, fontSize: ".75rem", fontWeight: 500, color: C.textSub }}>Browse {activeMatch.count} loaded opportunities</span>
+                </button>
+              </section>
+            )}
+
             {/* EMP: Registered employer block - the ACRA address/UEN facts about the very
                 employer this screen is scoped to. Was previously only shown per-posting in
                 Browse SG Jobs' full-ad modal, never here where it's most directly relevant. */}
             {activeMatch && (
-              <div style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
+              <div className={"company-registration" + (mobileFactsOpen ? " mobile-open" : "")} style={{ marginBottom: 16, padding: "12px 16px", background: C.surface, border: "1px solid " + C.border, borderRadius: 10 }}>
+                <button type="button" className="company-mobile-only company-registration-toggle" aria-expanded={mobileFactsOpen} onClick={function() { setMobileFactsOpen(function(open) { return !open; }); }}>
+                  <span>About this organisation</span><span aria-hidden="true">{mobileFactsOpen ? "−" : "+"}</span>
+                </button>
+                <div className="company-registration-content">
                 <div style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", fontWeight: 700, letterSpacing: ".12em", color: C.muted, marginBottom: 7 }}>REGISTERED EMPLOYER</div>
 
                 {empReg && empReg.status === "loading" && (
@@ -15810,12 +15965,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                 {empReg && empReg.status === "done" && (!empReg.data || empReg.data.matched !== "exact") && (
                   <p style={{ margin: 0, fontSize: "0.8125rem", color: C.muted }}>No exact ACRA registration match for "{activeMatch.displayName}".</p>
                 )}
+                </div>
               </div>
             )}
 
             {/* CO2: "AI moments" trigger - only shown when a single employer is confirmed */}
             {activeMatch && agentsView === "off" && (
-              <div style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div className="company-ai-trigger-desktop" style={{ marginBottom: 16, background: "#e0f2fe", border: "1px solid #7dd3fc", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#0369a1" }}>AI moments at {activeMatch.displayName}</div>
                   <div style={{ fontSize: 11.5, color: "#0c4a6e", marginTop: 2 }}>See which recurring duties across their roles could become agent candidates - deterministic, no LLM.</div>
@@ -15953,8 +16109,35 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
+            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+              <section ref={opportunityListRef} className="company-mobile-only company-opportunity-tools" aria-labelledby="company-opportunities-title">
+                <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, marginBottom:8 }}>
+                  <h3 id="company-opportunities-title" style={{ margin:0, fontSize:"1rem", color:C.text }}>Individual opportunities</h3>
+                  <span aria-live="polite" style={{ fontSize:".75rem", color:C.textSub }}>{mcfFilteredSorted.length} shown</span>
+                </div>
+                <div className="company-mobile-tool-row">
+                  <input type="search" value={mcfRoleQuery} onChange={function(e) { setMcfRoleQuery(e.target.value); }} aria-label="Search role titles" placeholder="Search role titles" />
+                  <button type="button" aria-expanded={mobileFiltersOpen} onClick={function() { setMobileFiltersOpen(function(open) { return !open; }); }}
+                    style={{ minWidth:48, minHeight:48, padding:"8px 12px", background:"#fff", border:"1px solid " + C.border, borderRadius:10, color:C.text, fontWeight:750, cursor:"pointer" }}>
+                    Filter
+                  </button>
+                  <button type="button" onClick={copyLoadedOpenings}
+                    aria-label={copyOpeningsState === "copied" ? `${activeJobs.length} loaded opportunities copied as JSON` : `Copy ${activeJobs.length} loaded opportunities as JSON`}
+                    title={copyOpeningsState === "copied" ? "Copied" : `Copy ${activeJobs.length} loaded opportunities as JSON`}
+                    style={{ width:48, height:48, display:"inline-flex", alignItems:"center", justifyContent:"center", background:"#fff", border:"1px solid " + C.border, borderRadius:10, color:copyOpeningsState === "copied" ? "#0e7490" : C.text, cursor:"pointer" }}>
+                    {copyOpeningsState === "copied" ? (
+                      <span aria-hidden="true" style={{ fontSize:"1.125rem", fontWeight:800 }}>✓</span>
+                    ) : (
+                      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+                    )}
+                  </button>
+                </div>
+                {copyOpeningsState === "error" && <p role="status" style={{ margin:"6px 0 0", fontSize:".75rem", color:"#78350f" }}>Copy was unavailable on this browser.</p>}
+              </section>
+            )}
+
             {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 3 && (mcfFacetOptions.level.length > 1 || mcfFacetOptions.type.length > 1) && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
+              <div className={"company-filter-controls" + (mobileFiltersOpen ? " mobile-open" : "")} style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
                 <select value={mcfSort} onChange={function(e) { setMcfSort(e.target.value); }} aria-label="Sort postings"
                   style={{ minHeight: 36, fontSize: "0.8125rem", color: C.text, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "5px 8px" }}>
                   <option value="recent">Sort: Most recent</option>
@@ -15995,7 +16178,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                     <McfJobCard key={job.uuid} job={job} fmtSalary={fmtSalary} daysAgo={daysAgo}
                       seen={undefined} fmtSeenDate={undefined}
                       onAnalysePosting={onAnalysePosting} onQueuePosting={onQueuePosting} canQueue={canQueue}
-                      onExport={exportPosting} />
+                      onExport={exportPosting} compactMobile={deviceProfile?.formFactor === "phone"} />
                   );
                 })}
                 {mcfFilteredSorted.length === 0 && (
@@ -16004,7 +16187,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
-            <p style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
+            <p className="company-source-note" style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
               Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
             </p>
           </>
@@ -17907,6 +18090,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
     );
   }
 
+  const isStep1aPhone = step === "mcf_company" && deviceProfile.formFactor === "phone";
+
   return (
     <>
     <style>{`
@@ -17956,6 +18141,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       @media (min-width: 2560px) { :root { --base-font: 18px; --root-fs: 125%; } }
       .main-content { width: 100%; max-width: var(--content-max); margin: 0; padding: var(--content-pad) 16px; }
       @media (min-width: 600px) { .main-content { padding: var(--content-pad); } }
+      .step1a-mobile-main { padding:12px !important; padding-bottom:calc(12px + env(safe-area-inset-bottom)) !important; }
       /* Step 2 edge-to-edge bleed: cancels .main-content's own horizontal padding via
          negative margin (mirrors its breakpoints exactly) instead of a 100vw/-50vw
          trick - vw includes the scrollbar's width, so that approach overflows past the
@@ -18263,15 +18449,15 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       {/* flexWrap: at phone widths the buttons wrap UNDER the title instead of overlapping it */}
       {/* position+zIndex: sticky-pinned, opaque C.eu header that stays above page content and the
           sticky left nav rail (top:64). zIndex:50 clears both the rail and the LUX1 backdrop layer */}
-      <div style={{ background:C.eu, padding: "10px 16px", display:"flex", alignItems:"center", gap:10, width:"100%", boxSizing:"border-box", flexWrap:"wrap", position:"sticky", top:0, zIndex:50 }}>
+      <div data-testid="site-header" style={{ background:C.eu, padding: isStep1aPhone ? "8px 12px" : "10px 16px", display:"flex", alignItems:"center", gap: isStep1aPhone ? 8 : 10, width:"100%", boxSizing:"border-box", flexWrap: isStep1aPhone ? "nowrap" : "wrap", position:"sticky", top:0, zIndex:50, minHeight: isStep1aPhone ? 60 : undefined }}>
         <span style={{ color:C.euStar, fontSize: "1.125rem", flexShrink:0 }}>★</span>
-        <div style={{ flex:"1 0 200px", minWidth:0 }}>
-          <h1 style={{ margin:0, fontSize: "0.8125rem", fontWeight:700, color:"#ffffff", lineHeight:1.35 }} className="site-title">AI Readiness across Skills and Competences</h1>
+        <div style={{ flex: isStep1aPhone ? "1 1 auto" : "1 0 200px", minWidth:0 }}>
+          <h1 style={{ margin:0, fontSize: isStep1aPhone ? "1rem" : "0.8125rem", fontWeight:750, color:"#ffffff", lineHeight:1.25 }} className="site-title">{isStep1aPhone ? "Organisation search" : "AI Readiness across Skills and Competences"}</h1>
         </div>
-        <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
+        {!isStep1aPhone && <a href="https://www.takearoundabout.com" aria-label="Switch to V2 - ESCO EU skillsets"
           style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", fontSize: "0.75rem", fontWeight:600, textDecoration:"none", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
           V2 - ESCO EU skillsets
-        </a>
+        </a>}
         {step !== "idle" && (
           <button onClick={reset} style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.35)", borderRadius:6, color:"#fff", padding: "6px 12px", cursor:"pointer", fontSize: "0.75rem", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", minHeight:44, boxSizing:"border-box" }}>
             New Search
@@ -18282,7 +18468,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             and never touch. It moves into the Step 3 floating-window settings (the gear on
             the window's bottom strip); the scale itself, its persistence and its keyboard
             shortcuts are untouched - only the entry point moved. */}
-        <AccountControl />
+        {!isStep1aPhone && <AccountControl />}
       </div>
 
       {/* Toast notification */}
@@ -18314,7 +18500,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       <Toaster position="bottom-center" toastOptions={{
         style: { background: "#1a56db", color: "#fff", border: "none", borderRadius: 10, fontSize: "0.8125rem", fontWeight: 600, boxShadow: "0 4px 20px rgba(0,0,0,0.18)" },
       }} />
-      <main className="main-content" id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
+      <main className={"main-content" + (isStep1aPhone ? " step1a-mobile-main" : "")} id="main-content" role="main" aria-label="Job skills analyser" style={{ position:"relative", zIndex:1 }}>
 
         {(step === "idle" || step === "error") && (
           <>
@@ -18555,16 +18741,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             company, and list its live postings. No LLM; counts are pass-through. */}
         {step === "mcf_company" && (
           <div>
-            <button aria-label="Back to new search"
+            {!isStep1aPhone && <button aria-label="Back to new search"
               onClick={() => { setStep("idle"); window.scrollTo({ top:0, behavior:"smooth" }); }}
               style={{ marginBottom:12, background:"transparent", border:"none", padding:0, fontSize: "0.8125rem", fontWeight:700, color:C.accent, cursor:"pointer", minHeight:44, display:"inline-flex", alignItems:"center" }}>
               ← New search
-            </button>
+            </button>}
             <CompanyPanel
               companyQuery={query.trim()}
               onAnalysePosting={handleAnalysePosting}
               onQueuePosting={handleQueuePosting}
               queueCount={comparisons.length}
+              deviceProfile={deviceProfile}
             />
             {comparisons.length > 0 && (
               <p style={{ marginTop:12, fontSize: "0.75rem", color:C.accent, textAlign:"center" }}>
@@ -18778,7 +18965,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         {/* SiteFooter (11-07 '26): the consolidated site footer - disclaimer, attribution,
             Methodology / Legal / Terms / builder note, identity + version - on every step
             except the full-height Review Studio, which carries its own honesty footer. */}
-        {step !== "results" && <SiteFooter />}
+        {step !== "results" && <SiteFooter compact={isStep1aPhone} />}
 
       </main>
     </div>
