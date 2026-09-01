@@ -58,14 +58,40 @@
           "role": "Current Step 2 implementation inspected as source evidence."
         },
         "mergeCommit": {
-          "sha": null,
-          "status": "MAP_BRANCH_NOT_MERGED",
-          "branch": "codex/map-v3-step2-001-20260901"
+          "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
+          "status": "MERGED_TO_MAIN",
+          "pullRequest": 477,
+          "headCommit": "d87c2673e97c947a85dda50594321853d765a8b8",
+          "mergedAt": "2026-09-01T13:14:04Z"
         },
         "deploymentStatus": {
-          "status": "NOT_CHANGED_OR_REVERIFIED",
+          "status": "SUCCESS_STATUSES_ON_MERGE_COMMIT",
           "railwayConfigurationChanged": false,
-          "notes": "Docs/tests only; no Railway file or production runtime behaviour changed."
+          "verifiedAt": "2026-09-02T06:40:03+08:00",
+          "mergeCommit": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
+          "statuses": [
+            {
+              "context": "Vercel - v2_20260324_ai-jobskill-analyser-v2",
+              "state": "success",
+              "description": "Deployment has completed"
+            },
+            {
+              "context": "Vercel - v3_2026-0511-ai-js",
+              "state": "success",
+              "description": "Deployment has completed"
+            },
+            {
+              "context": "Job-Analysis - 2026-0313_AI-JS",
+              "state": "success",
+              "description": "Success - job-analysis.up.railway.app"
+            },
+            {
+              "context": "Job-Analysis - v3-web",
+              "state": "success",
+              "description": "Success - v3.takearoundabout.com"
+            }
+          ],
+          "notes": "GitHub commit statuses report successful deployment processing for the merge commit. This is deployment status, not physical-runtime verification."
         },
         "physicalRuntimeVerification": {
           "status": "NOT_VERIFIED_FOR_STEP2",
@@ -85,9 +111,9 @@
       "handoff": "Receives the selected Step 2 posting payload or Step 1a role query.",
       "provenance": {
         "implementationCommit": {
-          "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
+          "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
           "branch": "main",
-          "role": "Current known Step 3 source baseline at time of Step 2 map publication."
+          "role": "Current known Step 3 source baseline at time of Step 2 map provenance update."
         },
         "mergeCommit": {
           "sha": null,
