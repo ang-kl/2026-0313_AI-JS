@@ -178,6 +178,11 @@ function normaliseJob(j) {
       : '',
     postedDate: j.metadata?.originalPostingDate || j.metadata?.newPostingDate || '',
     expiryDate: j.metadata?.expiryDate || '',
+    // Public posting metric supplied by MyCareersFuture. Preserve zero as a real
+    // value; omit the field when the source does not provide a finite count.
+    applicationCount: Number.isFinite(j.metadata?.totalNumberJobApplication)
+      ? j.metadata.totalNumberJobApplication
+      : null,
     minimumYearsExperience: (typeof j.minimumYearsExperience === 'number') ? j.minimumYearsExperience : null,
     positionLevels,
     schemes,

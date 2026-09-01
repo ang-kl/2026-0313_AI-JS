@@ -1,0 +1,174 @@
+{
+  "$schema": "./v3-step1a-feature-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "statusVocabulary": ["VERIFIED", "PARTIAL", "NOT_IMPLEMENTED", "NOT_VERIFIABLE"],
+  "map": {
+    "id": "MAP-V3-STEP1A-001",
+    "title": "V3 Step 1a Agent-Readable Feature Map",
+    "scope": "Current Step 1a organisation-search implementation; documentation only",
+    "baseline": {
+      "gitCommit": "d250c36",
+      "branch": "chatgpt/v3.1-step1a-mobile-clean",
+      "screenshotsUseDeterministicFixtures": true,
+      "liveProductionBehaviourVerified": false
+    },
+    "entryStateId": "STATE-STEP1A-FETCH-001",
+    "idPolicy": "IDs are immutable after publication. Change labels freely; replace an ID only with an explicit supersededById."
+  },
+  "screens": [
+    {
+      "id": "SCR-STEP1A-IP15PM-P-001",
+      "name": "Organisation result — iPhone 15 Pro Max portrait",
+      "asset": "feature-map-assets/step1a-iphone-portrait-first.png",
+      "sha256": "1fa7e49ad4e00a65b4ef630bbe5c7a11524c78f47ec05e38c3d258aba8f3121d",
+      "viewport": { "width": 430, "height": 932, "deviceScaleFactor": 3, "orientation": "portrait" },
+      "evidenceType": "DETERMINISTIC_FIXTURE",
+      "featureIds": ["FEAT-STEP1A-IDENTITY-001", "FEAT-STEP1A-PERSPECTIVE-001", "FEAT-STEP1A-TOOLS-001", "FEAT-STEP1A-COPY-001", "FEAT-STEP1A-CARD-001"]
+    },
+    {
+      "id": "SCR-STEP1A-IP15PM-ROLE-001",
+      "name": "Filtered opportunity — iPhone 15 Pro Max portrait",
+      "asset": "feature-map-assets/step1a-iphone-role-search.png",
+      "sha256": "7689e26bf61b0758077eabebf7a6aca280c69b0bd6b698dbdbc7d9827f1bb945",
+      "viewport": { "width": 430, "height": 932, "deviceScaleFactor": 3, "orientation": "portrait" },
+      "evidenceType": "DETERMINISTIC_FIXTURE",
+      "featureIds": ["FEAT-STEP1A-TOOLS-001", "FEAT-STEP1A-CARD-001", "FEAT-STEP1A-META-001"]
+    },
+    {
+      "id": "SCR-STEP1A-IP15PM-MODAL-001",
+      "name": "Opportunity detail dialog — iPhone 15 Pro Max portrait",
+      "asset": "feature-map-assets/step1a-iphone-role-details.png",
+      "sha256": "f0cfa70466ba612651a74c8ee555ec3ed573dd3abe9c69bbb14acd646f81fd85",
+      "viewport": { "width": 430, "height": 932, "deviceScaleFactor": 3, "orientation": "portrait" },
+      "evidenceType": "DETERMINISTIC_FIXTURE",
+      "featureIds": ["FEAT-STEP1A-DETAIL-001"]
+    },
+    {
+      "id": "SCR-STEP1A-IP15PM-L-001",
+      "name": "Opportunity list — iPhone 15 Pro Max landscape",
+      "asset": "feature-map-assets/step1a-iphone-landscape.png",
+      "sha256": "df0c1a06185f78757018d3dfec2ee33dc728b1217c9db71f4391e8497e48ee00",
+      "viewport": { "width": 932, "height": 430, "deviceScaleFactor": 3, "orientation": "landscape" },
+      "evidenceType": "DETERMINISTIC_FIXTURE",
+      "featureIds": ["FEAT-STEP1A-CARD-001", "FEAT-STEP1A-DETAIL-001"]
+    },
+    {
+      "id": "SCR-STEP1A-DESKTOP-001",
+      "name": "Organisation result — desktop",
+      "asset": "feature-map-assets/step1a-desktop.png",
+      "sha256": "9925cb5a91c4c77dc274e57e176ca4dd8c912d2b3d22e65e8acfa5ddf11cf125",
+      "viewport": { "width": 2048, "height": 1280, "orientation": "landscape" },
+      "evidenceType": "DETERMINISTIC_FIXTURE",
+      "featureIds": ["FEAT-STEP1A-CARD-001", "FEAT-STEP1A-DETAIL-001"]
+    }
+  ],
+  "components": [
+    { "id": "CMP-APP-001", "path": "v3.1/src/App.jsx", "symbol": "App", "kind": "ROUTE_CONTROLLER", "semanticAnchor": "startCompanySearch", "childComponentIds": ["CMP-COMPANY-PANEL-001"] },
+    { "id": "CMP-COMPANY-PANEL-001", "path": "v3.1/src/App.jsx", "symbol": "CompanyPanel", "kind": "VIEW_CONTROLLER", "semanticAnchor": "data-testid=company-opportunity-grid", "childComponentIds": ["CMP-MCF-JOB-CARD-001"] },
+    { "id": "CMP-MCF-JOB-CARD-001", "path": "v3.1/src/App.jsx", "symbol": "McfJobCard", "kind": "INTERACTIVE_COMPONENT", "semanticAnchor": "className=mcf-job-card", "childComponentIds": ["CMP-MCF-JOB-DETAILS-001", "CMP-MCF-JOB-MODAL-001"] },
+    { "id": "CMP-MCF-JOB-DETAILS-001", "path": "v3.1/src/App.jsx", "symbol": "McfJobDetails", "kind": "PRESENTATION", "semanticAnchor": "Open posting on MyCareersFuture", "childComponentIds": [] },
+    { "id": "CMP-MCF-JOB-MODAL-001", "path": "v3.1/src/App.jsx", "symbol": "McfJobDetailModal", "kind": "ACCESSIBLE_DIALOG", "semanticAnchor": "aria-labelledby=mcf-detail-title", "childComponentIds": ["CMP-MCF-JOB-DETAILS-001"] },
+    { "id": "API-MCF-NORMALISE-001", "path": "v3.1/api/mcf.js", "symbol": "normaliseJob", "kind": "NORMALISER", "semanticAnchor": "totalNumberJobApplication", "childComponentIds": [] }
+  ],
+  "features": [
+    { "id": "FEAT-STEP1A-IDENTITY-001", "name": "Organisation identity and loaded scope", "status": "VERIFIED", "componentIds": ["CMP-COMPANY-PANEL-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001"], "payloadFieldIds": ["PAY-COMPANY-NAME-001", "PAY-COMPANY-COUNT-001"], "transitionIds": [], "invariantIds": ["INV-STEP1A-EXACT-001", "INV-STEP1A-SOURCE-LABEL-001"], "evidenceRefIds": ["EVID-SOURCE-COMPANY-001", "EVID-TEST-IP15-001"] },
+    { "id": "FEAT-STEP1A-PERSPECTIVE-001", "name": "Organisation or individual starting choice", "status": "VERIFIED", "componentIds": ["CMP-COMPANY-PANEL-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001"], "payloadFieldIds": [], "transitionIds": ["TRANS-STEP1A-ORG-001", "TRANS-STEP1A-ROLELIST-001"], "invariantIds": ["INV-STEP1A-AMBIGUITY-001"], "evidenceRefIds": ["EVID-SOURCE-COMPANY-001", "EVID-TEST-IP15-001"] },
+    { "id": "FEAT-STEP1A-TOOLS-001", "name": "Search, sort and filter loaded opportunities", "status": "VERIFIED", "componentIds": ["CMP-COMPANY-PANEL-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001", "SCR-STEP1A-IP15PM-ROLE-001"], "payloadFieldIds": ["PAY-JOB-TITLE-001", "PAY-JOB-LEVEL-001", "PAY-JOB-TYPE-001"], "transitionIds": ["TRANS-STEP1A-FILTER-001"], "invariantIds": ["INV-STEP1A-FILTER-NONMUTATING-001"], "evidenceRefIds": ["EVID-SOURCE-COMPANY-001", "EVID-TEST-IP15-001"] },
+    { "id": "FEAT-STEP1A-COPY-001", "name": "Copy all loaded opportunities as JSON", "status": "VERIFIED", "componentIds": ["CMP-COMPANY-PANEL-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001"], "payloadFieldIds": ["PAY-COMPANY-JOBS-001"], "transitionIds": ["TRANS-STEP1A-COPY-001"], "invariantIds": ["INV-STEP1A-COPY-SCOPE-001"], "evidenceRefIds": ["EVID-SOURCE-COMPANY-001", "EVID-TEST-IP15-001"] },
+    { "id": "FEAT-STEP1A-CARD-001", "name": "Opportunity card", "status": "VERIFIED", "componentIds": ["CMP-MCF-JOB-CARD-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001", "SCR-STEP1A-IP15PM-ROLE-001", "SCR-STEP1A-IP15PM-L-001", "SCR-STEP1A-DESKTOP-001"], "payloadFieldIds": ["PAY-JOB-TITLE-001", "PAY-JOB-LEVEL-001", "PAY-JOB-APPLICANTS-001", "PAY-JOB-SALARY-001", "PAY-JOB-TYPE-001", "PAY-JOB-EXPERIENCE-001"], "transitionIds": ["TRANS-JOB-PREVIEW-001", "TRANS-JOB-MODAL-OPEN-001", "TRANS-JOB-ANALYSE-001"], "invariantIds": ["INV-STEP1A-APPLICANTS-001", "INV-STEP1A-LEVEL-001", "INV-STEP1A-PLAIN-META-001", "INV-STEP1A-PHONE-GEOMETRY-001", "INV-STEP1A-DESKTOP-GEOMETRY-001"], "evidenceRefIds": ["EVID-SOURCE-CARD-001", "EVID-TEST-IP15-001", "EVID-TEST-DESKTOP-001"] },
+    { "id": "FEAT-STEP1A-META-001", "name": "Source-supplied role metadata", "status": "VERIFIED", "componentIds": ["CMP-MCF-JOB-CARD-001", "API-MCF-NORMALISE-001"], "screenIds": ["SCR-STEP1A-IP15PM-ROLE-001"], "payloadFieldIds": ["PAY-JOB-LEVEL-001", "PAY-JOB-APPLICANTS-001", "PAY-JOB-SALARY-001", "PAY-JOB-TYPE-001"], "transitionIds": [], "invariantIds": ["INV-STEP1A-APPLICANTS-001", "INV-STEP1A-LEVEL-001", "INV-STEP1A-PLAIN-META-001"], "evidenceRefIds": ["EVID-SOURCE-NORMALISE-001", "EVID-SOURCE-CARD-001", "EVID-TEST-IP15-001"] },
+    { "id": "FEAT-STEP1A-DETAIL-001", "name": "Hover preview and tap-accessible detail dialog", "status": "VERIFIED", "componentIds": ["CMP-MCF-JOB-CARD-001", "CMP-MCF-JOB-DETAILS-001", "CMP-MCF-JOB-MODAL-001"], "screenIds": ["SCR-STEP1A-IP15PM-MODAL-001", "SCR-STEP1A-DESKTOP-001"], "payloadFieldIds": ["PAY-JOB-DESCRIPTION-001", "PAY-JOB-SKILLS-001", "PAY-JOB-CATEGORIES-001", "PAY-JOB-URL-001"], "transitionIds": ["TRANS-JOB-PREVIEW-001", "TRANS-JOB-MODAL-OPEN-001", "TRANS-JOB-MODAL-CLOSE-001"], "invariantIds": ["INV-JOB-DETAIL-A11Y-001", "INV-STEP1A-NO-HOVER-DEPENDENCY-001"], "evidenceRefIds": ["EVID-SOURCE-MODAL-001", "EVID-TEST-IP15-001", "EVID-TEST-DESKTOP-001"] },
+    { "id": "FEAT-STEP1A-AI-001", "name": "Organisation AI Moments transition", "status": "VERIFIED", "componentIds": ["CMP-COMPANY-PANEL-001", "CMP-APP-001"], "screenIds": ["SCR-STEP1A-IP15PM-P-001"], "payloadFieldIds": ["PAY-COMPANY-JOBS-001"], "transitionIds": ["TRANS-STEP1A-ORG-001", "TRANS-STEP3-AI-001"], "invariantIds": ["INV-STEP3-AI-ONCE-001"], "evidenceRefIds": ["EVID-SOURCE-COMPANY-001", "EVID-TEST-DESKTOP-001"] }
+  ],
+  "states": [
+    { "id": "STATE-STEP1A-FETCH-001", "name": "Company fetch", "values": ["loading", "ready", "fallback"], "ownerComponentId": "CMP-COMPANY-PANEL-001", "renderEffect": "Loading panel, resolved result, or honest source failure" },
+    { "id": "STATE-STEP1A-EMPLOYER-001", "name": "Employer resolution", "values": ["unresolved", "ambiguous", "selected", "single-match"], "ownerComponentId": "CMP-COMPANY-PANEL-001", "renderEffect": "Withhold or derive activeMatch" },
+    { "id": "STATE-STEP1A-AI-001", "name": "AI Moments", "values": ["off", "loading", "ready", "withheld"], "ownerComponentId": "CMP-COMPANY-PANEL-001", "renderEffect": "Choice, progress, analysis, or withholding" },
+    { "id": "STATE-STEP1A-FILTER-001", "name": "Opportunity filter", "values": ["unfiltered", "filtered", "no-match"], "ownerComponentId": "CMP-COMPANY-PANEL-001", "renderEffect": "Derived mcfFilteredSorted only" },
+    { "id": "STATE-STEP1A-COPY-001", "name": "Clipboard", "values": ["idle", "copied", "error"], "ownerComponentId": "CMP-COMPANY-PANEL-001", "renderEffect": "Copy icon, success check, or error message" },
+    { "id": "STATE-JOB-PREVIEW-001", "name": "Desktop detail preview", "values": ["closed", "open"], "ownerComponentId": "CMP-MCF-JOB-CARD-001", "renderEffect": "Tooltip preview; never essential" },
+    { "id": "STATE-JOB-MODAL-001", "name": "Role detail dialog", "values": ["closed", "open"], "ownerComponentId": "CMP-MCF-JOB-CARD-001", "renderEffect": "Portalled, modal, internally scrolling detail" }
+  ],
+  "transitions": [
+    { "id": "TRANS-STEP1A-LOAD-001", "fromStateId": "STATE-STEP1A-FETCH-001", "toStateId": "STATE-STEP1A-FETCH-001", "event": "COMPANY_QUERY_CHANGED", "guard": "companyQuery is present", "action": "Reset local state; concurrently POST /api/mcf and /api/careers", "success": "ready", "failure": "fallback per source; one failure does not blank the other" },
+    { "id": "TRANS-STEP1A-ORG-001", "fromStateId": "STATE-STEP1A-AI-001", "toStateId": "STATE-STEP1A-AI-001", "event": "EXPLORE_ORGANISATION_WORK", "guard": "activeMatch exists", "action": "loadDuties(activeMatch)", "success": "loading → ready or withheld", "failure": "off + agentsError" },
+    { "id": "TRANS-STEP1A-ROLELIST-001", "fromStateId": "STATE-STEP1A-EMPLOYER-001", "toStateId": "STATE-STEP1A-FILTER-001", "event": "ANALYSE_INDIVIDUAL_ROLE", "guard": "activeMatch exists", "action": "Scroll opportunityListRef into view", "success": "Role tools become the reading anchor", "failure": "No data mutation" },
+    { "id": "TRANS-STEP1A-FILTER-001", "fromStateId": "STATE-STEP1A-FILTER-001", "toStateId": "STATE-STEP1A-FILTER-001", "event": "SEARCH_SORT_OR_FILTER", "guard": "none", "action": "Recompute mcfFilteredSorted from activeJobs", "success": "filtered or no-match", "failure": "Source data remains unchanged" },
+    { "id": "TRANS-STEP1A-COPY-001", "fromStateId": "STATE-STEP1A-COPY-001", "toStateId": "STATE-STEP1A-COPY-001", "event": "COPY_LOADED_JSON", "guard": "activeJobs exists", "action": "Serialize activeJobs; Clipboard API with textarea fallback", "success": "copied → idle after 2200 ms", "failure": "error" },
+    { "id": "TRANS-JOB-PREVIEW-001", "fromStateId": "STATE-JOB-PREVIEW-001", "toStateId": "STATE-JOB-PREVIEW-001", "event": "POINTER_ENTER_OR_LEAVE", "guard": "compactMobile is false", "action": "Toggle hoverPreview", "success": "Tooltip opens or closes", "failure": "No mobile dependency" },
+    { "id": "TRANS-JOB-MODAL-OPEN-001", "fromStateId": "STATE-JOB-MODAL-001", "toStateId": "STATE-JOB-MODAL-001", "event": "MORE_DETAILS_ACTIVATE", "guard": "hasDetail", "action": "Close preview; set detailsOpen; portal dialog; lock body scroll; focus close", "success": "open", "failure": "No action when no details" },
+    { "id": "TRANS-JOB-MODAL-CLOSE-001", "fromStateId": "STATE-JOB-MODAL-001", "toStateId": "STATE-JOB-MODAL-001", "event": "ESCAPE_OVERLAY_OR_CLOSE", "guard": "dialog open", "action": "Close dialog; restore body scroll and trigger focus", "success": "closed", "failure": "Focus remains contained while open" },
+    { "id": "TRANS-JOB-ANALYSE-001", "fromStateId": "STATE-STEP1A-FILTER-001", "toStateId": "STATE-STEP1A-FILTER-001", "event": "ANALYSE_ROLE", "guard": "selected loaded job", "action": "handleAnalysePosting(job) prepares posting-grounded analysis and enters Step 3", "success": "Step 3 analysis starts", "failure": "Not represented as completed analysis" },
+    { "id": "TRANS-STEP3-AI-001", "fromStateId": "STATE-STEP1A-AI-001", "toStateId": "STATE-STEP1A-AI-001", "event": "STEP3_AI_MOMENTS_SELECTED", "guard": "activeMatch, matching query, agentsView=off, employer not started", "action": "autoOpenAiMoments effect calls loadDuties once", "success": "ready or withheld", "failure": "off + error" }
+  ],
+  "payloadFields": [
+    { "id": "PAY-COMPANY-NAME-001", "sourcePath": "matches[].displayName", "normalizedPath": "activeMatch.displayName", "type": "string", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Organisation identity", "absenceBehaviour": "WITHHOLD_ACTIVE_VIEW", "inferenceAllowed": false },
+    { "id": "PAY-COMPANY-COUNT-001", "sourcePath": "matches[].count", "normalizedPath": "activeMatch.count", "type": "integer", "provenance": "DETERMINISTIC_GROUP_COUNT", "renderTarget": "Loaded opportunities count", "absenceBehaviour": "SHOW_ZERO_OR_FALLBACK", "inferenceAllowed": false },
+    { "id": "PAY-COMPANY-JOBS-001", "sourcePath": "matches[].jobs[]", "normalizedPath": "activeJobs[]", "type": "array<job>", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Opportunity list and clipboard JSON", "absenceBehaviour": "EMPTY_STATE", "inferenceAllowed": false },
+    { "id": "PAY-JOB-TITLE-001", "sourcePath": "j.title", "normalizedPath": "job.title", "type": "string", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Opportunity card and dialog title", "absenceBehaviour": "EMPTY_STRING", "inferenceAllowed": false },
+    { "id": "PAY-JOB-LEVEL-001", "sourcePath": "j.positionLevels[].position|string", "normalizedPath": "job.positionLevels[]", "type": "array<string>", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Card header", "absenceBehaviour": "HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-APPLICANTS-001", "sourcePath": "j.metadata.totalNumberJobApplication", "normalizedPath": "job.applicationCount", "type": "integer|null", "transform": "Finite number or null; zero retained", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Card header", "absenceBehaviour": "HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-SALARY-001", "sourcePath": "j.salary.minimum|maximum", "normalizedPath": "job.salaryMin|job.salaryMax", "type": "number|null", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Plain card metadata", "absenceBehaviour": "MCF_SHOW_SALARY_ON_APPLICATION; CSG_HIDE_IF_ABSENT", "inferenceAllowed": false },
+    { "id": "PAY-JOB-TYPE-001", "sourcePath": "j.employmentTypes[]", "normalizedPath": "job.employmentType", "type": "string", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Plain card metadata", "absenceBehaviour": "HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-EXPERIENCE-001", "sourcePath": "j.minimumYearsExperience", "normalizedPath": "job.minimumYearsExperience", "type": "number|null", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Plain card metadata", "absenceBehaviour": "HIDDEN_UNLESS_GT_ZERO", "inferenceAllowed": false },
+    { "id": "PAY-JOB-DESCRIPTION-001", "sourcePath": "j.description", "normalizedPath": "job.description|job.responsibilitiesText", "type": "string", "transform": "Detail display capped at 1800 characters on word boundary", "provenance": "MYCAREERSFUTURE_RESPONSE_AND_DETERMINISTIC_EXTRACTION", "renderTarget": "Preview and dialog", "absenceBehaviour": "SECTION_HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-SKILLS-001", "sourcePath": "j.skills[]", "normalizedPath": "job.skills[]", "type": "array<string>", "transform": "Mapped, filtered, first 12", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Dialog", "absenceBehaviour": "SECTION_HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-CATEGORIES-001", "sourcePath": "j.categories[]", "normalizedPath": "job.categories[]", "type": "array<string>", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Dialog", "absenceBehaviour": "SECTION_HIDDEN", "inferenceAllowed": false },
+    { "id": "PAY-JOB-URL-001", "sourcePath": "j.metadata.jobDetailsUrl|j.uuid", "normalizedPath": "job.mcfUrl", "type": "url", "transform": "Supplied URL or deterministic MyCareersFuture UUID URL", "provenance": "MYCAREERSFUTURE_RESPONSE", "renderTarget": "Title and source link", "absenceBehaviour": "NORMALISER_REQUIRES_UUID", "inferenceAllowed": false }
+  ],
+  "invariants": [
+    { "id": "INV-STEP1A-EXACT-001", "statement": "Organisation names and opportunity counts are source values or deterministic grouping counts; none are authored.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-AMBIGUITY-001", "statement": "Organisation duties and AI Moments are withheld across ambiguous employer groups until one employer is selected.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-DESKTOP-001"] },
+    { "id": "INV-STEP1A-SOURCE-LABEL-001", "statement": "Compact phone identity names MyCareersFuture once; individual phone cards do not repeat the source.", "severity": "SHOULD", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-FILTER-NONMUTATING-001", "statement": "Search, sort and facets derive a displayed subset without mutating activeJobs.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-COPY-SCOPE-001", "statement": "Copy serializes all activeJobs, never the currently filtered subset, and labels the loaded count accessibly.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-APPLICANTS-001", "statement": "Applicant count appears only for a finite source value; zero remains valid and absence is hidden.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-LEVEL-001", "statement": "Position level comes only from positionLevels and is never inferred from the role title.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-PLAIN-META-001", "statement": "Salary, employment type and experience render as information text rather than decorative pills.", "severity": "SHOULD", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-PHONE-GEOMETRY-001", "statement": "Phone portrait and landscape use one opportunity column, no more than one pixel page overflow, compact header, and at least 44px required actions.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001"] },
+    { "id": "INV-STEP1A-DESKTOP-GEOMETRY-001", "statement": "Non-phone layout at 700px or wider uses two opportunity columns.", "severity": "SHOULD", "status": "VERIFIED", "testIds": ["TEST-STEP1A-DESKTOP-001"] },
+    { "id": "INV-JOB-DETAIL-A11Y-001", "statement": "Role detail is a labelled modal dialog with internal scroll, Escape/overlay/close dismissal, focus containment, and trigger-focus restoration.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001", "TEST-STEP1A-DESKTOP-001"] },
+    { "id": "INV-STEP1A-NO-HOVER-DEPENDENCY-001", "statement": "Hover preview is desktop-only and all essential detail remains available through tap or click.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-IP15-001", "TEST-STEP1A-DESKTOP-001"] },
+    { "id": "INV-STEP3-AI-ONCE-001", "statement": "Selecting Step 3 AI Moments automatically requests duty detail exactly once per employer and does not show a dormant trigger.", "severity": "MUST", "status": "VERIFIED", "testIds": ["TEST-STEP1A-DESKTOP-001"] }
+  ],
+  "responsiveProfiles": [
+    { "id": "RESP-IP15PM-P-001", "device": "iPhone 15 Pro Max", "viewport": { "width": 430, "height": 932 }, "orientation": "portrait", "evidenceType": "PLAYWRIGHT_DEVICE_EMULATION", "physicalDeviceEvidence": false, "rules": ["One opportunity column", "Header <=64px", "No horizontal overflow", "48px primary actions", "Scrollable dialog <= viewport", "No essential hover dependency"], "screenIds": ["SCR-STEP1A-IP15PM-P-001", "SCR-STEP1A-IP15PM-ROLE-001", "SCR-STEP1A-IP15PM-MODAL-001"] },
+    { "id": "RESP-IP15PM-L-001", "device": "iPhone 15 Pro Max", "viewport": { "width": 932, "height": 430 }, "orientation": "landscape", "evidenceType": "PLAYWRIGHT_DEVICE_EMULATION", "physicalDeviceEvidence": false, "rules": ["Phone classification retained", "One opportunity column", "No horizontal overflow"], "screenIds": ["SCR-STEP1A-IP15PM-L-001"] },
+    { "id": "RESP-DESKTOP-001", "device": "Desktop", "viewport": { "width": 2048, "height": 1280 }, "orientation": "landscape", "evidenceType": "PLAYWRIGHT_VIEWPORT", "physicalDeviceEvidence": false, "rules": ["Two opportunity columns", "Hover preview available", "Click dialog remains available"], "screenIds": ["SCR-STEP1A-DESKTOP-001"] }
+  ],
+  "tests": [
+    { "id": "TEST-STEP1A-IP15-001", "path": "v3.1/tests/step1a-iphone-browser.mjs", "kind": "AUTOMATED_BROWSER", "baselineCommit": "d250c36", "asserts": ["portrait/landscape geometry", "copy all loaded jobs", "role title filtering", "source metadata", "scrollable modal", "touch target"] },
+    { "id": "TEST-STEP1A-DESKTOP-001", "path": "v3.1/tests/company-flow-browser.mjs", "kind": "AUTOMATED_BROWSER", "baselineCommit": "d250c36", "asserts": ["desktop two-column grid", "hover preview", "modal", "Step 3 role path", "AI Moments auto-load once"] },
+    { "id": "TEST-RESPONSIVE-001", "path": "v3.1/tests/responsive-preflight-browser.mjs", "kind": "AUTOMATED_BROWSER", "baselineCommit": "d250c36", "asserts": ["seven-device responsive matrix"] }
+  ],
+  "evidenceRefs": [
+    { "id": "EVID-SOURCE-COMPANY-001", "type": "SOURCE", "path": "v3.1/src/App.jsx", "symbol": "CompanyPanel", "semanticAnchor": "data-testid=company-opportunity-grid", "baselineCommit": "d250c36" },
+    { "id": "EVID-SOURCE-CARD-001", "type": "SOURCE", "path": "v3.1/src/App.jsx", "symbol": "McfJobCard", "semanticAnchor": "aria-haspopup=dialog", "baselineCommit": "d250c36" },
+    { "id": "EVID-SOURCE-MODAL-001", "type": "SOURCE", "path": "v3.1/src/App.jsx", "symbol": "McfJobDetailModal", "semanticAnchor": "aria-labelledby=mcf-detail-title", "baselineCommit": "d250c36" },
+    { "id": "EVID-SOURCE-NORMALISE-001", "type": "SOURCE", "path": "v3.1/api/mcf.js", "symbol": "normaliseJob", "semanticAnchor": "metadata.totalNumberJobApplication", "baselineCommit": "d250c36" },
+    { "id": "EVID-TEST-IP15-001", "type": "AUTOMATED_TEST", "path": "v3.1/tests/step1a-iphone-browser.mjs", "symbol": "module body", "semanticAnchor": "Step 1a iPhone 15 Pro Max contract: PASS", "baselineCommit": "d250c36" },
+    { "id": "EVID-TEST-DESKTOP-001", "type": "AUTOMATED_TEST", "path": "v3.1/tests/company-flow-browser.mjs", "symbol": "module body", "semanticAnchor": "step3-ai-moments.png", "baselineCommit": "d250c36" }
+  ],
+  "gaps": [
+    { "id": "GAP-STEP1A-PHYSICAL-SAFARI-001", "title": "Physical iPhone Safari verification", "status": "PARTIAL", "reason": "User screenshots reveal real browser-chrome and orientation constraints, while the new clean Step 1a contract is verified in Playwright emulation, not recaptured on the user's physical device.", "affectedFeatureIds": ["FEAT-STEP1A-CARD-001", "FEAT-STEP1A-DETAIL-001"], "nextEvidenceNeeded": "Physical iPhone 15 Pro Max portrait and landscape captures of baseline d250c36" },
+    { "id": "GAP-STEP1A-LIVE-APPLICANTS-001", "title": "Live applicant-count availability", "status": "NOT_VERIFIABLE", "reason": "Fixture verifies the field mapping and withholding behavior, not whether a current live posting supplies the field.", "affectedFeatureIds": ["FEAT-STEP1A-META-001"], "nextEvidenceNeeded": "Captured live response with and without metadata.totalNumberJobApplication" },
+    { "id": "GAP-STEP1A-PRODUCTION-001", "title": "Production deployment", "status": "NOT_VERIFIABLE", "reason": "The mapped baseline is local and was not pushed, merged, or deployed.", "affectedFeatureIds": ["FEAT-STEP1A-IDENTITY-001", "FEAT-STEP1A-PERSPECTIVE-001", "FEAT-STEP1A-TOOLS-001", "FEAT-STEP1A-COPY-001", "FEAT-STEP1A-CARD-001", "FEAT-STEP1A-DETAIL-001", "FEAT-STEP1A-AI-001"], "nextEvidenceNeeded": "Approved merge, deployment identifier, and production smoke evidence" }
+  ],
+  "rubric": {
+    "id": "RUBRIC-AGENT-READABLE-001",
+    "thresholds": { "agentReady": 90, "usableWithGaps": 75, "humanOnly": 60 },
+    "categories": [
+      { "id": "RUBRIC-VISUAL-001", "name": "Visual traceability", "weight": 12 },
+      { "id": "RUBRIC-IDS-001", "name": "Stable identifier design", "weight": 12 },
+      { "id": "RUBRIC-SOURCE-001", "name": "Source locator quality", "weight": 10 },
+      { "id": "RUBRIC-STATES-001", "name": "State model completeness", "weight": 10 },
+      { "id": "RUBRIC-TRANSITIONS-001", "name": "Transition completeness", "weight": 10 },
+      { "id": "RUBRIC-PAYLOAD-001", "name": "Payload lineage", "weight": 12 },
+      { "id": "RUBRIC-INVARIANTS-001", "name": "Invariant testability", "weight": 12 },
+      { "id": "RUBRIC-RESPONSIVE-001", "name": "Responsive and physical-device evidence", "weight": 10 },
+      { "id": "RUBRIC-EVIDENCE-001", "name": "Evidence status discipline", "weight": 6 },
+      { "id": "RUBRIC-DRIFT-001", "name": "Drift detection", "weight": 6 }
+    ],
+    "mandatoryGates": ["Unique IDs", "Resolvable references", "Callout-to-feature traceability", "Payload absence behavior", "Atomic testable invariants", "Fixture/live separation", "Recorded baseline", "iPhone portrait reachability", "No inferred applicant count", "Deterministic validator"]
+  }
+}
