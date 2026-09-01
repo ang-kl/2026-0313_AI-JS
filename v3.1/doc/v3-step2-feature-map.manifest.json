@@ -1,0 +1,1120 @@
+{
+  "$schema": "./v3-feature-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "map": {
+    "id": "MAP-V3-STEP2-001",
+    "title": "V3 Step 2 Agent-Readable Feature Map",
+    "scope": "Posting Evidence Picker",
+    "sourceBoundary": "Current v3.1 Step 2 implementation only; no Step 2 behaviour redesign.",
+    "status": "PUBLISHED",
+    "entryTransitionId": "TRANS-STEP2-ENTER-001",
+    "exitTransitionId": "TRANS-STEP2-ANALYSE-001",
+    "masterIndex": "v3-feature-map-index.json",
+    "relatedMaps": [
+      {
+        "map": "MAP-V3-STEP1A-001",
+        "relationship": "precedes",
+        "contract": "Step 1a selects or types the role query that Step 2 receives."
+      },
+      {
+        "map": "MAP-V3-STEP3-001",
+        "relationship": "feeds",
+        "contract": "Step 2 hands one selected posting, including source text, into Step 3 role analysis."
+      }
+    ]
+  },
+  "provenance": {
+    "implementationCommit": {
+      "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
+      "branch": "main",
+      "role": "Source evidence baseline inspected for current Step 2 behaviour.",
+      "verifiedBy": [
+        "git rev-parse HEAD",
+        "source inspection of v3.1/src/App.jsx, v3.1/api/mcf.js, v3.1/api/careers.js, v3.1/api/ssoc.js"
+      ]
+    },
+    "mergeCommit": {
+      "sha": null,
+      "status": "MAP_BRANCH_NOT_MERGED",
+      "branch": "codex/map-v3-step2-001-20260901",
+      "notes": "This feature-map package is branch work; no merge commit exists yet."
+    },
+    "deploymentStatus": {
+      "status": "NOT_CHANGED_OR_REVERIFIED",
+      "railwayConfigurationChanged": false,
+      "notes": "This package adds documentation and tests only. It does not alter Railway configuration or production runtime."
+    },
+    "physicalRuntimeVerification": {
+      "status": "NOT_VERIFIED_FOR_STEP2",
+      "evidenceType": "NONE",
+      "notes": "The map includes browser evidence from deterministic fixtures; it does not claim a physical-phone production runtime pass."
+    }
+  },
+  "screens": [
+    {
+      "id": "SCR-STEP2-IP15PM-P-001",
+      "title": "Phone portrait ready state",
+      "asset": "feature-map-assets/step2-iphone-portrait.png",
+      "sha256": "179c74eab2a5844036a82a5331f0af009206ee215597d22d22cad013e8f226a6",
+      "viewport": {
+        "width": 430,
+        "height": 932,
+        "deviceScaleFactor": 3,
+        "profile": "iPhone 15 Pro Max portrait fixture"
+      },
+      "responsiveProfileId": "RESP-STEP2-IP15PM-P-001",
+      "stateId": "STATE-STEP2-READY-001",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001",
+        "FEAT-STEP2-MATCH-001",
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-EXPOSURE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-IP15PM-FILTER-001",
+      "title": "Phone portrait match-filter state",
+      "asset": "feature-map-assets/step2-iphone-filter.png",
+      "sha256": "915475676110f177b1eff122818b7e673e76d7dd242a110198a363004d1d7ad7",
+      "viewport": {
+        "width": 430,
+        "height": 932,
+        "deviceScaleFactor": 3,
+        "profile": "iPhone 15 Pro Max portrait fixture"
+      },
+      "responsiveProfileId": "RESP-STEP2-IP15PM-P-001",
+      "stateId": "STATE-STEP2-FILTER-001",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001",
+        "FEAT-STEP2-SOURCE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-IP15PM-SELECT-001",
+      "title": "Phone portrait full posting modal",
+      "asset": "feature-map-assets/step2-iphone-full-ad.png",
+      "sha256": "035e5d40af3f186555ac4ebe45a37b0f81dda72fcfed1691c7f9538c55e7181e",
+      "viewport": {
+        "width": 430,
+        "height": 932,
+        "deviceScaleFactor": 3,
+        "profile": "iPhone 15 Pro Max portrait fixture"
+      },
+      "responsiveProfileId": "RESP-STEP2-IP15PM-P-001",
+      "stateId": "STATE-STEP2-SELECTED-001",
+      "featureIds": [
+        "FEAT-STEP2-EMPLOYER-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-DESKTOP-001",
+      "title": "Desktop ready state",
+      "asset": "feature-map-assets/step2-desktop.png",
+      "sha256": "6ac00d89dd5b67d7edc2a9d77667881b6cdd6fd097a92e8a1c24f2ba4ae03d7b",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "deviceScaleFactor": 1,
+        "profile": "desktop fixture"
+      },
+      "responsiveProfileId": "RESP-STEP2-DESKTOP-001",
+      "stateId": "STATE-STEP2-READY-001",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001",
+        "FEAT-STEP2-OKF-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "CMP-STEP2-PICKER-001",
+      "name": "PostingEvidencePicker",
+      "type": "React component",
+      "path": "v3.1/src/App.jsx",
+      "symbol": "PostingEvidencePicker",
+      "semanticAnchor": "data-testid=step2-responsive-surface",
+      "sourceLines": "12985-13748",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001",
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-PICKER-001"
+      ]
+    },
+    {
+      "id": "CMP-STEP2-FACET-001",
+      "name": "Step2Facet",
+      "type": "React component",
+      "path": "v3.1/src/App.jsx",
+      "symbol": "Step2Facet",
+      "semanticAnchor": "className=step2-facet-button",
+      "sourceLines": "12815-12858",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-FACETS-001"
+      ]
+    },
+    {
+      "id": "CMP-STEP2-CARD-001",
+      "name": "Step 2 posting card",
+      "type": "render function",
+      "path": "v3.1/src/App.jsx",
+      "symbol": "renderCard",
+      "semanticAnchor": "Match basis:",
+      "sourceLines": "13268-13372",
+      "featureIds": [
+        "FEAT-STEP2-MATCH-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-CARDS-001"
+      ]
+    },
+    {
+      "id": "CMP-STEP2-FULLAD-001",
+      "name": "Full job posting modal",
+      "type": "React portal",
+      "path": "v3.1/src/App.jsx",
+      "symbol": "PostingEvidencePicker",
+      "semanticAnchor": "aria-label=\"Full job posting\"",
+      "sourceLines": "13645-13727",
+      "featureIds": [
+        "FEAT-STEP2-EMPLOYER-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-MODAL-001"
+      ]
+    },
+    {
+      "id": "API-STEP2-MCF-001",
+      "name": "MyCareersFuture jobs API",
+      "type": "serverless endpoint",
+      "path": "v3.1/api/mcf.js",
+      "symbol": "normaliseJob",
+      "semanticAnchor": "action: \"jobs\"",
+      "sourceLines": "141-209, 560-655",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-MCF-001"
+      ]
+    },
+    {
+      "id": "API-STEP2-CAREERS-001",
+      "name": "careers.gov.sg jobs API",
+      "type": "serverless endpoint",
+      "path": "v3.1/api/careers.js",
+      "symbol": "normaliseCsgJob",
+      "semanticAnchor": "careers.gov.sg",
+      "sourceLines": "123-160, 317-363",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-CAREERS-001"
+      ]
+    },
+    {
+      "id": "API-STEP2-SSOC-001",
+      "name": "SSOC classification API",
+      "type": "serverless endpoint",
+      "path": "v3.1/api/ssoc.js",
+      "symbol": "classifySsocJobsFast",
+      "semanticAnchor": "classifyTitles",
+      "sourceLines": "600-636",
+      "featureIds": [
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-EXPOSURE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-SSOC-001"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "FEAT-STEP2-RESULTS-001",
+      "name": "Merged live posting results",
+      "status": "VERIFIED",
+      "description": "Step 2 fetches MyCareersFuture and careers.gov.sg postings for the role query, tolerates one source failing, tags source provenance, merges the lists, then sorts by deterministic match and recency.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001",
+        "API-STEP2-MCF-001",
+        "API-STEP2-CAREERS-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-LOAD-001",
+        "STATE-STEP2-READY-001",
+        "STATE-STEP2-ERROR-001"
+      ],
+      "transitionIds": [
+        "TRANS-STEP2-ENTER-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-QUERY-001",
+        "PAY-STEP2-MCF-001",
+        "PAY-STEP2-CAREERS-001",
+        "PAY-STEP2-POSTING-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-PICKER-001",
+        "EVID-STEP2-SRC-MCF-001",
+        "EVID-STEP2-SRC-CAREERS-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-SOURCE-001",
+        "INV-STEP2-NO-PREQUEST-GATE-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-SOURCE-001",
+      "name": "Source-separated evidence panels",
+      "status": "VERIFIED",
+      "description": "The ready state keeps MyCareersFuture and careers.gov.sg panels visible as separate source containers, with per-source counts derived from the same filtered list.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-P-001",
+        "SCR-STEP2-IP15PM-FILTER-001",
+        "SCR-STEP2-DESKTOP-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-PICKER-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-SOURCE-PARITY-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-MATCH-001",
+      "name": "Visible deterministic match basis",
+      "status": "VERIFIED",
+      "description": "Each posting receives a visible match tier such as exact title, title variant, nuance, R&R match or related; the card badge and Match facet share the same deterministic classifier.",
+      "componentIds": [
+        "CMP-STEP2-CARD-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-QUERY-001",
+        "PAY-STEP2-POSTING-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-MATCH-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-MATCH-DISCLOSURE-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-FILTER-001",
+      "name": "Non-mutating search, sort and facets",
+      "status": "VERIFIED",
+      "description": "Search text, sort and facet selections operate on derived cards and can be cleared without mutating fetched posting evidence or source classification payloads.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001",
+        "CMP-STEP2-FACET-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-FILTER-001"
+      ],
+      "transitionIds": [
+        "TRANS-STEP2-FILTER-001",
+        "TRANS-STEP2-CLEAR-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-POSTING-001",
+        "PAY-STEP2-SSOC-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-FACETS-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-FILTER-NONMUTATING-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-CLASSIFY-001",
+      "name": "SSOC classification pass",
+      "status": "VERIFIED",
+      "description": "After source results arrive, Step 2 sends up to 80 posting titles, skills, categories and descriptions to /api/ssoc with action classifyTitles and retains a per-posting classification map.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001",
+        "API-STEP2-SSOC-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-WITHHELD-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-SSOC-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-CLASSIFY-001",
+        "EVID-STEP2-SRC-SSOC-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-CLASSIFICATION-001",
+        "INV-STEP2-WITHHOLD-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-EXPOSURE-001",
+      "name": "AI exposure overview",
+      "status": "VERIFIED",
+      "description": "Classified SSOC rows are mapped through the SSOC-to-ISCO table and exposure engine to produce AI exposure bands, top-family counts and withheld-classification counts.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001",
+        "API-STEP2-SSOC-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-SSOC-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-P-001",
+        "SCR-STEP2-DESKTOP-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-EXPOSURE-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-CLASSIFICATION-001",
+        "INV-STEP2-WITHHOLD-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-EMPLOYER-001",
+      "name": "Registered employer disclosure",
+      "status": "VERIFIED",
+      "description": "Opening a posting lazily checks registered-employer evidence and shows only exact ACRA matches, plus same-employer counts scoped to the current result set.",
+      "componentIds": [
+        "CMP-STEP2-FULLAD-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-SELECTED-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-EMPLOYER-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-SELECT-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-MODAL-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-SELECTION-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-SELECT-001",
+      "name": "Posting selection and Step 3 handoff",
+      "status": "VERIFIED",
+      "description": "Selecting a posting opens the verbatim full-ad modal; Analyse passes the selected posting object into the Step 3 analysis path rather than a generic title-only query.",
+      "componentIds": [
+        "CMP-STEP2-CARD-001",
+        "CMP-STEP2-FULLAD-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-SELECTED-001"
+      ],
+      "transitionIds": [
+        "TRANS-STEP2-SELECT-001",
+        "TRANS-STEP2-ANALYSE-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-POSTING-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-CARDS-001",
+        "EVID-STEP2-SRC-APP-MODAL-001",
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-SELECTION-001",
+        "INV-STEP2-STEP3-HANDOFF-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-OKF-001",
+      "name": "Open Knowledge Format evidence bundle",
+      "status": "VERIFIED",
+      "description": "The picker exposes deterministic OKF documents for the index, postings, sectors and log without adding model-authored evidence.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001"
+      ],
+      "payloadFieldIds": [
+        "PAY-STEP2-POSTING-001",
+        "PAY-STEP2-SSOC-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-DESKTOP-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-OKF-001"
+      ],
+      "invariantIds": [
+        "INV-STEP2-SOURCE-001"
+      ]
+    }
+  ],
+  "states": [
+    {
+      "id": "STATE-STEP2-LOAD-001",
+      "name": "Loading and curation progress",
+      "description": "The progress banner tracks MCF, careers.gov.sg and SSOC classification independently while source requests are in flight.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-PICKER-001"
+      ]
+    },
+    {
+      "id": "STATE-STEP2-READY-001",
+      "name": "Ready with merged postings",
+      "description": "The ready state renders counts, source panels, cards, overview and index from the merged result set.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-SOURCE-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-P-001",
+        "SCR-STEP2-DESKTOP-001"
+      ]
+    },
+    {
+      "id": "STATE-STEP2-FILTER-001",
+      "name": "Filtered derived view",
+      "description": "Search, sort and facets narrow the derived card list while preserving the original fetched job array and classification map.",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-FILTER-001"
+      ]
+    },
+    {
+      "id": "STATE-STEP2-WITHHELD-001",
+      "name": "Withheld classifications remain visible",
+      "description": "Rows without a classified SSOC code stay in the cards and overview as Unclassified or withheld; they are not silently dropped.",
+      "featureIds": [
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-EXPOSURE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "STATE-STEP2-SELECTED-001",
+      "name": "Selected posting full-ad view",
+      "description": "A card click opens the verbatim full posting and the registered-employer block for the selected posting.",
+      "featureIds": [
+        "FEAT-STEP2-EMPLOYER-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "screenIds": [
+        "SCR-STEP2-IP15PM-SELECT-001"
+      ]
+    },
+    {
+      "id": "STATE-STEP2-ERROR-001",
+      "name": "Source error state",
+      "description": "If source fetching fails completely, the picker renders a failure message rather than fabricating results.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-SRC-APP-PICKER-001"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "id": "TRANS-STEP2-ENTER-001",
+      "name": "Browse SG jobs entry",
+      "from": "Landing mode",
+      "toStateId": "STATE-STEP2-LOAD-001",
+      "description": "User chooses Browse SG jobs, enters a role title and starts the Step 2 posting evidence flow.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "TRANS-STEP2-FILTER-001",
+      "name": "Apply derived filter",
+      "fromStateId": "STATE-STEP2-READY-001",
+      "toStateId": "STATE-STEP2-FILTER-001",
+      "description": "User applies text, sort or facet controls; the rendered source panels recompute from derived cards.",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "TRANS-STEP2-CLEAR-001",
+      "name": "Clear derived filters",
+      "fromStateId": "STATE-STEP2-FILTER-001",
+      "toStateId": "STATE-STEP2-READY-001",
+      "description": "Clear all restores the full derived set without re-fetching or mutating the source payload.",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "TRANS-STEP2-SELECT-001",
+      "name": "Open full posting",
+      "fromStateId": "STATE-STEP2-READY-001",
+      "toStateId": "STATE-STEP2-SELECTED-001",
+      "description": "User opens one posting card and the full-ad modal renders that posting's source text.",
+      "featureIds": [
+        "FEAT-STEP2-SELECT-001",
+        "FEAT-STEP2-EMPLOYER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "TRANS-STEP2-ANALYSE-001",
+      "name": "Analyse selected posting",
+      "fromStateId": "STATE-STEP2-SELECTED-001",
+      "to": "Step 3 role analysis",
+      "description": "The Analyse button calls the handoff with the selected posting payload.",
+      "featureIds": [
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    }
+  ],
+  "payloadFields": [
+    {
+      "id": "PAY-STEP2-QUERY-001",
+      "name": "Role title query",
+      "source": "User-entered landing input or Step 1a selected role title",
+      "required": true,
+      "fields": [
+        "title"
+      ],
+      "absenceBehaviour": "Do not fetch Step 2 postings without a query; return to the landing/search state.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-MCF-001",
+      "name": "MyCareersFuture posting payload",
+      "source": "v3.1/api/mcf.js normaliseJob",
+      "required": false,
+      "fields": [
+        "uuid",
+        "title",
+        "employer",
+        "postedCompanyName",
+        "hiringCompanyName",
+        "salaryMin",
+        "salaryMax",
+        "employmentType",
+        "postedDate",
+        "expiryDate",
+        "applicationCount",
+        "minimumYearsExperience",
+        "positionLevels",
+        "schemes",
+        "description",
+        "responsibilitiesText",
+        "categories",
+        "skills",
+        "mcfUrl"
+      ],
+      "absenceBehaviour": "Show zero MCF cards and keep any careers.gov.sg cards; if all source lists fail, show the Step 2 error/empty state.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-CAREERS-001",
+      "name": "careers.gov.sg posting payload",
+      "source": "v3.1/api/careers.js normaliseCsgJob",
+      "required": false,
+      "fields": [
+        "uuid",
+        "title",
+        "employer",
+        "postedCompanyName",
+        "hiringCompanyName",
+        "salaryMin",
+        "salaryMax",
+        "employmentType",
+        "postedDate",
+        "expiryDate",
+        "minimumYearsExperience",
+        "positionLevels",
+        "schemes",
+        "description",
+        "responsibilitiesText",
+        "categories",
+        "skills",
+        "mcfUrl",
+        "source"
+      ],
+      "absenceBehaviour": "Show zero careers.gov.sg cards and keep any MCF cards; never fabricate public-service postings.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-SSOC-001",
+      "name": "SSOC classification payload",
+      "source": "v3.1/src/App.jsx classifyPostings and v3.1/api/ssoc.js classifyTitles",
+      "required": false,
+      "fields": [
+        "id",
+        "title",
+        "skills",
+        "categories",
+        "description",
+        "node.code",
+        "hierarchy.major_group",
+        "hierarchy.sub_major_group",
+        "hierarchy.minor_group",
+        "confidence"
+      ],
+      "absenceBehaviour": "Keep posting rows visible as Unclassified/withheld and do not invent SSOC, ISCO or AI exposure bands.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-POSTING-001",
+      "name": "Selected posting handoff object",
+      "source": "PostingEvidencePicker renderCard and full-ad modal",
+      "required": true,
+      "fields": [
+        "uuid",
+        "title",
+        "employer",
+        "source",
+        "description",
+        "responsibilitiesText",
+        "skills",
+        "categories",
+        "mcfUrl"
+      ],
+      "absenceBehaviour": "Do not proceed as a selected-posting Step 3 run; fall back to a title-only role analysis only outside this selected-posting transition.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-EMPLOYER-001",
+      "name": "Registered employer lookup",
+      "source": "fetchEmployerRegistration and fetchEmployerGeocode in v3.1/src/App.jsx",
+      "required": false,
+      "fields": [
+        "matched",
+        "source",
+        "postal",
+        "building",
+        "street",
+        "namesakes"
+      ],
+      "absenceBehaviour": "Show a no-exact-match or map-unavailable disclosure; never infer registered address from job-ad text.",
+      "inferenceAllowed": false
+    }
+  ],
+  "invariants": [
+    {
+      "id": "INV-STEP2-SOURCE-001",
+      "statement": "Every rendered posting card must retain the source posting object and source platform provenance.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-OKF-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-PAYLOAD-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-CLASSIFICATION-001",
+      "statement": "SSOC classification is a secondary pass over fetched postings, not a precondition for rendering source cards.",
+      "featureIds": [
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-EXPOSURE-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-FILTER-NONMUTATING-001",
+      "statement": "Search, sort and facet controls only change the derived view and can be cleared back to the original merged source set.",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-NO-PREQUEST-GATE-001",
+      "statement": "The Step 2 source request is title-based and must not add an SSOC, occupation or AI-exposure prefilter before jobs are fetched.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-PAYLOAD-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-MATCH-DISCLOSURE-001",
+      "statement": "The visible match badge and Match facet must use the same deterministic match-tier classifier.",
+      "featureIds": [
+        "FEAT-STEP2-MATCH-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-SELECTION-001",
+      "statement": "Opening a card must show the selected posting's verbatim source text and selected employer evidence, not a blended or inferred posting.",
+      "featureIds": [
+        "FEAT-STEP2-EMPLOYER-001",
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-WITHHOLD-001",
+      "statement": "Rows without source-backed SSOC classification remain visible as withheld/Unclassified and cannot be promoted into inferred occupation evidence.",
+      "featureIds": [
+        "FEAT-STEP2-CLASSIFY-001",
+        "FEAT-STEP2-EXPOSURE-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-MAP-CONTRACT-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-PHONE-GEOMETRY-001",
+      "statement": "Phone portrait Step 2 renders as a single-column evidence surface without horizontal document overflow.",
+      "featureIds": [
+        "FEAT-STEP2-RESULTS-001",
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-RESPONSIVE-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-SOURCE-PARITY-001",
+      "statement": "Source panel separation is preserved after derived filtering; a filter cannot merge or relabel source provenance.",
+      "featureIds": [
+        "FEAT-STEP2-SOURCE-001",
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-STEP3-HANDOFF-001",
+      "statement": "The selected-posting Analyse transition carries the selected posting payload into the Step 3 analysis path.",
+      "featureIds": [
+        "FEAT-STEP2-SELECT-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    }
+  ],
+  "responsiveProfiles": [
+    {
+      "id": "RESP-STEP2-IP15PM-P-001",
+      "name": "Phone portrait evidence stack",
+      "viewport": "430x932",
+      "contract": {
+        "bodyColumns": 1,
+        "sourceColumns": 1,
+        "cardColumns": 1,
+        "horizontalOverflowAllowed": false
+      },
+      "screenIds": [
+        "SCR-STEP2-IP15PM-P-001",
+        "SCR-STEP2-IP15PM-FILTER-001",
+        "SCR-STEP2-IP15PM-SELECT-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-RESPONSIVE-001"
+      ]
+    },
+    {
+      "id": "RESP-STEP2-IP15PM-L-001",
+      "name": "Phone landscape source comparison",
+      "viewport": "844x390",
+      "contract": {
+        "bodyColumns": 1,
+        "sourceColumns": 2,
+        "cardColumns": 1,
+        "horizontalOverflowAllowed": false
+      },
+      "testIds": [
+        "TEST-STEP2-RESPONSIVE-001"
+      ]
+    },
+    {
+      "id": "RESP-STEP2-DESKTOP-001",
+      "name": "Desktop index plus source comparison",
+      "viewport": "1440x1000",
+      "contract": {
+        "bodyColumns": 2,
+        "sourceColumns": 2,
+        "cardColumns": 2,
+        "horizontalOverflowAllowed": false
+      },
+      "screenIds": [
+        "SCR-STEP2-DESKTOP-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-RESPONSIVE-001"
+      ]
+    }
+  ],
+  "tests": [
+    {
+      "id": "TEST-STEP2-BROWSER-001",
+      "name": "Step 2 feature-map browser path",
+      "type": "Playwright browser gate",
+      "path": "v3.1/tests/step2-feature-map-browser.mjs",
+      "command": "node tests/step2-feature-map-browser.mjs",
+      "verifiesInvariantIds": [
+        "INV-STEP2-SOURCE-001",
+        "INV-STEP2-CLASSIFICATION-001",
+        "INV-STEP2-FILTER-NONMUTATING-001",
+        "INV-STEP2-NO-PREQUEST-GATE-001",
+        "INV-STEP2-MATCH-DISCLOSURE-001",
+        "INV-STEP2-SELECTION-001",
+        "INV-STEP2-WITHHOLD-001",
+        "INV-STEP2-PHONE-GEOMETRY-001",
+        "INV-STEP2-SOURCE-PARITY-001",
+        "INV-STEP2-STEP3-HANDOFF-001"
+      ]
+    },
+    {
+      "id": "TEST-STEP2-PAYLOAD-001",
+      "name": "Step 2 payload boundary checks",
+      "type": "Playwright route assertions",
+      "path": "v3.1/tests/step2-feature-map-browser.mjs",
+      "command": "node tests/step2-feature-map-browser.mjs",
+      "verifiesInvariantIds": [
+        "INV-STEP2-SOURCE-001",
+        "INV-STEP2-NO-PREQUEST-GATE-001"
+      ]
+    },
+    {
+      "id": "TEST-STEP2-RESPONSIVE-001",
+      "name": "Existing Step 2 responsive preflight",
+      "type": "Playwright browser gate",
+      "path": "v3.1/tests/responsive-preflight-browser.mjs",
+      "command": "node tests/responsive-preflight-browser.mjs",
+      "verifiesInvariantIds": [
+        "INV-STEP2-PHONE-GEOMETRY-001"
+      ]
+    },
+    {
+      "id": "TEST-STEP2-MAP-CONTRACT-001",
+      "name": "Feature map manifest and index contract",
+      "type": "Node contract test",
+      "path": "v3.1/tests/feature-map-contract.mjs",
+      "command": "node tests/feature-map-contract.mjs",
+      "verifiesInvariantIds": [
+        "INV-STEP2-WITHHOLD-001"
+      ]
+    }
+  ],
+  "evidenceRefs": [
+    {
+      "id": "EVID-STEP2-SRC-APP-PICKER-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "12985-13748",
+      "summary": "PostingEvidencePicker fetches MCF and careers.gov.sg postings, merges source-tagged jobs, renders progress, overview, source panels, index and full-ad modal."
+    },
+    {
+      "id": "EVID-STEP2-SRC-APP-FACETS-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "12815-12858, 13126-13158",
+      "summary": "Step2Facet and filtered/sorted derived lists implement text search, facets, sort and clear-all without altering source jobs."
+    },
+    {
+      "id": "EVID-STEP2-SRC-APP-CARDS-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "13268-13372",
+      "summary": "Posting cards disclose match basis, source facts, SSOC chips, salary/experience metadata and the Analyse selected-posting action."
+    },
+    {
+      "id": "EVID-STEP2-SRC-APP-MODAL-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "13645-13727",
+      "summary": "The full posting modal portals the selected job ad, exact registered employer evidence, verbatim text and Analyse this posting action."
+    },
+    {
+      "id": "EVID-STEP2-SRC-APP-CLASSIFY-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "1568-1622",
+      "summary": "classifyPostings sends action classifyTitles, retains initialized null rows for missing classifications, and maps source-backed SSOC to department, sector, function and exposure band."
+    },
+    {
+      "id": "EVID-STEP2-SRC-MATCH-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "12460-12495",
+      "summary": "The query-to-posting match classifier tags exact title, title variant, nuance, R&R match and related tiers before sorting."
+    },
+    {
+      "id": "EVID-STEP2-SRC-EXPOSURE-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "1544-1622",
+      "summary": "SSOC-to-ISCO mapping, exposureForIsco and aioeToBand are used only when a source-backed SSOC classification exists."
+    },
+    {
+      "id": "EVID-STEP2-SRC-OKF-001",
+      "type": "SOURCE",
+      "path": "v3.1/src/App.jsx",
+      "lines": "12760-12892, 13260-13263",
+      "summary": "Step 2 OKF builders create deterministic markdown documents from posting, sector and log state."
+    },
+    {
+      "id": "EVID-STEP2-SRC-MCF-001",
+      "type": "SOURCE",
+      "path": "v3.1/api/mcf.js",
+      "lines": "141-209, 560-655",
+      "summary": "MyCareersFuture normalization preserves source fields and the jobs action returns a title/skills/keyword cascade without Step 2 prefiltering."
+    },
+    {
+      "id": "EVID-STEP2-SRC-CAREERS-001",
+      "type": "SOURCE",
+      "path": "v3.1/api/careers.js",
+      "lines": "123-160, 317-363",
+      "summary": "careers.gov.sg normalization maps public-service postings into the same client field set with source careers.gov.sg."
+    },
+    {
+      "id": "EVID-STEP2-SRC-SSOC-001",
+      "type": "SOURCE",
+      "path": "v3.1/api/ssoc.js",
+      "lines": "600-636",
+      "summary": "The SSOC endpoint accepts action classifyTitles for job-title classification."
+    },
+    {
+      "id": "EVID-STEP2-BROWSER-001",
+      "type": "AUTOMATED_TEST",
+      "path": "v3.1/tests/step2-feature-map-browser.mjs",
+      "summary": "Executable browser fixture verifies Step 2 entry, merged source panels, non-prefiltered MCF request, all-source SSOC classification, withheld row visibility, exact-title filter parity, full-ad disclosure and selected-posting handoff."
+    },
+    {
+      "id": "EVID-STEP2-RESPONSIVE-001",
+      "type": "AUTOMATED_TEST",
+      "path": "v3.1/tests/responsive-preflight-browser.mjs",
+      "summary": "Existing responsive preflight verifies Step 2 source/body/card column contracts across phone, tablet and desktop profiles."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-STEP2-PHYSICAL-RUNTIME-001",
+      "title": "Physical Step 2 runtime verification not claimed",
+      "severity": "documented",
+      "description": "This map does not include a physical iPhone/Safari production runtime capture. Browser fixtures are separate from physical-runtime provenance."
+    },
+    {
+      "id": "GAP-STEP2-DEPLOYMENT-STATUS-001",
+      "title": "Deployment status not reverified for this docs branch",
+      "severity": "documented",
+      "description": "The branch changes docs/tests only and does not alter deployment configuration. Deployment status is intentionally not collapsed into implementation or runtime evidence."
+    }
+  ],
+  "rubric": {
+    "id": "RUBRIC-MAP-V3-STEP2-001",
+    "title": "Step 2 agent-readability rubric",
+    "categories": [
+      {
+        "id": "RUBRIC-STEP2-PROVENANCE-001",
+        "name": "Separated provenance",
+        "required": true,
+        "requiredFeatureIds": [
+          "FEAT-STEP2-RESULTS-001",
+          "FEAT-STEP2-SELECT-001"
+        ]
+      },
+      {
+        "id": "RUBRIC-STEP2-SOURCE-001",
+        "name": "Source evidence never flattened",
+        "required": true,
+        "requiredFeatureIds": [
+          "FEAT-STEP2-SOURCE-001",
+          "FEAT-STEP2-EMPLOYER-001"
+        ]
+      },
+      {
+        "id": "RUBRIC-STEP2-PAYLOAD-001",
+        "name": "Missing evidence withheld",
+        "required": true,
+        "requiredFeatureIds": [
+          "FEAT-STEP2-CLASSIFY-001",
+          "FEAT-STEP2-EXPOSURE-001"
+        ]
+      },
+      {
+        "id": "RUBRIC-STEP2-HANDOFF-001",
+        "name": "Selected posting flows to Step 3",
+        "required": true,
+        "requiredFeatureIds": [
+          "FEAT-STEP2-SELECT-001"
+        ]
+      }
+    ]
+  }
+}

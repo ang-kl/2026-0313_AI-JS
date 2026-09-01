@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>V3 Agent-Readable Feature Map Index</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16202e;
+      --muted: #64748b;
+      --line: #d9dee6;
+      --paper: #fbfaf8;
+      --panel: #ffffff;
+      --blue: #142a8e;
+      --blue-soft: #eaf0ff;
+      --orange: #a15c0a;
+      --orange-soft: #fff1dc;
+      --green: #2f7d4f;
+      --green-soft: #eef7f0;
+      --teal: #0b7285;
+      --teal-soft: #e3f5fb;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 34px 18px 56px;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.08; letter-spacing: 0; }
+    h1 { font-size: clamp(2rem, 7vw, 4.5rem); max-width: 980px; }
+    h2 { font-size: clamp(1.3rem, 4vw, 2rem); margin: 32px 0 12px; }
+    h3 { font-size: 1.05rem; }
+    p { margin: 0; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    .kicker {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .summary {
+      color: #3a4456;
+      font-size: 1rem;
+      max-width: 780px;
+      margin-top: 14px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .map-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--blue);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .map-card:nth-child(2) { border-top-color: var(--green); }
+    .map-card:nth-child(3) { border-top-color: var(--teal); opacity: .88; }
+    .id {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .7rem;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .68rem;
+      border: 1px solid var(--line);
+      color: #475569;
+      background: #f4f6fa;
+    }
+    .status.published { color: #1f5d3b; background: var(--green-soft); border-color: #cce6d4; }
+    .status.planned { color: #0b5e74; background: var(--teal-soft); border-color: #bce6f0; }
+    .links {
+      display: grid;
+      gap: 5px;
+      margin-top: auto;
+      font-size: .86rem;
+    }
+    .chain {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr) 44px minmax(0, 1fr);
+      align-items: center;
+    }
+    .chain-node {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 120px;
+    }
+    .arrow {
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      display: table;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: .86rem;
+    }
+    th {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      background: #f4f6fa;
+    }
+    tr:last-child td { border-bottom: 0; }
+    code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .88em;
+      background: #eef1f5;
+      border: 1px solid #dfe5ec;
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+    .preserve {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .preserve div {
+      background: var(--orange-soft);
+      border: 1px solid #f0cd9e;
+      border-radius: 8px;
+      padding: 12px;
+      color: #643504;
+      font-size: .9rem;
+    }
+    @media (max-width: 900px) {
+      .cards, .preserve, .chain {
+        grid-template-columns: 1fr;
+      }
+      .arrow { text-align: left; padding-left: 10px; }
+      main { padding: 24px 12px 44px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="kicker">IDX-V3-FEATURE-MAPS-001</div>
+      <h1>V3 Agent-Readable Feature Map Index</h1>
+      <p class="summary">Master registry for the v3.1 role-analysis workflow maps. It links the published Step 1a map, the published Step 2 map and the planned Step 3 map while preserving separate provenance fields for implementation commit, merge commit, deployment status and physical-runtime verification.</p>
+      <p class="summary">Machine-readable source: <a href="v3-feature-map-index.json">v3-feature-map-index.json</a>.</p>
+    </header>
+
+    <h2>Workflow Chain</h2>
+    <section class="chain" aria-label="Feature map sequence">
+      <article class="chain-node" data-map-id="MAP-V3-STEP1A-001">
+        <div class="id">MAP-V3-STEP1A-001</div>
+        <h3>Step 1a Role Selection</h3>
+        <p>Role selection/search. Feeds a role title into posting evidence.</p>
+      </article>
+      <div class="arrow">-&gt;</div>
+      <article class="chain-node" data-map-id="MAP-V3-STEP2-001">
+        <div class="id">MAP-V3-STEP2-001</div>
+        <h3>Step 2 Posting Evidence</h3>
+        <p>Live source postings, classification disclosure, selected posting.</p>
+      </article>
+      <div class="arrow">-&gt;</div>
+      <article class="chain-node" data-map-id="MAP-V3-STEP3-001">
+        <div class="id">MAP-V3-STEP3-001</div>
+        <h3>Step 3 Work Universe</h3>
+        <p>Planned feature map for the Work Universe analysis surface.</p>
+      </article>
+    </section>
+
+    <h2>Map Registry</h2>
+    <section class="cards" aria-label="Map registry">
+      <article class="map-card" data-map-id="MAP-V3-STEP1A-001">
+        <div class="id">MAP-V3-STEP1A-001</div>
+        <span class="status published">PUBLISHED</span>
+        <h3>Step 1a Role Selection</h3>
+        <p>Current published Step 1a map from PR #475. The Step 2 package does not alter or reverify Step 1a.</p>
+        <div class="links">
+          <a href="V3-Step1a-Agent-Readable-Feature-Map.html">V3-Step1a-Agent-Readable-Feature-Map.html</a>
+          <a href="v3-step1a-feature-map.manifest.json">v3-step1a-feature-map.manifest.json</a>
+        </div>
+      </article>
+      <article class="map-card" data-map-id="MAP-V3-STEP2-001">
+        <div class="id">MAP-V3-STEP2-001</div>
+        <span class="status published">PUBLISHED</span>
+        <h3>Step 2 Posting Evidence Picker</h3>
+        <p>New documentation, manifest and contract tests for the current Step 2 implementation. No Step 2 behaviour redesign.</p>
+        <div class="links">
+          <a href="V3-Step2-Agent-Readable-Feature-Map.html">V3-Step2-Agent-Readable-Feature-Map.html</a>
+          <a href="v3-step2-feature-map.manifest.json">v3-step2-feature-map.manifest.json</a>
+        </div>
+      </article>
+      <article class="map-card" data-map-id="MAP-V3-STEP3-001">
+        <div class="id">MAP-V3-STEP3-001</div>
+        <span class="status planned">PLANNED</span>
+        <h3>Step 3 Work Universe</h3>
+        <p>Placeholder registry entry only. The Step 3 feature map must be created as its own package with its own runtime evidence.</p>
+        <div class="links">
+          <span>Manifest: planned</span>
+          <span>HTML: planned</span>
+        </div>
+      </article>
+    </section>
+
+    <h2>Separated Provenance</h2>
+    <table aria-label="Separated provenance table">
+      <thead>
+        <tr>
+          <th>Map</th>
+          <th>Implementation commit</th>
+          <th>Merge commit</th>
+          <th>Deployment status</th>
+          <th>Physical runtime</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>MAP-V3-STEP1A-001</code></td>
+          <td><code>1ca2f402c0191e268d41ef103e614ef50b6bfec1</code></td>
+          <td><code>1ca2f402c0191e268d41ef103e614ef50b6bfec1</code>, PR #475</td>
+          <td><code>NOT_REVERIFIED_IN_THIS_BRANCH</code></td>
+          <td><code>NOT_REVERIFIED_IN_THIS_BRANCH</code></td>
+        </tr>
+        <tr>
+          <td><code>MAP-V3-STEP2-001</code></td>
+          <td><code>4cde69d83e3df3afa1533b77ed58405018d57946</code></td>
+          <td><code>null</code>, <code>MAP_BRANCH_NOT_MERGED</code></td>
+          <td><code>NOT_CHANGED_OR_REVERIFIED</code></td>
+          <td><code>NOT_VERIFIED_FOR_STEP2</code></td>
+        </tr>
+        <tr>
+          <td><code>MAP-V3-STEP3-001</code></td>
+          <td><code>4cde69d83e3df3afa1533b77ed58405018d57946</code> as current known source baseline</td>
+          <td><code>null</code>, <code>PLANNED_MAP_NOT_CREATED</code></td>
+          <td><code>OUT_OF_SCOPE_FOR_STEP2_MAP</code></td>
+          <td><code>OUT_OF_SCOPE_FOR_STEP2_MAP</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Preservation Boundaries</h2>
+    <section class="preserve" aria-label="Preservation boundaries">
+      <div><strong>v3/</strong><br />Unchanged by this map package.</div>
+      <div><strong>Railway configuration</strong><br />Unchanged by this map package.</div>
+      <div><strong>Step 2 behaviour</strong><br />Documented and tested, not redesigned.</div>
+    </section>
+
+    <h2>Index Contracts</h2>
+    <table aria-label="Index contracts">
+      <thead>
+        <tr>
+          <th>Contract</th>
+          <th>Statement</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>CONTRACT-V3-MAPS-PROVENANCE-001</code></td>
+          <td>Every map entry separates implementation commit, merge commit, deployment status and physical-runtime verification.</td>
+        </tr>
+        <tr>
+          <td><code>CONTRACT-V3-MAPS-PRESERVE-001</code></td>
+          <td>Feature-map work must preserve <code>v3/</code> and Railway configuration unless explicitly requested otherwise.</td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

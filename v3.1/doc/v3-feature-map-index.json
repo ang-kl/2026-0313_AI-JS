@@ -1,0 +1,129 @@
+{
+  "$schema": "./v3-feature-map-index.schema.json",
+  "schemaVersion": "1.0.0",
+  "id": "IDX-V3-FEATURE-MAPS-001",
+  "title": "V3 Agent-Readable Feature Map Index",
+  "updatedAt": "2026-09-01",
+  "scope": "v3.1 staged role-analysis workflow",
+  "preservationBoundaries": {
+    "v3": "UNCHANGED",
+    "railwayConfiguration": "UNCHANGED",
+    "step2Behaviour": "DOCUMENTED_NOT_REDESIGNED"
+  },
+  "maps": [
+    {
+      "id": "MAP-V3-STEP1A-001",
+      "title": "Step 1a Role Selection",
+      "status": "PUBLISHED",
+      "sequence": 1,
+      "htmlPath": "doc/V3-Step1a-Agent-Readable-Feature-Map.html",
+      "manifestPath": "doc/v3-step1a-feature-map.manifest.json",
+      "role": "User selects or searches for a role before entering posting evidence.",
+      "handoff": "Feeds a role title/query into Step 2.",
+      "provenance": {
+        "implementationCommit": {
+          "sha": "1ca2f402c0191e268d41ef103e614ef50b6bfec1",
+          "role": "Published Step 1a map and mobile layout source on main.",
+          "pullRequest": 475
+        },
+        "mergeCommit": {
+          "sha": "1ca2f402c0191e268d41ef103e614ef50b6bfec1",
+          "status": "MERGED_TO_MAIN",
+          "mergedAt": "2026-09-01T14:58:51+08:00",
+          "pullRequest": 475
+        },
+        "deploymentStatus": {
+          "status": "NOT_REVERIFIED_IN_THIS_BRANCH",
+          "notes": "The Step 2 feature-map branch does not change Step 1a deployment state."
+        },
+        "physicalRuntimeVerification": {
+          "status": "NOT_REVERIFIED_IN_THIS_BRANCH",
+          "notes": "Step 1a screenshots and browser evidence remain in its published map; this index does not add a new physical device pass."
+        }
+      }
+    },
+    {
+      "id": "MAP-V3-STEP2-001",
+      "title": "Step 2 Posting Evidence Picker",
+      "status": "PUBLISHED",
+      "sequence": 2,
+      "htmlPath": "doc/V3-Step2-Agent-Readable-Feature-Map.html",
+      "manifestPath": "doc/v3-step2-feature-map.manifest.json",
+      "role": "User compares live source postings and selects one evidence-bearing job ad.",
+      "handoff": "Feeds the selected posting payload into Step 3.",
+      "provenance": {
+        "implementationCommit": {
+          "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
+          "branch": "main",
+          "role": "Current Step 2 implementation inspected as source evidence."
+        },
+        "mergeCommit": {
+          "sha": null,
+          "status": "MAP_BRANCH_NOT_MERGED",
+          "branch": "codex/map-v3-step2-001-20260901"
+        },
+        "deploymentStatus": {
+          "status": "NOT_CHANGED_OR_REVERIFIED",
+          "railwayConfigurationChanged": false,
+          "notes": "Docs/tests only; no Railway file or production runtime behaviour changed."
+        },
+        "physicalRuntimeVerification": {
+          "status": "NOT_VERIFIED_FOR_STEP2",
+          "evidenceType": "NONE",
+          "notes": "The Step 2 map includes automated Chromium evidence, not physical-phone production verification."
+        }
+      }
+    },
+    {
+      "id": "MAP-V3-STEP3-001",
+      "title": "Step 3 Work Universe",
+      "status": "PLANNED",
+      "sequence": 3,
+      "htmlPath": null,
+      "manifestPath": null,
+      "role": "Planned map for Work Universe analysis after a selected posting or role run.",
+      "handoff": "Receives the selected Step 2 posting payload or Step 1a role query.",
+      "provenance": {
+        "implementationCommit": {
+          "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
+          "branch": "main",
+          "role": "Current known Step 3 source baseline at time of Step 2 map publication."
+        },
+        "mergeCommit": {
+          "sha": null,
+          "status": "PLANNED_MAP_NOT_CREATED"
+        },
+        "deploymentStatus": {
+          "status": "OUT_OF_SCOPE_FOR_STEP2_MAP",
+          "notes": "This index records that Step 3 is planned; it does not verify Step 3 deployment."
+        },
+        "physicalRuntimeVerification": {
+          "status": "OUT_OF_SCOPE_FOR_STEP2_MAP",
+          "notes": "Physical Step 3 runtime evidence must be attached to MAP-V3-STEP3-001 when that map is created."
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "MAP-V3-STEP1A-001",
+      "to": "MAP-V3-STEP2-001",
+      "contract": "Step 1a provides the role title/query; Step 2 must not convert SSOC suggestion state into a source-posting prefilter."
+    },
+    {
+      "from": "MAP-V3-STEP2-001",
+      "to": "MAP-V3-STEP3-001",
+      "contract": "Step 2 selected-posting Analyse passes the selected job object, including source description/responsibilities, to the Step 3 analysis path."
+    }
+  ],
+  "contracts": [
+    {
+      "id": "CONTRACT-V3-MAPS-PROVENANCE-001",
+      "statement": "Every map entry separates implementation commit, merge commit, deployment status and physical-runtime verification."
+    },
+    {
+      "id": "CONTRACT-V3-MAPS-PRESERVE-001",
+      "statement": "Feature-map work must preserve v3/ and Railway configuration unless explicitly requested otherwise."
+    }
+  ]
+}
