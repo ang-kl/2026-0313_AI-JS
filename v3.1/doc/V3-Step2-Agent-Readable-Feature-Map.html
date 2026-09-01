@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>V3 Step 2 Agent-Readable Feature Map</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16202e;
+      --muted: #64748b;
+      --line: #d9dee6;
+      --paper: #fbfaf8;
+      --panel: #ffffff;
+      --blue: #142a8e;
+      --blue-soft: #eaf0ff;
+      --teal: #0b7285;
+      --teal-soft: #e3f5fb;
+      --orange: #a15c0a;
+      --orange-soft: #fff1dc;
+      --purple: #5b4bbd;
+      --purple-soft: #f1eefc;
+      --green: #2f7d4f;
+      --green-soft: #eef7f0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 18px 56px;
+    }
+    header {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: minmax(0, 1.5fr) minmax(280px, .9fr);
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+    }
+    h1, h2, h3 { margin: 0; line-height: 1.08; letter-spacing: 0; }
+    h1 { font-size: clamp(2rem, 7vw, 4.6rem); max-width: 980px; }
+    h2 { font-size: clamp(1.35rem, 4vw, 2rem); margin: 32px 0 12px; }
+    h3 { font-size: 1rem; }
+    p { margin: 0; }
+    a { color: var(--blue); text-underline-offset: 3px; }
+    .kicker {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .summary {
+      color: #3a4456;
+      font-size: 1rem;
+      max-width: 760px;
+      margin-top: 14px;
+    }
+    .meta {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: .86rem;
+    }
+    .meta strong {
+      display: block;
+      font-size: .72rem;
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .node {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .node[data-feature-id] { border-top: 4px solid var(--blue); }
+    .node.source { border-top-color: var(--green); }
+    .node.filter { border-top-color: var(--orange); }
+    .node.classify { border-top-color: var(--purple); }
+    .node.select { border-top-color: var(--teal); }
+    .id {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .7rem;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .68rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f4f6fa;
+      color: #475569;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .step {
+      background: var(--blue-soft);
+      border: 1px solid #c7d6ff;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 112px;
+    }
+    .step:nth-child(2) { background: var(--green-soft); border-color: #cce6d4; }
+    .step:nth-child(3) { background: var(--purple-soft); border-color: #ddd5f6; }
+    .step:nth-child(4) { background: var(--orange-soft); border-color: #f0cd9e; }
+    .step:nth-child(5) { background: var(--teal-soft); border-color: #bce6f0; }
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    figure {
+      margin: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #eef1f5;
+    }
+    figcaption {
+      padding: 10px 12px;
+      color: #3a4456;
+      font-size: .84rem;
+      border-top: 1px solid var(--line);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      display: table;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: .86rem;
+    }
+    th {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      background: #f4f6fa;
+    }
+    tr:last-child td { border-bottom: 0; }
+    code {
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: .88em;
+      background: #eef1f5;
+      border: 1px solid #dfe5ec;
+      border-radius: 4px;
+      padding: 1px 4px;
+    }
+    .wide { margin-top: 14px; }
+    @media (max-width: 880px) {
+      header, .grid.cols-2, .grid.cols-3, .shots, .flow {
+        grid-template-columns: 1fr;
+      }
+      main { padding: 24px 12px 44px; }
+      .flow { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <section>
+        <div class="kicker">MAP-V3-STEP2-001</div>
+        <h1>Step 2 Posting Evidence Picker</h1>
+        <p class="summary">Agent-readable map of the existing Step 2 implementation. This document records behaviour, ids, source contracts, tests and provenance. It does not redesign the picker.</p>
+      </section>
+      <aside class="meta" aria-label="Map metadata">
+        <p><strong>Manifest</strong><a href="v3-step2-feature-map.manifest.json">v3-step2-feature-map.manifest.json</a></p>
+        <p><strong>Implementation source</strong><code>v3.1/src/App.jsx :: PostingEvidencePicker</code></p>
+        <p><strong>Source baseline</strong><code>4cde69d83e3df3afa1533b77ed58405018d57946</code></p>
+        <p><strong>Boundary</strong>Docs, manifest and tests only.</p>
+      </aside>
+    </header>
+
+    <h2>Flow Map</h2>
+    <section class="flow" aria-label="Step 2 flow">
+      <article class="step">
+        <div class="id">TRANS-STEP2-ENTER-001</div>
+        <h3>Enter</h3>
+        <p>Browse SG jobs receives a role title from the landing/search path or Step 1a.</p>
+      </article>
+      <article class="step">
+        <div class="id">FEAT-STEP2-RESULTS-001</div>
+        <h3>Fetch</h3>
+        <p>MCF and careers.gov.sg source lists are fetched independently and merged with source labels.</p>
+      </article>
+      <article class="step">
+        <div class="id">FEAT-STEP2-CLASSIFY-001</div>
+        <h3>Classify</h3>
+        <p>SSOC classification runs after fetch; missing classification remains withheld.</p>
+      </article>
+      <article class="step">
+        <div class="id">FEAT-STEP2-FILTER-001</div>
+        <h3>Filter</h3>
+        <p>Search, sort and facets alter only the derived card view.</p>
+      </article>
+      <article class="step">
+        <div class="id">TRANS-STEP2-ANALYSE-001</div>
+        <h3>Handoff</h3>
+        <p>The selected posting object flows into the Step 3 analysis path.</p>
+      </article>
+    </section>
+
+    <h2>Feature Registry</h2>
+    <section class="grid cols-3" aria-label="Feature callouts">
+      <article class="node source" data-feature-id="FEAT-STEP2-RESULTS-001">
+        <div class="id">FEAT-STEP2-RESULTS-001</div>
+        <h3>Merged Live Results</h3>
+        <p>Fetches and merges MCF plus careers.gov.sg postings for the title query. One failed source does not erase the other.</p>
+        <div class="tag-row"><span class="tag">PAY-STEP2-MCF-001</span><span class="tag">PAY-STEP2-CAREERS-001</span></div>
+      </article>
+      <article class="node source" data-feature-id="FEAT-STEP2-SOURCE-001">
+        <div class="id">FEAT-STEP2-SOURCE-001</div>
+        <h3>Source Panels</h3>
+        <p>Renders MyCareersFuture and careers.gov.sg as separate panels with source-local counts after filtering.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-SOURCE-PARITY-001</span></div>
+      </article>
+      <article class="node" data-feature-id="FEAT-STEP2-MATCH-001">
+        <div class="id">FEAT-STEP2-MATCH-001</div>
+        <h3>Match Basis</h3>
+        <p>Exposes exact title, title variant, nuance, R&amp;R match and related tiers from the deterministic classifier.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-MATCH-DISCLOSURE-001</span></div>
+      </article>
+      <article class="node filter" data-feature-id="FEAT-STEP2-FILTER-001">
+        <div class="id">FEAT-STEP2-FILTER-001</div>
+        <h3>Derived Filters</h3>
+        <p>Search, sort and facets recompute the derived list. Clear all restores the merged source set without re-fetching.</p>
+        <div class="tag-row"><span class="tag">STATE-STEP2-FILTER-001</span><span class="tag">TRANS-STEP2-CLEAR-001</span></div>
+      </article>
+      <article class="node classify" data-feature-id="FEAT-STEP2-CLASSIFY-001">
+        <div class="id">FEAT-STEP2-CLASSIFY-001</div>
+        <h3>SSOC Classification</h3>
+        <p>Calls <code>/api/ssoc</code> with <code>action: "classifyTitles"</code> after source results exist.</p>
+        <div class="tag-row"><span class="tag">API-STEP2-SSOC-001</span><span class="tag">PAY-STEP2-SSOC-001</span></div>
+      </article>
+      <article class="node classify" data-feature-id="FEAT-STEP2-EXPOSURE-001">
+        <div class="id">FEAT-STEP2-EXPOSURE-001</div>
+        <h3>AI Exposure Overview</h3>
+        <p>Maps source-backed SSOC rows through SSOC-to-ISCO and exposure bands. Withheld rows remain visible.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-WITHHOLD-001</span></div>
+      </article>
+      <article class="node select" data-feature-id="FEAT-STEP2-EMPLOYER-001">
+        <div class="id">FEAT-STEP2-EMPLOYER-001</div>
+        <h3>Employer Disclosure</h3>
+        <p>The full-ad modal checks exact registered-employer evidence lazily and states same-employer scope.</p>
+        <div class="tag-row"><span class="tag">PAY-STEP2-EMPLOYER-001</span></div>
+      </article>
+      <article class="node select" data-feature-id="FEAT-STEP2-SELECT-001">
+        <div class="id">FEAT-STEP2-SELECT-001</div>
+        <h3>Selected Posting</h3>
+        <p>Opening a card shows that posting's verbatim source text. Analyse hands the selected posting into Step 3.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-STEP3-HANDOFF-001</span></div>
+      </article>
+      <article class="node" data-feature-id="FEAT-STEP2-OKF-001">
+        <div class="id">FEAT-STEP2-OKF-001</div>
+        <h3>OKF Bundle</h3>
+        <p>Creates deterministic Open Knowledge Format index, posting, sector and log documents from Step 2 data.</p>
+        <div class="tag-row"><span class="tag">EVID-STEP2-SRC-OKF-001</span></div>
+      </article>
+    </section>
+
+    <h2>Evidence Screens</h2>
+    <section class="shots" aria-label="Step 2 screenshots">
+      <figure data-screen-id="SCR-STEP2-IP15PM-P-001">
+        <img src="feature-map-assets/step2-iphone-portrait.png" alt="Phone portrait Step 2 ready state" />
+        <figcaption><strong>SCR-STEP2-IP15PM-P-001</strong> - ready state with source panels, classification and withheld count.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-IP15PM-FILTER-001">
+        <img src="feature-map-assets/step2-iphone-filter.png" alt="Phone portrait Step 2 exact-title filter" />
+        <figcaption><strong>SCR-STEP2-IP15PM-FILTER-001</strong> - exact-title filter keeps both source panels separate.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-IP15PM-SELECT-001">
+        <img src="feature-map-assets/step2-iphone-full-ad.png" alt="Phone portrait Step 2 full job posting modal" />
+        <figcaption><strong>SCR-STEP2-IP15PM-SELECT-001</strong> - full posting, ACRA disclosure and selected-posting action.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-DESKTOP-001">
+        <img src="feature-map-assets/step2-desktop.png" alt="Desktop Step 2 ready state" />
+        <figcaption><strong>SCR-STEP2-DESKTOP-001</strong> - desktop index plus side-by-side source panels.</figcaption>
+      </figure>
+    </section>
+
+    <h2>Contract Tests</h2>
+    <table aria-label="Step 2 contract tests">
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Executable</th>
+          <th>Contract</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>TEST-STEP2-BROWSER-001</code></td>
+          <td><code>node tests/step2-feature-map-browser.mjs</code></td>
+          <td>Entry, source merge, no pre-request gate, all-source classification, withheld rows, filter parity, full-ad disclosure and handoff.</td>
+        </tr>
+        <tr>
+          <td><code>TEST-STEP2-RESPONSIVE-001</code></td>
+          <td><code>node tests/responsive-preflight-browser.mjs</code></td>
+          <td>Existing viewport matrix for Step 2 column contracts and horizontal overflow.</td>
+        </tr>
+        <tr>
+          <td><code>TEST-STEP2-MAP-CONTRACT-001</code></td>
+          <td><code>node tests/feature-map-contract.mjs</code></td>
+          <td>Manifest ids, screenshot hashes, source locators, payload absence behaviour and master index wiring.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Separated Provenance</h2>
+    <table aria-label="Provenance fields">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>implementationCommit</code></td>
+          <td><code>4cde69d83e3df3afa1533b77ed58405018d57946</code></td>
+          <td>Current main source inspected for Step 2 behaviour.</td>
+        </tr>
+        <tr>
+          <td><code>mergeCommit</code></td>
+          <td><code>null</code> / <code>MAP_BRANCH_NOT_MERGED</code></td>
+          <td>This docs/tests branch has no merge commit yet.</td>
+        </tr>
+        <tr>
+          <td><code>deploymentStatus</code></td>
+          <td><code>NOT_CHANGED_OR_REVERIFIED</code></td>
+          <td>No deployment configuration changed; this map does not claim a fresh production deployment pass.</td>
+        </tr>
+        <tr>
+          <td><code>physicalRuntimeVerification</code></td>
+          <td><code>NOT_VERIFIED_FOR_STEP2</code></td>
+          <td>Browser fixture screenshots are recorded separately from physical phone production evidence.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Payload Boundaries</h2>
+    <section class="grid cols-2">
+      <article class="node">
+        <div class="id">PAY-STEP2-MCF-001 / PAY-STEP2-CAREERS-001</div>
+        <h3>Source postings</h3>
+        <p>Missing source rows produce empty source panels or error states. The client must not fabricate postings, salary, employer, dates or links.</p>
+      </article>
+      <article class="node">
+        <div class="id">PAY-STEP2-SSOC-001</div>
+        <h3>SSOC classification</h3>
+        <p>Missing classification remains Unclassified/withheld. The map explicitly forbids inferred SSOC, ISCO and AI exposure evidence.</p>
+      </article>
+      <article class="node">
+        <div class="id">PAY-STEP2-POSTING-001</div>
+        <h3>Selected posting</h3>
+        <p>The selected-posting handoff carries the posting payload, not just the query title.</p>
+      </article>
+      <article class="node">
+        <div class="id">PAY-STEP2-EMPLOYER-001</div>
+        <h3>Employer registry</h3>
+        <p>Only exact ACRA matches are displayed as registered employer evidence; no address is inferred from job-ad text.</p>
+      </article>
+    </section>
+
+    <p class="summary wide">Master index: <a href="V3-Agent-Readable-Feature-Map-Index.html">V3-Agent-Readable-Feature-Map-Index.html</a>.</p>
+  </main>
+</body>
+</html>

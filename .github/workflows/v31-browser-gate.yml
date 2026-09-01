@@ -64,7 +64,9 @@ jobs:
           node tests/occupation-visual-selector-contract.mjs
           node tests/person-evidence-contract.mjs
           node tests/governance-ledger-contract.mjs
+          node tests/feature-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
+          node tests/step2-feature-map-browser.mjs
           node tests/company-flow-browser.mjs
           node tests/browser-gate.mjs
 
