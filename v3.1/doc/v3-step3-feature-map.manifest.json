@@ -1,0 +1,395 @@
+{
+  "$schema": "./v3-feature-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "map": {
+    "id": "MAP-V3-STEP3-001",
+    "title": "V3 Step 3 Agent-Readable Feature Map",
+    "scope": "Work Universe, evidence workspace and review output",
+    "sourceBoundary": "Current v3.1 Step 3 implementation only; no Step 3 behaviour redesign.",
+    "status": "PUBLISHED",
+    "entryTransitionId": "TRANS-STEP3-ENTER-001",
+    "exitTransitionId": "TRANS-STEP3-RETURN-001",
+    "masterIndex": "v3-feature-map-index.json",
+    "relatedMaps": [
+      {
+        "map": "MAP-V3-STEP1A-001",
+        "relationship": "receives",
+        "contract": "Step 1a may enter Step 3 from a selected role title when no source posting is selected."
+      },
+      {
+        "map": "MAP-V3-STEP2-001",
+        "relationship": "receives",
+        "contract": "Step 2 passes the selected posting object, including source description and responsibilities, into Step 3."
+      }
+    ]
+  },
+  "provenance": {
+    "implementationCommit": {
+      "sha": "3495b4684205170802995d26c4f6faa8dc0c0814",
+      "branch": "main",
+      "role": "Source evidence baseline inspected for current Step 3 behaviour.",
+      "verifiedBy": [
+        "source inspection of v3.1/src/ReviewStudio.jsx and v3.1/src/work-universe",
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/script/v3.1-blueprint-component-cross-reference.md"
+      ]
+    },
+    "mergeCommit": {
+      "sha": null,
+      "status": "MAP_BRANCH_NOT_MERGED"
+    },
+    "deploymentStatus": {
+      "status": "NOT_CHANGED_OR_REVERIFIED",
+      "railwayConfigurationChanged": false,
+      "notes": "This documentation branch does not change deployment configuration. Deployment status is kept separate from browser and physical-runtime evidence."
+    },
+    "physicalRuntimeVerification": {
+      "status": "NOT_VERIFIED_FOR_STEP3_MAP",
+      "evidenceType": "NONE",
+      "notes": "The map includes deterministic Chromium evidence, not a physical-device production verification."
+    }
+  },
+  "screens": [
+    {
+      "id": "SCR-STEP3-DESKTOP-START-001",
+      "title": "Desktop guided start",
+      "asset": "feature-map-assets/step3-desktop-start.png",
+      "sha256": "3f63b625e4eb6460f3d5a66dd14b859bb185b6bcd42ca939098ea1649d27e980",
+      "viewport": { "width": 1440, "height": 1000, "deviceScaleFactor": 1, "profile": "desktop fixture" },
+      "responsiveProfileId": "RESP-STEP3-DESKTOP-001",
+      "stateId": "STATE-STEP3-START-001",
+      "featureIds": ["FEAT-STEP3-SHELL-001", "FEAT-STEP3-EVIDENCE-001"],
+      "evidenceRefIds": ["EVID-STEP3-BROWSER-001"]
+    },
+    {
+      "id": "SCR-STEP3-DESKTOP-MAP-001",
+      "title": "Desktop five-graph Work Universe",
+      "asset": "feature-map-assets/step3-desktop-five-graph.png",
+      "sha256": "3dff8093817f90ea506548cf016cd4c643d4c1c4765837f36c981c7968a7e9ba",
+      "viewport": { "width": 2048, "height": 1280, "deviceScaleFactor": 1, "profile": "wide desktop fixture" },
+      "responsiveProfileId": "RESP-STEP3-DESKTOP-001",
+      "stateId": "STATE-STEP3-MAP-001",
+      "featureIds": ["FEAT-STEP3-GRAPHS-001", "FEAT-STEP3-RESPONSIVE-001"],
+      "evidenceRefIds": ["EVID-STEP3-BROWSER-001"]
+    },
+    {
+      "id": "SCR-STEP3-MOBILE-MAP-001",
+      "title": "Mobile five-graph Work Universe",
+      "asset": "feature-map-assets/step3-mobile-five-graph.png",
+      "sha256": "0bcb02b361255fbc3383f800e094a4bdd2ffa1cd870a29159169f1a2b0cc8848",
+      "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 1, "profile": "mobile fixture" },
+      "responsiveProfileId": "RESP-STEP3-MOBILE-001",
+      "stateId": "STATE-STEP3-MAP-001",
+      "featureIds": ["FEAT-STEP3-GRAPHS-001", "FEAT-STEP3-RESPONSIVE-001"],
+      "evidenceRefIds": ["EVID-STEP3-BROWSER-001"]
+    },
+    {
+      "id": "SCR-STEP3-ROLE-GRAPH-001",
+      "title": "Embedded Role Graph and workspace",
+      "asset": "feature-map-assets/step3-role-graph.png",
+      "sha256": "6e202244589e51348d18fc098e4a5088385f4d50f5a299af59a503af014cf861",
+      "viewport": { "width": 1440, "height": 1000, "deviceScaleFactor": 1, "profile": "desktop fixture" },
+      "responsiveProfileId": "RESP-STEP3-DESKTOP-001",
+      "stateId": "STATE-STEP3-WORKSPACE-001",
+      "featureIds": ["FEAT-STEP3-ROLEGRAPH-001", "FEAT-STEP3-ROUNDTRIP-001"],
+      "evidenceRefIds": ["EVID-STEP3-BROWSER-001"]
+    },
+    {
+      "id": "SCR-STEP3-PRINT-001",
+      "title": "Clean and Full Review print package",
+      "asset": "feature-map-assets/step3-print-package.png",
+      "sha256": "1d2da1c94d50bbcfe8cb08d93ff3da5a96896520f480a3af4d99a8419066f4fe",
+      "viewport": { "width": 390, "height": 844, "deviceScaleFactor": 1, "profile": "mobile print fixture" },
+      "responsiveProfileId": "RESP-STEP3-MOBILE-001",
+      "stateId": "STATE-STEP3-PRINT-001",
+      "featureIds": ["FEAT-STEP3-PRINT-001"],
+      "evidenceRefIds": ["EVID-STEP3-BROWSER-001"]
+    }
+  ],
+  "components": [
+    {
+      "id": "CMP-STEP3-ROUTER-001",
+      "name": "ReviewStudio",
+      "type": "React surface router",
+      "path": "v3.1/src/ReviewStudio.jsx",
+      "symbol": "ReviewStudio",
+      "semanticAnchor": "data-testid=\"v31-universe-surface\"",
+      "anchorText": "v31-universe-surface",
+      "sourceLines": "25-84",
+      "featureIds": ["FEAT-STEP3-SHELL-001", "FEAT-STEP3-ROUNDTRIP-001", "FEAT-STEP3-PRINT-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-ROUTER-001"]
+    },
+    {
+      "id": "CMP-STEP3-UNIVERSE-001",
+      "name": "WorkUniverseLanding",
+      "type": "React workbench",
+      "path": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+      "symbol": "WorkUniverseLanding",
+      "semanticAnchor": "data-testid=\"work-universe\"",
+      "anchorText": "work-universe",
+      "sourceLines": "25-1492",
+      "featureIds": ["FEAT-STEP3-SHELL-001", "FEAT-STEP3-GRAPHS-001", "FEAT-STEP3-EVIDENCE-001", "FEAT-STEP3-PROJECTION-001", "FEAT-STEP3-RESPONSIVE-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001"]
+    },
+    {
+      "id": "CMP-STEP3-ORG-MAP-001",
+      "name": "OrganisationMap",
+      "type": "React evidence map",
+      "path": "v3.1/src/work-universe/OrganisationMap.jsx",
+      "symbol": "OrganisationMap",
+      "semanticAnchor": "data-testid=\"organisation-map\"",
+      "anchorText": "organisation-map",
+      "sourceLines": "82-139",
+      "featureIds": ["FEAT-STEP3-SPECIALISED-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-MAPS-001"]
+    },
+    {
+      "id": "CMP-STEP3-GOVERNANCE-001",
+      "name": "GovernanceLedger",
+      "type": "React governance review",
+      "path": "v3.1/src/work-universe/GovernanceLedger.jsx",
+      "symbol": "GovernanceLedger",
+      "semanticAnchor": "data-testid=\"governance-ledger\"",
+      "anchorText": "governance-ledger",
+      "sourceLines": "66-122",
+      "featureIds": ["FEAT-STEP3-GOVERNANCE-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-GOVERNANCE-001"]
+    },
+    {
+      "id": "CMP-STEP3-PRINT-001",
+      "name": "PrintPackage",
+      "type": "React print surface",
+      "path": "v3.1/src/review/PrintPackage.jsx",
+      "symbol": "PrintPackage",
+      "semanticAnchor": "data-testid=\"print-package-preview\"",
+      "anchorText": "print-package-preview",
+      "sourceLines": "40-260",
+      "featureIds": ["FEAT-STEP3-PRINT-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-PRINT-001"]
+    }
+  ],
+  "features": [
+    {
+      "id": "FEAT-STEP3-SHELL-001",
+      "name": "Three-panel Work Universe shell",
+      "status": "VERIFIED",
+      "description": "Step 3 opens with source evidence on the left, a guided centre canvas and a scrollable Contents/detail rail on the right.",
+      "componentIds": ["CMP-STEP3-ROUTER-001", "CMP-STEP3-UNIVERSE-001"],
+      "screenIds": ["SCR-STEP3-DESKTOP-START-001"],
+      "stateIds": ["STATE-STEP3-START-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001", "EVID-STEP3-BLUEPRINT-001"],
+      "invariantIds": ["INV-STEP3-RESPONSIVE-001"]
+    },
+    {
+      "id": "FEAT-STEP3-GRAPHS-001",
+      "name": "Five canonical graphs and fifteen signals",
+      "status": "VERIFIED",
+      "description": "The expanded Work Universe renders Labour, Organisation Work, Intelligence, Human-Agent and Transition as five parallel projections, each with exactly three first-order signals.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001"],
+      "screenIds": ["SCR-STEP3-DESKTOP-MAP-001", "SCR-STEP3-MOBILE-MAP-001"],
+      "stateIds": ["STATE-STEP3-MAP-001", "STATE-STEP3-DETAIL-001"],
+      "transitionIds": ["TRANS-STEP3-EXPAND-001", "TRANS-STEP3-DETAIL-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-FIVE-GRAPHS-001", "INV-STEP3-DOM-AUTHORITY-001"]
+    },
+    {
+      "id": "FEAT-STEP3-EVIDENCE-001",
+      "name": "Source, lineage and claim disclosure",
+      "status": "VERIFIED",
+      "description": "Job-ad rows, derived work units and lineage preserve source identifiers, methods, provenance and claim boundaries; selecting evidence highlights only linked graph paths.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001"],
+      "stateIds": ["STATE-STEP3-DETAIL-001", "STATE-STEP3-WITHHELD-001"],
+      "transitionIds": ["TRANS-STEP3-EVIDENCE-001"],
+      "payloadFieldIds": ["PAY-STEP3-POSTING-001", "PAY-STEP3-RESULT-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-WITHHOLD-001", "INV-STEP3-EVIDENCE-001"]
+    },
+    {
+      "id": "FEAT-STEP3-PROJECTION-001",
+      "name": "Role, organisation and person projections",
+      "status": "VERIFIED",
+      "description": "The same evidence can be reprojected around the target role, supplied organisation evidence or user-confirmed person evidence without promoting absent facts into claims.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001"],
+      "payloadFieldIds": ["PAY-STEP3-RESULT-001", "PAY-STEP3-PERSON-001", "PAY-STEP3-ORGANISATION-001"],
+      "stateIds": ["STATE-STEP3-WITHHELD-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-WITHHOLD-001"]
+    },
+    {
+      "id": "FEAT-STEP3-ROLEGRAPH-001",
+      "name": "Embedded Role Graph",
+      "status": "VERIFIED",
+      "description": "The Labour graph opens the preserved Role Graph inside the centre panel with its layered, knowledge and SSOC modes available.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001"],
+      "screenIds": ["SCR-STEP3-ROLE-GRAPH-001"],
+      "stateIds": ["STATE-STEP3-ROLEGRAPH-001"],
+      "transitionIds": ["TRANS-STEP3-ROLEGRAPH-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-ROLEGRAPH-001"]
+    },
+    {
+      "id": "FEAT-STEP3-ROUNDTRIP-001",
+      "name": "Evidence workspace round trip",
+      "status": "VERIFIED",
+      "description": "Graph or evidence intent opens the preserved Review Studio workspace and returns to Work Universe with the relevant state available.",
+      "componentIds": ["CMP-STEP3-ROUTER-001", "CMP-STEP3-UNIVERSE-001"],
+      "screenIds": ["SCR-STEP3-ROLE-GRAPH-001"],
+      "stateIds": ["STATE-STEP3-WORKSPACE-001"],
+      "transitionIds": ["TRANS-STEP3-WORKSPACE-001", "TRANS-STEP3-RETURN-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-ROUTER-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-ROUNDTRIP-001"]
+    },
+    {
+      "id": "FEAT-STEP3-SPECIALISED-001",
+      "name": "Evidence-gated specialised maps",
+      "status": "VERIFIED",
+      "description": "Organisation, Workflow and Value Stream maps render only supplied structures and relationships; unsupported or missing sequences, hierarchy, timing, waste and maturity remain withheld.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001", "CMP-STEP3-ORG-MAP-001"],
+      "payloadFieldIds": ["PAY-STEP3-ORGANISATION-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-MAPS-001", "EVID-STEP3-BROWSER-001", "EVID-STEP3-BLUEPRINT-001"],
+      "invariantIds": ["INV-STEP3-WITHHOLD-001"]
+    },
+    {
+      "id": "FEAT-STEP3-GOVERNANCE-001",
+      "name": "Governance ledger and reviewer disagreement",
+      "status": "VERIFIED",
+      "description": "Supplied governance records and competing reviewer positions remain separated from deterministic results, with incomplete controls and conflicts visibly withheld.",
+      "componentIds": ["CMP-STEP3-GOVERNANCE-001"],
+      "payloadFieldIds": ["PAY-STEP3-GOVERNANCE-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-GOVERNANCE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-WITHHOLD-001"]
+    },
+    {
+      "id": "FEAT-STEP3-PRINT-001",
+      "name": "Clean and Full Review print package",
+      "status": "VERIFIED",
+      "description": "Step 3 provides Clean and Full Review routes, printable A4 output, candidate actions, interview questions and evidence-gated resume rationale.",
+      "componentIds": ["CMP-STEP3-ROUTER-001", "CMP-STEP3-PRINT-001"],
+      "screenIds": ["SCR-STEP3-PRINT-001"],
+      "stateIds": ["STATE-STEP3-PRINT-001"],
+      "transitionIds": ["TRANS-STEP3-PRINT-001"],
+      "payloadFieldIds": ["PAY-STEP3-RESULT-001", "PAY-STEP3-POSTING-001", "PAY-STEP3-PERSON-001", "PAY-STEP3-GOVERNANCE-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-PRINT-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-PRINT-001", "INV-STEP3-WITHHOLD-001"]
+    },
+    {
+      "id": "FEAT-STEP3-RESPONSIVE-001",
+      "name": "Responsive panels and contextual FAB",
+      "status": "VERIFIED",
+      "description": "Desktop panels own their overflow; tablet and phone layouts preserve graph readability and use one contextual FAB to move among Workspace, Contents and Job Ad surfaces.",
+      "componentIds": ["CMP-STEP3-UNIVERSE-001"],
+      "screenIds": ["SCR-STEP3-DESKTOP-MAP-001", "SCR-STEP3-MOBILE-MAP-001"],
+      "evidenceRefIds": ["EVID-STEP3-SRC-UNIVERSE-001", "EVID-STEP3-BROWSER-001"],
+      "invariantIds": ["INV-STEP3-RESPONSIVE-001"]
+    }
+  ],
+  "states": [
+    { "id": "STATE-STEP3-START-001", "name": "Guided start", "description": "Work Units and evidence verification lead before the user expands the full map.", "featureIds": ["FEAT-STEP3-SHELL-001"], "screenIds": ["SCR-STEP3-DESKTOP-START-001"] },
+    { "id": "STATE-STEP3-MAP-001", "name": "Expanded five-graph map", "description": "All five canonical graph cards and their first-order signals are visible.", "featureIds": ["FEAT-STEP3-GRAPHS-001"], "screenIds": ["SCR-STEP3-DESKTOP-MAP-001", "SCR-STEP3-MOBILE-MAP-001"] },
+    { "id": "STATE-STEP3-DETAIL-001", "name": "Graph, signal or evidence detail", "description": "The right inspector exposes source, method, derivation and boundary for the selected claim.", "featureIds": ["FEAT-STEP3-GRAPHS-001", "FEAT-STEP3-EVIDENCE-001"] },
+    { "id": "STATE-STEP3-ROLEGRAPH-001", "name": "Embedded Role Graph", "description": "Role Graph is mounted in the centre panel while the Work Universe shell remains available.", "featureIds": ["FEAT-STEP3-ROLEGRAPH-001"] },
+    { "id": "STATE-STEP3-WORKSPACE-001", "name": "Review Studio workspace", "description": "Structured graph or evidence intent opens the advanced evidence workspace.", "featureIds": ["FEAT-STEP3-ROUNDTRIP-001"], "screenIds": ["SCR-STEP3-ROLE-GRAPH-001"] },
+    { "id": "STATE-STEP3-WITHHELD-001", "name": "Evidence withheld", "description": "Missing source, person, organisation, authority, access, workflow or governance evidence remains visibly WITHHELD.", "featureIds": ["FEAT-STEP3-EVIDENCE-001", "FEAT-STEP3-PROJECTION-001", "FEAT-STEP3-SPECIALISED-001", "FEAT-STEP3-GOVERNANCE-001"] },
+    { "id": "STATE-STEP3-PRINT-001", "name": "Print package", "description": "Clean or Full Review output is prepared for browser print and A4 PDF.", "featureIds": ["FEAT-STEP3-PRINT-001"], "screenIds": ["SCR-STEP3-PRINT-001"] }
+  ],
+  "transitions": [
+    { "id": "TRANS-STEP3-ENTER-001", "name": "Enter Step 3", "from": "Step 1a role selection or Step 2 selected posting", "toStateId": "STATE-STEP3-START-001", "description": "The preserved analysis path resolves into Work Universe with the available role and posting payload.", "featureIds": ["FEAT-STEP3-SHELL-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-EXPAND-001", "name": "Explore full map", "fromStateId": "STATE-STEP3-START-001", "toStateId": "STATE-STEP3-MAP-001", "description": "The user deliberately expands the guided start into all five canonical graphs.", "featureIds": ["FEAT-STEP3-GRAPHS-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-DETAIL-001", "name": "Inspect graph or signal", "fromStateId": "STATE-STEP3-MAP-001", "toStateId": "STATE-STEP3-DETAIL-001", "description": "Selecting a graph or signal opens its method, provenance and evidence boundary.", "featureIds": ["FEAT-STEP3-GRAPHS-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-EVIDENCE-001", "name": "Select source evidence", "fromStateId": "STATE-STEP3-MAP-001", "toStateId": "STATE-STEP3-DETAIL-001", "description": "Selecting a source row highlights linked graphs and exposes the same evidence identifier in detail.", "featureIds": ["FEAT-STEP3-EVIDENCE-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-ROLEGRAPH-001", "name": "Open Role Graph", "fromStateId": "STATE-STEP3-MAP-001", "toStateId": "STATE-STEP3-ROLEGRAPH-001", "description": "The Labour graph opens the preserved embedded Role Graph.", "featureIds": ["FEAT-STEP3-ROLEGRAPH-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-WORKSPACE-001", "name": "Open evidence workspace", "fromStateId": "STATE-STEP3-DETAIL-001", "toStateId": "STATE-STEP3-WORKSPACE-001", "description": "Structured graph, signal and evidence intent enters Review Studio.", "featureIds": ["FEAT-STEP3-ROUNDTRIP-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-RETURN-001", "name": "Return to Work Universe", "fromStateId": "STATE-STEP3-WORKSPACE-001", "toStateId": "STATE-STEP3-MAP-001", "description": "The workspace return action restores the Work Universe surface.", "featureIds": ["FEAT-STEP3-ROUNDTRIP-001"], "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "TRANS-STEP3-PRINT-001", "name": "Open Print / PDF", "fromStateId": "STATE-STEP3-START-001", "toStateId": "STATE-STEP3-PRINT-001", "description": "The command bar opens Clean or Full Review printable output.", "featureIds": ["FEAT-STEP3-PRINT-001"], "testIds": ["TEST-STEP3-BROWSER-001"] }
+  ],
+  "payloadFields": [
+    {
+      "id": "PAY-STEP3-RESULT-001",
+      "name": "Role analysis result",
+      "source": "Preserved v3.1 analysis pipeline",
+      "required": true,
+      "fields": ["roleTitle", "duties", "workUnits", "skills", "occupation", "aiExposure", "analysis"],
+      "absenceBehaviour": "Render only available role anchor data and visibly withhold unsupported graph signals.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP3-POSTING-001",
+      "name": "Selected posting and source rows",
+      "source": "Step 2 selected posting or direct role-analysis input",
+      "required": false,
+      "fields": ["uuid", "title", "employer", "source", "description", "responsibilitiesText", "skills", "categories"],
+      "absenceBehaviour": "Keep the role-title route available, label source-derived sections honestly and return WITHHELD_NO_SOURCE_ROWS for evidence round-trip coverage.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP3-PERSON-001",
+      "name": "Session-only person evidence",
+      "source": "User-confirmed manual paste and selected target skills",
+      "required": false,
+      "fields": ["manual", "confirmed", "selectedSkills", "proofRows"],
+      "absenceBehaviour": "Person capability, access, authority and skill delta remain WITHHELD; raw text is not promoted into a claim.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP3-ORGANISATION-001",
+      "name": "Supplied organisation and process evidence",
+      "source": "Explicit organisationMap, workflowMap and valueStreamMap payload fields",
+      "required": false,
+      "fields": ["nodes", "relationships", "dimensions", "steps", "transitions", "stages", "timing", "owners", "governanceReference"],
+      "absenceBehaviour": "Do not infer hierarchy, reporting lines, workflow sequence, timing, waste, savings, maturity or autonomous action from a job posting.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP3-GOVERNANCE-001",
+      "name": "Governance and disagreement records",
+      "source": "Explicit supplied governance ledger and reviewer positions",
+      "required": false,
+      "fields": ["decision", "evidenceIds", "deterministicResult", "aiInterpretation", "humanOwner", "riskClass", "allowedAction", "forbiddenAction", "guardrails", "auditTrail", "positions", "question"],
+      "absenceBehaviour": "Governance decisions and disagreement remain WITHHELD; session actions do not invent actors or timestamps.",
+      "inferenceAllowed": false
+    }
+  ],
+  "invariants": [
+    { "id": "INV-STEP3-FIVE-GRAPHS-001", "statement": "Exactly five canonical graph cards render and each contains exactly three first-order signals.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-DOM-AUTHORITY-001", "statement": "DOM controls and measured geometry remain authoritative; the R3F scene is a pointer-free visual enhancement.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-WITHHOLD-001", "statement": "Missing source, person, organisation, authority, access, workflow and governance evidence is visibly withheld rather than inferred.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-EVIDENCE-001", "statement": "Source evidence retains stable identifiers and graph links through detail and workspace navigation.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-ROLEGRAPH-001", "statement": "The Labour graph preserves the embedded Role Graph and its workspace action.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-ROUNDTRIP-001", "statement": "Role Graph/FAB and evidence-workspace navigation can return to Work Universe without losing the mapped surface.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-RESPONSIVE-001", "statement": "Desktop panels own overflow and phone navigation exposes one logical panel at a time through the contextual FAB.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-PRINT-001", "statement": "Clean and Full Review routes remain available and generated PDF output is non-empty A4 with evidence-gated content.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "INV-STEP3-PRESERVE-001", "statement": "Feature-map work does not alter Step 1, Step 2, v3/ or Railway configuration.", "testIds": ["TEST-STEP3-CONTRACT-001"] }
+  ],
+  "responsiveProfiles": [
+    { "id": "RESP-STEP3-DESKTOP-001", "name": "Desktop workbench", "viewport": "1440x1000 and 2048x1280", "contract": "Three panels fit the available viewport and source, Contents and detail own vertical overflow.", "testIds": ["TEST-STEP3-BROWSER-001"] },
+    { "id": "RESP-STEP3-MOBILE-001", "name": "Phone workbench", "viewport": "390x844", "contract": "Canonical graphs remain legible and the contextual FAB switches among Workspace, Contents and Job Ad without horizontal overflow.", "testIds": ["TEST-STEP3-BROWSER-001"] }
+  ],
+  "tests": [
+    { "id": "TEST-STEP3-BROWSER-001", "name": "v3.1 Step 3 browser gate", "path": "v3.1/tests/browser-gate.mjs", "coversInvariantIds": ["INV-STEP3-FIVE-GRAPHS-001", "INV-STEP3-DOM-AUTHORITY-001", "INV-STEP3-WITHHOLD-001", "INV-STEP3-EVIDENCE-001", "INV-STEP3-ROLEGRAPH-001", "INV-STEP3-ROUNDTRIP-001", "INV-STEP3-RESPONSIVE-001", "INV-STEP3-PRINT-001"] },
+    { "id": "TEST-STEP3-CONTRACT-001", "name": "Feature map contract", "path": "v3.1/tests/feature-map-contract.mjs", "coversInvariantIds": ["INV-STEP3-PRESERVE-001"] }
+  ],
+  "evidenceRefs": [
+    { "id": "EVID-STEP3-SRC-ROUTER-001", "type": "source", "path": "v3.1/src/ReviewStudio.jsx", "description": "Work Universe, workspace and print routing." },
+    { "id": "EVID-STEP3-SRC-UNIVERSE-001", "type": "source", "path": "v3.1/src/work-universe/WorkUniverseLanding.jsx", "description": "Canonical graph, evidence, projection, panel and FAB implementation." },
+    { "id": "EVID-STEP3-SRC-MAPS-001", "type": "source", "path": "v3.1/src/work-universe/OrganisationMap.jsx", "description": "Organisation Map surface; browser gate also covers WorkflowMap and ValueStreamMap withholding." },
+    { "id": "EVID-STEP3-SRC-GOVERNANCE-001", "type": "source", "path": "v3.1/src/work-universe/GovernanceLedger.jsx", "description": "Governance and disagreement review contract." },
+    { "id": "EVID-STEP3-SRC-PRINT-001", "type": "source", "path": "v3.1/src/review/PrintPackage.jsx", "description": "Clean and Full Review printable output." },
+    { "id": "EVID-STEP3-BROWSER-001", "type": "executable", "path": "v3.1/tests/browser-gate.mjs", "description": "Deterministic Chromium journey covering Step 3 geometry, graphs, evidence, specialised maps, governance, print and round trips." },
+    { "id": "EVID-STEP3-BLUEPRINT-001", "type": "cross-reference", "path": "v3.1/script/v3.1-blueprint-component-cross-reference.md", "description": "Current implementation-to-blueprint status and honest remaining gaps." }
+  ],
+  "gaps": [
+    { "id": "GAP-STEP3-PHYSICAL-001", "status": "OPEN", "description": "No physical-device production verification is claimed by this map." },
+    { "id": "GAP-STEP3-FOOTER-001", "status": "PARTIAL", "description": "Review Studio has the full source/confidence/time-window footer contract; Work Universe does not expose a time-window value." },
+    { "id": "GAP-STEP3-PERSON-001", "status": "PARTIAL", "description": "Session-only person evidence and printable set difference exist; a structured source-linked candidate proof ledger remains unbuilt." },
+    { "id": "GAP-STEP3-TRACK-CHANGE-001", "status": "PARKED", "description": "Full split, merge, relabel, escalate and first-class withhold editing verbs are not built." }
+  ],
+  "rubric": {
+    "id": "RUBRIC-STEP3-MAP-001",
+    "categories": [
+      { "id": "RUBRIC-STEP3-EVIDENCE-001", "name": "Evidence honesty", "result": "PASS", "basis": "Withholding and source-link contracts are executable." },
+      { "id": "RUBRIC-STEP3-INTERACTION-001", "name": "Interaction continuity", "result": "PASS", "basis": "Role Graph, workspace, FAB and return paths are executable." },
+      { "id": "RUBRIC-STEP3-RESPONSIVE-001", "name": "Responsive geometry", "result": "PASS", "basis": "Desktop, tablet and phone geometry are covered by Chromium." },
+      { "id": "RUBRIC-STEP3-PROVENANCE-001", "name": "Provenance separation", "result": "PASS", "basis": "Implementation, merge, deployment and physical runtime fields remain separate." }
+    ]
+  }
+}

@@ -20,6 +20,12 @@ const mapConfigs = [
     htmlPath: "doc/V3-Step2-Agent-Readable-Feature-Map.html",
     requireSeparatedProvenance: true,
   },
+  {
+    id: "MAP-V3-STEP3-001",
+    manifestPath: "doc/v3-step3-feature-map.manifest.json",
+    htmlPath: "doc/V3-Step3-Agent-Readable-Feature-Map.html",
+    requireSeparatedProvenance: true,
+  },
 ];
 
 const indexConfig = {

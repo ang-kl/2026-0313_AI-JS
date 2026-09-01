@@ -103,29 +103,31 @@
     {
       "id": "MAP-V3-STEP3-001",
       "title": "Step 3 Work Universe",
-      "status": "PLANNED",
+      "status": "PUBLISHED",
       "sequence": 3,
-      "htmlPath": null,
-      "manifestPath": null,
-      "role": "Planned map for Work Universe analysis after a selected posting or role run.",
+      "htmlPath": "doc/V3-Step3-Agent-Readable-Feature-Map.html",
+      "manifestPath": "doc/v3-step3-feature-map.manifest.json",
+      "role": "Work Universe, evidence workspace and review-output map after a selected posting or role run.",
       "handoff": "Receives the selected Step 2 posting payload or Step 1a role query.",
       "provenance": {
         "implementationCommit": {
-          "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
+          "sha": "3495b4684205170802995d26c4f6faa8dc0c0814",
           "branch": "main",
-          "role": "Current known Step 3 source baseline at time of Step 2 map provenance update."
+          "role": "Source evidence baseline inspected for the Step 3 map."
         },
         "mergeCommit": {
           "sha": null,
-          "status": "PLANNED_MAP_NOT_CREATED"
+          "status": "MAP_BRANCH_NOT_MERGED"
         },
         "deploymentStatus": {
-          "status": "OUT_OF_SCOPE_FOR_STEP2_MAP",
-          "notes": "This index records that Step 3 is planned; it does not verify Step 3 deployment."
+          "status": "NOT_CHANGED_OR_REVERIFIED",
+          "railwayConfigurationChanged": false,
+          "notes": "The Step 3 map branch changes documentation, assets and contracts only; it does not claim a new deployment."
         },
         "physicalRuntimeVerification": {
-          "status": "OUT_OF_SCOPE_FOR_STEP2_MAP",
-          "notes": "Physical Step 3 runtime evidence must be attached to MAP-V3-STEP3-001 when that map is created."
+          "status": "NOT_VERIFIED_FOR_STEP3_MAP",
+          "evidenceType": "NONE",
+          "notes": "Deterministic Chromium evidence is recorded separately from physical-device production verification."
         }
       }
     }
