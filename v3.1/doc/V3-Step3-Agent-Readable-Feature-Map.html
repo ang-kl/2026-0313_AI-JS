@@ -85,8 +85,8 @@
       <aside class="meta" aria-label="Map metadata">
         <p><strong>Manifest</strong><a href="v3-step3-feature-map.manifest.json">v3-step3-feature-map.manifest.json</a></p>
         <p><strong>Implementation source</strong><code>v3.1/src/ReviewStudio.jsx</code> and <code>v3.1/src/work-universe/</code></p>
-        <p><strong>Source baseline</strong><code>3495b4684205170802995d26c4f6faa8dc0c0814</code></p>
-        <p><strong>Boundary</strong>Documentation, manifest, assets and contract registration only.</p>
+        <p><strong>Source baseline</strong><code>7da49403434d5c2791e70a36440ba19fe120efa6</code></p>
+        <p><strong>Boundary</strong>Business Cube and evidence-handoff audit corrections; no workflow redesign.</p>
       </aside>
     </header>
 
@@ -112,6 +112,7 @@
       <article class="node governance" data-feature-id="FEAT-STEP3-GOVERNANCE-001"><div class="id">FEAT-STEP3-GOVERNANCE-001</div><h3>Governance review</h3><p>Supplied-data logic is contract-tested; browser evidence covers absent and incomplete controls.</p><div class="tag-row"><span class="tag">CONTRACT VERIFIED</span><span class="tag">UI positive gap</span></div></article>
       <article class="node output" data-feature-id="FEAT-STEP3-PRINT-001"><div class="id">FEAT-STEP3-PRINT-001</div><h3>Print / PDF</h3><p>Clean and Full Review packages preserve evidence gates in non-empty A4 output.</p><div class="tag-row"><span class="tag">Clean</span><span class="tag">Full Review</span><span class="tag">A4</span></div></article>
       <article class="node" data-feature-id="FEAT-STEP3-RESPONSIVE-001"><div class="id">FEAT-STEP3-RESPONSIVE-001</div><h3>Responsive workbench</h3><p>Desktop panels own overflow; phone navigation uses one contextual FAB and logical panel at a time.</p><div class="tag-row"><span class="tag">desktop</span><span class="tag">tablet</span><span class="tag">phone</span></div></article>
+      <article class="node evidence" data-feature-id="FEAT-STEP3-BUSINESS-CUBE-001"><div class="id">FEAT-STEP3-BUSINESS-CUBE-001</div><h3>Sector-Centred Business Cube</h3><p>A movable 3 x 3 x 3 view crosses function, work layer and allocation. All 27 cells stay addressable, including explicitly withheld cells, and one selected-cell state drives canvas and inspector.</p><div class="tag-row"><span class="tag">27 cells</span><span class="tag">movable</span><span class="tag">withholding</span></div></article>
     </section>
 
     <h2>Executable Evidence</h2>
@@ -121,6 +122,8 @@
       <figure><a class="shot-link" href="feature-map-assets/step3-mobile-five-graph.png"><img src="feature-map-assets/step3-mobile-five-graph.png" alt="Mobile five-graph Work Universe" /></a><figcaption><code>SCR-STEP3-MOBILE-MAP-001</code> Expanded scroll-aware capture containing all five phone-width graph cards. <a href="feature-map-assets/step3-mobile-five-graph.png">Open full resolution</a>.</figcaption></figure>
       <figure><a class="shot-link" href="feature-map-assets/step3-role-graph.png"><img src="feature-map-assets/step3-role-graph.png" alt="Embedded Role Graph" /></a><figcaption><code>SCR-STEP3-ROLE-GRAPH-001</code> Embedded Role Graph state; this is not the advanced workspace. <a href="feature-map-assets/step3-role-graph.png">Open full resolution</a>.</figcaption></figure>
       <figure><a class="shot-link" href="feature-map-assets/step3-print-package.png"><img src="feature-map-assets/step3-print-package.png" alt="Desktop Step 3 print package" /></a><figcaption><code>SCR-STEP3-PRINT-001</code> Desktop Full Review capture. <a href="feature-map-assets/step3-print-package.png">Open full resolution</a>.</figcaption></figure>
+      <figure data-screen-id="SCR-STEP3-CUBE-DESKTOP-001"><a class="shot-link" href="feature-map-assets/step3-business-cube-desktop.png"><img src="feature-map-assets/step3-business-cube-desktop.png" alt="Desktop sector-centred Business Cube" /></a><figcaption><code>SCR-STEP3-CUBE-DESKTOP-001</code> Docked cell inspector and complete evidence matrix. <a href="feature-map-assets/step3-business-cube-desktop.png">Open full resolution</a>.</figcaption></figure>
+      <figure data-screen-id="SCR-STEP3-CUBE-PHONE-001"><a class="shot-link" href="feature-map-assets/step3-business-cube-phone.png"><img src="feature-map-assets/step3-business-cube-phone.png" alt="Phone Business Cube selection and controls" /></a><figcaption><code>SCR-STEP3-CUBE-PHONE-001</code> Compressed controls, selected-cell feedback and nonblank movable canvas. <a href="feature-map-assets/step3-business-cube-phone.png">Open full resolution</a>.</figcaption></figure>
     </section>
 
     <h2>Evidence Boundaries</h2>
@@ -144,6 +147,8 @@
         <tr><td><code>TEST-STEP3-PRINT-BROWSER-001</code></td><td>Clean/Full Review routing and non-empty A4 PDF.</td></tr>
         <tr><td><code>TEST-STEP3-ROUNDTRIP-BROWSER-001</code></td><td>Role Graph/FAB return and conditional source-evidence round trip.</td></tr>
         <tr><td><code>TEST-STEP3-CONTRACT-001</code></td><td>Schema resolution, locator ranges, raster dimensions, hashes, provenance parity and protected paths.</td></tr>
+        <tr><td><code>TEST-STEP3-CUBE-BROWSER-001</code></td><td>Twenty-seven cells, withheld selection, pre-init action replay, one live region, drag/keyboard movement, canvas pixels, touch targets and responsive inspector placement.</td></tr>
+        <tr><td><code>TEST-STEP3-AUDIT-001</code></td><td>Cross-audit source, token, provenance and protected-path integrity.</td></tr>
       </tbody>
     </table>
 
@@ -151,10 +156,10 @@
     <table aria-label="Step 3 provenance">
       <thead><tr><th>Field</th><th>Status</th><th>Meaning</th></tr></thead>
       <tbody>
-        <tr><td>Implementation commit</td><td><code>3495b4684205170802995d26c4f6faa8dc0c0814</code></td><td>Current <code>main</code> baseline whose Step 3 implementation was inspected and exercised.</td></tr>
-        <tr><td>Merge commit</td><td><code>bd96f54d79ada47cadfb32e04f902a40253d4e84</code>, PR #479</td><td>The Step 3 map was merged to <code>main</code>.</td></tr>
-        <tr><td>Deployment status</td><td><code>SUCCESS_STATUSES_ON_MERGE_COMMIT</code></td><td>Vercel and Railway reported success for the merge commit; this is not physical-runtime evidence.</td></tr>
-        <tr><td>Physical runtime</td><td><code>NOT_VERIFIED_FOR_STEP3_MAP</code></td><td>Chromium evidence is not represented as physical-device production evidence.</td></tr>
+        <tr><td>Implementation commit</td><td><code>7da49403434d5c2791e70a36440ba19fe120efa6</code></td><td>Verified implementation commit on the audit-fix branch.</td></tr>
+        <tr><td>Merge commit</td><td><code>NOT_MERGED</code></td><td>No merge commit or PR merge is claimed for this revision.</td></tr>
+        <tr><td>Deployment status</td><td><code>NOT_DEPLOYED_OR_STATUS_VERIFIED</code></td><td>No Vercel, Railway or production deployment is claimed.</td></tr>
+        <tr><td>Physical runtime</td><td><code>NOT_VERIFIED_FOR_AUDIT_FIX</code></td><td>Chromium evidence is not represented as physical-device production evidence.</td></tr>
       </tbody>
     </table>
 

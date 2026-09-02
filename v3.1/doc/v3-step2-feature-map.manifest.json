@@ -5,7 +5,7 @@
     "id": "MAP-V3-STEP2-001",
     "title": "V3 Step 2 Agent-Readable Feature Map",
     "scope": "Posting Evidence Picker",
-    "sourceBoundary": "Current v3.1 Step 2 implementation only; no Step 2 behaviour redesign.",
+    "sourceBoundary": "Current v3.1 Step 2 implementation with audit corrections only; no workflow redesign.",
     "status": "PUBLISHED",
     "entryTransitionId": "TRANS-STEP2-ENTER-001",
     "exitTransitionId": "TRANS-STEP2-ANALYSE-001",
@@ -25,54 +25,33 @@
   },
   "provenance": {
     "implementationCommit": {
-      "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
-      "branch": "main",
-      "role": "Source evidence baseline inspected for current Step 2 behaviour.",
+      "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
+      "branch": "codex/step2-cube-audit-fixes-20260902",
+      "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
       "verifiedBy": [
-        "git rev-parse HEAD",
-        "source inspection of v3.1/src/App.jsx, v3.1/api/mcf.js, v3.1/api/careers.js, v3.1/api/ssoc.js"
+        "npm run build",
+        "node tests/audit-integrity-contract.mjs",
+        "node tests/step2-feature-map-browser.mjs",
+        "node tests/company-flow-browser.mjs",
+        "node tests/browser-gate.mjs"
       ]
     },
     "mergeCommit": {
-      "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
-      "status": "MERGED_TO_MAIN",
-      "pullRequest": 477,
-      "headCommit": "d87c2673e97c947a85dda50594321853d765a8b8",
-      "mergedAt": "2026-09-01T13:14:04Z"
+      "sha": null,
+      "status": "NOT_MERGED",
+      "pullRequest": null,
+      "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
     },
     "deploymentStatus": {
-      "status": "SUCCESS_STATUSES_ON_MERGE_COMMIT",
+      "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
       "railwayConfigurationChanged": false,
-      "verifiedAt": "2026-09-02T06:40:03+08:00",
-      "mergeCommit": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
-      "statuses": [
-        {
-          "context": "Vercel - v2_20260324_ai-jobskill-analyser-v2",
-          "state": "success",
-          "description": "Deployment has completed"
-        },
-        {
-          "context": "Vercel - v3_2026-0511-ai-js",
-          "state": "success",
-          "description": "Deployment has completed"
-        },
-        {
-          "context": "Job-Analysis - 2026-0313_AI-JS",
-          "state": "success",
-          "description": "Success - job-analysis.up.railway.app"
-        },
-        {
-          "context": "Job-Analysis - v3-web",
-          "state": "success",
-          "description": "Success - v3.takearoundabout.com"
-        }
-      ],
-      "notes": "GitHub commit statuses report successful deployment processing for the merge commit. This is deployment status, not physical-runtime verification."
+      "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
+      "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
     },
     "physicalRuntimeVerification": {
-      "status": "NOT_VERIFIED_FOR_STEP2",
-      "evidenceType": "NONE",
-      "notes": "The map includes browser evidence from deterministic fixtures; it does not claim a physical-phone production runtime pass."
+      "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
+      "evidenceType": "CHROMIUM_FIXTURES_ONLY",
+      "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
     }
   },
   "screens": [
@@ -80,7 +59,7 @@
       "id": "SCR-STEP2-IP15PM-P-001",
       "title": "Phone portrait ready state",
       "asset": "feature-map-assets/step2-iphone-portrait.png",
-      "sha256": "179c74eab2a5844036a82a5331f0af009206ee215597d22d22cad013e8f226a6",
+      "sha256": "d04fb29add0daefa02d4f1d27a564d4b168e1e3ee8c604fd6454cc9ca7abefb9",
       "viewport": {
         "width": 430,
         "height": 932,
@@ -98,13 +77,18 @@
       ],
       "evidenceRefIds": [
         "EVID-STEP2-BROWSER-001"
-      ]
+      ],
+      "raster": {
+        "width": 1290,
+        "height": 9135
+      },
+      "captureMode": "fullPage"
     },
     {
       "id": "SCR-STEP2-IP15PM-FILTER-001",
       "title": "Phone portrait match-filter state",
       "asset": "feature-map-assets/step2-iphone-filter.png",
-      "sha256": "915475676110f177b1eff122818b7e673e76d7dd242a110198a363004d1d7ad7",
+      "sha256": "fbb5a31264a13bc29f2750d6119e57c7e05503e00ec40b3b551a641a921a3f94",
       "viewport": {
         "width": 430,
         "height": 932,
@@ -119,13 +103,18 @@
       ],
       "evidenceRefIds": [
         "EVID-STEP2-BROWSER-001"
-      ]
+      ],
+      "raster": {
+        "width": 1290,
+        "height": 7092
+      },
+      "captureMode": "fullPage"
     },
     {
       "id": "SCR-STEP2-IP15PM-SELECT-001",
       "title": "Phone portrait full posting modal",
       "asset": "feature-map-assets/step2-iphone-full-ad.png",
-      "sha256": "035e5d40af3f186555ac4ebe45a37b0f81dda72fcfed1691c7f9538c55e7181e",
+      "sha256": "c250c2c19268aaaeb7893d5ddf6bde8738fc780a4edf1d511d79ab943e6ef65e",
       "viewport": {
         "width": 430,
         "height": 932,
@@ -140,13 +129,18 @@
       ],
       "evidenceRefIds": [
         "EVID-STEP2-BROWSER-001"
-      ]
+      ],
+      "raster": {
+        "width": 1290,
+        "height": 10164
+      },
+      "captureMode": "fullPage"
     },
     {
       "id": "SCR-STEP2-DESKTOP-001",
       "title": "Desktop ready state",
       "asset": "feature-map-assets/step2-desktop.png",
-      "sha256": "6ac00d89dd5b67d7edc2a9d77667881b6cdd6fd097a92e8a1c24f2ba4ae03d7b",
+      "sha256": "7863506e474efb257e5003ca77c9db16c2e0d5fded4ff88b82194a24c72dc306",
       "viewport": {
         "width": 1440,
         "height": 1000,
@@ -159,6 +153,109 @@
         "FEAT-STEP2-RESULTS-001",
         "FEAT-STEP2-SOURCE-001",
         "FEAT-STEP2-OKF-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ],
+      "raster": {
+        "width": 1440,
+        "height": 2278
+      },
+      "captureMode": "fullPage"
+    },
+    {
+      "id": "SCR-STEP2-DESKTOP-LOAD-001",
+      "title": "Desktop animated curation progress",
+      "asset": "feature-map-assets/step2-desktop-curation-loading.png",
+      "sha256": "c288543a6c66f3f7c15d31542134213244231789fe1cb3a49df61ece9d991615",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "deviceScaleFactor": 1,
+        "profile": "desktop fixture"
+      },
+      "raster": {
+        "width": 1440,
+        "height": 1118
+      },
+      "captureMode": "fullPage",
+      "stateId": "STATE-STEP2-LOAD-001",
+      "featureIds": [
+        "FEAT-STEP2-RESILIENCE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-DESKTOP-PARTIAL-001",
+      "title": "Desktop careers.gov.sg result with zero MyCareersFuture matches",
+      "asset": "feature-map-assets/step2-desktop-zero-mcf.png",
+      "sha256": "87f8d2b767c272741d1710064ede8a3ca73bc80e859cca071c63fc373e2e5a3b",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "deviceScaleFactor": 1,
+        "profile": "desktop fixture"
+      },
+      "raster": {
+        "width": 1440,
+        "height": 1849
+      },
+      "captureMode": "fullPage",
+      "stateId": "STATE-STEP2-SOURCE-PARTIAL-001",
+      "featureIds": [
+        "FEAT-STEP2-RESILIENCE-001",
+        "FEAT-STEP2-SOURCE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-DESKTOP-HANDOFF-001",
+      "title": "Desktop Step 2 to Step 3 analysis progress",
+      "asset": "feature-map-assets/step2-desktop-analysis-progress.png",
+      "sha256": "55a877d8b75aba9389bfe2a6487c145e8f737c1cd8e28ffec7a486cf11d1c815",
+      "viewport": {
+        "width": 1440,
+        "height": 1000,
+        "deviceScaleFactor": 1,
+        "profile": "desktop fixture"
+      },
+      "raster": {
+        "width": 1440,
+        "height": 1118
+      },
+      "captureMode": "fullPage",
+      "stateId": "STATE-STEP2-HANDOFF-001",
+      "featureIds": [
+        "FEAT-STEP2-HANDOFF-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "SCR-STEP2-CSG-STEP3-001",
+      "title": "Phone careers.gov.sg selection reaching Step 3 AI Moments",
+      "asset": "feature-map-assets/step2-csg-step3-ai-moments.png",
+      "sha256": "bb16608b36bc0b7001f3f310be69aee7ebbd305ffff25758b629ebc546635732",
+      "viewport": {
+        "width": 430,
+        "height": 932,
+        "deviceScaleFactor": 3,
+        "profile": "iPhone 15 Pro Max portrait fixture"
+      },
+      "raster": {
+        "width": 1290,
+        "height": 2844
+      },
+      "captureMode": "fullPage",
+      "stateId": "STATE-STEP2-CSG-HANDOFF-001",
+      "featureIds": [
+        "FEAT-STEP2-HANDOFF-001",
+        "FEAT-STEP2-RESILIENCE-001"
       ],
       "evidenceRefIds": [
         "EVID-STEP2-BROWSER-001"
@@ -510,6 +607,44 @@
       "invariantIds": [
         "INV-STEP2-SOURCE-001"
       ]
+    },
+    {
+      "id": "FEAT-STEP2-RESILIENCE-001",
+      "name": "Source and classifier resilience",
+      "status": "VERIFIED",
+      "description": "Unavailable sources are distinct from valid zero results; classifier transport failures are distinct from withheld occupation matches; all postings are classified in endpoint-sized batches.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001",
+        "API-STEP2-CAREERS-001",
+        "API-STEP2-SSOC-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-SOURCE-PARTIAL-001",
+        "STATE-STEP2-SOURCE-ERROR-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001",
+        "EVID-STEP2-AUDIT-001"
+      ]
+    },
+    {
+      "id": "FEAT-STEP2-HANDOFF-001",
+      "name": "Source-preserving Step 3 handoff",
+      "status": "VERIFIED",
+      "description": "The selected posting source, identifiers, employer and duty text survive analysis; careers.gov.sg-only evidence can open Step 3 AI Moments and visibly withholds when the sample is too thin.",
+      "componentIds": [
+        "CMP-STEP2-PICKER-001"
+      ],
+      "stateIds": [
+        "STATE-STEP2-HANDOFF-001",
+        "STATE-STEP2-CSG-HANDOFF-001"
+      ],
+      "transitionIds": [
+        "TRANS-STEP2-CSG-ANALYSE-001"
+      ],
+      "evidenceRefIds": [
+        "EVID-STEP2-BROWSER-001"
+      ]
     }
   ],
   "states": [
@@ -582,6 +717,26 @@
       "evidenceRefIds": [
         "EVID-STEP2-SRC-APP-PICKER-001"
       ]
+    },
+    {
+      "id": "STATE-STEP2-SOURCE-PARTIAL-001",
+      "name": "One source unavailable or empty",
+      "description": "The available source remains usable and an unavailable source makes no zero-result claim."
+    },
+    {
+      "id": "STATE-STEP2-SOURCE-ERROR-001",
+      "name": "Both posting sources unavailable",
+      "description": "The page reports source unavailability and does not claim that no postings exist."
+    },
+    {
+      "id": "STATE-STEP2-HANDOFF-001",
+      "name": "Analysis progress",
+      "description": "The selected posting is being analysed below the persistent header without overlap."
+    },
+    {
+      "id": "STATE-STEP2-CSG-HANDOFF-001",
+      "name": "Public-sector AI Moments",
+      "description": "Step 3 uses the selected careers.gov.sg employer and displays either grounded output or explicit withholding."
     }
   ],
   "transitions": [
@@ -649,6 +804,17 @@
       ],
       "testIds": [
         "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "TRANS-STEP2-CSG-ANALYSE-001",
+      "name": "Analyse careers.gov.sg posting",
+      "event": "Activate Analyse on a careers.gov.sg card",
+      "guard": "A selected posting carries source, employer and duty text",
+      "effect": "Open Step 3 and seed CompanyPanel from the selected public-sector posting",
+      "outcomeStateId": "STATE-STEP2-CSG-HANDOFF-001",
+      "featureIds": [
+        "FEAT-STEP2-HANDOFF-001"
       ]
     }
   ],
@@ -783,6 +949,38 @@
       ],
       "absenceBehaviour": "Show a no-exact-match or map-unavailable disclosure; never infer registered address from job-ad text.",
       "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-SOURCE-STATUS-001",
+      "name": "Per-source availability",
+      "source": "MyCareersFuture and careers.gov.sg response status/code",
+      "required": true,
+      "fields": [
+        "sourceStatus.mcf",
+        "sourceStatus.csg",
+        "fallback",
+        "code",
+        "message"
+      ],
+      "absenceBehaviour": "Treat a missing or failed source as unavailable; do not coerce it to zero postings.",
+      "inferenceAllowed": false
+    },
+    {
+      "id": "PAY-STEP2-STEP3-SEED-001",
+      "name": "Selected posting AI Moments seed",
+      "source": "Posting selected by the user",
+      "required": false,
+      "fields": [
+        "uuid",
+        "employer",
+        "postedCompanyName",
+        "hiringCompanyName",
+        "source",
+        "responsibilitiesText",
+        "description"
+      ],
+      "absenceBehaviour": "AI Moments remains unavailable or withheld; no employer or duties are inferred.",
+      "inferenceAllowed": false
     }
   ],
   "invariants": [
@@ -895,6 +1093,36 @@
       "testIds": [
         "TEST-STEP2-BROWSER-001"
       ]
+    },
+    {
+      "id": "INV-STEP2-SOURCE-FAILURE-001",
+      "statement": "A source transport failure is never presented as a valid zero-posting result.",
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-AUDIT-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-CLASSIFY-ALL-001",
+      "statement": "Every merged posting is classified or marked unavailable; the 80-row endpoint limit is handled by batching.",
+      "testIds": [
+        "TEST-STEP2-BROWSER-001",
+        "TEST-STEP2-AUDIT-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-TOUCH-001",
+      "statement": "Phone filter controls and menu options expose touch targets at least 44 pixels high.",
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
+    },
+    {
+      "id": "INV-STEP2-CSG-HANDOFF-001",
+      "statement": "A selected careers.gov.sg posting reaches Step 3 with its source and employer evidence intact.",
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
     }
   ],
   "responsiveProfiles": [
@@ -1001,6 +1229,17 @@
       "verifiesInvariantIds": [
         "INV-STEP2-WITHHOLD-001"
       ]
+    },
+    {
+      "id": "TEST-STEP2-AUDIT-001",
+      "name": "Cross-audit source integrity contract",
+      "type": "Node source contract",
+      "path": "v3.1/tests/audit-integrity-contract.mjs",
+      "command": "node tests/audit-integrity-contract.mjs",
+      "verifiesInvariantIds": [
+        "INV-STEP2-SOURCE-FAILURE-001",
+        "INV-STEP2-CLASSIFY-ALL-001"
+      ]
     }
   ],
   "evidenceRefs": [
@@ -1092,6 +1331,12 @@
       "type": "AUTOMATED_TEST",
       "path": "v3.1/tests/responsive-preflight-browser.mjs",
       "summary": "Existing responsive preflight verifies Step 2 source/body/card column contracts across phone, tablet and desktop profiles."
+    },
+    {
+      "id": "EVID-STEP2-AUDIT-001",
+      "type": "AUTOMATED_TEST",
+      "path": "v3.1/tests/audit-integrity-contract.mjs",
+      "summary": "Executable source contract for batching, token caps, failure codes, deterministic provenance, source handoff and protected paths."
     }
   ],
   "gaps": [
@@ -1103,9 +1348,9 @@
     },
     {
       "id": "GAP-STEP2-DEPLOYMENT-STATUS-001",
-      "title": "Deployment status not reverified for this docs branch",
+      "title": "Audit-fix branch is not deployed",
       "severity": "documented",
-      "description": "The branch changes docs/tests only and does not alter deployment configuration. Deployment status is intentionally not collapsed into implementation or runtime evidence."
+      "description": "Implementation commit 7da4940 is unmerged and has no claimed Vercel, Railway or production deployment status."
     }
   ],
   "rubric": {
