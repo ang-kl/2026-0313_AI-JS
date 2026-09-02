@@ -464,7 +464,7 @@
       "id": "FEAT-STEP2-SELECT-001",
       "name": "Posting selection and Step 3 handoff",
       "status": "VERIFIED",
-      "description": "Selecting a posting opens the verbatim full-ad modal; Analyse passes the selected posting object into the Step 3 analysis path rather than a generic title-only query.",
+      "description": "Selecting a posting opens the verbatim full-ad modal. Analyse derives a reduced Step 3 posting view and a separate source-bearing analysis request rather than retaining the complete selected object.",
       "componentIds": [
         "CMP-STEP2-CARD-001",
         "CMP-STEP2-FULLAD-001"
@@ -643,7 +643,7 @@
       "name": "Analyse selected posting",
       "fromStateId": "STATE-STEP2-SELECTED-001",
       "to": "Step 3 role analysis",
-      "description": "The Analyse button calls the handoff with the selected posting payload.",
+      "description": "The Analyse button derives a Step 3 posting view with title, employer, skills, combined text and salary midpoint, while the analysis request separately carries uuid, URL, employer identities and source.",
       "featureIds": [
         "FEAT-STEP2-SELECT-001"
       ],
@@ -744,21 +744,28 @@
     },
     {
       "id": "PAY-STEP2-POSTING-001",
-      "name": "Selected posting handoff object",
+      "name": "Derived selected-posting handoff",
       "source": "PostingEvidencePicker renderCard and full-ad modal",
       "required": true,
       "fields": [
+        "title",
+        "employer",
+        "skills",
+        "text",
+        "salaryMid"
+      ],
+      "analysisRequestFields": [
         "uuid",
         "title",
         "employer",
-        "source",
-        "description",
-        "responsibilitiesText",
+        "mcfUrl",
         "skills",
-        "categories",
-        "mcfUrl"
+        "text",
+        "postedCompanyName",
+        "hiringCompanyName",
+        "source"
       ],
-      "absenceBehaviour": "Do not proceed as a selected-posting Step 3 run; fall back to a title-only role analysis only outside this selected-posting transition.",
+      "absenceBehaviour": "Do not claim that the complete source posting object reaches ReviewStudio. Outside this selected-posting transition, the application may use the separate title-only role-analysis route.",
       "inferenceAllowed": false
     },
     {
@@ -881,7 +888,7 @@
     },
     {
       "id": "INV-STEP2-STEP3-HANDOFF-001",
-      "statement": "The selected-posting Analyse transition carries the selected posting payload into the Step 3 analysis path.",
+      "statement": "The selected-posting Analyse transition derives a reduced Step 3 posting view and separately supplies source-bearing fields to the analysis request; it does not preserve the complete selected object.",
       "featureIds": [
         "FEAT-STEP2-SELECT-001"
       ],

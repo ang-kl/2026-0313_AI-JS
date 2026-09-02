@@ -50,12 +50,16 @@
       "htmlPath": "doc/V3-Step2-Agent-Readable-Feature-Map.html",
       "manifestPath": "doc/v3-step2-feature-map.manifest.json",
       "role": "User compares live source postings and selects one evidence-bearing job ad.",
-      "handoff": "Feeds the selected posting payload into Step 3.",
+      "handoff": "Derives a reduced Step 3 posting view and a separate source-bearing analysis request from the selected posting.",
       "provenance": {
         "implementationCommit": {
           "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
           "branch": "main",
-          "role": "Current Step 2 implementation inspected as source evidence."
+          "role": "Source evidence baseline inspected for current Step 2 behaviour.",
+          "verifiedBy": [
+            "git rev-parse HEAD",
+            "source inspection of v3.1/src/App.jsx, v3.1/api/mcf.js, v3.1/api/careers.js, v3.1/api/ssoc.js"
+          ]
         },
         "mergeCommit": {
           "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
@@ -96,7 +100,7 @@
         "physicalRuntimeVerification": {
           "status": "NOT_VERIFIED_FOR_STEP2",
           "evidenceType": "NONE",
-          "notes": "The Step 2 map includes automated Chromium evidence, not physical-phone production verification."
+          "notes": "The map includes browser evidence from deterministic fixtures; it does not claim a physical-phone production runtime pass."
         }
       }
     },
@@ -108,26 +112,41 @@
       "htmlPath": "doc/V3-Step3-Agent-Readable-Feature-Map.html",
       "manifestPath": "doc/v3-step3-feature-map.manifest.json",
       "role": "Work Universe, evidence workspace and review-output map after a selected posting or role run.",
-      "handoff": "Receives the selected Step 2 posting payload or Step 1a role query.",
+      "handoff": "Receives a Step 1a role query or the reduced Step 3 posting view produced from a Step 2 selection.",
       "provenance": {
         "implementationCommit": {
           "sha": "3495b4684205170802995d26c4f6faa8dc0c0814",
           "branch": "main",
-          "role": "Source evidence baseline inspected for the Step 3 map."
+          "role": "Source evidence baseline inspected for current Step 3 behaviour.",
+          "verifiedBy": [
+            "source inspection of v3.1/src/ReviewStudio.jsx and v3.1/src/work-universe",
+            "v3.1/tests/browser-gate.mjs",
+            "v3.1/script/v3.1-blueprint-component-cross-reference.md"
+          ]
         },
         "mergeCommit": {
-          "sha": null,
-          "status": "MAP_BRANCH_NOT_MERGED"
+          "sha": "bd96f54d79ada47cadfb32e04f902a40253d4e84",
+          "status": "MERGED_TO_MAIN",
+          "pullRequest": 479,
+          "headCommit": "4e57eb63b7f10fb70fa09c5c582baa6c3c78f80f",
+          "mergedAt": "2026-09-01T23:38:19Z"
         },
         "deploymentStatus": {
-          "status": "NOT_CHANGED_OR_REVERIFIED",
+          "status": "SUCCESS_STATUSES_ON_MERGE_COMMIT",
           "railwayConfigurationChanged": false,
-          "notes": "The Step 3 map branch changes documentation, assets and contracts only; it does not claim a new deployment."
+          "mergeCommit": "bd96f54d79ada47cadfb32e04f902a40253d4e84",
+          "statuses": [
+            { "context": "Vercel - v2_20260324_ai-jobskill-analyser-v2", "state": "success", "description": "Deployment has completed" },
+            { "context": "Vercel - v3_2026-0511-ai-js", "state": "success", "description": "Deployment has completed" },
+            { "context": "Job-Analysis - 2026-0313_AI-JS", "state": "success", "description": "Success - job-analysis.up.railway.app" },
+            { "context": "Job-Analysis - v3-web", "state": "success", "description": "Success - v3.takearoundabout.com" }
+          ],
+          "notes": "Commit statuses report successful deployment processing. This is not physical-runtime verification."
         },
         "physicalRuntimeVerification": {
           "status": "NOT_VERIFIED_FOR_STEP3_MAP",
           "evidenceType": "NONE",
-          "notes": "Deterministic Chromium evidence is recorded separately from physical-device production verification."
+          "notes": "The map includes committed Chromium fixture evidence, not a physical-device production verification."
         }
       }
     }
@@ -141,7 +160,7 @@
     {
       "from": "MAP-V3-STEP2-001",
       "to": "MAP-V3-STEP3-001",
-      "contract": "Step 2 selected-posting Analyse passes the selected job object, including source description/responsibilities, to the Step 3 analysis path."
+      "contract": "Step 2 selected-posting Analyse derives a reduced Step 3 view containing title, employer, skills, combined text and salary midpoint; uuid, URL, employer identities and source are supplied separately to the analysis request."
     }
   ],
   "contracts": [

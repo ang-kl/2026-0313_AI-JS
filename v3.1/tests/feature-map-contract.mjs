@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -12,18 +13,24 @@ const mapConfigs = [
     id: "MAP-V3-STEP1A-001",
     manifestPath: "doc/v3-step1a-feature-map.manifest.json",
     htmlPath: "doc/V3-Step1a-Agent-Readable-Feature-Map.html",
+    requireSchema: false,
+    requireStrictLocators: false,
     requireSeparatedProvenance: false,
   },
   {
     id: "MAP-V3-STEP2-001",
     manifestPath: "doc/v3-step2-feature-map.manifest.json",
     htmlPath: "doc/V3-Step2-Agent-Readable-Feature-Map.html",
+    requireSchema: false,
+    requireStrictLocators: false,
     requireSeparatedProvenance: true,
   },
   {
     id: "MAP-V3-STEP3-001",
     manifestPath: "doc/v3-step3-feature-map.manifest.json",
     htmlPath: "doc/V3-Step3-Agent-Readable-Feature-Map.html",
+    requireSchema: true,
+    requireStrictLocators: true,
     requireSeparatedProvenance: true,
   },
 ];
@@ -68,6 +75,14 @@ const provenanceKeys = [
   "physicalRuntimeVerification",
 ];
 
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(root, relativePath), "utf8"));
 }
@@ -78,6 +93,46 @@ function readText(relativePath) {
 
 function absoluteRepoPath(relativePath) {
   return path.resolve(repoRoot, relativePath);
+}
+
+function parseSourceRanges(sourceLines, lineCount, scope) {
+  if (!sourceLines) return;
+  for (const range of String(sourceLines).split(",")) {
+    const match = range.trim().match(/^(\d+)(?:-(\d+))?$/);
+    if (!match) throw new Error(`${scope}: invalid sourceLines value ${sourceLines}`);
+    const start = Number(match[1]);
+    const end = Number(match[2] || match[1]);
+    if (start < 1 || end < start || end > lineCount) {
+      throw new Error(`${scope}: sourceLines ${range.trim()} outside 1-${lineCount}`);
+    }
+  }
+}
+
+function sourceSlice(text, sourceLines) {
+  if (!sourceLines) return text;
+  const lines = text.split(/\r?\n/);
+  return String(sourceLines).split(",").map((range) => {
+    const match = range.trim().match(/^(\d+)(?:-(\d+))?$/);
+    const start = Number(match[1]);
+    const end = Number(match[2] || match[1]);
+    return lines.slice(start - 1, end).join("\n");
+  }).join("\n");
+}
+
+function pngDimensions(buffer, scope) {
+  if (buffer.toString("ascii", 1, 4) !== "PNG") throw new Error(`${scope}: asset is not a PNG`);
+  return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
+}
+
+function assertSchema(manifest, scope) {
+  if (!manifest.$schema) throw new Error(`${scope}: missing $schema`);
+  const schemaPath = path.resolve(root, "doc", manifest.$schema);
+  if (!fs.existsSync(schemaPath)) throw new Error(`${scope}: missing schema ${manifest.$schema}`);
+  const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
+  if (schema.$id !== path.basename(schemaPath)) throw new Error(`${scope}: schema $id does not match filename`);
+  for (const key of schema.required || []) {
+    if (!(key in manifest)) throw new Error(`${scope}: schema-required field missing: ${key}`);
+  }
 }
 
 function collectIds(manifest) {
@@ -139,27 +194,40 @@ function assertScreens(manifest, scope) {
     const asset = path.join(root, "doc", screen.asset);
     if (!fs.existsSync(asset)) throw new Error(`${scope}: missing screenshot asset ${screen.asset}`);
     if (!screen.sha256) throw new Error(`${scope}: screenshot ${screen.id} lacks sha256`);
-    const hash = crypto.createHash("sha256").update(fs.readFileSync(asset)).digest("hex");
+    const bytes = fs.readFileSync(asset);
+    const hash = crypto.createHash("sha256").update(bytes).digest("hex");
     if (hash !== screen.sha256) throw new Error(`${scope}: stale screenshot hash for ${screen.id}`);
+    const dimensions = pngDimensions(bytes, `${scope}: ${screen.id}`);
+    if (!screen.raster && scope === "MAP-V3-STEP3-001") {
+      throw new Error(`${scope}: screenshot ${screen.id} lacks raster dimensions`);
+    }
+    if (screen.raster && (dimensions.width !== screen.raster.width || dimensions.height !== screen.raster.height)) {
+      throw new Error(`${scope}: screenshot dimensions drift for ${screen.id}: ${JSON.stringify(dimensions)}`);
+    }
   }
 }
 
-function assertComponents(manifest, scope) {
+function assertComponents(manifest, scope, strictLocators) {
   for (const component of manifest.components || []) {
     const source = absoluteRepoPath(component.path);
     if (!fs.existsSync(source)) throw new Error(`${scope}: missing component source ${component.path}`);
     const text = fs.readFileSync(source, "utf8");
+    if (strictLocators) parseSourceRanges(component.sourceLines, text.split(/\r?\n/).length, `${scope}: ${component.id}`);
+    const locatedText = strictLocators ? sourceSlice(text, component.sourceLines) : text;
     const semanticAnchor = component.semanticAnchor || "";
     const anchorText = component.anchorText || semanticAnchor.split("=").pop();
-    if (!text.includes(component.symbol) || (anchorText && !text.includes(anchorText))) {
+    if (!locatedText.includes(component.symbol) || (anchorText && !locatedText.includes(anchorText))) {
       throw new Error(`${scope}: source locator drift for ${component.id}`);
     }
   }
 }
 
-function assertTests(manifest, scope) {
+function assertTests(manifest, scope, strictLocators) {
   for (const test of manifest.tests || []) {
-    if (!fs.existsSync(absoluteRepoPath(test.path))) throw new Error(`${scope}: missing test ${test.path}`);
+    const testPath = absoluteRepoPath(test.path);
+    if (!fs.existsSync(testPath)) throw new Error(`${scope}: missing test ${test.path}`);
+    const text = fs.readFileSync(testPath, "utf8");
+    if (strictLocators) parseSourceRanges(test.sourceLines, text.split(/\r?\n/).length, `${scope}: ${test.id}`);
   }
 }
 
@@ -205,6 +273,7 @@ function validateMap(config) {
   if (manifest.map.id !== config.id) {
     throw new Error(`${config.id}: manifest map id drifted to ${manifest.map.id}`);
   }
+  if (config.requireSchema) assertSchema(manifest, config.id);
   if (config.requireSeparatedProvenance) assertSeparatedProvenance(manifest, config.id);
 
   const ids = collectIds(manifest);
@@ -213,8 +282,8 @@ function validateMap(config) {
   assertRegistryPrefixes(manifest, config.id);
   assertReferencesResolve(manifest, idSet, config.id);
   assertScreens(manifest, config.id);
-  assertComponents(manifest, config.id);
-  assertTests(manifest, config.id);
+  assertComponents(manifest, config.id, config.requireStrictLocators);
+  assertTests(manifest, config.id, config.requireStrictLocators);
   const callouts = assertHtml(manifest, html, idSet, config.id);
   assertMapSemantics(manifest, config.id);
 
@@ -251,14 +320,36 @@ function validateIndex(validatedMaps) {
       if (!fs.existsSync(path.join(root, item.htmlPath))) throw new Error(`Index HTML path missing for ${item.id}`);
       const docHref = item.htmlPath.replace(/^doc\//, "");
       if (!html.includes(docHref)) throw new Error(`Index HTML does not link ${item.htmlPath}`);
+      if (matched.config.requireSeparatedProvenance) {
+        for (const key of provenanceKeys) {
+          if (stableStringify(item.provenance[key]) !== stableStringify(matched.manifest.provenance[key])) {
+            throw new Error(`Index provenance drift for ${item.id}: ${key}`);
+          }
+        }
+      }
     }
   }
 
   return index.maps.length;
 }
 
+function assertProtectedPaths() {
+  const baseRef = process.env.FEATURE_MAP_BASE_REF;
+  if (!baseRef) return;
+  const changed = execFileSync("git", ["diff", "--name-only", baseRef], { cwd: repoRoot, encoding: "utf8" })
+    .trim().split("\n").filter(Boolean);
+  const allowed = [
+    /^v3\.1\/doc\//,
+    /^v3\.1\/tests\/(feature-map-contract|browser-gate)\.mjs$/,
+    /^\.github\/workflows\/v31-browser-gate\.yml$/,
+  ];
+  const violations = changed.filter((file) => !allowed.some((pattern) => pattern.test(file)));
+  if (violations.length) throw new Error(`Feature map protected-path violation: ${violations.join(", ")}`);
+}
+
 const validatedMaps = mapConfigs.map(validateMap);
 const indexedMaps = validateIndex(validatedMaps);
+assertProtectedPaths();
 const totalIds = validatedMaps.reduce((count, entry) => count + entry.ids.length, 0);
 const totalCallouts = validatedMaps.reduce((count, entry) => count + entry.callouts, 0);
 

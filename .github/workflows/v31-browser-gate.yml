@@ -16,6 +16,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -64,7 +66,7 @@ jobs:
           node tests/occupation-visual-selector-contract.mjs
           node tests/person-evidence-contract.mjs
           node tests/governance-ledger-contract.mjs
-          node tests/feature-map-contract.mjs
+          FEATURE_MAP_BASE_REF=${{ github.event.pull_request.base.sha }} node tests/feature-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/step2-feature-map-browser.mjs
           node tests/company-flow-browser.mjs
