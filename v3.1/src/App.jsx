@@ -1473,6 +1473,7 @@ import TelegramLoginWidget from "./TelegramLoginWidget.jsx";
 import { loadState, saveState } from "./persist.js";
 import { downloadJson, envelope, block, exportFilename, ORIGIN } from "./export-json.js";
 import { KGGraph } from "./RoleGraph.jsx";
+import { sectorEvidenceFromRegistry } from "./businessCubeModel.js";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
 import { useDeviceProfile } from "./responsive/deviceProfile.js";
@@ -1635,6 +1636,7 @@ async function classifyPostings(jobs) {
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
 const AmbientBackdrop = lazy(() => import("./AmbientBackdrop.jsx"));
+const BusinessRubiksCube = lazy(() => import("./BusinessRubiksCube.jsx"));
 
 const C = {
   bg:         "#e6ebf2",
@@ -5448,7 +5450,7 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
         @media (min-width:1180px){.ldx-skills-grid{grid-template-columns:repeat(4,1fr)}}
         /* The note. Declared AFTER the 680px block on purpose: both selectors are a single
            class, so source order is what lets .ldx-note keep its width there. */
-        .ldx-note{max-width:540px;margin:0;position:fixed;top:24px;left:24px;z-index:40}
+        .ldx-note{max-width:540px;margin:0;position:fixed;top:calc(var(--site-header-height, 72px) + 16px);left:24px;z-index:40}
         .ldx-note-row{display:flex;gap:18px;align-items:flex-start}
         .ldx-note-left{flex:none;display:flex;flex-direction:column;align-items:center}
         .ldx-note-right{flex:1;min-width:0}
@@ -5457,10 +5459,11 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
            once entries start resolving - fills the space the note used to occupy inline.
            Capped height + its own scroll so it can never grow past the space the skills
            grid reserves for it below, however long the "still working" / corpus copy gets. */
-        .ldx-note{max-height:calc(100vh - 48px);overflow-y:auto}
+        .ldx-note{max-height:calc(100dvh - var(--site-header-height, 72px) - 32px);overflow-y:auto}
         .ldx-skills-reserve{margin-top:16px}
         @media (max-width:600px){
-          .ldx-note{position:static;top:auto;left:auto;max-width:none;max-height:none;overflow-y:visible}
+          .ldx-note{left:12px;right:12px;max-width:none}
+          .ldx-skills-reserve{margin-top:0;padding-top:340px}
         }
         /* >=600px the note leaves the flow (fixed) - reserve its rough footprint at the
            top so the grid starts clear of it instead of running underneath. */
@@ -5487,7 +5490,7 @@ function Spinner({ label, step, total, firstTime, skills, postingText, processMo
             motion that always fires. Padding and radius both opened up (14px/16px ->
             20px/20px) so the ring has real clearance from the corner instead of nearly
             touching it. */}
-        <div className="ldx-card ldx-note" style={{ background:"rgba(255,255,255,0.94)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:20, padding:"20px 22px", boxShadow:"0 10px 40px rgba(15,40,105,0.14), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
+        <div className="ldx-card ldx-note" data-testid="analysis-progress-panel" style={{ background:"rgba(255,255,255,0.94)", backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)", border:`1px solid ${C.border}`, borderRadius:20, padding:"20px 22px", boxShadow:"0 10px 40px rgba(15,40,105,0.14), 0 1px 2px rgba(15,40,105,0.05)", textAlign:"left" }}>
          <div className="ldx-note-row">
           <div className="ldx-note-left">
           {/* progress ring. aria-hidden covers only the decorative gradient layers below -
@@ -15428,7 +15431,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const [agentsView, setAgentsView] = useState("off"); // "off" | "loading" | "ready" | "withheld"
   const [agentsModel, setAgentsModel] = useState(null);
   const [agentsKgPayload, setAgentsKgPayload] = useState(null);
-  const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "force" | "workflow"
+  const [agentLayout, setAgentLayout] = useState("lanes"); // "lanes" | "cube"
   const [tapNodeId, setTapNodeId] = useState(null); // side-panel open state
   const [agentsError, setAgentsError] = useState("");
   // Step 3 mounts its own organisation panel. Remember the employer for which
@@ -15638,6 +15641,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
   // OI1.1: deterministic organisation read over the already-fetched employer set.
   const orgRead = useMemo(function() { return buildOrgRead(activeMatch, empReg, csgGroups, csgRetrievedAt); }, [activeMatch, empReg, csgGroups, csgRetrievedAt]);
+  const businessCubeSector = useMemo(function() { return sectorEvidenceFromRegistry(empReg); }, [empReg]);
 
   // AI overview: once a confirmed employer has enough grounded facts (an ACRA industry
   // match OR >=1 org-read signal) and the ACRA lookup has settled, narrate them on the
@@ -16023,10 +16027,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                      {/* 2-way segmented control - Cards | Neural. (Workflow dropped - it duplicated
-                          the column Cards view; Cards = readable, Neural = tap-to-expand graph.) */}
+                      {/* Cards preserves the readable evidence lanes. Business cube is the
+                          sector-centred, movable allocation view over the same model. */}
                       <div role="group" aria-label="Graph layout" style={{ display: "flex", border: "1px solid #7dd3fc", borderRadius: 8, overflow: "hidden" }}>
-                        {[["lanes", "Cards"], ["force", "Neural"]].map(function(pair) {
+                        {[["lanes", "Cards"], ["cube", "Business cube"]].map(function(pair) {
                           const val = pair[0], lbl = pair[1];
                           const active = agentLayout === val;
                           return (
@@ -16034,7 +16038,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                               onClick={function() { setAgentLayout(val); }}
                               aria-pressed={active}
                               aria-label={lbl + " layout" + (active ? ", currently selected" : "")}
-                              style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "force" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ minHeight: 44, minWidth: 44, padding: "5px 10px", background: active ? "#0369a1" : "#fff", border: "none", borderRight: val !== "cube" ? "1px solid #7dd3fc" : "none", color: active ? "#fff" : "#0369a1", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                               {lbl}
                             </button>
                           );
@@ -16074,12 +16078,17 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                   </div>
                 </details>
 
-                {/* Docs-style 2-pane: graph centre + docked details/index rail (the org perspective). */}
-                <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
-                  <main style={{ flex: "1 1 460px", minWidth: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "10px 12px" }}>
-                    <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout={agentLayout} embedded />
-                  </main>
-                  <aside style={{ flex: "1 1 280px", maxWidth: 360, minWidth: 250, position: "sticky", top: 12, alignSelf: "flex-start" }}>
+                {agentLayout === "cube" ? (
+                  <Suspense fallback={<div style={{ minHeight: 460, display: "grid", placeItems: "center", color: C.muted }}>Building business cube...</div>}>
+                    <BusinessRubiksCube agentModel={agentsModel} sectorEvidence={businessCubeSector} />
+                  </Suspense>
+                ) : (
+                  /* Docs-style Cards view: evidence lanes + docked details/index rail. */
+                  <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <main style={{ flex: "1 1 460px", minWidth: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "10px 12px" }}>
+                      <KGGraph kg={agentsKgPayload} onNodeTap={handleAgentNodeTap} layout="lanes" embedded />
+                    </main>
+                    <aside style={{ flex: "1 1 280px", maxWidth: 360, minWidth: 250, position: "sticky", top: 12, alignSelf: "flex-start" }}>
                     {tapNodeId ? (
                       <CompanyAgentSidePanel inline nodeId={tapNodeId} kgPayload={agentsKgPayload} onClose={function() { setTapNodeId(null); }} />
                     ) : (
@@ -16100,8 +16109,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
                         <p style={{ margin: "8px 0 0", fontSize: 11, color: "#586474", lineHeight: 1.5 }}>Tap an agent (or any node in the graph) to see its connections, skills and the postings it spans.</p>
                       </div>
                     )}
-                  </aside>
-                </div>
+                    </aside>
+                  </div>
+                )}
 
                 <p style={{ margin: "8px 0 0", fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
                   <span style={{ fontWeight: 700 }}>Prov:</span> nodes are <span style={{ fontWeight: 700 }}>from MCF</span> (company categories) or <span style={{ fontWeight: 700 }}>derived</span> (cluster + ranking from sampled postings). Recurrence = distinct postings spanned. Score = recurrence x exposure weight. No LLM authored any cluster, count or rank.
@@ -16355,6 +16365,23 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
 export default function App({ initialSearchMode } = {}) {
   const deviceProfile = useDeviceProfile();
+  const siteHeaderRef = useRef(null);
+  useEffect(() => {
+    const header = siteHeaderRef.current;
+    if (!header) return undefined;
+    const measure = () => {
+      document.documentElement.style.setProperty("--site-header-height", Math.ceil(header.getBoundingClientRect().height) + "px");
+    };
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (observer) observer.observe(header);
+    window.addEventListener("resize", measure, { passive: true });
+    return () => {
+      if (observer) observer.disconnect();
+      window.removeEventListener("resize", measure);
+      document.documentElement.style.removeProperty("--site-header-height");
+    };
+  }, []);
   const [query,     setQuery]     = useState("");
   const [searchMode, setSearchMode] = useState(initialSearchMode || "role"); // "role" (ESCO analysis) | "jobs" (browse MyCareersFuture) | "company" (CO1: search by employer) | "wiki" (WIKI1: Career WikiGraph)
   const [freshGrad, setFreshGrad] = useState(false); // jobs mode: scout roles needing < 4 yrs experience (fresh grads)
@@ -18449,7 +18476,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       {/* flexWrap: at phone widths the buttons wrap UNDER the title instead of overlapping it */}
       {/* position+zIndex: sticky-pinned, opaque C.eu header that stays above page content and the
           sticky left nav rail (top:64). zIndex:50 clears both the rail and the LUX1 backdrop layer */}
-      <div data-testid="site-header" style={{ background:C.eu, padding: isStep1aPhone ? "8px 12px" : "10px 16px", display:"flex", alignItems:"center", gap: isStep1aPhone ? 8 : 10, width:"100%", boxSizing:"border-box", flexWrap: isStep1aPhone ? "nowrap" : "wrap", position:"sticky", top:0, zIndex:50, minHeight: isStep1aPhone ? 60 : undefined }}>
+      <div ref={siteHeaderRef} data-testid="site-header" style={{ background:C.eu, padding: isStep1aPhone ? "8px 12px" : "10px 16px", display:"flex", alignItems:"center", gap: isStep1aPhone ? 8 : 10, width:"100%", boxSizing:"border-box", flexWrap: isStep1aPhone ? "nowrap" : "wrap", position:"sticky", top:0, zIndex:50, minHeight: isStep1aPhone ? 60 : undefined }}>
         <span style={{ color:C.euStar, fontSize: "1.125rem", flexShrink:0 }}>★</span>
         <div style={{ flex: isStep1aPhone ? "1 1 auto" : "1 0 200px", minWidth:0 }}>
           <h1 style={{ margin:0, fontSize: isStep1aPhone ? "1rem" : "0.8125rem", fontWeight:750, color:"#ffffff", lineHeight:1.25 }} className="site-title">{isStep1aPhone ? "Organisation search" : "AI Readiness across Skills and Competences"}</h1>

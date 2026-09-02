@@ -412,6 +412,13 @@ async function run() {
     await page
       .getByText(/Analysing the MyCareersFuture posting for Data Engineer at Example Technology/i)
       .waitFor({ timeout: 5_000 });
+    const phoneProgressGeometry = await page.getByTestId("analysis-progress-panel").evaluate((panel) => {
+      const header = document.querySelector('[data-testid="site-header"]');
+      const panelRect = panel.getBoundingClientRect();
+      const headerRect = header.getBoundingClientRect();
+      return { panelTop: panelRect.top, headerBottom: headerRect.bottom };
+    });
+    assert(phoneProgressGeometry.panelTop >= phoneProgressGeometry.headerBottom, `Phone analysis progress overlaps header: ${JSON.stringify(phoneProgressGeometry)}`);
 
     assert(failedResponses.length === 0, `Unexpected failed API responses: ${failedResponses.join("; ")}`);
     assert(errors.length === 0, `Unexpected browser errors: ${errors.join("; ")}`);
@@ -428,6 +435,17 @@ async function run() {
     await openStep2(desktopPage);
     await checkNoHorizontalOverflow(desktopPage, "desktop");
     await screenshot(desktopPage, "step2-desktop.png");
+    await desktopPage.getByRole("button", { name: "Analyse", exact: true }).first().click();
+    const desktopProgress = desktopPage.getByTestId("analysis-progress-panel");
+    await desktopProgress.waitFor({ state: "visible", timeout: 5_000 });
+    const desktopProgressGeometry = await desktopProgress.evaluate((panel) => {
+      const header = document.querySelector('[data-testid="site-header"]');
+      const panelRect = panel.getBoundingClientRect();
+      const headerRect = header.getBoundingClientRect();
+      return { panelTop: panelRect.top, headerBottom: headerRect.bottom, gap: panelRect.top - headerRect.bottom };
+    });
+    assert(desktopProgressGeometry.gap >= 12, `Desktop analysis progress overlaps header: ${JSON.stringify(desktopProgressGeometry)}`);
+    await screenshot(desktopPage, "step2-desktop-analysis-progress.png");
     await desktop.close();
   } finally {
     await browser.close();
