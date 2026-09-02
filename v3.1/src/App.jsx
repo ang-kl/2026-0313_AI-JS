@@ -13374,21 +13374,50 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const TL = String.fromCharCode(0x2514, 0x2500, 0x2500) + " ";
   const TI = String.fromCharCode(0x2502) + "   ";
 
-  const sourcePanel = (name, srcCards, tone, gridRef) => (
+  const sourcePanel = (name, srcCards, tone, gridRef) => {
+    const sourceKey = name === "MyCareersFuture" ? "mcf" : "csg";
+    if (srcCards.length === 0) {
+      return (
+        <details className="step2-source step2-source-empty" data-testid={"step2-empty-source-" + sourceKey} style={{ minWidth: 0, border: "1px solid #e2e0d8", borderRadius: 9, background: "#fbfaf8" }}>
+          <summary style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44, padding: "7px 10px", cursor: "pointer", listStyle: "none" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
+            <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: tone.ink, background: tone.bg, border: "1px solid " + tone.border, borderRadius: 6, padding: "2px 7px" }}>0</span>
+            <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#6b6357" }}>No matches</span>
+            <span className="step2-source-chevron" aria-hidden="true" style={{ color: "#6b6357", fontSize: "0.75rem" }}>&#9656;</span>
+          </summary>
+          <p style={{ margin: 0, padding: "0 10px 10px 25px", fontSize: "0.75rem", color: "#64748b" }}>No {name} postings match this role.</p>
+        </details>
+      );
+    }
+    return (
     <section className="step2-source" style={{ minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
         <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: tone.ink, background: tone.bg, border: "1px solid " + tone.border, borderRadius: 6, padding: "2px 7px" }}>{srcCards.length}</span>
       </div>
-      {srcCards.length === 0
-        ? <div style={{ fontSize: "0.75rem", color: "#94a0b0", border: "1px dashed #e2e0d8", borderRadius: 10, padding: "18px 14px" }}>No {name} postings match.</div>
-        : <div className="step2-cards" ref={gridRef} style={{ display: "grid", gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>}
+      <div className="step2-cards" ref={gridRef} style={{ display: "grid", gridTemplateColumns: cardColumns }}>{srcCards.map(renderCard)}</div>
     </section>
-  );
+    );
+  };
 
   return (
     <div className="step2-bleed step2-shell" data-testid="step2-responsive-surface" style={{ position: "relative", padding: shellPadding, boxSizing: "border-box" }}>
+      <style>{`
+        @keyframes step2CurationPulse { 0%,100%{opacity:.35;transform:scale(.82)} 50%{opacity:1;transform:scale(1.18)} }
+        @keyframes step2CurationSweep { 0%{transform:translateX(-115%)} 100%{transform:translateX(510%)} }
+        .step2-curation-dot.is-loading { animation:step2CurationPulse 1s ease-in-out infinite; }
+        .step2-curation-sweep { height:3px; margin:0 0 9px; overflow:hidden; border-radius:2px; background:#e7ebf2; }
+        .step2-curation-sweep > span { display:block; width:22%; height:100%; background:#1a56db; animation:step2CurationSweep 1.15s ease-in-out infinite; }
+        .step2-source-empty > summary::-webkit-details-marker { display:none; }
+        .step2-source-chevron { transition:transform .16s ease; }
+        .step2-source-empty[open] .step2-source-chevron { transform:rotate(90deg); }
+        @media (prefers-reduced-motion:reduce) {
+          .step2-curation-dot.is-loading, .step2-curation-sweep > span { animation:none !important; }
+          .step2-curation-sweep > span { width:45%; }
+        }
+      `}</style>
       <div className="step2-head" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "2px 2px 12px" }}>
         <button onClick={onNewSearch} style={{ background: "none", border: "none", cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontWeight: 600, fontSize: "0.8125rem", padding: 0, display: "flex", alignItems: "center", gap: 6 }}><span aria-hidden="true">&#8592;</span> New search</button>
         <div style={{ minWidth: 0 }}>
@@ -13428,13 +13457,14 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           { key: "cls", icon: "SSOC", label: "SSOC 2024 classify", status: progress.classifyStatus, count: progress.classifyTotal, countLabel: "classified" },
         ];
         return (
-          <div role="status" aria-live="polite" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, padding: "12px 14px", margin: "0 0 14px", boxShadow: "0 1px 3px rgba(20,32,46,.06)" }}>
+          <div role="status" aria-live="polite" data-testid="step2-curation-progress" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, padding: "12px 14px", margin: "0 0 14px", boxShadow: "0 1px 3px rgba(20,32,46,.06)", overflow: "hidden" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
               <p style={{ margin: 0, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#16202e" }}>
                 Curating evidence for {Q1}{query}{Q2}
               </p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>deterministic {String.fromCharCode(0x00b7)} no LLM</span>
             </div>
+            <div className="step2-curation-sweep" aria-hidden="true"><span /></div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
               {rows.map((r) => {
                 const idle = r.status === "idle";
@@ -13446,7 +13476,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 return (
                   <div key={r.key} style={{ background: "#fff", border: "1px solid " + (loading ? "#cdd9ff" : "#e6e3db"), borderRadius: 9, padding: "9px 11px", transition: "border-color .2s" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                      <span aria-hidden="true" className={dotPulse ? "ldx" : undefined} style={{ width: 9, height: 9, borderRadius: "50%", background: dotColor, animation: dotPulse ? "ldxBreathe 1.1s ease-in-out infinite" : "none" }} />
+                      <span aria-hidden="true" className={dotPulse ? "step2-curation-dot is-loading" : "step2-curation-dot"} style={{ width: 9, height: 9, borderRadius: "50%", background: dotColor }} />
                       <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", color: "#5b6878", fontWeight: 700, letterSpacing: ".04em" }}>{r.icon}</span>
                       <span style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", color: "#16202e", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.label}</span>
                     </div>
@@ -13504,30 +13534,30 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         const topSectors = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
         const topMax = topSectors.length ? topSectors[0][1] : 1;
         // Donut maths: ring circumference and segment fractions.
-        const R = 38, CIRC = 2 * Math.PI * R;
+        const R = 27, CIRC = 2 * Math.PI * R;
         let accFrac = 0;
         return (
-          <div className="step2-overview" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div className="step2-overview" data-testid="step2-curation-overview" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 10, padding: "9px 12px", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
               <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#6b6357", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>computed from SSOC classifications</span>
             </div>
-            <div className="step2-overview-grid" style={{ display: "grid", gridTemplateColumns: isPhone ? "minmax(0, 1fr)" : "minmax(180px, 240px) minmax(0, 1fr)", gap: isPhone ? 14 : 18, alignItems: "center" }}>
+            <div className="step2-overview-grid" style={{ display: "grid", gridTemplateColumns: isPhone ? "minmax(0, 1fr)" : "minmax(150px, 190px) minmax(0, 1fr)", gap: isPhone ? 10 : 12, alignItems: "center" }}>
               {/* AI-exposure donut */}
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <svg viewBox="0 0 110 110" style={{ width: 110, height: 110, flex: "none" }} aria-hidden="true">
-                  <circle cx={55} cy={55} r={R} fill="none" stroke="#eceae2" strokeWidth={12} />
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <svg viewBox="0 0 80 80" style={{ width: 80, height: 80, flex: "none" }} aria-hidden="true">
+                  <circle cx={40} cy={40} r={R} fill="none" stroke="#eceae2" strokeWidth={10} />
                   {bandSegs.map((s) => {
                     const frac = s.count / total;
                     const dash = `${frac * CIRC} ${CIRC}`;
                     const offset = -accFrac * CIRC;
                     accFrac += frac;
-                    return (<circle key={s.key} cx={55} cy={55} r={R} fill="none" stroke={s.color} strokeWidth={12} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90 55 55)" style={{ transition: "stroke-dasharray .4s ease, stroke-dashoffset .4s ease" }} />);
+                    return (<circle key={s.key} cx={40} cy={40} r={R} fill="none" stroke={s.color} strokeWidth={10} strokeDasharray={dash} strokeDashoffset={offset} transform="rotate(-90 40 40)" style={{ transition: "stroke-dasharray .4s ease, stroke-dashoffset .4s ease" }} />);
                   })}
-                  <text x={55} y={56} textAnchor="middle" dominantBaseline="middle" fontFamily="'Spline Sans',sans-serif" fontWeight={800} fontSize={18} fill="#16202e">{total}</text>
-                  <text x={55} y={72} textAnchor="middle" fontFamily="'Spline Sans Mono',monospace" fontSize={7} fill="#6b6357" letterSpacing=".06em">POSTINGS</text>
+                  <text x={40} y={39} textAnchor="middle" dominantBaseline="middle" fontFamily="'Spline Sans',sans-serif" fontWeight={800} fontSize={15} fill="#16202e">{total}</text>
+                  <text x={40} y={52} textAnchor="middle" fontFamily="'Spline Sans Mono',monospace" fontSize={6} fill="#6b6357" letterSpacing=".06em">POSTINGS</text>
                 </svg>
-                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
                   {bandSegs.map((s) => (
                     <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flex: "none" }} />
@@ -13543,7 +13573,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 {topSectors.length === 0 ? (
                   <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b6357" }}>SSOC families not yet classified.</p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isPhone ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))", gap: 3 }}>
                     {topSectors.map(([name, n]) => (
                       <button key={name} type="button"
                         onClick={() => toggleFacet("sector", name === "Unclassified" ? "Unclassified" : name)}
@@ -13624,7 +13654,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>
               <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
             </p>
-            <div className="step2-source-grid" style={{ display: "grid", gridTemplateColumns: sourceColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
+            <div className="step2-source-grid" style={{ display: "grid", gridTemplateColumns: (mcfCards.length > 0 && csgCards.length > 0) ? sourceColumns : "minmax(0, 1fr)", gap: 12, alignItems: "flex-start", minWidth: 0 }}>
             {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" }, mcfGridRef)}
             {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" }, csgGridRef)}
             </div>
@@ -13739,7 +13769,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           visible throughout rather than flickering in only once loading ends. */}
       <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         {!state.loading
-          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({baseJobs.length} postings). Confidence: named-source facts. Time-window: this result.</p>
+          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({cards.filter((c) => !isCsg(c.job)).length} postings); careers.gov.sg ({cards.filter((c) => isCsg(c.job)).length} postings). Confidence: named-source facts. Time-window: this result.</p>
           : <span />}
         <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>v{APP_VERSION}</span>
       </div>
