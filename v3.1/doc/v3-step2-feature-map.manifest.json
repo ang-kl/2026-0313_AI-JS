@@ -37,21 +37,25 @@
       ]
     },
     "mergeCommit": {
-      "sha": null,
-      "status": "NOT_MERGED",
-      "pullRequest": null,
-      "notes": "This map revision includes the unmerged desktop filter-toolbar follow-up."
+      "sha": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
+      "status": "MERGED_TO_MAIN",
+      "pullRequest": 485,
+      "mergedAt": "2026-09-02T21:00:40+08:00",
+      "notes": "GitHub records PR #485 as merged to main with four checks passing."
     },
     "deploymentStatus": {
-      "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
+      "status": "SUCCESS",
+      "implementationCommit": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
       "railwayConfigurationChanged": false,
-      "implementationCommit": "1a043664434ae9c3c2cd21850ed23df50138fb66",
-      "notes": "PR #484 is deployed, but this desktop toolbar follow-up commit is not."
+      "runtime": "https://v3.takearoundabout.com",
+      "notes": "The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Individual post-merge provider status records were not re-read because the GitHub API quota was exhausted."
     },
     "physicalRuntimeVerification": {
-      "status": "NOT_VERIFIED_FOR_CURRENT_HEAD",
-      "evidenceType": "LOCAL_CHROMIUM_FIXTURES_ONLY",
-      "notes": "Local 1440px and phone fixtures pass; no physical-device or deployed-runtime claim is made for this commit."
+      "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+      "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
+      "runtime": "https://v3.takearoundabout.com",
+      "verifiedAt": "2026-09-03T07:39:00+08:00",
+      "notes": "The deployed origin passed desktop and phone Chromium fixtures. This is not a physical phone or Safari claim."
     }
   },
   "screens": [
