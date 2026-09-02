@@ -213,8 +213,8 @@
       <aside class="meta" aria-label="Map metadata">
         <p><strong>Manifest</strong><a href="v3-step2-feature-map.manifest.json">v3-step2-feature-map.manifest.json</a></p>
         <p><strong>Implementation source</strong><code>v3.1/src/App.jsx :: PostingEvidencePicker</code></p>
-        <p><strong>Source baseline</strong><code>4cde69d83e3df3afa1533b77ed58405018d57946</code></p>
-        <p><strong>Boundary</strong>Docs, manifest and tests only.</p>
+        <p><strong>Source baseline</strong><code>7da49403434d5c2791e70a36440ba19fe120efa6</code></p>
+        <p><strong>Boundary</strong>Audit corrections only; no Step 2 workflow redesign.</p>
       </aside>
     </header>
 
@@ -303,6 +303,18 @@
         <p>Creates deterministic Open Knowledge Format index, posting, sector and log documents from Step 2 data.</p>
         <div class="tag-row"><span class="tag">EVID-STEP2-SRC-OKF-001</span></div>
       </article>
+      <article class="node source" data-feature-id="FEAT-STEP2-RESILIENCE-001">
+        <div class="id">FEAT-STEP2-RESILIENCE-001</div>
+        <h3>Source and Classifier Resilience</h3>
+        <p>Unavailable sources are not reported as zero results. All merged postings are classified in bounded batches, with transport failures kept separate from withheld matches.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-SOURCE-FAILURE-001</span><span class="tag">INV-STEP2-CLASSIFY-ALL-001</span></div>
+      </article>
+      <article class="node select" data-feature-id="FEAT-STEP2-HANDOFF-001">
+        <div class="id">FEAT-STEP2-HANDOFF-001</div>
+        <h3>Source-Preserving Handoff</h3>
+        <p>Selected careers.gov.sg identifiers, employer, source and duty text reach Step 3 AI Moments; thin samples are visibly withheld rather than replaced with MCF data.</p>
+        <div class="tag-row"><span class="tag">INV-STEP2-CSG-HANDOFF-001</span></div>
+      </article>
     </section>
 
     <h2>Evidence Screens</h2>
@@ -322,6 +334,22 @@
       <figure data-screen-id="SCR-STEP2-DESKTOP-001">
         <img src="feature-map-assets/step2-desktop.png" alt="Desktop Step 2 ready state" />
         <figcaption><strong>SCR-STEP2-DESKTOP-001</strong> - desktop index plus side-by-side source panels.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-DESKTOP-LOAD-001">
+        <img src="feature-map-assets/step2-desktop-curation-loading.png" alt="Desktop animated Step 2 curation progress" />
+        <figcaption><strong>SCR-STEP2-DESKTOP-LOAD-001</strong> - visible curation motion while posting sources and SSOC classification settle.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-DESKTOP-PARTIAL-001">
+        <img src="feature-map-assets/step2-desktop-zero-mcf.png" alt="Desktop careers.gov.sg results with zero MCF matches" />
+        <figcaption><strong>SCR-STEP2-DESKTOP-PARTIAL-001</strong> - empty MCF collapses while the available source occupies the evidence area.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-DESKTOP-HANDOFF-001">
+        <img src="feature-map-assets/step2-desktop-analysis-progress.png" alt="Desktop Step 2 to Step 3 analysis progress" />
+        <figcaption><strong>SCR-STEP2-DESKTOP-HANDOFF-001</strong> - analysis progress stays below the persistent header.</figcaption>
+      </figure>
+      <figure data-screen-id="SCR-STEP2-CSG-STEP3-001">
+        <img src="feature-map-assets/step2-csg-step3-ai-moments.png" alt="Phone careers.gov.sg selection in Step 3 AI Moments" />
+        <figcaption><strong>SCR-STEP2-CSG-STEP3-001</strong> - selected public-sector evidence reaches Step 3 and withholds honestly when the sample is thin.</figcaption>
       </figure>
     </section>
 
@@ -350,6 +378,11 @@
           <td><code>node tests/feature-map-contract.mjs</code></td>
           <td>Manifest ids, screenshot hashes, source locators, payload absence behaviour and master index wiring.</td>
         </tr>
+        <tr>
+          <td><code>TEST-STEP2-AUDIT-001</code></td>
+          <td><code>node tests/audit-integrity-contract.mjs</code></td>
+          <td>Batch completeness, token caps, source failure codes, deterministic provenance, public-sector handoff and protected paths.</td>
+        </tr>
       </tbody>
     </table>
 
@@ -365,22 +398,22 @@
       <tbody>
         <tr>
           <td><code>implementationCommit</code></td>
-          <td><code>4cde69d83e3df3afa1533b77ed58405018d57946</code></td>
-          <td>Current main source inspected for Step 2 behaviour.</td>
+          <td><code>7da49403434d5c2791e70a36440ba19fe120efa6</code></td>
+          <td>Verified implementation commit on the audit-fix branch.</td>
         </tr>
         <tr>
           <td><code>mergeCommit</code></td>
-          <td><code>6a9367cb1860e0f15ca4faf9bbaf56e765eebed6</code> / PR #477</td>
-          <td>The Step 2 map package has been merged to main.</td>
+          <td><code>NOT_MERGED</code></td>
+          <td>No merge commit or PR merge is claimed for this revision.</td>
         </tr>
         <tr>
           <td><code>deploymentStatus</code></td>
-          <td><code>SUCCESS_STATUSES_ON_MERGE_COMMIT</code></td>
-          <td>GitHub reports successful Vercel and Railway deployment statuses for the merge commit; this is not physical-runtime verification.</td>
+          <td><code>NOT_DEPLOYED_OR_STATUS_VERIFIED</code></td>
+          <td>No Vercel, Railway or production deployment is claimed for the audit-fix commit.</td>
         </tr>
         <tr>
           <td><code>physicalRuntimeVerification</code></td>
-          <td><code>NOT_VERIFIED_FOR_STEP2</code></td>
+          <td><code>NOT_VERIFIED_FOR_AUDIT_FIX</code></td>
           <td>Browser fixture screenshots are recorded separately from physical phone production evidence.</td>
         </tr>
       </tbody>

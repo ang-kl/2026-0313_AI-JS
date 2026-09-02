@@ -3,12 +3,13 @@
   "schemaVersion": "1.0.0",
   "id": "IDX-V3-FEATURE-MAPS-001",
   "title": "V3 Agent-Readable Feature Map Index",
-  "updatedAt": "2026-09-01",
+  "updatedAt": "2026-09-02",
   "scope": "v3.1 staged role-analysis workflow",
   "preservationBoundaries": {
     "v3": "UNCHANGED",
     "railwayConfiguration": "UNCHANGED",
-    "step2Behaviour": "DOCUMENTED_NOT_REDESIGNED"
+    "step2Behaviour": "AUDIT_CORRECTED_NOT_REDESIGNED",
+    "step3Behaviour": "BUSINESS_CUBE_AUDIT_CORRECTED_NOT_REDESIGNED"
   },
   "maps": [
     {
@@ -53,54 +54,33 @@
       "handoff": "Derives a reduced Step 3 posting view and a separate source-bearing analysis request from the selected posting.",
       "provenance": {
         "implementationCommit": {
-          "sha": "4cde69d83e3df3afa1533b77ed58405018d57946",
-          "branch": "main",
-          "role": "Source evidence baseline inspected for current Step 2 behaviour.",
+          "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
+          "branch": "codex/step2-cube-audit-fixes-20260902",
+          "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
           "verifiedBy": [
-            "git rev-parse HEAD",
-            "source inspection of v3.1/src/App.jsx, v3.1/api/mcf.js, v3.1/api/careers.js, v3.1/api/ssoc.js"
+            "npm run build",
+            "node tests/audit-integrity-contract.mjs",
+            "node tests/step2-feature-map-browser.mjs",
+            "node tests/company-flow-browser.mjs",
+            "node tests/browser-gate.mjs"
           ]
         },
         "mergeCommit": {
-          "sha": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
-          "status": "MERGED_TO_MAIN",
-          "pullRequest": 477,
-          "headCommit": "d87c2673e97c947a85dda50594321853d765a8b8",
-          "mergedAt": "2026-09-01T13:14:04Z"
+          "sha": null,
+          "status": "NOT_MERGED",
+          "pullRequest": null,
+          "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
         },
         "deploymentStatus": {
-          "status": "SUCCESS_STATUSES_ON_MERGE_COMMIT",
+          "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
           "railwayConfigurationChanged": false,
-          "verifiedAt": "2026-09-02T06:40:03+08:00",
-          "mergeCommit": "6a9367cb1860e0f15ca4faf9bbaf56e765eebed6",
-          "statuses": [
-            {
-              "context": "Vercel - v2_20260324_ai-jobskill-analyser-v2",
-              "state": "success",
-              "description": "Deployment has completed"
-            },
-            {
-              "context": "Vercel - v3_2026-0511-ai-js",
-              "state": "success",
-              "description": "Deployment has completed"
-            },
-            {
-              "context": "Job-Analysis - 2026-0313_AI-JS",
-              "state": "success",
-              "description": "Success - job-analysis.up.railway.app"
-            },
-            {
-              "context": "Job-Analysis - v3-web",
-              "state": "success",
-              "description": "Success - v3.takearoundabout.com"
-            }
-          ],
-          "notes": "GitHub commit statuses report successful deployment processing for the merge commit. This is deployment status, not physical-runtime verification."
+          "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
+          "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
         },
         "physicalRuntimeVerification": {
-          "status": "NOT_VERIFIED_FOR_STEP2",
-          "evidenceType": "NONE",
-          "notes": "The map includes browser evidence from deterministic fixtures; it does not claim a physical-phone production runtime pass."
+          "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
+          "evidenceType": "CHROMIUM_FIXTURES_ONLY",
+          "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
         }
       }
     },
@@ -115,38 +95,33 @@
       "handoff": "Receives a Step 1a role query or the reduced Step 3 posting view produced from a Step 2 selection.",
       "provenance": {
         "implementationCommit": {
-          "sha": "3495b4684205170802995d26c4f6faa8dc0c0814",
-          "branch": "main",
-          "role": "Source evidence baseline inspected for current Step 3 behaviour.",
+          "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
+          "branch": "codex/step2-cube-audit-fixes-20260902",
+          "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
           "verifiedBy": [
-            "source inspection of v3.1/src/ReviewStudio.jsx and v3.1/src/work-universe",
-            "v3.1/tests/browser-gate.mjs",
-            "v3.1/script/v3.1-blueprint-component-cross-reference.md"
+            "npm run build",
+            "node tests/audit-integrity-contract.mjs",
+            "node tests/step2-feature-map-browser.mjs",
+            "node tests/company-flow-browser.mjs",
+            "node tests/browser-gate.mjs"
           ]
         },
         "mergeCommit": {
-          "sha": "bd96f54d79ada47cadfb32e04f902a40253d4e84",
-          "status": "MERGED_TO_MAIN",
-          "pullRequest": 479,
-          "headCommit": "4e57eb63b7f10fb70fa09c5c582baa6c3c78f80f",
-          "mergedAt": "2026-09-01T23:38:19Z"
+          "sha": null,
+          "status": "NOT_MERGED",
+          "pullRequest": null,
+          "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
         },
         "deploymentStatus": {
-          "status": "SUCCESS_STATUSES_ON_MERGE_COMMIT",
+          "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
           "railwayConfigurationChanged": false,
-          "mergeCommit": "bd96f54d79ada47cadfb32e04f902a40253d4e84",
-          "statuses": [
-            { "context": "Vercel - v2_20260324_ai-jobskill-analyser-v2", "state": "success", "description": "Deployment has completed" },
-            { "context": "Vercel - v3_2026-0511-ai-js", "state": "success", "description": "Deployment has completed" },
-            { "context": "Job-Analysis - 2026-0313_AI-JS", "state": "success", "description": "Success - job-analysis.up.railway.app" },
-            { "context": "Job-Analysis - v3-web", "state": "success", "description": "Success - v3.takearoundabout.com" }
-          ],
-          "notes": "Commit statuses report successful deployment processing. This is not physical-runtime verification."
+          "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
+          "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
         },
         "physicalRuntimeVerification": {
-          "status": "NOT_VERIFIED_FOR_STEP3_MAP",
-          "evidenceType": "NONE",
-          "notes": "The map includes committed Chromium fixture evidence, not a physical-device production verification."
+          "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
+          "evidenceType": "CHROMIUM_FIXTURES_ONLY",
+          "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
         }
       }
     }
@@ -160,7 +135,7 @@
     {
       "from": "MAP-V3-STEP2-001",
       "to": "MAP-V3-STEP3-001",
-      "contract": "Step 2 selected-posting Analyse derives a reduced Step 3 view containing title, employer, skills, combined text and salary midpoint; uuid, URL, employer identities and source are supplied separately to the analysis request."
+      "contract": "Step 2 carries selected source, identifiers, employer and duty text into Step 3; careers.gov.sg-only evidence can seed organisation AI Moments and remains explicitly withheld when thin."
     }
   ],
   "contracts": [

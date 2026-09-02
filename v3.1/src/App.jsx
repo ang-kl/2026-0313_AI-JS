@@ -1563,27 +1563,43 @@ function salaryMidOf(job) {
   return null;
 }
 
-// classifyPostings: ONE batch SSOC classify for the whole result set, then a deterministic
-// per-posting AIOE band via computeEngine. No LLM. Returns id -> {ssoc, sector, sectorCode,
-// band, salaryMid, confidence}. Postings that don't resolve withhold the band (null).
+// classifyPostings: classify the complete result set in endpoint-sized batches, then add a
+// deterministic AIOE band. No LLM. Every row keeps an explicit classification status so an
+// unavailable classifier is never described as a failed occupation match.
 async function classifyPostings(jobs) {
-  const list = (Array.isArray(jobs) ? jobs : []).slice(0, 80);
+  const list = Array.isArray(jobs) ? jobs : [];
   const out = {};
-  list.forEach((j, i) => { out[step2JobId(j, i)] = { ssoc: null, sector: null, sectorCode: null, band: null, salaryMid: salaryMidOf(j), confidence: null }; });
-  let classifications = [];
-  try {
-    const res = await fetch("/api/ssoc", {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "classifyTitles", jobs: list.map((j, i) => ({
-        id: step2JobId(j, i), title: j.title,
-        skills: Array.isArray(j.skills) ? j.skills : [],
-        categories: Array.isArray(j.categories) ? j.categories : [],
-        description: j.description || j.responsibilitiesText || "",
-      })) }),
-    });
-    const data = await res.json();
-    classifications = Array.isArray(data.classifications) ? data.classifications : [];
-  } catch (_) { /* best-effort; cards withhold the band */ }
+  const entries = list.map((job, index) => ({ job, id: step2JobId(job, index) }));
+  entries.forEach(({ job, id }) => {
+    out[id] = { ssoc: null, sector: null, sectorCode: null, band: null, salaryMid: salaryMidOf(job), confidence: null, classificationStatus: "unavailable" };
+  });
+
+  const classifications = [];
+  const unavailableIds = new Set();
+  const batches = [];
+  for (let i = 0; i < entries.length; i += 80) batches.push(entries.slice(i, i + 80));
+  await Promise.all(batches.map(async (batch) => {
+    try {
+      const res = await fetch("/api/ssoc", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "classifyTitles", jobs: batch.map(({ job, id }) => ({
+          id,
+          title: String(job.title || "").slice(0, 300),
+          skills: Array.isArray(job.skills) ? job.skills.slice(0, 24) : [],
+          categories: Array.isArray(job.categories) ? job.categories.slice(0, 12) : [],
+          description: String(job.description || job.responsibilitiesText || "").slice(0, 1800),
+        })) }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.ok === false || !Array.isArray(data.classifications)) throw new Error(data.error || `SSOC classify failed (${res.status})`);
+      const returned = new Set(data.classifications.map((item) => item && item.id).filter(Boolean));
+      data.classifications.forEach((item) => classifications.push(item));
+      batch.forEach(({ id }) => { if (!returned.has(id)) unavailableIds.add(id); });
+    } catch (_) {
+      batch.forEach(({ id }) => unavailableIds.add(id));
+    }
+  }));
+
   classifications.forEach((cl) => {
     if (!cl || !out[cl.id]) return;
     const node = cl.status === "classified" ? cl.node : null;
@@ -1629,9 +1645,14 @@ async function classifyPostings(jobs) {
       band,
       salaryMid: out[cl.id].salaryMid,
       confidence: cl.confidence || null,
+      classificationStatus: node ? "classified" : "withheld",
     };
   });
-  return out;
+  return {
+    rows: out,
+    completed: Object.values(out).filter((row) => row.classificationStatus !== "unavailable").length,
+    unavailable: unavailableIds.size,
+  };
 }
 
 // LUX1: ambient Three.js backdrop - lazy chunk so three never loads in the main bundle.
@@ -3881,14 +3902,24 @@ function getKnowledgeGraph(result, title, posting) {
 // crosswalks SSOC -> ISCO -> ESCO for skills anchored on the RIGHT occupation, reuses the verbatim
 // MCF duties, and renders via the existing KGGraph as an opt-in third graphMode. See
 // v3-ssoc-rolegraph-spec.md. Withhold over guess; every node keeps its source.
+const _ssocOccupationCache = new Map();
 async function fetchSsocOccupation(title) {
-  try {
+  const key = String(title || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (!key) return null;
+  if (_ssocOccupationCache.has(key)) return _ssocOccupationCache.get(key);
+  const request = (async () => {
+    try {
     const res = await fetch("/api/ssoc", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "classifyTitles", jobs: [{ id: "role", title: String(title || "") }] }) });
     if (!res.ok) return null;
     const data = await res.json();
     return (Array.isArray(data.classifications) && data.classifications[0]) || null;
-  } catch (_) { return null; }
+    } catch (_) { return null; }
+  })();
+  _ssocOccupationCache.set(key, request);
+  const result = await request;
+  if (!result) _ssocOccupationCache.delete(key);
+  return result;
 }
 async function buildSsocGraph(result, title, posting) {
   const cls = await fetchSsocOccupation(title);
@@ -4011,12 +4042,13 @@ Field rules:
 `Occupation: ${title}
 Narrate how AI engages each skill, given its already-decided level. Singapore and ASEAN context applies.
 Skills to narrate: ${skillList}`;
+    const raw = await claudeCall(userMsg, ratingsTokens(batch.length), 1, SYSTEM_RATE);
     try {
-      const raw = await claudeCall(userMsg, ratingsTokens(batch.length), 1, SYSTEM_RATE);
       return extractJSON(raw, "ratings");
-    } catch (e) {
-      // One retry at the max budget before giving up - guards a rare truncation/format
-      // blip so a single flaky batch does not error the entire result page.
+    } catch (_) {
+      // Retry only a successful transport response that failed structured parsing.
+      // claudeCall already exhausts its own transport retry chain; restarting that
+      // chain here could otherwise double a failed batch from three requests to six.
       const raw2 = await claudeCall(userMsg, 8000, 1, SYSTEM_RATE);
       return extractJSON(raw2, "ratings");
     }
@@ -4280,6 +4312,11 @@ Do not start with "Next phase:". Start directly with the background paragraph.`;
   const allResults = [];
 
   await Promise.allSettled(batches.map(async (batch) => {
+    const assignedTechniques = new Set(batch.map((skill) => techAssignment.get(skill.n) || "chain-of-thought"));
+    const scopedSystemPrompts = SYSTEM_PROMPTS.split("\n").filter((line) => {
+      const definition = line.match(/^([a-z][a-z-]+):\s/);
+      return !definition || assignedTechniques.has(definition[1]);
+    }).join("\n");
     const batchMsg =
 `Occupation: ${title}
 Write prompts for these skills. The technique (pt) is pre-assigned - use EXACTLY the technique specified for each skill. Format: n:level:skillType:ASSIGNED_TECHNIQUE:skillName
@@ -4296,7 +4333,7 @@ Return pt exactly as assigned above. Do not substitute a different technique.`;
       // budget generously per skill, capped at the proxy's 8192 max_tokens ceiling
       // (v3-llm-proxy-guardrails-spec.md §4).
       const batchTokens = Math.min(8192, 1000 + batch.length * 1500);
-      const raw = await claudeCall(batchMsg, batchTokens, 1, SYSTEM_PROMPTS, "claude-opus-4-8");
+      const raw = await claudeCall(batchMsg, batchTokens, 1, scopedSystemPrompts, "claude-opus-4-8");
       const arr = extractJSON(raw, "prompts-batch");
       if (Array.isArray(arr)) {
         allResults.push(...arr);
@@ -4883,16 +4920,32 @@ const RESP_FREQ = {
 
 // ---- CSG: careers.gov.sg second source helpers (CSG arc, v3.0.92) -----------
 
-// Thin client wrapper over /api/careers - mirrors the MCF fetch shape.
-async function fetchCsgJobs(title, limit) {
+// Detailed wrapper preserves the distinction between a valid empty result and an
+// unavailable source. Callers that only need best-effort rows can keep using the
+// array-only wrapper below.
+async function fetchCsgJobsResult(title, limit) {
   const res = await fetch("/api/careers", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "jobs", title: title || "", limit: limit || 10 }),
   });
-  if (!res.ok) return [];
+  if (!res.ok) throw new Error(`careers.gov.sg request failed (${res.status})`);
   const data = await res.json();
-  return Array.isArray(data.jobs) ? data.jobs : [];
+  return {
+    jobs: Array.isArray(data.jobs) ? data.jobs : [],
+    code: data.code || "",
+    fallback: !!data.fallback,
+    message: data.message || "",
+  };
+}
+
+// Thin client wrapper over /api/careers - mirrors the MCF fetch shape.
+async function fetchCsgJobs(title, limit) {
+  try {
+    return (await fetchCsgJobsResult(title, limit)).jobs;
+  } catch (_) {
+    return [];
+  }
 }
 
 // Tag MCF jobs source:"MyCareersFuture" and CSG jobs source:"careers.gov.sg".
@@ -12826,7 +12879,7 @@ function Step2Facet({ label, options, selected, onToggle, open, onOpen }) {
         <div className="wis-scroll step2-facet-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 230, maxWidth: 320, maxHeight: 320, overflowY: "auto", background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
           {options.length === 0 && <div style={{ padding: "8px 10px", color: "#94a0b0", fontSize: "0.75rem" }}>No options yet</div>}
           {options.map((o) => { const on = selected.includes(o.v); return (
-            <button key={o.v} type="button" onClick={() => onToggle(o.v)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
+            <button key={o.v} type="button" onClick={() => onToggle(o.v)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", textAlign: "left", minHeight: 44, padding: "6px 9px", cursor: "pointer", background: on ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: on ? "#142a8e" : "#3a4456" }}>
               <span aria-hidden="true" style={{ width: 15, height: 15, borderRadius: 4, border: "1.5px solid " + (on ? "#1a56db" : "#cbd5e1"), background: on ? "#1a56db" : "#fff", color: "#fff", fontSize: 11, lineHeight: "13px", textAlign: "center", flex: "none" }}>{on ? String.fromCharCode(0x2713) : ""}</span>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{o.v}</span>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>{o.n}</span>
@@ -12986,7 +13039,7 @@ function OkfModal({ doc, onClose }) {
 }
 
 function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch, deviceProfile }) {
-  const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
+  const [state, setState] = useState({ loading: true, jobs: [], error: null, tier: 0, approximate: false, sourceStatus: { mcf: "loading", csg: "loading" } });
   const [cls, setCls] = useState({});
   // Card grids animate add/remove/reorder when facets or sort change, instead of
   // snapping - one animate ref per source panel (MyCareersFuture / careers.gov.sg),
@@ -13082,32 +13135,42 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
   useEffect(() => {
     let cancelled = false;
-    setState({ loading: true, jobs: [], error: null, tier: 0, approximate: false });
+    setState({ loading: true, jobs: [], error: null, tier: 0, approximate: false, sourceStatus: { mcf: "loading", csg: "loading" } });
     setProgress({ mcfStatus: "loading", mcfCount: null, csgStatus: "loading", csgCount: null, classifyStatus: "idle", classifyTotal: 0, classifyDone: 0, startedAt: Date.now(), classifyFinishedAt: 0 });
     async function doFetch() {
       const title = String(query || "");
       // Wrap each fetch so its independent status lands the moment it settles -
       // MCF and careers.gov.sg often finish at different speeds.
       const mcfFetch = fetch("/api/mcf", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "jobs", title, limit: 50 }) })
-        .then((r) => r.json())
+        .then(async (r) => {
+          const d = await r.json();
+          if (!r.ok || (d.fallback && d.code && d.code !== "EMPTY")) throw new Error(d.message || `MyCareersFuture request failed (${r.status})`);
+          return d;
+        })
         .then((d) => { if (!cancelled) setProgress((p) => ({ ...p, mcfStatus: "done", mcfCount: Array.isArray(d.jobs) ? d.jobs.length : 0 })); return d; })
         .catch((e) => { if (!cancelled) setProgress((p) => ({ ...p, mcfStatus: "error", mcfCount: 0 })); throw e; });
-      const csgPromise = Promise.resolve(fetchCsgJobs(title, 50))
-        .then((d) => { if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "done", csgCount: Array.isArray(d) ? d.length : 0 })); return d; })
+      const csgPromise = fetchCsgJobsResult(title, 50)
+        .then((d) => {
+          if (d.fallback && d.code && d.code !== "EMPTY") throw new Error(d.message || "careers.gov.sg unavailable");
+          if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "done", csgCount: d.jobs.length }));
+          return d;
+        })
         .catch((e) => { if (!cancelled) setProgress((p) => ({ ...p, csgStatus: "error", csgCount: 0 })); throw e; });
       const [mcfSettled, csgSettled] = await Promise.allSettled([mcfFetch, csgPromise]);
       if (cancelled) return;
       const data = mcfSettled.status === "fulfilled" ? mcfSettled.value : { jobs: [], tier: 0 };
-      const csg = csgSettled.status === "fulfilled" ? csgSettled.value : [];
+      const csg = csgSettled.status === "fulfilled" ? csgSettled.value.jobs : [];
       const mcfList = (Array.isArray(data.jobs) ? data.jobs : []).map((j) => ({ ...j, source: j.source || "MyCareersFuture" }));
       const csgList = (Array.isArray(csg) ? csg : []).map((j) => ({ ...j, source: j.source || "careers.gov.sg" }));
       const merged = sortAndTagJobSearchMatches([...mcfList, ...csgList], title);
+      const sourceStatus = { mcf: mcfSettled.status === "fulfilled" ? "done" : "error", csg: csgSettled.status === "fulfilled" ? "done" : "error" };
+      const bothUnavailable = sourceStatus.mcf === "error" && sourceStatus.csg === "error";
       // FLOW-1b: surface the frozen mcf.js cascade's set-level tier/approximate
       // verbatim - this IS the auto-widen guarantee (Tier 1 title -> Tier 2 ESCO
       // skills -> Tier 3 weighted keyword). We do not reinvent the ladder here.
-      setState({ loading: false, jobs: merged, error: null, tier: data.tier || 0, approximate: !!data.approximate });
+      setState({ loading: false, jobs: merged, error: bothUnavailable ? "Both posting sources are unavailable. No zero-result claim has been made." : null, tier: data.tier || 0, approximate: !!data.approximate, sourceStatus });
     }
-    doFetch().catch((err) => { if (!cancelled) setState({ loading: false, jobs: [], error: err.message, tier: 0, approximate: false }); });
+    doFetch().catch((err) => { if (!cancelled) setState({ loading: false, jobs: [], error: err.message, tier: 0, approximate: false, sourceStatus: { mcf: "error", csg: "error" } }); });
     return () => { cancelled = true; };
   }, [query]);
 
@@ -13115,11 +13178,10 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     let cancelled = false;
     if (!state.jobs.length) { setCls({}); return undefined; }
     setProgress((p) => ({ ...p, classifyStatus: "loading", classifyTotal: state.jobs.length, classifyDone: 0 }));
-    classifyPostings(state.jobs).then((m) => {
+    classifyPostings(state.jobs).then((result) => {
       if (cancelled) return;
-      setCls(m);
-      const done = Object.keys(m || {}).length;
-      setProgress((p) => ({ ...p, classifyStatus: "done", classifyDone: done, classifyFinishedAt: Date.now() }));
+      setCls(result.rows);
+      setProgress((p) => ({ ...p, classifyStatus: result.unavailable > 0 ? "error" : "done", classifyDone: result.completed, classifyFinishedAt: Date.now() }));
     }).catch(() => {
       if (!cancelled) setProgress((p) => ({ ...p, classifyStatus: "error" }));
     });
@@ -13191,6 +13253,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
       level: Array.isArray(j.positionLevels) && j.positionLevels[0] ? String(j.positionLevels[0]) : null,
       schemes: Array.isArray(j.schemes) ? j.schemes.filter(Boolean).slice(0, 2) : [],
       confidence: c.confidence || null,
+      classificationStatus: c.classificationStatus || "unavailable",
       meta: [step2Salary(j.salaryMin, j.salaryMax), step2TypeOf(j), j.minimumYearsExperience != null && Number(j.minimumYearsExperience) > 0 ? Number(j.minimumYearsExperience) + "+ yrs" : null].filter(Boolean),
       tags: Array.isArray(j.skills) ? j.skills.filter(Boolean).slice(0, 3) : [],
       age: step2Days(j.postedDate),
@@ -13244,6 +13307,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   const isCsg = (j) => /careers\.gov/i.test(j && j.source || "");
   const mcfCards = sorted.filter((c) => !isCsg(c.job));
   const csgCards = sorted.filter((c) => isCsg(c.job));
+  const mcfBaseCount = baseJobs.filter((job) => !isCsg(job)).length;
+  const csgBaseCount = baseJobs.filter((job) => isCsg(job)).length;
   const sectorsPresent = [...new Set(sorted.map((c) => c.sector).filter((s) => s && s !== "Unclassified"))].sort();
   const tocGroups = useMemo(() => {
     // Index doctrine: groups ranked by posting count (biggest family first, Unclassified last);
@@ -13379,17 +13444,26 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
 
   const sourcePanel = (name, srcCards, tone, gridRef) => {
     const sourceKey = name === "MyCareersFuture" ? "mcf" : "csg";
+    const sourceUnavailable = state.sourceStatus?.[sourceKey] === "error";
+    const sourceBaseCount = sourceKey === "mcf" ? mcfBaseCount : csgBaseCount;
+    const filteredOut = !sourceUnavailable && sourceBaseCount > 0 && srcCards.length === 0;
     if (srcCards.length === 0) {
       return (
         <details className="step2-source step2-source-empty" data-testid={"step2-empty-source-" + sourceKey} style={{ minWidth: 0, border: "1px solid #e2e0d8", borderRadius: 9, background: "#fbfaf8" }}>
           <summary style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44, padding: "7px 10px", cursor: "pointer", listStyle: "none" }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: tone.dot, flex: "none" }} />
             <span style={{ fontFamily: "'Spline Sans',sans-serif", fontWeight: 700, fontSize: "0.8125rem", color: "#16202e" }}>{name}</span>
-            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: tone.ink, background: tone.bg, border: "1px solid " + tone.border, borderRadius: 6, padding: "2px 7px" }}>0</span>
-            <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#6b6357" }}>No matches</span>
+            <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: tone.ink, background: tone.bg, border: "1px solid " + tone.border, borderRadius: 6, padding: "2px 7px" }}>{sourceUnavailable ? "unavailable" : "0"}</span>
+            <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#6b6357" }}>{sourceUnavailable ? "Not reached" : filteredOut ? "Filtered out" : "No matches"}</span>
             <span className="step2-source-chevron" aria-hidden="true" style={{ color: "#6b6357", fontSize: "0.75rem" }}>&#9656;</span>
           </summary>
-          <p style={{ margin: 0, padding: "0 10px 10px 25px", fontSize: "0.75rem", color: "#64748b" }}>No {name} postings match this role.</p>
+          <p style={{ margin: 0, padding: "0 10px 10px 25px", fontSize: "0.75rem", color: "#64748b" }}>
+            {sourceUnavailable
+              ? `${name} could not be reached. No zero-result count is claimed.`
+              : filteredOut
+                ? `No ${name} postings match the current filters.`
+                : `No ${name} postings matched this role.`}
+          </p>
         </details>
       );
     }
@@ -13435,7 +13509,14 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f1eefc", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}><NumberFlow value={sorted.length} /> of <NumberFlow value={baseJobs.length} /></span>
-          {(() => { const w = cards.filter((c) => !c.ssoc).length; return w > 0 ? (<span title="SSOC could not match these postings - band and field withheld. Use the Field filter > Unclassified to see them." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{w} withheld</span>) : null; })()}
+          {(() => {
+            const withheld = cards.filter((c) => c.classificationStatus === "withheld").length;
+            const unavailable = cards.filter((c) => c.classificationStatus === "unavailable").length;
+            return <>
+              {withheld > 0 && <span title="SSOC did not resolve these postings; band and field remain withheld." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#7a5a17", background: "#fdf3dc", border: "1px solid #f0e1b3", borderRadius: 6, padding: "4px 9px" }}>{withheld} withheld</span>}
+              {unavailable > 0 && <span title="SSOC classification was unavailable for these postings; no failed-match claim is made." style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357", background: "#f1f4f8", border: "1px solid #d9e0e8", borderRadius: 6, padding: "4px 9px" }}>{unavailable} not classified</span>}
+            </>;
+          })()}
           <button type="button" onClick={() => setOkf({ kind: "index" })} title="Open the OKF concept index for this result" style={{ cursor: "pointer", minHeight: 44, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 6, padding: "4px 9px" }}>{"{ } OKF index"}</button>
         </div>
       </div>
@@ -13461,7 +13542,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
             {openFacet === "sort" && (
               <div className="step2-sort-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
-                {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
+                {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 44, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
               </div>
             )}
           </div>
@@ -13527,7 +13608,11 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           {step2WidenNote(state.tier, state.approximate)}
         </p>
       )}
-      {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</p>}
+      {!state.loading && !state.error && baseJobs.length === 0 && <p style={{ color: "#64748b", fontSize: "0.875rem", padding: "20px 2px" }}>
+        {(state.sourceStatus?.mcf === "error" || state.sourceStatus?.csg === "error")
+          ? <>No postings matched on the available source. {state.sourceStatus?.mcf === "error" ? "MyCareersFuture" : "careers.gov.sg"} was unavailable, so no complete zero-result claim is made.</>
+          : <>No live postings matched {Q1}{query}{Q2}{freshGrad ? " under 4 years' experience" : ""}.</>}
+      </p>}
       {/* Gated on classifyStatus !== "loading" too, not just !state.loading - otherwise
           this declared "none match" while SSOC classification was still assigning
           codes to the fetched postings (every card reads unclassified mid-classify,
@@ -13829,7 +13914,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
           visible throughout rather than flickering in only once loading ends. */}
       <div style={{ marginTop: 18, paddingTop: 10, borderTop: "1px solid #eceae2", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         {!state.loading
-          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from MyCareersFuture / careers.gov.sg and the deterministic classifier; human decides. Source: MyCareersFuture ({cards.filter((c) => !isCsg(c.job)).length} postings); careers.gov.sg ({cards.filter((c) => isCsg(c.job)).length} postings). Confidence: named-source facts. Time-window: this result.</p>
+          ? <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357", fontStyle: "italic", lineHeight: 1.5 }}>No AI in this read - postings and SSOC bands come verbatim from available posting sources and the deterministic classifier; human decides. Source: MyCareersFuture ({state.sourceStatus?.mcf === "error" ? "unavailable; no count claimed" : `${cards.filter((c) => !isCsg(c.job)).length} postings`}); careers.gov.sg ({state.sourceStatus?.csg === "error" ? "unavailable; no count claimed" : `${cards.filter((c) => isCsg(c.job)).length} postings`}). Confidence: named-source facts. Time-window: this result.</p>
           : <span />}
         <span title={"SG Career View " + APP_VERSION} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6456", flex: "none" }}>v{APP_VERSION}</span>
       </div>
@@ -15508,7 +15593,9 @@ function CompanyAgentSidePanel({ nodeId, kgPayload, onClose, inline }) {
 // the deterministic ORGANISATION READ facts - it authors no number or verdict and
 // withholds when the facts are thin.
 // R006: loadCompany and loadDuties are named functions, not multi-line async arrows.
-function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false, deviceProfile }) {
+const _autoCompanyRequestCache = new Map();
+
+function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCount, autoOpenAiMoments = false, deviceProfile, seedPosting = null }) {
   const [state, setState] = useState({ loading: true, matches: [], query: "", queryKey: "", ambiguous: false, totalPostings: 0, pagesPolled: 0, fallback: false, message: "", error: null });
   const [chosenKey, setChosenKey] = useState(null);
   // CSG two-column: parallel careers.gov.sg agency fetch
@@ -15585,11 +15672,23 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
     // CSG two-column: fetch MCF + careers.gov.sg in parallel; one failing must not blank the other.
     function loadCompanyBoth() {
-      var mcfPromise = fetch("/api/mcf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "company", company: companyQuery, limit: 50 }),
-      }).then(function(res) { return res.json(); });
+      const mcfRequest = { action: "company", company: companyQuery, limit: 50, ...(autoOpenAiMoments ? { duties: true, detailLimit: 5 } : {}) };
+      const mcfRequestKey = JSON.stringify(mcfRequest);
+      var mcfPromise = autoOpenAiMoments ? _autoCompanyRequestCache.get(mcfRequestKey) : null;
+      if (!mcfPromise) {
+        mcfPromise = fetch("/api/mcf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(mcfRequest),
+        }).then(function(res) {
+          if (!res.ok) throw new Error("Employer postings request failed (" + res.status + ")");
+          return res.json();
+        });
+        if (autoOpenAiMoments) {
+          _autoCompanyRequestCache.set(mcfRequestKey, mcfPromise);
+          mcfPromise.catch(function() { _autoCompanyRequestCache.delete(mcfRequestKey); });
+        }
+      }
 
       var csgPromise = fetch("/api/careers", {
         method: "POST",
@@ -15606,7 +15705,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           var data = mcfResult.value;
           setState({
             loading: false,
-            matches: Array.isArray(data.matches) ? data.matches : [],
+            matches: Array.isArray(data.matches) ? data.matches.map(function(match) { return { ...match, dutiesEnriched: autoOpenAiMoments || !!data.dutiesEnriched }; }) : [],
             query: data.query || companyQuery,
             queryKey: data.queryKey || "",
             ambiguous: !!data.ambiguous,
@@ -15622,9 +15721,17 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
         if (csgResult.status === "fulfilled") {
           var cData = csgResult.value;
+          const fetchedJobs = Array.isArray(cData.jobs) ? cData.jobs : [];
+          const hasMatchingSeed = seedPosting && seedPosting.source === "careers.gov.sg" && step2EmployerKey(seedPosting) === step2EmployerKey({ employer: companyQuery });
+          const seedIndex = hasMatchingSeed ? fetchedJobs.findIndex(function(job) { return job.uuid && job.uuid === seedPosting.uuid; }) : -1;
+          const seededJobs = !hasMatchingSeed
+            ? fetchedJobs
+            : seedIndex < 0
+              ? [seedPosting].concat(fetchedJobs)
+              : fetchedJobs.map(function(job, index) { return index === seedIndex ? { ...job, ...seedPosting } : job; });
           setCsgState({
             loading: false,
-            jobs: Array.isArray(cData.jobs) ? cData.jobs : [],
+            jobs: seededJobs,
             total: cData.total || 0,
             fallback: !!cData.fallback,
             message: cData.message || "",
@@ -15632,6 +15739,14 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           try {
             setCsgRetrievedAt(new Date().toLocaleString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Singapore" }) + " SGT");
           } catch (_) { setCsgRetrievedAt(null); }
+          if (autoOpenAiMoments && hasMatchingSeed && seededJobs.length > 0) {
+            const displayName = seedPosting.employer || companyQuery;
+            const selectedCsgGroup = { name: displayName, displayName, key: step2EmployerKey({ employer: displayName }), count: seededJobs.length, jobs: seededJobs, source: "careers.gov.sg", dutiesEnriched: true };
+            if (autoAgentsStartedRef.current !== selectedCsgGroup.key) {
+              autoAgentsStartedRef.current = selectedCsgGroup.key;
+              loadDuties(selectedCsgGroup);
+            }
+          }
         } else {
           setCsgState({ loading: false, jobs: [], total: 0, fallback: true, message: "Could not reach careers.gov.sg data. Please try again." });
         }
@@ -15639,13 +15754,45 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     }
     loadCompanyBoth();
     return function() { cancelled = true; };
-  }, [companyQuery]);
+  }, [companyQuery, autoOpenAiMoments, seedPosting && seedPosting.uuid]);
+
+  // careers.gov.sg has no resolveCompany-style key resolution. Group its
+  // already-fetched jobs by verbatim agency name and expose the same group shape
+  // used by the deterministic AI Moments builder.
+  const csgGroups = useMemo(function() {
+    const m = new Map();
+    csgState.jobs.forEach(function(j) {
+      const name = (j && j.employer) || "Unknown agency";
+      if (!m.has(name)) m.set(name, []);
+      m.get(name).push(j);
+    });
+    return Array.from(m, function([name, jobs]) {
+      return { name, displayName: name, key: step2EmployerKey({ employer: name }), count: jobs.length, jobs, source: "careers.gov.sg", dutiesEnriched: true };
+    });
+  }, [csgState.jobs]);
 
   // CO2: fetch duties + run buildCompanyAgents for the confirmed employer.
   // R006: named function, not a multi-line async arrow in JSX props.
   function loadDuties(matchGroup) {
     setAgentsView("loading");
     setAgentsError("");
+    const commitModel = function(group) {
+      const model = buildCompanyAgents(group);
+      const kgPayload = companyAgentsToKgPayload(model);
+      setAgentsModel(model);
+      setAgentsKgPayload(kgPayload);
+      setAgentsView(model.withheld && model.withheld.length > 0 && model.agents.length === 0 ? "withheld" : "ready");
+    };
+    // The automatic route already requested enriched MCF duties, and careers.gov.sg
+    // supplies its responsibilities verbatim. Reuse those rows instead of repeating
+    // the employer search and silently excluding public-sector evidence.
+    if (matchGroup.dutiesEnriched || matchGroup.source === "careers.gov.sg") {
+      const sameEmployerCsg = matchGroup.source === "careers.gov.sg" ? null : csgGroups.find(function(group) { return group.key === step2EmployerKey({ employer: matchGroup.displayName }); });
+      commitModel(sameEmployerCsg
+        ? { ...matchGroup, jobs: mergeJobSources(matchGroup.jobs || [], sameEmployerCsg.jobs || []) }
+        : matchGroup);
+      return;
+    }
     fetch("/api/mcf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -15657,11 +15804,10 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         const enrichedGroup = (Array.isArray(data.matches) && data.matches.length === 1)
           ? data.matches[0]
           : matchGroup;
-        const model = buildCompanyAgents(enrichedGroup);
-        const kgPayload = companyAgentsToKgPayload(model);
-        setAgentsModel(model);
-        setAgentsKgPayload(kgPayload);
-        setAgentsView(model.withheld && model.withheld.length > 0 && model.agents.length === 0 ? "withheld" : "ready");
+        const sameEmployerCsg = csgGroups.find(function(group) { return group.key === step2EmployerKey({ employer: enrichedGroup.displayName }); });
+        commitModel(sameEmployerCsg
+          ? { ...enrichedGroup, jobs: mergeJobSources(enrichedGroup.jobs || [], sameEmployerCsg.jobs || []) }
+          : enrichedGroup);
       })
       .catch(function() {
         setAgentsError("Could not load duty details. Showing postings only.");
@@ -15676,10 +15822,18 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
   const canQueue = (queueCount || 0) < 3;
 
-  // Active group: if user chose one in disambig, show that; else if single match, show it.
-  const activeMatch = state.ambiguous && chosenKey
+  // Active group: prefer an explicitly selected careers.gov.sg posting when Step 2
+  // supplied one; otherwise retain the existing MCF disambiguation and use a single
+  // exact public-sector group only when MCF has no confirmed group.
+  const activeMcfMatch = state.ambiguous && chosenKey
     ? state.matches.find(function(m) { return m.key === chosenKey; })
     : (!state.ambiguous && state.matches.length === 1 ? state.matches[0] : null);
+  const requestedEmployerKey = step2EmployerKey({ employer: (seedPosting && seedPosting.employer) || companyQuery });
+  const activeCsgMatch = csgGroups.find(function(group) { return group.key === requestedEmployerKey; })
+    || (csgGroups.length === 1 ? csgGroups[0] : null);
+  const activeMatch = seedPosting && seedPosting.source === "careers.gov.sg"
+    ? activeCsgMatch
+    : (activeMcfMatch || (!state.ambiguous ? activeCsgMatch : null));
 
   // Selecting AI Moments in Step 3 must reveal a new analysis, not mount a
   // second copy of the company results with its local state reset to "off".
@@ -15695,20 +15849,6 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
     // loadDuties intentionally reads the confirmed match at this transition.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoOpenAiMoments, activeMatch, agentsView, companyQuery, state.loading, state.query]);
-
-  // careers.gov.sg has no resolveCompany-style key resolution (that's an MCF-only
-  // step) - group the already-fetched, already-score-sorted jobs by their verbatim
-  // agency name so a broad query (e.g. "Ministry") discloses that several distinct
-  // agencies are mixed in, instead of an unlabelled flat list. Fixes audit finding #8.
-  const csgGroups = useMemo(function() {
-    const m = new Map();
-    csgState.jobs.forEach(function(j) {
-      const k = (j && j.employer) || "Unknown agency";
-      if (!m.has(k)) m.set(k, []);
-      m.get(k).push(j);
-    });
-    return Array.from(m, function([name, jobs]) { return { name: name, jobs: jobs }; });
-  }, [csgState.jobs]);
 
   // EMP: one ACRA lookup per confirmed employer (not per posting - this screen is
   // already scoped to one employer). Chains a geocode fetch only on an exact match
@@ -15741,7 +15881,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
   const empRegStatus = empReg && empReg.status;
   useEffect(function() {
     const name = activeMatch && activeMatch.displayName;
-    if (!name || orgSignalCount === 0 || empRegStatus === "loading") { setCompanyOverview({ status: "idle", data: null }); return undefined; }
+    if (!name || orgSignalCount === 0 || empRegStatus !== "done") { setCompanyOverview({ status: "idle", data: null }); return undefined; }
     let cancelled = false;
     setCompanyOverview({ status: "loading", data: null });
     getCompanyOverview(name, orgRead, empReg).then(function(res) {
@@ -15842,8 +15982,9 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               confidence: companyOverview.status === "ready" ? "draft" : companyOverview.status,
               note: "Prose written by a language model from the facts above. Treat as draft, not fact." },
             companyOverview.status === "ready" ? companyOverview.data : null),
-          agentsModel: block(ORIGIN.AI,
-            { source: "Language model via /api/claude", confidence: agentsView === "ready" ? "draft" : agentsView },
+          agentsModel: block(ORIGIN.DERIVED,
+            { source: "buildCompanyAgents() in this app", confidence: agentsView === "ready" ? "deterministic" : agentsView,
+              note: "Duty clusters, recurrence counts and candidate ranks are computed from the source postings; no language model authors this block." },
             agentsView === "ready" ? agentsModel : null),
         },
       })
@@ -15892,7 +16033,13 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
 
 
   return (
-    <div className={"company-panel" + (showCsg ? " csg-cols" : "")}>
+    <div
+      className={"company-panel" + (showCsg ? " csg-cols" : "") + (activeMatch && activeMatch.source === "careers.gov.sg" ? " csg-primary" : "")}
+      data-agents-view={agentsView}
+      data-auto-open-ai-moments={autoOpenAiMoments ? "true" : "false"}
+      data-seed-source={(seedPosting && seedPosting.source) || ""}
+      data-active-source={(activeMatch && activeMatch.source) || ""}
+    >
       {/* Company search is an early App route and does not mount the later
           results-workspace stylesheet. Keep its responsive reading geometry
           beside the component so Step 1a cannot silently fall back to blocks. */}
@@ -15902,6 +16049,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         [data-form-factor="phone"] .company-opportunity-grid { grid-template-columns:1fr; }
         .company-mobile-only { display:none; }
         [data-form-factor="phone"] .company-panel { width:100%; min-width:0; }
+        .company-panel.csg-primary { grid-template-columns:minmax(0,1fr); }
         [data-form-factor="phone"] .company-desktop-source-row { display:none !important; }
         [data-form-factor="phone"] .company-identity-card { padding:16px !important; margin-bottom:12px !important; border-radius:14px !important; }
         [data-form-factor="phone"] .company-identity-desktop { display:none; }
@@ -15947,7 +16095,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
           )}
         </div>
 
-        {(state.fallback || state.matches.length === 0) ? (
+        {(state.fallback || state.matches.length === 0) && !(activeMatch && activeMatch.source === "careers.gov.sg") ? (
           <div style={{ background: C.amberBg, border: "1px solid " + C.amberBdr, borderRadius: 10, padding: "20px 18px" }}>
             <p style={{ margin: 0, fontSize: "0.8125rem", color: "#78350f", lineHeight: 1.6 }}>
               {state.message || "No live MyCareersFuture postings found for that company."}
@@ -15962,18 +16110,18 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               {activeMatch ? (
                 <>
                   <h2 className="t-heading company-identity-desktop" style={{ margin: "0 0 4px", fontSize: "1.25rem", fontWeight: 800, color: C.text }}>
-                    {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on MyCareersFuture"}
+                    {"Found: " + activeMatch.displayName + " - " + activeMatch.count + " live posting" + (activeMatch.count === 1 ? "" : "s") + " on " + (activeMatch.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture")}
                   </h2>
                   <h2 className="t-heading company-mobile-only" style={{ margin: "0 0 5px", fontSize: "1.375rem", lineHeight: 1.2, fontWeight: 850, color: C.text, overflowWrap: "anywhere" }}>{activeMatch.displayName}</h2>
                   <p className="company-mobile-only" style={{ margin: "0 0 9px", fontSize: ".875rem", color: C.textSub }}>{activeMatch.count} loaded opportunit{activeMatch.count === 1 ? "y" : "ies"}</p>
                   <p style={{ margin: 0, fontSize: "0.8125rem", color: C.textSub }}>
-                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, color: "#0f766e", marginRight: 10 }}>Source: MyCareersFuture</span>
+                    <span style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, color: "#0f766e", marginRight: 10 }}>Source: {activeMatch.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture"}</span>
                     {/* FLOW-1b: org disclosure chip - queryKey === matchKey means the typed
                         query resolved to exactly one employer key; no new fuzzy matching. */}
-                    {state.queryKey && state.queryKey === activeMatch.key && (
+                    {activeMatch.source !== "careers.gov.sg" && state.queryKey && state.queryKey === activeMatch.key && (
                       <span title="The typed company name resolved to exactly one MyCareersFuture employer key" style={{ display:"inline-block", fontSize: "0.75rem", fontWeight: 700, background: "#eef1f5", border: "1px solid #d9dee6", borderRadius: 10, padding: "1px 8px", color: C.muted, marginRight: 8 }}>= Exact employer match</span>
                     )}
-                    <span className="company-identity-desktop">Company name and posting count are verbatim from MyCareersFuture.</span>
+                    <span className="company-identity-desktop">Company name and posting count are verbatim from {activeMatch.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture"}.</span>
                   </p>
                 </>
               ) : (
@@ -16209,7 +16357,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
-            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+            {activeMatch && activeMatch.source !== "careers.gov.sg" && activeMatch.jobs && activeMatch.jobs.length > 0 && (
               <section ref={opportunityListRef} className="company-mobile-only company-opportunity-tools" aria-labelledby="company-opportunities-title">
                 <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8, marginBottom:8 }}>
                   <h3 id="company-opportunities-title" style={{ margin:0, fontSize:"1rem", color:C.text }}>Individual opportunities</h3>
@@ -16236,7 +16384,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </section>
             )}
 
-            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 3 && (mcfFacetOptions.level.length > 1 || mcfFacetOptions.type.length > 1) && (
+            {activeMatch && activeMatch.source !== "careers.gov.sg" && activeMatch.jobs && activeMatch.jobs.length > 3 && (mcfFacetOptions.level.length > 1 || mcfFacetOptions.type.length > 1) && (
               <div className={"company-filter-controls" + (mobileFiltersOpen ? " mobile-open" : "")} style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
                 <select value={mcfSort} onChange={function(e) { setMcfSort(e.target.value); }} aria-label="Sort postings"
                   style={{ minHeight: 36, fontSize: "0.8125rem", color: C.text, background: C.surface, border: "1px solid " + C.border, borderRadius: 8, padding: "5px 8px" }}>
@@ -16271,7 +16419,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
-            {activeMatch && activeMatch.jobs && activeMatch.jobs.length > 0 && (
+            {activeMatch && activeMatch.source !== "careers.gov.sg" && activeMatch.jobs && activeMatch.jobs.length > 0 && (
               <div className="mcf-grid company-opportunity-grid" data-testid="company-opportunity-grid">
                 {mcfFilteredSorted.map(function(job) {
                   return (
@@ -16287,9 +16435,11 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
               </div>
             )}
 
-            <p className="company-source-note" style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
-              Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
-            </p>
+            {activeMatch && activeMatch.source !== "careers.gov.sg" && (
+              <p className="company-source-note" style={{ margin: "14px 0 0", fontSize: "0.75rem", color: C.muted }}>
+                Company names and posting counts are verbatim from MyCareersFuture (polled {state.pagesPolled} page(s)); a fuzzy poll may miss postings filed under a differently-spelled employer name.
+              </p>
+            )}
           </>
         )}
       </div>
@@ -16991,7 +17141,7 @@ export default function App({ initialSearchMode } = {}) {
     setCorpusWait(corpus ? { count: corpus.jobs.length } : null);
     setSel(occ); setStep("loading"); setSub(
       corpus ? `Analysing ${corpus.jobs.length} live SG postings for ${toTitleCase(occ.title)} as one role...`
-      : posting ? `Analysing the MyCareersFuture posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
+      : posting ? `Analysing the ${posting.source || "MyCareersFuture"} posting for ${toTitleCase(occ.title)}${posting.employer ? ` at ${posting.employer}` : ""}...`
       : `Resolving ${toTitleCase(occ.title)} in ESCO v1.2${occ.iscoCode ? ` - ISCO-08: ${occ.iscoCode} (${occ.iscoGroup || "Occupational Group"})` : ""}...`); setSubStep(1); setResult(null); setErr(""); setSegmentPanelOpen(true); setFirstBlinkSkill(""); setEscoCoherenceStatus(null); setLoadingSkills([]); setBgError("");
     setShowExpect(false);
     const total = persona ? 4 : 3;
@@ -17476,8 +17626,13 @@ export default function App({ initialSearchMode } = {}) {
       // CompanyBackground's posted-vs-hiring check) can reference THIS posting,
       // not a generic mockup.
       setAnalysingPosting({
+        uuid: job.uuid || "",
         title: tidy,
         employer: job.employer || "",
+        postedCompanyName: job.postedCompanyName || "",
+        hiringCompanyName: job.hiringCompanyName || "",
+        mcfUrl: job.mcfUrl || "",
+        source: job.source || "MyCareersFuture",
         skills: Array.isArray(job.skills) ? job.skills.filter(Boolean) : [],
         text: job.responsibilitiesText || job.description || "",
         // AI-5: the analysed ad's own salary band rides along so the competitive read
@@ -18973,6 +19128,17 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
             || analysingPosting?.employer
             || result?.postingMeta?.employer
             || "";
+          const aiMomentsSeedPosting = result?.source === "posting" ? {
+            ...(analysingPosting || {}),
+            uuid: result?.postingMeta?.uuid || analysingPosting?.uuid || "",
+            employer: result?.postingMeta?.employer || analysingPosting?.employer || "",
+            postedCompanyName: result?.postingMeta?.postedCompanyName || "",
+            hiringCompanyName: result?.postingMeta?.hiringCompanyName || "",
+            mcfUrl: result?.postingMeta?.mcfUrl || "",
+            source: result?.postingMeta?.postingSource || "MyCareersFuture",
+            responsibilitiesText: analysingPosting?.text || "",
+            description: analysingPosting?.text || "",
+          } : null;
           // PR 1 §3.8: Company Information becomes the canvas's right drawer. Both panels
           // passed as `companyPane` are the EXISTING deterministic reads - ACRA register
           // facts (CompanyBackground) and the poster-vs-hirer employer check over the live
@@ -19006,6 +19172,8 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
                     onQueuePosting={handleQueuePosting}
                     queueCount={comparisons.length}
                     autoOpenAiMoments
+                    deviceProfile={deviceProfile}
+                    seedPosting={aiMomentsSeedPosting}
                   />
                 ) : null}
                 analysisPanes={analysisPanes}

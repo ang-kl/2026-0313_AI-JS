@@ -130,19 +130,64 @@ await page.getByText("Cards | Business cube", { exact: true }).waitFor({ state: 
 await page.getByText("AI moments at DBS BANK LTD", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
 if (dutyRequests !== 1) throw new Error(`Step 3 AI Moments expected one automatic duty request, received ${dutyRequests}`);
 if (await page.getByRole("button", { name: "Find AI moments at DBS BANK LTD" }).count()) throw new Error("Step 3 reset AI Moments to its dormant trigger");
+await page.evaluate(() => {
+  const result = { observed: false, selectedId: "", exploded: false };
+  window.__businessCubeEarlyInteraction = result;
+  const interactBeforeReady = () => {
+    const canvas = document.querySelector('[data-testid="business-cube-canvas"]');
+    const withheld = document.querySelector('.business-cube__cell-button.is-withheld');
+    const explode = [...document.querySelectorAll(".business-cube__toolbar button")]
+      .find((button) => button.textContent.trim() === "Explode");
+    if (!canvas || canvas.dataset.ready !== "false" || !withheld || !explode) return false;
+    result.observed = true;
+    result.selectedId = withheld.dataset.cellId || "";
+    withheld.click();
+    explode.click();
+    result.exploded = true;
+    return true;
+  };
+  const observer = new MutationObserver(() => {
+    if (interactBeforeReady()) observer.disconnect();
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  if (interactBeforeReady()) observer.disconnect();
+});
 await page.getByRole("button", { name: /Business cube layout/ }).click();
 const cube = page.getByTestId("business-rubiks-cube");
 await cube.waitFor({ state: "visible", timeout: 15000 });
 await cube.getByRole("heading", { name: /FULL BANKS \(64120\)/ }).waitFor({ state: "visible" });
 const canvasHost = page.getByTestId("business-cube-canvas");
+await page.waitForFunction(() => window.__businessCubeEarlyInteraction?.observed === true);
 await page.waitForFunction(() => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.renderedCells === "27");
+await page.waitForFunction(() => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.ready === "true");
 const selectedCell = page.getByTestId("business-cube-selection");
 await selectedCell.waitFor({ state: "visible" });
-const firstMatrixCell = cube.locator(".business-cube__cell-button").first();
-const firstCellId = await firstMatrixCell.getAttribute("data-cell-id");
-if (!firstCellId || (await canvasHost.getAttribute("data-selected-cell")) !== firstCellId) {
-  throw new Error("Business cube did not synchronize its selected matrix cell with the 3D canvas");
+const earlyInteraction = await page.evaluate(() => window.__businessCubeEarlyInteraction);
+if (!earlyInteraction.selectedId || !earlyInteraction.exploded) throw new Error(`Business cube early interaction was incomplete: ${JSON.stringify(earlyInteraction)}`);
+if ((await canvasHost.getAttribute("data-selected-cell")) !== earlyInteraction.selectedId) {
+  throw new Error(`Business cube lost the early matrix selection: ${JSON.stringify(earlyInteraction)}`);
 }
+if ((await canvasHost.getAttribute("data-exploded")) !== "true") {
+  throw new Error(`Business cube lost the early Explode state: ${JSON.stringify(earlyInteraction)}`);
+}
+const matrixCells = cube.locator(".business-cube__cell-button");
+if ((await matrixCells.count()) !== 27) throw new Error(`Business cube matrix expected 27 cells, received ${await matrixCells.count()}`);
+const withheldCells = cube.locator('.business-cube__cell-button[data-evidence-status="withheld"]');
+if ((await withheldCells.count()) === 0) throw new Error("Business cube matrix omitted withheld cells");
+const earlyCell = cube.locator(`.business-cube__cell-button[data-cell-id="${earlyInteraction.selectedId}"]`);
+if ((await earlyCell.getAttribute("aria-pressed")) !== "true") throw new Error("Early withheld matrix selection was not reflected in the evidence matrix");
+await selectedCell.getByText("Evidence withheld", { exact: true }).waitFor({ state: "visible" });
+if ((await cube.locator('[aria-live="polite"]').count()) !== 1) throw new Error("Business cube must expose exactly one polite selection live region");
+
+const evidencedCell = cube.locator('.business-cube__cell-button[data-evidence-status="evidenced"]').first();
+const evidencedCellId = await evidencedCell.getAttribute("data-cell-id");
+await evidencedCell.click();
+await page.waitForFunction((cellId) => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.selectedCell === cellId, evidencedCellId);
+const withheldCell = withheldCells.first();
+const withheldCellId = await withheldCell.getAttribute("data-cell-id");
+await withheldCell.click();
+await page.waitForFunction((cellId) => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.selectedCell === cellId, withheldCellId);
+if ((await withheldCell.getAttribute("aria-pressed")) !== "true") throw new Error("Withheld matrix cell did not become selected");
 const phoneCubeGeometry = await cube.evaluate((element) => {
   const head = document.querySelector(".wu-centreHead");
   const title = head?.querySelector(".wu-railTitle");
@@ -164,12 +209,14 @@ const phoneCubeGeometry = await cube.evaluate((element) => {
     quickFab: rect(quickFab),
     centrePane: rect(centrePane),
     toolbarTargets: Array.from(element.querySelectorAll(".business-cube__toolbar button")).map((button) => button.getBoundingClientRect().height),
+    matrixTargets: Array.from(element.querySelectorAll(".business-cube__cell-button")).map((button) => button.getBoundingClientRect().height),
   };
 });
 if (phoneCubeGeometry.title.bottom > phoneCubeGeometry.controls.top + 1) throw new Error(`Phone workspace title overlaps controls: ${JSON.stringify(phoneCubeGeometry)}`);
 if (phoneCubeGeometry.selection.bottom > phoneCubeGeometry.canvas.top + 1) throw new Error(`Selected-cell strip does not precede the cube canvas: ${JSON.stringify(phoneCubeGeometry)}`);
 if (phoneCubeGeometry.canvas.height > 310) throw new Error(`Phone cube canvas remains too tall: ${JSON.stringify(phoneCubeGeometry.canvas)}`);
 if (phoneCubeGeometry.toolbarTargets.some((height) => height < 44)) throw new Error(`Cube toolbar target below 44px: ${JSON.stringify(phoneCubeGeometry.toolbarTargets)}`);
+if (phoneCubeGeometry.matrixTargets.some((height) => height < 44)) throw new Error(`Cube matrix target below 44px: ${JSON.stringify(phoneCubeGeometry.matrixTargets)}`);
 if (phoneCubeGeometry.quickFab.top < phoneCubeGeometry.centrePane.bottom - 1) throw new Error(`Workspace shortcut overlaps centre content: ${JSON.stringify(phoneCubeGeometry)}`);
 const canvasPixels = await canvasHost.evaluate((host) => {
   const canvas = host.querySelector("canvas");
@@ -200,9 +247,32 @@ const beforeKeyboard = Number(await canvasHost.getAttribute("data-camera-revisio
 await canvasHost.focus();
 await page.keyboard.press("ArrowRight");
 await page.waitForFunction((before) => Number(document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.cameraRevision || 0) > before, beforeKeyboard);
+await cube.getByRole("button", { name: "Assemble" }).click();
+if ((await canvasHost.getAttribute("data-exploded")) !== "false") throw new Error("Business cube did not leave exploded state");
 await cube.getByRole("button", { name: "Explode" }).click();
 if ((await canvasHost.getAttribute("data-exploded")) !== "true") throw new Error("Business cube did not enter exploded state");
 await page.screenshot({ path: "test-results/company-flow/step3-business-cube-phone.png", fullPage: true });
+
+await page.setViewportSize({ width: 1101, height: 1000 });
+await page.waitForTimeout(250);
+const narrowCentreGeometry = await cube.evaluate((element) => {
+  const body = element.querySelector(".business-cube__body");
+  const stage = element.querySelector(".business-cube__stage");
+  const inspector = element.querySelector(".business-cube__inspect");
+  const frame = element.closest(".wu-universeFrame");
+  return {
+    cubeWidth: element.getBoundingClientRect().width,
+    bodyColumns: getComputedStyle(body).gridTemplateColumns.split(" ").filter(Boolean).length,
+    stageBottom: stage.getBoundingClientRect().bottom,
+    inspectorTop: inspector.getBoundingClientRect().top,
+    cubeOverflow: element.scrollWidth - element.clientWidth,
+    frameOverflow: frame ? frame.scrollWidth - frame.clientWidth : null,
+    viewportWidth: window.innerWidth,
+  };
+});
+if (narrowCentreGeometry.bodyColumns !== 1 || narrowCentreGeometry.inspectorTop < narrowCentreGeometry.stageBottom - 1 || narrowCentreGeometry.cubeOverflow > 1 || narrowCentreGeometry.frameOverflow > 1) {
+  throw new Error(`Narrow-centre cube layout clipped instead of stacking: ${JSON.stringify(narrowCentreGeometry)}`);
+}
 
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.waitForTimeout(250);

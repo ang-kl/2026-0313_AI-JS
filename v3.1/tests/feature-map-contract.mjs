@@ -335,12 +335,18 @@ function validateIndex(validatedMaps) {
 
 function assertProtectedPaths() {
   const baseRef = process.env.FEATURE_MAP_BASE_REF;
+  if (!baseRef) return;
+  const changed = execFileSync("git", ["diff", "--name-only", baseRef], { cwd: repoRoot, encoding: "utf8" })
+    .trim().split("\n").filter(Boolean);
+  const preservedSurfaceViolations = changed.filter((file) =>
+    /^v3\//.test(file) || /(^|\/)railway\.(json|toml)$/.test(file));
+  if (preservedSurfaceViolations.length) {
+    throw new Error(`Feature map preserved-surface violation: ${preservedSurfaceViolations.join(", ")}`);
+  }
   // The docs-only boundary was a construction gate for the Step 2 feature-map
   // branch, not a permanent ban on later v3.1 implementation work. Keep it
   // available for a deliberate canonisation run without blocking product PRs.
-  if (!baseRef || process.env.FEATURE_MAP_ENFORCE_DOCS_ONLY !== "1") return;
-  const changed = execFileSync("git", ["diff", "--name-only", baseRef], { cwd: repoRoot, encoding: "utf8" })
-    .trim().split("\n").filter(Boolean);
+  if (process.env.FEATURE_MAP_ENFORCE_DOCS_ONLY !== "1") return;
   const allowed = [
     /^v3\.1\/doc\//,
     /^v3\.1\/tests\/(feature-map-contract|browser-gate)\.mjs$/,

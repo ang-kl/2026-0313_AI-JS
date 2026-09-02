@@ -256,7 +256,7 @@ export default async function handler(req, res) {
       const hits = scored.slice(0, cap).map(function(x) { return normaliseCsgJob(x.r); }).filter(Boolean);
       if (hits.length === 0) {
         return res.status(200).json({
-          jobs: [], total: 0, source: "careers.gov.sg", fallback: true,
+          jobs: [], total: 0, source: "careers.gov.sg", fallback: true, code: "EMPTY",
           message: "No careers.gov.sg roles for that employer - careers.gov.sg lists government bodies, so try a ministry or statutory board (e.g. Ministry of Health, LTA, HTX).",
         });
       }
@@ -270,7 +270,7 @@ export default async function handler(req, res) {
       const isTimeout = err.name === "AbortError";
       console.error("[careers/company] " + (isTimeout ? "Timeout" : "Error") + ":", err.message);
       return res.status(200).json({
-        jobs: [], total: 0, fallback: true, source: "careers.gov.sg",
+        jobs: [], total: 0, fallback: true, source: "careers.gov.sg", code: isTimeout ? "TIMEOUT" : "SERVER",
         message: isTimeout
           ? "careers.gov.sg data is taking a moment. Please try again."
           : "Could not reach careers.gov.sg data. Please try again.",
@@ -326,7 +326,7 @@ export default async function handler(req, res) {
     const dump = await getDump();
 
     if (tokens.length === 0) {
-      return res.status(200).json({ jobs: [], total: 0, source: "careers.gov.sg", fallback: true,
+      return res.status(200).json({ jobs: [], total: 0, source: "careers.gov.sg", fallback: true, code: "EMPTY",
         message: "Search term too short." });
     }
 
@@ -340,7 +340,7 @@ export default async function handler(req, res) {
 
     if (hits.length === 0) {
       return res.status(200).json({
-        jobs: [], total: 0, source: "careers.gov.sg", fallback: true,
+        jobs: [], total: 0, source: "careers.gov.sg", fallback: true, code: "EMPTY",
         message: "No matching public-service postings on careers.gov.sg right now.",
       });
     }
@@ -355,7 +355,7 @@ export default async function handler(req, res) {
     const isTimeout = err.name === "AbortError";
     console.error("[careers] " + (isTimeout ? "Timeout" : "Error") + ":", err.message);
     return res.status(200).json({
-      jobs: [], total: 0, fallback: true, source: "careers.gov.sg",
+      jobs: [], total: 0, fallback: true, source: "careers.gov.sg", code: isTimeout ? "TIMEOUT" : "SERVER",
       message: isTimeout
         ? "careers.gov.sg data is taking a moment. Please try again."
         : "Could not reach careers.gov.sg data. Please try again.",
