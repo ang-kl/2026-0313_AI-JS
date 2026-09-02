@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildBusinessCubeModel } from "./businessCubeModel.js";
 import "./BusinessRubiksCube.css";
 
@@ -19,17 +19,32 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
   const [exploded, setExploded] = useState(false);
   const mountRef = useRef(null);
   const apiRef = useRef(null);
+  const selectedIdRef = useRef(firstEvidenced ? firstEvidenced.id : "");
+  const explodedRef = useRef(false);
   const selected = model.cells.find((cell) => cell.id === selectedId) || firstEvidenced;
+
+  const selectCell = useCallback((nextId) => {
+    selectedIdRef.current = nextId;
+    setSelectedId(nextId);
+    apiRef.current?.select(nextId);
+  }, []);
+
+  const setCubeExploded = useCallback((next) => {
+    explodedRef.current = next;
+    setExploded(next);
+    apiRef.current?.explode(next);
+  }, []);
 
   useEffect(() => {
     if (!model.cells.some((cell) => cell.id === selectedId)) {
-      setSelectedId(firstEvidenced ? firstEvidenced.id : "");
+      selectCell(firstEvidenced ? firstEvidenced.id : "");
     }
-  }, [model, selectedId, firstEvidenced]);
+  }, [model, selectedId, firstEvidenced, selectCell]);
 
   useEffect(() => {
     let disposed = false;
     let cleanup = () => {};
+    if (mountRef.current) mountRef.current.dataset.ready = "false";
     Promise.all([
       import("three"),
       import("three/addons/controls/OrbitControls.js"),
@@ -143,7 +158,7 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
         pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
         raycaster.setFromCamera(pointer, camera);
         const hit = raycaster.intersectObjects(cellMeshes, false)[0];
-        if (hit && hit.object.userData.cellId) setSelectedId(hit.object.userData.cellId);
+        if (hit && hit.object.userData.cellId) selectCell(hit.object.userData.cellId);
       }
 
       function onPointerDown(event) {
@@ -176,6 +191,9 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
         markRevision();
       }
 
+      host.dataset.renderedCells = String(cellMeshes.length);
+      host.dataset.cameraRevision = "0";
+      host.dataset.exploded = "false";
       apiRef.current = {
         front: () => setView([0, 0, 9]),
         right: () => setView([9, 0, 0]),
@@ -186,7 +204,9 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
         zoom: (factor) => { camera.position.multiplyScalar(factor); controls.update(); markRevision(); },
         select: applySelection,
       };
-      applySelection(selectedId);
+      applySelection(selectedIdRef.current);
+      setExplode(explodedRef.current);
+      host.dataset.ready = "true";
 
       function render() {
         controls.update();
@@ -199,9 +219,6 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
       renderer.domElement.addEventListener("pointerdown", onPointerDown);
       renderer.domElement.addEventListener("pointerup", onPointerUp);
       resize();
-      host.dataset.renderedCells = String(cellMeshes.length);
-      host.dataset.cameraRevision = "0";
-      host.dataset.exploded = "false";
       render();
 
       cleanup = () => {
@@ -229,13 +246,15 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
       disposed = true;
       cleanup();
     };
-  }, [model]);
+  }, [model, selectCell]);
 
   useEffect(() => {
+    explodedRef.current = exploded;
     apiRef.current?.explode(exploded);
   }, [exploded]);
 
   useEffect(() => {
+    selectedIdRef.current = selectedId;
     apiRef.current?.select(selectedId);
   }, [selectedId]);
 
@@ -256,7 +275,6 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
     }
   }
 
-  const evidencedCells = model.cells.filter((cell) => cell.count > 0);
   return (
     <section className="business-cube" data-testid="business-rubiks-cube" aria-labelledby="business-cube-title">
       <header className="business-cube__head">
@@ -283,8 +301,8 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
             <button type="button" onClick={() => apiRef.current?.front()} title="Front face">Front</button>
             <button type="button" onClick={() => apiRef.current?.right()} title="Right face">Right</button>
             <button type="button" onClick={() => apiRef.current?.top()} title="Top face">Top</button>
-            <button type="button" onClick={() => setExploded((value) => !value)} aria-pressed={exploded}>{exploded ? "Assemble" : "Explode"}</button>
-            <button type="button" onClick={() => { setExploded(false); apiRef.current?.explode(false); apiRef.current?.reset(); }}>Reset</button>
+            <button type="button" onClick={() => setCubeExploded(!explodedRef.current)} aria-pressed={exploded}>{exploded ? "Assemble" : "Explode"}</button>
+            <button type="button" onClick={() => { setCubeExploded(false); apiRef.current?.reset(); }}>Reset</button>
           </div>
           {selected && (
             <div className="business-cube__selection-strip" data-testid="business-cube-selection" aria-live="polite">
@@ -297,13 +315,14 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
             ref={mountRef}
             className="business-cube__canvas"
             data-testid="business-cube-canvas"
+            data-ready="false"
             role="application"
             tabIndex={0}
             aria-label={`Interactive business cube. Selected cell: ${selected ? cellLabel(selected) : "none"}. Arrow keys rotate; plus and minus zoom; zero resets.`}
             onKeyDown={onKeyDown}
           />
         </div>
-        <aside className="business-cube__inspect" aria-live="polite">
+        <aside className="business-cube__inspect">
           <div className="business-cube__axis-title">Cell evidence</div>
           {selected && (
             <>
@@ -327,20 +346,25 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
           )}
           <div className="business-cube__axis-title">Evidence matrix</div>
           <div className="business-cube__matrix">
-            {evidencedCells.map((cell) => (
-              <button
-                type="button"
-                key={cell.id}
-                className="business-cube__cell-button"
-                data-cell-id={cell.id}
-                aria-pressed={selected?.id === cell.id}
-                onClick={() => setSelectedId(cell.id)}
-              >
-                <span className="business-cube__swatch" style={{ background: ALLOCATION_COLOURS[cell.allocation.id] }} />
-                <span>{cellLabel(cell)}</span>
-                <span className="business-cube__count">{cell.count}</span>
-              </button>
-            ))}
+            {model.cells.map((cell) => {
+              const withheld = cell.status === "withheld";
+              return (
+                <button
+                  type="button"
+                  key={cell.id}
+                  className={`business-cube__cell-button ${withheld ? "is-withheld" : "is-evidenced"}`}
+                  data-cell-id={cell.id}
+                  data-evidence-status={cell.status}
+                  aria-pressed={selected?.id === cell.id}
+                  aria-label={`${cellLabel(cell)}. ${withheld ? "Evidence withheld" : `${cell.count} duty cluster${cell.count === 1 ? "" : "s"}`}.`}
+                  onClick={() => selectCell(cell.id)}
+                >
+                  <span className="business-cube__swatch" style={{ background: withheld ? "#c3ccd6" : ALLOCATION_COLOURS[cell.allocation.id] }} />
+                  <span>{cellLabel(cell)}</span>
+                  <span className="business-cube__count">{withheld ? "withheld" : cell.count}</span>
+                </button>
+              );
+            })}
           </div>
         </aside>
       </div>

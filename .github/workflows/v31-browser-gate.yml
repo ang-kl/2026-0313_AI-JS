@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "v3.1/**"
+      - "v3/**"
+      - "**/railway.json"
+      - "**/railway.toml"
       - ".github/workflows/v31-browser-gate.yml"
   workflow_dispatch:
 
@@ -31,9 +34,7 @@ jobs:
 
       - name: Install Playwright Chromium
         working-directory: v3.1
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Build v3.1
         working-directory: v3.1
@@ -67,6 +68,7 @@ jobs:
           node tests/person-evidence-contract.mjs
           node tests/governance-ledger-contract.mjs
           node tests/business-cube-contract.mjs
+          node tests/audit-integrity-contract.mjs
           FEATURE_MAP_BASE_REF=${{ github.event.pull_request.base.sha }} node tests/feature-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/step2-feature-map-browser.mjs

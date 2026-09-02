@@ -200,6 +200,8 @@ function json(route, body, status = 200) {
 async function wireApiMocks(page, calls, options = {}) {
   const mcfFixture = options.mcfFixture ?? mcfJobs;
   const csgFixture = options.csgFixture ?? csgJobs;
+  const mcfFailure = options.mcfFailure || null;
+  const csgFailure = options.csgFailure || null;
   const delayMs = Number(options.delayMs || 0);
   const delay = () => delayMs > 0 ? new Promise((resolve) => setTimeout(resolve, delayMs)) : Promise.resolve();
   await page.route("**/api/mcf", async (route) => {
@@ -207,6 +209,7 @@ async function wireApiMocks(page, calls, options = {}) {
     calls.mcf.push(body);
     if (body.action === "jobs") {
       await delay();
+      if (mcfFailure) return json(route, { jobs: [], total: 0, tier: 0, fallback: true, code: mcfFailure, message: "MyCareersFuture unavailable in fixture" });
       return json(route, {
         jobs: mcfFixture,
         total: mcfFixture.length,
@@ -216,6 +219,19 @@ async function wireApiMocks(page, calls, options = {}) {
         source: "MyCareersFuture",
       });
     }
+    if (body.action === "company") {
+      return json(route, {
+        matches: [],
+        query: body.company || "",
+        queryKey: String(body.company || "").toLowerCase(),
+        ambiguous: false,
+        totalPostings: 0,
+        pagesPolled: 1,
+        fallback: true,
+        code: "EMPTY",
+        message: "No matching MyCareersFuture employer postings in fixture",
+      });
+    }
     return json(route, { results: [] });
   });
 
@@ -223,6 +239,7 @@ async function wireApiMocks(page, calls, options = {}) {
     const body = parseBody(route.request());
     calls.careers.push(body);
     await delay();
+    if (csgFailure) return json(route, { jobs: [], total: 0, fallback: true, code: csgFailure, source: "careers.gov.sg", message: "careers.gov.sg unavailable in fixture" });
     return json(route, {
       jobs: csgFixture,
       total: csgFixture.length,
@@ -281,16 +298,17 @@ async function wireApiMocks(page, calls, options = {}) {
     }),
   );
 
-  await page.route("**/api/claude", async (route) =>
-    json(route, {
-      content: JSON.stringify({
-        role: "Data Engineer",
-        responsibilities: [],
-        tasks: [],
-        skills: [],
-      }),
-    }),
+  await page.route("**/api/state**", async (route) =>
+    json(route, route.request().method() === "GET" ? { data: null } : { ok: true }),
   );
+
+  await page.route("**/api/claude", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return json(route, {
+      content: [{ type: "text", text: "[]" }],
+      model: "step2-feature-map-fixture",
+    });
+  });
 }
 
 async function beginStep2(page, query = "Data Engineer") {
@@ -416,7 +434,13 @@ async function run() {
     await screenshot(page, "step2-iphone-portrait.png");
 
     await mobileFilterToggle.click();
+    const filterTargetHeights = await page.locator("#step2-filter-controls button").evaluateAll((buttons) => buttons
+      .filter((button) => button.getBoundingClientRect().height > 0)
+      .map((button) => button.getBoundingClientRect().height));
+    assert(filterTargetHeights.every((height) => height >= 44), `Expanded phone filter target below 44px: ${JSON.stringify(filterTargetHeights)}`);
     await page.getByRole("button", { name: "Match", exact: true }).click();
+    const facetOptionHeights = await page.locator(".step2-facet-menu button").evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+    assert(facetOptionHeights.every((height) => height >= 44), `Phone facet option below 44px: ${JSON.stringify(facetOptionHeights)}`);
     await page.locator(".step2-facet-menu").getByRole("button", { name: /^exact title\b/i }).click();
     await page.waitForTimeout(250);
     assert(
@@ -436,6 +460,15 @@ async function run() {
       (await page.getByRole("button", { name: "Analyse", exact: true }).count()) === 5,
       "Clear all did not restore the unfiltered posting set",
     );
+    const postingSearch = page.getByRole("textbox", { name: "Search postings" });
+    await postingSearch.fill("Example Technology");
+    await page.waitForTimeout(150);
+    const filteredCsg = page.getByTestId("step2-empty-source-csg");
+    await filteredCsg.waitFor({ state: "visible" });
+    await filteredCsg.locator("summary").click();
+    await filteredCsg.getByText(/current filters/i).waitFor();
+    await postingSearch.fill("");
+    await page.waitForTimeout(150);
 
     await mcfSection.getByRole("heading", { name: "Data Engineer", exact: true }).first().click();
     const dialog = page.getByRole("dialog", { name: /Full job posting/i });
@@ -526,6 +559,82 @@ async function run() {
     await checkNoHorizontalOverflow(zeroMcfPage, "desktop zero MCF");
     await screenshot(zeroMcfPage, "step2-desktop-zero-mcf.png");
     await zeroMcf.close();
+
+    const partialCalls = { mcf: [], careers: [], ssoc: [], classify: [] };
+    const partial = await browser.newContext({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const partialPage = await partial.newPage();
+    await wireApiMocks(partialPage, partialCalls, { mcfFailure: "SERVER", csgFixture: csgJobs });
+    await beginStep2(partialPage);
+    await partialPage.getByText(/SSOC 25112/).first().waitFor({ timeout: 15_000 });
+    const unavailableMcf = partialPage.getByTestId("step2-empty-source-mcf");
+    await unavailableMcf.waitFor({ state: "visible" });
+    await unavailableMcf.locator("summary").click();
+    await unavailableMcf.getByText(/could not be reached.*No zero-result count is claimed/i).waitFor();
+    await partialPage.getByText(/MyCareersFuture \(unavailable; no count claimed\)/i).waitFor();
+    assert(!(await partialPage.locator("body").innerText()).includes("MyCareersFuture (0 postings)"), "Unavailable MCF source was presented as a valid zero count");
+    await partial.close();
+
+    const failedCalls = { mcf: [], careers: [], ssoc: [], classify: [] };
+    const failed = await browser.newContext({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const failedPage = await failed.newPage();
+    await wireApiMocks(failedPage, failedCalls, { mcfFailure: "SERVER", csgFailure: "TIMEOUT" });
+    await beginStep2(failedPage);
+    await failedPage.getByText(/Both posting sources are unavailable.*No zero-result claim has been made/i).waitFor();
+    assert(!(await failedPage.locator("body").innerText()).includes("No live postings matched"), "Dual source failure was presented as a valid empty result");
+    await failed.close();
+
+    const csgHandoffCalls = { mcf: [], careers: [], ssoc: [], classify: [] };
+    const csgHandoff = await browser.newContext({ viewport: { width: 430, height: 932 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+    const csgHandoffPage = await csgHandoff.newPage();
+    await wireApiMocks(csgHandoffPage, csgHandoffCalls);
+    await openStep2(csgHandoffPage);
+    const csgHandoffSection = csgHandoffPage.locator(".step2-source").filter({ hasText: "careers.gov.sg" });
+    await csgHandoffSection.getByRole("button", { name: "Analyse", exact: true }).first().click();
+    await csgHandoffPage.getByText(/Analysing the careers\.gov\.sg posting for Data Engineer at Public Data Office/i).waitFor({ timeout: 5_000 });
+    await csgHandoffPage.getByTestId("work-universe").waitFor({ state: "visible", timeout: 60_000 });
+    await csgHandoffPage.waitForFunction(() => document.querySelector('[data-testid="work-universe"]')?.dataset.wuFormFactor === "phone");
+    await csgHandoffPage.getByTestId("wu-quick-fab").click();
+    await csgHandoffPage.getByTestId("wu-quick-contents").click();
+    await csgHandoffPage.getByTestId("tree-ai-moments").click();
+    await csgHandoffPage.getByTestId("wu-ai-moments").waitFor({ state: "visible", timeout: 15_000 });
+    await csgHandoffPage.waitForTimeout(1_000);
+    const csgPanelState = await csgHandoffPage.locator(".company-panel").evaluate((panel) => ({
+      agentsView: panel.dataset.agentsView,
+      autoOpen: panel.dataset.autoOpenAiMoments,
+      seedSource: panel.dataset.seedSource,
+      activeSource: panel.dataset.activeSource,
+    }));
+    assert(csgPanelState.agentsView === "withheld" && csgPanelState.seedSource === "careers.gov.sg" && csgPanelState.activeSource === "careers.gov.sg", `careers.gov.sg handoff did not resolve the selected source: ${JSON.stringify(csgPanelState)}`);
+    const csgWithheld = csgHandoffPage.getByText("AI moments - withheld (not faked)", { exact: true });
+    await csgWithheld.waitFor({ state: "attached" });
+    await csgWithheld.scrollIntoViewIfNeeded();
+    await csgWithheld.waitFor({ state: "visible" });
+    await csgHandoffPage.getByText(/Too few postings found for "Public Data Office"/i).waitFor({ state: "visible" });
+    await screenshot(csgHandoffPage, "step2-csg-step3-ai-moments.png");
+    const csgCompanyRequest = csgHandoffCalls.careers.find((body) => body.action === "company" && body.company === "Public Data Office");
+    assert(csgCompanyRequest, "Selected careers.gov.sg employer was not used to seed the Step 3 AI Moments request");
+    await csgHandoff.close();
+
+    const manyMcf = Array.from({ length: 50 }, (_, index) => ({
+      ...mcfJobs[index % mcfJobs.length],
+      uuid: index === 0 ? mcfJobs[0].uuid : `mcf-batch-${index}`,
+      description: "classification context ".repeat(160),
+    }));
+    const manyCsg = Array.from({ length: 50 }, (_, index) => ({
+      ...csgJobs[index % csgJobs.length],
+      uuid: index === 0 ? csgJobs[0].uuid : `csg-batch-${index}`,
+      description: "public classification context ".repeat(150),
+    }));
+    const batchCalls = { mcf: [], careers: [], ssoc: [], classify: [] };
+    const batch = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+    const batchPage = await batch.newPage();
+    await wireApiMocks(batchPage, batchCalls, { mcfFixture: manyMcf, csgFixture: manyCsg });
+    await openStep2(batchPage);
+    assert(batchCalls.classify.length === 2, `Expected two SSOC batches for 100 postings, received ${batchCalls.classify.length}`);
+    assert(batchCalls.classify.every((call) => call.jobs.length <= 80), `SSOC batch exceeded endpoint limit: ${JSON.stringify(batchCalls.classify.map((call) => call.jobs.length))}`);
+    assert(batchCalls.classify.reduce((sum, call) => sum + call.jobs.length, 0) === 100, "SSOC batching did not classify the complete 100-posting result set");
+    assert(batchCalls.classify.every((call) => call.jobs.every((job) => String(job.description || "").length <= 1800)), "SSOC request sent description text beyond the classifier limit");
+    await batch.close();
   } finally {
     await browser.close();
   }
