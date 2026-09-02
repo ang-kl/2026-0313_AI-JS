@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v3-feature-map.schema.json",
+  "title": "V3 agent-readable feature map",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "map", "provenance", "screens", "components", "features", "states", "transitions", "payloadFields", "invariants", "responsiveProfiles", "tests", "evidenceRefs", "gaps"],
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "map": {
+      "type": "object",
+      "required": ["id", "title", "scope", "status"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^MAP-V3-" },
+        "title": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "minLength": 1 },
+        "status": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["implementationCommit", "mergeCommit", "deploymentStatus", "physicalRuntimeVerification"]
+    },
+    "screens": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "components": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "features": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "states": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "transitions": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "payloadFields": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "invariants": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "responsiveProfiles": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "tests": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "evidenceRefs": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
+    "gaps": { "type": "array", "items": { "$ref": "#/$defs/identified" } }
+  },
+  "$defs": {
+    "identified": {
+      "type": "object",
+      "required": ["id"],
+      "properties": { "id": { "type": "string", "minLength": 3 } }
+    }
+  }
+}

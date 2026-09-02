@@ -46,6 +46,7 @@
     .flow article:nth-child(odd) { background: var(--navy-soft); }
     .flow article:nth-child(even) { background: var(--teal-soft); }
     .flow h3, .node h3 { margin: 7px 0; }
+    .flow .id { color: #334155; font-weight: 700; }
     .grid { display: grid; gap: 12px; }
     .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .grid.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -56,9 +57,10 @@
     .node.output { border-top-color: var(--red); }
     .tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
     .tag { padding: 3px 7px; border: 1px solid var(--line); border-radius: 999px; background: #f3f5f8; color: #475569; font: .66rem "SFMono-Regular", Consolas, monospace; }
-    .shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .shots { display: grid; grid-template-columns: 1fr; gap: 14px; }
     figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
-    figure img { display: block; width: 100%; height: auto; background: #edf1f4; }
+    figure img { display: block; width: 100%; max-height: 760px; object-fit: contain; background: #edf1f4; }
+    .shot-link { display: block; background: #edf1f4; }
     figcaption { padding: 10px 12px; border-top: 1px solid var(--line); color: #3d4959; font-size: .82rem; }
     table { width: 100%; border-collapse: collapse; border: 1px solid var(--line); background: var(--panel); }
     th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: .84rem; }
@@ -100,32 +102,32 @@
 
     <h2>Feature Registry</h2>
     <section class="grid cols-3" aria-label="Feature registry">
-      <article class="node" data-feature-id="FEAT-STEP3-SHELL-001"><div class="id">FEAT-STEP3-SHELL-001</div><h3>Three-panel shell</h3><p>Source evidence, centre canvas and Contents/detail rail form the persistent workbench.</p><div class="tag-row"><span class="tag">VERIFIED</span><span class="tag">CMP-STEP3-UNIVERSE-001</span></div></article>
+      <article class="node" data-feature-id="FEAT-STEP3-SHELL-001"><div class="id">FEAT-STEP3-SHELL-001</div><h3>Three-panel shell</h3><p>Source evidence, centre canvas and Contents/detail rail form the persistent workbench.</p><div class="tag-row"><span class="tag">VERIFIED</span><span class="tag">CMP-STEP3-SHELL-001</span></div></article>
       <article class="node" data-feature-id="FEAT-STEP3-GRAPHS-001"><div class="id">FEAT-STEP3-GRAPHS-001</div><h3>Five graphs</h3><p>Labour, Organisation Work, Intelligence, Human-Agent and Transition each expose three signals.</p><div class="tag-row"><span class="tag">5 graphs</span><span class="tag">15 signals</span></div></article>
-      <article class="node evidence" data-feature-id="FEAT-STEP3-EVIDENCE-001"><div class="id">FEAT-STEP3-EVIDENCE-001</div><h3>Evidence lineage</h3><p>Source, derivation, method and claim boundaries remain visible and linked.</p><div class="tag-row"><span class="tag">source ids</span><span class="tag">WITHHELD</span></div></article>
+      <article class="node evidence" data-feature-id="FEAT-STEP3-EVIDENCE-001"><div class="id">FEAT-STEP3-EVIDENCE-001</div><h3>Evidence lineage</h3><p>Source, derivation, method and boundaries remain visible. IDs are session-positional; the source-bearing workspace route is conditional.</p><div class="tag-row"><span class="tag">PARTIAL</span><span class="tag">D# / s#</span><span class="tag">WITHHELD</span></div></article>
       <article class="node evidence" data-feature-id="FEAT-STEP3-PROJECTION-001"><div class="id">FEAT-STEP3-PROJECTION-001</div><h3>Reprojection</h3><p>Role, organisation and person perspectives reuse the same evidence without inventing missing facts.</p><div class="tag-row"><span class="tag">role</span><span class="tag">organisation</span><span class="tag">person</span></div></article>
       <article class="node workspace" data-feature-id="FEAT-STEP3-ROLEGRAPH-001"><div class="id">FEAT-STEP3-ROLEGRAPH-001</div><h3>Embedded Role Graph</h3><p>The Labour graph opens the preserved role-evidence graph inside the centre panel.</p><div class="tag-row"><span class="tag">layered</span><span class="tag">knowledge</span><span class="tag">SSOC</span></div></article>
-      <article class="node workspace" data-feature-id="FEAT-STEP3-ROUNDTRIP-001"><div class="id">FEAT-STEP3-ROUNDTRIP-001</div><h3>Workspace round trip</h3><p>Graph and evidence intent enters Review Studio and returns to the mapped Work Universe.</p><div class="tag-row"><span class="tag">FAB</span><span class="tag">return</span></div></article>
-      <article class="node evidence" data-feature-id="FEAT-STEP3-SPECIALISED-001"><div class="id">FEAT-STEP3-SPECIALISED-001</div><h3>Specialised maps</h3><p>Organisation, Workflow and Value Stream views render supplied structures only.</p><div class="tag-row"><span class="tag">no inferred hierarchy</span><span class="tag">no inferred sequence</span></div></article>
-      <article class="node governance" data-feature-id="FEAT-STEP3-GOVERNANCE-001"><div class="id">FEAT-STEP3-GOVERNANCE-001</div><h3>Governance review</h3><p>Decision records and reviewer disagreement stay explicit, evidence-linked and human-owned.</p><div class="tag-row"><span class="tag">ledger</span><span class="tag">disagreement</span></div></article>
+      <article class="node workspace" data-feature-id="FEAT-STEP3-ROUNDTRIP-001"><div class="id">FEAT-STEP3-ROUNDTRIP-001</div><h3>Workspace round trip</h3><p>Graph intent enters Review Studio and returns. Source-evidence intent is conditional on source rows.</p><div class="tag-row"><span class="tag">PARTIAL</span><span class="tag">FAB</span><span class="tag">return</span></div></article>
+      <article class="node evidence" data-feature-id="FEAT-STEP3-SPECIALISED-001"><div class="id">FEAT-STEP3-SPECIALISED-001</div><h3>Specialised maps</h3><p>Supplied-data builders are contract-tested; browser evidence covers absent-payload withholding, not positive React rendering.</p><div class="tag-row"><span class="tag">CONTRACT VERIFIED</span><span class="tag">UI positive gap</span></div></article>
+      <article class="node governance" data-feature-id="FEAT-STEP3-GOVERNANCE-001"><div class="id">FEAT-STEP3-GOVERNANCE-001</div><h3>Governance review</h3><p>Supplied-data logic is contract-tested; browser evidence covers absent and incomplete controls.</p><div class="tag-row"><span class="tag">CONTRACT VERIFIED</span><span class="tag">UI positive gap</span></div></article>
       <article class="node output" data-feature-id="FEAT-STEP3-PRINT-001"><div class="id">FEAT-STEP3-PRINT-001</div><h3>Print / PDF</h3><p>Clean and Full Review packages preserve evidence gates in non-empty A4 output.</p><div class="tag-row"><span class="tag">Clean</span><span class="tag">Full Review</span><span class="tag">A4</span></div></article>
       <article class="node" data-feature-id="FEAT-STEP3-RESPONSIVE-001"><div class="id">FEAT-STEP3-RESPONSIVE-001</div><h3>Responsive workbench</h3><p>Desktop panels own overflow; phone navigation uses one contextual FAB and logical panel at a time.</p><div class="tag-row"><span class="tag">desktop</span><span class="tag">tablet</span><span class="tag">phone</span></div></article>
     </section>
 
     <h2>Executable Evidence</h2>
     <section class="shots" aria-label="Step 3 browser evidence">
-      <figure><img src="feature-map-assets/step3-desktop-start.png" alt="Desktop Work Universe guided start" /><figcaption><code>SCR-STEP3-DESKTOP-START-001</code> Guided first read with source, centre and Contents surfaces.</figcaption></figure>
-      <figure><img src="feature-map-assets/step3-desktop-five-graph.png" alt="Wide desktop five-graph Work Universe" /><figcaption><code>SCR-STEP3-DESKTOP-MAP-001</code> Five canonical graphs in the measured desktop frame.</figcaption></figure>
-      <figure><img src="feature-map-assets/step3-mobile-five-graph.png" alt="Mobile five-graph Work Universe" /><figcaption><code>SCR-STEP3-MOBILE-MAP-001</code> Responsive graph stack at phone width.</figcaption></figure>
-      <figure><img src="feature-map-assets/step3-role-graph.png" alt="Role Graph evidence workspace" /><figcaption><code>SCR-STEP3-ROLE-GRAPH-001</code> Preserved Role Graph and workspace path.</figcaption></figure>
-      <figure><img src="feature-map-assets/step3-print-package.png" alt="Step 3 print package" /><figcaption><code>SCR-STEP3-PRINT-001</code> Evidence-gated Clean and Full Review output.</figcaption></figure>
+      <figure><a class="shot-link" href="feature-map-assets/step3-desktop-start.png"><img src="feature-map-assets/step3-desktop-start.png" alt="Desktop Work Universe guided start" /></a><figcaption><code>SCR-STEP3-DESKTOP-START-001</code> Guided first read. <a href="feature-map-assets/step3-desktop-start.png">Open full resolution</a>.</figcaption></figure>
+      <figure><a class="shot-link" href="feature-map-assets/step3-desktop-five-graph.png"><img src="feature-map-assets/step3-desktop-five-graph.png" alt="Wide desktop five-graph Work Universe" /></a><figcaption><code>SCR-STEP3-DESKTOP-MAP-001</code> Five canonical graphs. <a href="feature-map-assets/step3-desktop-five-graph.png">Open full resolution</a>.</figcaption></figure>
+      <figure><a class="shot-link" href="feature-map-assets/step3-mobile-five-graph.png"><img src="feature-map-assets/step3-mobile-five-graph.png" alt="Mobile five-graph Work Universe" /></a><figcaption><code>SCR-STEP3-MOBILE-MAP-001</code> Expanded scroll-aware capture containing all five phone-width graph cards. <a href="feature-map-assets/step3-mobile-five-graph.png">Open full resolution</a>.</figcaption></figure>
+      <figure><a class="shot-link" href="feature-map-assets/step3-role-graph.png"><img src="feature-map-assets/step3-role-graph.png" alt="Embedded Role Graph" /></a><figcaption><code>SCR-STEP3-ROLE-GRAPH-001</code> Embedded Role Graph state; this is not the advanced workspace. <a href="feature-map-assets/step3-role-graph.png">Open full resolution</a>.</figcaption></figure>
+      <figure><a class="shot-link" href="feature-map-assets/step3-print-package.png"><img src="feature-map-assets/step3-print-package.png" alt="Desktop Step 3 print package" /></a><figcaption><code>SCR-STEP3-PRINT-001</code> Desktop Full Review capture. <a href="feature-map-assets/step3-print-package.png">Open full resolution</a>.</figcaption></figure>
     </section>
 
     <h2>Evidence Boundaries</h2>
     <table aria-label="Step 3 evidence boundaries">
       <thead><tr><th>Payload</th><th>Available evidence</th><th>Absence behavior</th></tr></thead>
       <tbody>
-        <tr><td><code>PAY-STEP3-POSTING-001</code></td><td>Selected posting, responsibilities, source rows</td><td>Role-title route remains available; evidence round trip reports <code>WITHHELD_NO_SOURCE_ROWS</code>.</td></tr>
+        <tr><td><code>PAY-STEP3-POSTING-001</code></td><td>ReviewStudio receives title, employer, skills, combined text and salary midpoint; the analysis request separately carries UUID, URL, employer identities and source.</td><td>Do not claim the complete Step 2 object reaches ReviewStudio. The role-title route remains available and missing source rows report <code>WITHHELD_NO_SOURCE_ROWS</code>.</td></tr>
         <tr><td><code>PAY-STEP3-PERSON-001</code></td><td>User-confirmed session evidence and selected skills</td><td>Raw text does not become a skill, access, authority or capability claim.</td></tr>
         <tr><td><code>PAY-STEP3-ORGANISATION-001</code></td><td>Explicit nodes, relationships, steps, stages and controls</td><td>No hierarchy, sequence, timing, waste, savings or maturity is inferred from a posting.</td></tr>
         <tr><td><code>PAY-STEP3-GOVERNANCE-001</code></td><td>Supplied decisions, owners, controls and reviewer positions</td><td>No actor, timestamp, consensus or autonomous permission is manufactured.</td></tr>
@@ -137,8 +139,11 @@
     <table aria-label="Step 3 contract tests">
       <thead><tr><th>Test</th><th>Coverage</th></tr></thead>
       <tbody>
-        <tr><td><code>TEST-STEP3-BROWSER-001</code><br /><code>v3.1/tests/browser-gate.mjs</code></td><td>Entry, five graphs, fifteen signals, measured geometry, withholding, specialised maps, governance, Role Graph/FAB, print/PDF and Step 2 return.</td></tr>
-        <tr><td><code>TEST-STEP3-CONTRACT-001</code><br /><code>v3.1/tests/feature-map-contract.mjs</code></td><td>Map ids, references, source anchors, screenshot hashes, provenance separation and master-index publication.</td></tr>
+        <tr><td><code>TEST-STEP3-GRAPHS-BROWSER-001</code></td><td>Entry, five graphs, fifteen signals, measured geometry and responsive panel behavior.</td></tr>
+        <tr><td><code>TEST-STEP3-MAPS-BROWSER-001</code></td><td>Absent-payload specialised maps and governance withholding.</td></tr>
+        <tr><td><code>TEST-STEP3-PRINT-BROWSER-001</code></td><td>Clean/Full Review routing and non-empty A4 PDF.</td></tr>
+        <tr><td><code>TEST-STEP3-ROUNDTRIP-BROWSER-001</code></td><td>Role Graph/FAB return and conditional source-evidence round trip.</td></tr>
+        <tr><td><code>TEST-STEP3-CONTRACT-001</code></td><td>Schema resolution, locator ranges, raster dimensions, hashes, provenance parity and protected paths.</td></tr>
       </tbody>
     </table>
 
@@ -147,8 +152,8 @@
       <thead><tr><th>Field</th><th>Status</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td>Implementation commit</td><td><code>3495b4684205170802995d26c4f6faa8dc0c0814</code></td><td>Current <code>main</code> baseline whose Step 3 implementation was inspected and exercised.</td></tr>
-        <tr><td>Merge commit</td><td><code>null</code> / <code>MAP_BRANCH_NOT_MERGED</code></td><td>The map branch has not yet been merged.</td></tr>
-        <tr><td>Deployment status</td><td><code>NOT_CHANGED_OR_REVERIFIED</code></td><td>This documentation package does not change deployment configuration or claim a new production deployment.</td></tr>
+        <tr><td>Merge commit</td><td><code>bd96f54d79ada47cadfb32e04f902a40253d4e84</code>, PR #479</td><td>The Step 3 map was merged to <code>main</code>.</td></tr>
+        <tr><td>Deployment status</td><td><code>SUCCESS_STATUSES_ON_MERGE_COMMIT</code></td><td>Vercel and Railway reported success for the merge commit; this is not physical-runtime evidence.</td></tr>
         <tr><td>Physical runtime</td><td><code>NOT_VERIFIED_FOR_STEP3_MAP</code></td><td>Chromium evidence is not represented as physical-device production evidence.</td></tr>
       </tbody>
     </table>
@@ -160,7 +165,16 @@
         <tr><td><code>GAP-STEP3-PHYSICAL-001</code></td><td>OPEN</td><td>No physical-device production pass is claimed.</td></tr>
         <tr><td><code>GAP-STEP3-FOOTER-001</code></td><td>PARTIAL</td><td>Work Universe does not expose the Review Studio time-window value.</td></tr>
         <tr><td><code>GAP-STEP3-PERSON-001</code></td><td>PARTIAL</td><td>A unified source-linked candidate proof ledger remains unbuilt.</td></tr>
+        <tr><td><code>GAP-STEP3-SOURCE-ROUNDTRIP-001</code></td><td>PARTIAL</td><td>The source-bearing workspace round trip remains conditional.</td></tr>
+        <tr><td><code>GAP-STEP3-ROLEGRAPH-MODES-001</code></td><td>WIRED</td><td>Role Graph modes exist but their toggles are not exercised here.</td></tr>
+        <tr><td><code>GAP-STEP3-POSITIVE-UI-001</code></td><td>PARTIAL</td><td>Positive specialised-map and governance React rendering is not browser-tested.</td></tr>
+        <tr><td><code>GAP-STEP3-REVIEWER-COMMENTS-001</code></td><td>PARTIAL</td><td>The complete reviewer-persona set remains incomplete.</td></tr>
+        <tr><td><code>GAP-STEP3-WIKIGRAPH-001</code></td><td>PARTIAL</td><td>WikiGraph is not the complete occupation-sensitive visual system.</td></tr>
+        <tr><td><code>GAP-STEP3-CANDIDATE-PREP-001</code></td><td>PARTIAL</td><td>Candidate preparation lacks a unified proof ledger.</td></tr>
         <tr><td><code>GAP-STEP3-TRACK-CHANGE-001</code></td><td>PARKED</td><td>Full split, merge, relabel, escalate and first-class withhold verbs are not built.</td></tr>
+        <tr><td><code>GAP-STEP3-INFRANODUS-001</code></td><td>PARKED</td><td>No dedicated InfraNodus-style concept analysis is implemented.</td></tr>
+        <tr><td><code>GAP-STEP3-ROLE-MAPS-001</code></td><td>PARKED</td><td>Hiring funnel, portfolio, site and control maps remain unshipped.</td></tr>
+        <tr><td><code>GAP-STEP3-COVER-LETTER-001</code></td><td>PARKED</td><td>The earlier cover-letter code is not linked from current Step 3.</td></tr>
       </tbody>
     </table>
   </main>

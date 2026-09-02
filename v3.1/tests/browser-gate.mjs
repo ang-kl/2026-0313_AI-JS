@@ -2,7 +2,10 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const base = process.env.BASE_URL || 'http://127.0.0.1:4173';
+const updateFeatureMapAssets = process.env.UPDATE_STEP3_FEATURE_MAP_ASSETS === '1';
+const featureMapAssetDir = 'doc/feature-map-assets';
 fs.mkdirSync('test-results', { recursive: true });
+if (updateFeatureMapAssets) fs.mkdirSync(featureMapAssetDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -51,6 +54,16 @@ async function screenshot(name) {
   await page.screenshot({ path: `test-results/${name}`, fullPage: true });
 }
 
+async function featureMapScreenshot(name, locator = null) {
+  if (!updateFeatureMapAssets) return;
+  const style = await page.addStyleTag({ content: '[data-testid="work-universe-r3f"],.wu-quickNav{visibility:hidden!important}' });
+  await page.waitForTimeout(50);
+  const target = `${featureMapAssetDir}/${name}`;
+  if (locator) await locator.screenshot({ path: target });
+  else await page.screenshot({ path: target, fullPage: true });
+  await style.evaluate((element) => element.remove());
+}
+
 async function requireVisible(locator, message, timeout = 15000) {
   await locator.waitFor({ state: 'visible', timeout });
   if (!await locator.isVisible()) throw new Error(message);
@@ -79,6 +92,7 @@ const jobAdTabMetrics = await page.getByTestId('wu-job-ad-tabs').evaluate((eleme
 }));
 if (!['auto', 'scroll'].includes(jobAdTabMetrics.overflowX)) throw new Error(`Job Ad tabs do not own horizontal overflow: ${JSON.stringify(jobAdTabMetrics)}`);
 await screenshot('03-work-universe.png');
+await featureMapScreenshot('step3-desktop-start.png');
 
 // The desktop workbench is one available viewport, not a document three screens tall.
 // The source rail, Contents tree and detail inspector each own their overflow.
@@ -173,6 +187,7 @@ await page.setViewportSize({ width: 2048, height: 1280 });
 await page.waitForTimeout(250);
 await page.getByTestId('wu-individual-role').click();
 await screenshot('03-work-universe-2048x1280.png');
+await featureMapScreenshot('step3-desktop-five-graph.png');
 await page.getByTestId('visual-choice-org').click();
 await requireVisible(page.getByTestId('organisation-map'), 'Manual Org visual choice did not open the Organisation Map');
 if (await page.getByTestId('visual-choice-org').getAttribute('aria-pressed') !== 'true') throw new Error('Manual Org visual choice did not expose its active state');
@@ -215,6 +230,18 @@ for (let index = 1; index < mobileFlow.length; index += 1) {
   if (mobileFlow[index].y <= mobileFlow[index - 1].y + mobileFlow[index - 1].height) throw new Error(`Mobile flow cards overlap or imply an unreadable stack: ${JSON.stringify(mobileFlow)}`);
 }
 await page.locator('.wu-universeFrame').screenshot({ path: 'test-results/03-work-universe-flow-mobile.png' });
+if (updateFeatureMapAssets) {
+  const captureStyle = await page.addStyleTag({ content: '[data-testid="work-universe-r3f"],.wu-quickNav{visibility:hidden!important}' });
+  const cardBuffers = [];
+  for (const selector of ['.wu-anchorNode', '.wu-g1', '.wu-g2', '.wu-g3', '.wu-g4', '.wu-g5']) {
+    cardBuffers.push(await page.locator(selector).screenshot());
+  }
+  await captureStyle.evaluate((element) => element.remove());
+  const capturePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await capturePage.setContent(`<style>body{margin:0;padding:16px;background:#f7f9fc;display:grid;gap:14px}img{display:block;width:100%;height:auto}</style>${cardBuffers.map((buffer) => `<img src="data:image/png;base64,${buffer.toString('base64')}" alt="" />`).join('')}`);
+  await capturePage.screenshot({ path: `${featureMapAssetDir}/step3-mobile-five-graph.png`, fullPage: true });
+  await capturePage.close();
+}
 await page.setViewportSize({ width: 1440, height: 1000 });
 await page.waitForTimeout(250);
 
@@ -449,6 +476,7 @@ for (const heading of ['All-markup review', 'Reviewer summary and decision ledge
   if (!reviewPrintText.includes(heading)) throw new Error(`Full review print package is missing ${heading}`);
 }
 await screenshot('08-print-package.png');
+await featureMapScreenshot('step3-print-package.png');
 await page.emulateMedia({ media: 'print' });
 await page.pdf({ path: 'test-results/step3-review-package.pdf', format: 'A4', printBackground: true });
 await page.emulateMedia({ media: 'screen' });
@@ -476,6 +504,7 @@ await requireVisible(page.getByRole('menu', { name: 'Workspace shortcuts' }), 'W
 await requireVisible(page.getByTestId('wu-quick-contents'), 'FAB menu omits Contents tree');
 await requireVisible(page.getByTestId('wu-quick-job-ad'), 'FAB menu omits Job Ad evidence');
 await screenshot('05-role-graph-workspace.png');
+await featureMapScreenshot('step3-role-graph.png');
 await page.getByTestId('wu-quick-contents').click();
 await page.getByTestId('wu-centre-universe').click();
 await requireVisible(page.getByTestId('graph-labour'), 'Work Universe did not restore inside the centre panel');
