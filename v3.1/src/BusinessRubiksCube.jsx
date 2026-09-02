@@ -84,6 +84,24 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
         cellMeshes.push(mesh);
       });
 
+      function applySelection(nextId) {
+        cellMeshes.forEach((mesh) => {
+          const isSelected = mesh.userData.cellId === nextId;
+          const occupied = model.cells.find((cell) => cell.id === mesh.userData.cellId)?.count > 0;
+          const edge = mesh.children[0];
+          mesh.scale.setScalar(isSelected ? 1.09 : 1);
+          mesh.material.opacity = isSelected ? (occupied ? 1 : 0.42) : occupied ? 0.82 : 0.14;
+          mesh.material.transparent = !isSelected || !occupied;
+          mesh.material.emissive.set(isSelected ? "#ffffff" : occupied ? "#07111f" : "#000000");
+          mesh.material.emissiveIntensity = isSelected ? 0.28 : occupied ? 0.1 : 0;
+          if (edge?.material) {
+            edge.material.color.set(isSelected ? "#0b1f44" : occupied ? "#f8fafc" : "#7f8d9d");
+            edge.material.opacity = isSelected ? 1 : occupied ? 0.7 : 0.3;
+          }
+        });
+        host.dataset.selectedCell = nextId || "";
+      }
+
       const core = new THREE.Mesh(
         new THREE.SphereGeometry(0.19, 24, 16),
         new THREE.MeshStandardMaterial({ color: model.sector.status === "exact" ? "#f4c542" : "#6b7280", emissive: "#8a6500", emissiveIntensity: 0.35 }),
@@ -166,7 +184,9 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
         explode: setExplode,
         rotateBy,
         zoom: (factor) => { camera.position.multiplyScalar(factor); controls.update(); markRevision(); },
+        select: applySelection,
       };
+      applySelection(selectedId);
 
       function render() {
         controls.update();
@@ -215,6 +235,10 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
     apiRef.current?.explode(exploded);
   }, [exploded]);
 
+  useEffect(() => {
+    apiRef.current?.select(selectedId);
+  }, [selectedId]);
+
   function onKeyDown(event) {
     const actions = {
       ArrowLeft: () => apiRef.current?.rotateBy(-0.14, 0),
@@ -262,18 +286,25 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
             <button type="button" onClick={() => setExploded((value) => !value)} aria-pressed={exploded}>{exploded ? "Assemble" : "Explode"}</button>
             <button type="button" onClick={() => { setExploded(false); apiRef.current?.explode(false); apiRef.current?.reset(); }}>Reset</button>
           </div>
+          {selected && (
+            <div className="business-cube__selection-strip" data-testid="business-cube-selection" aria-live="polite">
+              <span className="business-cube__axis-title">Selected cell</span>
+              <strong>{cellLabel(selected)}</strong>
+              <span>{selected.count ? `${selected.count} duty cluster${selected.count === 1 ? "" : "s"}` : "Evidence withheld"}</span>
+            </div>
+          )}
           <div
             ref={mountRef}
             className="business-cube__canvas"
             data-testid="business-cube-canvas"
             role="application"
             tabIndex={0}
-            aria-label="Interactive business cube"
+            aria-label={`Interactive business cube. Selected cell: ${selected ? cellLabel(selected) : "none"}. Arrow keys rotate; plus and minus zoom; zero resets.`}
             onKeyDown={onKeyDown}
           />
         </div>
         <aside className="business-cube__inspect" aria-live="polite">
-          <div className="business-cube__axis-title">Selected cell</div>
+          <div className="business-cube__axis-title">Cell evidence</div>
           {selected && (
             <>
               <h4 className="business-cube__selection">{cellLabel(selected)}</h4>
@@ -301,6 +332,7 @@ export default function BusinessRubiksCube({ agentModel, sectorEvidence }) {
                 type="button"
                 key={cell.id}
                 className="business-cube__cell-button"
+                data-cell-id={cell.id}
                 aria-pressed={selected?.id === cell.id}
                 onClick={() => setSelectedId(cell.id)}
               >

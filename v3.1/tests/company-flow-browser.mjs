@@ -136,6 +136,41 @@ await cube.waitFor({ state: "visible", timeout: 15000 });
 await cube.getByRole("heading", { name: /FULL BANKS \(64120\)/ }).waitFor({ state: "visible" });
 const canvasHost = page.getByTestId("business-cube-canvas");
 await page.waitForFunction(() => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.renderedCells === "27");
+const selectedCell = page.getByTestId("business-cube-selection");
+await selectedCell.waitFor({ state: "visible" });
+const firstMatrixCell = cube.locator(".business-cube__cell-button").first();
+const firstCellId = await firstMatrixCell.getAttribute("data-cell-id");
+if (!firstCellId || (await canvasHost.getAttribute("data-selected-cell")) !== firstCellId) {
+  throw new Error("Business cube did not synchronize its selected matrix cell with the 3D canvas");
+}
+const phoneCubeGeometry = await cube.evaluate((element) => {
+  const head = document.querySelector(".wu-centreHead");
+  const title = head?.querySelector(".wu-railTitle");
+  const controls = head?.querySelector(".wu-centreControls");
+  const selection = element.querySelector(".business-cube__selection-strip");
+  const canvas = element.querySelector(".business-cube__canvas");
+  const quickFab = document.querySelector(".wu-quickFab");
+  const centrePane = document.querySelector(".wu-centrePane");
+  const rect = (node) => {
+    if (!node) return null;
+    const bounds = node.getBoundingClientRect();
+    return { top: bounds.top, right: bounds.right, bottom: bounds.bottom, left: bounds.left, width: bounds.width, height: bounds.height };
+  };
+  return {
+    title: rect(title),
+    controls: rect(controls),
+    selection: rect(selection),
+    canvas: rect(canvas),
+    quickFab: rect(quickFab),
+    centrePane: rect(centrePane),
+    toolbarTargets: Array.from(element.querySelectorAll(".business-cube__toolbar button")).map((button) => button.getBoundingClientRect().height),
+  };
+});
+if (phoneCubeGeometry.title.bottom > phoneCubeGeometry.controls.top + 1) throw new Error(`Phone workspace title overlaps controls: ${JSON.stringify(phoneCubeGeometry)}`);
+if (phoneCubeGeometry.selection.bottom > phoneCubeGeometry.canvas.top + 1) throw new Error(`Selected-cell strip does not precede the cube canvas: ${JSON.stringify(phoneCubeGeometry)}`);
+if (phoneCubeGeometry.canvas.height > 310) throw new Error(`Phone cube canvas remains too tall: ${JSON.stringify(phoneCubeGeometry.canvas)}`);
+if (phoneCubeGeometry.toolbarTargets.some((height) => height < 44)) throw new Error(`Cube toolbar target below 44px: ${JSON.stringify(phoneCubeGeometry.toolbarTargets)}`);
+if (phoneCubeGeometry.quickFab.top < phoneCubeGeometry.centrePane.bottom - 1) throw new Error(`Workspace shortcut overlaps centre content: ${JSON.stringify(phoneCubeGeometry)}`);
 const canvasPixels = await canvasHost.evaluate((host) => {
   const canvas = host.querySelector("canvas");
   const gl = canvas?.getContext("webgl2") || canvas?.getContext("webgl");
@@ -181,10 +216,12 @@ const desktopCubeGeometry = await cube.evaluate((element) => {
     stageRight: stage.getBoundingClientRect().right,
     inspectorLeft: inspector.getBoundingClientRect().left,
     overflow: element.scrollWidth - element.clientWidth,
+    viewportWidth: window.innerWidth,
+    media820: matchMedia("(max-width: 820px)").matches,
   };
 });
-const expectedColumns = desktopCubeGeometry.cubeWidth > 760 ? 2 : 1;
-if (desktopCubeGeometry.bodyColumns !== expectedColumns || desktopCubeGeometry.overflow > 1 || (expectedColumns === 2 && desktopCubeGeometry.inspectorLeft < desktopCubeGeometry.stageRight - 1)) {
+const expectedColumns = 2;
+if (desktopCubeGeometry.bodyColumns !== expectedColumns || desktopCubeGeometry.overflow > 1 || desktopCubeGeometry.inspectorLeft < desktopCubeGeometry.stageRight - 1) {
   throw new Error(`Desktop cube layout failed: ${JSON.stringify(desktopCubeGeometry)}`);
 }
 await page.screenshot({ path: "test-results/company-flow/step3-business-cube-desktop.png", fullPage: true });
