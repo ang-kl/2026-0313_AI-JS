@@ -197,14 +197,19 @@ function json(route, body, status = 200) {
   });
 }
 
-async function wireApiMocks(page, calls) {
+async function wireApiMocks(page, calls, options = {}) {
+  const mcfFixture = options.mcfFixture ?? mcfJobs;
+  const csgFixture = options.csgFixture ?? csgJobs;
+  const delayMs = Number(options.delayMs || 0);
+  const delay = () => delayMs > 0 ? new Promise((resolve) => setTimeout(resolve, delayMs)) : Promise.resolve();
   await page.route("**/api/mcf", async (route) => {
     const body = parseBody(route.request());
     calls.mcf.push(body);
     if (body.action === "jobs") {
+      await delay();
       return json(route, {
-        jobs: mcfJobs,
-        total: mcfJobs.length,
+        jobs: mcfFixture,
+        total: mcfFixture.length,
         capped: false,
         approximate: true,
         tier: 3,
@@ -217,9 +222,10 @@ async function wireApiMocks(page, calls) {
   await page.route("**/api/careers", async (route) => {
     const body = parseBody(route.request());
     calls.careers.push(body);
+    await delay();
     return json(route, {
-      jobs: csgJobs,
-      total: csgJobs.length,
+      jobs: csgFixture,
+      total: csgFixture.length,
       capped: false,
       source: "careers.gov.sg",
     });
@@ -230,6 +236,7 @@ async function wireApiMocks(page, calls) {
     calls.ssoc.push(body);
     if (body.action === "classifyTitles") {
       calls.classify.push(body);
+      await delay();
       return json(route, {
         classifications: (body.jobs || []).map((job) => {
           const classified = classificationById[job.id];
@@ -286,14 +293,18 @@ async function wireApiMocks(page, calls) {
   );
 }
 
-async function openStep2(page) {
+async function beginStep2(page, query = "Data Engineer") {
   await page.goto(BASE_URL, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: /Browse SG jobs/i }).first().click();
   const input = page.getByRole("searchbox", { name: "Job title or role" });
-  await input.fill("Data Engineer");
+  await input.fill(query);
   await page.getByRole("button", { name: "Browse SG jobs", exact: true }).last().click();
   await page.getByTestId("step2-responsive-surface").waitFor({ state: "visible" });
   await page.getByText(/Posting evidence for/i).waitFor();
+}
+
+async function openStep2(page) {
+  await beginStep2(page);
   await page.getByText(/SSOC 25112/).first().waitFor({ timeout: 15_000 });
   await page.getByText(/withheld/i).first().waitFor({ timeout: 15_000 });
 }
@@ -447,6 +458,48 @@ async function run() {
     assert(desktopProgressGeometry.gap >= 12, `Desktop analysis progress overlaps header: ${JSON.stringify(desktopProgressGeometry)}`);
     await screenshot(desktopPage, "step2-desktop-analysis-progress.png");
     await desktop.close();
+
+    const zeroMcfCalls = { mcf: [], careers: [], ssoc: [], classify: [] };
+    const zeroMcf = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, reducedMotion: "no-preference" });
+    const zeroMcfPage = await zeroMcf.newPage();
+    await wireApiMocks(zeroMcfPage, zeroMcfCalls, { mcfFixture: [], csgFixture: csgJobs, delayMs: 450 });
+    await beginStep2(zeroMcfPage, "Data");
+    const curationProgress = zeroMcfPage.getByTestId("step2-curation-progress");
+    await curationProgress.waitFor({ state: "visible" });
+    const motion = await curationProgress.evaluate((panel) => {
+      const sweep = panel.querySelector(".step2-curation-sweep > span");
+      const dot = panel.querySelector(".step2-curation-dot.is-loading");
+      return {
+        sweepAnimation: sweep ? getComputedStyle(sweep).animationName : "",
+        dotAnimation: dot ? getComputedStyle(dot).animationName : "",
+        reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+      };
+    });
+    assert(motion.sweepAnimation === "step2CurationSweep", `Step 2 sweep animation is missing: ${JSON.stringify(motion)}`);
+    assert(motion.dotAnimation === "step2CurationPulse", `Step 2 pulse animation is missing: ${JSON.stringify(motion)}`);
+    await screenshot(zeroMcfPage, "step2-desktop-curation-loading.png");
+    await zeroMcfPage.getByText(/SSOC 25112/).first().waitFor({ timeout: 15_000 });
+
+    const emptyMcf = zeroMcfPage.getByTestId("step2-empty-source-mcf");
+    await emptyMcf.waitFor({ state: "visible" });
+    assert((await emptyMcf.getAttribute("open")) === null, "Zero-result MyCareersFuture source should be collapsed by default");
+    await zeroMcfPage.getByText(/MyCareersFuture \(0 postings\); careers\.gov\.sg \(2 postings\)/).waitFor();
+    const zeroMcfGeometry = await zeroMcfPage.locator(".step2-source-grid").evaluate((grid) => {
+      const careers = Array.from(grid.querySelectorAll(".step2-source")).find((source) => source.textContent.includes("careers.gov.sg"));
+      const gridRect = grid.getBoundingClientRect();
+      const careersRect = careers.getBoundingClientRect();
+      return {
+        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+        gridWidth: gridRect.width,
+        careersWidth: careersRect.width,
+      };
+    });
+    assert(zeroMcfGeometry.columns === 1 && zeroMcfGeometry.careersWidth >= zeroMcfGeometry.gridWidth - 2, `Available source did not expand after empty MCF collapse: ${JSON.stringify(zeroMcfGeometry)}`);
+    const overviewHeight = await zeroMcfPage.getByTestId("step2-curation-overview").evaluate((overview) => overview.getBoundingClientRect().height);
+    assert(overviewHeight <= 210, `Desktop Curation Overview remains too tall: ${overviewHeight}px`);
+    await checkNoHorizontalOverflow(zeroMcfPage, "desktop zero MCF");
+    await screenshot(zeroMcfPage, "step2-desktop-zero-mcf.png");
+    await zeroMcf.close();
   } finally {
     await browser.close();
   }
