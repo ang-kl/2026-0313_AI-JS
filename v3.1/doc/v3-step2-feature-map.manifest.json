@@ -25,33 +25,33 @@
   },
   "provenance": {
     "implementationCommit": {
-      "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
-      "branch": "codex/step2-cube-audit-fixes-20260902",
-      "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
+      "sha": "1a043664434ae9c3c2cd21850ed23df50138fb66",
+      "branch": "codex/step2-desktop-filter-wrap-20260902",
+      "role": "Compact 1440px Step 2 filter toolbar follow-up, layered on the merged audit implementation.",
       "verifiedBy": [
         "npm run build",
-        "node tests/audit-integrity-contract.mjs",
         "node tests/step2-feature-map-browser.mjs",
-        "node tests/company-flow-browser.mjs",
-        "node tests/browser-gate.mjs"
+        "node tests/audit-integrity-contract.mjs",
+        "node tests/feature-map-contract.mjs",
+        "node tests/device-profile-contract.mjs"
       ]
     },
     "mergeCommit": {
       "sha": null,
       "status": "NOT_MERGED",
       "pullRequest": null,
-      "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
+      "notes": "This map revision includes the unmerged desktop filter-toolbar follow-up."
     },
     "deploymentStatus": {
       "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
       "railwayConfigurationChanged": false,
-      "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
-      "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
+      "implementationCommit": "1a043664434ae9c3c2cd21850ed23df50138fb66",
+      "notes": "PR #484 is deployed, but this desktop toolbar follow-up commit is not."
     },
     "physicalRuntimeVerification": {
-      "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
-      "evidenceType": "CHROMIUM_FIXTURES_ONLY",
-      "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
+      "status": "NOT_VERIFIED_FOR_CURRENT_HEAD",
+      "evidenceType": "LOCAL_CHROMIUM_FIXTURES_ONLY",
+      "notes": "Local 1440px and phone fixtures pass; no physical-device or deployed-runtime claim is made for this commit."
     }
   },
   "screens": [
@@ -167,7 +167,7 @@
       "id": "SCR-STEP2-DESKTOP-LOAD-001",
       "title": "Desktop animated curation progress",
       "asset": "feature-map-assets/step2-desktop-curation-loading.png",
-      "sha256": "c288543a6c66f3f7c15d31542134213244231789fe1cb3a49df61ece9d991615",
+      "sha256": "2f90495a218efc1ce4b329af9e532d4e7027b025cc1abbc0c919b1d2c80b3dde",
       "viewport": {
         "width": 1440,
         "height": 1000,
@@ -181,7 +181,8 @@
       "captureMode": "fullPage",
       "stateId": "STATE-STEP2-LOAD-001",
       "featureIds": [
-        "FEAT-STEP2-RESILIENCE-001"
+        "FEAT-STEP2-RESILIENCE-001",
+        "FEAT-STEP2-FILTER-001"
       ],
       "evidenceRefIds": [
         "EVID-STEP2-BROWSER-001"
@@ -1123,6 +1124,16 @@
       "testIds": [
         "TEST-STEP2-BROWSER-001"
       ]
+    },
+    {
+      "id": "INV-STEP2-DESKTOP-FILTERBAR-001",
+      "statement": "At a 1440px desktop viewport, Step 2 filter controls remain within two rows and the toolbar remains no more than 120 pixels high.",
+      "featureIds": [
+        "FEAT-STEP2-FILTER-001"
+      ],
+      "testIds": [
+        "TEST-STEP2-BROWSER-001"
+      ]
     }
   ],
   "responsiveProfiles": [
@@ -1196,7 +1207,8 @@
         "INV-STEP2-WITHHOLD-001",
         "INV-STEP2-PHONE-GEOMETRY-001",
         "INV-STEP2-SOURCE-PARITY-001",
-        "INV-STEP2-STEP3-HANDOFF-001"
+        "INV-STEP2-STEP3-HANDOFF-001",
+        "INV-STEP2-DESKTOP-FILTERBAR-001"
       ]
     },
     {

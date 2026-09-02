@@ -54,33 +54,33 @@
       "handoff": "Derives a reduced Step 3 posting view and a separate source-bearing analysis request from the selected posting.",
       "provenance": {
         "implementationCommit": {
-          "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
-          "branch": "codex/step2-cube-audit-fixes-20260902",
-          "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
+          "sha": "1a043664434ae9c3c2cd21850ed23df50138fb66",
+          "branch": "codex/step2-desktop-filter-wrap-20260902",
+          "role": "Compact 1440px Step 2 filter toolbar follow-up, layered on the merged audit implementation.",
           "verifiedBy": [
             "npm run build",
-            "node tests/audit-integrity-contract.mjs",
             "node tests/step2-feature-map-browser.mjs",
-            "node tests/company-flow-browser.mjs",
-            "node tests/browser-gate.mjs"
+            "node tests/audit-integrity-contract.mjs",
+            "node tests/feature-map-contract.mjs",
+            "node tests/device-profile-contract.mjs"
           ]
         },
         "mergeCommit": {
           "sha": null,
           "status": "NOT_MERGED",
           "pullRequest": null,
-          "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
+          "notes": "This map revision includes the unmerged desktop filter-toolbar follow-up."
         },
         "deploymentStatus": {
           "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
           "railwayConfigurationChanged": false,
-          "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
-          "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
+          "implementationCommit": "1a043664434ae9c3c2cd21850ed23df50138fb66",
+          "notes": "PR #484 is deployed, but this desktop toolbar follow-up commit is not."
         },
         "physicalRuntimeVerification": {
-          "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
-          "evidenceType": "CHROMIUM_FIXTURES_ONLY",
-          "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
+          "status": "NOT_VERIFIED_FOR_CURRENT_HEAD",
+          "evidenceType": "LOCAL_CHROMIUM_FIXTURES_ONLY",
+          "notes": "Local 1440px and phone fixtures pass; no physical-device or deployed-runtime claim is made for this commit."
         }
       }
     },
@@ -97,31 +97,38 @@
         "implementationCommit": {
           "sha": "7da49403434d5c2791e70a36440ba19fe120efa6",
           "branch": "codex/step2-cube-audit-fixes-20260902",
-          "role": "Audited Step 2, careers.gov.sg handoff and Business Cube implementation verified by local contracts and Chromium fixtures.",
+          "role": "Audited Business Cube implementation merged through PR #484.",
           "verifiedBy": [
             "npm run build",
-            "node tests/audit-integrity-contract.mjs",
-            "node tests/step2-feature-map-browser.mjs",
             "node tests/company-flow-browser.mjs",
             "node tests/browser-gate.mjs"
           ]
         },
         "mergeCommit": {
-          "sha": null,
-          "status": "NOT_MERGED",
-          "pullRequest": null,
-          "notes": "This feature-map revision describes an implementation commit on an unmerged follow-up branch."
+          "sha": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
+          "status": "MERGED_TO_MAIN",
+          "pullRequest": 484,
+          "mergedAt": "2026-09-02T17:32:17+08:00",
+          "notes": "GitHub records PR #484 as merged to main."
         },
         "deploymentStatus": {
-          "status": "NOT_DEPLOYED_OR_STATUS_VERIFIED",
+          "status": "SUCCESS",
+          "implementationCommit": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
           "railwayConfigurationChanged": false,
-          "implementationCommit": "7da49403434d5c2791e70a36440ba19fe120efa6",
-          "notes": "No Vercel, Railway or production deployment is claimed for this implementation commit."
+          "services": [
+            "Railway Job-Analysis",
+            "Railway Job-Analysis - v3-web",
+            "Vercel v2_20260324_ai-jobskill-analyser-v2",
+            "Vercel v3_2026-0511-ai-js"
+          ],
+          "notes": "All four commit statuses completed successfully for the merge commit."
         },
         "physicalRuntimeVerification": {
-          "status": "NOT_VERIFIED_FOR_AUDIT_FIX",
-          "evidenceType": "CHROMIUM_FIXTURES_ONLY",
-          "notes": "Deterministic Chromium fixtures cover the mapped paths; no physical-device production verification is claimed."
+          "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+          "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
+          "runtime": "https://v3.takearoundabout.com",
+          "verifiedAt": "2026-09-02T20:04:00+08:00",
+          "notes": "Company Step 1a and Step 3 AI Moments/Business Cube passed against the deployed origin with deterministic route fixtures. This is not a physical phone or Safari claim."
         }
       }
     }
