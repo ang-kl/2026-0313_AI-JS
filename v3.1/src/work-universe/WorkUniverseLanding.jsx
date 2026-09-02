@@ -804,7 +804,7 @@ export default function WorkUniverseLanding({
     setOrganisationMapOpen(false);
     setTocActive("ai-moments");
     setDetail({ kind: "aiMoments" });
-    setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Neural" });
+    setFooter({ label: "AI Moments", detail: "organisation evidence → Cards | Business cube" });
     if (usesPanelNavigator) setMobilePanel("workspace");
     setQuickMenuOpen(false);
   };
@@ -1119,7 +1119,7 @@ export default function WorkUniverseLanding({
 
           <section className="wu-centrePane" aria-label="Work Universe">
             <div className="wu-centreHead">
-              <div><span className="wu-eyebrow">Workspace</span> <span className="wu-railTitle">{mode === "governance-ledger" ? "Governance Ledger" : mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : mode === "ai-moments" ? "AI Moments · Cards | Neural" : organisationMapOpen ? "Organisation Map" : mode === "rolegraph" ? "Role Graph" : "Work Universe"}</span></div>
+              <div><span className="wu-eyebrow">Workspace</span> <span className="wu-railTitle">{mode === "governance-ledger" ? "Governance Ledger" : mode === "workflow-map" ? "Workflow Map" : mode === "value-stream-map" ? "Value Stream Map" : mode === "ai-moments" ? "AI Moments · Cards | Business cube" : organisationMapOpen ? "Organisation Map" : mode === "rolegraph" ? "Role Graph" : "Work Universe"}</span></div>
               <div className="wu-centreControls">
                 <div className="wu-panelSwitch" role="tablist" aria-label="Centre workspace view">
                   <button data-testid="wu-centre-universe" type="button" role="tab" aria-selected={mode !== "rolegraph"} className={mode !== "rolegraph" ? "on" : ""} onClick={resetUniverse}>Work Universe</button>
@@ -1168,7 +1168,7 @@ export default function WorkUniverseLanding({
               )}
               {mode === "ai-moments" && (
                 <div className="wu-aiMomentsView" data-testid="wu-ai-moments">
-                  <div style={{ padding: "14px 14px 0" }}><div className="wu-eyebrow">Organisation Work Graph → AI Moments</div><div className="wu-detailTitle">Cards | Neural</div></div>
+                  <div style={{ padding: "14px 14px 0" }}><div className="wu-eyebrow">Organisation Work Graph → AI Moments</div><div className="wu-detailTitle">Cards | Business cube</div></div>
                   <div className="wu-aiMomentsBoundary">AI Moments are derived from supplied employer postings and duty evidence. They suggest work that may be augmented or automated; they do not grade organisation maturity, staffing quality or readiness.</div>
                   <div style={{ padding: "0 14px 10px" }}><button data-testid="return-organisation-map" type="button" className="wu-cmdBtn" onClick={showOrganisationMap}>← Organisation Map</button></div>
                   <div className="wu-aiMomentsBody">{aiMomentsPane || <div className="wu-empty">Organisation evidence is unavailable, so AI Moments are withheld.</div>}</div>
@@ -1307,7 +1307,7 @@ export default function WorkUniverseLanding({
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button type="button" className={`wu-outlineBtn ${tocActive === "organisation-map" ? "on" : ""}`} onClick={showOrganisationMap}>Organisation Map</button></div></li>
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-workflow-map" type="button" className={`wu-outlineBtn ${tocActive === "workflow-map" ? "on" : ""}`} onClick={showWorkflowMap}>Workflow Map</button></div></li>
                                         <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-value-stream-map" type="button" className={`wu-outlineBtn ${tocActive === "value-stream-map" ? "on" : ""}`} onClick={showValueStreamMap}>Value Stream Map</button></div></li>
-                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-ai-moments" type="button" className={`wu-outlineBtn ${tocActive === "ai-moments" ? "on" : ""}`} onClick={openAiMoments}>AI Moments · Cards | Neural</button></div></li>
+                                        <li role="treeitem"><div className="wu-treeRow"><span className="wu-treeToggle placeholder">•</span><button data-testid="tree-ai-moments" type="button" className={`wu-outlineBtn ${tocActive === "ai-moments" ? "on" : ""}`} onClick={openAiMoments}>AI Moments · Cards | Business cube</button></div></li>
                                       </ul>
                                     )}
                                   </li>
@@ -1324,7 +1324,7 @@ export default function WorkUniverseLanding({
                       )}
                     </li>
                   </ul>
-                  <div className="wu-treeRoute">Route · Organisation Work Graph → Organisation Map → AI Moments → Cards | Neural</div>
+                  <div className="wu-treeRoute">Route · Organisation Work Graph → Organisation Map → AI Moments → Cards | Business cube</div>
                 </nav>
               </div>
             </section>
@@ -1390,7 +1390,7 @@ export default function WorkUniverseLanding({
                       <DetailMethods methods={["SUPPLIED", "EVIDENCE-GATED"]} />
                       <p className="wu-desc">The centre map separates functions, reporting boundaries, dependencies, capabilities, authority and process ownership. Missing dimensions remain visibly withheld.</p>
                       <p className="wu-desc"><b>Boundary:</b> No organisation maturity, hierarchy, staffing condition or process quality is inferred from the posting.</p>
-                      <button data-testid="open-ai-moments" type="button" className="wu-cmdBtn" onClick={openAiMoments}>Open AI Moments · Cards | Neural →</button>
+                      <button data-testid="open-ai-moments" type="button" className="wu-cmdBtn" onClick={openAiMoments}>Open AI Moments · Cards | Business cube →</button>
                       <button data-testid="open-graph-workspace" type="button" className="wu-cmdBtn" onClick={openEvidenceWorkspace}>Open company evidence workspace →</button>
                     </>
                   )}

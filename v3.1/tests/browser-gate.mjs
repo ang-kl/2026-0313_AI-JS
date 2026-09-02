@@ -283,7 +283,7 @@ await page.getByTestId('organisation-map-ai-moments').click();
 const aiMomentsSurface = page.getByTestId('wu-ai-moments');
 await requireVisible(aiMomentsSurface, 'Organisation Map did not route AI Moments into the centre panel');
 const aiMomentsText = await aiMomentsSurface.innerText();
-if (!aiMomentsText.includes('Cards | Neural')) throw new Error('AI Moments destination does not identify the preserved Cards / Neural views');
+if (!aiMomentsText.includes('Cards | Business cube')) throw new Error('AI Moments destination does not identify the preserved Cards / Business cube views');
 if (!/do not grade organisation maturity/i.test(aiMomentsText)) throw new Error('AI Moments route omits the organisation-maturity boundary');
 if (!/withheld/i.test(aiMomentsText)) throw new Error('Role-only AI Moments route invented employer evidence instead of withholding');
 await screenshot('03-ai-moments-withheld.png');

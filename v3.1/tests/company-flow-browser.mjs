@@ -66,7 +66,13 @@ await page.route("**/api/mcf", async (route) => {
 });
 await page.route("**/api/careers", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ jobs: [], total: 0 }) }));
 await page.route("**/api/ssoc", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ results: [], classifications: [] }) }));
-await page.route("**/api/ssic", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ matched: false, results: [] }) }));
+await page.route("**/api/ssic", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+  matched: "exact",
+  primarySsicCode: "64120",
+  primarySsicDescription: "FULL BANKS",
+  registeredSince: "1968-07-16",
+  namesakes: 0,
+}) }));
 await page.route("**/api/esco", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ occupations: [], skills: [] }) }));
 await page.route("**/api/anatomy", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, found: false, data: null }) }));
 await page.route("**/api/company-registry", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ matched: false }) }));
@@ -120,11 +126,68 @@ await page.waitForFunction(() => document.querySelector('[data-testid="work-univ
 await page.getByTestId("tree-ai-moments").click();
 await page.waitForFunction(() => document.querySelector('[data-testid="work-universe"]')?.classList.contains("wu-mobilePanel-workspace"));
 await page.getByTestId("wu-ai-moments").waitFor({ state: "visible", timeout: 15000 });
-await page.getByText("Cards | Neural", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
+await page.getByText("Cards | Business cube", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
 await page.getByText("AI moments at DBS BANK LTD", { exact: true }).waitFor({ state: "visible", timeout: 15000 });
 if (dutyRequests !== 1) throw new Error(`Step 3 AI Moments expected one automatic duty request, received ${dutyRequests}`);
 if (await page.getByRole("button", { name: "Find AI moments at DBS BANK LTD" }).count()) throw new Error("Step 3 reset AI Moments to its dormant trigger");
-await page.screenshot({ path: "test-results/company-flow/step3-ai-moments-phone.png", fullPage: true });
+await page.getByRole("button", { name: /Business cube layout/ }).click();
+const cube = page.getByTestId("business-rubiks-cube");
+await cube.waitFor({ state: "visible", timeout: 15000 });
+await cube.getByRole("heading", { name: /FULL BANKS \(64120\)/ }).waitFor({ state: "visible" });
+const canvasHost = page.getByTestId("business-cube-canvas");
+await page.waitForFunction(() => document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.renderedCells === "27");
+const canvasPixels = await canvasHost.evaluate((host) => {
+  const canvas = host.querySelector("canvas");
+  const gl = canvas?.getContext("webgl2") || canvas?.getContext("webgl");
+  if (!canvas || !gl) return { coloured: 0, width: 0, height: 0 };
+  const width = gl.drawingBufferWidth;
+  const height = gl.drawingBufferHeight;
+  const pixels = new Uint8Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  let coloured = 0;
+  for (let i = 0; i < pixels.length; i += 32) {
+    if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 35) coloured += 1;
+  }
+  return { coloured, width, height };
+});
+if (canvasPixels.coloured < 1000) throw new Error(`Business cube canvas is blank: ${JSON.stringify(canvasPixels)}`);
+const beforeDrag = Number(await canvasHost.getAttribute("data-camera-revision"));
+await canvasHost.scrollIntoViewIfNeeded();
+await page.waitForTimeout(100);
+const box = await canvasHost.boundingBox();
+if (!box) throw new Error("Business cube canvas has no bounding box");
+await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.46);
+await page.mouse.down();
+await page.mouse.move(box.x + box.width * 0.64, box.y + box.height * 0.35, { steps: 8 });
+await page.mouse.up();
+await page.waitForFunction((before) => Number(document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.cameraRevision || 0) > before, beforeDrag);
+const beforeKeyboard = Number(await canvasHost.getAttribute("data-camera-revision"));
+await canvasHost.focus();
+await page.keyboard.press("ArrowRight");
+await page.waitForFunction((before) => Number(document.querySelector('[data-testid="business-cube-canvas"]')?.dataset.cameraRevision || 0) > before, beforeKeyboard);
+await cube.getByRole("button", { name: "Explode" }).click();
+if ((await canvasHost.getAttribute("data-exploded")) !== "true") throw new Error("Business cube did not enter exploded state");
+await page.screenshot({ path: "test-results/company-flow/step3-business-cube-phone.png", fullPage: true });
+
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.waitForTimeout(250);
+const desktopCubeGeometry = await cube.evaluate((element) => {
+  const body = element.querySelector(".business-cube__body");
+  const stage = element.querySelector(".business-cube__stage");
+  const inspector = element.querySelector(".business-cube__inspect");
+  return {
+    cubeWidth: element.getBoundingClientRect().width,
+    bodyColumns: getComputedStyle(body).gridTemplateColumns.split(" ").filter(Boolean).length,
+    stageRight: stage.getBoundingClientRect().right,
+    inspectorLeft: inspector.getBoundingClientRect().left,
+    overflow: element.scrollWidth - element.clientWidth,
+  };
+});
+const expectedColumns = desktopCubeGeometry.cubeWidth > 760 ? 2 : 1;
+if (desktopCubeGeometry.bodyColumns !== expectedColumns || desktopCubeGeometry.overflow > 1 || (expectedColumns === 2 && desktopCubeGeometry.inspectorLeft < desktopCubeGeometry.stageRight - 1)) {
+  throw new Error(`Desktop cube layout failed: ${JSON.stringify(desktopCubeGeometry)}`);
+}
+await page.screenshot({ path: "test-results/company-flow/step3-business-cube-desktop.png", fullPage: true });
 
 if (errors.length) throw new Error(`Runtime errors: ${errors.join(" | ")}`);
 await browser.close();
