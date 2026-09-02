@@ -536,6 +536,21 @@ async function run() {
     });
     assert(motion.sweepAnimation === "step2CurationSweep", `Step 2 sweep animation is missing: ${JSON.stringify(motion)}`);
     assert(motion.dotAnimation === "step2CurationPulse", `Step 2 pulse animation is missing: ${JSON.stringify(motion)}`);
+    const loadingFilterGeometry = await zeroMcfPage.locator(".step2-filterbar").evaluate((bar) => {
+      const controls = bar.querySelector(".step2-filter-controls");
+      const controlRows = new Set(Array.from(controls.children).map((control) => Math.round(control.getBoundingClientRect().top)));
+      const controlsStyle = getComputedStyle(controls);
+      return {
+        barWidth: bar.getBoundingClientRect().width,
+        barHeight: bar.getBoundingClientRect().height,
+        controlsWidth: controls.getBoundingClientRect().width,
+        controlsScrollWidth: controls.scrollWidth,
+        controlRows: controlRows.size,
+        flex: controlsStyle.flex,
+        maxWidth: controlsStyle.maxWidth,
+      };
+    });
+    assert(loadingFilterGeometry.barHeight <= 120 && loadingFilterGeometry.controlRows <= 2, `Desktop Step 2 filters collapsed into a tall control column: ${JSON.stringify(loadingFilterGeometry)}`);
     await screenshot(zeroMcfPage, "step2-desktop-curation-loading.png");
     await zeroMcfPage.getByText(/SSOC 25112/).first().waitFor({ timeout: 15_000 });
 
