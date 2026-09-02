@@ -13537,7 +13537,8 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
             <span aria-hidden="true">{mobileFiltersOpen ? "\u25b4" : "\u25be"}</span>
           </button>
         )}
-        <div id="step2-filter-controls" className="step2-filter-controls" hidden={isPhone && !mobileFiltersOpen}>
+        <div id="step2-filter-controls" className="step2-filter-controls" hidden={isPhone && !mobileFiltersOpen}
+          style={isPhone ? undefined : { display: "flex", flex: "0 0 auto", maxWidth: "100%", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <div className="step2-sort" style={{ position: "relative", flex: "none" }}>
             <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
             {openFacet === "sort" && (
