@@ -859,7 +859,7 @@ export default function WorkUniverseLanding({
       data-wu-size-tier={deviceProfile?.sizeTier || "unclassified"}
       data-wu-orientation={deviceProfile?.orientation || "unclassified"}
       data-wu-aspect-tier={deviceProfile?.aspectTier || "unclassified"}
-      className={`wu-root ${isPhone ? "wu-phone" : ""} ${isPortraitTablet ? "wu-tablet-portrait" : ""} ${isPhone && phoneOrientation === "landscape" ? "wu-phone-landscape" : ""} wu-mobilePanel-${mobilePanel} ${(mode === "rolegraph" || mode === "ai-moments") ? "wu-centreFocus" : ""} ${!mapExpanded && mode !== "rolegraph" ? "wu-guided" : ""} ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map" || mode === "governance-ledger") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}
+      className={`wu-root ${isPhone ? "wu-phone" : ""} ${isPortraitTablet ? "wu-tablet-portrait" : ""} ${isPhone && phoneOrientation === "landscape" ? "wu-phone-landscape" : ""} wu-mobilePanel-${mobilePanel} ${(mode === "rolegraph" || mode === "ai-moments") ? "wu-centreFocus" : ""} ${mode === "ai-moments" ? "wu-aiMomentsMode" : ""} ${!mapExpanded && mode !== "rolegraph" ? "wu-guided" : ""} ${(organisationMapOpen || mode === "workflow-map" || mode === "value-stream-map" || mode === "governance-ledger") ? "wu-dedicatedMap" : ""} ${organisationMapOpen ? "wu-organisationMap" : ""}`}
     >
       <style>{`
         .wu-root{box-sizing:border-box;height:var(--wu-available-height,calc(100dvh - 64px));min-height:0;padding:0;overflow:hidden;background:${C.bg};color:${C.ink};font-family:Inter,Arial,sans-serif;line-height:1.35;--bg:${C.bg};--panel:${C.panel};--panel2:${C.panel2};--ink:${C.ink};--muted:${C.muted};--line:${C.line};--line2:${C.line2};--accent:${C.accent};--soft:${C.soft};--shadow:0 1px 3px rgba(16,24,40,.06)}
@@ -932,6 +932,13 @@ export default function WorkUniverseLanding({
         .wu-phone .wu-quickNav{right:14px;bottom:76px}.wu-phone .wu-quickMenu{position:fixed;left:12px;right:12px;bottom:132px;width:auto;max-height:62vh;overflow:auto}.wu-phone .wu-quickFab{width:52px;height:52px}
         .wu-phone .wu-roleGraphView{position:relative;min-height:calc(100svh - 170px)}
         .wu-phone.wu-centreFocus .wu-centrePane,.wu-phone.wu-guided .wu-centrePane{grid-template-rows:auto minmax(0,1fr)}
+        .wu-phone:not(.wu-phone-landscape) .wu-centreHead{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:4px;padding:6px 8px 7px}
+        .wu-phone:not(.wu-phone-landscape) .wu-centreHead>div:first-child{padding:2px 2px 0}
+        .wu-phone:not(.wu-phone-landscape) .wu-centreHead .wu-railTitle{display:block;margin-top:3px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2}
+        .wu-phone:not(.wu-phone-landscape) .wu-centreControls{width:100%;justify-content:space-between}
+        .wu-phone.wu-aiMomentsMode .wu-quickNav{right:12px;bottom:8px}
+        .wu-phone.wu-aiMomentsMode .wu-quickMenu{bottom:68px}
+        .wu-phone.wu-aiMomentsMode .wu-footerBar{padding-right:72px}
         .wu-phone-landscape .wu-appShell{grid-template-rows:44px minmax(0,1fr) 50px}
         .wu-phone-landscape .wu-globalNav{height:44px}
         .wu-phone-landscape .wu-leftIntro{display:none}

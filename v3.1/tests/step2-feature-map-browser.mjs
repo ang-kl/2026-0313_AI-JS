@@ -389,8 +389,33 @@ async function run() {
       "Initial Step 2 card count did not match merged source postings",
     );
 
+    const mobileFilterToggle = page.getByTestId("step2-mobile-filter-toggle");
+    const mobileOverviewToggle = page.getByTestId("step2-mobile-overview-toggle");
+    const mobileIndexToggle = page.getByTestId("step2-mobile-index-toggle");
+    const mobileBadgeKey = page.getByTestId("step2-mobile-badge-key");
+    assert((await mobileFilterToggle.getAttribute("aria-expanded")) === "false", "Phone filters should be collapsed initially");
+    assert((await mobileOverviewToggle.getAttribute("aria-expanded")) === "false", "Phone overview should be collapsed initially");
+    assert((await mobileIndexToggle.getAttribute("aria-expanded")) === "false", "Phone index should be collapsed initially");
+    assert((await mobileBadgeKey.getAttribute("open")) === null, "Phone badge key should be collapsed initially");
+    const firstCardGeometry = await page.getByTestId("step2-posting-card").first().evaluate((card) => ({
+      top: card.getBoundingClientRect().top,
+      viewportHeight: window.innerHeight,
+    }));
+    assert(firstCardGeometry.top < firstCardGeometry.viewportHeight, `Phone compression did not bring evidence into the first viewport: ${JSON.stringify(firstCardGeometry)}`);
+
+    await mobileOverviewToggle.click();
+    await page.getByTestId("step2-curation-overview").waitFor({ state: "visible" });
+    await mobileOverviewToggle.click();
+    await mobileIndexToggle.click();
+    await page.locator("#step2-index-content").waitFor({ state: "visible" });
+    await mobileIndexToggle.click();
+    await mobileBadgeKey.locator("summary").click();
+    assert((await mobileBadgeKey.getAttribute("open")) !== null, "Phone badge key did not expand");
+    await mobileBadgeKey.locator("summary").click();
+
     await screenshot(page, "step2-iphone-portrait.png");
 
+    await mobileFilterToggle.click();
     await page.getByRole("button", { name: "Match", exact: true }).click();
     await page.locator(".step2-facet-menu").getByRole("button", { name: /^exact title\b/i }).click();
     await page.waitForTimeout(250);
@@ -404,6 +429,7 @@ async function run() {
     );
     await screenshot(page, "step2-iphone-filter.png");
 
+    await page.locator(".step2-facet").filter({ hasText: "Match" }).locator(".step2-facet-button").click();
     await page.getByRole("button", { name: /Clear all/i }).click();
     await page.waitForTimeout(250);
     assert(

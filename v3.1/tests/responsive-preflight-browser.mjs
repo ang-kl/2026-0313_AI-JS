@@ -79,6 +79,15 @@ for (const item of matrices) {
       const index = root.querySelector(".step2-index");
       const main = root.querySelector(".step2-main");
       const geometry = (element) => element ? { display: getComputedStyle(element).display, columns: getComputedStyle(element).gridTemplateColumns, x: element.getBoundingClientRect().x, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height } : null;
+      const visibleFilterTargets = [...root.querySelectorAll(".step2-filterbar button, .step2-filterbar input")]
+        .filter((element) => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          return rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+        });
+      const shortTouchTargets = visibleFilterTargets
+        .filter((element) => element.getBoundingClientRect().height < 43.5)
+        .map((element) => ({ tag: element.tagName, className: element.className, height: element.getBoundingClientRect().height }));
       return {
         factor: root.dataset.formFactor,
         tier: root.dataset.sizeTier,
@@ -90,7 +99,8 @@ for (const item of matrices) {
         sourceColumns: countColumns(".step2-source-grid"),
         bodyColumns: countColumns(".step2-body"),
         cardColumns: countColumns(".step2-source .step2-cards"),
-        touchTargets: [...root.querySelectorAll(".step2-filterbar button, .step2-filterbar input")].every((element) => element.getBoundingClientRect().height >= 43.5),
+        touchTargets: shortTouchTargets.length === 0,
+        shortTouchTargets,
         media: { max600: matchMedia("(max-width:600px)").matches, max899: matchMedia("(max-width:899px)").matches, portrait: matchMedia("(orientation:portrait)").matches },
         geometry: { body: geometry(body), source: geometry(sourceGrid), cards: geometry(cardGrid), index: geometry(index), main: geometry(main) },
       };
@@ -100,7 +110,7 @@ for (const item of matrices) {
     if (item.tier) expected.tier = item.tier;
     for (const [key, value] of Object.entries(expected)) if (metrics[key] !== value) throw new Error(`${key}: expected ${value}, received ${metrics[key]}; ${JSON.stringify(metrics)}`);
     if (metrics.documentWidth > metrics.viewportWidth + 1) throw new Error(`horizontal overflow: ${metrics.documentWidth} > ${metrics.viewportWidth}`);
-    if (!metrics.touchTargets) throw new Error("Step 2 filter controls fall below the 44px touch-target contract");
+    if (!metrics.touchTargets) throw new Error(`Step 2 filter controls fall below the 44px touch-target contract: ${JSON.stringify(metrics.shortTouchTargets)}`);
     if (runtimeErrors.length) throw new Error(`runtime errors: ${runtimeErrors.join(" | ")}`);
     await page.screenshot({ path: `test-results/responsive/${item.name}.png`, fullPage: true });
     console.log(`${item.name}: PASS ${JSON.stringify(metrics)}`);

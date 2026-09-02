@@ -13047,6 +13047,9 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
   }, []);
   useEffect(() => { if (prefsReady.current) saveState("prefs", { sort, facets }); }, [sort, facets]);
   const [openFacet, setOpenFacet] = useState(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileOverviewOpen, setMobileOverviewOpen] = useState(false);
+  const [mobileIndexOpen, setMobileIndexOpen] = useState(false);
   const [findText, setFindText] = useState("");
   const [okf, setOkf] = useState(null);
   const [fullAd, setFullAd] = useState(null);
@@ -13273,7 +13276,7 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     const synopsis = step2Synopsis(c.job);
     const skills = Array.isArray(c.job.skills) ? c.job.skills.filter(Boolean).slice(0, 5) : [];
     return (
-      <div key={c.id} ref={(el) => { if (el) cardRefs.current[c.id] = el; }} onClick={() => setFullAd(c)} className={blinkId === c.id ? "card-blink" : undefined} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
+      <div key={c.id} data-testid="step2-posting-card" data-posting-id={c.id} ref={(el) => { if (el) cardRefs.current[c.id] = el; }} onClick={() => setFullAd(c)} className={blinkId === c.id ? "card-blink" : undefined} style={{ cursor: "pointer", background: "#fff", border: "1.5px solid " + (sel ? "#1a56db" : "#e8e5dd"), borderRadius: 11, overflow: "hidden", boxShadow: sel ? "0 6px 18px rgba(26,86,219,.15)" : "0 1px 2px rgba(20,32,46,.05)", transition: "border-color .15s, box-shadow .15s", display: "flex", flexDirection: "column" }}>
         {/* FOLIO v2 (Human Lead, 07-07 '26): company leads row 1; row 2 is a folder-TAB
             strip - [match tier] and [+N ads] are separate tabs, each opening its own panel
             (tier -> what the match basis means; ads -> the employer's other jobs here). */}
@@ -13402,6 +13405,12 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
     );
   };
 
+  const badgeKey = (
+    <>
+      <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&amp;R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
+    </>
+  );
+
   return (
     <div className="step2-bleed step2-shell" data-testid="step2-responsive-surface" style={{ position: "relative", padding: shellPadding, boxSizing: "border-box" }}>
       <style>{`
@@ -13431,18 +13440,34 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         </div>
       </div>
 
-      <div ref={barRef} className="step2-filterbar" style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
+      <div ref={barRef} className="step2-filterbar" data-mobile-open={mobileFiltersOpen ? "true" : "false"} style={{ position: "sticky", top: 54, zIndex: 40, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "10px 12px", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 12, marginBottom: 14, boxShadow: "0 4px 14px rgba(20,32,46,.06)" }}>
         <input value={findText} onChange={(e) => setFindText(e.target.value)} placeholder="Search postings..." aria-label="Search postings" title="Search postings by title, employer or keyword" style={{ flex: "1 1 200px", minWidth: 140, boxSizing: "border-box", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: "#16202e", border: "1px solid #d9d6cd", borderRadius: 8, padding: "8px 11px", outline: "none", background: "#fff", minHeight: 44 }} />
-        <div className="step2-sort" style={{ position: "relative", flex: "none" }}>
-          <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
-          {openFacet === "sort" && (
-            <div className="step2-sort-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
-              {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
-            </div>
-          )}
+        {isPhone && (
+          <button
+            type="button"
+            className="step2-mobile-filter-toggle"
+            data-testid="step2-mobile-filter-toggle"
+            aria-expanded={mobileFiltersOpen}
+            aria-controls="step2-filter-controls"
+            onClick={() => { setMobileFiltersOpen((open) => !open); setOpenFacet(null); }}
+            style={{ minHeight: 44, border: "1px solid #cdd9ff", borderRadius: 8, background: "#eef2ff", color: "#142a8e", padding: "0 11px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 9, fontSize: "0.75rem", fontWeight: 700, cursor: "pointer" }}
+          >
+            Filters{activeFacetCount ? ` (${activeFacetCount})` : ""}
+            <span aria-hidden="true">{mobileFiltersOpen ? "\u25b4" : "\u25be"}</span>
+          </button>
+        )}
+        <div id="step2-filter-controls" className="step2-filter-controls" hidden={isPhone && !mobileFiltersOpen}>
+          <div className="step2-sort" style={{ position: "relative", flex: "none" }}>
+            <button type="button" onClick={() => setOpenFacet(openFacet === "sort" ? null : "sort")} aria-expanded={openFacet === "sort"} title="Change sort order" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 12px", cursor: "pointer", background: "#fff", color: "#3a4456", border: "1px solid #e2e0d8", borderRadius: 8, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", fontWeight: 600, whiteSpace: "nowrap" }}>Sort: {sortLabel} <span aria-hidden="true" style={{ fontSize: 9, opacity: 0.7 }}>&#9660;</span></button>
+            {openFacet === "sort" && (
+              <div className="step2-sort-menu" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 40, minWidth: 180, background: "#fff", border: "1px solid #e2e0d8", borderRadius: 10, boxShadow: "0 12px 30px rgba(16,24,40,.16)", padding: 6 }}>
+                {SORT_OPTS.map(([k, lbl]) => (<button key={k} type="button" onClick={() => { setSort(k); setOpenFacet(null); }} style={{ display: "block", width: "100%", textAlign: "left", minHeight: 34, padding: "6px 9px", cursor: "pointer", background: sort === k ? "#eef2ff" : "transparent", border: "none", borderRadius: 7, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.8125rem", color: sort === k ? "#142a8e" : "#3a4456", fontWeight: sort === k ? 700 : 400 }}>{lbl}</button>))}
+              </div>
+            )}
+          </div>
+          {STEP2_FACETS.map((f) => (<Step2Facet key={f.key} label={f.label} options={facetOptions[f.key]} selected={facets[f.key]} onToggle={(v) => toggleFacet(f.key, v)} open={openFacet === f.key} onOpen={() => setOpenFacet(openFacet === f.key ? null : f.key)} />))}
+          {hasFilters && <button className="step2-clear" type="button" onClick={clearFilters} title="Clear all Step 2 filters" style={{ flex: "none", minHeight: 44, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
         </div>
-        {STEP2_FACETS.map((f) => (<Step2Facet key={f.key} label={f.label} options={facetOptions[f.key]} selected={facets[f.key]} onToggle={(v) => toggleFacet(f.key, v)} open={openFacet === f.key} onOpen={() => setOpenFacet(openFacet === f.key ? null : f.key)} />))}
-        {hasFilters && <button type="button" onClick={clearFilters} title="Clear all Step 2 filters" style={{ flex: "none", minHeight: 44, padding: "0 11px", cursor: "pointer", background: "none", border: "none", color: "#1a56db", fontFamily: "'Spline Sans',sans-serif", fontSize: "0.75rem", fontWeight: 600 }}>Clear all</button>}
       </div>
 
       {/* Step 1 -> Step 2 progress banner. Real, deterministic stages:
@@ -13537,7 +13562,21 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
         const R = 27, CIRC = 2 * Math.PI * R;
         let accFrac = 0;
         return (
-          <div className="step2-overview" data-testid="step2-curation-overview" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 10, padding: "9px 12px", marginBottom: 10 }}>
+          <>
+          {isPhone && (
+            <button
+              type="button"
+              className="step2-mobile-disclosure"
+              data-testid="step2-mobile-overview-toggle"
+              aria-expanded={mobileOverviewOpen}
+              aria-controls="step2-curation-overview"
+              onClick={() => setMobileOverviewOpen((open) => !open)}
+            >
+              <span><strong>Curation overview</strong> {DOT} {total} postings</span>
+              <span aria-hidden="true">{mobileOverviewOpen ? "\u25b4" : "\u25be"}</span>
+            </button>
+          )}
+          {(!isPhone || mobileOverviewOpen) && <div id="step2-curation-overview" className="step2-overview" data-testid="step2-curation-overview" style={{ background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 10, padding: "9px 12px", marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
               <p style={{ margin: 0, fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.5625rem", letterSpacing: ".14em", color: "#6b6357", fontWeight: 700 }}>CURATION OVERVIEW {DOT} {total} POSTINGS</p>
               <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#6b6357" }}>computed from SSOC classifications</span>
@@ -13594,13 +13633,28 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 )}
               </div>
             </div>
-          </div>
+          </div>}
+          </>
         );
       })()}
 
       {!state.loading && sorted.length > 0 && (
         <div className="step2-body" style={{ display: "grid", gridTemplateColumns: bodyColumns, gap: 16, alignItems: "flex-start", minWidth: 0 }}>
-          <aside style={{ width: stackedBody ? "auto" : indexWidth, position: stackedBody ? "static" : "sticky", top: stackedBody ? "auto" : 120, alignSelf: stackedBody ? "stretch" : "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: 14, padding: "15px 14px", display: "flex", flexDirection: "column", gap: 14, maxHeight: stackedBody ? 280 : "calc(100vh - 134px)", overflowY: "auto", boxSizing: "border-box" }} className="wis-scroll step2-index">
+          <aside style={{ width: stackedBody ? "auto" : indexWidth, position: stackedBody ? "static" : "sticky", top: stackedBody ? "auto" : 120, alignSelf: stackedBody ? "stretch" : "flex-start", background: "#fbfaf8", border: "1px solid #e4e2da", borderRadius: isPhone ? 9 : 14, padding: isPhone ? 0 : "15px 14px", display: "flex", flexDirection: "column", gap: isPhone ? 0 : 14, maxHeight: isPhone && !mobileIndexOpen ? 48 : stackedBody ? 280 : "calc(100vh - 134px)", overflowY: "auto", boxSizing: "border-box" }} className="wis-scroll step2-index">
+            {isPhone && (
+              <button
+                type="button"
+                className="step2-mobile-disclosure step2-mobile-index-toggle"
+                data-testid="step2-mobile-index-toggle"
+                aria-expanded={mobileIndexOpen}
+                aria-controls="step2-index-content"
+                onClick={() => setMobileIndexOpen((open) => !open)}
+              >
+                <span><strong>Posting index</strong> {DOT} {sorted.length} results</span>
+                <span aria-hidden="true">{mobileIndexOpen ? "\u25b4" : "\u25be"}</span>
+              </button>
+            )}
+            <div id="step2-index-content" className="step2-index-content" hidden={isPhone && !mobileIndexOpen}>
             <div>
               <div style={{ ...KICK, fontSize: "0.625rem", letterSpacing: ".12em", marginBottom: 3 }}>INDEX {DOT} {sorted.length} OF {baseJobs.length}</div>
               {/* UI doctrine: state the ranking rule - the rail is a curated ranking, not raw order. */}
@@ -13647,13 +13701,19 @@ function PostingEvidencePicker({ query, freshGrad, onAnalysePosting, onNewSearch
                 <button onClick={() => setOkf({ kind: "index" })} style={{ flex: 1, fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 500, cursor: "pointer", minHeight: 34, color: "#5b4bbd", background: "#f7f5fd", border: "1px solid #ddd5f6", borderRadius: 7, padding: 7 }}>Open index</button>
               </div>
             </div>
+            </div>
           </aside>
 
           <div className="step2-main" style={{ flex: 1, minWidth: 0 }}>
             {/* Badge key: the card chips must explain themselves without hover (touch + honesty). */}
-            <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>
-              <span style={{ fontWeight: 700, color: "#52607a" }}>Badge key</span> {DOT} match basis: <span style={{ fontWeight: 600 }}>exact title</span> (same title) {DOT} <span style={{ fontWeight: 600 }}>title variant</span> (close wording) {DOT} <span style={{ fontWeight: 600 }}>nuance</span> (specialised form) {DOT} <span style={{ fontWeight: 600 }}>R&R match</span> (matched in the duties) {DOT} <span style={{ fontWeight: 600 }}>related</span> {DOT} <span style={{ fontWeight: 700, color: "#7a4b0b" }}>+N from employer</span> = more live postings by the same employer in this result.
-            </p>
+            {isPhone ? (
+              <details className="step2-mobile-badge-key" data-testid="step2-mobile-badge-key">
+                <summary>Badge key <span aria-hidden="true">&#9662;</span></summary>
+                <p>{badgeKey}</p>
+              </details>
+            ) : (
+              <p style={{ margin: "0 0 10px", fontSize: "0.6875rem", color: "#6b6357", lineHeight: 1.5 }}>{badgeKey}</p>
+            )}
             <div className="step2-source-grid" style={{ display: "grid", gridTemplateColumns: (mcfCards.length > 0 && csgCards.length > 0) ? sourceColumns : "minmax(0, 1fr)", gap: 12, alignItems: "flex-start", minWidth: 0 }}>
             {sourcePanel("MyCareersFuture", mcfCards, { dot: "#2f7d4f", ink: "#2f7d4f", bg: "#eef7f0", border: "#cce6d4" }, mcfGridRef)}
             {sourcePanel("careers.gov.sg", csgCards, { dot: "#1d4ed8", ink: "#1d4ed8", bg: "#eaf0ff", border: "#c7d6ff" }, csgGridRef)}
@@ -18218,6 +18278,19 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       .step2-cards { display:grid; grid-template-columns:1fr; gap:14px; align-content:start; }
       @media (min-width:640px) and (orientation:portrait) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       @media (min-width:900px) { .step2-cards { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+      .step2-filter-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+      .step2-filter-controls[hidden] { display:none !important; }
+      .step2-mobile-filter-toggle { min-height:44px; border:1px solid #cdd9ff; border-radius:8px; background:#eef2ff; color:#142a8e; padding:0 11px; display:flex; align-items:center; justify-content:space-between; gap:9px; font-size:.75rem; font-weight:700; cursor:pointer; }
+      .step2-mobile-disclosure { width:100%; min-height:48px; margin:0 0 10px; border:1px solid #e4e2da; border-radius:9px; background:#fbfaf8; color:#16202e; padding:7px 11px; display:flex; align-items:center; justify-content:space-between; gap:12px; text-align:left; cursor:pointer; }
+      .step2-mobile-disclosure strong { font-size:.75rem; }
+      .step2-mobile-index-toggle { margin:0; border:0; border-radius:8px; flex:0 0 auto; }
+      .step2-index-content { display:flex; flex-direction:column; gap:14px; min-width:0; }
+      .step2-index-content[hidden] { display:none !important; }
+      [data-form-factor="phone"] .step2-index-content { padding:12px; }
+      .step2-mobile-badge-key { margin:0 0 10px; border:1px solid #e4e2da; border-radius:9px; background:#fbfaf8; color:#52607a; }
+      .step2-mobile-badge-key summary { min-height:44px; padding:0 11px; display:flex; align-items:center; justify-content:space-between; list-style:none; cursor:pointer; font-size:.75rem; font-weight:700; }
+      .step2-mobile-badge-key summary::-webkit-details-marker { display:none; }
+      .step2-mobile-badge-key p { margin:0; padding:0 11px 11px; color:#6b6357; font-size:.6875rem; line-height:1.5; }
       .step2-source-grid { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); }
       .step2-body { display:grid !important; grid-template-columns:276px minmax(0,1fr); }
       /* Device preflight: the v2 template supplies mobile-first sizing and 600/768/900
@@ -18228,10 +18301,12 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       [data-size-tier="phone-compact"] .step2-shell { padding-inline: 8px !important; }
       [data-form-factor="phone"] .step2-filterbar {
         top: 62px !important; display:grid !important;
-        grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch !important;
+        grid-template-columns:minmax(0,1fr) auto; align-items:stretch !important;
         padding:8px !important; gap:7px !important;
       }
-      [data-form-factor="phone"] .step2-filterbar > input { grid-column:1 / -1; width:100%; min-width:0 !important; }
+      [data-form-factor="phone"] .step2-filterbar > input { grid-column:1; width:100%; min-width:0 !important; }
+      [data-form-factor="phone"] .step2-filter-controls { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+      [data-form-factor="phone"] .step2-clear { grid-column:1 / -1; }
       [data-form-factor="phone"] .step2-sort,
       [data-form-factor="phone"] .step2-facet { width:100%; min-width:0; }
       [data-form-factor="phone"] .step2-sort > button,
@@ -18242,7 +18317,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
         width:auto !important; min-width:0 !important; max-width:none !important;
         max-height:calc(100dvh - 150px) !important; overflow-y:auto !important;
       }
-      [data-size-tier="phone-compact"] .step2-filterbar { grid-template-columns:1fr; }
+      [data-size-tier="phone-compact"] .step2-filterbar { grid-template-columns:minmax(0,1fr) auto; }
       [data-size-tier="phone-compact"] .step2-filterbar > input { grid-column:1; }
       [data-form-factor="phone"] .step2-overview > div:first-child { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
       [data-form-factor="phone"] .step2-overview-grid { grid-template-columns:1fr !important; gap:14px !important; }
@@ -18282,8 +18357,10 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
       @media (max-width:600px) {
         .step2-shell { padding:0 12px 40px !important; }
-        .step2-filterbar { top:62px !important; display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch !important; padding:8px !important; gap:7px !important; }
-        .step2-filterbar > input { grid-column:1 / -1; width:100%; min-width:0 !important; }
+        .step2-filterbar { top:62px !important; display:grid !important; grid-template-columns:minmax(0,1fr) auto; align-items:stretch !important; padding:8px !important; gap:7px !important; }
+        .step2-filterbar > input { grid-column:1; width:100%; min-width:0 !important; }
+        .step2-filter-controls { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+        .step2-clear { grid-column:1 / -1; }
         .step2-sort, .step2-facet { width:100%; min-width:0; }
         .step2-sort > button, .step2-facet-button { width:100%; min-width:0; justify-content:space-between; overflow:hidden; text-overflow:ellipsis; }
         .step2-overview > div:first-child { align-items:flex-start !important; flex-direction:column; gap:4px !important; }
@@ -18291,8 +18368,9 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
       }
       @media (max-width:360px) {
         .step2-shell { padding-inline:8px !important; }
-        .step2-filterbar { grid-template-columns:1fr !important; }
+        .step2-filterbar { grid-template-columns:minmax(0,1fr) auto !important; }
         .step2-filterbar > input { grid-column:1 !important; }
+        .step2-mobile-filter-toggle { padding-inline:9px; }
       }
       /* CSG two-column browse: MyCareersFuture left, careers.gov.sg right; stacks below 1000px */
       .csg-cols { display:grid; grid-template-columns:1fr; gap:20px; align-items:start; }
