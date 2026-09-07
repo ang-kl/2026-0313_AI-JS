@@ -72,6 +72,7 @@ const provenanceKeys = [
   "implementationCommit",
   "mergeCommit",
   "deploymentStatus",
+  "automatedRuntimeVerification",
   "physicalRuntimeVerification",
 ];
 
@@ -349,7 +350,7 @@ function assertProtectedPaths() {
   if (process.env.FEATURE_MAP_ENFORCE_DOCS_ONLY !== "1") return;
   const allowed = [
     /^v3\.1\/doc\//,
-    /^v3\.1\/tests\/(feature-map-contract|browser-gate)\.mjs$/,
+    /^v3\.1\/tests\/(feature-map-contract|blueprint-completion-contract|browser-gate)\.mjs$/,
     /^\.github\/workflows\/v31-browser-gate\.yml$/,
   ];
   const violations = changed.filter((file) => !allowed.some((pattern) => pattern.test(file)));

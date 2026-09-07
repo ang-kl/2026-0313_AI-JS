@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Detailed onboarding and delivery guide for completing the 30-requirement V3.1 blueprint.">
+  <meta name="guide-source-sha256" content="8f8a57da9a55ef7edf1466748698ffe8631ab0d7769b68b4d1e4457e010f88f7">
+  <title>V3.1 Blueprint Completion: Onboarding and Delivery Guide</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #596477;
+      --navy: #123b6d;
+      --blue: #1769aa;
+      --teal: #087a78;
+      --amber: #a95e00;
+      --paper: #ffffff;
+      --wash: #f3f6f8;
+      --line: #cbd5df;
+      --soft-blue: #eaf4fc;
+      --soft-teal: #e8f6f3;
+      --soft-amber: #fff5df;
+      --code: #eef1f4;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body {
+      margin: 0;
+      background: var(--wash);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.62;
+      letter-spacing: 0;
+    }
+    a { color: #075f9f; text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    a:hover { color: #003f70; }
+    a:focus-visible, button:focus-visible, [tabindex="0"]:focus-visible { outline: 3px solid #d17b00; outline-offset: 3px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 64px;
+      padding: 10px max(20px, calc((100vw - 1180px) / 2));
+      border-bottom: 3px solid #e0a11a;
+      background: #123b6d;
+      color: #fff;
+    }
+    .topbar strong { display: block; font-size: 16px; line-height: 1.25; }
+    .topbar span { display: block; margin-top: 2px; color: #d8e9f7; font-size: 12px; }
+    .topbar nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .topbar a, .topbar button {
+      min-height: 42px;
+      padding: 9px 12px;
+      border: 1px solid #9bc2e0;
+      border-radius: 6px;
+      background: transparent;
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .topbar a:hover, .topbar button:hover { background: #24598c; color: #fff; }
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 72px;
+    }
+    h1, h2, h3, h4 { color: var(--ink); letter-spacing: 0; overflow-wrap: anywhere; }
+    h1 { max-width: 850px; margin: 0 0 16px; color: var(--navy); font-size: 38px; line-height: 1.12; }
+    h2 { margin: 54px 0 16px; padding-top: 10px; border-top: 2px solid var(--navy); font-size: 27px; line-height: 1.2; }
+    h3 { margin: 34px 0 10px; color: #075e63; font-size: 20px; line-height: 1.25; }
+    h4 { margin: 26px 0 8px; font-size: 17px; }
+    p, li { max-width: 90ch; }
+    p { margin: 0 0 14px; }
+    ul, ol { padding-left: 24px; }
+    li { margin: 5px 0; }
+    blockquote {
+      margin: 24px 0;
+      padding: 15px 18px;
+      border-left: 5px solid var(--teal);
+      background: var(--soft-teal);
+      color: #19484a;
+    }
+    blockquote p { margin: 0; }
+    code {
+      border-radius: 4px;
+      background: var(--code);
+      color: #243a59;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .9em;
+      overflow-wrap: anywhere;
+    }
+    :not(pre) > code { padding: 2px 5px; }
+    pre {
+      max-width: 100%;
+      margin: 16px 0 22px;
+      padding: 16px;
+      overflow: auto;
+      border: 1px solid #b8c3cf;
+      border-left: 5px solid var(--blue);
+      border-radius: 6px;
+      background: #f8fafb;
+      line-height: 1.5;
+    }
+    pre code { padding: 0; background: transparent; }
+    .table-scroll {
+      max-width: 100%;
+      margin: 18px 0 30px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.45; }
+    th, td { min-width: 110px; padding: 10px 12px; border-right: 1px solid #dbe2e8; border-bottom: 1px solid #dbe2e8; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+    th { position: sticky; top: 0; background: #e5eef5; color: #173b5f; font-size: 12px; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td:last-child, th:last-child { border-right: 0; }
+    tbody tr:nth-child(even) { background: #f8fafb; }
+    tbody tr:hover { background: var(--soft-amber); }
+    hr { margin: 46px 0; border: 0; border-top: 1px solid var(--line); }
+    main > p:first-of-type { color: var(--muted); }
+    #contents + ol {
+      columns: 2;
+      column-gap: 36px;
+      margin: 0;
+      padding: 18px 18px 18px 42px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--amber);
+      border-radius: 6px;
+      background: var(--paper);
+    }
+    #contents + ol li { break-inside: avoid; }
+    footer {
+      padding: 20px max(20px, calc((100vw - 1180px) / 2));
+      border-top: 1px solid var(--line);
+      background: #e7ecef;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 720px) {
+      html { scroll-padding-top: 130px; }
+      .topbar { align-items: flex-start; flex-direction: column; padding: 10px 16px; }
+      .topbar nav { justify-content: flex-start; }
+      main { width: min(100% - 24px, 1180px); padding-top: 28px; }
+      h1 { font-size: 30px; }
+      h2 { margin-top: 42px; font-size: 23px; }
+      #contents + ol { columns: 1; }
+      table { font-size: 13px; }
+      th, td { min-width: 130px; padding: 9px 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      .topbar { position: static; color: #000; border-bottom: 2px solid #000; background: #fff; }
+      .topbar span, .topbar nav { display: none; }
+      body { background: #fff; font-size: 10pt; }
+      main { width: 100%; padding: 18px 0; }
+      h1 { font-size: 24pt; }
+      h2 { break-after: avoid; margin-top: 24px; }
+      .table-scroll { overflow: visible; break-inside: avoid; }
+      table { font-size: 8pt; }
+      a { color: #000; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <strong>V3.1 Blueprint Completion</strong>
+      <span>Onboarding and delivery guide | Version 1.0.0 | 2026-09-07</span>
+    </div>
+    <nav aria-label="Document actions">
+      <a href="V3-Agent-Readable-Feature-Map-Index.html">Feature Map</a>
+      <a href="V3-Blueprint-Completion-Onboarding-Guide.md">Markdown</a>
+      <button type="button" onclick="window.print()">Print</button>
+    </nav>
+  </header>
+  <main id="main-content">
+<h1 id="section-v3-1-blueprint-completion-onboarding-and-delivery-guide">V3.1 Blueprint Completion: Onboarding and Delivery Guide</h1>
+<p><strong>Document ID:</strong> <code>GUIDE-V3-BLUEPRINT-COMPLETION-001</code><br><strong>Version:</strong> 1.0.1<br><strong>Prepared:</strong> 2026-09-08 (SGT)<br><strong>Repository:</strong> <a href="https://github.com/ang-kl/2026-0313_AI-JS" target="_blank" rel="noreferrer"><code>ang-kl/2026-0313_AI-JS</code></a><br><strong>Product surface:</strong> <a href="https://v3.takearoundabout.com" target="_blank" rel="noreferrer"><code>https://v3.takearoundabout.com</code></a><br><strong>Canonical baseline:</strong> <code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code> (<code>origin/main</code>)<br><strong>Current main observed:</strong> <code>ffc9dea8c6aaa5945fdd06778571e8cca8923097</code><br><strong>Completion programme:</strong> <code>V3-BLUEPRINT-COMPLETION-REGISTER-001</code><br><strong>Register snapshot SHA-256:</strong> <code>9370c8dc02cd9623c3d6223b7d81a34086ee6c28631cf7374fb371fa73e5e2a8</code><br><strong>Audience:</strong> a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.</p>
+<blockquote>
+<p>This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains <a href="./V3-Blueprint-Completion-Instructions.md">V3-Blueprint-Completion-Instructions.md</a> and the machine-readable <a href="./v3-blueprint-completion-register.json">completion register</a>.</p>
+</blockquote>
+<h2 id="section-contents">Contents</h2>
+<ol>
+<li><a href="#section-1-executive-summary">Executive summary</a></li>
+<li><a href="#section-2-what-this-product-is">What this product is</a></li>
+<li><a href="#section-3-the-end-to-end-journey">The end-to-end journey</a></li>
+<li><a href="#section-4-goals-objectives-and-non-goals">Goals, objectives, and non-goals</a></li>
+<li><a href="#section-5-how-to-understand-completion">How to understand completion</a></li>
+<li><a href="#section-6-what-has-been-completed">What has been completed</a></li>
+<li><a href="#section-7-what-remains-incomplete">What remains incomplete</a></li>
+<li><a href="#section-8-the-30-canonical-requirements">The 30 canonical requirements</a></li>
+<li><a href="#section-9-target-evidence-architecture">Target evidence architecture</a></li>
+<li><a href="#section-10-candidate-proof-and-review-workflow">Candidate proof and review workflow</a></li>
+<li><a href="#section-11-ai-and-prompt-engineering-contract">AI and prompt engineering contract</a></li>
+<li><a href="#section-12-ui-accessibility-and-responsive-contract">UI, accessibility, and responsive contract</a></li>
+<li><a href="#section-13-failure-states-and-recovery">Failure states and recovery</a></li>
+<li><a href="#section-14-testing-and-evaluation">Testing and evaluation</a></li>
+<li><a href="#section-15-provenance-and-release-evidence">Provenance and release evidence</a></li>
+<li><a href="#section-16-agent-operating-model">Agent operating model</a></li>
+<li><a href="#section-17-recommended-delivery-sequence">Recommended delivery sequence</a></li>
+<li><a href="#section-18-new-contributor-start-procedure">New contributor start procedure</a></li>
+<li><a href="#section-19-definition-of-done">Definition of done</a></li>
+<li><a href="#section-20-known-approval-gate-and-immediate-next-action">Known approval gate and immediate next action</a></li>
+<li><a href="#section-21-reference-index">Reference index</a></li>
+<li><a href="#section-22-glossary">Glossary</a></li>
+</ol>
+<h2 id="section-1-executive-summary">1. Executive summary</h2>
+<p>V3.1 is a role and work-intelligence application. It starts from a role, organisation, or job posting; preserves the source evidence; classifies the occupation and skills; exposes a five-graph Work Universe; maps work across human, agent, and organisational boundaries; supports an auditable review workspace; and produces candidate-facing outputs only when supporting evidence exists.</p>
+<p>The product is not an ATS keyword generator and not a generic career-advice chatbot. Its purpose is to help a person answer four practical questions:</p>
+<ol>
+<li>What does this role actually require?</li>
+<li>What should the candidate prove, ask, prepare, or avoid?</li>
+<li>What may AI assist with, and what remains human-owned?</li>
+<li>Which claims are supported, uncertain, conflicting, stale, or unavailable?</li>
+</ol>
+<p>The present repository contains a strong working foundation: Step 1a role and organisation entry, Step 2 posting-evidence curation, the Step 3 Work Universe, five canonical graphs, three signals per graph, the Business Cube, specialised organisation views, Review Studio, Role Graph return navigation, governance views, and Clean and Full Review output. These surfaces have feature maps and executable browser or contract evidence.</p>
+<p>However, the full blueprint is <strong>not complete</strong>. The completion programme intentionally starts from a stricter definition than &quot;the screen exists.&quot; A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:</p>
+<ul>
+<li><code>1</code> requirement <code>IMPLEMENTED_UNVERIFIED</code>: <code>BLP-001</code>.</li>
+<li><code>29</code> requirements <code>NOT_STARTED</code>: <code>BLP-002</code> through <code>BLP-030</code>.</li>
+<li><code>0</code> requirements approved as <code>COMPLETE</code>.</li>
+</ul>
+<p>This does not erase completed product work. It means the existing work must be reconciled against the new canonical contracts and evidence gates before it can satisfy a <code>BLP-*</code> completion claim.</p>
+<p>The immediate next action is for the Blueprint Supervisor to review PR #486 and its exact merge commit, then approve <code>BLP-001</code> as <code>COMPLETE</code> only if the evidence satisfies the register. Implementation of the shared evidence contracts in <code>BLP-002</code> may begin only after that approval.</p>
+<h2 id="section-2-what-this-product-is">2. What this product is</h2>
+<h3 id="section-2-1-core-thesis">2.1 Core thesis</h3>
+<p>The product treats a job advertisement as evidence about a work system, not merely as a vacancy. A posting may disclose duties, capability demand, process friction, governance needs, role boundaries, and organisational signals. Those signals must remain traceable to the text or structured source that produced them.</p>
+<p>The blueprint describes the posting as the manuscript, the analysis engine as the editorial room, specialist agents as reviewers, and the human user as editor-in-chief. The software may organise, classify, compare, and propose; it must not silently make human review decisions or invent missing evidence.</p>
+<h3 id="section-2-2-primary-users">2.2 Primary users</h3>
+<ul>
+<li>Candidate or career switcher preparing for a screen or interview.</li>
+<li>Worker assessing role change, skills, and AI exposure.</li>
+<li>Hiring manager or recruiter examining role coherence.</li>
+<li>Organisation designer or process-improvement practitioner examining work design.</li>
+<li>Policy or workforce actor examining occupation and labour-market signals.</li>
+</ul>
+<h3 id="section-2-3-product-truth-model">2.3 Product truth model</h3>
+<p>Every material value must identify one of these origins:</p>
+<ul>
+<li><strong>Source-verbatim:</strong> text or data copied from an identified posting, taxonomy, candidate source, or organisation record.</li>
+<li><strong>Deterministic:</strong> a repeatable calculation, classification, crosswalk, count, state transition, or rule result.</li>
+<li><strong>AI-assisted:</strong> a model proposal or interpretation that remains subordinate to schema, evidence, and policy checks.</li>
+<li><strong>User-authored:</strong> a statement entered or confirmed by the human user.</li>
+<li><strong>Withheld:</strong> a value the product refuses to infer because supporting evidence is absent, rejected, conflicting, or stale.</li>
+</ul>
+<h2 id="section-3-the-end-to-end-journey">3. The end-to-end journey</h2>
+<h3 id="section-3-1-step-1a-role-or-organisation-entry">3.1 Step 1a: role or organisation entry</h3>
+<p>Step 1a lets the user search for a role or organisation and inspect available opportunities. The organisation path can load MyCareersFuture opportunities, filter and sort them, show source-supplied details, and enter organisation AI Moments. The role path carries the selected role or posting into the next stage.</p>
+<p>Canonical map: <a href="./V3-Step1a-Agent-Readable-Feature-Map.html"><code>MAP-V3-STEP1A-001</code></a><br>Machine-readable manifest: <a href="./v3-step1a-feature-map.manifest.json"><code>v3-step1a-feature-map.manifest.json</code></a></p>
+<h3 id="section-3-2-step-2-posting-evidence-picker">3.2 Step 2: posting evidence picker</h3>
+<p>Step 2 retrieves postings from MyCareersFuture and Careers@Gov, keeps source results distinct, classifies titles into SSOC families, exposes filters and curation statistics, and lets the user select one evidence-bearing posting. A source may legitimately return zero results; this must not erase useful rows from the other source.</p>
+<p>The Step 2 handoff produces both a reduced display object for Step 3 and a separate source-bearing analysis request. It must not treat an inferred SSOC suggestion as if it were source evidence, and it must not lose source identity, posting identity, employer, or duty text.</p>
+<p>Canonical map: <a href="./V3-Step2-Agent-Readable-Feature-Map.html"><code>MAP-V3-STEP2-001</code></a><br>Machine-readable manifest: <a href="./v3-step2-feature-map.manifest.json"><code>v3-step2-feature-map.manifest.json</code></a></p>
+<h3 id="section-3-3-step-3-work-universe-and-review">3.3 Step 3: Work Universe and review</h3>
+<p>Step 3 begins with a Work Universe rather than a generic network diagram. It presents five parallel views of the role and exactly three first-order signals within each view:</p>
+<ol>
+<li><strong>Labour Graph:</strong> duties, work units, skills, and occupation relationships.</li>
+<li><strong>Organisation Work Graph:</strong> capabilities, authority, organisation coverage, and operating boundaries.</li>
+<li><strong>Intelligence Graph:</strong> information objects, evidence, and agent-actionable knowledge.</li>
+<li><strong>Human-Agent Graph:</strong> human-owned, hybrid, and agent-assisted work boundaries.</li>
+<li><strong>Transition Graph:</strong> change, formation, and evidence-bound development needs.</li>
+</ol>
+<p>The organisation AI Moments view uses a 3 x 3 x 3 Business Cube across function, work, and decision dimensions. All 27 intersections remain addressable. Unsupported cells remain visible as withheld instead of disappearing. Selection, drag, keyboard rotation, explode state, the selection strip, and the inspector use one state model.</p>
+<p>The advanced Review Studio preserves the posting manuscript, source spans, deterministic analysis, reviewer comments, accepted or rejected suggestions, governance records, Role Graph return navigation, and printable Clean or Full Review packages.</p>
+<p>Canonical map: <a href="./V3-Step3-Agent-Readable-Feature-Map.html"><code>MAP-V3-STEP3-001</code></a><br>Machine-readable manifest: <a href="./v3-step3-feature-map.manifest.json"><code>v3-step3-feature-map.manifest.json</code></a></p>
+<h3 id="section-3-4-master-map">3.4 Master map</h3>
+<p>The three stages and their handoff contracts are linked by the <a href="./V3-Agent-Readable-Feature-Map-Index.html">V3 Agent-Readable Feature Map Index</a> and its <a href="./v3-feature-map-index.json">JSON index</a>.</p>
+<h2 id="section-4-goals-objectives-and-non-goals">4. Goals, objectives, and non-goals</h2>
+<h3 id="section-4-1-goal">4.1 Goal</h3>
+<p>Complete the V3 blueprint as a reviewable, evidence-bound work-intelligence system in which every consequential claim can be traced to an immutable source, deterministic method, explicit user decision, or clearly labelled AI proposal.</p>
+<h3 id="section-4-2-objectives">4.2 Objectives</h3>
+<ol>
+<li>Preserve stable evidence identity from source ingestion through review, visualisation, candidate output, and return navigation.</li>
+<li>Keep posting evidence, candidate evidence, organisation evidence, deterministic computation, and AI interpretation structurally distinct.</li>
+<li>Build a candidate-proof ledger that records exact excerpts and controls where accepted proof may be used.</li>
+<li>Make review actions reversible and auditable without mutating source text.</li>
+<li>Produce resumes and cover letters only from accepted, current evidence, with claim-level traceability.</li>
+<li>Prevent export while unsupported, conflicting, or stale claims remain unresolved.</li>
+<li>Make the Business Cube and every specialised map useful with positive supplied-data tests, explicit withholding, selection feedback, and accessible alternatives.</li>
+<li>Verify desktop, phone, keyboard, focus, error, empty, withheld, and stale behaviour.</li>
+<li>Separate implementation, merge, deployment, automated-runtime, and physical-runtime provenance.</li>
+<li>Publish an immutable final release attestation only after all applicable gates pass against the exact deployed commit.</li>
+</ol>
+<h3 id="section-4-3-non-goals">4.3 Non-goals</h3>
+<ul>
+<li>Do not redesign Step 1 or existing Step 2 behaviour while completing this programme.</li>
+<li>Do not modify <code>v3/</code> or Railway configuration unless the user explicitly authorises a separate change.</li>
+<li>Do not optimise for ATS keyword stuffing or promise hiring outcomes.</li>
+<li>Do not infer candidate credentials, organisation hierarchy, process sequence, maturity, ownership, capability, metrics, dates, or outcomes.</li>
+<li>Do not make an LLM responsible for deterministic classification, review decisions, state transitions, governance controls, or export eligibility.</li>
+<li>Do not count a source file, hidden component, label, mock, or placeholder as a completed user-facing feature.</li>
+<li>Do not treat automated mobile emulation as physical-device evidence.</li>
+</ul>
+<h2 id="section-5-how-to-understand-completion">5. How to understand completion</h2>
+<h3 id="section-5-1-three-separate-ledgers">5.1 Three separate ledgers</h3>
+<p>New contributors must not combine these ledgers:</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Ledger</th>
+<th>Question answered</th>
+<th>Vocabulary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Product cross-reference</td>
+<td>What useful surface exists today?</td>
+<td><code>BUILT</code>, <code>WIRED</code>, <code>PARTIAL</code>, <code>PARKED</code>, <code>WITHHELD</code></td>
+</tr>
+<tr>
+<td>Feature maps</td>
+<td>What current behaviour, component, state, transition, payload, invariant, and evidence is documented?</td>
+<td><code>VERIFIED</code>, <code>PARTIAL</code>, <code>NOT_IMPLEMENTED</code>, <code>NOT_VERIFIABLE</code> plus map-specific states</td>
+</tr>
+<tr>
+<td>Blueprint completion register</td>
+<td>Has a canonical requirement passed every applicable contract and release gate?</td>
+<td><code>NOT_STARTED</code> through <code>COMPLETE</code></td>
+</tr>
+</tbody></table></div>
+<p>A surface can be <code>BUILT</code> in the product cross-reference while its corresponding <code>BLP-*</code> requirement is still <code>NOT_STARTED</code>. This occurs when existing behaviour has not yet been migrated to the canonical contract, tested for all mandatory states, tied to exact provenance, and approved by the Blueprint Supervisor.</p>
+<h3 id="section-5-2-canonical-lifecycle">5.2 Canonical lifecycle</h3>
+<p>The normal lifecycle is:</p>
+<pre><code class="language-text">NOT_STARTED
+  -&gt; IN_PROGRESS
+  -&gt; IMPLEMENTED_UNVERIFIED
+  -&gt; AUTOMATED_VERIFIED
+  -&gt; DEPLOYED_VERIFIED        when deployment is required
+  -&gt; PHYSICAL_VERIFIED        when physical verification is required
+  -&gt; COMPLETE
+</code></pre>
+<p><code>BLOCKED</code> means implementation cannot proceed because a named prerequisite is unmet. <code>WITHHELD</code> means a required proof legitimately does not exist and the missing evidence and consequence are recorded. Neither word means &quot;probably complete.&quot;</p>
+<h3 id="section-5-3-current-register-state">5.3 Current register state</h3>
+<p>As of this guide:</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Count</th>
+<th>Requirements</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>IMPLEMENTED_UNVERIFIED</code></td>
+<td>1</td>
+<td><code>BLP-001</code></td>
+</tr>
+<tr>
+<td><code>NOT_STARTED</code></td>
+<td>29</td>
+<td><code>BLP-002</code> through <code>BLP-030</code></td>
+</tr>
+<tr>
+<td><code>COMPLETE</code></td>
+<td>0</td>
+<td>None</td>
+</tr>
+</tbody></table></div>
+<p>The authoritative current values are in <a href="./v3-blueprint-completion-register.json"><code>v3-blueprint-completion-register.json</code></a>, not this narrative snapshot.</p>
+<h2 id="section-6-what-has-been-completed">6. What has been completed</h2>
+<h3 id="section-6-1-product-foundation">6.1 Product foundation</h3>
+<p>The following is present in the current product baseline. The detailed status and remaining qualification for each row are in the <a href="../script/v3.1-blueprint-component-cross-reference.md">blueprint component cross-reference</a>.</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Present capability</th>
+<th>Honest limit</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step 1</td>
+<td>Role, organisation, and candidate ingress; live opportunity path</td>
+<td>Must remain behaviourally unchanged during the completion programme</td>
+</tr>
+<tr>
+<td>Step 2</td>
+<td>Two-source posting curation, SSOC classification, filters, curation overview, responsive cards, waiting and partial-source states</td>
+<td>Full canonical evidence-window and stable-ID contract is not yet approved</td>
+</tr>
+<tr>
+<td>Work Universe</td>
+<td>Five canonical graphs with three signals each, role anchor, evidence highlighting, and responsive three-panel shell</td>
+<td>Full positive source round trip is conditional on source-bearing fixtures</td>
+</tr>
+<tr>
+<td>Business Cube</td>
+<td>27 function-work-decision intersections, withheld cells, shared selection, inspector, pointer and keyboard movement</td>
+<td>Positive supplied-data coverage must be reconciled under <code>BLP-022</code> and <code>BLP-023</code></td>
+</tr>
+<tr>
+<td>Organisation map</td>
+<td>Supplied hierarchy, relationships, functions, dependencies, capabilities, authority, and process ownership</td>
+<td>No hierarchy or maturity may be inferred from a posting</td>
+</tr>
+<tr>
+<td>Workflow map</td>
+<td>Supplied steps, transitions, actors, decisions, queues, bottlenecks, and handoffs</td>
+<td>Duties are never converted into invented sequence</td>
+</tr>
+<tr>
+<td>Value stream map</td>
+<td>Supplied stages, classifications, timing/cost labels, owners, friction, impact, boundaries, and proposals</td>
+<td>No timing, waste, savings, layoffs, quality, or maturity may be inferred</td>
+</tr>
+<tr>
+<td>Visual selector</td>
+<td>Reversible Graph, Org, Workflow, and Value Stream choice with role-sensitive recommendation</td>
+<td>Unsupported families are unavailable or withheld, not silently remapped</td>
+</tr>
+<tr>
+<td>Review Studio</td>
+<td>Manuscript, evidence spans, O-I-A inspector, six review lenses, accept/reject, links, critical read, hard gates</td>
+<td>Full split/merge/relabel/escalate/withhold/resolve/reopen/undo vocabulary remains incomplete</td>
+</tr>
+<tr>
+<td>Candidate preparation</td>
+<td>Preparation and interview material, person-evidence ingress, target-skill confirmation</td>
+<td>Unified source-linked proof ledger and claim workbench remain unbuilt</td>
+</tr>
+<tr>
+<td>Governance</td>
+<td>Evidence-bound governance ledger and disagreement review</td>
+<td>Must remain supplied-data and human-decision controlled</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>Structured export and printable Clean/Full Review packages</td>
+<td>Resume claim workbench and cover-letter workbench remain incomplete</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-6-2-published-feature-maps">6.2 Published feature maps</h3>
+<ul>
+<li>Step 1a map and responsive evidence were merged in <a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/475" target="_blank" rel="noreferrer">PR #475</a>, commit <a href="https://github.com/ang-kl/2026-0313_AI-JS/commit/1ca2f402c0191e268d41ef103e614ef50b6bfec1" target="_blank" rel="noreferrer"><code>1ca2f402c0191e268d41ef103e614ef50b6bfec1</code></a>.</li>
+<li>Step 2 has a published HTML map and machine-readable manifest linked from the master index.</li>
+<li>Step 3 has a published HTML map and machine-readable manifest covering the Work Universe, review paths, Business Cube, and known gaps.</li>
+<li>Feature-map schema, link, locator, asset, provenance, and protected-scope rules are enforced by <a href="../tests/feature-map-contract.mjs"><code>feature-map-contract.mjs</code></a>.</li>
+</ul>
+<h3 id="section-6-3-step-2-and-business-cube-audit-work">6.3 Step 2 and Business Cube audit work</h3>
+<p>The broad audit correction was merged in <a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/484" target="_blank" rel="noreferrer">PR #484</a>, merge commit <a href="https://github.com/ang-kl/2026-0313_AI-JS/commit/2c0146be34ee3ea87e11d7b9c40b52bce42b0095" target="_blank" rel="noreferrer"><code>2c0146be34ee3ea87e11d7b9c40b52bce42b0095</code></a>. It includes the evidence-bound Business Cube and Step 2/Step 3 audit corrections.</p>
+<p>The compact Step 2 desktop toolbar follow-up was merged in <a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/485" target="_blank" rel="noreferrer">PR #485</a>, merge commit <a href="https://github.com/ang-kl/2026-0313_AI-JS/commit/990a83a870f41253ebcc9125d9cee011cb5a56b6" target="_blank" rel="noreferrer"><code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code></a>. That commit is the baseline for this completion programme.</p>
+<h3 id="section-6-4-completion-governance-package">6.4 Completion governance package</h3>
+<p>The present branch adds the operating package needed to manage completion:</p>
+<ul>
+<li>Canonical instructions: <a href="./V3-Blueprint-Completion-Instructions.md"><code>V3-Blueprint-Completion-Instructions.md</code></a>.</li>
+<li>Machine-readable register: <a href="./v3-blueprint-completion-register.json"><code>v3-blueprint-completion-register.json</code></a>.</li>
+<li>Strict schema: <a href="./v3-blueprint-completion-register.schema.json"><code>v3-blueprint-completion-register.schema.json</code></a>.</li>
+<li>Executable register contract: <a href="../tests/blueprint-completion-contract.mjs"><code>blueprint-completion-contract.mjs</code></a>.</li>
+<li>Master Feature Map links: <a href="./v3-feature-map-index.json"><code>v3-feature-map-index.json</code></a> and <a href="./V3-Agent-Readable-Feature-Map-Index.html">HTML index</a>.</li>
+<li>CI integration: <a href="../../.github/workflows/v31-browser-gate.yml"><code>.github/workflows/v31-browser-gate.yml</code></a>.</li>
+</ul>
+<p>This package defines exactly 30 immutable IDs, exact dependencies, protected scopes, lifecycle transitions, evidence rules, completion policies, supervisor authority, and final release-attestation requirements. Its contract test currently passes locally. It is not yet merged, so it is not itself a completed release artefact.</p>
+<h3 id="section-6-5-provenance-already-known">6.5 Provenance already known</h3>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Implementation or merge evidence</th>
+<th>Deployment evidence</th>
+<th>Automated runtime</th>
+<th>Physical runtime</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Step 1a map</td>
+<td>PR #475, merge <code>1ca2f402c0191e268d41ef103e614ef50b6bfec1</code></td>
+<td>Not reverified by this programme</td>
+<td>Existing map evidence</td>
+<td>Not reverified</td>
+</tr>
+<tr>
+<td>Step 2 latest UI</td>
+<td>implementation <code>1a043664434ae9c3c2cd21850ed23df50138fb66</code>; PR #485; merge <code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code></td>
+<td>Production origin passed, but provider record and served commit were unavailable</td>
+<td>Chromium against deployed origin passed; exact served commit unverified</td>
+<td>Not run</td>
+</tr>
+<tr>
+<td>Step 3 Business Cube audit</td>
+<td>implementation <code>7da49403434d5c2791e70a36440ba19fe120efa6</code>; PR #484; merge <code>2c0146be34ee3ea87e11d7b9c40b52bce42b0095</code></td>
+<td>Recorded successful provider statuses for the merge commit</td>
+<td>Chromium against deployed origin passed</td>
+<td>Not run</td>
+</tr>
+<tr>
+<td>Completion programme</td>
+<td>unmerged working branch</td>
+<td>Not applicable yet</td>
+<td>Register contract passes locally</td>
+<td>Not applicable yet</td>
+</tr>
+</tbody></table></div>
+<p>The key rule is that a successful deployment badge does not prove runtime behaviour, and a passing runtime URL does not prove which commit the server is serving unless the runtime exposes or the provider records the exact commit.</p>
+<h2 id="section-7-what-remains-incomplete">7. What remains incomplete</h2>
+<h3 id="section-7-1-highest-risk-foundation-gaps">7.1 Highest-risk foundation gaps</h3>
+<ol>
+<li>There is no approved canonical implementation of <code>EvidenceSource</code>, <code>EvidenceSpan</code>, <code>ProofRecord</code>, <code>ReviewChange</code>, <code>OutputBlock</code>, <code>VisualProfile</code>, and <code>EvidenceWindow</code>.</li>
+<li>Stable evidence identifiers are not yet contractually proven across every Step 2 to Step 3 to review to output transition.</li>
+<li>Published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields are not yet carried independently end to end.</li>
+<li>Positive source-bearing round-trip fixtures, unknown-reference rejection, stale-data handling, and failure-path tests are incomplete.</li>
+<li>Competing reviewer roster and action vocabulary assumptions have not been reconciled into one approved contract.</li>
+</ol>
+<h3 id="section-7-2-candidate-proof-gaps">7.2 Candidate-proof gaps</h3>
+<ol>
+<li>Candidate evidence needs exact immutable excerpts and spans.</li>
+<li>The product needs a structured proof ledger linking accepted evidence to duties, requirements, skills, competencies, and review observations.</li>
+<li>Proof needs explicit states: demonstrated, certified, claimed-only, withheld, conflicting, and stale.</li>
+<li>The user must control whether accepted proof may be used in a resume, cover letter, interview, portfolio, or work sample.</li>
+<li>Desktop, phone, keyboard, focus restoration, and evidence round-trip behaviour require executable positive and failure coverage.</li>
+</ol>
+<h3 id="section-7-3-review-gaps">7.3 Review gaps</h3>
+<ol>
+<li>First-class <code>split</code>, <code>merge</code>, <code>relabel</code>, <code>escalate</code>, <code>withhold</code>, <code>resolve</code>, <code>reopen</code>, and <code>undo</code> operations are not complete.</li>
+<li>Source text must remain immutable while review history becomes append-only and reversible.</li>
+<li>Reviewer identity and review filters must remain stable across every review surface.</li>
+<li>Tests must cover overlapping spans, stale and rejected evidence, escalation, withholding, undo, and restored decisions.</li>
+</ol>
+<h3 id="section-7-4-candidate-output-gaps">7.4 Candidate-output gaps</h3>
+<ol>
+<li>A source-linked resume-claim workbench is not complete.</li>
+<li>The generation service is not yet server-owned and schema-constrained by task.</li>
+<li>The cover-letter workbench is intentionally parked until accepted evidence can support every sentence.</li>
+<li>Copy, save, print, PDF, and export must be blocked while unsupported, conflicting, or stale claims remain unresolved.</li>
+<li>Adversarial tests for prompt injection, invented metrics, unknown IDs, invalid schema, provider failure, stale hashes, and rejected evidence are not complete.</li>
+</ol>
+<h3 id="section-7-5-visual-and-organisation-gaps">7.5 Visual and organisation gaps</h3>
+<ol>
+<li>Existing specialised maps need positive supplied-data browser tests, not only builder or empty-state tests.</li>
+<li>Inspector placement, docking, floating, restoration, mobile linear alternatives, selection feedback, and keyboard behaviour need one complete cross-surface contract.</li>
+<li>Cross-posting organisation synthesis must be evidence-bound and must not infer hierarchy or maturity.</li>
+<li>Remaining role-sensitive visual families must be added individually, only when a supplied-data grammar and withholding path exist.</li>
+<li>Generated or adaptive panels need visible blueprint trace and reversible explanations.</li>
+</ol>
+<h3 id="section-7-6-release-gaps">7.6 Release gaps</h3>
+<ol>
+<li>The final in-scope P0-P4 implementation has not been deployed and verified in Chromium against one exact commit.</li>
+<li>The complete 1440, 2048, 390, and 430 width/state matrix has not been run against that exact deployed commit.</li>
+<li>Physical Safari and physical-phone verification has not been performed against that exact deployed commit.</li>
+<li>No immutable GitHub release attestation names the final subject commit and register hash.</li>
+</ol>
+<h2 id="section-8-the-30-canonical-requirements">8. The 30 canonical requirements</h2>
+<p>The table below is an onboarding summary. Exact normative wording and dependencies are enforced by the <a href="./V3-Blueprint-Completion-Instructions.md">instructions</a>, <a href="./v3-blueprint-completion-register.json">register</a>, <a href="./v3-blueprint-completion-register.schema.json">schema</a>, and <a href="../tests/blueprint-completion-contract.mjs">contract test</a>.</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Gate</th>
+<th>Status</th>
+<th>Objective and practical definition of done</th>
+<th>Required predecessors</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>BLP-001</code></td>
+<td>P0</td>
+<td><code>IMPLEMENTED_UNVERIFIED</code></td>
+<td>Merge and record the Step 2 provenance-only update without altering product behaviour.</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>BLP-002</code></td>
+<td>P0</td>
+<td><code>NOT_STARTED</code></td>
+<td>Define canonical <code>EvidenceSource</code>, <code>EvidenceSpan</code>, <code>ProofRecord</code>, <code>ReviewChange</code>, <code>OutputBlock</code>, <code>VisualProfile</code>, and <code>EvidenceWindow</code> contracts.</td>
+<td><code>BLP-001</code></td>
+</tr>
+<tr>
+<td><code>BLP-003</code></td>
+<td>P0</td>
+<td><code>NOT_STARTED</code></td>
+<td>Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation.</td>
+<td><code>BLP-002</code></td>
+</tr>
+<tr>
+<td><code>BLP-004</code></td>
+<td>P0</td>
+<td><code>NOT_STARTED</code></td>
+<td>Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value.</td>
+<td><code>BLP-002</code></td>
+</tr>
+<tr>
+<td><code>BLP-005</code></td>
+<td>P0</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests.</td>
+<td><code>BLP-002</code>, <code>BLP-003</code>, <code>BLP-004</code></td>
+</tr>
+<tr>
+<td><code>BLP-006</code></td>
+<td>P0</td>
+<td><code>NOT_STARTED</code></td>
+<td>Reconcile one canonical reviewer roster and one canonical review-action vocabulary.</td>
+<td><code>BLP-002</code></td>
+</tr>
+<tr>
+<td><code>BLP-007</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Capture exact candidate-evidence excerpts with immutable source and span identifiers.</td>
+<td><code>BLP-002</code>, <code>BLP-003</code></td>
+</tr>
+<tr>
+<td><code>BLP-008</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Build the structured candidate-proof ledger.</td>
+<td><code>BLP-007</code></td>
+</tr>
+<tr>
+<td><code>BLP-009</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Link proof records to duties, requirements, skills, competencies, and accepted review observations.</td>
+<td><code>BLP-008</code></td>
+</tr>
+<tr>
+<td><code>BLP-010</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Support demonstrated, certified, claimed-only, withheld, conflicting, and stale proof states.</td>
+<td><code>BLP-008</code>, <code>BLP-009</code></td>
+</tr>
+<tr>
+<td><code>BLP-011</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Control accepted proof destinations: resume, cover letter, interview, portfolio, and work sample.</td>
+<td><code>BLP-009</code>, <code>BLP-010</code></td>
+</tr>
+<tr>
+<td><code>BLP-012</code></td>
+<td>P1</td>
+<td><code>NOT_STARTED</code></td>
+<td>Verify candidate-proof workflows on desktop, phone, keyboard, focus restoration, and evidence round trip.</td>
+<td><code>BLP-007</code>, <code>BLP-008</code>, <code>BLP-009</code>, <code>BLP-010</code>, <code>BLP-011</code></td>
+</tr>
+<tr>
+<td><code>BLP-013</code></td>
+<td>P2</td>
+<td><code>NOT_STARTED</code></td>
+<td>Implement first-class <code>split</code>, <code>merge</code>, <code>relabel</code>, <code>escalate</code>, <code>withhold</code>, <code>resolve</code>, <code>reopen</code>, and <code>undo</code> review operations.</td>
+<td><code>BLP-003</code>, <code>BLP-006</code></td>
+</tr>
+<tr>
+<td><code>BLP-014</code></td>
+<td>P2</td>
+<td><code>NOT_STARTED</code></td>
+<td>Preserve immutable source text and reversible, append-only review history.</td>
+<td><code>BLP-013</code></td>
+</tr>
+<tr>
+<td><code>BLP-015</code></td>
+<td>P2</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add review filters and stable reviewer identity across every review view.</td>
+<td><code>BLP-006</code>, <code>BLP-013</code></td>
+</tr>
+<tr>
+<td><code>BLP-016</code></td>
+<td>P2</td>
+<td><code>NOT_STARTED</code></td>
+<td>Test overlapping spans, stale evidence, rejected evidence, escalation, withholding, undo, and restored decisions.</td>
+<td><code>BLP-013</code>, <code>BLP-014</code>, <code>BLP-015</code></td>
+</tr>
+<tr>
+<td><code>BLP-017</code></td>
+<td>P3</td>
+<td><code>NOT_STARTED</code></td>
+<td>Build a source-linked resume-claim workbench using accepted job evidence and confirmed candidate proof.</td>
+<td><code>BLP-008</code>, <code>BLP-009</code>, <code>BLP-010</code>, <code>BLP-011</code>, <code>BLP-012</code>, <code>BLP-013</code>, <code>BLP-014</code>, <code>BLP-015</code>, <code>BLP-016</code></td>
+</tr>
+<tr>
+<td><code>BLP-018</code></td>
+<td>P3</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add a server-owned, schema-constrained generation service with evidence-reference and policy validation.</td>
+<td><code>BLP-002</code>, <code>BLP-003</code>, <code>BLP-010</code></td>
+</tr>
+<tr>
+<td><code>BLP-019</code></td>
+<td>P3</td>
+<td><code>NOT_STARTED</code></td>
+<td>Build an evidence-gated cover-letter workbench with sentence-level traceability.</td>
+<td><code>BLP-011</code>, <code>BLP-017</code>, <code>BLP-018</code></td>
+</tr>
+<tr>
+<td><code>BLP-020</code></td>
+<td>P3</td>
+<td><code>NOT_STARTED</code></td>
+<td>Block copy, save, print, PDF, and export while unsupported, conflicting, or stale claims remain unresolved.</td>
+<td><code>BLP-017</code>, <code>BLP-019</code></td>
+</tr>
+<tr>
+<td><code>BLP-021</code></td>
+<td>P3</td>
+<td><code>NOT_STARTED</code></td>
+<td>Test prompt injection, invented metrics, unknown IDs, invalid schemas, provider failure, stale hashes, and rejected-evidence exclusion.</td>
+<td><code>BLP-018</code>, <code>BLP-019</code>, <code>BLP-020</code></td>
+</tr>
+<tr>
+<td><code>BLP-022</code></td>
+<td>P4</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add positive supplied-data tests for the Business Cube and every existing specialised map.</td>
+<td><code>BLP-003</code>, <code>BLP-005</code></td>
+</tr>
+<tr>
+<td><code>BLP-023</code></td>
+<td>P4</td>
+<td><code>NOT_STARTED</code></td>
+<td>Complete inspector placement, selection feedback, docking, floating, restoration, mobile linear views, and keyboard behaviour for visual workspaces.</td>
+<td><code>BLP-022</code></td>
+</tr>
+<tr>
+<td><code>BLP-024</code></td>
+<td>P4</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add evidence-bound, cross-posting organisation synthesis without inferred hierarchy or maturity.</td>
+<td><code>BLP-003</code>, <code>BLP-005</code></td>
+</tr>
+<tr>
+<td><code>BLP-025</code></td>
+<td>P4</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add remaining role-sensitive visual families individually, each with an explicit supplied-data contract and withholding path.</td>
+<td><code>BLP-002</code>, <code>BLP-022</code></td>
+</tr>
+<tr>
+<td><code>BLP-026</code></td>
+<td>P4</td>
+<td><code>NOT_STARTED</code></td>
+<td>Add blueprint trace and reversible explanations for generated or adaptive panels.</td>
+<td><code>BLP-002</code>, <code>BLP-006</code></td>
+</tr>
+<tr>
+<td><code>BLP-027</code></td>
+<td>P5</td>
+<td><code>NOT_STARTED</code></td>
+<td>Pass production Chromium gates against the exact deployed commit.</td>
+<td><code>BLP-001</code>, <code>BLP-002</code>, <code>BLP-003</code>, <code>BLP-004</code>, <code>BLP-005</code>, <code>BLP-006</code>, <code>BLP-007</code>, <code>BLP-008</code>, <code>BLP-009</code>, <code>BLP-010</code>, <code>BLP-011</code>, <code>BLP-012</code>, <code>BLP-013</code>, <code>BLP-014</code>, <code>BLP-015</code>, <code>BLP-016</code>, <code>BLP-017</code>, <code>BLP-018</code>, <code>BLP-019</code>, <code>BLP-020</code>, <code>BLP-021</code>, <code>BLP-022</code>, <code>BLP-023</code>, <code>BLP-024</code>, <code>BLP-025</code>, <code>BLP-026</code></td>
+</tr>
+<tr>
+<td><code>BLP-028</code></td>
+<td>P5</td>
+<td><code>NOT_STARTED</code></td>
+<td>Verify 1440 and 2048 desktop widths and 390 and 430 phone widths, including positive, empty, withheld, error, and stale states.</td>
+<td><code>BLP-027</code></td>
+</tr>
+<tr>
+<td><code>BLP-029</code></td>
+<td>P5</td>
+<td><code>NOT_STARTED</code></td>
+<td>Perform physical Safari and physical-phone verification against the exact deployed commit.</td>
+<td><code>BLP-027</code>, <code>BLP-028</code></td>
+</tr>
+<tr>
+<td><code>BLP-030</code></td>
+<td>P5</td>
+<td><code>NOT_STARTED</code></td>
+<td>Publish the final completion record with implementation, merge, deployment, automated-runtime, and physical-runtime provenance kept separate.</td>
+<td><code>BLP-001</code>, <code>BLP-002</code>, <code>BLP-003</code>, <code>BLP-004</code>, <code>BLP-005</code>, <code>BLP-006</code>, <code>BLP-007</code>, <code>BLP-008</code>, <code>BLP-009</code>, <code>BLP-010</code>, <code>BLP-011</code>, <code>BLP-012</code>, <code>BLP-013</code>, <code>BLP-014</code>, <code>BLP-015</code>, <code>BLP-016</code>, <code>BLP-017</code>, <code>BLP-018</code>, <code>BLP-019</code>, <code>BLP-020</code>, <code>BLP-021</code>, <code>BLP-022</code>, <code>BLP-023</code>, <code>BLP-024</code>, <code>BLP-025</code>, <code>BLP-026</code>, <code>BLP-027</code>, <code>BLP-028</code>, <code>BLP-029</code></td>
+</tr>
+</tbody></table></div>
+<h2 id="section-9-target-evidence-architecture">9. Target evidence architecture</h2>
+<h3 id="section-9-1-canonical-records">9.1 Canonical records</h3>
+<p>The first implementation wave must establish these records before feature teams create local substitutes:</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Contract</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EvidenceSource</code></td>
+<td>Identifies an immutable posting, candidate document, taxonomy record, organisation record, or other source and its retrieval context.</td>
+</tr>
+<tr>
+<td><code>EvidenceSpan</code></td>
+<td>Identifies an exact range or structured field within an <code>EvidenceSource</code>; stores no unsupported paraphrase as source text.</td>
+</tr>
+<tr>
+<td><code>ProofRecord</code></td>
+<td>Connects confirmed candidate evidence to target duties, requirements, skills, competencies, and destinations.</td>
+</tr>
+<tr>
+<td><code>ReviewChange</code></td>
+<td>Records an append-only proposal, human decision, executed operation, predecessor, reviewer, rationale, and timestamp.</td>
+</tr>
+<tr>
+<td><code>OutputBlock</code></td>
+<td>Stores a generated or user-edited claim with source references, evidence hash, state, policy result, and provenance.</td>
+</tr>
+<tr>
+<td><code>VisualProfile</code></td>
+<td>Declares which visual grammar is supported for a role, why it is supported, and which supplied fields it requires.</td>
+</tr>
+<tr>
+<td><code>EvidenceWindow</code></td>
+<td>Carries published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone values independently.</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-9-2-stable-identity">9.2 Stable identity</h3>
+<p>Identifiers are the backbone of the product. At minimum, preserve distinct stable IDs for:</p>
+<ul>
+<li>source and source version;</li>
+<li>posting and employer;</li>
+<li>source row or field;</li>
+<li>evidence span;</li>
+<li>deterministic claim;</li>
+<li>AI proposal;</li>
+<li>reviewer and review change;</li>
+<li>human decision;</li>
+<li>candidate proof;</li>
+<li>output block;</li>
+<li>visual node, cell, and selection;</li>
+<li>runtime verification artefact.</li>
+</ul>
+<p>Display labels may change. IDs must not change because a label, sort order, or panel changes. A superseded record remains addressable and points to its successor.</p>
+<h3 id="section-9-3-immutability-and-invalidation">9.3 Immutability and invalidation</h3>
+<ul>
+<li>Source text is immutable.</li>
+<li>Review history is append-only.</li>
+<li>Rejected, reopened, and superseded states remain in history.</li>
+<li>A changed source, proof, review decision, prompt version, schema version, policy version, or evidence hash invalidates dependent generated output.</li>
+<li>Invalidated output becomes <code>STALE</code>; it is not silently regenerated or exported.</li>
+</ul>
+<h3 id="section-9-4-withholding">9.4 Withholding</h3>
+<p>Missing evidence is a first-class outcome. The system must record a reason such as <code>WITHHELD_NO_SOURCE_ROWS</code>, <code>WITHHELD_NO_CANDIDATE_PROOF</code>, <code>WITHHELD_CONFLICTING_EVIDENCE</code>, <code>WITHHELD_STALE_EVIDENCE</code>, or another versioned reason code. A blank panel or fabricated fallback is not an acceptable substitute.</p>
+<h2 id="section-10-candidate-proof-and-review-workflow">10. Candidate proof and review workflow</h2>
+<h3 id="section-10-1-candidate-proof-flow">10.1 Candidate-proof flow</h3>
+<pre><code class="language-text">Candidate source
+  -&gt; exact excerpt selection
+  -&gt; immutable EvidenceSpan
+  -&gt; ProofRecord
+  -&gt; human confirmation
+  -&gt; target links
+  -&gt; proof state
+  -&gt; allowed destinations
+  -&gt; review and output eligibility
+</code></pre>
+<p>The product may help the user find a passage, but only the exact selected excerpt becomes proof. Raw pasted text must not automatically create a skill, authority, access, outcome, or credential claim.</p>
+<h3 id="section-10-2-proof-states">10.2 Proof states</h3>
+<ul>
+<li><code>DEMONSTRATED</code>: evidence describes performed work or an observable artefact.</li>
+<li><code>CERTIFIED</code>: evidence references a verifiable qualification or certification.</li>
+<li><code>CLAIMED_ONLY</code>: the user asserts the capability, but no supporting artefact is linked.</li>
+<li><code>WITHHELD</code>: required evidence is absent or deliberately not supplied.</li>
+<li><code>CONFLICTING</code>: accepted evidence and another source disagree.</li>
+<li><code>STALE</code>: evidence or its governing source changed after assessment.</li>
+</ul>
+<p>These are evidence states, not confidence-coloured decoration. Each state changes whether a destination is eligible.</p>
+<h3 id="section-10-3-review-state-model">10.3 Review state model</h3>
+<p>Review must distinguish:</p>
+<ol>
+<li>A reviewer <strong>comment</strong>: an observation or question.</li>
+<li>A reviewer <strong>proposal</strong>: a suggested change that has not occurred.</li>
+<li>A human <strong>decision</strong>: accept, reject, escalate, resolve, reopen, or undo.</li>
+<li>An executed <strong>ReviewChange</strong>: an append-only event changing the reviewed representation, never the source.</li>
+</ol>
+<p>Every split, merge, relabel, withhold, resolve, reopen, and undo action must retain predecessors and be reproducible from history. &quot;Accept&quot; must not overwrite the original span or delete a rejected alternative.</p>
+<h3 id="section-10-4-output-eligibility">10.4 Output eligibility</h3>
+<p>A resume or cover-letter claim is eligible only when:</p>
+<ul>
+<li>its target job evidence is accepted and current;</li>
+<li>its candidate proof is confirmed and allowed for that destination;</li>
+<li>all source references exist in the supplied allowlist;</li>
+<li>no referenced evidence is rejected, revoked, conflicting, unconfirmed, or stale;</li>
+<li>deterministic policy validation passes;</li>
+<li>the user has not left an unresolved blocking review state.</li>
+</ul>
+<h2 id="section-11-ai-and-prompt-engineering-contract">11. AI and prompt engineering contract</h2>
+<h3 id="section-11-1-the-required-architecture">11.1 The required architecture</h3>
+<p>AI generation must follow this sequence:</p>
+<pre><code class="language-text">validated evidence
+  -&gt; deterministic eligibility gate
+  -&gt; server-owned task prompt
+  -&gt; schema-constrained model call
+  -&gt; JSON Schema validation
+  -&gt; evidence-reference validation
+  -&gt; policy validation
+  -&gt; proposal state
+  -&gt; human action
+</code></pre>
+<p>Client code must not own hidden system policy. The server must identify the task, prompt version, schema version, model, evidence hash, policy version, timing, and result state.</p>
+<h3 id="section-11-2-no-llm-zones">11.2 No-LLM zones</h3>
+<p>An LLM must not decide or calculate:</p>
+<ul>
+<li>whether evidence is confirmed;</li>
+<li>taxonomy identity or deterministic crosswalk results;</li>
+<li>AI exposure scores and source counts;</li>
+<li>salary, posting, or applicant counts;</li>
+<li>review decisions and audit history;</li>
+<li>visual topology, cell identity, ordering, or organisation hierarchy;</li>
+<li>process sequence, governance controls, owners, or permissions;</li>
+<li>persistence, export eligibility, or UI rendering state.</li>
+</ul>
+<h3 id="section-11-3-prompt-requirements">11.3 Prompt requirements</h3>
+<p>Each generation task should use:</p>
+<ul>
+<li>a server-owned task ID and prompt version;</li>
+<li>a single explicit purpose;</li>
+<li>untrusted evidence enclosed as data, never as instructions;</li>
+<li>an allowlist of valid source, span, proof, and target IDs;</li>
+<li>a strict output JSON Schema;</li>
+<li>temperature <code>0</code> where the provider supports it;</li>
+<li>one bounded repair attempt for invalid JSON or schema only;</li>
+<li>explicit withholding behaviour;</li>
+<li>a prohibition on unsupported facts, numbers, dates, organisations, credentials, outcomes, and relationships;</li>
+<li>a cache key containing task, prompt version, schema version, model, and evidence hash.</li>
+</ul>
+<h3 id="section-11-4-suggested-bounded-budgets">11.4 Suggested bounded budgets</h3>
+<p>The current engineering audit recommends starting with these ceilings and changing them only with measured evidence:</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Maximum supplied evidence</th>
+<th>Maximum output</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Candidate-proof proposal</td>
+<td>12,000 characters</td>
+<td>1,600 tokens</td>
+</tr>
+<tr>
+<td>Cover-letter proposal</td>
+<td>12,000 characters</td>
+<td>1,400 tokens</td>
+</tr>
+<tr>
+<td>Track-change proposal</td>
+<td>10,000 characters</td>
+<td>1,600 tokens</td>
+</tr>
+<tr>
+<td>Map annotation</td>
+<td>10,000 characters</td>
+<td>900 tokens</td>
+</tr>
+</tbody></table></div>
+<p>The product should summarise or deterministically select evidence before the model boundary, but it must never discard the identifiers required to prove the output.</p>
+<h3 id="section-11-5-hard-evaluation-gates">11.5 Hard evaluation gates</h3>
+<ul>
+<li>100% schema validity after the permitted validation process.</li>
+<li>100% evidence-reference membership in the supplied allowlist.</li>
+<li>Zero unsupported factual sentences.</li>
+<li>Zero invented numbers, dates, organisations, capabilities, relationships, outcomes, or credentials.</li>
+<li>100% withholding when a negative fixture lacks required evidence.</li>
+<li>Exact exclusion of rejected, revoked, conflicting, unconfirmed, and stale evidence.</li>
+<li>No raw candidate evidence or secrets in logs.</li>
+<li>Equivalent reference and policy behaviour across configured model providers.</li>
+</ul>
+<p>An LLM judge may assess wording quality. It may not overrule a deterministic schema, reference, provenance, or policy failure.</p>
+<h2 id="section-12-ui-accessibility-and-responsive-contract">12. UI, accessibility, and responsive contract</h2>
+<h3 id="section-12-1-information-hierarchy">12.1 Information hierarchy</h3>
+<ul>
+<li>Keep source evidence available while the user inspects a derived claim.</li>
+<li>Put selection feedback next to the selected visual and repeat the selected identity in the inspector.</li>
+<li>Keep inspectors visible beside the workspace when space permits and stack them below on narrow surfaces.</li>
+<li>Use compact, work-focused layouts. Do not allow summary panels such as Curation Overview to crowd out the primary evidence list.</li>
+<li>Wrap role, posting, employer, and inspector titles; do not truncate the only visible identity.</li>
+<li>Prevent the Step 2 to Step 3 analysis surface from hiding behind the persistent top banner.</li>
+<li>Preserve a waiting state after role submission so network work is visible and distinct from empty or failed results.</li>
+<li>When one posting source returns a valid zero, collapse or compress its empty lane without hiding the source outcome or the other source.</li>
+</ul>
+<h3 id="section-12-2-business-cube">12.2 Business Cube</h3>
+<ul>
+<li>The cube is an evidence matrix, not a decorative neural network.</li>
+<li>Exactly 27 function-work-decision cells remain addressable.</li>
+<li>Drag and keyboard rotation must work.</li>
+<li>Selection made before WebGL initialisation must be replayed after initialisation.</li>
+<li>Matrix, cube, selection strip, and inspector share one selected-cell state.</li>
+<li>Withheld cells remain selectable and explain why evidence is absent.</li>
+<li>Provide a linear, keyboard-readable alternative to the 3D surface.</li>
+<li>Announce selection once through one polite live region.</li>
+</ul>
+<h3 id="section-12-3-accessibility">12.3 Accessibility</h3>
+<ul>
+<li>Interactive controls should meet a 44 x 44 CSS-pixel target where the layout permits.</li>
+<li>Every interaction must be keyboard reachable with a visible focus indicator.</li>
+<li>Closing dialogs, sheets, and inspectors restores focus to the triggering control.</li>
+<li>State cannot be communicated by colour alone; use text, icon, shape, or stroke as a second cue.</li>
+<li>Meet WCAG AA text contrast.</li>
+<li>Honour reduced-motion preferences.</li>
+<li>Canvas or WebGL content must have an equivalent linear representation.</li>
+</ul>
+<h3 id="section-12-4-required-widths">12.4 Required widths</h3>
+<p>The release matrix must include:</p>
+<ul>
+<li>Desktop: <code>1440</code> pixels wide.</li>
+<li>Wide desktop: <code>2048</code> pixels wide.</li>
+<li>Phone: <code>390</code> pixels wide.</li>
+<li>Large phone: <code>430</code> pixels wide.</li>
+</ul>
+<p>At each applicable width, verify positive, empty, withheld, error, and stale states. No title, toolbar, card, inspector, dialog, sheet, footer, output, or close control may overlap or become unreachable.</p>
+<h2 id="section-13-failure-states-and-recovery">13. Failure states and recovery</h2>
+<h3 id="section-13-1-canonical-user-visible-states">13.1 Canonical user-visible states</h3>
+<p>Use distinct states and language. Do not collapse them into a spinner or blank area.</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+<th>Required UI and recovery</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LOADING</code></td>
+<td>Work is still in progress</td>
+<td>Show the operation and source currently being processed; preserve layout; allow safe cancellation when possible</td>
+</tr>
+<tr>
+<td><code>EMPTY</code></td>
+<td>The request succeeded and returned no qualifying records</td>
+<td>Say what is empty; retain filters and alternate source results; offer a clear next action</td>
+</tr>
+<tr>
+<td><code>WITHHELD</code></td>
+<td>A claim cannot be made because required evidence is missing</td>
+<td>Name the missing evidence and consequence; do not generate a substitute</td>
+</tr>
+<tr>
+<td><code>UNAVAILABLE</code></td>
+<td>The visual or function is recognised but not implemented in this build</td>
+<td>Name the unavailable item; do not silently remap it to another view</td>
+</tr>
+<tr>
+<td><code>ERROR</code></td>
+<td>The operation failed</td>
+<td>Keep user evidence and edits unchanged; show retry or recovery; do not expose raw provider errors</td>
+</tr>
+<tr>
+<td><code>STALE</code></td>
+<td>A source, proof, decision, prompt, schema, or policy changed after derivation</td>
+<td>Block dependent export; identify what changed; require review or regeneration</td>
+</tr>
+<tr>
+<td><code>CONFLICTING</code></td>
+<td>Accepted evidence disagrees</td>
+<td>Show both positions and source links; require a human resolution or explicit withholding</td>
+</tr>
+<tr>
+<td><code>BLOCKED</code></td>
+<td>A required dependency or decision prevents progress</td>
+<td>Name the predecessor, owner, and next action</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-13-2-approved-wording-examples">13.2 Approved wording examples</h3>
+<pre><code class="language-text">EMPTY - No candidate proof has been added yet.
+WITHHELD - No confirmed candidate evidence supports this claim.
+UNAVAILABLE - This visual is recognised but is not available in this build.
+ERROR - The draft could not be generated. Your evidence and edits are unchanged.
+STALE - Source or proof changed after this output was generated.
+</code></pre>
+<h3 id="section-13-3-source-specific-failure-behaviour">13.3 Source-specific failure behaviour</h3>
+<ul>
+<li>One source failure must not blank valid results from another source.</li>
+<li>A valid zero from MyCareersFuture is not a Careers@Gov failure.</li>
+<li>An SSOC classifier failure must not erase source postings.</li>
+<li>A provider failure must not mutate accepted evidence or review history.</li>
+<li>An unavailable physical test must remain unverified; it must not be replaced by emulation.</li>
+<li>Raw provider billing, quota, stack, or secret-bearing errors must not reach visitors.</li>
+</ul>
+<h2 id="section-14-testing-and-evaluation">14. Testing and evaluation</h2>
+<h3 id="section-14-1-test-layers">14.1 Test layers</h3>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Purpose</th>
+<th>Typical evidence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Contract</td>
+<td>Validate schemas, IDs, dependencies, protected scope, and provenance</td>
+<td>Deterministic Node test output</td>
+</tr>
+<tr>
+<td>Unit/data</td>
+<td>Validate builders, state transitions, selectors, and withholding</td>
+<td>Named fixtures and exact assertions</td>
+</tr>
+<tr>
+<td>Integration</td>
+<td>Validate handoffs among Step 2, Step 3, review, proof, and output</td>
+<td>Source-bearing fixture journey</td>
+</tr>
+<tr>
+<td>Browser</td>
+<td>Validate rendered UI, geometry, keyboard, focus, and state</td>
+<td>Chromium route, viewport, assertion IDs, screenshot</td>
+</tr>
+<tr>
+<td>Accessibility</td>
+<td>Validate semantics, focus order, live regions, and non-colour cues</td>
+<td>Automated checks plus keyboard trace</td>
+</tr>
+<tr>
+<td>Adversarial AI</td>
+<td>Validate injection resistance, schema, IDs, unsupported claims, stale hashes, and provider failure</td>
+<td>Deterministic fixtures and policy results</td>
+</tr>
+<tr>
+<td>Production runtime</td>
+<td>Validate the deployed origin against the exact commit</td>
+<td>Deployment record plus automated runtime evidence</td>
+</tr>
+<tr>
+<td>Physical runtime</td>
+<td>Validate actual Safari and phone behaviour</td>
+<td>Device, OS, browser, orientation, timestamp, exact commit</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-14-2-existing-executable-references">14.2 Existing executable references</h3>
+<ul>
+<li><a href="../tests/feature-map-contract.mjs"><code>feature-map-contract.mjs</code></a>: map schema, references, asset integrity, provenance, and protected scope.</li>
+<li><a href="../tests/blueprint-completion-contract.mjs"><code>blueprint-completion-contract.mjs</code></a>: exactly 30 requirements, schema execution, exact dependencies, lifecycle, evidence, supervisor authority, completion policy, and final attestation.</li>
+<li><a href="../tests/browser-gate.mjs"><code>browser-gate.mjs</code></a>: Step 3 shell, graphs, maps, withholding, print, and return paths.</li>
+<li><a href="../tests/company-flow-browser.mjs"><code>company-flow-browser.mjs</code></a>: company path and Business Cube behaviour.</li>
+<li><a href="../tests/step2-feature-map-browser.mjs"><code>step2-feature-map-browser.mjs</code></a>: Step 2 responsive and state behaviour.</li>
+<li><a href="../tests/audit-integrity-contract.mjs"><code>audit-integrity-contract.mjs</code></a>: cross-audit source and invariant checks.</li>
+<li><a href="../tests/business-cube-contract.mjs"><code>business-cube-contract.mjs</code></a>: Business Cube data contract.</li>
+<li><a href="../tests/device-profile-contract.mjs"><code>device-profile-contract.mjs</code></a>: responsive device-profile rules.</li>
+</ul>
+<h3 id="section-14-3-required-evidence-format">14.3 Required evidence format</h3>
+<p>Every accepted test artefact should name:</p>
+<ul>
+<li>requirement ID;</li>
+<li>exact 40-character commit SHA;</li>
+<li>command or suite identity;</li>
+<li>fixture identity;</li>
+<li>environment;</li>
+<li>browser or device;</li>
+<li>viewport or orientation when applicable;</li>
+<li>timestamp;</li>
+<li>pass or failure result;</li>
+<li>retained artefact path or URL.</li>
+</ul>
+<h2 id="section-15-provenance-and-release-evidence">15. Provenance and release evidence</h2>
+<h3 id="section-15-1-five-records-that-must-never-be-collapsed">15.1 Five records that must never be collapsed</h3>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Record</th>
+<th>What it proves</th>
+<th>What it does not prove</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>implementationCommit</code></td>
+<td>The code or documentation exists on a named branch at an exact SHA</td>
+<td>That it was reviewed, merged, deployed, or exercised</td>
+</tr>
+<tr>
+<td><code>mergeCommit</code></td>
+<td>A pull request was merged into the target branch at an exact SHA</td>
+<td>That the deployment succeeded or runtime works</td>
+</tr>
+<tr>
+<td><code>deploymentStatus</code></td>
+<td>A provider associated an environment and deployment with an exact commit</td>
+<td>That the user workflow passed</td>
+</tr>
+<tr>
+<td><code>automatedRuntimeVerification</code></td>
+<td>A named automated suite passed against a named runtime and exact commit</td>
+<td>That a person used a physical device</td>
+</tr>
+<tr>
+<td><code>physicalRuntimeVerification</code></td>
+<td>A named physical device, OS, browser, and orientation passed against the exact deployed commit</td>
+<td>That unrelated devices or future commits pass</td>
+</tr>
+</tbody></table></div>
+<p>A compare URL or <code>/pull/new/</code> URL is not a pull request. A preview deployment is not production. An abbreviated SHA is not sufficient. A deployment badge is not a runtime test.</p>
+<h3 id="section-15-2-final-attestation">15.2 Final attestation</h3>
+<p><code>BLP-030</code> may become complete only after <code>BLP-001</code> through <code>BLP-029</code> are complete. The Blueprint Supervisor must publish an immutable GitHub release attestation that:</p>
+<ol>
+<li>names the already merged and deployed <code>BLP-029</code> subject commit;</li>
+<li>records implementation, merge, deployment, automated-runtime, and physical-runtime evidence separately;</li>
+<li>includes the SHA-256 hash of the attested register payload;</li>
+<li>names approved omissions without representing them as complete;</li>
+<li>is mirrored by the in-repository register without changing the attested subject commit.</li>
+</ol>
+<h2 id="section-16-agent-operating-model">16. Agent operating model</h2>
+<h3 id="section-16-1-maximum-effective-team">16.1 Maximum effective team</h3>
+<p>Use no more than four agents in one implementation wave unless the user explicitly requests otherwise:</p>
+<ol>
+<li><strong>Contract and data agent:</strong> canonical records, IDs, validators, state machines, persistence, and migrations.</li>
+<li><strong>Product UI agent:</strong> workflows, responsive composition, inspectors, selection, accessibility, and failure states.</li>
+<li><strong>Test and evaluation agent:</strong> fixtures, contract tests, browser tests, accessibility, adversarial evaluation, and release evidence.</li>
+<li><strong>Blueprint Supervisor:</strong> dependency control, scope review, evidence approval, status transitions, and final reconciliation.</li>
+</ol>
+<p>Builders do not approve their own completion. The Supervisor should remain read-only during implementation and inspect artefacts directly.</p>
+<h3 id="section-16-2-required-context-for-every-agent">16.2 Required context for every agent</h3>
+<p>Every task prompt must include:</p>
+<ul>
+<li>exact <code>BLP-*</code> IDs and canonical requirement text;</li>
+<li>baseline branch and exact commit;</li>
+<li>allowed files and prohibited files;</li>
+<li>predecessors and their approved statuses;</li>
+<li>relevant canonical contracts;</li>
+<li>positive, empty, withheld, error, stale, and adversarial states;</li>
+<li>exact tests to add or run;</li>
+<li>evidence return format;</li>
+<li>the ten protected scopes;</li>
+<li>a statement that the agent may propose, but not approve, a register transition.</li>
+</ul>
+<h3 id="section-16-3-standard-agent-return">16.3 Standard agent return</h3>
+<p>Agents must use the exact return headings in <a href="./V3-Blueprint-Completion-Instructions.md#12-per-agent-return-format">Section 12 of the canonical instructions</a>. Missing work is reported as <code>NONE</code> or <code>NOT_CHECKED</code>, never implied.</p>
+<h2 id="section-17-recommended-delivery-sequence">17. Recommended delivery sequence</h2>
+<h3 id="section-wave-0-merge-the-governance-package">Wave 0: merge the governance package</h3>
+<ol>
+<li>Complete Blueprint Supervisor review and approval of merged PR #486 for <code>BLP-001</code>.</li>
+<li>Merge the completion instructions, register, schema, contract test, guide, and master-index links as documentation and governance work.</li>
+<li>Confirm Step 1, Step 2 behaviour, <code>v3/</code>, and Railway configuration remain unchanged.</li>
+</ol>
+<h3 id="section-wave-1-p0-truth-foundation">Wave 1: P0 truth foundation</h3>
+<ol>
+<li><code>BLP-002</code>: canonical contracts.</li>
+<li><code>BLP-003</code>: stable identity propagation.</li>
+<li><code>BLP-004</code>: evidence windows.</li>
+<li><code>BLP-006</code>: reviewer roster and vocabulary.</li>
+<li><code>BLP-005</code>: positive and negative cross-surface tests.</li>
+</ol>
+<p>Do not begin resume or cover-letter generation before this gate passes.</p>
+<h3 id="section-wave-2-p1-candidate-proof">Wave 2: P1 candidate proof</h3>
+<p>Implement <code>BLP-007</code> through <code>BLP-011</code> in dependency order, then verify the complete responsive and keyboard journey in <code>BLP-012</code>.</p>
+<h3 id="section-wave-3-p2-review-state">Wave 3: P2 review state</h3>
+<p>Implement the full review action vocabulary and append-only history in <code>BLP-013</code> through <code>BLP-015</code>, then prove overlap, stale, rejected, escalation, withholding, undo, and restoration in <code>BLP-016</code>.</p>
+<h3 id="section-wave-4-p3-outputs">Wave 4: P3 outputs</h3>
+<p>Build the resume workbench and server generation boundary in parallel only after their predecessors pass. Add the evidence-gated cover letter, export blocking, and adversarial suite. Do not restore earlier cover-letter UI without the accepted-evidence contract.</p>
+<h3 id="section-wave-5-p4-visual-and-organisation-completion">Wave 5: P4 visual and organisation completion</h3>
+<p>First add positive tests for existing maps and the cube. Then complete shared inspector/mobile/keyboard behaviour. Only afterward add cross-posting synthesis or a new visual family. Declare which optional visual families belong to the milestone before seeking approval.</p>
+<h3 id="section-wave-6-p5-release">Wave 6: P5 release</h3>
+<ol>
+<li>Merge the final in-scope code.</li>
+<li>Record the exact deployment commit.</li>
+<li>Run production Chromium against that exact commit.</li>
+<li>Run the full width and state matrix.</li>
+<li>Perform physical Safari and phone verification.</li>
+<li>Publish the immutable final release attestation and register hash.</li>
+</ol>
+<h2 id="section-18-new-contributor-start-procedure">18. New contributor start procedure</h2>
+<h3 id="section-18-1-read-in-this-order">18.1 Read in this order</h3>
+<ol>
+<li>This guide.</li>
+<li><a href="../goal/v3-blueprint.md">V3 blueprint</a>.</li>
+<li><a href="./V3-Blueprint-Completion-Instructions.md">Canonical completion instructions</a>.</li>
+<li><a href="./V3-Agent-Readable-Feature-Map-Index.html">Master Feature Map</a>.</li>
+<li><a href="../script/v3.1-blueprint-component-cross-reference.md">Blueprint component cross-reference</a>.</li>
+<li>The register record for the assigned <code>BLP-*</code> ID.</li>
+<li>The affected source files and tests named by that record.</li>
+</ol>
+<h3 id="section-18-2-establish-the-baseline">18.2 Establish the baseline</h3>
+<pre><code class="language-bash">git fetch origin
+git switch main
+git pull --ff-only
+git switch -c codex/&lt;short-purpose&gt;-&lt;yyyymmdd&gt;
+git status --short --branch
+</code></pre>
+<p>Do not use an old branch as the basis for a new requirement. Do not repair unrelated working-tree changes. Confirm the exact baseline SHA in the register and task prompt.</p>
+<h3 id="section-18-3-install-and-run-the-local-gates">18.3 Install and run the local gates</h3>
+<p>The package requires Node <code>22.x</code>. From <code>v3.1/</code>:</p>
+<pre><code class="language-bash">npm ci
+npm run build
+node tests/blueprint-completion-contract.mjs
+node tests/feature-map-contract.mjs --strict-scope
+node tests/audit-integrity-contract.mjs
+</code></pre>
+<p>Run the narrower affected tests first, then the broader browser gates when the change reaches a rendered or shared behaviour surface.</p>
+<h3 id="section-18-4-before-editing">18.4 Before editing</h3>
+<ul>
+<li>Verify predecessor status in the register.</li>
+<li>Identify the canonical data contract and stable IDs.</li>
+<li>Write positive and failure fixtures before or with implementation.</li>
+<li>Define how missing, conflicting, and stale evidence behaves.</li>
+<li>Define the desktop, phone, keyboard, and focus path.</li>
+<li>Confirm the allowed file list and protected scopes.</li>
+</ul>
+<h3 id="section-18-5-before-requesting-review">18.5 Before requesting review</h3>
+<ul>
+<li>Run formatting and diff checks.</li>
+<li>Run affected contract and browser tests.</li>
+<li>Record exact commit and artefact identities.</li>
+<li>Update only the relevant register record and append status history.</li>
+<li>Propose a transition; do not self-approve it.</li>
+<li>Have the Blueprint Supervisor review the diff and evidence.</li>
+</ul>
+<h2 id="section-19-definition-of-done">19. Definition of done</h2>
+<p>A requirement is not done because code compiles or a screenshot looks correct. It may become <code>COMPLETE</code> only when all applicable conditions hold:</p>
+<ul>
+<li>all predecessors are <code>COMPLETE</code>;</li>
+<li>canonical requirement and protected scope are satisfied;</li>
+<li>source and evidence IDs remain stable and addressable;</li>
+<li>deterministic, AI-assisted, and human provenance remain separate;</li>
+<li>missing or unsupported evidence is explicitly withheld;</li>
+<li>required contract, unit, integration, browser, accessibility, evaluation, and regression tests pass;</li>
+<li>positive, empty, withheld, error, and stale states are verified where applicable;</li>
+<li>desktop and phone behaviour pass for user-facing work;</li>
+<li>implementation and merge commits are separate exact SHAs;</li>
+<li>required deployment, automated-runtime, and physical-runtime evidence identify the exact same release commit;</li>
+<li>no unresolved P0 or P1 regression exists;</li>
+<li>status history is valid and append-only;</li>
+<li>the Blueprint Supervisor records approval with evidence.</li>
+</ul>
+<p>For the full programme, completion additionally requires all 30 canonical records, all included P0-P4 work, P5 runtime evidence, approved omissions represented honestly, and the final external release attestation.</p>
+<h2 id="section-20-known-approval-gate-and-immediate-next-action">20. Known approval gate and immediate next action</h2>
+<h3 id="section-20-1-current-approval-gate">20.1 Current approval gate</h3>
+<p>PR <a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/486" target="_blank" rel="noreferrer">#486</a> merged the provenance-only implementation commit <code>bf6c2ab7b8f97151370e9a822406988a1d4b04c0</code> into <code>main</code> as <code>ffc9dea8c6aaa5945fdd06778571e8cca8923097</code> on 2026-09-07. The former blocker is resolved. <code>BLP-001</code> remains <code>IMPLEMENTED_UNVERIFIED</code> until the Blueprint Supervisor checks the exact scope and provenance evidence and records approval.</p>
+<h3 id="section-20-2-immediate-next-action">20.2 Immediate next action</h3>
+<ol>
+<li>Run the completion contract, strict Feature Map contract, integrity contract, and build against the reconciled register.</li>
+<li>Have the Blueprint Supervisor review PR #486, implementation commit <code>bf6c2ab7b8f97151370e9a822406988a1d4b04c0</code>, and merge commit <code>ffc9dea8c6aaa5945fdd06778571e8cca8923097</code>.</li>
+<li>If approved, append the Supervisor evidence and transition <code>BLP-001</code> to <code>COMPLETE</code>; otherwise record the precise missing evidence or regression.</li>
+<li>Start <code>BLP-002</code> on a new branch from the then-current <code>main</code> only after <code>BLP-001</code> is approved.</li>
+</ol>
+<h3 id="section-20-3-tooling-note">20.3 Tooling note</h3>
+<p>The local Vercel CLI observed during this work is <code>51.2.1</code>, while <code>59.11.7</code> is available. This is maintenance work, not a blueprint completion blocker and not permission to change deployment configuration. Upgrade separately with <code>npm i -g vercel@latest</code> or <code>pnpm add -g vercel@latest</code> before future Vercel administration.</p>
+<h2 id="section-21-reference-index">21. Reference index</h2>
+<h3 id="section-21-1-normative-repository-references">21.1 Normative repository references</h3>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Ref</th>
+<th>Document or artefact</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>REP-01</code></td>
+<td><a href="../goal/v3-blueprint.md">V3 blueprint</a></td>
+<td>Product purpose, ethos, work-intelligence model, and desired outcomes</td>
+</tr>
+<tr>
+<td><code>REP-02</code></td>
+<td><a href="../goal/v3-ui-blueprint.md">V3 UI blueprint</a></td>
+<td>UI composition and interaction intent</td>
+</tr>
+<tr>
+<td><code>REP-03</code></td>
+<td><a href="../script/v3.1-blueprint-component-cross-reference.md">Blueprint component cross-reference</a></td>
+<td>Built, wired, partial, parked, and withheld product ledger</td>
+</tr>
+<tr>
+<td><code>REP-04</code></td>
+<td><a href="./V3-Blueprint-Completion-Instructions.md">Completion instructions</a></td>
+<td>Normative 30-item operating contract</td>
+</tr>
+<tr>
+<td><code>REP-05</code></td>
+<td><a href="./v3-blueprint-completion-register.json">Completion register</a></td>
+<td>Current machine-readable statuses, dependencies, blockers, owners, and provenance</td>
+</tr>
+<tr>
+<td><code>REP-06</code></td>
+<td><a href="./v3-blueprint-completion-register.schema.json">Completion register schema</a></td>
+<td>Structural and conditional validation rules</td>
+</tr>
+<tr>
+<td><code>REP-07</code></td>
+<td><a href="../tests/blueprint-completion-contract.mjs">Completion contract test</a></td>
+<td>Executable enforcement of schema, IDs, dependencies, lifecycle, policy, and attestation</td>
+</tr>
+<tr>
+<td><code>REP-08</code></td>
+<td><a href="./V3-Agent-Readable-Feature-Map-Index.html">Master Feature Map HTML</a></td>
+<td>Human-readable journey index</td>
+</tr>
+<tr>
+<td><code>REP-09</code></td>
+<td><a href="./v3-feature-map-index.json">Master Feature Map JSON</a></td>
+<td>Agent-readable map links and provenance</td>
+</tr>
+<tr>
+<td><code>REP-10</code></td>
+<td><a href="./V3-Step1a-Agent-Readable-Feature-Map.html">Step 1a map</a></td>
+<td>Step 1a behaviour and evidence</td>
+</tr>
+<tr>
+<td><code>REP-11</code></td>
+<td><a href="./V3-Step2-Agent-Readable-Feature-Map.html">Step 2 map</a></td>
+<td>Step 2 behaviour, handoff, states, and provenance</td>
+</tr>
+<tr>
+<td><code>REP-12</code></td>
+<td><a href="./V3-Step3-Agent-Readable-Feature-Map.html">Step 3 map</a></td>
+<td>Work Universe, review, cube, maps, and known gaps</td>
+</tr>
+<tr>
+<td><code>REP-13</code></td>
+<td><a href="../../.github/workflows/v31-browser-gate.yml">CI workflow</a></td>
+<td>Build, contract, and browser gates</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-21-2-primary-implementation-references">21.2 Primary implementation references</h3>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Primary source</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Application, Step 1, Step 2, and analysis routing</td>
+<td><a href="../src/App.jsx"><code>src/App.jsx</code></a></td>
+</tr>
+<tr>
+<td>Work Universe shell and projection</td>
+<td><a href="../src/work-universe/WorkUniverseLanding.jsx"><code>src/work-universe/WorkUniverseLanding.jsx</code></a></td>
+</tr>
+<tr>
+<td>R3F presentation layer</td>
+<td><a href="../src/work-universe/WorkUniverseScene.jsx"><code>src/work-universe/WorkUniverseScene.jsx</code></a></td>
+</tr>
+<tr>
+<td>Business Cube</td>
+<td><a href="../src/BusinessRubiksCube.jsx"><code>src/BusinessRubiksCube.jsx</code></a></td>
+</tr>
+<tr>
+<td>Review workspace</td>
+<td><a href="../src/ReviewStudioLegacy.jsx"><code>src/ReviewStudioLegacy.jsx</code></a></td>
+</tr>
+<tr>
+<td>Candidate evidence ingress</td>
+<td><a href="../src/work-universe/PersonEvidenceIngress.jsx"><code>src/work-universe/PersonEvidenceIngress.jsx</code></a></td>
+</tr>
+<tr>
+<td>Candidate evidence rules</td>
+<td><a href="../src/work-universe/personEvidenceData.js"><code>src/work-universe/personEvidenceData.js</code></a></td>
+</tr>
+<tr>
+<td>Role-sensitive visuals</td>
+<td><a href="../src/work-universe/occupationVisualProfileData.js"><code>src/work-universe/occupationVisualProfileData.js</code></a></td>
+</tr>
+<tr>
+<td>Clean and Full Review output</td>
+<td><a href="../src/review/PrintPackage.jsx"><code>src/review/PrintPackage.jsx</code></a></td>
+</tr>
+<tr>
+<td>Review shortcuts</td>
+<td><a href="../src/review/windows/Shortcuts.jsx"><code>src/review/windows/Shortcuts.jsx</code></a></td>
+</tr>
+<tr>
+<td>Model provider route</td>
+<td><a href="../api/claude.js"><code>api/claude.js</code></a></td>
+</tr>
+<tr>
+<td>Deterministic analysis engine</td>
+<td><a href="../api/engine.js"><code>api/engine.js</code></a></td>
+</tr>
+</tbody></table></div>
+<h3 id="section-21-3-git-history-references">21.3 Git history references</h3>
+<ul>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/475" target="_blank" rel="noreferrer">PR #475: Step 1a map and mobile layout</a></li>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/484" target="_blank" rel="noreferrer">PR #484: Step 2 and Business Cube audit corrections</a></li>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/485" target="_blank" rel="noreferrer">PR #485: compact Step 2 desktop filters</a></li>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/pull/486" target="_blank" rel="noreferrer">PR #486: Step 2 post-merge provenance</a></li>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/commit/990a83a870f41253ebcc9125d9cee011cb5a56b6" target="_blank" rel="noreferrer">Baseline commit <code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code></a></li>
+<li><a href="https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097" target="_blank" rel="noreferrer">Current main commit <code>ffc9dea8c6aaa5945fdd06778571e8cca8923097</code></a></li>
+</ul>
+<h3 id="section-21-4-external-domain-sources">21.4 External domain sources</h3>
+<p>These sources define taxonomies or measures used by the product. They do not prove product correctness; repository tests and provenance do that. All external links and time-sensitive labels in this table were reviewed on <strong>2026-09-07</strong>.</p>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Ref</th>
+<th>Source</th>
+<th>Use and boundary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EXT-01</code></td>
+<td><a href="https://esco.ec.europa.eu/en/classification" target="_blank" rel="noreferrer">European Commission ESCO classification</a></td>
+<td>Occupation, skill, and competence concepts and relationships. The portal reports ESCO v1.2.1 as the current version at the time of this guide.</td>
+</tr>
+<tr>
+<td><code>EXT-02</code></td>
+<td><a href="https://www.singstat.gov.sg/standards/standards-and-classifications/ssoc" target="_blank" rel="noreferrer">Singapore Department of Statistics, SSOC 2024</a></td>
+<td>National occupational classification. A suggested classification remains deterministic or inferred metadata, not source-posting evidence.</td>
+</tr>
+<tr>
+<td><code>EXT-03</code></td>
+<td><a href="https://www.skillsfuture.gov.sg/skills-framework/skills-frameworks-faq" target="_blank" rel="noreferrer">SkillsFuture Skills Framework FAQ</a></td>
+<td>Singapore sector, occupation, job-role, skill, competency, and career-development context. It does not guarantee a job, salary, or promotion.</td>
+</tr>
+<tr>
+<td><code>EXT-04</code></td>
+<td><a href="https://www.mycareersfuture.gov.sg/" target="_blank" rel="noreferrer">MyCareersFuture</a></td>
+<td>Private-sector posting source used by the application. Source availability and completeness must be reported honestly.</td>
+</tr>
+<tr>
+<td><code>EXT-05</code></td>
+<td><a href="https://www.careers.gov.sg/" target="_blank" rel="noreferrer">Careers@Gov</a></td>
+<td>Singapore Public Service posting source used by the application. Its rows remain source-distinct from MyCareersFuture rows.</td>
+</tr>
+<tr>
+<td><code>EXT-06</code></td>
+<td><a href="https://doi.org/10.1002/smj.3286" target="_blank" rel="noreferrer">Felten, Raj, and Seamans (2021), AIOE</a></td>
+<td>Research basis for occupational AI-exposure measurement. Exposure is not a verdict about automation, employability, or an individual worker.</td>
+</tr>
+<tr>
+<td><code>EXT-07</code></td>
+<td><a href="https://doi.org/10.1257/pandp.20181021" target="_blank" rel="noreferrer">Felten, Raj, and Seamans (2018), occupational abilities method</a></td>
+<td>Method linking AI advances to occupational abilities. Product narratives must preserve the distinction between the measure and current capability claims.</td>
+</tr>
+</tbody></table></div>
+<h3 id="section-21-5-source-currency-rule">21.5 Source currency rule</h3>
+<p>Taxonomies, job portals, AI-capability evidence, and deployment tooling can change. Record the version and retrieval date used by a release. Do not silently reinterpret old outputs using a newer taxonomy or model. Re-run affected contracts and mark dependent outputs stale when the governing source changes.</p>
+<h2 id="section-22-glossary">22. Glossary</h2>
+<div class="table-scroll" tabindex="0"><table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning in this project</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Agent-readable</td>
+<td>Structured enough for software or another agent to locate IDs, contracts, states, dependencies, and evidence without interpreting prose alone</td>
+</tr>
+<tr>
+<td>AI Moments</td>
+<td>Organisation view that turns posting evidence into bounded candidate agent opportunities; displayed through Cards or the Business Cube</td>
+</tr>
+<tr>
+<td>AIOE</td>
+<td>AI Occupational Exposure measure; an occupational exposure signal, not an automation verdict</td>
+</tr>
+<tr>
+<td>Business Cube</td>
+<td>A 3 x 3 x 3 evidence matrix across function, work, and decision dimensions</td>
+</tr>
+<tr>
+<td>Blueprint Supervisor</td>
+<td>The only role allowed to approve controlled verification and completion transitions</td>
+</tr>
+<tr>
+<td>Candidate proof</td>
+<td>Exact confirmed candidate evidence linked to a target and an allowed destination</td>
+</tr>
+<tr>
+<td>Deterministic</td>
+<td>Repeatable output from explicit data and rules without model interpretation</td>
+</tr>
+<tr>
+<td>Evidence round trip</td>
+<td>Navigation from source evidence to a derived view and back to the same source context with IDs preserved</td>
+</tr>
+<tr>
+<td>Evidence window</td>
+<td>Independent source and analysis timing fields, including corpus boundaries and timezone</td>
+</tr>
+<tr>
+<td>Feature Map</td>
+<td>Human- and agent-readable description of screens, components, states, transitions, payload fields, invariants, evidence, and gaps</td>
+</tr>
+<tr>
+<td>Five canonical graphs</td>
+<td>Labour, Organisation Work, Intelligence, Human-Agent, and Transition graphs</td>
+</tr>
+<tr>
+<td>O-I-A</td>
+<td>Observation, Interpretation, Action analysis grammar</td>
+</tr>
+<tr>
+<td>Provenance</td>
+<td>Evidence of where a value or release state came from; not one generic verified flag</td>
+</tr>
+<tr>
+<td>ReviewChange</td>
+<td>Append-only record of a proposed or executed review operation over an immutable source</td>
+</tr>
+<tr>
+<td>Source-bearing</td>
+<td>Retains source identity and the IDs required to trace a derived claim back to its origin</td>
+</tr>
+<tr>
+<td>Three signals</td>
+<td>The three first-order claims rendered inside each canonical Work Universe graph</td>
+</tr>
+<tr>
+<td>Withheld</td>
+<td>Explicit refusal to claim a value because required evidence is absent, conflicting, rejected, or stale</td>
+</tr>
+</tbody></table></div>
+<hr>
+<p><strong>Operating rule:</strong> when this guide and a machine-readable contract disagree, stop and reconcile the discrepancy. Do not pick the interpretation that makes a requirement look more complete. The canonical instructions, register schema, executable contract, exact repository state, and reviewed evidence control the completion claim.</p>
+
+  </main>
+  <footer>
+    GUIDE-V3-BLUEPRINT-COMPLETION-001. The canonical instructions, machine-readable register, executable contracts, repository state, and reviewed evidence govern completion claims.
+  </footer>
+</body>
+</html>

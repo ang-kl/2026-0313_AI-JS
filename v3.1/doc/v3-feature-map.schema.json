@@ -18,7 +18,7 @@
     },
     "provenance": {
       "type": "object",
-      "required": ["implementationCommit", "mergeCommit", "deploymentStatus", "physicalRuntimeVerification"]
+      "required": ["implementationCommit", "mergeCommit", "deploymentStatus", "automatedRuntimeVerification", "physicalRuntimeVerification"]
     },
     "screens": { "type": "array", "items": { "$ref": "#/$defs/identified" } },
     "components": { "type": "array", "items": { "$ref": "#/$defs/identified" } },

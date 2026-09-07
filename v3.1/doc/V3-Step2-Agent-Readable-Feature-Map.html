@@ -408,13 +408,18 @@
         </tr>
         <tr>
           <td><code>deploymentStatus</code></td>
-          <td><code>SUCCESS</code></td>
-          <td>The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant.</td>
+          <td><code>DEPLOYED_RUNTIME_PASSED_EXACT_COMMIT_UNVERIFIED</code></td>
+          <td>The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Provider status records and a runtime-served commit identifier were unavailable, so the exact deployed commit is not claimed.</td>
+        </tr>
+        <tr>
+          <td><code>automatedRuntimeVerification</code></td>
+          <td><code>DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED</code></td>
+          <td>Desktop and phone Chromium fixtures pass against the deployed origin; the runtime did not expose an exact served commit.</td>
         </tr>
         <tr>
           <td><code>physicalRuntimeVerification</code></td>
-          <td><code>DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE</code></td>
-          <td>Desktop and phone Chromium fixtures pass against the deployed origin; no physical phone or Safari claim is made.</td>
+          <td><code>NOT_RUN</code></td>
+          <td>No physical phone or Safari verification is recorded.</td>
         </tr>
       </tbody>
     </table>

@@ -3,7 +3,7 @@
   "schemaVersion": "1.0.0",
   "id": "IDX-V3-FEATURE-MAPS-001",
   "title": "V3 Agent-Readable Feature Map Index",
-  "updatedAt": "2026-09-03",
+  "updatedAt": "2026-09-04",
   "scope": "v3.1 staged role-analysis workflow",
   "preservationBoundaries": {
     "v3": "UNCHANGED",
@@ -36,6 +36,10 @@
         "deploymentStatus": {
           "status": "NOT_REVERIFIED_IN_THIS_BRANCH",
           "notes": "The Step 2 feature-map branch does not change Step 1a deployment state."
+        },
+        "automatedRuntimeVerification": {
+          "status": "NOT_REVERIFIED_IN_THIS_BRANCH",
+          "notes": "Step 1a browser evidence remains in its published map; this index does not add a new exact-commit runtime pass."
         },
         "physicalRuntimeVerification": {
           "status": "NOT_REVERIFIED_IN_THIS_BRANCH",
@@ -73,18 +77,25 @@
           "notes": "GitHub records PR #485 as merged to main with four checks passing."
         },
         "deploymentStatus": {
-          "status": "SUCCESS",
-          "implementationCommit": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
+          "status": "DEPLOYED_RUNTIME_PASSED_EXACT_COMMIT_UNVERIFIED",
+          "deployedCommit": null,
           "railwayConfigurationChanged": false,
           "runtime": "https://v3.takearoundabout.com",
-          "notes": "The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Individual post-merge provider status records were not re-read because the GitHub API quota was exhausted."
+          "notes": "The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Provider status records and a runtime-served commit identifier were unavailable, so the exact deployed commit is not claimed."
         },
-        "physicalRuntimeVerification": {
-          "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+        "automatedRuntimeVerification": {
+          "status": "DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED",
           "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
           "runtime": "https://v3.takearoundabout.com",
+          "verifiedCommit": null,
           "verifiedAt": "2026-09-03T07:39:00+08:00",
-          "notes": "The deployed origin passed desktop and phone Chromium fixtures. This is not a physical phone or Safari claim."
+          "notes": "The deployed origin passed desktop and phone Chromium fixtures. The runtime did not expose an exact served commit, so this is automated runtime evidence without an exact-commit claim."
+        },
+        "physicalRuntimeVerification": {
+          "status": "NOT_RUN",
+          "evidenceType": "PHYSICAL_DEVICE",
+          "verifiedCommit": null,
+          "notes": "No physical phone or Safari verification is recorded. Automated Chromium emulation is kept in automatedRuntimeVerification."
         }
       }
     },
@@ -117,7 +128,7 @@
         },
         "deploymentStatus": {
           "status": "SUCCESS",
-          "implementationCommit": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
+          "deployedCommit": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
           "railwayConfigurationChanged": false,
           "services": [
             "Railway Job-Analysis",
@@ -127,16 +138,44 @@
           ],
           "notes": "All four commit statuses completed successfully for the merge commit."
         },
-        "physicalRuntimeVerification": {
-          "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+        "automatedRuntimeVerification": {
+          "status": "DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED",
           "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
           "runtime": "https://v3.takearoundabout.com",
+          "verifiedCommit": null,
           "verifiedAt": "2026-09-02T20:04:00+08:00",
-          "notes": "Company Step 1a and Step 3 AI Moments/Business Cube passed against the deployed origin with deterministic route fixtures. This is not a physical phone or Safari claim."
+          "notes": "Company Step 1a and Step 3 AI Moments/Business Cube passed against the deployed origin with deterministic route fixtures. The runtime did not expose an exact served commit."
+        },
+        "physicalRuntimeVerification": {
+          "status": "NOT_RUN",
+          "evidenceType": "PHYSICAL_DEVICE",
+          "verifiedCommit": null,
+          "notes": "No physical phone or Safari verification is recorded. Automated Chromium evidence is kept in automatedRuntimeVerification."
         }
       }
     }
   ],
+  "completionProgram": {
+    "id": "V3-BLUEPRINT-COMPLETION-REGISTER-001",
+    "title": "V3 Blueprint Completion Programme",
+    "status": "IN_PROGRESS",
+    "totalRequirements": 30,
+    "baselineCommit": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
+    "guideMarkdownPath": "doc/V3-Blueprint-Completion-Onboarding-Guide.md",
+    "guideHtmlPath": "doc/V3-Blueprint-Completion-Onboarding-Guide.html",
+    "instructionsPath": "doc/V3-Blueprint-Completion-Instructions.md",
+    "registerPath": "doc/v3-blueprint-completion-register.json",
+    "schemaPath": "doc/v3-blueprint-completion-register.schema.json",
+    "contractTestPath": "tests/blueprint-completion-contract.mjs",
+    "separatedProvenanceFields": [
+      "implementationCommit",
+      "mergeCommit",
+      "deploymentStatus",
+      "automatedRuntimeVerification",
+      "physicalRuntimeVerification"
+    ],
+    "completionRule": "A requirement is COMPLETE only after its applicable implementation and verification evidence pass the register schema, executable contract and Blueprint Supervisor review."
+  },
   "connections": [
     {
       "from": "MAP-V3-STEP1A-001",
@@ -157,6 +196,10 @@
     {
       "id": "CONTRACT-V3-MAPS-PRESERVE-001",
       "statement": "Feature-map work must preserve v3/ and Railway configuration unless explicitly requested otherwise."
+    },
+    {
+      "id": "CONTRACT-V3-BLUEPRINT-COMPLETION-001",
+      "statement": "The 30-item blueprint completion programme uses cumulative P0-P5 gates and does not collapse implementation, merge, deployment, automated-runtime or physical-runtime evidence into one status."
     }
   ]
 }

@@ -1,0 +1,4074 @@
+{
+  "$schema": "./v3-blueprint-completion-register.schema.json",
+  "metadata": {
+    "registerId": "V3-BLUEPRINT-COMPLETION-REGISTER-001",
+    "schemaVersion": "1.0.0",
+    "title": "V3.1 Blueprint Completion Register",
+    "releaseMilestone": "V3.1 blueprint completion",
+    "totalRequirements": 30,
+    "createdAt": "2026-09-04T07:56:00+08:00",
+      "updatedAt": "2026-09-08T07:34:00+08:00"
+  },
+  "baselineCommit": {
+    "state": "RECORDED",
+    "repository": "ang-kl/2026-0313_AI-JS",
+    "branch": "origin/main",
+    "commitSha": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
+    "note": "All completion claims are assessed relative to this baseline unless a requirement records later provenance."
+  },
+  "protectedScopes": [
+    "Step 1 behaviour",
+    "existing Step 2 behaviour",
+    "v3/",
+    "Railway configuration",
+    "five canonical Work Universe graphs",
+    "three signal model",
+    "Role Graph and FAB return",
+    "Clean and Full Review",
+    "evidence withholding",
+    "deterministic and AI provenance separation"
+  ],
+  "requirements": [
+    {
+      "id": "BLP-001",
+      "title": "Merge and record the Step 2 provenance-only update",
+      "requirement": "Merge and record the Step 2 provenance-only update without altering product behaviour.",
+      "priority": "P0",
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "dependencies": [],
+      "ownerRole": "provenance-maintainer",
+      "acceptanceCriteria": [
+        "The provenance-only update is reviewed and merged without product behaviour changes.",
+        "Implementation, merge, deployment, automated-runtime and physical-runtime provenance remain separate.",
+        "Step 1, existing Step 2 behaviour, v3/ and Railway configuration remain unchanged."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "PULL_REQUEST",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+          "label": "PR #486: Step 2 post-merge provenance"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-step2-feature-map.manifest.json",
+          "label": "Step 2 feature-map manifest"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-feature-map-index.json",
+          "label": "Feature-map index"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-001-BLOCKER-01",
+          "description": "The provenance-only pull request must be opened and merged.",
+          "ownerRole": "provenance-maintainer",
+          "status": "RESOLVED",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+              "label": "PR #486 merged"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+              "label": "PR #486 merge commit"
+            }
+          ]
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "RECORDED",
+          "commitSha": "bf6c2ab7b8f97151370e9a822406988a1d4b04c0",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bf6c2ab7b8f97151370e9a822406988a1d4b04c0",
+              "label": "Provenance-only implementation commit bf6c2ab"
+            },
+            {
+              "kind": "OTHER",
+              "reference": "codex/step2-map-postmerge-provenance-20260903",
+              "label": "Implementation branch"
+            }
+          ],
+          "note": "Recorded on branch codex/step2-map-postmerge-provenance-20260903.",
+          "branch": "codex/step2-map-postmerge-provenance-20260903"
+        },
+        "mergeCommit": {
+          "state": "RECORDED",
+          "commitSha": "ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+          "mergedAt": "2026-09-07T08:12:01+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+              "label": "PR #486 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+              "label": "Exact merge commit"
+            }
+          ],
+          "note": "PR #486 merged the provenance-only update to main; Blueprint Supervisor completion approval remains pending."
+        },
+        "deploymentStatus": {
+          "state": "UNKNOWN",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment claim is recorded.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "Automated runtime evidence is not required by the BLP-001 completion policy.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "Physical runtime evidence is not required by the BLP-001 completion policy.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/doc/V3-Agent-Readable-Feature-Map-Index.html",
+        "v3.1/doc/V3-Step2-Agent-Readable-Feature-Map.html",
+        "v3.1/doc/v3-feature-map-index.json",
+        "v3.1/doc/v3-step2-feature-map.manifest.json"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": false,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "The provenance-only implementation commit was recorded; its pull request has not yet been opened.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bf6c2ab7b8f97151370e9a822406988a1d4b04c0",
+              "label": "Provenance-only implementation commit bf6c2ab"
+            }
+          ]
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T07:34:00+08:00",
+          "reason": "PR #486 merged the provenance-only change as ffc9dea8c6aaa5945fdd06778571e8cca8923097; Blueprint Supervisor completion review remains pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/486",
+              "label": "PR #486 merged"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/ffc9dea8c6aaa5945fdd06778571e8cca8923097",
+              "label": "Exact merge commit"
+            }
+          ]
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-002",
+      "title": "Define canonical evidence contracts",
+      "requirement": "Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts.",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-001"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "All seven contracts are versioned and deterministically validated.",
+        "Source-verbatim, computed, AI-assisted, user-authored and withheld values remain distinguishable.",
+        "Unknown evidence, dates, owners and provenance are withheld rather than inferred."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "Canonical completion instructions"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-002-BLOCKER-01",
+          "description": "Canonical contract implementation and validation evidence are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/contracts/evidenceContracts.js",
+        "v3.1/tests/evidence-contract.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-003",
+      "title": "Preserve stable evidence identifiers end to end",
+      "requirement": "Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation.",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "Posting, source-row, span, proposal, decision and output identifiers remain stable across every transition.",
+        "Return navigation restores the originating evidence context.",
+        "No-source evidence remains explicitly WITHHELD_NO_SOURCE_ROWS."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "Application handoff implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "Work Universe implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-003-BLOCKER-01",
+          "description": "The canonical identity contract and complete positive round-trip evidence are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/App.jsx",
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/tests/evidence-round-trip.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-004",
+      "title": "Carry independent evidence-window fields",
+      "requirement": "Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value.",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "Each evidence-window field is transmitted and displayed independently.",
+        "Source timezone and corpus boundaries are retained when supplied.",
+        "Every unavailable field is explicitly withheld without a generic freshness substitute."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "Step 2 to Step 3 handoff"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Step 3 disclosure surface"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-004-BLOCKER-01",
+          "description": "The complete EvidenceWindow handoff and display are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/App.jsx",
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/tests/evidence-window.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-005",
+      "title": "Test evidence round trip and failure paths",
+      "requirement": "Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests.",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002",
+        "BLP-003",
+        "BLP-004"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "Positive source-bearing fixtures preserve every allowed identifier.",
+        "Negative fixtures reject unknown or dangling references.",
+        "Withheld, stale and failure paths remain visibly distinct and deterministic."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/feature-map-contract.mjs",
+          "label": "Feature-map contract test"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/company-flow-browser.mjs",
+          "label": "Company-flow browser test"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-005-BLOCKER-01",
+          "description": "The canonical contracts and all required positive and negative fixtures are not recorded as passing.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/evidence-contract.mjs",
+        "v3.1/tests/evidence-round-trip.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-006",
+      "title": "Reconcile reviewer roster and review vocabulary",
+      "requirement": "Reconcile one canonical reviewer roster and one canonical review-action vocabulary.",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002"
+      ],
+      "ownerRole": "blueprint-supervisor",
+      "acceptanceCriteria": [
+        "One approved roster replaces competing reviewer counts.",
+        "Every reviewer has stable identity, lens, method, confidence and action boundaries.",
+        "Comments, proposals, human decisions and executed review actions remain distinct."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/goal/v3-blueprint.md",
+          "label": "V3 blueprint"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Current review implementation"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-006-BLOCKER-01",
+          "description": "The canonical roster and vocabulary are not recorded as approved.",
+          "ownerRole": "blueprint-supervisor",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/review/reviewerContract.js",
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/tests/reviewer-contract.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-007",
+      "title": "Capture exact candidate-evidence excerpts",
+      "requirement": "Capture exact candidate-evidence excerpts with immutable source and span identifiers.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002",
+        "BLP-003"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Users can select exact candidate evidence spans without rewriting source text.",
+        "Every excerpt records stable source and span identifiers.",
+        "Unconfirmed raw evidence cannot be treated as confirmed proof."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "Person evidence ingress"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "Person evidence data"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-007-BLOCKER-01",
+          "description": "Exact span capture over the canonical evidence contracts is not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+        "v3.1/src/work-universe/personEvidenceData.js"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-008",
+      "title": "Build the structured candidate-proof ledger",
+      "requirement": "Build the structured candidate-proof ledger.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-007"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Candidate proof is stored as distinct source-linked records.",
+        "Each proof records its claim, proof type, confirmation, missing evidence and downstream uses.",
+        "Evidence changes mark dependent proof records stale."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "Person evidence ingress"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-008-BLOCKER-01",
+          "description": "The structured proof ledger is not recorded as implemented.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+        "v3.1/src/work-universe/personEvidenceData.js",
+        "v3.1/src/work-universe/CandidateProofLedger.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-009",
+      "title": "Link proof records to role evidence",
+      "requirement": "Link proof records to duties, requirements, skills, competencies, and accepted review observations.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-008"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "Every proof link targets a stable role-evidence identifier.",
+        "Target and candidate excerpts are inspectable together.",
+        "Invalidated source evidence invalidates dependent links without mutating source text."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "Work Universe implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-009-BLOCKER-01",
+          "description": "Proof-to-target link implementation and evidence are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/CandidateProofLedger.jsx",
+        "v3.1/src/ReviewStudioLegacy.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-010",
+      "title": "Support canonical candidate-proof states",
+      "requirement": "Support demonstrated, certified, claimed-only, withheld, conflicting, and stale proof states.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-008",
+        "BLP-009"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "All six canonical proof states are represented distinctly.",
+        "State transitions are deterministic and auditable.",
+        "Claimed-only, conflicting, withheld and stale proof cannot silently become accepted candidate evidence."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "Person evidence data"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-step3-feature-map.manifest.json",
+          "label": "Step 3 feature-map manifest"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-010-BLOCKER-01",
+          "description": "The canonical proof-state model and transition tests are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/personEvidenceData.js",
+        "v3.1/src/work-universe/CandidateProofLedger.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-011",
+      "title": "Control accepted proof destinations",
+      "requirement": "Control accepted proof destinations: resume, cover letter, interview, portfolio, and work sample.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-009",
+        "BLP-010"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Each confirmed proof can be approved or revoked for each canonical destination.",
+        "Destination changes are human-owned and auditable.",
+        "Rejected, withheld, conflicting, stale and unconfirmed proof is excluded."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "Person evidence ingress"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/PrintPackage.jsx",
+          "label": "Print package"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-011-BLOCKER-01",
+          "description": "Destination controls over canonical proof states are not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/CandidateProofLedger.jsx",
+        "v3.1/src/review/PrintPackage.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-012",
+      "title": "Verify the complete candidate-proof workflow",
+      "requirement": "Verify candidate-proof workflows on desktop, phone, keyboard, focus restoration, and evidence round trip.",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-007",
+        "BLP-008",
+        "BLP-009",
+        "BLP-010",
+        "BLP-011"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "Desktop and phone workflows complete without overlap or lost state.",
+        "Keyboard operation and focus restoration pass.",
+        "The evidence round trip returns to the exact originating context."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/company-flow-browser.mjs",
+          "label": "Company-flow browser test"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-012-BLOCKER-01",
+          "description": "BLP-007 through BLP-011 are not recorded as complete.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-012-BLOCKER-02",
+          "description": "Complete desktop, phone, keyboard and focus evidence is not recorded.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/CandidateProofLedger.jsx",
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/tests/company-flow-browser.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-013",
+      "title": "Implement all first-class review operations",
+      "requirement": "Implement first-class `split`, `merge`, `relabel`, `escalate`, `withhold`, `resolve`, `reopen`, and `undo` review operations.",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-003",
+        "BLP-006"
+      ],
+      "ownerRole": "review-state-engineer",
+      "acceptanceCriteria": [
+        "Every canonical verb creates a guarded review-state transition.",
+        "Split and merge preserve all source and parent identifiers; relabel cannot upgrade provenance.",
+        "Escalate and withhold require explicit reasons, while resolve, reopen and undo remain reversible."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "Canonical completion instructions"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-013-BLOCKER-01",
+          "description": "The complete first-class review operation set is not recorded.",
+          "ownerRole": "review-state-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/src/review/reviewState.js"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-014",
+      "title": "Preserve immutable source and append-only review history",
+      "requirement": "Preserve immutable source text and reversible, append-only review history.",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-013"
+      ],
+      "ownerRole": "review-state-engineer",
+      "acceptanceCriteria": [
+        "Source text remains immutable and changes are overlays.",
+        "Every proposal and decision appends an auditable event.",
+        "Reject, resolve, reopen and undo preserve earlier history."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/PrintPackage.jsx",
+          "label": "Print package"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-014-BLOCKER-01",
+          "description": "The canonical review operations and append-only event model are not recorded.",
+          "ownerRole": "review-state-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/src/review/reviewState.js"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-015",
+      "title": "Add review filters and stable reviewer identity",
+      "requirement": "Add review filters and stable reviewer identity across every review view.",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-006",
+        "BLP-013"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Every review view reads one shared decision state.",
+        "Filters by verb, reviewer and status preserve selection and decisions.",
+        "Every visible comment discloses stable reviewer identity and evidence."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/goal/v3-blueprint.md",
+          "label": "V3 blueprint"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-015-BLOCKER-01",
+          "description": "The canonical reviewer roster and complete review operations are not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/ReviewStudioLegacy.jsx",
+        "v3.1/src/review/reviewerContract.js"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-016",
+      "title": "Test review overlap, stale, rejected and restoration paths",
+      "requirement": "Test overlapping spans, stale evidence, rejected evidence, escalation, withholding, undo, and restored decisions.",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-013",
+        "BLP-014",
+        "BLP-015"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "Every listed review path has a deterministic positive and negative fixture.",
+        "Overlapping and stale spans cannot corrupt source or decision state.",
+        "Undo and restoration reproduce the expected visible state while preserving history."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-016-BLOCKER-01",
+          "description": "BLP-013 through BLP-015 are not recorded as complete.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-016-BLOCKER-02",
+          "description": "The full review test matrix is not recorded as passing.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/review-state-contract.mjs",
+        "v3.1/tests/browser-gate.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-017",
+      "title": "Build the source-linked resume-claim workbench",
+      "requirement": "Build a source-linked resume-claim workbench using accepted job evidence and confirmed candidate proof.",
+      "priority": "P3",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-008",
+        "BLP-009",
+        "BLP-010",
+        "BLP-011",
+        "BLP-012",
+        "BLP-013",
+        "BLP-014",
+        "BLP-015",
+        "BLP-016"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Every proposed claim links to accepted job evidence and confirmed candidate proof.",
+        "Users can inspect wording, evidence, rationale, reviewer and overclaim risk.",
+        "Unsupported claims and invented achievements are blocked or withheld."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "Person evidence ingress"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/PrintPackage.jsx",
+          "label": "Print package"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-017-BLOCKER-01",
+          "description": "BLP-008 through BLP-016 are not recorded as complete.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-017-BLOCKER-02",
+          "description": "The source-linked resume-claim workbench is not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/review/ResumeClaimWorkbench.jsx",
+        "v3.1/src/work-universe/CandidateProofLedger.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-018",
+      "title": "Add the schema-constrained generation service",
+      "requirement": "Add a server-owned, schema-constrained generation service with evidence-reference and policy validation.",
+      "priority": "P3",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002",
+        "BLP-003",
+        "BLP-010"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "System prompts, schemas, model settings and policy remain server-owned.",
+        "Every factual output unit references an allowed evidence identifier.",
+        "Invalid schemas, unsupported claims, invented numbers and stale evidence hashes are rejected."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/claude.js",
+          "label": "Current model-serving API"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "Current model call sites"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-018-BLOCKER-01",
+          "description": "The server-owned task and schema layer is not recorded as implemented.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/api/claude.js",
+        "v3.1/api/generation.js",
+        "v3.1/src/App.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-019",
+      "title": "Build the evidence-gated cover-letter workbench",
+      "requirement": "Build an evidence-gated cover-letter workbench with sentence-level traceability.",
+      "priority": "P3",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-011",
+        "BLP-017",
+        "BLP-018"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Drafting uses only accepted role evidence and confirmed candidate proof.",
+        "Every material sentence exposes its evidence, authorship and review state.",
+        "Insufficient evidence produces a scaffold or withheld state rather than an unsupported letter."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/windows/Shortcuts.jsx",
+          "label": "Review shortcuts"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-019-BLOCKER-01",
+          "description": "BLP-011, BLP-017 and BLP-018 are not recorded as complete.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-019-BLOCKER-02",
+          "description": "The traceable cover-letter workbench is not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/review/CoverLetterWorkbench.jsx",
+        "v3.1/src/review/windows/Shortcuts.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-020",
+      "title": "Gate all candidate-output export actions",
+      "requirement": "Block copy, save, print, PDF, and export while unsupported, conflicting, or stale claims remain unresolved.",
+      "priority": "P3",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-017",
+        "BLP-019"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Every export action is disabled when a blocking output claim exists.",
+        "The UI identifies each blocker and required resolution.",
+        "Exported output includes accepted trace, omissions and evidence-window disclosure."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/PrintPackage.jsx",
+          "label": "Print package"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "Review implementation"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-020-BLOCKER-01",
+          "description": "BLP-017 and BLP-019 are not recorded as complete.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-020-BLOCKER-02",
+          "description": "Complete candidate-output export gates are not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/review/ResumeClaimWorkbench.jsx",
+        "v3.1/src/review/CoverLetterWorkbench.jsx",
+        "v3.1/src/review/PrintPackage.jsx"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-021",
+      "title": "Test adversarial and failure conditions for generation",
+      "requirement": "Test prompt injection, invented metrics, unknown IDs, invalid schemas, provider failure, stale hashes, and rejected-evidence exclusion.",
+      "priority": "P3",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-018",
+        "BLP-019",
+        "BLP-020"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "Every listed adversarial condition has a deterministic fixture and expected withheld or failed result.",
+        "No unsupported sentence, invented number or unknown reference survives validation.",
+        "Rejected, revoked, conflicting, unconfirmed and stale evidence is excluded exactly."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/claude.js",
+          "label": "Current model-serving API"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-021-BLOCKER-01",
+          "description": "BLP-018 through BLP-020 are not recorded as complete.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-021-BLOCKER-02",
+          "description": "The adversarial evaluation matrix is not recorded as passing.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/generation-adversarial.mjs",
+        "v3.1/tests/browser-gate.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-022",
+      "title": "Test the Business Cube and existing specialised maps",
+      "requirement": "Add positive supplied-data tests for the Business Cube and every existing specialised map.",
+      "priority": "P4",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-003",
+        "BLP-005"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "Supplied-data fixtures exercise the Business Cube and every existing specialised map.",
+        "Tests verify selection, movement, source links, inspector interaction and return navigation.",
+        "Positive evidence is distinct from empty, withheld, unavailable and malformed states."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "Work Universe implementation"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/company-flow-browser.mjs",
+          "label": "Company-flow browser test"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-022-BLOCKER-01",
+          "description": "Complete positive supplied-data coverage for every existing specialised map is not recorded.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/tests/company-flow-browser.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-023",
+      "title": "Complete visual-workspace behaviour",
+      "requirement": "Complete inspector placement, selection feedback, docking, floating, restoration, mobile linear views, and keyboard behaviour for visual workspaces.",
+      "priority": "P4",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-022"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Inspector and selection feedback remain visible without overlap.",
+        "Dock, float, restore and return actions preserve workspace state.",
+        "Mobile linear views and keyboard operation provide equivalent access to graph information."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "Work Universe implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/OccupationVisualSelector.jsx",
+          "label": "Occupation visual selector"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-023-BLOCKER-01",
+          "description": "BLP-022 is not recorded as complete.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-023-BLOCKER-02",
+          "description": "The complete visual-workspace behaviour matrix is not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/src/work-universe/OccupationVisualSelector.jsx",
+        "v3.1/tests/browser-gate.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-024",
+      "title": "Add cross-posting organisation synthesis",
+      "requirement": "Add evidence-bound, cross-posting organisation synthesis without inferred hierarchy or maturity.",
+      "priority": "P4",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-003",
+        "BLP-005"
+      ],
+      "ownerRole": "contract-engineer",
+      "acceptanceCriteria": [
+        "Repeated capabilities are grouped only across source-linked postings from an unambiguous employer set.",
+        "Hierarchy, maturity, headcount, performance and ownership are withheld unless supplied.",
+        "Every grouping retains all supporting source identifiers."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "Work Universe implementation"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-024-BLOCKER-01",
+          "description": "The evidence-bound cross-posting synthesis contract and tests are not recorded.",
+          "ownerRole": "contract-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/src/work-universe/organisationSynthesis.js",
+        "v3.1/tests/organisation-synthesis.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-025",
+      "title": "Add remaining role-sensitive visual families",
+      "requirement": "Add remaining role-sensitive visual families individually, each with an explicit supplied-data contract and withholding path.",
+      "priority": "P4",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002",
+        "BLP-022"
+      ],
+      "ownerRole": "product-ui-engineer",
+      "acceptanceCriteria": [
+        "Each visual family has a dedicated versioned supplied-data contract.",
+        "Applicable supplied evidence selects the visual without title-only inference.",
+        "Unsupported visuals display an explicit unavailable or withheld state."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/occupationVisualProfileData.js",
+          "label": "Occupation visual profile data"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/OccupationVisualSelector.jsx",
+          "label": "Occupation visual selector"
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-025-BLOCKER-01",
+          "description": "Dedicated contracts and withholding tests for the remaining visual families are not recorded.",
+          "ownerRole": "product-ui-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/occupationVisualProfileData.js",
+        "v3.1/src/work-universe/OccupationVisualSelector.jsx",
+        "v3.1/tests/browser-gate.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-026",
+      "title": "Add blueprint trace and reversible panel explanations",
+      "requirement": "Add blueprint trace and reversible explanations for generated or adaptive panels.",
+      "priority": "P4",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-002",
+        "BLP-006"
+      ],
+      "ownerRole": "blueprint-supervisor",
+      "acceptanceCriteria": [
+        "Significant components expose their requirement, source, status and known gap through an agent-readable trace.",
+        "Generated panels explain the evidence and rule that caused them to appear.",
+        "Panels can be dismissed and restored without losing user decisions."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
+          "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-feature-map-index.json",
+          "label": "Feature-map index"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-026-BLOCKER-01",
+          "description": "Runtime blueprint trace and reversible panel explanations are not recorded.",
+          "ownerRole": "blueprint-supervisor",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/doc/v3-feature-map-index.json",
+        "v3.1/tests/feature-map-contract.mjs"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": false,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-027",
+      "title": "Pass production Chromium gates",
+      "requirement": "Pass production Chromium gates against the exact deployed commit.",
+      "priority": "P5",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-001",
+        "BLP-002",
+        "BLP-003",
+        "BLP-004",
+        "BLP-005",
+        "BLP-006",
+        "BLP-007",
+        "BLP-008",
+        "BLP-009",
+        "BLP-010",
+        "BLP-011",
+        "BLP-012",
+        "BLP-013",
+        "BLP-014",
+        "BLP-015",
+        "BLP-016",
+        "BLP-017",
+        "BLP-018",
+        "BLP-019",
+        "BLP-020",
+        "BLP-021",
+        "BLP-022",
+        "BLP-023",
+        "BLP-024",
+        "BLP-025",
+        "BLP-026"
+      ],
+      "ownerRole": "release-verifier",
+      "acceptanceCriteria": [
+        "Every in-scope P0 through P4 requirement is implemented and automated-verified before the gate runs.",
+        "Production Chromium tests reference the exact deployed commit.",
+        "The gate covers the complete in-scope workflow without treating preview or local results as production proof."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/company-flow-browser.mjs",
+          "label": "Company-flow browser test"
+        },
+        {
+          "kind": "RUNTIME",
+          "reference": "https://v3.takearoundabout.com",
+          "label": "Production runtime"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-027-BLOCKER-01",
+          "description": "BLP-001 through BLP-026 are not all recorded as implemented and automated-verified.",
+          "ownerRole": "release-verifier",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-027-BLOCKER-02",
+          "description": "No complete production Chromium gate is recorded for the final deployed commit.",
+          "ownerRole": "release-verifier",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/tests/company-flow-browser.mjs",
+        "v3.1/doc/v3-blueprint-completion-register.json"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": true,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-028",
+      "title": "Verify required responsive widths and states",
+      "requirement": "Verify 1440 and 2048 desktop widths and 390 and 430 phone widths, including positive, empty, withheld, error, and stale states.",
+      "priority": "P5",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-027"
+      ],
+      "ownerRole": "test-evaluation-engineer",
+      "acceptanceCriteria": [
+        "All four canonical widths pass against the exact deployed commit.",
+        "Positive, empty, withheld, error and stale states are visibly distinct at each applicable width.",
+        "No title, control, inspector, sheet, footer or output overlaps or becomes unreachable."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/company-flow-browser.mjs",
+          "label": "Company-flow browser test"
+        },
+        {
+          "kind": "RUNTIME",
+          "reference": "https://v3.takearoundabout.com",
+          "label": "Production runtime"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-028-BLOCKER-01",
+          "description": "BLP-027 is not recorded as complete.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-028-BLOCKER-02",
+          "description": "The complete deployed responsive width and state matrix is not recorded.",
+          "ownerRole": "test-evaluation-engineer",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/tests/company-flow-browser.mjs",
+        "v3.1/doc/v3-blueprint-completion-register.json"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": true,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": false
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-029",
+      "title": "Perform physical Safari and phone verification",
+      "requirement": "Perform physical Safari and physical-phone verification against the exact deployed commit.",
+      "priority": "P5",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-027",
+        "BLP-028"
+      ],
+      "ownerRole": "release-verifier",
+      "acceptanceCriteria": [
+        "Physical Safari evidence names device, operating system, browser, orientation, time and exact deployed commit.",
+        "Physical-phone evidence exercises the complete in-scope journey.",
+        "Automated emulation is not accepted as physical-device proof."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-step3-feature-map.manifest.json",
+          "label": "Step 3 feature-map manifest"
+        },
+        {
+          "kind": "RUNTIME",
+          "reference": "https://v3.takearoundabout.com",
+          "label": "Production runtime"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-029-BLOCKER-01",
+          "description": "BLP-027 and BLP-028 are not recorded as complete.",
+          "ownerRole": "release-verifier",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-029-BLOCKER-02",
+          "description": "No complete physical Safari and phone evidence is recorded for the exact final deployed commit.",
+          "ownerRole": "release-verifier",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/doc/v3-blueprint-completion-register.json"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": true,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": true
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    },
+    {
+      "id": "BLP-030",
+      "title": "Publish the final separated completion record",
+      "requirement": "Publish the final completion record with implementation, merge, deployment, automated-runtime, and physical-runtime provenance kept separate.",
+      "priority": "P5",
+      "status": "NOT_STARTED",
+      "dependencies": [
+        "BLP-001",
+        "BLP-002",
+        "BLP-003",
+        "BLP-004",
+        "BLP-005",
+        "BLP-006",
+        "BLP-007",
+        "BLP-008",
+        "BLP-009",
+        "BLP-010",
+        "BLP-011",
+        "BLP-012",
+        "BLP-013",
+        "BLP-014",
+        "BLP-015",
+        "BLP-016",
+        "BLP-017",
+        "BLP-018",
+        "BLP-019",
+        "BLP-020",
+        "BLP-021",
+        "BLP-022",
+        "BLP-023",
+        "BLP-024",
+        "BLP-025",
+        "BLP-026",
+        "BLP-027",
+        "BLP-028",
+        "BLP-029"
+      ],
+      "ownerRole": "blueprint-supervisor",
+      "acceptanceCriteria": [
+        "All 30 canonical requirements and their supervisor-approved statuses are present.",
+        "Each requirement keeps all five provenance records separate and linked to exact evidence.",
+        "The final record names every approved omission and does not claim COMPLETE without all applicable gates."
+      ],
+      "evidenceLinks": [
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-blueprint-completion-register.json",
+          "label": "Blueprint completion register"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/doc/v3-blueprint-completion-register.schema.json",
+          "label": "Blueprint completion register schema"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/blueprint-completion-contract.mjs",
+          "label": "Blueprint completion contract"
+        }
+      ],
+      "blockers": [
+        {
+          "id": "BLP-030-BLOCKER-01",
+          "description": "BLP-001 through BLP-029 are not all recorded as complete.",
+          "ownerRole": "blueprint-supervisor",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-030-BLOCKER-02",
+          "description": "Final supervisor approval and separated release provenance are not recorded.",
+          "ownerRole": "blueprint-supervisor",
+          "status": "OPEN",
+          "evidenceLinks": []
+        },
+        {
+          "id": "BLP-030-BLOCKER-03",
+          "description": "No immutable external GitHub release attestation currently names the verified BLP-029 subject commit and register payload hash.",
+          "ownerRole": "blueprint-supervisor",
+          "status": "OPEN",
+          "evidenceLinks": []
+        }
+      ],
+      "protectedScopes": [
+        "Step 1 behaviour",
+        "existing Step 2 behaviour",
+        "v3/",
+        "Railway configuration",
+        "five canonical Work Universe graphs",
+        "three signal model",
+        "Role Graph and FAB return",
+        "Clean and Full Review",
+        "evidence withholding",
+        "deterministic and AI provenance separation"
+      ],
+      "provenance": {
+        "implementationCommit": {
+          "state": "NOT_IMPLEMENTED",
+          "commitSha": null,
+          "evidenceLinks": [],
+          "note": "No implementation is recorded for this requirement.",
+          "branch": null
+        },
+        "mergeCommit": {
+          "state": "NOT_MERGED",
+          "commitSha": null,
+          "pullRequest": null,
+          "mergedAt": null,
+          "evidenceLinks": [],
+          "note": "No merge is recorded for this requirement."
+        },
+        "deploymentStatus": {
+          "state": "NOT_DEPLOYED",
+          "provider": null,
+          "environment": null,
+          "deploymentUrl": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No deployment is recorded for this requirement.",
+          "deployedCommit": null
+        },
+        "automatedRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "testSuite": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No automated runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        },
+        "physicalRuntimeVerification": {
+          "state": "NOT_RUN",
+          "runtime": null,
+          "device": null,
+          "operatingSystem": null,
+          "browser": null,
+          "checkedAt": null,
+          "evidenceLinks": [],
+          "note": "No physical runtime verification is recorded for this requirement.",
+          "verifiedCommit": null
+        }
+      },
+      "affectedFiles": [
+        "v3.1/doc/v3-blueprint-completion-register.json",
+        "v3.1/doc/v3-feature-map-index.json"
+      ],
+      "completionPolicy": {
+        "requiresDeployment": true,
+        "requiresAutomatedRuntime": true,
+        "requiresPhysicalRuntime": true
+      },
+      "statusHistory": [
+        {
+          "from": null,
+          "to": "NOT_STARTED",
+          "changedAt": "2026-09-04T08:05:13+08:00",
+          "reason": "Initial conservative register state; no completion evidence is recorded.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        }
+      ],
+      "supervisorApproval": {
+        "approvedStatus": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "evidenceLinks": [],
+        "note": "No Blueprint Supervisor approval is recorded.",
+        "attestationSubjectCommit": null,
+        "attestationUrl": null,
+        "attestationSha256": null
+      }
+    }
+  ]
+}

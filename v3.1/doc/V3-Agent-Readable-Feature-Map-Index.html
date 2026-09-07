@@ -240,6 +240,19 @@
       </article>
     </section>
 
+    <h2>Blueprint Completion Programme</h2>
+    <section aria-label="Blueprint completion programme">
+      <p><code>V3-BLUEPRINT-COMPLETION-REGISTER-001</code> governs exactly 30 requirements, <code>BLP-001</code> through <code>BLP-030</code>, with cumulative P0-P5 gates and supervisor-approved evidence. It tracks implementation, merge, deployment, automated-runtime and physical-runtime provenance separately from the three workflow maps above.</p>
+      <div class="links">
+        <a href="V3-Blueprint-Completion-Onboarding-Guide.html">Onboarding guide</a>
+        <a href="V3-Blueprint-Completion-Onboarding-Guide.md">Download Markdown</a>
+        <a href="V3-Blueprint-Completion-Instructions.md">Completion instructions</a>
+        <a href="v3-blueprint-completion-register.json">30-item register</a>
+        <a href="v3-blueprint-completion-register.schema.json">Register schema</a>
+        <a href="../tests/blueprint-completion-contract.mjs">Executable contract</a>
+      </div>
+    </section>
+
     <h2>Separated Provenance</h2>
     <table aria-label="Separated provenance table">
       <thead>
@@ -248,6 +261,7 @@
           <th>Implementation commit</th>
           <th>Merge commit</th>
           <th>Deployment status</th>
+          <th>Automated runtime</th>
           <th>Physical runtime</th>
         </tr>
       </thead>
@@ -258,20 +272,23 @@
           <td><code>1ca2f402c0191e268d41ef103e614ef50b6bfec1</code>, PR #475</td>
           <td><code>NOT_REVERIFIED_IN_THIS_BRANCH</code></td>
           <td><code>NOT_REVERIFIED_IN_THIS_BRANCH</code></td>
+          <td><code>NOT_REVERIFIED_IN_THIS_BRANCH</code></td>
         </tr>
         <tr>
           <td><code>MAP-V3-STEP2-001</code></td>
           <td><code>1a043664434ae9c3c2cd21850ed23df50138fb66</code></td>
           <td><code>990a83a870f41253ebcc9125d9cee011cb5a56b6</code>, PR #485</td>
-          <td><code>SUCCESS</code></td>
-          <td><code>DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE</code></td>
+          <td><code>DEPLOYED_RUNTIME_PASSED_EXACT_COMMIT_UNVERIFIED</code></td>
+          <td><code>DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED</code></td>
+          <td><code>NOT_RUN</code></td>
         </tr>
         <tr>
           <td><code>MAP-V3-STEP3-001</code></td>
           <td><code>7da49403434d5c2791e70a36440ba19fe120efa6</code></td>
           <td><code>2c0146be34ee3ea87e11d7b9c40b52bce42b0095</code>, PR #484</td>
           <td><code>SUCCESS</code></td>
-          <td><code>DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE</code></td>
+          <td><code>DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED</code></td>
+          <td><code>NOT_RUN</code></td>
         </tr>
       </tbody>
     </table>
@@ -299,6 +316,10 @@
         <tr>
           <td><code>CONTRACT-V3-MAPS-PRESERVE-001</code></td>
           <td>Feature-map work must preserve <code>v3/</code> and Railway configuration unless explicitly requested otherwise.</td>
+        </tr>
+        <tr>
+          <td><code>CONTRACT-V3-BLUEPRINT-COMPLETION-001</code></td>
+          <td>The 30-item completion programme uses cumulative P0-P5 gates and keeps implementation, merge, deployment, automated-runtime and physical-runtime evidence separate.</td>
         </tr>
       </tbody>
     </table>

@@ -69,11 +69,19 @@ jobs:
           node tests/governance-ledger-contract.mjs
           node tests/business-cube-contract.mjs
           node tests/audit-integrity-contract.mjs
+          node tests/blueprint-completion-contract.mjs
           FEATURE_MAP_BASE_REF=${{ github.event.pull_request.base.sha }} node tests/feature-map-contract.mjs
           node tests/responsive-preflight-browser.mjs
           node tests/step2-feature-map-browser.mjs
           node tests/company-flow-browser.mjs
           node tests/browser-gate.mjs
+
+      - name: Enforce blueprint-register construction scope
+        if: startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-')
+        env:
+          FEATURE_MAP_BASE_REF: ${{ github.event.pull_request.base.sha }}
+          FEATURE_MAP_ENFORCE_DOCS_ONLY: "1"
+        run: node v3.1/tests/feature-map-contract.mjs
 
       - name: Show server log
         if: always()

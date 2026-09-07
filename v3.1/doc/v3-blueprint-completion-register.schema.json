@@ -1,0 +1,2267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v3-blueprint-completion-register.schema.json",
+  "title": "V3.1 Blueprint Completion Register",
+  "description": "Strict schema for the ordered 30-requirement V3.1 blueprint completion register.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "metadata",
+    "baselineCommit",
+    "protectedScopes",
+    "requirements"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "./v3-blueprint-completion-register.schema.json"
+    },
+    "metadata": {
+      "$ref": "#/$defs/registerMetadata"
+    },
+    "baselineCommit": {
+      "$ref": "#/$defs/baselineCommit"
+    },
+    "protectedScopes": {
+      "$ref": "#/$defs/globalProtectedScopes"
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 30,
+      "maxItems": 30,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/requirementBLP001"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP002"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP003"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP004"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP005"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP006"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP007"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP008"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP009"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP010"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP011"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP012"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP013"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP014"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP015"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP016"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP017"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP018"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP019"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP020"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP021"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP022"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP023"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP024"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP025"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP026"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP027"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP028"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP029"
+        },
+        {
+          "$ref": "#/$defs/requirementBLP030"
+        }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "registerMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "registerId",
+        "schemaVersion",
+        "title",
+        "releaseMilestone",
+        "totalRequirements",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "registerId": {
+          "type": "string",
+          "const": "V3-BLUEPRINT-COMPLETION-REGISTER-001"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "releaseMilestone": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "totalRequirements": {
+          "type": "integer",
+          "const": 30
+        },
+        "createdAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        }
+      }
+    },
+    "baselineCommit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "repository",
+        "branch",
+        "commitSha",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "RECORDED",
+            "UNKNOWN"
+          ]
+        },
+        "repository": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "commitSha": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "RECORDED"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "commitSha": {
+                "$ref": "#/$defs/commitSha"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "UNKNOWN"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "commitSha": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "requirement",
+        "priority",
+        "status",
+        "dependencies",
+        "ownerRole",
+        "affectedFiles",
+        "acceptanceCriteria",
+        "evidenceLinks",
+        "blockers",
+        "protectedScopes",
+        "completionPolicy",
+        "statusHistory",
+        "provenance",
+        "supervisorApproval"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^BLP-(00[1-9]|0[12][0-9]|030)$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requirement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "P0",
+            "P1",
+            "P2",
+            "P3",
+            "P4",
+            "P5"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "NOT_STARTED",
+            "BLOCKED",
+            "IN_PROGRESS",
+            "IMPLEMENTED_UNVERIFIED",
+            "AUTOMATED_VERIFIED",
+            "DEPLOYED_VERIFIED",
+            "PHYSICAL_VERIFIED",
+            "WITHHELD",
+            "COMPLETE"
+          ]
+        },
+        "dependencies": {
+          "type": "array",
+          "maxItems": 29,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^BLP-(00[1-9]|0[12][0-9]|030)$"
+          }
+        },
+        "ownerRole": {
+          "type": "string",
+          "minLength": 1
+        },
+        "affectedFiles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/blocker"
+          }
+        },
+        "protectedScopes": {
+          "$ref": "#/$defs/globalProtectedScopes"
+        },
+        "completionPolicy": {
+          "$ref": "#/$defs/completionPolicy"
+        },
+        "statusHistory": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/statusHistoryEvent"
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "supervisorApproval": {
+          "$ref": "#/$defs/supervisorApproval"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "type": "object",
+                "properties": {
+                  "implementationCommit": {
+                    "properties": {
+                      "state": {
+                        "const": "RECORDED"
+                      },
+                      "branch": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "commitSha": {
+                        "$ref": "#/$defs/commitSha"
+                      }
+                    }
+                  },
+                  "mergeCommit": {
+                    "properties": {
+                      "state": {
+                        "const": "RECORDED"
+                      },
+                      "commitSha": {
+                        "$ref": "#/$defs/commitSha"
+                      }
+                    }
+                  }
+                }
+              },
+              "blockers": {
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/blocker"
+                    },
+                    {
+                      "properties": {
+                        "status": {
+                          "const": "RESOLVED"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "supervisorApproval": {
+                "properties": {
+                  "approvedStatus": {
+                    "const": "COMPLETE"
+                  },
+                  "approvedBy": {
+                    "const": "blueprint-supervisor"
+                  },
+                  "approvedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "evidenceLinks": {
+                    "$ref": "#/$defs/nonEmptyEvidenceLinks"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              },
+              "completionPolicy": {
+                "properties": {
+                  "requiresDeployment": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "requiresDeployment"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "completionPolicy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "deploymentStatus": {
+                    "properties": {
+                      "state": {
+                        "const": "SUCCESS"
+                      },
+                      "deployedCommit": {
+                        "$ref": "#/$defs/commitSha"
+                      },
+                      "checkedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "evidenceLinks": {
+                        "$ref": "#/$defs/nonEmptyEvidenceLinks"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              },
+              "completionPolicy": {
+                "properties": {
+                  "requiresAutomatedRuntime": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "requiresAutomatedRuntime"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "completionPolicy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "automatedRuntimeVerification": {
+                    "properties": {
+                      "state": {
+                        "const": "PASSED"
+                      },
+                      "verifiedCommit": {
+                        "$ref": "#/$defs/commitSha"
+                      },
+                      "checkedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "runtime": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "evidenceLinks": {
+                        "$ref": "#/$defs/nonEmptyEvidenceLinks"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              },
+              "completionPolicy": {
+                "properties": {
+                  "requiresPhysicalRuntime": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "requiresPhysicalRuntime"
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "completionPolicy"
+            ]
+          },
+          "then": {
+            "properties": {
+              "provenance": {
+                "properties": {
+                  "physicalRuntimeVerification": {
+                    "properties": {
+                      "state": {
+                        "const": "PASSED"
+                      },
+                      "verifiedCommit": {
+                        "$ref": "#/$defs/commitSha"
+                      },
+                      "checkedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "runtime": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "device": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "browser": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "evidenceLinks": {
+                        "$ref": "#/$defs/nonEmptyEvidenceLinks"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP001": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-001"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": false
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP002": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-002"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP003": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-003"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP004": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-004"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP005": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-005"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP006": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-006"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP007": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-007"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP008": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-008"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP009": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-009"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP010": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-010"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP011": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-011"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP012": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-012"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP013": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-013"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP014": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-014"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP015": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-015"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP016": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-016"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP017": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-017"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP018": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-018"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP019": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-019"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP020": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-020"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP021": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-021"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP022": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-022"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP023": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-023"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP024": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-024"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP025": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-025"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP026": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-026"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": false
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP027": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-027"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": true
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP028": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-028"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": true
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": false
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP029": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-029"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": true
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": true
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "requirementBLP030": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/requirement"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "BLP-030"
+            },
+            "completionPolicy": {
+              "properties": {
+                "requiresDeployment": {
+                  "const": true
+                },
+                "requiresAutomatedRuntime": {
+                  "const": true
+                },
+                "requiresPhysicalRuntime": {
+                  "const": true
+                }
+              },
+              "required": [
+                "requiresDeployment",
+                "requiresAutomatedRuntime",
+                "requiresPhysicalRuntime"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "COMPLETE"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supervisorApproval": {
+                "properties": {
+                  "attestationSubjectCommit": {
+                    "$ref": "#/$defs/commitSha"
+                  },
+                  "attestationUrl": {
+                    "type": "string",
+                    "pattern": "^https://github\\.com/[^/]+/[^/]+/releases/(?:tag|download)/[^/]+(?:/[^/]+)?$"
+                  },
+                  "attestationSha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "evidenceLinks": {
+                    "$ref": "#/$defs/nonEmptyEvidenceLinks"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NOT_STARTED",
+        "BLOCKED",
+        "IN_PROGRESS",
+        "IMPLEMENTED_UNVERIFIED",
+        "AUTOMATED_VERIFIED",
+        "DEPLOYED_VERIFIED",
+        "PHYSICAL_VERIFIED",
+        "WITHHELD",
+        "COMPLETE"
+      ]
+    },
+    "nullableStatus": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/status"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "protectedScopeList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "globalProtectedScopes": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/protectedScopeList"
+        },
+        {
+          "contains": {
+            "const": "Step 1 behaviour"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "existing Step 2 behaviour"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "v3/"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "Railway configuration"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "five canonical Work Universe graphs"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "three signal model"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "Role Graph and FAB return"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "Clean and Full Review"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "evidence withholding"
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "const": "deterministic and AI provenance separation"
+          },
+          "minContains": 1
+        }
+      ]
+    },
+    "completionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requiresDeployment",
+        "requiresAutomatedRuntime",
+        "requiresPhysicalRuntime"
+      ],
+      "properties": {
+        "requiresDeployment": {
+          "type": "boolean"
+        },
+        "requiresAutomatedRuntime": {
+          "type": "boolean"
+        },
+        "requiresPhysicalRuntime": {
+          "type": "boolean"
+        }
+      }
+    },
+    "statusHistoryEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "changedAt",
+        "reason",
+        "approvedBy",
+        "evidenceLinks"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/nullableStatus"
+        },
+        "to": {
+          "$ref": "#/$defs/status"
+        },
+        "changedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approvedBy": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "const": "blueprint-supervisor"
+            }
+          ]
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        }
+      }
+    },
+    "supervisorApproval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approvedStatus",
+        "approvedBy",
+        "approvedAt",
+        "evidenceLinks",
+        "note",
+        "attestationSubjectCommit",
+        "attestationUrl",
+        "attestationSha256"
+      ],
+      "properties": {
+        "approvedStatus": {
+          "$ref": "#/$defs/nullableStatus"
+        },
+        "approvedBy": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "const": "blueprint-supervisor"
+            }
+          ]
+        },
+        "approvedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "attestationSubjectCommit": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "attestationUrl": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^https://github\\.com/[^/]+/[^/]+/releases/(?:tag|download)/[^/]+(?:/[^/]+)?$"
+            }
+          ]
+        },
+        "attestationSha256": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementationCommit",
+        "mergeCommit",
+        "deploymentStatus",
+        "automatedRuntimeVerification",
+        "physicalRuntimeVerification"
+      ],
+      "properties": {
+        "implementationCommit": {
+          "$ref": "#/$defs/implementationCommit"
+        },
+        "mergeCommit": {
+          "$ref": "#/$defs/mergeCommit"
+        },
+        "deploymentStatus": {
+          "$ref": "#/$defs/deploymentStatus"
+        },
+        "automatedRuntimeVerification": {
+          "$ref": "#/$defs/automatedRuntimeVerification"
+        },
+        "physicalRuntimeVerification": {
+          "$ref": "#/$defs/physicalRuntimeVerification"
+        }
+      }
+    },
+    "implementationCommit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "branch",
+        "commitSha",
+        "evidenceLinks",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_IMPLEMENTED",
+            "RECORDED",
+            "UNKNOWN"
+          ]
+        },
+        "branch": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "commitSha": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "mergeCommit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "commitSha",
+        "pullRequest",
+        "mergedAt",
+        "evidenceLinks",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_MERGED",
+            "RECORDED",
+            "UNKNOWN"
+          ]
+        },
+        "commitSha": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "pullRequest": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^https://github\\.com/[^/]+/[^/]+/pull/[1-9][0-9]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mergedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "deploymentStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "provider",
+        "environment",
+        "deploymentUrl",
+        "deployedCommit",
+        "checkedAt",
+        "evidenceLinks",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_DEPLOYED",
+            "PENDING",
+            "SUCCESS",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "environment": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "deploymentUrl": {
+          "oneOf": [
+            {
+              "type": "string",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "deployedCommit": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "automatedRuntimeVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "runtime",
+        "testSuite",
+        "verifiedCommit",
+        "checkedAt",
+        "evidenceLinks",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_RUN",
+            "PASSED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "runtime": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "testSuite": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "verifiedCommit": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "physicalRuntimeVerification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "runtime",
+        "device",
+        "operatingSystem",
+        "browser",
+        "verifiedCommit",
+        "checkedAt",
+        "evidenceLinks",
+        "note"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NOT_RUN",
+            "PASSED",
+            "FAILED",
+            "UNKNOWN"
+          ]
+        },
+        "runtime": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "device": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "operatingSystem": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "browser": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "verifiedCommit": {
+          "$ref": "#/$defs/nullableCommitSha"
+        },
+        "checkedAt": {
+          "$ref": "#/$defs/nullableDateTime"
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "ownerRole",
+        "status",
+        "evidenceLinks"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ownerRole": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "RESOLVED",
+            "WITHHELD",
+            "UNKNOWN"
+          ]
+        },
+        "evidenceLinks": {
+          "$ref": "#/$defs/evidenceLinks"
+        }
+      }
+    },
+    "evidenceLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reference",
+        "label"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "COMMIT",
+            "PULL_REQUEST",
+            "DEPLOYMENT",
+            "TEST",
+            "RUNTIME",
+            "FILE",
+            "SCREENSHOT",
+            "DOCUMENT",
+            "OTHER"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidenceLinks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/evidenceLink"
+      }
+    },
+    "nonEmptyEvidenceLinks": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/evidenceLink"
+      }
+    },
+    "commitSha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "nullableCommitSha": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/commitSha"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nullableDateTime": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  }
+}

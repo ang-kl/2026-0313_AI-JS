@@ -43,7 +43,7 @@
     },
     "deploymentStatus": {
       "status": "SUCCESS",
-      "implementationCommit": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
+      "deployedCommit": "2c0146be34ee3ea87e11d7b9c40b52bce42b0095",
       "railwayConfigurationChanged": false,
       "services": [
         "Railway Job-Analysis",
@@ -53,12 +53,19 @@
       ],
       "notes": "All four commit statuses completed successfully for the merge commit."
     },
-    "physicalRuntimeVerification": {
-      "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+    "automatedRuntimeVerification": {
+      "status": "DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED",
       "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
       "runtime": "https://v3.takearoundabout.com",
+      "verifiedCommit": null,
       "verifiedAt": "2026-09-02T20:04:00+08:00",
-      "notes": "Company Step 1a and Step 3 AI Moments/Business Cube passed against the deployed origin with deterministic route fixtures. This is not a physical phone or Safari claim."
+      "notes": "Company Step 1a and Step 3 AI Moments/Business Cube passed against the deployed origin with deterministic route fixtures. The runtime did not expose an exact served commit."
+    },
+    "physicalRuntimeVerification": {
+      "status": "NOT_RUN",
+      "evidenceType": "PHYSICAL_DEVICE",
+      "verifiedCommit": null,
+      "notes": "No physical phone or Safari verification is recorded. Automated Chromium evidence is kept in automatedRuntimeVerification."
     }
   },
   "screens": [

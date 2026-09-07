@@ -44,18 +44,25 @@
       "notes": "GitHub records PR #485 as merged to main with four checks passing."
     },
     "deploymentStatus": {
-      "status": "SUCCESS",
-      "implementationCommit": "990a83a870f41253ebcc9125d9cee011cb5a56b6",
+      "status": "DEPLOYED_RUNTIME_PASSED_EXACT_COMMIT_UNVERIFIED",
+      "deployedCommit": null,
       "railwayConfigurationChanged": false,
       "runtime": "https://v3.takearoundabout.com",
-      "notes": "The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Individual post-merge provider status records were not re-read because the GitHub API quota was exhausted."
+      "notes": "The production origin passes the complete Step 2 browser suite, including the compact 1440px toolbar invariant. Provider status records and a runtime-served commit identifier were unavailable, so the exact deployed commit is not claimed."
     },
-    "physicalRuntimeVerification": {
-      "status": "DEPLOYED_CHROMIUM_VERIFIED_NOT_PHYSICAL_DEVICE",
+    "automatedRuntimeVerification": {
+      "status": "DEPLOYED_CHROMIUM_VERIFIED_EXACT_COMMIT_UNVERIFIED",
       "evidenceType": "PLAYWRIGHT_CHROMIUM_AGAINST_DEPLOYED_ORIGIN",
       "runtime": "https://v3.takearoundabout.com",
+      "verifiedCommit": null,
       "verifiedAt": "2026-09-03T07:39:00+08:00",
-      "notes": "The deployed origin passed desktop and phone Chromium fixtures. This is not a physical phone or Safari claim."
+      "notes": "The deployed origin passed desktop and phone Chromium fixtures. The runtime did not expose an exact served commit, so this is automated runtime evidence without an exact-commit claim."
+    },
+    "physicalRuntimeVerification": {
+      "status": "NOT_RUN",
+      "evidenceType": "PHYSICAL_DEVICE",
+      "verifiedCommit": null,
+      "notes": "No physical phone or Safari verification is recorded. Automated Chromium emulation is kept in automatedRuntimeVerification."
     }
   },
   "screens": [
