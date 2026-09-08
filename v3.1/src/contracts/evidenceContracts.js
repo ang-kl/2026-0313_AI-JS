@@ -22,10 +22,27 @@
 //   6. A source with no usable rows has an addressable withheld span set:
 //      withheld:<sourceId>:WITHHELD_NO_SOURCE_ROWS.
 //
+//   7. A distilled span's parentage is checked, not merely declared. A DETERMINISTIC distillation
+//      must be derivable from its parents' text; an AI_ASSISTED one must record the parent-relative
+//      window(s) that support it, or it stays UNVERIFIED and cannot back a proof or a citation
+//      until a human confirms it.
+//   8. A source records whether its text is complete: upstream caps truncate posting bodies before
+//      they reach this module, and a hashed artefact that is silently partial is not attested.
+//
+// Contract history:
+//   1.0.0  seven records, five origins, identity rules 1-6.
+//   1.0.1  Supervisor conditions on 1.0.0 before BLP-003: derivation check on distilled parentage
+//          (rule 7), source completeness (rule 8), ptn-1 widened to fold every Unicode space and
+//          strip zero-width characters (no hash had been persisted under the narrower rule),
+//          qualified ids for parentless distillations, leading zeros rejected in extraction
+//          versions, content-addressed cap labels, id-less history events reported as such.
+//
 // Protected scope: this module is additive. It changes no Step 1, Step 2, graph, review, print,
 // v3/ or Railway behaviour. Consumers adopt it under later requirements (BLP-003 onward).
 
-export const CONTRACT_VERSION = "1.0.0";
+export const CONTRACT_VERSION = "1.0.1";
+// ptn-1 folds every Unicode space separator (category Zs) to U+0020 and removes zero-width
+// characters (U+200B, U+200C, U+200D, U+FEFF). It has never been persisted in a narrower form.
 export const TEXT_NORMALISATION_VERSION = "ptn-1";
 
 export const ORIGIN = Object.freeze({
@@ -63,6 +80,8 @@ export const SOURCE_SYSTEM = Object.freeze({
 export const SOURCE_SYSTEMS = Object.freeze(Object.values(SOURCE_SYSTEM));
 
 export const SPAN_KIND = Object.freeze(["verbatim", "distilled", "withheld"]);
+export const DERIVATION_STATE = Object.freeze(["VERIFIED", "UNVERIFIED", "USER_CONFIRMED"]);
+export const SOURCE_COMPLETENESS = Object.freeze(["COMPLETE", "TRUNCATED", "UNKNOWN"]);
 export const PROOF_STATE = Object.freeze(["DEMONSTRATED", "CERTIFIED", "CLAIMED_ONLY", "WITHHELD", "CONFLICTING", "STALE"]);
 export const PROOF_TARGET_KIND = Object.freeze(["duty", "requirement", "skill", "competency", "review-observation"]);
 export const PROOF_DESTINATION = Object.freeze(["resume", "coverLetter", "interview", "portfolio", "workSample"]);
@@ -155,19 +174,26 @@ export function sha256Hex(text) {
 const HEX64 = /^[0-9a-f]{64}$/;
 const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
 const IANA_ZONE = /^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+$|^UTC$/;
-const SLUG = /^[a-z0-9][a-z0-9._-]*$/;
+const ZERO_WIDTH = /[\u200b\u200c\u200d\ufeff]/g;
+const UNICODE_SPACE = /\p{Zs}/gu;
 
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function nonemptyString(value) { return typeof value === "string" && value.trim().length > 0; }
 function isIsoDateTime(value) { return nonemptyString(value) && ISO_DATE_TIME.test(value) && !Number.isNaN(Date.parse(value)); }
 function isInteger(value) { return Number.isInteger(value); }
 
-/** Pinned posting-text normalisation (TEXT_NORMALISATION_VERSION). Idempotent. */
+/**
+ * Pinned posting-text normalisation (TEXT_NORMALISATION_VERSION). Idempotent. NFC; CRLF and CR to
+ * LF; zero-width characters removed; every Unicode space separator folded to U+0020; trailing
+ * whitespace stripped per line; runs of three or more line breaks collapsed to one blank line;
+ * trimmed.
+ */
 export function normalisePostingText(raw) {
   return String(raw ?? "")
     .normalize("NFC")
     .replace(/\r\n?/g, "\n")
-    .replace(/ /g, " ")
+    .replace(ZERO_WIDTH, "")
+    .replace(UNICODE_SPACE, " ")
     .split("\n")
     .map((line) => line.replace(/[ \t]+$/g, ""))
     .join("\n")
@@ -177,12 +203,13 @@ export function normalisePostingText(raw) {
 
 /** Normalisation used for content-addressed distilled ids: case-folded, whitespace-collapsed. */
 export function normaliseDistilledText(raw) {
-  return String(raw ?? "").normalize("NFC").toLowerCase().replace(/\s+/g, " ").trim();
+  return String(raw ?? "").normalize("NFC").replace(ZERO_WIDTH, "").replace(UNICODE_SPACE, " ").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function slugify(value) {
   return String(value ?? "").normalize("NFC").toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
 }
+function shortHash(text, length = 12) { return sha256Hex(text).slice(0, length); }
 
 /**
  * Results are plain objects so callers can render every failure. `ok` is true only when there
@@ -244,12 +271,28 @@ export function parseCsgUuid(uuid) {
  * offset refers to; it is derived from `rawText` by the pinned pipeline and hashed. Missing
  * retrieval time is withheld, never defaulted.
  */
-export function createEvidenceSource({ id, kind, sourceSystem, nativeId, rawText, retrievedAt, label } = {}) {
+/**
+ * `completeness` attests whether `rawText` is the whole upstream body. Upstream routes cap posting
+ * bodies before they reach this module, so a caller that knows the cap MUST pass `truncation`
+ * ({ limit, originalLength }) or `complete: true`; a caller that cannot say leaves completeness
+ * UNKNOWN, recorded as withheld. A hashed artefact is never silently attested complete.
+ */
+export function createEvidenceSource({ id, kind, sourceSystem, nativeId, rawText, retrievedAt, label, complete, truncation } = {}) {
   const withheld = [];
   const text = normalisePostingText(rawText);
   let retrieved = null;
   if (isIsoDateTime(retrievedAt)) retrieved = retrievedAt;
   else withheld.push({ field: "retrievedAt", reason: WITHHOLD.UNAVAILABLE_FIELD });
+  let completeness = "UNKNOWN";
+  let truncationRecord = null;
+  if (isObject(truncation) && isInteger(truncation.limit) && truncation.limit >= 0) {
+    completeness = "TRUNCATED";
+    truncationRecord = { limit: truncation.limit, originalLength: isInteger(truncation.originalLength) ? truncation.originalLength : null, reason: WITHHOLD.CAP_EXCEEDED };
+  } else if (complete === true) {
+    completeness = "COMPLETE";
+  } else {
+    withheld.push({ field: "completeness", reason: WITHHOLD.UNAVAILABLE_FIELD });
+  }
   return {
     contractVersion: CONTRACT_VERSION,
     id: id ?? null,
@@ -260,6 +303,8 @@ export function createEvidenceSource({ id, kind, sourceSystem, nativeId, rawText
     text,
     textHash: sha256Hex(text),
     normalisation: TEXT_NORMALISATION_VERSION,
+    completeness,
+    truncation: truncationRecord,
     retrievedAt: retrieved,
     origin: ORIGIN.SOURCE_VERBATIM,
     withheld,
@@ -279,6 +324,11 @@ export function validateEvidenceSource(source) {
     if (source.textHash !== sha256Hex(source.text)) errors.push("EvidenceSource.textHash does not match text");
   }
   if (source.normalisation !== TEXT_NORMALISATION_VERSION) errors.push(`EvidenceSource.normalisation must be ${TEXT_NORMALISATION_VERSION}`);
+  if (!SOURCE_COMPLETENESS.includes(source.completeness)) errors.push(`EvidenceSource.completeness must be one of ${SOURCE_COMPLETENESS.join(", ")}`);
+  if (source.completeness === "TRUNCATED") {
+    if (!isObject(source.truncation) || !isInteger(source.truncation.limit) || source.truncation.reason !== WITHHOLD.CAP_EXCEEDED) errors.push("a TRUNCATED EvidenceSource must record its truncation limit and reason");
+  } else if (source.truncation !== null) errors.push("EvidenceSource.truncation must be null unless completeness is TRUNCATED");
+  if (source.completeness === "UNKNOWN" && !(source.withheld || []).some((w) => w.field === "completeness")) errors.push("EvidenceSource.completeness UNKNOWN must be recorded as withheld");
   if (source.retrievedAt !== null && !isIsoDateTime(source.retrievedAt)) errors.push("EvidenceSource.retrievedAt must be ISO 8601 or null (withheld)");
   if (source.retrievedAt === null && !(source.withheld || []).some((w) => w.field === "retrievedAt")) errors.push("EvidenceSource.retrievedAt null must be recorded as withheld");
   if (source.origin !== ORIGIN.SOURCE_VERBATIM) errors.push("EvidenceSource.origin must be SOURCE_VERBATIM");
@@ -308,8 +358,8 @@ export function createVerbatimSpan(source, start, end, { role } = {}) {
   };
 }
 
-/** Extraction versions are declared, recorded strings of the form name-N with N monotonic. */
-export const EXTRACTION_VERSION_PATTERN = /^[a-z][a-z0-9-]*-(\d+)$/;
+/** Extraction versions are declared, recorded strings of the form name-N with N monotonic and no leading zeros. */
+export const EXTRACTION_VERSION_PATTERN = /^[a-z][a-z0-9-]*-(0|[1-9]\d*)$/;
 export function parseExtractionVersion(value) {
   const match = EXTRACTION_VERSION_PATTERN.exec(String(value ?? ""));
   return match ? { name: String(value).slice(0, -(match[1].length + 1)), number: Number(match[1]) } : null;
@@ -323,40 +373,71 @@ export function makeDistilledSpanId(text, extractionVersion) {
   return `duty:${sha256Hex(`${normaliseDistilledText(text)}|${extractionVersion}`).slice(0, 24)}`;
 }
 
+function withheldSpanId(sourceId, reason, detail) {
+  const qualifier = isObject(detail) && nonemptyString(detail.qualifier) ? `:${detail.qualifier}` : "";
+  return `withheld:${sourceId ?? "unknown"}:${reason}${qualifier}`;
+}
+
+/**
+ * Decide how a distilled span's parentage is verified. DETERMINISTIC: the normalised distilled text
+ * must occur inside the normalised concatenation of its parents' text. AI_ASSISTED: the span must
+ * carry `derivation`, one or more parent-relative windows { parentSpanId, start, end } naming the
+ * supporting phrase; with windows it is VERIFIED once they resolve against the parents, without
+ * them it is UNVERIFIED. A human may confirm an AI link (USER_CONFIRMED). Only VERIFIED or
+ * USER_CONFIRMED distilled spans may back a ProofRecord target or an OutputBlock citation.
+ */
+export function deriveDerivationState({ origin, derivation, userConfirmed }) {
+  if (userConfirmed === true) return "USER_CONFIRMED";
+  if (origin === ORIGIN.DETERMINISTIC) return "VERIFIED";
+  return Array.isArray(derivation) && derivation.length ? "VERIFIED" : "UNVERIFIED";
+}
+
 /**
  * A distilled span (for example an extracted duty). Content-addressed on normalised text plus the
  * extraction version, and it MUST point at one or more verbatim parent spans of the same source.
- * When no parent can be named the span is withheld: it is not a distilled span at all.
+ * When no parent can be named the span is withheld: it is not a distilled span at all, and the
+ * withheld record is qualified by a hash of the text so two failures never collide.
  */
-export function createDistilledSpan({ text, extractionVersion, parentSpanIds, sourceId, origin } = {}) {
+export function createDistilledSpan({ text, extractionVersion, parentSpanIds, sourceId, origin, derivation, userConfirmed } = {}) {
   const parents = Array.isArray(parentSpanIds) ? parentSpanIds.filter(nonemptyString) : [];
+  const normalised = normaliseDistilledText(text);
   if (!parents.length) {
-    return { contractVersion: CONTRACT_VERSION, id: `withheld:${sourceId ?? "unknown"}:${WITHHOLD.NO_PARENT_SPAN}`, kind: "withheld", sourceId: sourceId ?? null, reason: WITHHOLD.NO_PARENT_SPAN, origin: ORIGIN.WITHHELD };
+    return createWithheldSpanSet(sourceId, WITHHOLD.NO_PARENT_SPAN, { qualifier: shortHash(normalised), textHash: sha256Hex(normalised), text: String(text ?? "") });
   }
+  const resolvedOrigin = origin ?? ORIGIN.AI_ASSISTED;
+  const windows = Array.isArray(derivation) ? derivation.filter(isObject) : [];
   return {
     contractVersion: CONTRACT_VERSION,
     id: makeDistilledSpanId(text, extractionVersion),
     kind: "distilled",
     sourceId: sourceId ?? null,
     text: String(text ?? ""),
-    normalisedText: normaliseDistilledText(text),
+    normalisedText: normalised,
     extractionVersion,
     parentSpanIds: parents,
-    origin: origin ?? ORIGIN.AI_ASSISTED,
+    derivation: windows,
+    derivationState: deriveDerivationState({ origin: resolvedOrigin, derivation: windows, userConfirmed }),
+    origin: resolvedOrigin,
   };
 }
 
 /** Addressable withheld form for a source with no usable rows (or another span-level reason). */
 export function createWithheldSpanSet(sourceId, reason = WITHHOLD.NO_SOURCE_ROWS, detail = null) {
+  const detailRecord = isObject(detail) ? detail : null;
   return {
     contractVersion: CONTRACT_VERSION,
-    id: `withheld:${sourceId ?? "unknown"}:${reason}`,
+    id: withheldSpanId(sourceId, reason, detailRecord),
     kind: "withheld",
     sourceId: sourceId ?? null,
     reason,
-    detail: isObject(detail) ? detail : null,
+    detail: detailRecord,
     origin: ORIGIN.WITHHELD,
   };
+}
+
+/** True when a distilled span may support a proof target or an output citation. */
+export function isDistilledSpanTrusted(span) {
+  return isObject(span) && span.kind === "distilled" && ["VERIFIED", "USER_CONFIRMED"].includes(span.derivationState);
 }
 
 /**
@@ -389,19 +470,44 @@ export function validateEvidenceSpan(span, { source, knownSpans } = {}) {
     if (!Array.isArray(span.parentSpanIds) || !span.parentSpanIds.length || !span.parentSpanIds.every(nonemptyString)) errors.push("distilled span must name at least one parent span id");
     if (span.normalisedText !== normaliseDistilledText(span.text)) errors.push("distilled span normalisedText drifted from text");
     if (span.id !== makeDistilledSpanId(span.text, span.extractionVersion)) errors.push("distilled span id must be content-addressed on normalised text and extraction version");
+    if (!Array.isArray(span.derivation)) errors.push("distilled span derivation must be an array (possibly empty)");
+    if (!DERIVATION_STATE.includes(span.derivationState)) errors.push(`distilled span derivationState must be one of ${DERIVATION_STATE.join(", ")}`);
+    else if (span.derivationState !== "USER_CONFIRMED" && span.derivationState !== deriveDerivationState({ origin: span.origin, derivation: span.derivation })) errors.push("distilled span derivationState does not follow from its origin and derivation windows");
+    if (Array.isArray(span.derivation)) {
+      span.derivation.forEach((w, i) => {
+        if (!isObject(w) || !nonemptyString(w.parentSpanId) || !isInteger(w.start) || !isInteger(w.end) || w.start < 0 || w.end <= w.start) errors.push(`distilled span derivation[${i}] must be { parentSpanId, start, end } with 0 <= start < end`);
+        else if (Array.isArray(span.parentSpanIds) && !span.parentSpanIds.includes(w.parentSpanId)) errors.push(`distilled span derivation[${i}] names ${w.parentSpanId}, which is not one of its parents`);
+      });
+    }
     if (knownSpans && Array.isArray(span.parentSpanIds)) {
       const byId = new Map(knownSpans.map((s) => [s.id, s]));
+      const parentTexts = [];
       for (const parentId of span.parentSpanIds) {
         const parent = byId.get(parentId);
         if (!parent) errors.push(`distilled span parent ${parentId} is unknown (dangling reference)`);
         else if (parent.kind !== "verbatim") errors.push(`distilled span parent ${parentId} is not a verbatim span`);
         else if (span.sourceId && parent.sourceId !== span.sourceId) errors.push(`distilled span parent ${parentId} belongs to a different source`);
+        else parentTexts.push(parent.text);
+      }
+      // Rule 7: parentage is checked, not merely declared.
+      if (span.origin === ORIGIN.DETERMINISTIC && parentTexts.length === span.parentSpanIds.length) {
+        const haystack = normaliseDistilledText(parentTexts.join(" "));
+        if (!nonemptyString(span.normalisedText) || !haystack.includes(span.normalisedText)) errors.push("a DETERMINISTIC distilled span must be derivable from its parents' text (its normalised text does not occur in them)");
+      }
+      if (Array.isArray(span.derivation)) {
+        span.derivation.forEach((w, i) => {
+          const parent = isObject(w) ? byId.get(w.parentSpanId) : null;
+          if (!parent || parent.kind !== "verbatim" || !isInteger(w.start) || !isInteger(w.end)) return;
+          if (w.end > parent.text.length) errors.push(`distilled span derivation[${i}] window exceeds its parent text`);
+          else if (!nonemptyString(parent.text.slice(w.start, w.end))) errors.push(`distilled span derivation[${i}] window is empty`);
+        });
       }
     }
   } else {
     if (span.origin !== ORIGIN.WITHHELD) errors.push("withheld span origin must be WITHHELD");
     if (!WITHHOLD_REASONS.includes(span.reason)) errors.push("withheld span reason must be a known reason code");
-    if (span.id !== `withheld:${span.sourceId ?? "unknown"}:${span.reason}`) errors.push("withheld span id must be withheld:<sourceId>:<reason>");
+    if (span.detail !== null && !isObject(span.detail)) errors.push("withheld span detail must be an object or null");
+    if (span.id !== withheldSpanId(span.sourceId, span.reason, span.detail)) errors.push("withheld span id must be withheld:<sourceId>:<reason>[:<qualifier>]");
   }
   return result(errors);
 }
@@ -412,7 +518,8 @@ export function applyCap(items, cap, { idOf } = {}) {
   if (!isInteger(cap) || cap < 0) throw new Error("applyCap: cap must be a non-negative integer");
   const kept = list.slice(0, cap);
   const dropped = list.slice(cap);
-  const pick = typeof idOf === "function" ? idOf : (item, index) => (isObject(item) && nonemptyString(item.id) ? item.id : `index:${cap + index}`);
+  // Dropped rows are labelled by their own id or, failing that, by a content hash: never by position.
+  const pick = typeof idOf === "function" ? idOf : (item) => (isObject(item) && nonemptyString(item.id) ? item.id : `item:${shortHash(JSON.stringify(item ?? null), 16)}`);
   return {
     kept,
     withheld: dropped.length
@@ -441,9 +548,21 @@ export function createProofRecord({ id, candidateSourceId, excerptSpanId, state,
   };
 }
 
-export function validateProofRecord(proof) {
+function checkCitedSpans(errors, ids, knownSpans, label) {
+  if (!Array.isArray(knownSpans) || !Array.isArray(ids)) return;
+  const byId = new Map(knownSpans.map((s) => [s.id, s]));
+  for (const id of ids) {
+    const span = byId.get(id);
+    if (span && span.kind === "distilled" && !isDistilledSpanTrusted(span)) errors.push(`${label} cites distilled span ${id} whose parentage is ${span.derivationState}; it cannot support a claim until verified or confirmed by a human`);
+    if (span && span.kind === "withheld") errors.push(`${label} cites withheld record ${id}, which carries no evidence`);
+  }
+}
+
+/** `knownSpans`, when supplied, lets the validator refuse targets on unverified distilled spans. */
+export function validateProofRecord(proof, { knownSpans } = {}) {
   const errors = [];
   if (!isObject(proof)) return result(["ProofRecord must be an object"]);
+  if (Array.isArray(proof.targets)) checkCitedSpans(errors, proof.targets.map((t) => (isObject(t) ? t.targetId : null)), knownSpans, "ProofRecord target");
   checkContractVersion(errors, proof, "ProofRecord");
   if (!nonemptyString(proof.id)) errors.push("ProofRecord.id must be nonempty");
   if (!nonemptyString(proof.candidateSourceId)) errors.push("ProofRecord.candidateSourceId must name the candidate EvidenceSource");
@@ -531,9 +650,9 @@ export function validateReviewHistory(events) {
     const own = validateReviewChange(event);
     own.errors.forEach((e) => errors.push(`[${index}] ${e}`));
     if (isObject(event)) {
-      if (seen.has(event.id)) errors.push(`[${index}] duplicate event id ${event.id}`);
+      if (nonemptyString(event.id) && seen.has(event.id)) errors.push(`[${index}] duplicate event id ${event.id}`);
       if (nonemptyString(event.predecessorId) && !seen.has(event.predecessorId)) errors.push(`[${index}] predecessor ${event.predecessorId} is not an earlier event`);
-      seen.add(event.id);
+      if (nonemptyString(event.id)) seen.add(event.id);
       const t = Date.parse(event.createdAt);
       if (!Number.isNaN(t)) { if (t < previousTime) errors.push(`[${index}] createdAt goes backwards`); previousTime = t; }
     }
@@ -568,10 +687,14 @@ export function createOutputBlock({ id, taskId, promptVersion, schemaVersion, mo
   };
 }
 
-/** `allowlist` is the set of ids the generating task was permitted to cite. */
-export function validateOutputBlock(block, { allowlist } = {}) {
+/**
+ * `allowlist` is the set of ids the generating task was permitted to cite; `knownSpans`, when
+ * supplied, refuses citations of unverified distilled spans or withheld records.
+ */
+export function validateOutputBlock(block, { allowlist, knownSpans } = {}) {
   const errors = [];
   if (!isObject(block)) return result(["OutputBlock must be an object"]);
+  checkCitedSpans(errors, block.sourceRefs, knownSpans, "OutputBlock");
   checkContractVersion(errors, block, "OutputBlock");
   if (!nonemptyString(block.id)) errors.push("OutputBlock.id must be nonempty");
   if (!nonemptyString(block.taskId)) errors.push("OutputBlock.taskId must name the server-owned task");
@@ -710,7 +833,7 @@ export function validateEvidenceBundle({ source, spans }) {
 
 export const CONTRACTS = Object.freeze({
   EvidenceSource: { create: createEvidenceSource, validate: validateEvidenceSource },
-  EvidenceSpan: { create: createVerbatimSpan, createDistilled: createDistilledSpan, createWithheld: createWithheldSpanSet, validate: validateEvidenceSpan },
+  EvidenceSpan: { create: createVerbatimSpan, createDistilled: createDistilledSpan, createWithheld: createWithheldSpanSet, validate: validateEvidenceSpan, isTrusted: isDistilledSpanTrusted },
   ProofRecord: { create: createProofRecord, validate: validateProofRecord },
   ReviewChange: { create: createReviewChange, validate: validateReviewChange, validateHistory: validateReviewHistory },
   OutputBlock: { create: createOutputBlock, validate: validateOutputBlock },

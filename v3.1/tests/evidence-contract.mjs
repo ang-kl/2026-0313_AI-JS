@@ -1,14 +1,14 @@
 // BLP-002 contract test: the seven canonical evidence contracts are versioned and deterministically
 // validated; the five origins stay distinguishable; unknown evidence, dates, owners and provenance
 // are withheld rather than inferred. Positive and negative fixtures for every contract.
-import assert from "node:assert/strict";
+import baseAssert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
   CONTRACT_VERSION, TEXT_NORMALISATION_VERSION, ORIGIN, ORIGINS, WITHHOLD, SOURCE_SYSTEM,
   EVIDENCE_WINDOW_FIELDS, CONTRACTS,
   sha256Hex, normalisePostingText, normaliseDistilledText,
   makeSourceId, parseCsgUuid, createEvidenceSource, validateEvidenceSource,
-  createVerbatimSpan, createDistilledSpan, createWithheldSpanSet, validateEvidenceSpan,
+  createVerbatimSpan, createDistilledSpan, createWithheldSpanSet, validateEvidenceSpan, isDistilledSpanTrusted,
   makeVerbatimSpanId, makeDistilledSpanId, parseExtractionVersion, isLaterExtractionVersion, applyCap,
   createProofRecord, validateProofRecord, isProofTransitionPermitted,
   createReviewChange, validateReviewChange, validateReviewHistory,
@@ -18,16 +18,23 @@ import {
   validateEvidenceBundle, assertValid,
 } from "../src/contracts/evidenceContracts.js";
 
+// The check count is measured, not hand-incremented: every assertion executed is counted here.
 let checks = 0;
-const ok = (validation, label) => { checks += 1; assert.equal(validation.ok, true, `${label} should be valid:\n${validation.errors.join("\n")}`); };
+const assert = new Proxy(baseAssert, {
+  apply(target, thisArg, args) { checks += 1; return target(...args); },
+  get(target, key) {
+    const value = target[key];
+    return typeof value === "function" ? (...args) => { checks += 1; return value.apply(target, args); } : value;
+  },
+});
+const ok = (validation, label) => assert.equal(validation.ok, true, `${label} should be valid:\n${validation.errors.join("\n")}`);
 const bad = (validation, pattern, label) => {
-  checks += 1;
   assert.equal(validation.ok, false, `${label} should be invalid`);
   assert.ok(validation.errors.some((e) => pattern.test(e)), `${label}: expected an error matching ${pattern}, got:\n${validation.errors.join("\n")}`);
 };
 
 // --- versioning and vocabularies -----------------------------------------------------------------
-assert.equal(CONTRACT_VERSION, "1.0.0");
+assert.equal(CONTRACT_VERSION, "1.0.1");
 assert.equal(TEXT_NORMALISATION_VERSION, "ptn-1");
 assert.deepEqual(ORIGINS, ["SOURCE_VERBATIM", "DETERMINISTIC", "AI_ASSISTED", "USER_AUTHORED", "WITHHELD"]);
 assert.equal(Object.keys(CONTRACTS).length, 7, "exactly seven canonical contracts");
@@ -36,14 +43,12 @@ for (const [name, api] of Object.entries(CONTRACTS)) {
   assert.equal(typeof api.create, "function", `${name}.create`);
   assert.equal(typeof api.validate, "function", `${name}.validate`);
 }
-checks += 5;
 
 // --- hashing is deterministic and agrees with node:crypto ---------------------------------------
-for (const sample of ["", "abc", "Data Engineer\nBuild pipelines.", "ünïcödé — 日本語 🚀", "a".repeat(1000)]) {
+for (const sample of ["", "abc", "Data Engineer\nBuild pipelines.", "ünïcödé — 日本語 🚀", "a".repeat(1000), "\u{1F600}".repeat(7), "x".repeat(55), "y".repeat(56), "z".repeat(64)]) {
   assert.equal(sha256Hex(sample), createHash("sha256").update(sample, "utf8").digest("hex"), `sha256 of ${JSON.stringify(sample.slice(0, 12))}`);
 }
 assert.equal(sha256Hex("x"), sha256Hex("x"));
-checks += 6;
 
 // --- posting-text normalisation is pinned and idempotent -----------------------------------------
 const raw = "  Senior Data Engineer\r\n\r\n\r\n\r\nBuild pipelines.   \r\nOwn quality.\t\n";
@@ -51,7 +56,10 @@ const norm = normalisePostingText(raw);
 assert.equal(norm, "Senior Data Engineer\n\nBuild pipelines.\nOwn quality.");
 assert.equal(normalisePostingText(norm), norm, "normalisation is idempotent");
 assert.equal(normaliseDistilledText("  Build   PIPELINES \n daily "), "build pipelines daily");
-checks += 3;
+// Every Unicode space separator folds to U+0020 and zero-width characters vanish (finding B).
+assert.equal(normalisePostingText("Build pipelines daily　now​﻿."), "Build pipelines daily now.");
+assert.equal(normaliseDistilledText("Build pipelines​"), "build pipelines");
+assert.equal(sha256Hex(normalisePostingText("a b")), sha256Hex(normalisePostingText("a b")), "thin space and space hash alike");
 
 // --- 1. EvidenceSource ---------------------------------------------------------------------------
 assert.deepEqual(makeSourceId({ sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "MCF-2026-0001" }), { id: "src:mycareersfuture:MCF-2026-0001", withheld: null });
@@ -65,28 +73,37 @@ for (const partial of [{ platform: "", jobId: "12345", postingNo: "2" }, { platf
 assert.equal(makeSourceId({ sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "  " }).withheld.reason, WITHHOLD.INCOMPLETE_IDENTITY);
 assert.deepEqual(parseCsgUuid("csg:careers:12345:2"), { platform: "careers", jobId: "12345", postingNo: "2" });
 assert.equal(parseCsgUuid("not-a-csg-id"), null);
-checks += 8;
 
 const mcfId = makeSourceId({ sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "MCF-2026-0001" }).id;
-const source = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "MCF-2026-0001", rawText: raw, retrievedAt: "2026-09-08T03:00:00Z", label: "Senior Data Engineer" });
+const source = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, nativeId: "MCF-2026-0001", rawText: raw, retrievedAt: "2026-09-08T03:00:00Z", label: "Senior Data Engineer", complete: true });
 ok(validateEvidenceSource(source), "well-formed source");
 assert.equal(source.text, norm);
 assert.equal(source.textHash, sha256Hex(norm));
 assert.equal(source.origin, ORIGIN.SOURCE_VERBATIM);
+assert.equal(source.completeness, "COMPLETE");
 assert.deepEqual(source.withheld, []);
-// Missing retrieval time is withheld, not defaulted to now.
+// Missing retrieval time is withheld, not defaulted to now; unknown completeness is withheld too (finding C).
 const noTime = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, rawText: raw });
 assert.equal(noTime.retrievedAt, null);
-assert.deepEqual(noTime.withheld, [{ field: "retrievedAt", reason: WITHHOLD.UNAVAILABLE_FIELD }]);
-ok(validateEvidenceSource(noTime), "source with withheld retrievedAt");
+assert.equal(noTime.completeness, "UNKNOWN");
+assert.deepEqual(noTime.withheld, [{ field: "retrievedAt", reason: WITHHOLD.UNAVAILABLE_FIELD }, { field: "completeness", reason: WITHHOLD.UNAVAILABLE_FIELD }]);
+ok(validateEvidenceSource(noTime), "source with withheld retrievedAt and completeness");
+// Upstream truncation is recorded with its limit, never silently attested complete.
+const truncated = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, rawText: raw, retrievedAt: "2026-09-08T03:00:00Z", truncation: { limit: 12000, originalLength: 15873 } });
+assert.equal(truncated.completeness, "TRUNCATED");
+assert.deepEqual(truncated.truncation, { limit: 12000, originalLength: 15873, reason: WITHHOLD.CAP_EXCEEDED });
+ok(validateEvidenceSource(truncated), "truncated source");
+bad(validateEvidenceSource({ ...truncated, truncation: null }), /must record its truncation limit/, "truncated without limit");
+bad(validateEvidenceSource({ ...source, truncation: { limit: 5, originalLength: 9, reason: WITHHOLD.CAP_EXCEEDED } }), /must be null unless completeness is TRUNCATED/, "complete source carrying a truncation record");
+bad(validateEvidenceSource({ ...noTime, withheld: noTime.withheld.slice(0, 1) }), /completeness UNKNOWN must be recorded as withheld/, "unknown completeness not withheld");
+bad(validateEvidenceSource({ ...source, completeness: "PARTIAL" }), /completeness must be one of/, "unknown completeness value");
 bad(validateEvidenceSource({ ...source, textHash: "0".repeat(64) }), /textHash does not match/, "tampered hash");
 bad(validateEvidenceSource({ ...source, text: source.text + "  " }), /not in canonical normalised form/, "un-normalised text");
 bad(validateEvidenceSource({ ...source, contractVersion: "0.9.0" }), /contractVersion/, "wrong contract version");
 bad(validateEvidenceSource({ ...source, id: "MCF-2026-0001" }), /id must be src:/, "unprefixed id");
 bad(validateEvidenceSource({ ...source, origin: ORIGIN.AI_ASSISTED }), /origin must be SOURCE_VERBATIM/, "source cannot be AI-assisted");
-bad(validateEvidenceSource({ ...noTime, withheld: [] }), /must be recorded as withheld/, "null date without withheld record");
+bad(validateEvidenceSource({ ...noTime, withheld: [] }), /retrievedAt null must be recorded as withheld/, "null date without withheld record");
 bad(validateEvidenceSource({ ...source, retrievedAt: "yesterday" }), /ISO 8601/, "non-ISO date");
-checks += 5;
 
 // --- 2. EvidenceSpan: verbatim ----------------------------------------------------------------------
 const start = norm.indexOf("Build pipelines."), end = start + "Build pipelines.".length;
@@ -103,41 +120,69 @@ bad(validateEvidenceSpan({ ...span, text: "Build pipelines" }, { source }), /doe
 bad(validateEvidenceSpan({ ...span, id: "s3" }, { source }), /id must be span:/, "positional id rejected");
 bad(validateEvidenceSpan({ ...span, start: end, end: start, id: makeVerbatimSpanId(mcfId, end, start) }, { source }), /0 <= start < end/, "inverted offsets");
 // A source that changed under a span is detected through the hash.
-const edited = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, rawText: raw.replace("Build", "Ship"), retrievedAt: "2026-09-08T03:00:00Z" });
+const edited = createEvidenceSource({ id: mcfId, kind: "posting", sourceSystem: SOURCE_SYSTEM.MCF, rawText: raw.replace("Build", "Ship"), retrievedAt: "2026-09-08T03:00:00Z", complete: true });
 bad(validateEvidenceSpan(span, { source: edited }), /hash does not match/, "stale span against edited source");
-checks += 2;
 
-// --- 2. EvidenceSpan: distilled with mandatory parent ---------------------------------------------
+// --- 2. EvidenceSpan: distilled with mandatory, checked parentage ---------------------------------
 assert.deepEqual(parseExtractionVersion("duty-extract-3"), { name: "duty-extract", number: 3 });
 assert.equal(parseExtractionVersion("v3"), null);
+assert.equal(parseExtractionVersion("duty-extract-03"), null, "leading zeros are rejected so duty-3 and duty-03 cannot mint different ids (finding E)");
+assert.deepEqual(parseExtractionVersion("duty-extract-0"), { name: "duty-extract", number: 0 });
 assert.equal(isLaterExtractionVersion("duty-extract-4", "duty-extract-3"), true);
 assert.equal(isLaterExtractionVersion("duty-extract-3", "duty-extract-3"), false);
 assert.equal(isLaterExtractionVersion("other-4", "duty-extract-3"), false, "different extractor names are not comparable");
+// An AI-assisted distillation without recorded derivation windows is structurally valid but UNVERIFIED.
 const duty = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId });
 assert.equal(duty.kind, "distilled");
 assert.equal(duty.id, makeDistilledSpanId("Build and maintain data pipelines", "duty-extract-3"));
 assert.equal(duty.origin, ORIGIN.AI_ASSISTED);
-ok(validateEvidenceSpan(duty, { knownSpans: [span] }), "distilled span with verbatim parent");
+assert.equal(duty.derivationState, "UNVERIFIED");
+assert.equal(isDistilledSpanTrusted(duty), false);
+ok(validateEvidenceSpan(duty, { knownSpans: [span] }), "unverified distilled span is a valid record");
+// With parent-relative windows naming the supporting phrase, it is VERIFIED and inspectable (finding A).
+const dutyVerified = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, derivation: [{ parentSpanId: span.id, start: 0, end: 15 }] });
+assert.equal(dutyVerified.derivationState, "VERIFIED");
+assert.equal(dutyVerified.id, duty.id, "derivation does not change identity");
+assert.equal(isDistilledSpanTrusted(dutyVerified), true);
+ok(validateEvidenceSpan(dutyVerified, { knownSpans: [span] }), "verified distilled span");
+bad(validateEvidenceSpan({ ...dutyVerified, derivation: [{ parentSpanId: span.id, start: 0, end: 999 }] }, { knownSpans: [span] }), /window exceeds its parent text/, "derivation window overrun");
+bad(validateEvidenceSpan({ ...dutyVerified, derivation: [{ parentSpanId: "span:other", start: 0, end: 3 }] }, { knownSpans: [span] }), /not one of its parents/, "derivation window on a non-parent");
+bad(validateEvidenceSpan({ ...duty, derivationState: "VERIFIED" }, { knownSpans: [span] }), /does not follow from its origin and derivation/, "claimed VERIFIED without windows");
+const dutyConfirmed = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, userConfirmed: true });
+assert.equal(dutyConfirmed.derivationState, "USER_CONFIRMED");
+ok(validateEvidenceSpan(dutyConfirmed, { knownSpans: [span] }), "human-confirmed link");
+// A DETERMINISTIC distillation must actually be derivable from its parents.
+const dutyDet = createDistilledSpan({ text: "build pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
+assert.equal(dutyDet.derivationState, "VERIFIED");
+ok(validateEvidenceSpan(dutyDet, { knownSpans: [span] }), "deterministic distillation that occurs in its parent");
+const invented = createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
+bad(validateEvidenceSpan(invented, { knownSpans: [span] }), /must be derivable from its parents' text/, "the Supervisor's Berlin probe: invented deterministic distillation");
+assert.equal(createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).derivationState, "UNVERIFIED", "the same text as an AI distillation is merely unverified, and therefore untrusted");
 // Same text, same version, different casing/spacing: same id. Re-extraction: new id, same parents.
 assert.equal(createDistilledSpan({ text: "  build AND maintain data   pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).id, duty.id);
 const reextracted = createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-4", parentSpanIds: [span.id], sourceId: mcfId });
 assert.notEqual(reextracted.id, duty.id);
 assert.deepEqual(reextracted.parentSpanIds, duty.parentSpanIds);
-// No parent: not a distilled span, an addressable withheld record.
+// No parent: not a distilled span, an addressable withheld record qualified by the text (finding D).
 const orphan = createDistilledSpan({ text: "Something", extractionVersion: "duty-extract-3", parentSpanIds: [], sourceId: mcfId });
 assert.equal(orphan.kind, "withheld");
 assert.equal(orphan.reason, WITHHOLD.NO_PARENT_SPAN);
+assert.equal(orphan.detail.text, "Something");
+assert.ok(orphan.id.startsWith(`withheld:${mcfId}:WITHHELD_NO_PARENT_SPAN:`));
 ok(validateEvidenceSpan(orphan), "withheld orphan is itself valid");
+const orphan2 = createDistilledSpan({ text: "Something else", extractionVersion: "duty-extract-3", parentSpanIds: [], sourceId: mcfId });
+assert.notEqual(orphan.id, orphan2.id, "two parentless distillations do not collide");
+ok(validateEvidenceBundle({ source, spans: [orphan, orphan2] }), "two withheld orphans coexist in one bundle");
+bad(validateEvidenceSpan({ ...orphan, detail: { ...orphan.detail, qualifier: "x" } }), /withheld:<sourceId>:<reason>\[:<qualifier>\]/, "qualifier drift");
 bad(validateEvidenceSpan({ ...duty, parentSpanIds: [] }, { knownSpans: [span] }), /at least one parent/, "empty parents");
 bad(validateEvidenceSpan({ ...duty, parentSpanIds: ["span:src:mycareersfuture:MCF-2026-0001:999-1000"] }, { knownSpans: [span] }), /dangling reference/, "unknown parent");
 bad(validateEvidenceSpan({ ...duty, parentSpanIds: [duty.id] }, { knownSpans: [span, duty] }), /not a verbatim span/, "distilled parent");
 bad(validateEvidenceSpan({ ...duty, extractionVersion: "latest" }, { knownSpans: [span] }), /name-N/, "undeclared extraction version");
 bad(validateEvidenceSpan({ ...duty, text: "Build pipelines" }, { knownSpans: [span] }), /normalisedText drifted|content-addressed/, "text changed without id change");
 bad(validateEvidenceSpan({ ...duty, origin: ORIGIN.SOURCE_VERBATIM }, { knownSpans: [span] }), /AI_ASSISTED or DETERMINISTIC/, "distilled cannot claim verbatim origin");
-const otherSource = createEvidenceSource({ id: "src:csg:careers:1:1", kind: "posting", sourceSystem: SOURCE_SYSTEM.CSG, rawText: "Other posting text", retrievedAt: "2026-09-08T03:00:00Z" });
+const otherSource = createEvidenceSource({ id: "src:csg:careers:1:1", kind: "posting", sourceSystem: SOURCE_SYSTEM.CSG, rawText: "Other posting text", retrievedAt: "2026-09-08T03:00:00Z", complete: true });
 const otherSpan = createVerbatimSpan(otherSource, 0, 5);
 bad(validateEvidenceSpan({ ...duty, parentSpanIds: [otherSpan.id] }, { knownSpans: [span, otherSpan] }), /different source/, "cross-source parent");
-checks += 11;
 
 // --- 2. EvidenceSpan: withheld set and caps -----------------------------------------------------------
 const nothing = createWithheldSpanSet(mcfId);
@@ -150,20 +195,28 @@ assert.equal(capped.kept.length, 2);
 assert.deepEqual(capped.withheld, { reason: WITHHOLD.CAP_EXCEEDED, cap: 2, droppedCount: 1, droppedIds: ["c"], origin: ORIGIN.WITHHELD });
 assert.equal(applyCap([{ id: "a" }], 14).withheld, null);
 assert.throws(() => applyCap([], -1), /non-negative integer/);
+// Dropped rows without ids are labelled by content, never by position (finding F).
+const cappedNoIds = applyCap([{ text: "x" }, { text: "y" }, { text: "z" }], 1);
+assert.equal(cappedNoIds.withheld.droppedIds.length, 2);
+assert.ok(cappedNoIds.withheld.droppedIds.every((label) => /^item:[0-9a-f]{16}$/.test(label)));
+assert.deepEqual(applyCap([{ text: "q" }, { text: "y" }, { text: "z" }], 1).withheld.droppedIds, cappedNoIds.withheld.droppedIds, "same dropped content, same labels, whatever came before it");
 ok(validateEvidenceBundle({ source, spans: [span, duty] }), "bundle");
 bad(validateEvidenceBundle({ source, spans: [] }), /no spans; supply createWithheldSpanSet/, "empty bundle must be withheld explicitly");
 ok(validateEvidenceBundle({ source, spans: [nothing] }), "bundle with explicit withheld set");
 bad(validateEvidenceBundle({ source, spans: [span, span] }), /duplicate span id/, "duplicate spans");
-checks += 5;
 
 // --- 3. ProofRecord ------------------------------------------------------------------------------------
-const cvSource = createEvidenceSource({ id: "src:manual-paste:session-1", kind: "candidate-document", sourceSystem: SOURCE_SYSTEM.MANUAL_PASTE, rawText: "Led migration of 40 pipelines to Airflow in 2025.", retrievedAt: "2026-09-08T03:10:00Z" });
+const cvSource = createEvidenceSource({ id: "src:manual-paste:session-1", kind: "candidate-document", sourceSystem: SOURCE_SYSTEM.MANUAL_PASTE, rawText: "Led migration of 40 pipelines to Airflow in 2025.", retrievedAt: "2026-09-08T03:10:00Z", complete: true });
 const excerpt = createVerbatimSpan(cvSource, 0, 31);
-const proof = createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id, state: "DEMONSTRATED", confirmation: "USER-CONFIRMED", targets: [{ targetKind: "duty", targetId: duty.id }], destinations: { resume: "ALLOWED" } });
+const proof = createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id, state: "DEMONSTRATED", confirmation: "USER-CONFIRMED", targets: [{ targetKind: "duty", targetId: dutyVerified.id }], destinations: { resume: "ALLOWED" } });
 assert.equal(proof.origin, ORIGIN.USER_AUTHORED);
 assert.equal(proof.destinations.coverLetter, "UNSET");
 assert.ok(proof.id.startsWith("proof:"));
 ok(validateProofRecord(proof), "confirmed demonstrated proof");
+ok(validateProofRecord(proof, { knownSpans: [span, dutyVerified, excerpt] }), "proof targeting a verified distilled span");
+bad(validateProofRecord(proof, { knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED; it cannot support a claim/, "proof targeting an unverified distilled span");
+ok(validateProofRecord(proof, { knownSpans: [span, dutyConfirmed, excerpt] }), "proof targeting a human-confirmed distilled span");
+bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: nothing.id }] }, { knownSpans: [nothing] }), /cites withheld record/, "proof targeting a withheld record");
 assert.equal(createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id }).state, "WITHHELD", "default state is WITHHELD");
 bad(validateProofRecord({ ...proof, confirmation: null }), /requires USER-CONFIRMED/, "demonstrated without confirmation");
 bad(validateProofRecord({ ...proof, state: "CLAIMED_ONLY" }), /allow a destination only in state/, "claimed-only cannot reach a destination");
@@ -175,7 +228,6 @@ assert.equal(isProofTransitionPermitted("CLAIMED_ONLY", "DEMONSTRATED"), true);
 assert.equal(isProofTransitionPermitted("WITHHELD", "DEMONSTRATED"), false, "withheld cannot silently become accepted proof");
 assert.equal(isProofTransitionPermitted("STALE", "CERTIFIED"), true);
 assert.equal(isProofTransitionPermitted("CONFLICTING", "CONFLICTING"), false);
-checks += 8;
 
 // --- 4. ReviewChange and append-only history -------------------------------------------------------------
 const t0 = "2026-09-08T04:00:00Z", t1 = "2026-09-08T04:01:00Z", t2 = "2026-09-08T04:02:00Z";
@@ -194,13 +246,19 @@ bad(validateReviewChange({ ...comment, verb: "map" }), /verb must be one of/, "v
 bad(validateReviewHistory([comment, { ...decision, id: "rc-9", predecessorId: "rc-404" }]), /not an earlier event/, "dangling predecessor");
 bad(validateReviewHistory([comment, { ...proposal, id: "rc-1" }]), /duplicate event id/, "duplicate id");
 bad(validateReviewHistory([proposal, { ...comment, createdAt: t0 }]), /goes backwards/, "time reversal");
-checks += 4;
+// An id-less event is reported as such, not as a duplicate of "undefined" (finding H).
+const idless = validateReviewHistory([{ ...comment, id: undefined }, { ...proposal, id: undefined }]);
+assert.equal(idless.ok, false);
+assert.ok(idless.errors.some((e) => /ReviewChange\.id must be nonempty/.test(e)));
+assert.ok(!idless.errors.some((e) => /duplicate event id undefined/.test(e)));
 
 // --- 5. OutputBlock -----------------------------------------------------------------------------------------
 const block = createOutputBlock({ id: "ob-1", taskId: "resume-claim", promptVersion: "resume-claim-1", schemaVersion: "resume-claim-schema-1", model: "provider/model", text: "Migrated 40 pipelines to Airflow.", sourceRefs: [excerpt.id, duty.id], state: "PROPOSED", policyResult: "PASS", createdAt: t2 });
 ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id, span.id] }), "output within allowlist");
 assert.equal(block.evidenceHash, computeEvidenceHash([duty.id, excerpt.id]), "evidence hash is order-independent");
 bad(validateOutputBlock(block, { allowlist: [span.id] }), /outside the supplied allowlist/, "citation outside allowlist");
+bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED/, "citation of an unverified distilled span");
+ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyVerified, excerpt] }), "citation of a verified distilled span");
 bad(validateOutputBlock({ ...block, sourceRefs: [] , evidenceHash: computeEvidenceHash([]) }), /at least one evidence id/, "unsupported factual text");
 bad(validateOutputBlock({ ...block, evidenceHash: "0".repeat(64) }), /evidenceHash does not match/, "hash drift");
 bad(validateOutputBlock({ ...block, state: "ACCEPTED", policyResult: "NOT_RUN" }), /requires policyResult PASS/, "accepted without policy pass");
@@ -210,7 +268,6 @@ assert.equal(isOutputStale(block, [excerpt.id, duty.id]), false);
 assert.equal(isOutputStale(block, [excerpt.id]), true, "a changed evidence set makes the block stale");
 const withheldBlock = createOutputBlock({ id: "ob-2", taskId: "cover-letter", promptVersion: "cl-1", schemaVersion: "cl-schema-1", state: "WITHHELD", origin: ORIGIN.WITHHELD, sourceRefs: [] });
 ok(validateOutputBlock(withheldBlock), "withheld block needs no citations");
-checks += 3;
 
 // --- 6. VisualProfile ---------------------------------------------------------------------------------------
 const linkedProfile = createVisualProfile({ primaryVisual: "workflow", reasons: [{ sourceSpanId: span.id, reason: "The posting describes a sequenced handover." }], secondaryVisuals: ["org"] });
@@ -232,7 +289,6 @@ assert.equal(empty.withheld.length, 2);
 bad(validateVisualProfile({ ...unlinked, recommendation: "workflow" }), /only with a supported primary and a source-linked reason/, "forced recommendation");
 bad(validateVisualProfile({ ...linkedProfile, origin: ORIGIN.AI_ASSISTED }), /never classifies from a title/, "AI-assisted selector");
 bad(validateVisualProfile({ ...linkedProfile, supported: false }), /supported must equal/, "supported flag drift");
-checks += 8;
 
 // --- 7. EvidenceWindow ------------------------------------------------------------------------------------------
 const full = createEvidenceWindow({ publishedAt: "2026-09-01T00:00:00+08:00", closingAt: "2026-09-30T23:59:00+08:00", retrievedAt: "2026-09-08T03:00:00Z", analysedAt: "2026-09-08T03:05:00Z", corpusRange: { from: "2026-08-01T00:00:00Z", to: "2026-09-08T00:00:00Z" }, postingCount: 27, sourceTimezone: "Asia/Singapore" });
@@ -256,11 +312,9 @@ bad(validateEvidenceWindow({ ...full, publishedAt: { value: "2026-09-01T00:00:00
 bad(validateEvidenceWindow({ ...full, closingAt: { value: null, origin: ORIGIN.SOURCE_VERBATIM, withheldReason: null } }), /null value must be origin WITHHELD/, "silent null");
 bad(validateEvidenceWindow({ ...full, freshness: { value: "recent", origin: ORIGIN.DETERMINISTIC, withheldReason: null } }), /unknown fields: freshness/, "generic freshness substitute");
 bad(validateEvidenceWindow({ ...full, postingCount: { value: 27, origin: ORIGIN.WITHHELD, withheldReason: null } }), /carries a value but claims origin WITHHELD/, "value with withheld origin");
-checks += 15;
 
 // --- assertValid ------------------------------------------------------------------------------------------------------
 assert.equal(assertValid(validateEvidenceSource(source), "source"), true);
 assert.throws(() => assertValid(validateEvidenceSource({ ...source, textHash: "x" }), "source"), /source invalid:/);
-checks += 2;
 
 console.log(`Evidence contract test passed: 7 contracts, ${checks} checks, contract ${CONTRACT_VERSION}, normalisation ${TEXT_NORMALISATION_VERSION}.`);
