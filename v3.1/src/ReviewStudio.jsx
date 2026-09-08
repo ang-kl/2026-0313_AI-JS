@@ -78,7 +78,11 @@ export default function ReviewStudio(props) {
             onClick={() => setSurface("universe")}
             aria-label="Return to the Work Universe"
             style={{
-              position: "fixed", right: 14, top: 72, zIndex: 100040,
+              // BLP-003 phone-width round trip: the sticky site header is taller than 72px at
+              // phone width (95px at 430px), so a fixed top of 72 put this button under it and
+              // return navigation could not be tapped. App.jsx measures the header into
+              // --site-header-height; sit just below it at every width.
+              position: "fixed", right: 14, top: "calc(var(--site-header-height, 72px) + 8px)", zIndex: 100040,
               minHeight: 44, padding: "0 14px", borderRadius: 999,
               border: "1px solid #b7c8c6", background: "rgba(251,250,246,.96)",
               color: "#17343a", fontSize: 12, fontWeight: 800, cursor: "pointer",
