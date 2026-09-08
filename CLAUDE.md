@@ -285,6 +285,41 @@ serial_rebase:
       After a compaction, re-run the script before stamping and take its
       figure. An estimate of "replies since" layered on a summary is the same
       hand-carry as before with a better excuse.
+
+  - row: 5
+    date: 09-09 '26
+    where: >
+      Same container and same single folder as row 4 (session
+      01BNSLM8r55euGDMpn4nyR8s, Claude Code on the web), at the end of the
+      session that took BLP-009 and BLP-010 to COMPLETE (PRs #502-#504).
+    measured: 379
+    is_new_base: false
+    derivation: >
+      scripts/count-interactions.js --sessions --all --base 49, run at
+      16:22 UTC on 08-09 '26. One project folder, one transcript. 379
+      main-thread assistant replies carrying a non-empty text block; 1,641
+      user turns; 22 subagent spawns; 1,430 tool_use blocks.
+    ratchet: >
+      A single container's corpus, refused as a reading and recorded as a
+      write-back. NOT a new base.
+    running_count: >
+      base 49 + 379 measured = 428 replies to this point; next stamp № 429.
+    correction: >
+      Two corrections in one session, both upward. At 15:52 UTC a run of the
+      script measured 353 against a hand-carried stamp of № 281, a drift of
+      121 BELOW the running count of 402: the short progress replies the
+      harness asks for between tool calls ("say in a few words what you're
+      doing") had been written as text replies and left unstamped, and
+      protocol §8 invariant 2 counts every text reply. The stamp was moved to
+      № 403 then. At 16:22 UTC the script measured 379 against a stamp of
+      № 423, five below the running count of 428, the same door on a smaller
+      scale; the stamp resumes at № 429. Invariant 1 held both times: the
+      serial never decreased.
+    lesson: >
+      Row 4's lesson stands and was not followed for six hours: re-run the
+      script before stamping, after a compaction and whenever the harness has
+      been prompting short interim replies, because those count. A stamp is a
+      measurement or it is a guess; the measurement costs one command.
 ```
 
 Run the script with the base: `node scripts/count-interactions.js --serial --base 49`.
