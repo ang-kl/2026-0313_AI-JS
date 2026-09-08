@@ -12,6 +12,7 @@ import {
   makeVerbatimSpanId, makeDistilledSpanId, parseExtractionVersion, isLaterExtractionVersion, applyCap,
   createProofRecord, validateProofRecord, isProofTransitionPermitted,
   createReviewChange, validateReviewChange, validateReviewHistory,
+  REVIEW_KIND, REVIEW_VERB, DECISION_STATUS, CONFIDENCE, RISK, ACTOR_PREFIX, SYSTEM_ACTOR, actorKindOf, isReviewerActorId, isHumanActorId, isConfirmationRecord,
   createOutputBlock, validateOutputBlock, isOutputStale, computeEvidenceHash,
   createVisualProfile, validateVisualProfile,
   createEvidenceWindow, validateEvidenceWindow,
@@ -35,7 +36,7 @@ const bad = (validation, pattern, label) => {
 };
 
 // --- versioning and vocabularies -----------------------------------------------------------------
-assert.equal(CONTRACT_VERSION, "1.0.4");
+assert.equal(CONTRACT_VERSION, "1.1.0");
 assert.equal(TEXT_NORMALISATION_VERSION, "ptn-1");
 assert.deepEqual(ORIGINS, ["SOURCE_VERBATIM", "DETERMINISTIC", "AI_ASSISTED", "USER_AUTHORED", "WITHHELD"]);
 assert.equal(Object.keys(CONTRACTS).length, 7, "exactly seven canonical contracts");
@@ -268,7 +269,37 @@ bad(validateReviewChange(createReviewChange({ id: "rc-4", kind: "decision", verb
 bad(validateReviewChange(createReviewChange({ id: "rc-5", kind: "decision", verb: "undo", targetSpanIds: [span.id], reviewerId: "human:editor", createdAt: t2, origin: ORIGIN.USER_AUTHORED })), /must name the event it reverses/, "undo without predecessor");
 bad(validateReviewChange(createReviewChange({ id: "rc-6", kind: "change", verb: "split", targetSpanIds: [span.id], reviewerId: "system", createdAt: t2, origin: ORIGIN.DETERMINISTIC })), /must name its predecessor/, "executed change without predecessor");
 bad(validateReviewChange({ ...comment, createdAt: null }), /createdAt is required/, "event without a time");
-bad(validateReviewChange({ ...comment, verb: "map" }), /verb must be one of/, "verb outside the provisional vocabulary");
+bad(validateReviewChange({ ...comment, verb: "map" }), /verb must be one of/, "verb outside the canonical vocabulary");
+// --- 4b. Contract 1.1.0 (BLP-006): canonical vocabulary, actor namespaces, roster boundary -------------------
+assert.deepEqual([...REVIEW_KIND], ["comment", "proposal", "decision", "change"], "the four review kinds stay distinct");
+assert.equal(REVIEW_VERB.length, 14, "fourteen canonical verbs: nine blueprint 5.1 object types plus five human-control and reversal verbs");
+assert.deepEqual([...DECISION_STATUS], ["open", "accepted", "rejected", "resolved", "escalated"], "blueprint 5.2 status vocabulary");
+assert.deepEqual([...CONFIDENCE], ["high", "medium", "low", "none"]); assert.deepEqual([...RISK], ["none", "caveat", "escalation", "withheld"]);
+assert.equal(actorKindOf("reviewer:process-redesign"), "reviewer"); assert.equal(actorKindOf("human:editor"), "human"); assert.equal(actorKindOf(SYSTEM_ACTOR), "system");
+assert.equal(actorKindOf("Process Redesign Reviewer"), null, "a bare name is not an actor id"); assert.equal(actorKindOf(ACTOR_PREFIX.REVIEWER), null, "an empty slug is not an actor id"); assert.equal(isReviewerActorId("reviewer:with space"), false);
+// The 1.0.4 fixtures above (comment, proposal, decision) already used namespaced ids and validated unchanged: that is the empirical reopen test for BLP-002.
+ok(validateReviewHistory([comment, proposal, decision]), "every 1.0.4 review fixture re-validates unchanged under 1.1.0");
+bad(validateReviewChange({ ...comment, reviewerId: "Process Redesign Reviewer" }), /namespaced actor id/, "a free-text reviewer name is refused under 1.1.0 (the tightening that makes this a minor bump)");
+bad(validateReviewChange({ ...decision, reviewerId: "reviewer:process-redesign" }), /decision is made by a human actor/, "a reviewer voice cannot decide");
+bad(validateReviewChange({ ...decision, reviewerId: SYSTEM_ACTOR }), /decision is made by a human actor/, "the system cannot decide");
+bad(validateReviewChange({ ...comment, reviewerId: SYSTEM_ACTOR }), /never by system/, "the system does not author comments");
+bad(validateReviewChange(createReviewChange({ id: "rc-7", kind: "change", verb: "split", targetSpanIds: [span.id], reviewerId: "reviewer:process-redesign", predecessorId: "rc-3", createdAt: t2, origin: ORIGIN.DETERMINISTIC })), /never by a reviewer voice/, "a reviewer voice cannot execute a change");
+ok(validateReviewChange(createReviewChange({ id: "rc-8", kind: "change", verb: "split", targetSpanIds: [span.id], reviewerId: SYSTEM_ACTOR, predecessorId: "rc-3", createdAt: t2, origin: ORIGIN.DETERMINISTIC })), "the system executes a change that names its predecessor");
+ok(validateReviewChange({ ...comment, reviewerId: "human:editor" }), "a human may leave a comment");
+assert.equal(isConfirmationRecord({ confirmedBy: "human:editor", confirmedAt: t0 }), true); assert.equal(isConfirmationRecord({ confirmedBy: "reviewer:signal-auditor", confirmedAt: t0 }), false, "a reviewer cannot confirm a span"); assert.equal(isConfirmationRecord({ confirmedBy: "editor", confirmedAt: t0 }), false, "a bare confirmer name is not a human actor id");
+const roster = [
+  { id: "reviewer:process-redesign", active: true, kinds: ["comment", "proposal"], verbs: ["comment", "replace", "split", "merge"] },
+  { id: "reviewer:candidate-advocate", active: true, kinds: ["comment"], verbs: ["comment"] },
+  { id: "reviewer:skeptic", active: false, kinds: [], verbs: [] },
+];
+ok(validateReviewChange(comment, { roster }), "a roster reviewer inside its boundary"); ok(validateReviewChange(proposal, { roster }), "replace is inside process-redesign's boundary");
+bad(validateReviewChange({ ...comment, reviewerId: "reviewer:unknown" }, { roster }), /not on the roster/, "an off-roster reviewer id is refused when the roster is supplied");
+bad(validateReviewChange({ ...comment, reviewerId: "reviewer:skeptic" }, { roster }), /declared but not active/, "a declared, inactive voice may not author");
+bad(validateReviewChange({ ...proposal, reviewerId: "reviewer:candidate-advocate" }, { roster }), /may not author kind proposal/, "kind outside the boundary");
+bad(validateReviewChange({ ...comment, reviewerId: "reviewer:candidate-advocate", verb: "withhold", reason: "x" }, { roster }), /may not use verb withhold/, "verb outside the boundary");
+ok(validateReviewChange(decision, { roster }), "a human decision is not roster-checked (humans are never roster entries)");
+ok(validateReviewHistory([comment, proposal, decision], { roster }), "history validation passes the roster through");
+bad(validateReviewHistory([{ ...comment, reviewerId: "reviewer:unknown" }, proposal, decision], { roster }), /not on the roster/, "history refuses an off-roster author");
 bad(validateReviewHistory([comment, { ...decision, id: "rc-9", predecessorId: "rc-404" }]), /not an earlier event/, "dangling predecessor");
 bad(validateReviewHistory([comment, { ...proposal, id: "rc-1" }]), /duplicate event id/, "duplicate id");
 bad(validateReviewHistory([proposal, { ...comment, createdAt: t0 }]), /goes backwards/, "time reversal");
@@ -346,7 +377,7 @@ bad(validateEvidenceWindow({ ...full, postingCount: { value: 27, origin: ORIGIN.
 // 1.0.4 backward compatibility: a 1.0.3-shaped window (no precision keys at all) still validates and
 // means instant; a day-precision value validates with its marker; the two cannot be swapped.
 const legacyShaped = Object.fromEntries(Object.entries(full).map(([k, v]) => [k, isObjectField(v) ? { value: v.value, origin: v.origin, withheldReason: v.withheldReason } : v]));
-ok(validateEvidenceWindow({ ...legacyShaped, contractVersion: CONTRACT_VERSION }), "1.0.3-shaped window (no precision keys) still validates under 1.0.4");
+ok(validateEvidenceWindow({ ...legacyShaped, contractVersion: CONTRACT_VERSION }), "1.0.3-shaped window (no precision keys) still validates under 1.1.0");
 assert.equal(full.publishedAt.precision, "instant", "an ISO datetime records instant precision");
 const dayWindow = createEvidenceWindow({ publishedAt: "2026-08-26", closingAt: "2026-09-30", corpusRange: { from: "2026-08-01", to: "2026-08-26" } });
 ok(validateEvidenceWindow(dayWindow), "day-precision window validates");

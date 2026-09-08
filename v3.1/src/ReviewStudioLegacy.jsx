@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 import { buildResultEvidence, legacyRequirementRows, partitionDecisionLedger, mergeDecisionLedger, partitionLinks } from "./contracts/evidenceAdapter.js";
 import { windowRows as evidenceWindowRows } from "./contracts/evidenceWindowAdapter.js";
+import { reviewerDisplayName, reviewVerbForCommentType, reviewerMayAuthor } from "./review/reviewerContract.js";
 
 // BLP-004: the evidence window as seven independent inline fields. Each field is its own
 // element carrying data-window-field / data-window-state, and its VISIBLE text spells the state
@@ -276,27 +277,32 @@ function rsKeyword(text) {
   const words = String(text || "").toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter((w) => w.length >= 4 && !RS_STOP.has(w) && !RS_VERB.test(w));
   return words[0] || null;
 }
+// BLP-006: every comment carries the ROSTER id of its voice; the display name is looked up, never
+// typed, so the badge and the roster cannot diverge; the UI "type" maps onto a canonical verb.
 function rsComments(spans) {
   const out = [], used = new Set();
   const ai = spans.find((s) => (s.band === "augmented" || s.band === "auto") && s.lens === "AI") || spans.find((s) => s.band === "augmented" || s.band === "auto");
-  if (ai) { used.add(ai.id); out.push({ id: "c-ai", persona: "AI Exposure Reviewer", type: "AI exposure", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
+  if (ai) { used.add(ai.id); out.push({ id: "c-ai", reviewerId: "reviewer:ai-exposure", persona: reviewerDisplayName("reviewer:ai-exposure"), verb: reviewVerbForCommentType("AI exposure"), type: "AI exposure", kind: "comment", band: ai.band, anchor: ai.id, prov: "AI estimate", conf: "moderate", reason: ai.band === "auto" ? "End-to-end machine work is plausible here, but a human must own the governance handoff. Reads " + BANDS[ai.band].label + "." : "Generative tooling does the heavy lifting; the person frames the problem, curates prompts and validates output. Reads " + BANDS[ai.band].label + ", not full automation." }); }
   const vague = spans.find((s) => !used.has(s.id) && /\b(ad-?hoc|various|support various|other duties|as (assigned|required|needed)|miscellaneous)\b/i.test(s.text));
   if (vague) {
     used.add(vague.id);
     // Derive a salient term from THIS duty so the rewrite is genuinely about it (honest "derived").
     const key = rsKeyword(vague.text);
     const suggested = key ? "own a named " + key + " workstream with measurable cycle-time targets" : "name the specific workflow this owns and set measurable cycle-time targets";
-    out.push({ id: "c-proc", persona: "Process Redesign Reviewer", type: "suggested rewrite", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
+    out.push({ id: "c-proc", reviewerId: "reviewer:process-redesign", persona: reviewerDisplayName("reviewer:process-redesign"), verb: reviewVerbForCommentType("suggested rewrite"), type: "suggested rewrite", kind: "proposal", band: vague.band, anchor: vague.id, prov: key ? "derived" : "unverified", conf: key ? "moderate" : "thin", reason: "Vague ownership. The phrasing signals an unredesigned process - ask which workflow is actually being fixed before hiring.", original: vague.text, suggested });
   }
   const bundled = spans.find((s) => !used.has(s.id) && / and /i.test(s.text) && s.text.length > 70);
-  if (bundled) { used.add(bundled.id); out.push({ id: "c-role", persona: "Role Analyst", type: "merge duties", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
+  if (bundled) { used.add(bundled.id); out.push({ id: "c-role", reviewerId: "reviewer:role-analyst", persona: reviewerDisplayName("reviewer:role-analyst"), verb: reviewVerbForCommentType("merge duties"), type: "merge duties", kind: "comment", band: null, anchor: bundled.id, prov: "computed", conf: "high", reason: "Two duty clusters are bundled here - likely a role mash-up that could split across two people. Worth checking which one the hire really owns." }); }
   const human = spans.find((s) => !used.has(s.id) && s.band === "human");
   // The reason line is a rule-authored coaching prompt, not a quote from the posting,
   // so the chip is "computed" (rule output) not "from posting" (verbatim).
-  if (human) { used.add(human.id); out.push({ id: "c-cand", persona: "Candidate Advocate", type: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
+  if (human) { used.add(human.id); out.push({ id: "c-cand", reviewerId: "reviewer:candidate-advocate", persona: reviewerDisplayName("reviewer:candidate-advocate"), verb: reviewVerbForCommentType("comment"), type: "comment", kind: "comment", band: "human", anchor: human.id, prov: "computed", conf: "high", reason: "This stays human-led - relationships and accountability. Strongest proof to bring: one example where you personally drove this to an outcome." }); }
   const weak = spans.find((s) => !used.has(s.id) && /\b(familiar|knowledge of|exposure to|awareness of|understanding of)\b/i.test(s.text));
-  if (weak) { used.add(weak.id); out.push({ id: "c-aud", persona: "Signal Auditor", type: "withhold claim", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
-  return out.slice(0, 6);
+  if (weak) { used.add(weak.id); out.push({ id: "c-aud", reviewerId: "reviewer:signal-auditor", persona: reviewerDisplayName("reviewer:signal-auditor"), verb: reviewVerbForCommentType("withhold claim"), type: "withhold claim", kind: "comment", band: null, anchor: weak.id, prov: "unverified", conf: "withheld", reason: "No measurable threshold in the posting. Withhold from any readiness score until it is evidenced in interview or a work sample." }); }
+  // BLP-006 boundary at the point of production: a comment whose voice may not author its kind
+  // and verb is WITHHELD here (dropped), never shipped under a borrowed right; the same rule the
+  // contract enforces when given the roster.
+  return out.filter((c) => reviewerMayAuthor(c.reviewerId, c.kind, c.verb)).slice(0, 6);
 }
 
 // ── AI-1 click-to-analyse (spec No.135): every span/pill resolves to ONE focused O-I-A
@@ -1075,8 +1081,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.qoi && critical.qoi.length > 0 && !hiddenPanels.includes("qoi") && <>
                 <h3 style={critH3}>Quality of information {RS_DOT} can each claim be tested?</h3>
                 <WhyLine why={critical.qoi.length + " requirement line" + (critical.qoi.length === 1 ? "" : "s") + " found to grade"} sec="spec No.135 AI-3" />
-                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} persona="QoI CHECK" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting"
-                  onExpand={(e) => openSheet("Quality of information", "critcard", { tag: q.grade, obs: q.text, interp: q.why, appl: q.move, persona: "QoI CHECK", accent: q.grade === "verifiable" ? "#1d4ed8" : "#9a6113", obsChip: "from posting" }, e)} />)}
+                {critical.qoi.map((q) => <CritCard key={q.id} tag={q.grade} obs={q.text} interp={q.why} appl={q.move} lens="QoI check" accent={q.grade === "verifiable" ? "#1d4ed8" : "#9a6113"} obsChip="from posting"
+                  onExpand={(e) => openSheet("Quality of information", "critcard", { tag: q.grade, obs: q.text, interp: q.why, appl: q.move, lens: "QoI check", accent: q.grade === "verifiable" ? "#1d4ed8" : "#9a6113", obsChip: "from posting" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("qoi", true)} aria-label={"Hide panel: " + G2_LABELS.qoi} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1088,8 +1094,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.salaryPos && !hiddenPanels.includes("salaryPos") && <>
                 <h3 style={critH3}>Competitive read {RS_DOT} this ad vs the sampled market</h3>
                 <WhyLine why={"this ad states a salary band and enough sampled ads do too"} sec="spec No.135 AI-5" />
-                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} persona="MARKET POSITION" accent="#0e7490" obsChip="computed"
-                  onExpand={(e) => openSheet("Competitive read", "critcard", { tag: critical.salaryPos.pct + "th pct", obs: critical.salaryPos.obs, interp: critical.salaryPos.why, appl: critical.salaryPos.move, persona: "MARKET POSITION", accent: "#0e7490", obsChip: "computed" }, e)} />
+                <CritCard tag={critical.salaryPos.pct + "th pct"} obs={critical.salaryPos.obs} interp={critical.salaryPos.why} appl={critical.salaryPos.move} lens="Market position" accent="#0e7490" obsChip="computed"
+                  onExpand={(e) => openSheet("Competitive read", "critcard", { tag: critical.salaryPos.pct + "th pct", obs: critical.salaryPos.obs, interp: critical.salaryPos.why, appl: critical.salaryPos.move, lens: "Market position", accent: "#0e7490", obsChip: "computed" }, e)} />
               <button type="button" onClick={() => setPanelHidden("salaryPos", true)} aria-label={"Hide panel: " + G2_LABELS.salaryPos} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1101,8 +1107,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.indicators && critical.indicators.length > 0 && !hiddenPanels.includes("indicators") && <>
                 <h3 style={critH3}>Indicators {RS_DOT} signals in the sampled market</h3>
                 <WhyLine why={"enough live ads were sampled to compute market signals"} sec="spec No.135 AI-3" />
-                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} persona="INDICATORS" accent="#0e7490" obsChip={x.obsChip || "computed"}
-                  onExpand={(e) => openSheet("Indicators", "critcard", { tag: x.label, obs: x.obs, interp: x.why, appl: x.move, persona: "INDICATORS", accent: "#0e7490", obsChip: x.obsChip || "computed" }, e)} />)}
+                {critical.indicators.map((x) => <CritCard key={x.id} tag={x.label} obs={x.obs} interp={x.why} appl={x.move} lens="Indicators" accent="#0e7490" obsChip={x.obsChip || "computed"}
+                  onExpand={(e) => openSheet("Indicators", "critcard", { tag: x.label, obs: x.obs, interp: x.why, appl: x.move, lens: "Indicators", accent: "#0e7490", obsChip: x.obsChip || "computed" }, e)} />)}
               <button type="button" onClick={() => setPanelHidden("indicators", true)} aria-label={"Hide panel: " + G2_LABELS.indicators} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1114,7 +1120,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
               {critical.trajectory && !hiddenPanels.includes("trajectory") && <>
                 <h3 style={critH3}>Around the corner {RS_DOT} where this role is headed</h3>
                 <WhyLine why={"the engine classified enough duties to aggregate a trajectory"} sec="spec No.135 AI-4" />
-                <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} persona="TRAJECTORY" accent="#1d4ed8" obsChip="computed" />
+                <CritCard tag={critical.trajectory.grade} obs={critical.trajectory.obs} interp={critical.trajectory.why} appl={critical.trajectory.move} lens="Trajectory" accent="#1d4ed8" obsChip="computed" />
               <button type="button" onClick={() => setPanelHidden("trajectory", true)} aria-label={"Hide panel: " + G2_LABELS.trajectory} style={{ alignSelf: "flex-end", minHeight: 20, marginTop: -10, border: "none", background: "transparent", color: "#b3ab9c", fontFamily: "monospace", fontSize: "0.6875rem", cursor: "pointer", padding: "0 6px" }}>hide {String.fromCharCode(0x2715)}</button>
               </>}
               </div>
@@ -1491,7 +1497,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       const p = sh.payload;
       return (
         <div style={{ maxWidth: 880, margin: "0 auto" }}>
-          <CritCard tag={p.tag} obs={p.obs} interp={p.interp} appl={p.appl} persona={p.persona} accent={p.accent} obsChip={p.obsChip} />
+          <CritCard tag={p.tag} obs={p.obs} interp={p.interp} appl={p.appl} persona={p.persona} reviewerId={p.reviewerId} lens={p.lens} accent={p.accent} obsChip={p.obsChip} />
         </div>
       );
     }

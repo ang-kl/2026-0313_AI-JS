@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T17:24:00+08:00"
+      "updatedAt": "2026-09-08T19:12:24+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -332,6 +332,11 @@
           "kind": "FILE",
           "reference": "v3.1/src/contracts/evidenceContracts.js",
           "label": "NOTE (2026-09-08, under BLP-004, Supervisor ruling): the BLP-002 artefact was extended in place from contract 1.0.3 to 1.0.4 by commit cd75686: EvidenceWindow date fields carry a precision marker (instant or day) so a source that publishes a calendar date is recorded at day precision instead of being falsely withheld. The change is additive and backward-compatible (a 1.0.3-shaped field object with no precision key validates unchanged, asserted in tests/evidence-contract.mjs), so BLP-002 stays COMPLETE; had it not been, BLP-002 would have reopened to IN_PROGRESS for re-verification."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "NOTE (2026-09-08, under BLP-006, Supervisor ruling Q3): the BLP-002 artefact moved from contract 1.0.4 to 1.1.0 by commit b672a1b: REVIEW_VERB is canonical, DECISION_STATUS, CONFIDENCE and RISK join it, actor ids are namespaced (reviewer:, human:, system), a decision must be a human act, and a roster may be passed to validateReviewChange to enforce each voice's action boundary. A MINOR bump because it is a tightening: a free-text reviewerId that validated under 1.0.4 is refused under 1.1.0. The Supervisor's reopen test is separate from the bump level and was run empirically: every 1.0.4 review fixture already used namespaced ids and re-validates unchanged (tests/evidence-contract.mjs, tests/reviewer-contract.mjs), and the BLP-003 round trip and BLP-004 window suites re-run unchanged on 1.1.0, so BLP-002 stays COMPLETE with this note."
         }
       ],
       "blockers": [
@@ -1576,7 +1581,7 @@
       "title": "Reconcile reviewer roster and review vocabulary",
       "requirement": "Reconcile one canonical reviewer roster and one canonical review-action vocabulary.",
       "priority": "P0",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002"
       ],
@@ -1596,6 +1601,76 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Current review implementation"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/b672a1be06d3d5496cf8dddd1050a0252baebbda",
+          "label": "BLP-006 implementation commit b672a1b: reviewerContract.js 1.0.0 (one roster of twelve entries: nine blueprint section 5.5 reviewers plus three code-only voices; six active, six declared inactive; resolvers and boundary validation), contract 1.1.0 (canonical REVIEW_VERB, DECISION_STATUS, CONFIDENCE, RISK; actor namespaces reviewer:/human:/system; roster boundary option), shared.jsx (PERSONA reduced to presentation tones keyed by roster id, DEFAULT_PERSONA fallback removed, CritCard lens badge, AdvisoryCard voiced by the roster's advisory reviewer), Comments window badge looked up by reviewer id with decisions shown as a human act, Critical and Gates lens labels, Review Studio comments carrying reviewerId and canonical verb"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/reviewer-contract.mjs",
+          "label": "Reviewer contract test: Part A node (roster validity, action boundaries through the contract, humans never on the roster, comment types mapped to canonical verbs inside each voice's boundary, UNRESOLVED mappings carry no blueprint name, blueprint 15.2 recorded OPEN, the BLP-002 review fixtures re-validated unchanged with the roster, production-time boundary, inactive voices never live, advisory hats never roster names; 61 checks), Part B Chromium at 1440x1000 and 430x932 (every Comments badge carries an active roster id and its display name, a decision renders a human identity withheld in words and never a reviewer id, lens cards render as lenses with no reviewer id, the retired Signal Auditor fallback is absent, advisory cards are voiced by reviewer:critical-read, and the negative fixture: type chips carry the canonical verb, the Comments markup mode keeps the comment and withhold voices, no advisory hat is a roster name, no speaker badge outside the roster on any surface; 120 checks total), exit 0"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-contract.mjs",
+          "label": "Evidence contract test at 1.1.0: 396 checks, including the empirical reopen test the Supervisor required for BLP-002: every 1.0.4 review fixture (namespaced reviewer:, human: and system actors) re-validates unchanged, and the negatives that make 1.1.0 a minor bump (a free-text reviewerId, a reviewer deciding, the system commenting, a reviewer executing a change, a non-human confirmer) are refused"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/review/reviewerContract.js",
+          "label": "EXIT AUDIT conformance-auditor (2026-09-08, on the uncommitted BLP-006 tree): D1-D8 not applicable (no prompt template touched; no LLM value can reach a speaker badge); G1, G3, G6, G7 PASS; first verdict BLOCK on hard gate 3 because of a defect the builder introduced while rewriting the comment generator (see the defect record), fixed before commit together with the audit's two criticals and three warnings: C1 the emptied comment type label; C2 the canonical verb was written and read by nothing, now rendered on the type chip (data-review-verb) and enforced at the point of production (a comment its voice may not author is withheld by the generator); W3 advisory hats that equalled active roster names (CANDIDATE ADVOCATE, RECRUITER, HIRING MANAGER) renamed to angles and guarded so a hat can never be a roster name; W4 render paths now resolve ACTIVE voices only, so a declared-inactive reviewer can never appear as a live speaker; W5 the contract changelog states the exact-version consequence of the bump and that nothing persisted carries a stamp. G8 PARTIAL and S7 recorded as known omissions."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/review/shared.jsx",
+          "label": "EXIT AUDIT a11y-honesty-reviewer (2026-09-08): PASS on no red/green and state-in-text (tones are presentation only, every badge carries text), 44px targets and focus (no interactive element added), the withheld human identity wording, the footer phrase and Source/Confidence/Time-window line; contrast 5.68:1 lens and rule tone, 4.76:1 unrostered tone, 4.72:1 advisory chip, all AA; one minor fail fixed before commit: CritCard's expand button reused the upper-case visual label as its accessible name, now a natural-case spoken form."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/shared.jsx",
+          "label": "DEFECT FOUND BY EXIT AUDIT (conformance-auditor C1, fixed in the implementation commit): while adding reviewerId and verb to the five generated comments, the builder emptied the comment type label (type: \"\"), which silently blanked The Ad toolbar's Comments markup mode (zero cards), suppressed the Process Redesign suggested-rewrite body, rendered an empty chip and left an accessible label with a hole in it. Not fabrication but silent loss, which the withhold discipline exists to prevent, and a defect in the very change meant to make the vocabulary visible. Caught live by the auditor, fixed, and the reviewer test now asserts the Comments markup mode, the non-empty chip with its canonical verb and the rewrite body at both widths. Fourth genuine defect caught by exit audit or independent review in Wave 1."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/script/v3-step3-blueprint-reconciliation.md",
+          "label": "COMPETING COUNT REPLACED (criterion 1): the reconciliation record counted personas as 5 of 9 while listing six missing names (lines 96), then 6 of 9 after Signal Auditor replaced Evidence Auditor (line 197); five present plus six missing is eleven, not nine, and Signal Auditor added no blueprint reviewer. The roster records twelve entries with an explicit mapping state each and is the one count from here on."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/reviewerContract.js",
+          "label": "ESCALATED TO THE HUMAN LEAD (Supervisor ruling Q2, not inferred): Role Analyst, Signal Auditor and the Critical Read advisory voice have mapping UNRESOLVED and blueprintName null. Candidates recorded in each entry's note (Process Redesign Analyst or Organisation Designer; Skeptic or Hiring Filter Analyst; Skeptic). Blueprint open question 15.2 (which reviewers are mandatory for day one) is recorded OPEN with owner human-lead; the active set is the Human Lead's existing five plus the advisory voice and is not an answer."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION (Supervisor ruling Q6): the Critical Read pass in App.jsx (getCriticalRead) does not yet read its identity from the roster; the roster entry reviewer:critical-read exists and the Critical window renders every advisory card under it, but the producer is outside this requirement's affected files. Owner: BLP-015 (stable reviewer identity across every review view)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/PrintPackage.jsx",
+          "label": "KNOWN OMISSION: the print package's reviewer ledger prints comment.persona, which is now the roster display name looked up by id, so it cannot drift; it does not yet carry data-reviewer-id or the roster id in print. Owner: BLP-015."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/windows/Comments.jsx",
+          "label": "KNOWN OMISSION: the human who decides is recorded as human:local-user with identity withheld in words because no login exists; a named human decider (blueprint 5.2 accepted_by) requires an identity source that no requirement yet supplies. Owner: BLP-013 (first-class review operations)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/shared.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor G8, pre-existing): a decision made in the Comments window writes no ReviewChange record; the persisted ledger is commentId@anchorId -> status with no actor, time or verb, so the surface now says a human decided while nothing records it. Owner: BLP-013 (first-class review operations), which introduces the append-only history."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/shared.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor S7): the advisory voice's action boundary is enforced at production only for the rule comments; the Critical Read pass in App.jsx renders under reviewer:critical-read but its boundary is asserted by tests, not at the point of production, until the pass reads the roster (BLP-015)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/review/shared.jsx",
+          "label": "KNOWN OMISSION (a11y-honesty-reviewer, out of scope): the suggested-rewrite swatch in the Comments window keeps its pre-existing pale mint tint (#f6fbf7 on #d8ecdd) alongside the strikethrough and arrow that carry the state; not introduced here, flagged for a follow-up."
         }
       ],
       "blockers": [
@@ -1604,7 +1679,23 @@
           "description": "The canonical roster and vocabulary are not recorded as approved.",
           "ownerRole": "blueprint-supervisor",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/b672a1be06d3d5496cf8dddd1050a0252baebbda",
+              "label": "BLP-006 implementation commit b672a1b: reviewerContract.js 1.0.0 (one roster of twelve entries: nine blueprint section 5.5 reviewers plus three code-only voices; six active, six declared inactive; resolvers and boundary validation), contract 1.1.0 (canonical REVIEW_VERB, DECISION_STATUS, CONFIDENCE, RISK; actor namespaces reviewer:/human:/system; roster boundary option), shared.jsx (PERSONA reduced to presentation tones keyed by roster id, DEFAULT_PERSONA fallback removed, CritCard lens badge, AdvisoryCard voiced by the roster's advisory reviewer), Comments window badge looked up by reviewer id with decisions shown as a human act, Critical and Gates lens labels, Review Studio comments carrying reviewerId and canonical verb"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/reviewer-contract.mjs",
+              "label": "Reviewer contract test: Part A node (roster validity, action boundaries through the contract, humans never on the roster, comment types mapped to canonical verbs inside each voice's boundary, UNRESOLVED mappings carry no blueprint name, blueprint 15.2 recorded OPEN, the BLP-002 review fixtures re-validated unchanged with the roster, production-time boundary, inactive voices never live, advisory hats never roster names; 61 checks), Part B Chromium at 1440x1000 and 430x932 (every Comments badge carries an active roster id and its display name, a decision renders a human identity withheld in words and never a reviewer id, lens cards render as lenses with no reviewer id, the retired Signal Auditor fallback is absent, advisory cards are voiced by reviewer:critical-read, and the negative fixture: type chips carry the canonical verb, the Comments markup mode keeps the comment and withhold voices, no advisory hat is a roster name, no speaker badge outside the roster on any surface; 120 checks total), exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test at 1.1.0: 396 checks, including the empirical reopen test the Supervisor required for BLP-002: every 1.0.4 review fixture (namespaced reviewer:, human: and system actors) re-validates unchanged, and the negatives that make 1.1.0 a minor bump (a free-text reviewerId, a reviewer deciding, the system commenting, a reviewer executing a change, a non-human confirmer) are refused"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -1621,11 +1712,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "b672a1be06d3d5496cf8dddd1050a0252baebbda",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/b672a1be06d3d5496cf8dddd1050a0252baebbda",
+              "label": "BLP-006 implementation commit b672a1b: reviewerContract.js 1.0.0 (one roster of twelve entries: nine blueprint section 5.5 reviewers plus three code-only voices; six active, six declared inactive; resolvers and boundary validation), contract 1.1.0 (canonical REVIEW_VERB, DECISION_STATUS, CONFIDENCE, RISK; actor namespaces reviewer:/human:/system; roster boundary option), shared.jsx (PERSONA reduced to presentation tones keyed by roster id, DEFAULT_PERSONA fallback removed, CritCard lens badge, AdvisoryCard voiced by the roster's advisory reviewer), Comments window badge looked up by reviewer id with decisions shown as a human act, Critical and Gates lens labels, Review Studio comments carrying reviewerId and canonical verb"
+            }
+          ],
+          "note": "Implementation commit b672a1b on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -1668,8 +1765,16 @@
       },
       "affectedFiles": [
         "v3.1/src/review/reviewerContract.js",
+        "v3.1/src/contracts/evidenceContracts.js",
+        "v3.1/src/review/shared.jsx",
+        "v3.1/src/review/windows/Comments.jsx",
+        "v3.1/src/review/windows/Critical.jsx",
+        "v3.1/src/review/windows/GatesHard.jsx",
         "v3.1/src/ReviewStudioLegacy.jsx",
-        "v3.1/tests/reviewer-contract.mjs"
+        "v3.1/tests/reviewer-contract.mjs",
+        "v3.1/tests/evidence-contract.mjs",
+        "v3.1/tests/evidence-window.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -1684,6 +1789,38 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T18:41:00+08:00",
+          "reason": "Started on the Human Lead's order after PR #495 merged, with the Blueprint Supervisor's six scope rulings and two structural rulings recorded before any code was written: shared.jsx joins the affected files because the PERSONA dictionary there was a competing roster; the vocabulary stays in evidenceContracts.js and the roster module imports it (never the reverse); Role Analyst and Signal Auditor are not mapped to blueprint names by inference; the Critical Read advisory voice is registered now; the DEFAULT_PERSONA attribution defect is fixed here; contract 1.1.0 with the reopen test run empirically.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T19:12:24+08:00",
+          "reason": "One roster (src/review/reviewerContract.js) with twelve entries replaces the competing counts: every active reviewer has a stable reviewer: id, display name, lens, method, confidence scale and action boundary; humans are never roster entries and only a human actor may decide or confirm; a reviewer may never author a decision or an executed change; deterministic lens cards render as lenses and the fallback that badged rule output as Signal Auditor is gone; advisory cards are voiced by the roster's advisory reviewer; the Comments window looks every badge up by id and shows a decision as a human act with identity withheld in words. Contract 1.1.0 makes REVIEW_VERB canonical and enforces actor namespaces, a minor bump because a free-text reviewerId that validated under 1.0.4 is now refused; every 1.0.4 fixture re-validates unchanged, so BLP-002 takes a note and does not reopen. Verified locally in node and Chromium at desktop and phone width; Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/b672a1be06d3d5496cf8dddd1050a0252baebbda",
+              "label": "BLP-006 implementation commit b672a1b: reviewerContract.js 1.0.0 (one roster of twelve entries: nine blueprint section 5.5 reviewers plus three code-only voices; six active, six declared inactive; resolvers and boundary validation), contract 1.1.0 (canonical REVIEW_VERB, DECISION_STATUS, CONFIDENCE, RISK; actor namespaces reviewer:/human:/system; roster boundary option), shared.jsx (PERSONA reduced to presentation tones keyed by roster id, DEFAULT_PERSONA fallback removed, CritCard lens badge, AdvisoryCard voiced by the roster's advisory reviewer), Comments window badge looked up by reviewer id with decisions shown as a human act, Critical and Gates lens labels, Review Studio comments carrying reviewerId and canonical verb"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/reviewer-contract.mjs",
+              "label": "Reviewer contract test: Part A node (roster validity, action boundaries through the contract, humans never on the roster, comment types mapped to canonical verbs inside each voice's boundary, UNRESOLVED mappings carry no blueprint name, blueprint 15.2 recorded OPEN, the BLP-002 review fixtures re-validated unchanged with the roster, production-time boundary, inactive voices never live, advisory hats never roster names; 61 checks), Part B Chromium at 1440x1000 and 430x932 (every Comments badge carries an active roster id and its display name, a decision renders a human identity withheld in words and never a reviewer id, lens cards render as lenses with no reviewer id, the retired Signal Auditor fallback is absent, advisory cards are voiced by reviewer:critical-read, and the negative fixture: type chips carry the canonical verb, the Comments markup mode keeps the comment and withhold voices, no advisory hat is a roster name, no speaker badge outside the roster on any surface; 120 checks total), exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test at 1.1.0: 396 checks, including the empirical reopen test the Supervisor required for BLP-002: every 1.0.4 review fixture (namespaced reviewer:, human: and system actors) re-validates unchanged, and the negatives that make 1.1.0 a minor bump (a free-text reviewerId, a reviewer deciding, the system commenting, a reviewer executing a change, a non-human confirmer) are refused"
+            }
+          ]
         }
       ],
       "supervisorApproval": {

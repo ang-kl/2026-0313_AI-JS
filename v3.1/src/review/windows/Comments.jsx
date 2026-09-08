@@ -1,8 +1,9 @@
 // v3/src/review/windows/Comments.jsx - PR 1 (Part B.4): window body moved VERBATIM from
 // ReviewStudio.jsx; ctx carries the component-state closure (built once per render
 // in ReviewStudio, so renderWindow and all behaviour stay identical).
-import { BANDS, PROV, LENS, PERSONA, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, AdvisoryCard, Chip, PreInterviewBrief, AITracePanel, manuH2, manuP, oiaKick, critH3 } from "../shared.jsx";
+import { BANDS, PROV, LENS, PERSONA, UNROSTERED_TONE, UNROSTERED_LABEL, SPAN_STYLE, SPAN_STYLE_WITHHELD, WhyLine, CritCard, AdvisoryCard, Chip, PreInterviewBrief, AITracePanel, manuH2, manuP, oiaKick, critH3 } from "../shared.jsx";
 import { RS_DOT } from "../rs-rules.js";
+import { activeReviewerDisplayName, LOCAL_HUMAN_ACTOR } from "../reviewerContract.js";
 
 export function renderWinComments(ctx) {
   const { result, title, employer, source, posting, rolePane, onRetryDuties, critical, dissection, cr, adSections, duties, skills, skillObjs, skillTermRe, bandTok, overview, hasVerbatimOverview, showClean, marginComments, commentStatus, setCommentStatus, activeSpan, setActiveSpan, focusSkill, setFocusSkill, setTab, hiddenPanels, setPanelHidden, g2Rank, G2_LABELS, openSheet, secQoI, secSalaryPos, secIndicators, secTrajectory, rsUnderlineSkillTerms, rsEvidencePhrase, rsSkillFocus, rsSpanFocus, setPreviewSpan } = ctx;
@@ -18,12 +19,15 @@ export function renderWinComments(ctx) {
 
 
             {marginComments.map((c) => {
-              const pcol = PERSONA[c.persona] || "#64748b"; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
+              // BLP-006: the badge is looked up from the ROSTER by reviewer id, so the window can never
+              // show a name the roster does not hold; an off-roster id renders as "voice not on roster".
+              const who = activeReviewerDisplayName(c.reviewerId) || UNROSTERED_LABEL; const onRoster = !!activeReviewerDisplayName(c.reviewerId);
+              const pcol = (onRoster && PERSONA[c.reviewerId]) || UNROSTERED_TONE; const st = commentStatus[c.id]; const active = activeSpan === c.anchor;
               const cb = c.band && BANDS[c.band] ? BANDS[c.band] : null; const anchorText = (dissection.spans.find((s) => s.id === c.anchor) || {}).text || "";
               const dutyNo = dutySpansC.findIndex((s) => s.id === c.anchor) + 1; // 0 = not a duty line
               return (
                 <div key={c.id} data-comment-anchor={c.anchor} role="button" tabIndex={0}
-                  aria-label={c.persona + "'s " + c.type + " comment" + (dutyNo > 0 ? ", linked to highlighted duty " + dutyNo : "") + (st ? ". Decision: " + st + "." : ". Pending decision.")}
+                  aria-label={who + "'s " + c.type + " comment" + (dutyNo > 0 ? ", linked to highlighted duty " + dutyNo : "") + (st ? ". Decision: " + st + " by " + LOCAL_HUMAN_ACTOR.displayName + "." : ". Pending decision.")}
                   onClick={() => setActiveSpan(c.anchor)}
                   onMouseEnter={() => setPreviewSpan && setPreviewSpan(c.anchor)}
                   onMouseLeave={() => setPreviewSpan && setPreviewSpan(null)}
@@ -33,8 +37,8 @@ export function renderWinComments(ctx) {
                   style={{ cursor: "pointer", border: "1.5px solid " + (active ? "#b45309" : st === "accepted" ? "#c7d6ff" : st === "rejected" ? "#e0dcd0" : "#eceae2"), background: active ? "#fdf6ea" : st === "rejected" ? "#f6f5f1" : "#fff", borderRadius: 10, padding: "12px 13px", marginBottom: 11 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                     <span aria-hidden="true" style={{ width: 18, height: 18, borderRadius: "50%", background: pcol, color: "#fff", fontSize: 10, lineHeight: "18px", textAlign: "center", flex: "none" }}>{String.fromCharCode(0x2726)}</span>
-                    <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{c.persona}</span>
-                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }}>{c.type}</span>
+                    <span data-speaker-kind={onRoster ? "reviewer" : "unrostered"} data-reviewer-id={onRoster ? c.reviewerId : undefined} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 600, color: pcol }}>{who}</span>
+                    <span style={{ marginLeft: "auto", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#64748b", background: "#f1f4f8", border: "1px solid #e3e8ef", borderRadius: 5, padding: "1px 6px" }} data-review-verb={c.verb || undefined} title={c.verb ? "review action: " + c.verb : undefined}>{c.type}</span>
                   </div>
                   {cb && <div style={{ marginBottom: 7 }}><span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: cb.ink, background: cb.bg, border: "1px solid " + cb.border, borderRadius: 5, padding: "1px 6px" }}>{cb.label}</span></div>}
                   {anchorText && <p style={{ fontFamily: "'Newsreader',serif", fontStyle: "italic", fontSize: "0.8125rem", color: "#52607a", borderLeft: "2px solid #d9d6cd", paddingLeft: 9, margin: "0 0 8px", lineHeight: 1.4 }}>{String.fromCharCode(0x201c)}{anchorText}{String.fromCharCode(0x201d)}</p>}
@@ -63,7 +67,9 @@ export function renderWinComments(ctx) {
                       onClick={(e) => { e.stopPropagation(); setCommentStatus((m) => ({ ...m, [c.id]: m[c.id] === "rejected" ? undefined : "rejected" })); }}
                       style={{ fontFamily: "'Spline Sans',sans-serif", fontSize: "0.6875rem", fontWeight: 700, color: st === "rejected" ? "#fff" : "#92450a", background: st === "rejected" ? "#92450a" : "#fff", border: "1.5px solid " + (st === "rejected" ? "#92450a" : "#d9b96a"), borderRadius: 7, padding: "6px 11px", cursor: "pointer", minHeight: 44 }}>
                       {st === "rejected" ? "Rejected " + String.fromCharCode(0x2717) : "Reject"}</button>
-                    {st && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474" }}>saved on this device {String.fromCharCode(0x00b7)} tap again to undo</span>}
+                    {/* BLP-006 criterion 3: a decision is a HUMAN act and is shown as one, never as a reviewer.
+                        No login exists, so the human identity is withheld in words, not invented. */}
+                    {st && <span data-decided-by={LOCAL_HUMAN_ACTOR.id} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.625rem", color: "#586474" }}>decided by {LOCAL_HUMAN_ACTOR.displayName} {String.fromCharCode(0x00b7)} saved on this device {String.fromCharCode(0x00b7)} tap again to undo</span>}
                   </div>
                   {/* This decision applies to THIS comment only - it does not validate
                       or reject the analysis as a whole (goal §10 last rule). */}

@@ -5,6 +5,7 @@
 // preserves the pre-existing App<->ReviewStudio cycle shape, not a new one.)
 import { useState, useEffect, Fragment } from "react";
 import { fetchEmployerRegistration } from "../App.jsx";
+import { resolveReviewer, isAdvisoryHatLegitimate } from "./reviewerContract.js";
 import { RS_DOT, RS_EXP_BAND } from "./rs-rules.js";
 
 export const BANDS = {
@@ -29,21 +30,22 @@ export const PROV = {
   // to the amber family (shared with "AI estimate"); the label text carries the meaning.
   unverified:     { bg: "#fff4e6", ink: "#9a6113", border: "#f5dcb0" },
 };
-// O-I-A lens colours (S7) and reviewer persona colours (S5.5).
+// O-I-A lens colours (S7).
 export const LENS = { ROLE: "#1d4ed8", ORG: "#5b4bbd", AI: "#b45309" };
-// Consolidated 24-07'26 (Human Lead: Step 3 "so confusing"): this dict, Critical.jsx's
-// hardcoded lens tags, and the AdvisoryCard personas used to be three separate,
-// overlapping vocabularies - "Evidence Auditor" and "Signal Auditor" were even two
-// different entries here for what was functionally the same voice. Collapsed to 5
-// canonical names, reused everywhere a "who is speaking" badge is needed.
-export const PERSONA = {
-  "AI Exposure Reviewer": "#b45309", "Process Redesign Reviewer": "#5b4bbd",
-  "Role Analyst": "#1d4ed8", "Candidate Advocate": "#0e7490",
-  "Signal Auditor": "#9a6113",
-};
-// CritCard's fallback speaker when no persona is given (deterministic lenses that don't
-// need a distinct voice) - single source so the dict and the default can't drift apart.
-export const DEFAULT_PERSONA = "Signal Auditor";
+// BLP-006: the reviewer ROSTER lives in ./reviewerContract.js (one canonical roster, one
+// vocabulary). This dictionary is PRESENTATION ONLY: a tone per roster id, never a second
+// list of names. Consolidated 24-07'26 (Human Lead: Step 3 "so confusing") from three
+// overlapping vocabularies into five names; BLP-006 keyed those five by their roster ids,
+// added the advisory Critical Read voice, and removed the DEFAULT_PERSONA fallback that
+// badged an unattributed rule output as "Signal Auditor" (an honesty defect: a lens is
+// not a reviewer, and a fallback must not borrow a reviewer's name).
+export const PERSONA = Object.freeze({
+  "reviewer:ai-exposure": "#b45309", "reviewer:process-redesign": "#5b4bbd",
+  "reviewer:role-analyst": "#1d4ed8", "reviewer:candidate-advocate": "#0e7490",
+  "reviewer:signal-auditor": "#9a6113", "reviewer:critical-read": "#9a6113",
+});
+export const UNROSTERED_TONE = "#64748b";
+export const UNROSTERED_LABEL = "voice not on roster";
 // Tracked-span styling by exposure band (S5.2): tint + 2px underline, colour-blind safe.
 export const SPAN_STYLE = {
   augmented: { bg: "#fdf0dd", under: "#b45309", color: "#7a3c08" },
@@ -67,17 +69,35 @@ export function WhyLine({ why, sec }) {
 
 // One O-I-A finding card (Observation -> Interpretation -> Application), reused by every
 // Critical-Read lens. Verbatim observation, deterministic interpretation, a counter-move to apply.
-export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onExpand }) {
+// Speaker badge (BLP-006): a card is voiced by a ROSTER reviewer (reviewerId), or it is a
+// LENS (deterministic rule output, rendered as a lens and never as a reviewer), or it is an
+// unattributed rule ("rule output, no reviewer"). A legacy `persona` string is resolved
+// against the roster; an unknown name renders as "voice not on roster" rather than passing.
+function speakerOf({ reviewerId, persona, lens }) {
+  const found = reviewerId ? resolveReviewer(reviewerId) : (persona ? resolveReviewer(persona) : null);
+  const entry = found && found.active ? found : null; // a declared, inactive voice is not a live speaker
+  if (reviewerId || persona) {
+    // `label` is the visual (upper-case) form; `spoken` is the natural-case form for accessible names,
+    // so a screen reader never gets an all-caps run to spell out (a11y-honesty-reviewer finding).
+    if (entry) return { kind: "reviewer", id: entry.id, label: entry.displayName.toUpperCase(), spoken: entry.displayName, tone: PERSONA[entry.id] || UNROSTERED_TONE };
+    return { kind: "unrostered", id: null, label: UNROSTERED_LABEL.toUpperCase(), spoken: UNROSTERED_LABEL, tone: UNROSTERED_TONE };
+  }
+  if (lens) return { kind: "lens", id: null, label: lens.toUpperCase() + " " + RS_DOT + " LENS", spoken: lens + " lens", tone: "#6b6357" };
+  return { kind: "rule", id: null, label: "RULE OUTPUT " + RS_DOT + " NO REVIEWER", spoken: "rule output, no reviewer", tone: "#6b6357" };
+}
+export function CritCard({ tag, obs, interp, appl, persona, reviewerId, lens, accent, obsChip, onExpand }) {
   const ac = accent || "#9a6113";
-  const who = persona || DEFAULT_PERSONA.toUpperCase();
+  const speaker = speakerOf({ reviewerId, persona, lens });
+  const who = speaker.label;
   const oc = obsChip || "from posting";
   return (
     <div style={{ background: "#fff", border: "1px solid #e6e3db", borderRadius: 12, overflow: "hidden", marginBottom: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fbfaf8", borderBottom: "1px solid #f0eee7" }}>
         <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: ac, background: `color-mix(in srgb, ${ac} 14%, white)`, border: `1px solid color-mix(in srgb, ${ac} 38%, white)`, borderRadius: 4, padding: "2px 7px" }}>{String(tag).toUpperCase()}</span>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{who}</span>
+        <span data-speaker-kind={speaker.kind} data-reviewer-id={speaker.id || undefined} data-lens={speaker.kind === "lens" ? lens : undefined}
+          style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: speaker.tone }}>{who}</span>
         {onExpand && (
-          <button type="button" onClick={onExpand} aria-label={"Open " + who + " card in the detail drawer"} title="Open in drawer"
+          <button type="button" onClick={onExpand} aria-label={"Open " + speaker.spoken + " card in the detail drawer"} title="Open in drawer"
             style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #e6e3db", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
         )}
       </div>
@@ -112,15 +132,25 @@ export function CritCard({ tag, obs, interp, appl, persona, accent, obsChip, onE
 // several cards share one persona identity (e.g. "SKEPTICAL READ") while still telling
 // their distinct angle apart ("counter-case" vs "competing hypotheses" vs "is the demand
 // real?"), instead of each needing its own separate persona name to be distinguishable.
-export function AdvisoryCard({ persona, subLabel, children, onExpand }) {
+// BLP-006: every advisory card is voiced by the roster's advisory reviewer (reviewerId,
+// default reviewer:critical-read); `voice` is the card's angle ("SKEPTICAL READ", "RECRUITER"),
+// which is a hat that one voice wears, not a second reviewer. Legacy `persona` = voice.
+export function AdvisoryCard({ reviewerId = "reviewer:critical-read", voice, persona, subLabel, children, onExpand }) {
+  const found = resolveReviewer(reviewerId);
+  const entry = found && found.active ? found : null;
+  // A hat that equals a roster name would let an AI-advisory card impersonate a rule reviewer; withhold the hat instead.
+  const rawAngle = voice || persona || "";
+  const angle = isAdvisoryHatLegitimate(rawAngle) ? rawAngle : "";
+  const who = entry ? entry.displayName : UNROSTERED_LABEL;
   return (
     <div style={{ background: "#fff", border: "1px solid #f5dcb0", borderRadius: 12, overflow: "hidden", marginBottom: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 13px", background: "#fff9f0", borderBottom: "1px solid #f5e6cc" }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 4, padding: "2px 7px" }}>{persona}</span>
+        <span data-speaker-kind={entry ? "reviewer" : "unrostered"} data-reviewer-id={entry ? entry.id : undefined} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#9a6113", background: "#fff4e6", border: "1px solid #f5dcb0", borderRadius: 4, padding: "2px 7px" }}>{who.toUpperCase()}</span>
+        {angle && <span data-advisory-voice={angle} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: ".06em", color: "#6b6357" }}>{angle}</span>}
         {subLabel && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>{subLabel}</span>}
         <Chip kind="AI estimate">AI estimate {String.fromCharCode(0x00b7)} advisory</Chip>
         {onExpand && (
-          <button type="button" onClick={onExpand} aria-label={"Open " + persona + " card in the detail drawer"} title="Open in drawer"
+          <button type="button" onClick={onExpand} aria-label={"Open " + who + (angle ? " " + angle : "") + " card in the detail drawer"} title="Open in drawer"
             style={{ marginLeft: "auto", flex: "none", minHeight: 28, minWidth: 44, border: "1px solid #f5dcb0", background: "#fff", borderRadius: 6, cursor: "pointer", color: "#1a56db", fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", padding: "0 8px" }}>expand</button>
         )}
       </div>

@@ -14,7 +14,7 @@ export function renderWinGatesHard(ctx) {
               {critical.hiringFilter.length > 0 && <>
                 <h3 style={critH3}>Hard gates</h3>
                 {critical.hiringFilter.map((h) => <CritCard key={h.id} tag={h.label} obs={h.obs} interp={h.why} appl="Meet it, show the equivalent, or expect an auto-reject before a human reads your CV." accent="#0e7490" obsChip={h.obsChip || "from posting"}
-                  onExpand={(e) => openSheet("Hard gates", "critcard", { tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)} />)}
+                  onExpand={(e) => openSheet("Hard gates", "critcard", { lens: "Hard gates", tag: h.label, obs: h.obs, interp: h.why, appl: "Meet it, show the equivalent, or expect an auto-reject before a human reads your CV.", accent: "#0e7490", obsChip: h.obsChip || "from posting" }, e)}  lens="Hard gates" />)}
               </>}
               {!critical.hiringFilter.length && !critical.qoi.length && <p style={manuP}>No gate lines or gradeable requirement claims were found in this ad{critical.adText ? "" : " (no ad text available)"} - nothing is graded that was not written.</p>}
             </div>
