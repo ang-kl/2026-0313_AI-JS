@@ -245,6 +245,46 @@ serial_rebase:
       whenever the script can see a corpus at all, even a partial one: the
       ratchet governs whether a measurement may become a BASE, not whether it
       may be added to one.
+
+  - row: 4
+    date: 08-09 '26
+    where: >
+      Remote container of session 01BNSLM8r55euGDMpn4nyR8s (Claude Code on the
+      web), project folder -home-user-2026-0313-AI-JS. One folder, one
+      transcript - its own. The session ran the V3.1 Blueprint Completion
+      programme from BLP-001 through BLP-004 COMPLETE (PRs #486-#494).
+    measured: 148
+    is_new_base: false
+    derivation: >
+      scripts/count-interactions.js --sessions --all --base 49, run at
+      09:26 UTC after PR #494 was opened. One project folder, one transcript.
+      148 main-thread assistant replies carrying a non-empty text block; 707
+      user turns; 5 subagent spawns; 618 tool_use blocks.
+    ratchet: >
+      148 is BELOW the base of 49 only in the sense that matters here: it is a
+      single container's corpus, not the full set, so it is refused as a
+      reading and recorded as a write-back. NOT a new base.
+    running_count: >
+      base 49 + 148 measured = 197 replies to this point by the protocol's own
+      rule.
+    correction: >
+      The stamps drifted ABOVE this. Replies in this session were stamped from
+      a hand-carried counter across two context compactions and reached № 226
+      at the time of this row, 29 above the measured running count of 197. The
+      opposite door to row 3: there the hand count omitted short replies; here
+      it over-counted, most likely by adding an estimated "unstamped since"
+      increment after each compaction on top of replies that the transcript
+      already held. Invariant 1 forbids a downward correction, so the stamp
+      continues from № 227 and this row records the overshoot instead. The
+      next full-corpus measurement on the machine holding every transcript is
+      the place to settle it: if that measurement comes back at or above the
+      stamped figure the drift is absorbed; if below, record a measured base
+      from that run and let the stamp resume from it, which is the one case
+      where a lower number is a correction and not a partial corpus.
+    lesson: >
+      After a compaction, re-run the script before stamping and take its
+      figure. An estimate of "replies since" layered on a summary is the same
+      hand-carry as before with a better excuse.
 ```
 
 Run the script with the base: `node scripts/count-interactions.js --serial --base 49`.
