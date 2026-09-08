@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T21:16:23+08:00"
+      "updatedAt": "2026-09-08T14:20:22+00:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2728,8 +2728,13 @@
         },
         {
           "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/22d241348bed0686b720a2880772954e6b9705bf",
+          "label": "BLP-008 implementation commit 22d2413 (revision of 159e429): tests/candidate-proof-ledger.mjs waits for the panel notice before reading it, after run 34236469225 on PR #500 failed that read at phone width; the notice is derived from the kept ledger in an effect and lands one render after the claim state the suite had waited for, so the read raced the runner's second render. No assertion weakened or removed; node 103 and Chromium 184 checks unchanged at 1440x1000 and 430x932. The seven source, panel, test-workflow blobs of 159e429 other than the suite are byte-identical here."
+        },
+        {
+          "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
-          "label": "BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+          "label": "SUPERSEDED as the implementation commit by 22d2413 (test-only revision). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
         },
         {
           "kind": "TEST",
@@ -2749,7 +2754,7 @@
         {
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
-          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-008's predecessor BLP-007 was IMPLEMENTED_UNVERIFIED (PR #498 open) when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-008 cannot reach COMPLETE before BLP-007 does; if BLP-007 reopens at approval, BLP-008 is re-checked EMPIRICALLY (does its existing evidence fail to re-validate), not nominally; and BLP-007's record carries the Human Lead's open option 'no proof until an excerpt is marked', under which the whole-text proof and its ledger record class cease to exist, so nothing here hardens around that record class. OUTCOME: BLP-007 was approved COMPLETE via PR #499 (merge f051bcd) before this record was written; the implementation attested by the Supervisor at 3b2d600 was re-based onto f051bcd by cherry-pick as this commit, with an empty diff against 3b2d600 across the source, test and workflow trees (git diff 3b2d600 159e429 -- v3.1/src v3.1/tests .github is empty; all seven affected files blob-identical, confirmed by the Supervisor), while the v3.1/doc delta between the two is exactly the BLP-007 approval (git diff 57a2f59 159e429 -- v3.1/doc is empty). An earlier form of this label claimed the diff was empty over v3.1 and .github as a whole; the Supervisor ran it, found the three doc files differing, and required the true scope to be stated. CI CONSEQUENCE: the two source files BLP-008 extends are located by line range in the Step 3 feature map, so the map's locators drifted and the strict feature-map contract failed on the PR head (run 34236077643); v3.1/doc/v3-step3-feature-map.manifest.json is added to affectedFiles with the seven ranges shifted to the lines the same symbols and anchors now occupy."
+          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-008's predecessor BLP-007 was IMPLEMENTED_UNVERIFIED (PR #498 open) when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-008 cannot reach COMPLETE before BLP-007 does; if BLP-007 reopens at approval, BLP-008 is re-checked EMPIRICALLY (does its existing evidence fail to re-validate), not nominally; and BLP-007's record carries the Human Lead's open option 'no proof until an excerpt is marked', under which the whole-text proof and its ledger record class cease to exist, so nothing here hardens around that record class. OUTCOME: BLP-007 was approved COMPLETE via PR #499 (merge f051bcd) before this record was written; the implementation attested by the Supervisor at 3b2d600 was re-based onto f051bcd by cherry-pick as this commit, with an empty diff against 3b2d600 across the source, test and workflow trees (git diff 3b2d600 159e429 -- v3.1/src v3.1/tests .github is empty; all seven affected files blob-identical, confirmed by the Supervisor), while the v3.1/doc delta between the two is exactly the BLP-007 approval (git diff 57a2f59 159e429 -- v3.1/doc is empty). An earlier form of this label claimed the diff was empty over v3.1 and .github as a whole; the Supervisor ran it, found the three doc files differing, and required the true scope to be stated. CI CONSEQUENCE: the two source files BLP-008 extends are located by line range in the Step 3 feature map, so the map's locators drifted and the strict feature-map contract failed on the PR head (run 34236077643); v3.1/doc/v3-step3-feature-map.manifest.json is added to affectedFiles with the seven ranges shifted to the lines the same symbols and anchors now occupy. SECOND CI CONSEQUENCE (run 34236469225 on ec21fc2): the ledger suite's Chromium part failed at phone width reading the panel notice one render early; fixed in 22d2413 by waiting for the notice, a test-only revision that supersedes 159e429 as the implementation commit; git diff 159e429 22d2413 touches only v3.1/tests/candidate-proof-ledger.mjs."
         },
         {
           "kind": "FILE",
@@ -2805,6 +2810,11 @@
           "kind": "FILE",
           "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
           "label": "KNOWN OMISSION (conformance-auditor G1, conditional pass): provenance on the ledger is in words per record (confirmer, USER_AUTHORED claim, state gloss), not the result-page chip vocabulary, which has no user-confirmed kind; BLP-017 will render these records as page figures and must give them a chip or extend PROV_LABEL then. Owner: BLP-017."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+          "label": "DEFECT found by CI, not by the builder: run 34236469225 failed 'phone: the panel notice says the claim was recorded' (suite line 298) while both widths passed locally, because the read did not wait for the render that carries the notice. Fixed in 22d2413 by a waitForFunction on the notice text; the BLP-009 suite in preparation had the same race at four reads and was fixed the same way before its first commit."
         }
       ],
       "blockers": [
@@ -2816,8 +2826,8 @@
           "evidenceLinks": [
             {
               "kind": "COMMIT",
-              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
-              "label": "BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/22d241348bed0686b720a2880772954e6b9705bf",
+              "label": "BLP-008 implementation commit 22d2413 (revision of 159e429): tests/candidate-proof-ledger.mjs waits for the panel notice before reading it, after run 34236469225 on PR #500 failed that read at phone width; the notice is derived from the kept ledger in an effect and lands one render after the claim state the suite had waited for, so the read raced the runner's second render. No assertion weakened or removed; node 103 and Chromium 184 checks unchanged at 1440x1000 and 430x932. The seven source, panel, test-workflow blobs of 159e429 other than the suite are byte-identical here."
             },
             {
               "kind": "TEST",
@@ -2843,15 +2853,20 @@
         "implementationCommit": {
           "state": "RECORDED",
           "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
-          "commitSha": "159e4298fda88e50f32ddac64b1f3510868bfa84",
+          "commitSha": "22d241348bed0686b720a2880772954e6b9705bf",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/22d241348bed0686b720a2880772954e6b9705bf",
+              "label": "BLP-008 implementation commit 22d2413 (revision of 159e429): tests/candidate-proof-ledger.mjs waits for the panel notice before reading it, after run 34236469225 on PR #500 failed that read at phone width; the notice is derived from the kept ledger in an effect and lands one render after the claim state the suite had waited for, so the read raced the runner's second render. No assertion weakened or removed; node 103 and Chromium 184 checks unchanged at 1440x1000 and 430x932. The seven source, panel, test-workflow blobs of 159e429 other than the suite are byte-identical here."
+            },
+            {
+              "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
-              "label": "BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+              "label": "SUPERSEDED as the implementation commit by 22d2413 (one waited read in the Chromium suite; every source, panel and workflow blob unchanged). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
             }
           ],
-          "note": "Implementation commit 159e429 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 22d2413 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -2928,7 +2943,7 @@
           "from": "IN_PROGRESS",
           "to": "IMPLEMENTED_UNVERIFIED",
           "changedAt": "2026-09-08T21:16:23+08:00",
-          "reason": "Candidate proof is stored as distinct source-linked records (one contract ProofRecord per confirmed excerpt, distinct ids, each carrying its source id, span id and source hash, validating under the contract); each proof records its claim (the human's own words or null), proof type (governed enum, UNSPECIFIED until chosen), confirmation (the local human actor and a time), missing evidence and downstream uses (both computed from the record, never typed); evidence changes mark dependent proof records stale (any edit stales every active record together by system detection, said so in the panel; the same record resumes when the text is restored; removal and clearing withhold by a human act; every transition is an event the contract's transition table permits and a validator checks). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending.",
+          "reason": "Candidate proof is stored as distinct source-linked records (one contract ProofRecord per confirmed excerpt, distinct ids, each carrying its source id, span id and source hash, validating under the contract); each proof records its claim (the human's own words or null), proof type (governed enum, UNSPECIFIED until chosen), confirmation (the local human actor and a time), missing evidence and downstream uses (both computed from the record, never typed); evidence changes mark dependent proof records stale (any edit stales every active record together by system detection, said so in the panel; the same record resumes when the text is restored; removal and clearing withhold by a human act; every transition is an event the contract's transition table permits and a validator checks). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending. REVISED in place at 22d2413 (test-only: one waited notice read after run 34236469225 failed at phone width); status unchanged.",
           "approvedBy": null,
           "evidenceLinks": [
             {
