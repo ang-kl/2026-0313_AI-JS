@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T16:05:57+08:00"
+      "updatedAt": "2026-09-08T17:24:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -1043,7 +1043,7 @@
       "title": "Carry independent evidence-window fields",
       "requirement": "Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value.",
       "priority": "P0",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-002"
       ],
@@ -1125,7 +1125,7 @@
           "id": "BLP-004-BLOCKER-01",
           "description": "The complete EvidenceWindow handoff and display are not recorded.",
           "ownerRole": "contract-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -1146,6 +1146,26 @@
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-contract.mjs",
               "label": "Evidence contract test at 1.0.4: 355 checks including the backward-compatibility fixture (a 1.0.3-shaped window with no precision keys validates unchanged)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+              "label": "Merge commit 384db4c (squash of PR #493: route commit 431a7a7 and implementation commit cd75686 with their register records)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34209403449/job/102006556669",
+              "label": "Browser-gate run on merged main 384db4c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window: Part A 39 route checks, Part B 107 contract and adapter checks, Part C PASS 146 checks at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round trip re-run unchanged on contract 1.0.4: Part A 171, Part B PASS 216 at both viewports (the section 13.9 re-run that shows the 1.0.4 amendment invalidated nothing)"
             }
           ]
         }
@@ -1179,15 +1199,26 @@
               "label": "BLP-004 implementation commit cd75686: contract 1.0.4 (per-field date precision marker, backward-compatible), evidenceWindowAdapter.js 1.0.0 (uniform decoding rule, no clock inside), evidenceAdapter.js completeness from textProvenance, App.jsx wiring (raw fields carried, analysedAt stamped at the call site, result.evidenceWindow attached), footer and overview toolbar and print package rendering all seven fields independently, plus the exit-audit fixes (visible text as the accessible name, data-window-origin, fail-closed rows, export retrievedAt passed through from the route, careers.js fetchedAt bound to the snapshot read, RoleGraph footer scope statement); supersedes route commit 431a7a7 as the recorded implementation, which is kept as evidence"
             }
           ],
-          "note": "Implementation commit cd75686 on the working branch supersedes route commit 431a7a7 (kept as evidence). Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
+          "note": "Implementation commit cd75686 on the working branch supersedes route commit 431a7a7 (kept as evidence). Merged to main as 384db4c by PR #493; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/493",
+          "mergedAt": "2026-09-08T17:19:21+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/493",
+              "label": "PR #493 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+              "label": "Exact merge commit 384db4c"
+            }
+          ],
+          "note": "PR #493 squash-merged BLP-004 to main as 384db4c0dec8d1f078c353a914f40ebebce3d0e4 over base a8fd786. The Supervisor confirmed by blob SHA that the merged tree carries implementation commit cd75686 and route commit a2373eb unchanged across all twelve declared affected files."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -1196,17 +1227,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-004 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/evidence-window.mjs",
+          "checkedAt": "2026-09-08T17:22:10+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34209403449/job/102006556669",
+              "label": "Browser-gate run on merged main 384db4c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window: Part A 39 route checks, Part B 107 contract and adapter checks, Part C PASS 146 checks at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round trip re-run unchanged on contract 1.0.4: Part A 171, Part B PASS 216 at both viewports (the section 13.9 re-run that shows the 1.0.4 amendment invalidated nothing)"
+            }
+          ],
+          "note": "Run on the merged tree at 384db4c by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised and the blueprint-register construction-scope step is skipped; this run executes tests/evidence-window.mjs and tests/evidence-round-trip.mjs at both viewports after browser-gate and is evidence for the evidence window, the round trip and the contract suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "384db4c0dec8d1f078c353a914f40ebebce3d0e4"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -1216,7 +1263,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-004 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -1285,14 +1332,108 @@
               "label": "Evidence contract test at 1.0.4: 355 checks including the backward-compatibility fixture (a 1.0.3-shaped window with no precision keys validates unchanged)"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T17:23:04+08:00",
+          "reason": "Blueprint Supervisor verified that merge commit 384db4c carries implementation commit cd75686 and route commit a2373eb byte-identically by blob SHA across all twelve declared affected files, and read the workflow_dispatch run on the merged tree at 384db4c, which reports the evidence window at 39 route checks, 107 contract-and-adapter checks and a browser Part C PASS at 146 checks across desktop 1440x1000 and phone 430x932, the evidence contract at 355 checks under contract 1.0.4, and the BLP-003 round trip re-run unchanged at 171 node and 216 browser checks over contract 1.0.4, which is the Section 13.9 re-run proving the 1.0.4 amendment invalidated nothing.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+              "label": "Merge commit 384db4c (squash of PR #493: route commit 431a7a7 and implementation commit cd75686 with their register records)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+              "label": "Implementation commit cd75686 (contract 1.0.4, evidenceWindowAdapter 1.0.0, footer, toolbar and print rendering, exit-audit fixes)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34209403449/job/102006556669",
+              "label": "Browser-gate run on merged main 384db4c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window: Part A 39 route checks, Part B 107 contract and adapter checks, Part C PASS 146 checks at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round trip re-run unchanged on contract 1.0.4: Part A 171, Part B PASS 216 at both viewports (the section 13.9 re-run that shows the 1.0.4 amendment invalidated nothing)"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T17:24:00+08:00",
+          "reason": "All three acceptance criteria are discharged, and where one holds only vacuously that is stated rather than implied. Criterion 1: the seven evidence-window fields are carried and displayed independently on the Step 3 footer, the overview toolbar and the print package, each with its own origin and its own withheld state, none derived from a neighbour. Criterion 2: corpus boundaries are retained when supplied, as min and max over the postings that carry a decodable date with the dated subset reported next to the total; source timezone is never supplied, because neither route names an IANA zone and a midnight-UTC epoch encoding is a convention rather than a statement of zone, so the criterion holds vacuously for that field and its absence is recorded as a known omission, not represented as a satisfied capability. Criterion 3: every unavailable field is explicitly withheld with a reason code rendered as visible text, and the negative fixture asserts that \"snapshot at analysis\", \"recent\" and \"current\" appear on none of the three surfaces. Published and closing dates now carry real source values at day precision where the 1.0.3 contract would have withheld them, and no instant is invented from a calendar date. Implementation, route and merge commits are recorded separately as exact SHAs and automated-runtime evidence names the merge commit. Deployment and physical-runtime evidence are not required by this requirement's completionPolicy.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+              "label": "Merge commit 384db4c (squash of PR #493: route commit 431a7a7 and implementation commit cd75686 with their register records)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+              "label": "Implementation commit cd75686 (contract 1.0.4, evidenceWindowAdapter 1.0.0, footer, toolbar and print rendering, exit-audit fixes)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34209403449/job/102006556669",
+              "label": "Browser-gate run on merged main 384db4c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window: Part A 39 route checks, Part B 107 contract and adapter checks, Part C PASS 146 checks at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round trip re-run unchanged on contract 1.0.4: Part A 171, Part B PASS 216 at both viewports (the section 13.9 re-run that shows the 1.0.4 amendment invalidated nothing)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T17:24:00+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/384db4c0dec8d1f078c353a914f40ebebce3d0e4",
+            "label": "Merge commit 384db4c (squash of PR #493: route commit 431a7a7 and implementation commit cd75686 with their register records)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+            "label": "Implementation commit cd75686 (contract 1.0.4, evidenceWindowAdapter 1.0.0, footer, toolbar and print rendering, exit-audit fixes)"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34209403449/job/102006556669",
+            "label": "Browser-gate run on merged main 384db4c by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-window.mjs",
+            "label": "Evidence window: Part A 39 route checks, Part B 107 contract and adapter checks, Part C PASS 146 checks at 1440x1000 and 430x932"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-round-trip.mjs",
+            "label": "Evidence round trip re-run unchanged on contract 1.0.4: Part A 171, Part B PASS 216 at both viewports (the section 13.9 re-run that shows the 1.0.4 amendment invalidated nothing)"
+          }
+        ],
+        "note": "BLP-004 required automated-runtime evidence and has it, on the merge commit, at both required widths. Contract 1.0.4 adds a per-field precision marker; the Supervisor's condition for approving it was backward compatibility, and that was verified directly: a 1.0.3-shaped window carrying no precision keys validates unchanged, and the BLP-003 round-trip suite re-ran on 1.0.4 with identical counts. BLP-002 therefore stays COMPLETE with a note that its artefact was extended in place, rather than being reopened. The exit audits found a live defect, recorded on this record with its fix: the posting export stamped the export click as retrievedAt, a UI event standing in for an observation of the source, which is the substitution scope ruling 1 forbids. Known omissions carried forward: careers.js still emits a derived UTC-midnight postedDate for display, which the adapter never reads and which should be retired once nothing depends on it; sourceTimezone is withheld everywhere; the per-panel Time-window scope lines are untouched by design; the withheld tone passes AA by 0.04 as a literal in two places and should become a named token; the APP_VERSION minor bump is reserved to the Human Lead under Rule V-1. Residual risk: merge identity was established by blob-SHA equality through a shallow clone and the GitHub API rather than a full-history clone.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
