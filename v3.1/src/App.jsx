@@ -1476,6 +1476,7 @@ import { KGGraph } from "./RoleGraph.jsx";
 import { sectorEvidenceFromRegistry } from "./businessCubeModel.js";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
+import { buildResultEvidence } from "./contracts/evidenceAdapter.js";
 import { useDeviceProfile } from "./responsive/deviceProfile.js";
 import { exposureForIsco } from "../engine-data/engine-core.js";
 import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
@@ -16664,6 +16665,10 @@ export default function App({ initialSearchMode } = {}) {
   // Reviewer panels can reference the REAL posting text, employer, and skills
   // instead of the generic Data Analyst mockup. Cleared on reset.
   const [analysingPosting, setAnalysingPosting] = useState(null);
+  // BLP-003: canonical evidence identity (EvidenceSource + spans) is built ONCE here, from the
+  // analysed posting and the engine's duty list, and rides on result.evidence into Step 3. The
+  // adapter owns the rule; this is wiring only.
+  const resultWithEvidence = useMemo(() => (result ? { ...result, evidence: buildResultEvidence(result, analysingPosting) } : result), [result, analysingPosting]);
   // Corpus "analyse all as one role" build spans all three sources and many postings, so it
   // is slower than a single analysis - hold its shape so the loading screen shows an explicit
   // "please wait, this is building across every source" callout (Human Lead request).
@@ -19159,7 +19164,7 @@ Identify if the input matches or relates to any skill in the list.`, 310, 1, SYS
           return (
             <>
               <ReviewStudio
-                result={result}
+                result={resultWithEvidence}
                 title={toTitleCase(sel?.title || "")}
                 employer={result?.employer || ""}
                 source={reviewSource}

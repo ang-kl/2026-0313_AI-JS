@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T13:31:00+08:00"
+      "updatedAt": "2026-09-08T14:16:39+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -649,7 +649,7 @@
       "title": "Preserve stable evidence identifiers end to end",
       "requirement": "Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation.",
       "priority": "P0",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002"
       ],
@@ -674,15 +674,36 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Review implementation"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceAdapter.js",
+          "label": "Evidence adapter: the one constructor of canonical identity for a posting; mints no id of its own; validates with knownSpans; completeness never inferred"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-round-trip.mjs",
+          "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
         }
       ],
       "blockers": [
         {
           "id": "BLP-003-BLOCKER-01",
-          "description": "The canonical identity contract and complete positive round-trip evidence are not recorded.",
+          "description": "The canonical identity contract and complete positive round-trip evidence are not recorded. Residual risk carried on this record (Blueprint Supervisor scope ruling 2, 2026-09-08): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and never inferred from length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real.",
           "ownerRole": "contract-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -699,11 +720,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "4020d3cfe73adc6d05278b352be22f52c5b6d112",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+            }
+          ],
+          "note": "Implementation commit 4020d3c on the working branch: adapter 1.0.0, wiring, round-trip test, Step 3 manifest source-range remap and CI wiring. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -745,10 +772,15 @@
         }
       },
       "affectedFiles": [
+        "v3.1/src/contracts/evidenceAdapter.js",
         "v3.1/src/App.jsx",
         "v3.1/src/work-universe/WorkUniverseLanding.jsx",
         "v3.1/src/ReviewStudioLegacy.jsx",
-        "v3.1/tests/evidence-round-trip.mjs"
+        "v3.1/src/review/Desk.jsx",
+        "v3.1/src/review/registry.jsx",
+        "v3.1/tests/evidence-round-trip.mjs",
+        "v3.1/doc/v3-step3-feature-map.manifest.json",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -763,6 +795,39 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T14:01:29+08:00",
+          "reason": "Identity propagation implementation began on the working branch from main 9adc7f3, after BLP-002 was approved COMPLETE; the Blueprint Supervisor's four scope rulings (adapter module accepted, completeness UNKNOWN not inferred, legacy positional decisions withheld not re-anchored, five test additions) were received before the first edit.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/9adc7f3",
+              "label": "Baseline main 9adc7f3 (BLP-002 provenance merged)"
+            }
+          ]
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T14:16:39+08:00",
+          "reason": "Evidence adapter constructs EvidenceSource and spans from the Step 2 posting and the engine duty list (content-addressed distilled ids with verbatim parents; offset-addressed requirement lines; caps recorded); Review Studio dissection, decision and link ledgers, trace pairs, Work Universe source rows and return navigation all key on those ids; positional ids survive only as the explicit WITHHELD_NO_SOURCE_ROWS / WITHHELD_INCOMPLETE_IDENTITY fallback; pre-existing ledger rows are preserved and surfaced as withheld. Round-trip test passes locally in node and Chromium; verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/4020d3cfe73adc6d05278b352be22f52c5b6d112",
+              "label": "BLP-003 implementation commit 4020d3c (evidence adapter 1.0.0 over contracts 1.0.3; Review Studio, Work Universe and App.jsx wiring; evidence-round-trip test 186 checks; Step 3 manifest ranges; CI wiring)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "Evidence round-trip test: Part A node (171 checks) and Part B Chromium (15 checks): offsets against canonical text, re-extraction, incomplete csg identity, completeness UNKNOWN, caps recorded, legacy ledgers withheld, dangling/forged references refused, Step 2 -> Step 3 -> workspace -> return and a full remount"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
