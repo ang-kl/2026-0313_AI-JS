@@ -5,3 +5,6 @@ dist/
 *.env
 .DS_Store
 .vercel
+
+# Playwright evidence written by the v3.1 browser suites; CI uploads it as an artefact, git never carries it
+v3.1/test-results/
