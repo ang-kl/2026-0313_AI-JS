@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T19:45:00+08:00"
+      "updatedAt": "2026-09-08T20:19:26+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -744,6 +744,11 @@
           "kind": "TEST",
           "reference": "v3.1/tests/browser-gate.mjs",
           "label": "DISCHARGED (2026-09-08, under BLP-005, commit 6a75e9f): the browser-gate.mjs:576 omission recorded on this entry is closed; the gate now waits for a duty row (canonical duty: id), reads data-evidence-id from it and composes the workspace testid from that id, so no positional id was reintroduced."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "DISCHARGED (2026-09-08, under BLP-007, commit 5ee2f71): the candidate-proof identifier omission recorded on this entry (owner BLP-007) is implemented; manual person evidence now carries a content-addressed candidate source id and verbatim span ids from the canonical contracts."
         }
       ],
       "blockers": [
@@ -1454,7 +1459,7 @@
       "title": "Test evidence round trip and failure paths",
       "requirement": "Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests.",
       "priority": "P0",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-002",
         "BLP-003",
@@ -1598,7 +1603,7 @@
           "id": "BLP-005-BLOCKER-01",
           "description": "The canonical contracts and all required positive and negative fixtures are not recorded as passing.",
           "ownerRole": "test-evaluation-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -1614,6 +1619,26 @@
               "kind": "TEST",
               "reference": "v3.1/tests/browser-gate.mjs",
               "label": "Browser gate: the workspace testid is now composed from the row's data-evidence-id (discharging BLP-003's carried omission at line 576); the positional literal v31-workspace-evidence-s0 is gone"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+              "label": "Merge commit c703d9c (squash of PR #497: implementation commit 6a75e9f, its register record 32163f8, the BLP-006 approval 7ab51d5 and the asymmetry note c7e060d)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34223447525",
+              "label": "Browser-gate run 34223447525 (job 102051774214) on merged main c703d9c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite on the dispatch run: Part A node 113 checks, Part B Chromium 160 checks total at 1440x1000 and 430x932, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003, BLP-004 and BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence contract 396), proving the adapter 1.1.0 additivity and the Q1 product changes invalidated nothing"
             }
           ]
         }
@@ -1642,15 +1667,26 @@
               "label": "BLP-005 implementation commit 6a75e9f: tests/evidence-failure-paths.mjs (routes under every failure cause, the words each state shows, the evidence layer on failed, empty, incomplete and stale inputs, an identifier inventory byte-identical across a rebuild with unknown and dangling references refused, determinism proved), tests/support/surface-phrases.mjs (one definition of the forbidden freshness and absence phrases, shared with evidence-window.mjs), browser-gate.mjs reading data-evidence-id from the row, and three minimal product changes admitted under Supervisor ruling Q1 because criterion 3 was failing: api/mcf.js reports a failed search page with its cause instead of an empty page, evidenceAdapter.js 1.1.0 carries the state text, App.jsx renders the company results failure and empty states distinctly"
             }
           ],
-          "note": "Implementation commit 6a75e9f on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 6a75e9f on the working branch. Merged to main as c703d9c by PR #497; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/497",
+          "mergedAt": "2026-09-08T19:54:54+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/497",
+              "label": "PR #497 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+              "label": "Exact merge commit c703d9c"
+            }
+          ],
+          "note": "PR #497 squash-merged BLP-005 to main as c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e over base 1dacc67, together with the BLP-006 approval commit. The Supervisor confirmed by blob SHA that the merged tree carries implementation commit 6a75e9f unchanged across all eight declared affected files, App.jsx matching c7e060d. BLP-006's merge commit remains 1dacc67 and must not be confused with this one."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -1659,17 +1695,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-005 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/evidence-failure-paths.mjs",
+          "checkedAt": "2026-09-08T20:00:20+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34223447525",
+              "label": "Browser-gate run 34223447525 (job 102051774214) on merged main c703d9c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite on the dispatch run: Part A node 113 checks, Part B Chromium 160 checks total at 1440x1000 and 430x932, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003, BLP-004 and BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence contract 396), proving the adapter 1.1.0 additivity and the Q1 product changes invalidated nothing"
+            }
+          ],
+          "note": "Run on the merged tree at c703d9c by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34222703725 on c7e060d is kept as the PR's green check, not as this evidence). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised and the blueprint-register construction-scope step is skipped (step 9 conclusion skipped on job 102051774214); this run executes tests/evidence-failure-paths.mjs, tests/evidence-round-trip.mjs, tests/evidence-window.mjs, tests/reviewer-contract.mjs and tests/evidence-contract.mjs at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -1679,7 +1731,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-005 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -1738,14 +1790,108 @@
               "label": "Browser gate: the workspace testid is now composed from the row's data-evidence-id (discharging BLP-003's carried omission at line 576); the positional literal v31-workspace-evidence-s0 is gone"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T20:19:19+08:00",
+          "reason": "Blueprint Supervisor verified that merge commit c703d9c carries implementation commit 6a75e9f byte-identically by blob SHA across all eight declared affected files, with App.jsx matching c7e060d which added the careers.gov.sg asymmetry comment, and read the workflow_dispatch run on the merged tree at c703d9c, which reports the failure-path suite at 113 node checks including 90 evidence-layer state checks and 112 reference-integrity checks, and a browser Part B PASS at 160 checks across desktop 1440x1000 and phone 430x932; the evidence contract at 396 checks under contract 1.1.0; the reviewer contract at 61 and 120; and the BLP-003 and BLP-004 suites re-run unchanged at 171 plus 216 and 39 plus 107 plus 146 over evidenceAdapter 1.1.0, which is the Section 13.9 re-run proving the adapter amendment invalidated nothing.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+              "label": "Merge commit c703d9c (squash of PR #497: implementation commit 6a75e9f, its register record 32163f8, the BLP-006 approval 7ab51d5 and the asymmetry note c7e060d)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+              "label": "Implementation commit 6a75e9f (tests/evidence-failure-paths.mjs, surface-phrases.mjs, browser-gate testid from data-evidence-id, and the three Q1 product changes: api/mcf.js failure cause, evidenceAdapter.js 1.1.0, App.jsx results-state box)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34223447525",
+              "label": "Browser-gate run 34223447525 (job 102051774214) on merged main c703d9c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite on the dispatch run: Part A node 113 checks, Part B Chromium 160 checks total at 1440x1000 and 430x932, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003, BLP-004 and BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence contract 396), proving the adapter 1.1.0 additivity and the Q1 product changes invalidated nothing"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T20:20:00+08:00",
+          "reason": "All three acceptance criteria are discharged without narrowing. Criterion 1: positive source-bearing fixtures preserve every allowed identifier, proved by an exhaustive inventory over MyCareersFuture and careers.gov.sg fixtures - source id, verbatim span ids, distilled duty ids, decision keys, proposal ids, review event ids, reviewer ids and window field origins - byte-identical across a rebuild, with canonical ids only and proposals composed only from declared duties. Criterion 2: negative fixtures reject unknown or dangling references, each refused with a named reason and never coerced - dangling parent, unknown anchor never applied, off-roster voice, dangling predecessor, tampered window origin. Criterion 3: withheld, stale and failure paths remain visibly distinct and deterministic - one definition of the words each state shows, nine withholding sentences, three stale and five failure causes plus one empty, all distinct, none a freshness or absence phrase, written out as a list; three distinct data-states rendered at both widths with a results-state box and a grid for the same source never coexisting; and a randomised fixture detected as non-deterministic. Proof and output stale states are covered at node level only and deferred to BLP-010 and BLP-018 as recorded omissions, because neither class is minted on a live path and a test over synthetic records would be a stubbed path, which is not evidence under Section 11. Implementation and merge commits are recorded separately as exact SHAs and automated-runtime evidence names the merge commit. Deployment and physical-runtime evidence are not required by this requirement's completionPolicy.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+              "label": "Merge commit c703d9c (squash of PR #497: implementation commit 6a75e9f, its register record 32163f8, the BLP-006 approval 7ab51d5 and the asymmetry note c7e060d)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+              "label": "Implementation commit 6a75e9f (tests/evidence-failure-paths.mjs, surface-phrases.mjs, browser-gate testid from data-evidence-id, and the three Q1 product changes: api/mcf.js failure cause, evidenceAdapter.js 1.1.0, App.jsx results-state box)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34223447525",
+              "label": "Browser-gate run 34223447525 (job 102051774214) on merged main c703d9c by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite on the dispatch run: Part A node 113 checks, Part B Chromium 160 checks total at 1440x1000 and 430x932, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003, BLP-004 and BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence contract 396), proving the adapter 1.1.0 additivity and the Q1 product changes invalidated nothing"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T20:20:00+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c703d9c1a97a9b8bdc62b8a9657dd8b4a3d40b4e",
+            "label": "Merge commit c703d9c (squash of PR #497: implementation commit 6a75e9f, its register record 32163f8, the BLP-006 approval 7ab51d5 and the asymmetry note c7e060d)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+            "label": "Implementation commit 6a75e9f (tests/evidence-failure-paths.mjs, surface-phrases.mjs, browser-gate testid from data-evidence-id, and the three Q1 product changes: api/mcf.js failure cause, evidenceAdapter.js 1.1.0, App.jsx results-state box)"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34223447525",
+            "label": "Browser-gate run 34223447525 (job 102051774214) on merged main c703d9c by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-failure-paths.mjs",
+            "label": "Failure-path suite on the dispatch run: Part A node 113 checks, Part B Chromium 160 checks total at 1440x1000 and 430x932, exit 0"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-round-trip.mjs",
+            "label": "BLP-003, BLP-004 and BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence contract 396), proving the adapter 1.1.0 additivity and the Q1 product changes invalidated nothing"
+          }
+        ],
+        "note": "BLP-005 required automated-runtime evidence and has it, on the merge commit, at both required widths. The suite found two live defects that a test requirement exists to find. First, api/mcf.js folded every search-page failure into an empty page - a timeout, a non-2xx and an unreadable body all returned an empty array - so the company resolver answered \"No live MyCareersFuture postings found for that company\", a definitive statement about the employer produced by a timeout; the conformance auditor then found the same failure-as-absence in a second branch, where every read page matched nothing but a later page failed. Second, the Step 1a results box was suppressed whenever careers.gov.sg had a match, so a MyCareersFuture timeout beside one public-sector posting showed the header with nothing under it and no failure words. The Supervisor's own reading of api/mcf.js was wrong on this point - it examined the outer catch and generalised across a call path it had not read - and was corrected by the test; that correction is recorded because the value of an independent suite is precisely that it does not defer to the reviewer. Three product files were admitted under the Supervisor's Q1 ruling, because criterion 3 was failing rather than someone else's requirement: api/mcf.js and src/App.jsx each carry an AUTHORISED_CHANGE entry against protected scope, existing Step 2 behaviour and Step 1 behaviour respectively, with the suites proving the success paths unchanged; evidenceAdapter moved 1.0.0 to 1.1.0 with one definition of the state sentences, its additivity proven empirically by the BLP-003 and BLP-004 suites re-running unchanged. Left with the Human Lead, recorded rather than decided by inference: disclosure of a partial employer poll and the export envelope carrying neither code nor pagesFailed; the absent phone new-search control; the careers.gov.sg asymmetry, where failure is said in words but a genuine empty is shown by omitting the column, so a user cannot distinguish \"answered and had nothing\" from \"never consulted\"; and whether golden captured inputs should replace authored fixtures, which are authored to the expected shape and not checked against a captured real response. Residual risk: merge identity was established by blob-SHA equality through a shallow clone and the GitHub API rather than a full-history clone. Log note: the job log carries three expected Error: matches ([careers/company] Timeout: aborted, Error: ECONNRESET, Error: dump too large), the stubbed route failures the suite deliberately drives; ##[error], npm error and exit code 1 are all zero and the job conclusion is success.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
@@ -2155,7 +2301,7 @@
       "title": "Capture exact candidate-evidence excerpts",
       "requirement": "Capture exact candidate-evidence excerpts with immutable source and span identifiers.",
       "priority": "P1",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002",
         "BLP-003"
@@ -2176,6 +2322,86 @@
           "kind": "FILE",
           "reference": "v3.1/src/work-universe/personEvidenceData.js",
           "label": "Person evidence data"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+          "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (65 checks) and a new two-width Chromium suite (104 checks); the gate workflow runs it"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+          "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 104 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/person-evidence-contract.mjs",
+          "label": "Node contract (existing assertions unchanged, 65 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "EXIT AUDIT (conformance-auditor, 2026-09-08, read-only, static D1-D8 and dynamic G1-G8 against the live build plus a node probe of the exported data layer): hard gates PASS, no blocker; D3, D4, D5, D6 PASS, D7 and G8 PARTIAL, D8 PASS-with-note; three CRITICAL findings, all fixed before the implementation commit and each now asserted: C-1 the drift re-check through validateEvidenceSpan was satisfied by construction (a span rebuilt from the current source matches that source), so an excerpt lacking sourceTextHash resolved valid against a different document and the payload passed isManualPersonEvidence; the hash is now mandatory (reason NO_HASH), the comment says the hash comparison is the drift check, and node asserts a hashless excerpt never resolves and refuses the payload. C-2 the 'text was normalised, select again' branch was dead on the mouse path because clicking Mark blurred the textarea first, which canonicalised and collapsed the selection, so the user was told 'select the exact text' after having made a selection; the Mark button now keeps focus in the box on mouse down, the selection is recorded from the textarea's own select events into a ref cleared on any text change, and Chromium asserts at both widths that selecting on non-canonical text and marking says 'select the excerpt again' in words, marks nothing, and that selecting again marks exactly the selection. C-3 the confirmation record was a bespoke object never passed through the contract's isConfirmationRecord and confirmedAt could be null while confirmation read USER-CONFIRMED; the build now refuses a supplied confirmedAt that is not an ISO instant, records the build time when none is supplied (the build is the confirmation act), gates the record through isConfirmationRecord, and isManualPersonEvidence requires it plus the declared shape (D8's marker is now read). Warnings fixed: W-1 the re-seed effect keyed on object identity and allocated a fresh array each run (loop hazard for a consumer handing a fresh object per render): keyed on source id and confirmation time with a shallow compare; W-2 after the text was replaced the pill still read CONFIRMED and the summary named a source the box no longer held: the pill reads CONFIRMED (EARLIER TEXT) and a line says the summary describes the evidence last applied, asserted; W-3 the stale block was not announced and the disabled Apply gave no reason: role status, aria-live polite, aria-describedby, asserted; W-4 focus dropped to body when the last excerpt was removed: focus moves to the Mark control, asserted; W-6 skill checkbox rows under 44px (pre-existing): fixed with the confirm row, asserted. Suggestions taken: S-1 the second-application assertion was vacuous (the summary already carried the source id): it now waits for a later confirmation time with identical source and span ids; S-2 non-canonical rawText with excerpts is refused rather than reinterpreted, asserted; S-3 the applied payload is memoised on value identity. W-5 (register untouched at audit time) is this record."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "EXIT AUDIT (a11y-honesty-reviewer, 2026-09-08, read-only): no red or green anywhere (PASS); marked, stale, refused and the CONFIRMED/WITHHELD pill each conveyed by text and shape, never colour alone (PASS); accessible names on the remove controls, the status region, the excerpt list and the textarea (PASS); no aria-label on generic spans (PASS); focus-visible outline on every new control (PASS); withhold rather than invent on stale rows and confirmation time (PASS); honest copy (PASS). One PARTIAL fixed before commit: the skill checkbox rows (30px) and the confirm checkbox row had no 44px minimum; both now 44px and asserted in Chromium at both widths. Three notes taken: the raw CLAIMED_ONLY string is now followed by 'claimed by you, not yet demonstrated'; the stale message branches on the data layer's reason (text changed, text cleared, excerpt no longer fits); the summary shows the set of proof states over every proof, not only the first. The 'AI-assisted; human decides' footer rule does not apply to this component: it is an evidence-capture input surface that authors no AI figure (every string is the user's text, a deterministic offset or hash, or a literal message), and the downstream views that render figures from this evidence carry the footer. Flagged for the Human Lead, pre-existing and outside this change: the Work Universe page footer pill reads 'AI-assisted · human decides' with a middle dot where CLAUDE.md section 4 and the result-engine spec require the literal semicolon form."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "P0 GATE NOTE (Supervisor ruling 1, recorded in its final form after BLP-005 reached COMPLETE): BLP-007's recorded predecessors are BLP-002 and BLP-003, both COMPLETE, so instructions section 9 item 1 is satisfied and BLP-007 may reach COMPLETE on its own dependencies; what section 10 forbids is the P1 GATE passing while P0 holds an unapproved requirement, since gates are cumulative, and section 10 P0's 'before candidate-output implementation begins' names the P3 candidate-output gate (section 13.3), not P1 candidate-proof work. The Human Lead's order was the authorisation to start; work began while PR #497 (BLP-005) was open and was held locally until it merged and BLP-005 was approved COMPLETE on the dispatch run at c703d9c, so the P0 gate was closed before this record was written. CONDITION carried: if BLP-005 is ever reopened, BLP-007 must be re-checked against whatever changes, because both are built on the same P0 contracts."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "SUPERVISOR RULING 3(c): confirmed excerpts are CLAIMED_ONLY, required rather than merely permitted. WITHHELD means evidence legitimately unavailable; present, confirmed evidence recorded as WITHHELD would be the false-withholding error ruled against under BLP-004 Q1. CLAIMED_ONLY says what is true (the candidate claims it, nothing yet demonstrates it) and is safe because validateProofRecord refuses ALLOWED on any destination outside DEMONSTRATED or CERTIFIED. The whole-text proof (no excerpt marked) is likewise CLAIMED_ONLY with its coarseness carried in the label and note, not in its evidential status."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "OPTION FOR THE HUMAN LEAD (recorded by the Supervisor, not imposed): emit NO ProofRecord until an excerpt is marked, carrying the raw text as an EvidenceSource only. A proof over an entire document asserts that the document proves something without saying what, which BLP-008 and BLP-009 will then have to link to a target; arguably the more honest design, but it changes the gate string '1 unstructured proof' and what consumers see, so it is a product call. CLAIMED_ONLY over the whole-text span is implemented meanwhile."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "SUPERVISOR RULING 5(ii): a content-hash source id is the right stability (same text, same id; edited text, a different source whose old spans can never silently re-point at it), matching the BLP-003 identity discipline; hashed over the CANONICAL text so two pastes differing only in line endings share an id; 24-hex width shared with the contract's duty: ids (SOURCE_ID_HASH_WIDTH)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "SUPERVISOR RULING 5(iii): the confirmation record's actor human:local-user (LOCAL_HUMAN_ACTOR from the BLP-006 roster) is acceptable; blueprint 15.2 is open about reviewer roster membership, not human actors. CONDITION kept: wherever the record surfaces it keeps the display name 'you (this device; identity not recorded)', so nobody later reads the id as an authenticated identity (the confirm label and the summary both say it)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "THE DEFECT THE SUPERVISOR PREDICTED, AVOIDED STRUCTURALLY: cleanRaw (the previous normalisation) did only CRLF folding and trim, while the contract's normalisePostingText also strips zero-width characters, folds Unicode spaces, strips trailing whitespace per line and collapses three or more newlines, three of which change string length; so the textarea value and the source text were different strings and selectionStart/selectionEnd would have sliced the wrong characters for exactly the pastes a naive test would not exercise. The textarea now holds the canonical text (canonicalised on paste and on blur), Mark refuses to read a selection while the value is not canonical and asks for the selection again, and the required fixture (CRLF, trailing space, zero-width, triple newline before the selection) is asserted mechanism-independently in node and in Chromium at both widths: span.text === source.text.slice(start, end) === the selected substring."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "CONSUMER RENDERING CHECK (Supervisor ruling 3(f), named per file): proofs[].evidenceIds changed from ['PRAW1'] to the canonical span id. WorkUniverseLanding.personEvidenceOf reads person.proofs only to compute supplied (length > 0) and renders neither proofs nor evidenceIds; its skill signal reads person.skills, unchanged. ReviewStudio.jsx merges personEvidenceOverride into the result and renders nothing from it. PrintPackage.jsx personSkillsOf reads person.skills only. No consumer renders evidenceIds, so no consumer file is affected and none is declared."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "KNOWN OMISSION (out of scope by the Supervisor's section 4 ruling): ProofRecord.targets is always [] here. Ticked target skills still ride on the payload's skills list exactly as before (the pre-existing skill-claim path, protected), not as proof targets, because a skill label is not a canonical target id and target links are BLP-008 and BLP-009's requirement. Destination controls (BLP-010) and proof-state transitions beyond CLAIMED_ONLY (BLP-011) are untouched."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "KNOWN OMISSION: the character counter and maxLength (30,000) measure the textarea value, which before canonicalisation can be longer than the canonical text by the characters normalisation removes; the source line shows the canonical length beside it. Selection on a touch device uses the platform's native text selection in the textarea; the suite drives it through setSelectionRange at phone width, which is the same API the platform handle uses, but no physical-device pass has been made (physical runtime is not required by the completion policy)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "KNOWN OMISSION: the Work Universe graphs and the print package do not yet show the excerpt ids or the source id; the ingress summary is the only surface that renders them. Owner: BLP-008 (target links) and BLP-015 (print ledger with ids)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "KNOWN OMISSION (a11y-honesty-reviewer, pre-existing, outside the changed files): WorkUniverseLanding.jsx renders the page footer pill as 'AI-assisted · human decides' (middle dot), not the literal 'AI-assisted; human decides' the result-page contract names; the same middle-dot variant is already recorded on BLP-004. Owner: the Human Lead's call on the footer wording."
         }
       ],
       "blockers": [
@@ -2184,7 +2410,23 @@
           "description": "Exact span capture over the canonical evidence contracts is not recorded.",
           "ownerRole": "product-ui-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (65 checks) and a new two-width Chromium suite (104 checks); the gate workflow runs it"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 104 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-contract.mjs",
+              "label": "Node contract (existing assertions unchanged, 65 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -2201,11 +2443,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (65 checks) and a new two-width Chromium suite (104 checks); the gate workflow runs it"
+            }
+          ],
+          "note": "Implementation commit 5ee2f71 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -2248,7 +2496,10 @@
       },
       "affectedFiles": [
         "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
-        "v3.1/src/work-universe/personEvidenceData.js"
+        "v3.1/src/work-universe/personEvidenceData.js",
+        "v3.1/tests/person-evidence-contract.mjs",
+        "v3.1/tests/person-evidence-excerpts.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -2263,6 +2514,38 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T19:55:00+08:00",
+          "reason": "Started on the Human Lead's order while PR #497 (BLP-005) was still open; work held locally until that PR merged and BLP-005 was approved COMPLETE. The Blueprint Supervisor's rulings recorded first: sequencing reading (a) with a three-part note and a reopen condition; CLAIMED_ONLY for confirmed excerpts and for the whole-text proof, granularity in the label and note; the no-proof-until-marked option recorded for the Human Lead; a content-hash source id over the canonical text at 24 hex; canonical text in the textarea so offsets, hash and slice cover one string; the CRLF, trailing-space, zero-width and triple-newline fixture required; validateEvidenceSpan against the source before emission; the removal-integrity assertion; human:local-user acceptable with its display name kept; consumers checked per file for rendering of evidenceIds.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T20:19:26+08:00",
+          "reason": "Users select exact candidate evidence spans in the pasted text and mark them without rewriting the source text (the span is sliced from the canonical source, never retyped); every excerpt records a stable source id (content hash of the canonical text) and a stable span id (span:<sourceId>:<start>-<end>), identical across a second application of the same text; unconfirmed raw evidence cannot be treated as confirmed proof (nothing is emitted before the human confirms, every emitted proof is CLAIMED_ONLY with a confirmation record, a stale excerpt is refused outright, and a payload whose source drifted from its hash is not recognised). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (65 checks) and a new two-width Chromium suite (104 checks); the gate workflow runs it"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 104 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-contract.mjs",
+              "label": "Node contract (existing assertions unchanged, 65 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
