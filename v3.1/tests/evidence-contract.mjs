@@ -34,7 +34,7 @@ const bad = (validation, pattern, label) => {
 };
 
 // --- versioning and vocabularies -----------------------------------------------------------------
-assert.equal(CONTRACT_VERSION, "1.0.2");
+assert.equal(CONTRACT_VERSION, "1.0.3");
 assert.equal(TEXT_NORMALISATION_VERSION, "ptn-1");
 assert.deepEqual(ORIGINS, ["SOURCE_VERBATIM", "DETERMINISTIC", "AI_ASSISTED", "USER_AUTHORED", "WITHHELD"]);
 assert.equal(Object.keys(CONTRACTS).length, 7, "exactly seven canonical contracts");
@@ -165,6 +165,11 @@ assert.equal(isDistilledSpanTrusted(dutyConfirmed), true);
 ok(validateEvidenceSpan(dutyConfirmed, { knownSpans: [span] }), "human-confirmed link with provenance");
 bad(validateEvidenceSpan({ ...duty, derivationState: "USER_CONFIRMED" }, { knownSpans: [span] }), /a bare claim is not a human decision/, "the Supervisor's P3 probe: claimed USER_CONFIRMED with no confirmer");
 bad(validateEvidenceSpan({ ...dutyConfirmed, confirmation: { confirmedBy: "human:editor" } }, { knownSpans: [span] }), /named human and an ISO 8601 time/, "confirmation without a time");
+// Trust and validation share one path (1.0.3): the predicate re-derives the state and never takes the record's word.
+const bareClaim = { ...duty, derivationState: "USER_CONFIRMED" };
+const forgedVerified = { ...dutyDeclared, derivationState: "VERIFIED" };
+assert.equal(isDistilledSpanTrusted(bareClaim), false, "a bare claim of USER_CONFIRMED is not trusted");
+assert.equal(isDistilledSpanTrusted(forgedVerified), false, "a forged VERIFIED on an AI distillation is not trusted");
 assert.equal(createDistilledSpan({ text: "Build and maintain data pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, confirmation: { confirmedBy: "", confirmedAt: "2026-09-08T04:05:00Z" } }).derivationState, "UNVERIFIED", "an empty confirmer does not confirm");
 // A DETERMINISTIC distillation must actually be derivable from its parents.
 const dutyDet = createDistilledSpan({ text: "build pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
@@ -172,6 +177,8 @@ assert.equal(dutyDet.derivationState, "VERIFIED");
 ok(validateEvidenceSpan(dutyDet, { knownSpans: [span] }), "deterministic distillation that occurs in its parent");
 const invented = createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId, origin: ORIGIN.DETERMINISTIC });
 bad(validateEvidenceSpan(invented, { knownSpans: [span] }), /must be derivable from its parents' text/, "the Supervisor's Berlin probe: invented deterministic distillation");
+assert.equal(isDistilledSpanTrusted(invented, { knownSpans: [span] }), false, "with its parents in view, the deterministic fabrication is not trusted even though its declared state is VERIFIED");
+assert.equal(isDistilledSpanTrusted(dutyDet, { knownSpans: [span] }), true, "with its parents in view, a genuine deterministic distillation is trusted");
 assert.equal(createDistilledSpan({ text: "Lead a team of twelve engineers in Berlin", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).derivationState, "UNVERIFIED", "the same text as an AI distillation without windows is unverified, and therefore untrusted");
 // Same text, same version, different casing/spacing: same id. Re-extraction: new id, same parents.
 assert.equal(createDistilledSpan({ text: "  build AND maintain data   pipelines", extractionVersion: "duty-extract-3", parentSpanIds: [span.id], sourceId: mcfId }).id, duty.id);
@@ -232,6 +239,8 @@ ok(validateProofRecord(proof, { knownSpans: [span, dutyDet, excerpt] }), "proof 
 bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: duty.id }] }, { knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED; only VERIFIED or USER_CONFIRMED/, "proof targeting an unverified distilled span");
 bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: dutyDeclared.id }] }, { knownSpans: [span, dutyDeclared, excerpt] }), /parentage is DECLARED; only VERIFIED or USER_CONFIRMED/, "proof targeting a declared-only AI distillation");
 ok(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: dutyConfirmed.id }] }, { knownSpans: [span, dutyConfirmed, excerpt] }), "proof targeting a human-confirmed distilled span");
+bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: bareClaim.id }] }, { knownSpans: [span, bareClaim, excerpt] }), /fails validation: USER_CONFIRMED requires a confirmation record/, "the gate validates what it cites: bare-claim target refused");
+bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: invented.id }] }, { knownSpans: [span, invented, excerpt] }), /fails validation: a DETERMINISTIC distilled span must be derivable/, "the gate validates what it cites: fabricated deterministic target refused");
 bad(validateProofRecord({ ...proof, targets: [{ targetKind: "duty", targetId: nothing.id }] }, { knownSpans: [nothing] }), /cites withheld record/, "proof targeting a withheld record");
 assert.equal(createProofRecord({ candidateSourceId: cvSource.id, excerptSpanId: excerpt.id }).state, "WITHHELD", "default state is WITHHELD");
 bad(validateProofRecord({ ...proof, confirmation: null }), /requires USER-CONFIRMED/, "demonstrated without confirmation");
@@ -276,6 +285,8 @@ bad(validateOutputBlock(block, { allowlist: [span.id] }), /outside the supplied 
 bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, duty, excerpt] }), /parentage is UNVERIFIED/, "citation of an unverified distilled span");
 bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyDeclared, excerpt] }), /parentage is DECLARED/, "the Supervisor's P4 probe: citation of a declared-only AI distillation is refused");
 ok(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, dutyConfirmed, excerpt] }), "citation of a human-confirmed distilled span");
+bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, bareClaim, excerpt] }), /fails validation: USER_CONFIRMED requires a confirmation record/, "citation of a bare-claim span refused at the gate");
+bad(validateOutputBlock(block, { allowlist: [excerpt.id, duty.id], knownSpans: [span, forgedVerified, excerpt] }), /fails validation: distilled span derivationState does not follow/, "citation of a forged VERIFIED span refused at the gate");
 const detBlock = createOutputBlock({ ...block, id: "ob-3", sourceRefs: [excerpt.id, dutyDet.id] });
 ok(validateOutputBlock(detBlock, { allowlist: [excerpt.id, dutyDet.id], knownSpans: [span, dutyDet, excerpt] }), "citation of a verified deterministic distillation");
 bad(validateOutputBlock({ ...block, sourceRefs: [] , evidenceHash: computeEvidenceHash([]) }), /at least one evidence id/, "unsupported factual text");

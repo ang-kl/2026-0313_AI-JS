@@ -41,6 +41,11 @@
 //          DECLARED, which is inspectable but not trusted; USER_CONFIRMED requires a confirmer and
 //          a time (and may name the ReviewChange that recorded the decision); trust is VERIFIED or
 //          USER_CONFIRMED only. ptn-1 also folds U+2028, U+2029 and U+0085 to a line break.
+//   1.0.3  Trust and validation share one path. isDistilledSpanTrusted re-derives the derivation
+//          state and refuses a record whose declared state disagrees; the citation gate inside
+//          validateProofRecord and validateOutputBlock validates each cited distilled span against
+//          knownSpans and refuses on any error, so a forged state cannot pass the gate the
+//          generation requirements inherit.
 //
 // Validation scope: rule 7 runs only when the validator can see the parents. Consumers MUST validate
 // distilled spans through validateEvidenceBundle or pass knownSpans; a standalone call checks shape
@@ -53,7 +58,7 @@
 // Protected scope: this module is additive. It changes no Step 1, Step 2, graph, review, print,
 // v3/ or Railway behaviour. Consumers adopt it under later requirements (BLP-003 onward).
 
-export const CONTRACT_VERSION = "1.0.2";
+export const CONTRACT_VERSION = "1.0.3";
 // ptn-1 folds every Unicode space separator (category Zs) to U+0020, removes zero-width characters
 // (U+200B, U+200C, U+200D, U+FEFF) and treats U+2028, U+2029 and U+0085 as line breaks. It has never
 // been persisted in a narrower form.
@@ -459,9 +464,21 @@ export function createWithheldSpanSet(sourceId, reason = WITHHOLD.NO_SOURCE_ROWS
   };
 }
 
-/** True when a distilled span may support a proof target or an output citation. */
-export function isDistilledSpanTrusted(span) {
-  return isObject(span) && span.kind === "distilled" && ["VERIFIED", "USER_CONFIRMED"].includes(span.derivationState);
+/**
+ * True when a distilled span may support a proof target or an output citation. The state is
+ * re-derived from origin, windows and confirmation: a record's own derivationState field is never
+ * taken at its word, so a bare claim of USER_CONFIRMED or a forged VERIFIED is not trusted. Pass
+ * knownSpans to also run the containment and window checks against the parents.
+ */
+export function isDistilledSpanTrusted(span, { knownSpans } = {}) {
+  if (!isObject(span) || span.kind !== "distilled") return false;
+  const derived = deriveDerivationState({ origin: span.origin, derivation: span.derivation, confirmation: span.confirmation });
+  if (span.derivationState !== derived) return false;
+  // With the parents in view the full validator runs, so a DETERMINISTIC span that fails containment
+  // is refused here too. Without them only the declared/derived consistency can be checked, which is
+  // why consumers must pass knownSpans (see the validation-scope rule in the header).
+  if (Array.isArray(knownSpans) && !validateEvidenceSpan(span, { knownSpans }).ok) return false;
+  return ["VERIFIED", "USER_CONFIRMED"].includes(derived);
 }
 
 /**
@@ -581,8 +598,14 @@ function checkCitedSpans(errors, ids, knownSpans, label) {
   const byId = new Map(knownSpans.map((s) => [s.id, s]));
   for (const id of ids) {
     const span = byId.get(id);
-    if (span && span.kind === "distilled" && !isDistilledSpanTrusted(span)) errors.push(`${label} cites distilled span ${id} whose parentage is ${span.derivationState}; only VERIFIED or USER_CONFIRMED parentage can support a claim`);
-    if (span && span.kind === "withheld") errors.push(`${label} cites withheld record ${id}, which carries no evidence`);
+    if (!span) continue;
+    if (span.kind === "withheld") { errors.push(`${label} cites withheld record ${id}, which carries no evidence`); continue; }
+    if (span.kind !== "distilled") continue;
+    // The gate validates what it cites: a cited distilled span must pass the span validator against
+    // the same knownSpans (containment, windows, confirmation, declared state) before trust is asked.
+    const own = validateEvidenceSpan(span, { knownSpans });
+    if (!own.ok) { own.errors.forEach((e) => errors.push(`${label} cites distilled span ${id} that fails validation: ${e}`)); continue; }
+    if (!isDistilledSpanTrusted(span)) errors.push(`${label} cites distilled span ${id} whose parentage is ${span.derivationState}; only VERIFIED or USER_CONFIRMED parentage can support a claim`);
   }
 }
 
