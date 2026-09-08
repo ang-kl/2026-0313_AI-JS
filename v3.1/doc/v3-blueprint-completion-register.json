@@ -3306,6 +3306,11 @@
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/06ef2376972b54883e70edf5a742ac633d99a782",
           "label": "NOTE (post-completion, appended not edited): the known omission 'a link does not yet move a proof toward DEMONSTRATED (BLP-010)' recorded at BLP-009 is discharged by BLP-010 at 06ef237: a demonstration is the human's declaration on a declared link standing under a live judgement. BLP-009's own suite re-ran at 160 node and 225 Chromium on the BLP-010 tree, one node check more than at approval (A12b extended for guardLedgerStep's re-judged rule) and one Chromium check more (the same extension read at both widths); no BLP-009 assertion was removed or weakened."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
+          "label": "NOTE (post-completion, appended not edited; status unchanged): a C1-class mis-attribution existed in missingEvidenceOf's fallback from ff4c7c0 through the corrected implementation 592db34 and the approved merge f1d94e9 (this requirement's verifiedCommit), and remained on main (b5c23e0) until BLP-010's merge: for a record whose links were invalid only because the record itself was stale or withheld (CANDIDATE_SOURCE_CHANGED), the missing-evidence line said 'every link is invalid against the current posting evidence' when nothing was known to have changed about the posting, the precise class this requirement's own C-a ruling existed to eliminate, surviving in a fallback neither the conformance auditor nor the Supervisor looked at. Found by the conformance auditor on BLP-010's third pass and fixed at baf8700 (noLinkStandsText, from the links' own reasons with no default arm). BLP-009 does NOT reopen: its evidence re-validates unchanged at 160 node and 225 Chromium, verified by the Supervisor at 2bfe500, and its three acceptance criteria (stable identifiers, inspectability, invalidation without mutating text) are not falsified by the fallback sentence's wording. The Supervisor approved BLP-009 without catching it, and asked for this note so the record describes the artefact as it was."
         }
       ],
       "blockers": [
