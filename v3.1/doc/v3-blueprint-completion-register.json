@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T15:32:00+08:00"
+      "updatedAt": "2026-09-08T15:42:33+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -683,12 +683,12 @@
         {
           "kind": "FILE",
           "reference": "v3.1/api/mcf.js",
-          "label": "RESIDUAL RISK (Blueprint Supervisor scope ruling 2, 2026-09-08; outlives BLP-003-BLOCKER-01): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and is never inferred from body length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real."
+          "label": "RESIDUAL RISK (Blueprint Supervisor scope ruling 2, 2026-09-08; outlives BLP-003-BLOCKER-01): api/mcf.js and api/careers.js cap posting bodies (DESC_CAP 4000, RESP_CAP 2500) without exposing originalLength, so EvidenceSource.completeness is recorded UNKNOWN (withheld) and is never inferred from body length; the additive route change (originalLength, cap) lands as its own small PR, after which completeness becomes COMPLETE or TRUNCATED for real. DISCHARGED by BLP-004 route commit 431a7a7 (2026-09-08): both routes now emit textProvenance with cap and pre-cap originalLength, so completeness can be recorded as COMPLETE or TRUNCATED as a measured fact once the evidence adapter reads it."
         },
         {
           "kind": "FILE",
           "reference": "v3.1/src/App.jsx",
-          "label": "KNOWN OMISSION: EvidenceSource.retrievedAt is withheld (WITHHELD_UNAVAILABLE_FIELD) because the Step 2 handoff carries no retrieval time for the posting; owner BLP-004 (EvidenceWindow fields), not BLP-003."
+          "label": "KNOWN OMISSION: EvidenceSource.retrievedAt is withheld (WITHHELD_UNAVAILABLE_FIELD) because the Step 2 handoff carries no retrieval time for the posting; owner BLP-004 (EvidenceWindow fields), not BLP-003. DISCHARGED at the route by BLP-004 route commit 431a7a7 (2026-09-08): both routes now emit retrievedAt as the observation time; the adapter wiring that carries it to EvidenceSource.retrievedAt lands with BLP-004."
         },
         {
           "kind": "TEST",
@@ -1038,7 +1038,7 @@
       "title": "Carry independent evidence-window fields",
       "requirement": "Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value.",
       "priority": "P0",
-      "status": "NOT_STARTED",
+      "status": "IN_PROGRESS",
       "dependencies": [
         "BLP-002"
       ],
@@ -1058,6 +1058,16 @@
           "kind": "FILE",
           "reference": "v3.1/src/ReviewStudioLegacy.jsx",
           "label": "Step 3 disclosure surface"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
+          "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-window.mjs",
+          "label": "Evidence window test, Part A (routes, stubbed fetch): 39 checks, exit 0"
         }
       ],
       "blockers": [
@@ -1066,7 +1076,18 @@
           "description": "The complete EvidenceWindow handoff and display are not recorded.",
           "ownerRole": "contract-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
+              "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window test, Part A (routes, stubbed fetch): 39 checks, exit 0"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -1083,11 +1104,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "431a7a77c3f59950b5d922b493311c1a0351f4e4",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
+              "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+            }
+          ],
+          "note": "Route commit 431a7a7 is the first of the BLP-004 implementation commits (routes only; separate small PR per the Supervisor's ruling 1). The adapter, App.jsx wiring, footer rendering and contract 1.0.4 follow in a further commit that will supersede this one as the recorded implementation, with 431a7a7 kept as evidence."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -1129,9 +1156,16 @@
         }
       },
       "affectedFiles": [
+        "v3.1/api/mcf.js",
+        "v3.1/api/careers.js",
+        "v3.1/src/contracts/evidenceContracts.js",
+        "v3.1/src/contracts/evidenceWindowAdapter.js",
         "v3.1/src/App.jsx",
         "v3.1/src/ReviewStudioLegacy.jsx",
-        "v3.1/tests/evidence-window.mjs"
+        "v3.1/src/review/PrintPackage.jsx",
+        "v3.1/tests/evidence-window.mjs",
+        "v3.1/tests/evidence-contract.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -1146,6 +1180,20 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T15:42:33+08:00",
+          "reason": "Evidence-window implementation began on the working branch after BLP-003 was approved COMPLETE (approval commit 26c9a6f, PR #492), on the Human Lead's instruction and under the Blueprint Supervisor's five scope rulings plus its two rulings on date precision (contract 1.0.4 day-precision marker, backward-compatible) and raw source dates (additive postedDateRaw / expiryDateRaw read only by the evidence layer). First step is the additive route change at 431a7a7, recorded at its author time; the adapter, wiring, footer and register follow.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
+              "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+            }
+          ]
         }
       ],
       "supervisorApproval": {
