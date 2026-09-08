@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
+import { applyEvidenceToLedger, createEmptyLedger } from "./work-universe/candidateProofLedgerData.js";
 
 // Preserve the named helper contract consumed by App.jsx. The Step 3 wrapper
 // changes only the default surface; deterministic helpers continue to come from
@@ -27,6 +28,18 @@ export default function ReviewStudio(props) {
   const [workspaceMounted, setWorkspaceMounted] = useState(false);
   const [workspaceIntent, setWorkspaceIntent] = useState(null);
   const [personEvidenceOverride, setPersonEvidenceOverride] = useState(undefined);
+  // BLP-008: the candidate-proof ledger remembers records across edits, so it lives beside the
+  // payload (a cleared payload is null) in this session-only state; nothing reaches browser storage.
+  const [proofLedger, setProofLedger] = useState(createEmptyLedger);
+  const handlePersonEvidenceChange = (evidence) => {
+    // The clock is read once, at this boundary, never inside the updater (React may run an
+    // updater more than once); the fold itself is pure.
+    const at = new Date().toISOString();
+    setPersonEvidenceOverride(evidence);
+    setProofLedger((ledger) => applyEvidenceToLedger(ledger, evidence, at));
+  };
+  // The panel hands back an UPDATER so its choices always run against the live ledger.
+  const handleProofLedgerChange = (updater) => setProofLedger((ledger) => (typeof updater === "function" ? updater(ledger) : ledger));
   const [governanceReviewState, setGovernanceReviewState] = useState({});
   const governanceSubjectKey = props.posting?.uuid || `${props.title || ""}::${props.employer || ""}::${props.source || ""}`;
   useEffect(() => setGovernanceReviewState({}), [governanceSubjectKey]);
@@ -61,7 +74,9 @@ export default function ReviewStudio(props) {
           onBack={props.onBack}
           onEnterStudio={(intent) => openWorkspace(intent || { kind: "evidence" })}
           onPrintPackage={() => openWorkspace({ kind: "print" })}
-          onPersonEvidenceChange={setPersonEvidenceOverride}
+          onPersonEvidenceChange={handlePersonEvidenceChange}
+          proofLedger={proofLedger}
+          onProofLedgerChange={handleProofLedgerChange}
           onGovernanceDecisionChange={(key, status) => setGovernanceReviewState((current) => ({ ...current, [key]: status }))}
         />
       </div>

@@ -4,6 +4,7 @@ import WorkflowMap from "./WorkflowMap.jsx";
 import ValueStreamMap from "./ValueStreamMap.jsx";
 import OccupationVisualSelector from "./OccupationVisualSelector.jsx";
 import PersonEvidenceIngress from "./PersonEvidenceIngress.jsx";
+import CandidateProofLedger from "./CandidateProofLedger.jsx";
 import GovernanceLedger from "./GovernanceLedger.jsx";
 import { jobAdText, jobAdSections } from "../review/job-ad-sections.js";
 import { buildResultEvidence } from "../contracts/evidenceAdapter.js";
@@ -478,7 +479,7 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, rolePane, aiMomentsPane, onBack, onEnterStudio, onPrintPackage, onPersonEvidenceChange, onGovernanceDecisionChange,
+  result, title, employer, source, band, posting, rolePane, aiMomentsPane, onBack, onEnterStudio, onPrintPackage, onPersonEvidenceChange, onGovernanceDecisionChange, proofLedger, onProofLedgerChange,
 }) {
   const deviceProfile = useDeviceProfile();
   const rootRef = useRef(null);
@@ -1005,10 +1006,11 @@ export default function WorkUniverseLanding({
               </section>
               {anchor === "person" && !personEvidenceOpen && (
                 <div style={{ margin: "0 clamp(14px,1.05vw,28px) 12px" }}>
-                  <button data-testid="wu-add-person-evidence" type="button" className="wu-cmdBtn" style={{ width: "100%" }} onClick={() => setPersonEvidenceOpen(true)}>{data.personEvidence?.supplied ? "Review my evidence" : "Add my evidence"}</button>
+                  <button data-testid="wu-add-person-evidence" type="button" className="wu-cmdBtn" style={{ width: "100%" }} onClick={() => setPersonEvidenceOpen(true)}>{data.personEvidence?.supplied ? "Review my evidence" : "Add my evidence"}{proofLedger?.records?.length ? ` · ${proofLedger.records.length} proof record${proofLedger.records.length === 1 ? "" : "s"} kept` : ""}</button>
                 </div>
               )}
               {anchor === "person" && personEvidenceOpen && <PersonEvidenceIngress targetSkills={baseData.skills} value={result?.personEvidence} onChange={onPersonEvidenceChange} />}
+              {anchor === "person" && personEvidenceOpen && <CandidateProofLedger ledger={proofLedger} currentSourceId={result?.personEvidence?.sourceId || null} onLedgerChange={onProofLedgerChange} />}
             </div>
             <section className="wu-sourceBody">
               {sourceTab === "job-ad" && <div>

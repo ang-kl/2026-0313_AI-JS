@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T21:43:41+08:00"
+      "updatedAt": "2026-09-08T14:24:17+00:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2705,7 +2705,7 @@
       "title": "Build the structured candidate-proof ledger",
       "requirement": "Build the structured candidate-proof ledger.",
       "priority": "P1",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-007"
       ],
@@ -2725,6 +2725,106 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
           "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+          "label": "BLP-008 implementation commit 86e4320 (revision of 22d2413, itself a revision of 159e429; test-only): the Supervisor found that 22d2413's wait predicate WAS the assertion (waiting for 'Claim recorded at' and then asserting it), so the check could no longer fail with its message and a notice saying the wrong thing would surface as a timeout. The suite now captures the notice before the save, waits for it to CHANGE and be non-empty, and asserts what it says; a wait for non-empty alone would not do because the notice still carries the proof-type choice's text. Node 103 and Chromium 184 unchanged at 1440x1000 and 430x932. git diff 22d2413 86e4320 -- v3.1/src v3.1/tests .github lists only tests/candidate-proof-ledger.mjs."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/22d241348bed0686b720a2880772954e6b9705bf",
+          "label": "SUPERSEDED as the implementation commit by 86e4320 (the wait predicate was the assertion; corrected on the Supervisor's finding). BLP-008 implementation commit 22d2413 (revision of 159e429): tests/candidate-proof-ledger.mjs waits for the panel notice before reading it, after run 34236469225 on PR #500 failed that read at phone width; the notice is derived from the kept ledger in an effect and lands one render after the claim state the suite had waited for, so the read raced the runner's second render. No assertion weakened or removed; node 103 and Chromium 184 checks unchanged at 1440x1000 and 430x932. The seven source, panel, test-workflow blobs of 159e429 other than the suite are byte-identical here."
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
+          "label": "SUPERSEDED as the implementation commit by 22d2413 (test-only revision). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+          "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "EXIT AUDIT (conformance-auditor, 2026-09-08, read-only, static D1-D8 and node probes; Chromium unavailable to the auditor, Part B evidence from the committed run artefacts): hard gates FAILED on first verdict (gate 3, withhold over fabrication) with three CRITICAL findings, all fixed and asserted before the implementation commit. C-1: the whole-text fact was set once per record and never refreshed, while the proof id depends only on source and span, so the same id arriving as the unstructured proof after the whole text had been marked by hand omitted the required 'no exact excerpt marked' line, and the mirror sequence asserted it falsely; payload-derived facts are now refreshed on the existing record and the change is said in the RECONFIRMED or RESUMED event's detail, with both two-step sequences asserted in node. C-2: proofType and claimText were editable without an event and validateLedger could not tell; both are now derived from history the way state is (the last PROOF_TYPE_SET and CLAIM_SET events) and a forged choice is refused, asserted. C-3: proof view fields (text, start, end, sourceTextHash) reached the ledger unchecked and validateLedger had no production caller; isManualPersonEvidence now checks every view field against the payload's own source, validatePayloadProof checks again at the ledger, every mutation passes through one commit guard that runs validateLedger before a result becomes state, validateLedger covers every record field (offsets, excerpt length, span id composition, unstructured, source completeness, display name, versions, lastEventAt), and a payload that fails is REFUSED on the record with reason PAYLOAD_REFUSED attributed to the system, changing no record, rather than read as a clear and blamed on the human (W-8), all asserted. Warnings fixed and asserted: W-1 the panel now hands back an updater so a choice runs against the live ledger and cannot clobber an evidence fold in the same batch; W-2 the clock is read once at the ReviewStudio boundary, never inside the updater; W-3 the event validator switches on kind unconditionally with reasons pinned per kind, so a choice event without its choice, a RECONFIRMED carrying a state change and a reason untrue of its kind are refused; W-4 resumption after a removal or a clear says EXCERPT_CONFIRMED, SOURCE_TEXT_RESTORED only when the text was displaced; W-5 a stale record cut from the text now in the box says it is no longer marked, and the panel note counts the two cases separately; W-6 the claim field is no longer remounted on save, focus moves to the announced claim state (role status), and a refused choice is said in words (D7); W-7 is this record. Suggestions taken: the dead locator line and the near-tautological enum assertion in the suite replaced, the throw check counted, the storage assertion widened to cookies and IndexedDB and to a proof id, the count chips glossed, the claim field given a counter, the dead mount guard removed, the collapsed evidence button says how many proof records are kept, and controls are disabled with a notice when no change handler is connected."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "EXIT AUDIT (a11y-honesty-reviewer, 2026-09-08, read-only): PASS on every check. No red or green anywhere (STALE rows slate and dashed, WITHHELD rows amber and dotted, every row's state also in words); 44px on the select, the Save claim button, the claim textarea and the history summary at both widths; labels for the textarea and select, aria-label on the record list, the stale note an announced status region, no aria-label on generic spans, focus-visible on every control, DOM order sensible; confirmation line honest (the local human with identity withheld in words); the stale note states batch staleness and that no per-proof examination happened; the claim never pre-filled (placeholder says so); 'not yet' wording temporal, not a judgement; CLAIMED_ONLY rendered as 'claimed by you, not yet demonstrated' and listed as missing evidence; the vocabulary note matches its status constant; no fabricated precision. Two advisories applied before commit and asserted in Chromium: the Save button cannot be squeezed below 44px by a long sibling string (flex-shrink 0, min-width 44px, the sibling truncates), and the missing-evidence and downstream-uses lists are named through aria-labelledby from their captions. The 'AI-assisted; human decides' footer rule does not apply to this panel: it authors no AI figure, the global Work Universe footer bar is on screen whenever the panel is open, and a second panel-local AI footer would overstate AI involvement where there is none."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-008's predecessor BLP-007 was IMPLEMENTED_UNVERIFIED (PR #498 open) when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-008 cannot reach COMPLETE before BLP-007 does; if BLP-007 reopens at approval, BLP-008 is re-checked EMPIRICALLY (does its existing evidence fail to re-validate), not nominally; and BLP-007's record carries the Human Lead's open option 'no proof until an excerpt is marked', under which the whole-text proof and its ledger record class cease to exist, so nothing here hardens around that record class. OUTCOME: BLP-007 was approved COMPLETE via PR #499 (merge f051bcd) before this record was written; the implementation attested by the Supervisor at 3b2d600 was re-based onto f051bcd by cherry-pick as this commit, with an empty diff against 3b2d600 across the source, test and workflow trees (git diff 3b2d600 159e429 -- v3.1/src v3.1/tests .github is empty; all seven affected files blob-identical, confirmed by the Supervisor), while the v3.1/doc delta between the two is exactly the BLP-007 approval (git diff 57a2f59 159e429 -- v3.1/doc is empty). An earlier form of this label claimed the diff was empty over v3.1 and .github as a whole; the Supervisor ran it, found the three doc files differing, and required the true scope to be stated. CI CONSEQUENCE: the two source files BLP-008 extends are located by line range in the Step 3 feature map, so the map's locators drifted and the strict feature-map contract failed on the PR head (run 34236077643); v3.1/doc/v3-step3-feature-map.manifest.json is added to affectedFiles with the seven ranges shifted to the lines the same symbols and anchors now occupy. SECOND CI CONSEQUENCE (run 34236469225 on ec21fc2): the ledger suite's Chromium part failed at phone width reading the panel notice one render early; fixed in 22d2413 by waiting for the notice, a test-only revision that supersedes 159e429 as the implementation commit; git diff 159e429 22d2413 touches only v3.1/tests/candidate-proof-ledger.mjs. SUPERVISOR FINDING on 22d2413 (vacuous verification): the wait predicate duplicated the assertion's subject, so the assertion could not fail; corrected in 86e4320 (wait for the notice to change, then assert its words). The same shape had been replicated at four reads in the BLP-009 suite in preparation and was corrected there before its first commit."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "ESCALATED TO THE HUMAN LEAD (Supervisor ruling Q2): the proof-type MECHANISM is settled (a governed enum, human-chosen per record, UNSPECIFIED until chosen and listed as missing evidence, validator coverage so a value outside the enum is refused), but the WORDS are product vocabulary reserved to the Human Lead. The enum shipped here is PROVISIONAL (PROOF_TYPE_VOCABULARY_STATUS = PROVISIONAL_PENDING_HUMAN_LEAD, shown in the panel): UNSPECIFIED, WORK_SAMPLE, CREDENTIAL, TESTIMONIAL, one axis only (what the thing is). The Supervisor's critique of the builder's first proposal is recorded with it: 'narrative' and 'metric' classified how an excerpt is written rather than what it is, so a record would take two types and the field would stop discriminating; and a 'who vouches' axis would restate the CLAIMED_ONLY / DEMONSTRATED / CERTIFIED ladder the contract already enforces. The Human Lead's decision replaces the constant; nothing else changes."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "SUPERVISOR RULING Q3: a human-typed claim is in scope (their own words, USER_AUTHORED, generated by nothing); BLP-017 is the proposed-claim workbench. The builder's proposed default (the verbatim excerpt as the claim) was REFUSED: labelling the excerpt 'Claim' would be the app asserting on the user's behalf that the excerpt claims something, collapsing evidence into assertion, and at BLP-008 a claim has no object because targets arrive at BLP-009. So claimText is null until typed, never pre-filled or suggested, the excerpt is shown under its own label as what the document says, and missing evidence names 'no claim stated in your own words' and separately 'not yet linked to a target'."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "SUPERVISOR RULING Q4 with three corrections, all implemented and asserted: (1) the ledger holds history while BLP-007's payload keeps refusing stale excerpts; the two coexist because the payload is built from resolveExcerpts's valid/stale partition and the ledger folds each applied payload, so it invents no staleness detection of its own. (2) Correction 1: a proof id is a pure function of source and span, and the source id is a hash of the canonical text, so editing the text back reproduces identical ids; the same record RESUMES (STALE -> CLAIMED_ONLY, permitted by the contract) with its history intact and a duplicate is never appended (asserted in node and Chromium: record count unchanged, history RECORDED, STALE, RESUMED). (3) Correction 2: under BLP-007's identity scheme ANY edit changes the source id and stales EVERY active record at once; 'dependent proof records' is, today, always all of them; the panel says so and says the app did not examine proofs one by one. (4) Correction 3: purity on the BLP-004 precedent (no module state, no clock inside, previousLedger and at are arguments, byte-identical output asserted), one event shape defined once with a validator, ReviewChange not reused."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/ReviewStudio.jsx",
+          "label": "WHERE THE LEDGER LIVES: session-only React state in ReviewStudio beside the person-evidence override, folded on every person-evidence change with the clock read at that boundary only, because a cleared payload is null and a ledger that remembers cannot live on it; it inherits BLP-007's 'nothing reaches browser storage' assertion (asserted). FORWARD HAZARD named with an owner (Supervisor ruling Q4): this is the first structure in the programme that carries contract records forward in time; the contract's exact-version equality rests on nothing persisted carrying a stamp, so the day anyone persists a ledger a later CONTRACT_VERSION bump refuses every stored record. Owner: whoever adds persistence, with a migration rule in the contract changelog first."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "SUPERVISOR RULINGS Q5 and Q7: the whole-text proof is a ledger record (it satisfies validateProofRecord; 'no exact excerpt marked; the proof covers the whole pasted text' is its missing evidence) conditionally on the Human Lead's open option; UNSET destinations and empty targets are knowledge, not its absence, so they are said in words ('not yet linked to a target (see target links)', 'no destinations approved yet (see destination approvals)') and never WITHHELD, and never as a finding about the proof's worth."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "NOTE on affectedFiles (Supervisor ruling Q6): the canonical record declared PersonEvidenceIngress.jsx and personEvidenceData.js; the ingress did not change at the implementation commit and is not declared, because affectedFiles must describe what actually changed; personEvidenceData.js changed in one function (isManualPersonEvidence now checks every proof view field against the payload's own source, conformance-auditor C-3) and is declared. CandidateProofLedger.jsx, declared canonically, exists at the commit; the data lives in a separate candidateProofLedgerData.js on the GovernanceLedger precedent; ReviewStudio.jsx (state holder) and WorkUniverseLanding.jsx (mount) are added."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/candidateProofLedgerData.js",
+          "label": "KNOWN OMISSION (out of scope by the Supervisor's ruling): ProofRecord.targets stays [] (BLP-009), proof states beyond CLAIMED_ONLY, STALE and WITHHELD are not entered by any path here (BLP-010), no destination is ever ALLOWED (BLP-011), keyboard and focus round trip beyond the panel's own controls (BLP-012), print (BLP-011 and BLP-015), the rewrite workbench (BLP-017). A ledger row shows a proof type and a claim; nothing here scores, ranks or weighs a proof (the removed True-Fit is not revived)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION: the panel is mounted only while the person-evidence ingress is open in the person lens; the ledger state itself lives in ReviewStudio and survives closing the panel, switching surface and switching lens (asserted at the data layer; the mount-and-return path is BLP-012's round-trip evidence)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "FLAG FOR THE HUMAN LEAD (a11y-honesty-reviewer): the STALE (slate #64748b, dashed) and WITHHELD (amber #92400e, dotted) row treatments are hues outside the documented result-page palette; they are not red or green and every state is also in words, but whether they should fold into the existing ramp is the Human Lead's call. The same reviewer flags again, pre-existing and outside this change, that every Work Universe panel footer reads 'AI-assisted · human decides' (middle dot) where CLAUDE.md section 4 and the result-engine spec name the semicolon form."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor, named with an owner): the ledger lives in ReviewStudio state and is not reset when the posting changes, so proof records carry across postings within a session. Defensible while records are candidate-scoped (a proof is about the candidate's own text, not a posting); BLP-009 makes targets posting-scoped and must decide the ledger's scope when it links a proof to a posting's evidence. Owner: BLP-009."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/CandidateProofLedger.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor G1, conditional pass): provenance on the ledger is in words per record (confirmer, USER_AUTHORED claim, state gloss), not the result-page chip vocabulary, which has no user-confirmed kind; BLP-017 will render these records as page figures and must give them a chip or extend PROV_LABEL then. Owner: BLP-017."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+          "label": "DEFECT found by CI, not by the builder: run 34236469225 failed 'phone: the panel notice says the claim was recorded' (suite line 298) while both widths passed locally, because the read did not wait for the render that carries the notice. Fixed in 22d2413 by a waitForFunction on the notice text; the BLP-009 suite in preparation had the same race at four reads and was fixed the same way before its first commit."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+          "label": "DEFECT found by the Supervisor, not by the builder: the race fix in 22d2413 waited for the very words it then asserted, the vacuous-verification class; a notice reading 'Refused: ...' where 'Claim recorded at' belonged would have failed as a 5-second timeout without the assertion's message. Corrected in 86e4320: the notice is captured before the action, the wait is for it to change and be non-empty, the assertion keeps its message. Named by the Supervisor as a pattern to refuse: a wait predicate must be a precondition about a different subject, never the assertion itself."
         }
       ],
       "blockers": [
@@ -2733,7 +2833,18 @@
           "description": "The structured proof ledger is not recorded as implemented.",
           "ownerRole": "product-ui-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "BLP-008 implementation commit 86e4320 (revision of 22d2413, itself a revision of 159e429; test-only): the Supervisor found that 22d2413's wait predicate WAS the assertion (waiting for 'Claim recorded at' and then asserting it), so the check could no longer fail with its message and a notice saying the wrong thing would surface as a timeout. The suite now captures the notice before the save, waits for it to CHANGE and be non-empty, and asserts what it says; a wait for non-empty alone would not do because the notice still carries the proof-type choice's text. Node 103 and Chromium 184 unchanged at 1440x1000 and 430x932. git diff 22d2413 86e4320 -- v3.1/src v3.1/tests .github lists only tests/candidate-proof-ledger.mjs."
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -2750,11 +2861,27 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "86e432018f6baaabb2d5e6ebd81af57825818728",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "BLP-008 implementation commit 86e4320 (revision of 22d2413, itself a revision of 159e429; test-only): the Supervisor found that 22d2413's wait predicate WAS the assertion (waiting for 'Claim recorded at' and then asserting it), so the check could no longer fail with its message and a notice saying the wrong thing would surface as a timeout. The suite now captures the notice before the save, waits for it to CHANGE and be non-empty, and asserts what it says; a wait for non-empty alone would not do because the notice still carries the proof-type choice's text. Node 103 and Chromium 184 unchanged at 1440x1000 and 430x932. git diff 22d2413 86e4320 -- v3.1/src v3.1/tests .github lists only tests/candidate-proof-ledger.mjs."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/22d241348bed0686b720a2880772954e6b9705bf",
+              "label": "SUPERSEDED as the implementation commit by 86e4320 (the wait predicate was the assertion; corrected on the Supervisor's finding). BLP-008 implementation commit 22d2413 (revision of 159e429): tests/candidate-proof-ledger.mjs waits for the panel notice before reading it, after run 34236469225 on PR #500 failed that read at phone width; the notice is derived from the kept ledger in an effect and lands one render after the claim state the suite had waited for, so the read raced the runner's second render. No assertion weakened or removed; node 103 and Chromium 184 checks unchanged at 1440x1000 and 430x932. The seven source, panel, test-workflow blobs of 159e429 other than the suite are byte-identical here."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
+              "label": "SUPERSEDED as the implementation commit by 22d2413 (one waited read in the Chromium suite; every source, panel and workflow blob unchanged). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+            }
+          ],
+          "note": "Implementation commit 86e4320 (second test-only revision; chain 159e429 -> 22d2413 -> 86e4320, each earlier commit kept as superseded evidence) on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -2796,9 +2923,14 @@
         }
       },
       "affectedFiles": [
-        "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+        "v3.1/src/work-universe/candidateProofLedgerData.js",
+        "v3.1/src/work-universe/CandidateProofLedger.jsx",
         "v3.1/src/work-universe/personEvidenceData.js",
-        "v3.1/src/work-universe/CandidateProofLedger.jsx"
+        "v3.1/src/ReviewStudio.jsx",
+        "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+        "v3.1/tests/candidate-proof-ledger.mjs",
+        ".github/workflows/v31-browser-gate.yml",
+        "v3.1/doc/v3-step3-feature-map.manifest.json"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -2813,6 +2945,33 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T20:33:00+08:00",
+          "reason": "Started on the Human Lead's order while PR #498 (BLP-007) was open; work held locally until it merges. The Blueprint Supervisor's seven rulings recorded first: sequencing (start now, COMPLETE barred until BLP-007, empirical re-check on reopen, no hardening around the whole-text record); proof type as a governed, validated, human-chosen enum with the words escalated to the Human Lead as provisional; a human-typed claim in scope with the excerpt-as-default refused; the ledger holds history with three corrections (the same ids resume the same record, any edit stales every record together, purity and one validated event shape); the whole-text proof is a record conditionally; affectedFiles as actually changed; UNSET rendered in 'not yet' words, never withheld.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T21:16:23+08:00",
+          "reason": "Candidate proof is stored as distinct source-linked records (one contract ProofRecord per confirmed excerpt, distinct ids, each carrying its source id, span id and source hash, validating under the contract); each proof records its claim (the human's own words or null), proof type (governed enum, UNSPECIFIED until chosen), confirmation (the local human actor and a time), missing evidence and downstream uses (both computed from the record, never typed); evidence changes mark dependent proof records stale (any edit stales every active record together by system detection, said so in the panel; the same record resumes when the text is restored; removal and clearing withhold by a human act; every transition is an event the contract's transition table permits and a validator checks). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending. REVISED in place at 22d2413 (test-only: one waited notice read after run 34236469225 failed at phone width); status unchanged. REVISED again at 86e4320 (test-only: the wait no longer duplicates the assertion); status unchanged.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/159e4298fda88e50f32ddac64b1f3510868bfa84",
+              "label": "BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
