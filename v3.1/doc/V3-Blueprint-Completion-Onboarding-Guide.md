@@ -1,14 +1,14 @@
 # V3.1 Blueprint Completion: Onboarding and Delivery Guide
 
 **Document ID:** `GUIDE-V3-BLUEPRINT-COMPLETION-001`  
-**Version:** 1.0.6  
+**Version:** 1.0.7  
 **Prepared:** 2026-09-08 (SGT)  
 **Repository:** [`ang-kl/2026-0313_AI-JS`](https://github.com/ang-kl/2026-0313_AI-JS)  
 **Product surface:** [`https://v3.takearoundabout.com`](https://v3.takearoundabout.com)  
 **Canonical baseline:** `990a83a870f41253ebcc9125d9cee011cb5a56b6` (`origin/main`)  
-**Current main observed:** `25cff532e0c6e539e3534709b388fa4347c1c575` (`feat(v3.1): BLP-003 stable evidence identifiers end to end (Wave 1, P0) (#490)`)  
+**Current main observed:** `98a99d7a69a9b26dead660b7c4b7c231ee0d28a5` (`test(v3.1): BLP-003 round trip at phone width, proposal-id stability, tappable return (revision after review) (#491)`)  
 **Completion programme:** `V3-BLUEPRINT-COMPLETION-REGISTER-001`  
-**Register snapshot SHA-256:** `aa1909fc6110b0951d4364ead0595e50bb2728cfbb8bfbc652535745fdab547b`  
+**Register snapshot SHA-256:** `dc35d912248d515d47f8306404950d5226b2f5426eb3734272204de6c1385a9b`  
 **Audience:** a new engineer, product designer, evaluator, test engineer, release verifier, or agent who has not previously read this repository.
 
 > This guide explains the product, what is already built, what is not complete, how the 30-item completion programme must be executed, and what evidence is required before anyone may claim that the blueprint is complete. The normative authority remains [V3-Blueprint-Completion-Instructions.md](./V3-Blueprint-Completion-Instructions.md) and the machine-readable [completion register](./v3-blueprint-completion-register.json).
@@ -53,14 +53,13 @@ The present repository contains a strong working foundation: Step 1a role and or
 
 However, the full blueprint is **not complete**. The completion programme intentionally starts from a stricter definition than "the screen exists." A requirement becomes complete only when its contracts, implementation, positive and negative tests, provenance, responsive behaviour, and Blueprint Supervisor approval are all recorded. The canonical register currently contains:
 
-- `2` requirements approved as `COMPLETE`: `BLP-001`, `BLP-002`.
-- `1` requirement `IMPLEMENTED_UNVERIFIED`: `BLP-003`.
+- `3` requirements approved as `COMPLETE`: `BLP-001`, `BLP-002`, `BLP-003`.
 - `27` requirements `NOT_STARTED`: `BLP-004` through `BLP-030`.
-- `0` requirements `IN_PROGRESS`, `BLOCKED` or `WITHHELD`.
+- `0` requirements `IN_PROGRESS`, `IMPLEMENTED_UNVERIFIED`, `BLOCKED` or `WITHHELD`.
 
 This does not erase completed product work. It means the existing work must be reconciled against the new canonical contracts and evidence gates before it can satisfy a `BLP-*` completion claim.
 
-The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved `BLP-001` as `COMPLETE`; the approval evidence is recorded in the register. `BLP-002`, the shared evidence contracts, was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 at contract 1.0.3. `BLP-003`, stable evidence identifiers, is `IMPLEMENTED_UNVERIFIED`: the first implementation `4020d3c` merged as `25cff53` (PR #490), then two automated review findings upheld by the Blueprint Supervisor (round trip at one desktop viewport only; proposal identifiers unasserted) led it to withdraw its draft approval before it reached `main`; revision `6750323` runs the round trip at phone width too, asserts proposal ids, and fixes the phone-width return-button defect that pass found. Merge of the revision, the dispatch run on that merge commit and the Supervisor's re-verification are the immediate next actions.
+The Blueprint Supervisor reviewed PR #486 and its exact merge commit on 2026-09-08 and approved `BLP-001` as `COMPLETE`; the approval evidence is recorded in the register. `BLP-002`, the shared evidence contracts, was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 at contract 1.0.3. `BLP-003`, stable evidence identifiers, was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 at 15:32 SGT (implementation `4020d3c` merged as `25cff53` by PR #490, revision `6750323` merged as `98a99d7` by PR #491, automated-runtime evidence on `98a99d7` at desktop and phone width). A first approval was drafted and withdrawn before merge on two upheld automated review findings; the phone-width pass they required found and fixed an untappable return control. Six known omissions ride on the record with owners. The immediate next action is `BLP-004`, independent evidence-window fields, on a fresh branch from the then-current `main`.
 
 ## 2. What this product is
 
@@ -194,9 +193,9 @@ As of this guide:
 
 | Status | Count | Requirements |
 |---|---:|---|
-| `COMPLETE` | 2 | `BLP-001`, `BLP-002` |
-| `IMPLEMENTED_UNVERIFIED` | 1 | `BLP-003` |
+| `COMPLETE` | 3 | `BLP-001`, `BLP-002`, `BLP-003` |
 | `NOT_STARTED` | 27 | `BLP-004` through `BLP-030` |
+| `IMPLEMENTED_UNVERIFIED` | 0 | None |
 
 The authoritative current values are in [`v3-blueprint-completion-register.json`](./v3-blueprint-completion-register.json), not this narrative snapshot.
 
@@ -314,7 +313,7 @@ The table below is an onboarding summary. Exact normative wording and dependenci
 |---|---|---|---|---|
 | `BLP-001` | P0 | `COMPLETE` | Merge and record the Step 2 provenance-only update without altering product behaviour. | None |
 | `BLP-002` | P0 | `COMPLETE` | Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts. | `BLP-001` |
-| `BLP-003` | P0 | `IMPLEMENTED_UNVERIFIED` | Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation. | `BLP-002` |
+| `BLP-003` | P0 | `COMPLETE` | Preserve stable evidence identifiers across Step 2, Step 3, graphs, review, candidate proof, generated outputs, and return navigation. | `BLP-002` |
 | `BLP-004` | P0 | `NOT_STARTED` | Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value. | `BLP-002` |
 | `BLP-005` | P0 | `NOT_STARTED` | Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests. | `BLP-002`, `BLP-003`, `BLP-004` |
 | `BLP-006` | P0 | `NOT_STARTED` | Reconcile one canonical reviewer roster and one canonical review-action vocabulary. | `BLP-002` |
@@ -822,7 +821,7 @@ PR [#486](https://github.com/ang-kl/2026-0313_AI-JS/pull/486) merged the provena
 ### 20.2 Immediate next action
 
 1. Run the completion contract, strict Feature Map contract, integrity contract, and build against the reconciled register.
-2. `BLP-002` was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 (contracts 1.0.3, merge commit `0a0ce553e53c234dc9f4efb2e4791917f35702dc`). `BLP-003` reached `IMPLEMENTED_UNVERIFIED` at commit `4020d3c` (merged as `25cff53` by PR #490) and was revised in place at `6750323` after the Blueprint Supervisor upheld two automated review findings on PR #491 and withdrew its draft `COMPLETE` approval: the round trip now runs at 1440x1000 and 430x932 (216 checks), proposal ids and comment anchors are asserted byte-identical across remount and widths, the phone pass's return-button defect is fixed, and candidate-proof and output identifier stability are recorded as known omissions owned by BLP-007 and BLP-018. Next: merge the revision, dispatch the gate on that merge commit, Supervisor re-verification with a corrected approval reason, then `BLP-004`. Residual risk carried on the BLP-003 record: posting completeness is recorded `UNKNOWN` until the api routes expose `originalLength` (separate small PR).
+2. `BLP-002` was approved `COMPLETE` by the Blueprint Supervisor on 2026-09-08 (contracts 1.0.3, merge commit `0a0ce553e53c234dc9f4efb2e4791917f35702dc`). `BLP-003` was approved `COMPLETE` on 2026-09-08 at 15:32 SGT: implementation `4020d3c` (PR #490, merge `25cff53`) revised in place at `6750323` (PR #491, merge `98a99d7a69a9b26dead660b7c4b7c231ee0d28a5`) after the Blueprint Supervisor upheld two automated review findings and withdrew its draft approval; the round trip runs at 1440x1000 and 430x932 (216 checks) with proposal ids and comment anchors byte-identical across remount and widths, the phone-width return-button defect is fixed, and the automated-runtime evidence is the dispatch run on `98a99d7`. Six known omissions are recorded on the record (retrievedAt, owner BLP-004; the stale `-s0` assertion at `tests/browser-gate.mjs:576`, owner BLP-005; the Duties-tab-only withheld strip; the device-local `links` scope; candidate-proof identifiers, owner BLP-007; output identifiers, owner BLP-018) plus the completeness residual risk and a BLP-013 note. Start `BLP-004` on a new branch from the then-current `main`, carrying each evidence-window field independently and withholding each unavailable one.
 
 ### 20.3 Tooling note
 
