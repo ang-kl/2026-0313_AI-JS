@@ -2749,7 +2749,7 @@
         {
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
-          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-008's predecessor BLP-007 was IMPLEMENTED_UNVERIFIED (PR #498 open) when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-008 cannot reach COMPLETE before BLP-007 does; if BLP-007 reopens at approval, BLP-008 is re-checked EMPIRICALLY (does its existing evidence fail to re-validate), not nominally; and BLP-007's record carries the Human Lead's open option 'no proof until an excerpt is marked', under which the whole-text proof and its ledger record class cease to exist, so nothing here hardens around that record class. OUTCOME: BLP-007 was approved COMPLETE via PR #499 (merge f051bcd) before this record was written; the implementation attested by the Supervisor at 3b2d600 was re-based onto f051bcd by cherry-pick as this commit, with an empty code diff against 3b2d600 (git diff 3b2d600 <this commit> -- v3.1 .github is empty); the Supervisor re-verifies blob identity across the seven affected files before merge."
+          "label": "SEQUENCING NOTE (Supervisor ruling Q1): BLP-008's predecessor BLP-007 was IMPLEMENTED_UNVERIFIED (PR #498 open) when this work started on the Human Lead's order; section 9 item 1 binds reaching COMPLETE, not starting. CONDITIONS carried: BLP-008 cannot reach COMPLETE before BLP-007 does; if BLP-007 reopens at approval, BLP-008 is re-checked EMPIRICALLY (does its existing evidence fail to re-validate), not nominally; and BLP-007's record carries the Human Lead's open option 'no proof until an excerpt is marked', under which the whole-text proof and its ledger record class cease to exist, so nothing here hardens around that record class. OUTCOME: BLP-007 was approved COMPLETE via PR #499 (merge f051bcd) before this record was written; the implementation attested by the Supervisor at 3b2d600 was re-based onto f051bcd by cherry-pick as this commit, with an empty diff against 3b2d600 across the source, test and workflow trees (git diff 3b2d600 159e429 -- v3.1/src v3.1/tests .github is empty; all seven affected files blob-identical, confirmed by the Supervisor), while the v3.1/doc delta between the two is exactly the BLP-007 approval (git diff 57a2f59 159e429 -- v3.1/doc is empty). An earlier form of this label claimed the diff was empty over v3.1 and .github as a whole; the Supervisor ran it, found the three doc files differing, and required the true scope to be stated. CI CONSEQUENCE: the two source files BLP-008 extends are located by line range in the Step 3 feature map, so the map's locators drifted and the strict feature-map contract failed on the PR head (run 34236077643); v3.1/doc/v3-step3-feature-map.manifest.json is added to affectedFiles with the seven ranges shifted to the lines the same symbols and anchors now occupy."
         },
         {
           "kind": "FILE",
@@ -2899,7 +2899,8 @@
         "v3.1/src/ReviewStudio.jsx",
         "v3.1/src/work-universe/WorkUniverseLanding.jsx",
         "v3.1/tests/candidate-proof-ledger.mjs",
-        ".github/workflows/v31-browser-gate.yml"
+        ".github/workflows/v31-browser-gate.yml",
+        "v3.1/doc/v3-step3-feature-map.manifest.json"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
