@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T12:07:15+08:00"
+      "updatedAt": "2026-09-08T13:31:00+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -272,7 +272,7 @@
       "title": "Define canonical evidence contracts",
       "requirement": "Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts.",
       "priority": "P0",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-001"
       ],
@@ -416,12 +416,23 @@
           "note": "Implementation commit 55565a8 on the working branch carries contracts 1.0.3 (the Blueprint Supervisor's re-verification of 1.0.2 applied); it supersedes 09024db, ffa8f09 and bd11513, all kept as evidence. CI wiring is 808fb35 on the same branch. Not yet merged."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "0a0ce553e53c234dc9f4efb2e4791917f35702dc",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/488",
+          "mergedAt": "2026-09-08T13:25:33+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/488",
+              "label": "PR #488 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0a0ce553e53c234dc9f4efb2e4791917f35702dc",
+              "label": "Exact merge commit 0a0ce55"
+            }
+          ],
+          "note": "PR #488 squash-merged the BLP-002 contracts to main as 0a0ce553e53c234dc9f4efb2e4791917f35702dc over base f6b3728. The Supervisor confirmed by blob SHA that the merged tree carries implementation commit 55565a8 unchanged."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -430,17 +441,28 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-002 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/evidence-contract.mjs",
+          "checkedAt": "2026-09-08T13:28:11+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34190617261/job/101947750050",
+              "label": "Browser-gate job on merged main 0a0ce55, conclusion success"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test passed: 7 contracts, 338 checks, contract 1.0.3, normalisation ptn-1"
+            }
+          ],
+          "note": "Run on the merged tree at 0a0ce55 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit. Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised, and the blueprint-register construction-scope step is skipped off a non-register branch; this run is evidence for the evidence-contract test only and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "0a0ce553e53c234dc9f4efb2e4791917f35702dc"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -450,7 +472,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-002 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -530,14 +552,93 @@
               "label": "Canonical evidence contracts, contract 1.0.3, normalisation ptn-1"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T13:30:12+08:00",
+          "reason": "Blueprint Supervisor verified that merge commit 0a0ce55 contains implementation commit 55565a8 byte-identically by blob SHA for all three affected files, and read the browser-gate run on the merged tree at 0a0ce55, which reports the evidence contract passing with 7 contracts and 338 measured checks at contract 1.0.3.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0a0ce553e53c234dc9f4efb2e4791917f35702dc",
+              "label": "Merge commit 0a0ce55 (squash of PR #488)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/55565a8fbb2349dda793b38ee6ce3982404be9ce",
+              "label": "Implementation commit 55565a8 (contracts 1.0.3)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34190617261/job/101947750050",
+              "label": "Browser-gate run on merged main 0a0ce55, conclusion success"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test: 7 contracts, 338 measured checks, exit 0 on the merged tree"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T13:31:00+08:00",
+          "reason": "Every applicable definition-of-done condition for BLP-002 is satisfied: BLP-001 is COMPLETE, the seven canonical contracts are versioned and deterministically validated, deterministic and AI-assisted provenance are structurally distinct and enforced identically by the trust predicate and the citation gate, unknown values are withheld with reason codes, implementation and merge commits are recorded separately as exact SHAs, and automated-runtime evidence names the merge commit. Deployment and physical-runtime evidence are not required by this requirement's completionPolicy.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0a0ce553e53c234dc9f4efb2e4791917f35702dc",
+              "label": "Merge commit 0a0ce55 (squash of PR #488)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/55565a8fbb2349dda793b38ee6ce3982404be9ce",
+              "label": "Implementation commit 55565a8 (contracts 1.0.3)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34190617261/job/101947750050",
+              "label": "Browser-gate run on merged main 0a0ce55, conclusion success"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test: 7 contracts, 338 measured checks, exit 0 on the merged tree"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T13:31:00+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/0a0ce553e53c234dc9f4efb2e4791917f35702dc",
+            "label": "Merge commit 0a0ce55 (squash of PR #488)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/55565a8fbb2349dda793b38ee6ce3982404be9ce",
+            "label": "Implementation commit 55565a8 (contracts 1.0.3)"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34190617261/job/101947750050",
+            "label": "Browser-gate run on merged main 0a0ce55, conclusion success"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-contract.mjs",
+            "label": "Evidence contract test: 7 contracts, 338 measured checks, exit 0 on the merged tree"
+          }
+        ],
+        "note": "BLP-002 required automated-runtime evidence and has it, on the merge commit. The implementation was revised three times in place at IMPLEMENTED_UNVERIFIED on Supervisor findings (1.0.0 to 1.0.3); the superseded commits are retained as evidence. Residual risk: the local clone is shallow, so merge identity was established through the GitHub API by blob-SHA equality across all three affected files rather than locally. Two conditions are carried forward and are not defects in this requirement: BLP-003 consumers MUST validate distilled spans with knownSpans in view, since isDistilledSpanTrusted cannot check containment without the parents; and confirmedBy MUST be constrained to the canonical reviewer roster once BLP-006 fixes it.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
