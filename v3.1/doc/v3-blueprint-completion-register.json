@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T15:42:33+08:00"
+      "updatedAt": "2026-09-08T16:05:57+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -327,6 +327,11 @@
           "kind": "FILE",
           "reference": "v3.1/src/contracts/evidenceContracts.js",
           "label": "Canonical evidence contracts, contract 1.0.3, normalisation ptn-1"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "NOTE (2026-09-08, under BLP-004, Supervisor ruling): the BLP-002 artefact was extended in place from contract 1.0.3 to 1.0.4 by commit cd75686: EvidenceWindow date fields carry a precision marker (instant or day) so a source that publishes a calendar date is recorded at day precision instead of being falsely withheld. The change is additive and backward-compatible (a 1.0.3-shaped field object with no precision key validates unchanged, asserted in tests/evidence-contract.mjs), so BLP-002 stays COMPLETE; had it not been, BLP-002 would have reopened to IN_PROGRESS for re-verification."
         }
       ],
       "blockers": [
@@ -802,7 +807,7 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/25cff532e0c6e539e3534709b388fa4347c1c575",
-              "label": "Merge commit 25cff53 (squash of PR #490, carries 4020d3c); recorded as evidence only, mergeCommit stays unrecorded until the revised implementation is merged"
+              "label": "Merge commit 25cff53 (squash of PR #490, carries 4020d3c); evidence only, the recorded mergeCommit is 98a99d7 from PR #491"
             },
             {
               "kind": "COMMIT",
@@ -810,7 +815,7 @@
               "label": "BLP-003 implementation commit 6750323 (revision in place at IMPLEMENTED_UNVERIFIED: round trip at 430x932 through the panel navigator, proposal-id and comment-anchor stability, return button positioned below the measured site header; supersedes 4020d3c, merged as 25cff53)"
             }
           ],
-          "note": "Implementation commit 6750323 on the working branch supersedes 4020d3c (which PR #490 merged to main as 25cff53) with the phone-width round trip, proposal-id assertions and the return-button fix; 4020d3c and 25cff53 are kept as evidence. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
+          "note": "Implementation commit 6750323 on the working branch supersedes 4020d3c (which PR #490 merged to main as 25cff53) with the phone-width round trip, proposal-id assertions and the return-button fix; 4020d3c and 25cff53 are kept as evidence. Merged to main as 98a99d7 by PR #491; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields (note corrected 2026-09-08 after a review finding on PR #492 that this line still read as unmerged)."
         },
         "mergeCommit": {
           "state": "RECORDED",
@@ -1038,7 +1043,7 @@
       "title": "Carry independent evidence-window fields",
       "requirement": "Carry published, closing, retrieved, analysed, corpus-range, posting-count, and source-timezone fields independently; withhold each unavailable value.",
       "priority": "P0",
-      "status": "IN_PROGRESS",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002"
       ],
@@ -1062,12 +1067,57 @@
         {
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
-          "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+          "label": "BLP-004 route commit 431a7a7 (retrievedAt, textProvenance, postedDateRaw / expiryDateRaw; superseded by cd75686, kept as evidence)"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+          "label": "BLP-004 implementation commit cd75686: contract 1.0.4 (per-field date precision marker, backward-compatible), evidenceWindowAdapter.js 1.0.0 (uniform decoding rule, no clock inside), evidenceAdapter.js completeness from textProvenance, App.jsx wiring (raw fields carried, analysedAt stamped at the call site, result.evidenceWindow attached), footer and overview toolbar and print package rendering all seven fields independently, plus the exit-audit fixes (visible text as the accessible name, data-window-origin, fail-closed rows, export retrievedAt passed through from the route, careers.js fetchedAt bound to the snapshot read, RoleGraph footer scope statement); supersedes route commit 431a7a7 as the recorded implementation, which is kept as evidence"
         },
         {
           "kind": "TEST",
           "reference": "v3.1/tests/evidence-window.mjs",
-          "label": "Evidence window test, Part A (routes, stubbed fetch): 39 checks, exit 0"
+          "label": "Evidence window test: Part A routes with stubbed fetch (39), Part B contract 1.0.4 precision, adapter and fail-closed rows (68), Part C Chromium at 1440x1000 and 430x932 (footer, overview toolbar and print package carry seven independent fields with their origin; MCF date-only published date renders at day precision without a time; no aria-label on the generic field spans; no page-level horizontal overflow at phone width; no generic freshness phrase on any of the three surfaces); 146 checks, exit 0"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-contract.mjs",
+          "label": "Evidence contract test at 1.0.4: 355 checks including the backward-compatibility fixture (a 1.0.3-shaped window with no precision keys validates unchanged)"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/careers.js",
+          "label": "KNOWN OMISSION (Supervisor ruling Q2): api/careers.js still emits a derived ISO postedDate / expiryDate (the source's midnight-UTC epoch rendered as an instant) in the Step 2 payload; it is a display value for Step 2 sorting and age labels, is never read by the evidence layer (which reads postedDateRaw / expiryDateRaw only), and should be retired once nothing depends on it."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceWindowAdapter.js",
+          "label": "KNOWN OMISSION: sourceTimezone is withheld for every current source because neither route supplies an IANA zone name; MyCareersFuture supplies date-only values and careers.gov.sg a midnight-UTC epoch encoding, which is a convention and not a zone statement. Populating it requires a source that names its zone."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/contracts/evidenceWindowAdapter.js",
+          "label": "EXIT AUDIT conformance-auditor (2026-09-08, on the uncommitted BLP-004 tree): PASS on all five spec section 6 hard gates, D1-D8 not applicable (no prompt template touched, version constants correctly unbumped), G1-G8 with four Warnings all fixed in the implementation commit: W1 RoleGraph KGFooter 'snapshot of the analysed posting' replaced by the scope statement 'the analysed posting only' (Supervisor approved the copy, refused plumbing a second renderer); W2 per-field origin emitted as data-window-origin, attribute only, since a clock read must not be shown as computed; W3 windowRows fails closed when the window fails its own validation; W4 see the defect record below. Suggestions recorded, not fixed, listed as known omissions."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/ReviewStudioLegacy.jsx",
+          "label": "EXIT AUDIT a11y-honesty-reviewer (2026-09-08): PASS on no red/green, state-in-text, 44px targets (no interactive element added), keyboard focus, footer phrase and Source/Confidence/Time-window line, print withheld rendering (text only, no colour); two flags fixed: the per-field aria-label was removed because ARIA 1.2 prohibits aria-label on the generic role, so the visible text 'Published: 26 Aug 2026' / 'Corpus range: withheld (not supplied)' is the accessible name (asserted absent in the test); phone-width overflow guarded by keeping separators outside the no-wrap field spans and asserting scrollWidth within the viewport at 430x932. Contrast: footer withheld tone 8.447:1; toolbar withheld tone #9a6113 on #f3f1ea 4.539:1, passes AA by 0.04 (house tone already used on the withheld ledger, left as is)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "DEFECT FOUND BY EXIT AUDIT (conformance-auditor W4, fixed in the implementation commit): the single-posting JSON export stamped the export click as retrievedAt on a posting object that now carries the route's own retrievedAt, so one file would have held two conflicting values under one name; this is the substitution of a UI event for an observation of the source that Supervisor ruling 1 forbids. The export now passes the route's stamp through and withholds it when the route supplied none; the two list exports keep an export-time stamp but no longer say 'live at retrieval'. Recorded at the Supervisor's request: this is the second exit audit to find a real defect rather than a nit (after the untappable phone return control in BLP-003)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION (exit audit suggestions, not fixed under BLP-004): the workspace footer and print package render 'AI-assisted · human decides' with a middle dot where CLAUDE.md section 4 quotes the semicolon form (pre-existing; the browser gate asserts the dot form); the OKF export writes a careers.gov.sg day-precision date as a midnight instant at App.jsx timestamp (pre-existing); the per-panel label 'Time-window' now carries two senses on one page, scope in the panels and time in the footer (rename to 'Scope' proposed); the withheld toolbar tone should become a named token so a future change surfaces in one place; APP_VERSION is still 3.1.0 and a new feature is a minor bump under Rule V-1, which only the Human Lead confirms."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION: the roughly sixteen per-panel 'Time-window: ...' provenance lines elsewhere in App.jsx and the review/wiki panels describe each panel's own data and are deliberately untouched by BLP-004 (Supervisor ruling 5); only the workspace footer, the overview toolbar and the print package carry the evidence window."
         }
       ],
       "blockers": [
@@ -1080,12 +1130,22 @@
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
-              "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+              "label": "BLP-004 route commit 431a7a7 (retrievedAt, textProvenance, postedDateRaw / expiryDateRaw; superseded by cd75686, kept as evidence)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+              "label": "BLP-004 implementation commit cd75686: contract 1.0.4 (per-field date precision marker, backward-compatible), evidenceWindowAdapter.js 1.0.0 (uniform decoding rule, no clock inside), evidenceAdapter.js completeness from textProvenance, App.jsx wiring (raw fields carried, analysedAt stamped at the call site, result.evidenceWindow attached), footer and overview toolbar and print package rendering all seven fields independently, plus the exit-audit fixes (visible text as the accessible name, data-window-origin, fail-closed rows, export retrievedAt passed through from the route, careers.js fetchedAt bound to the snapshot read, RoleGraph footer scope statement); supersedes route commit 431a7a7 as the recorded implementation, which is kept as evidence"
             },
             {
               "kind": "TEST",
               "reference": "v3.1/tests/evidence-window.mjs",
-              "label": "Evidence window test, Part A (routes, stubbed fetch): 39 checks, exit 0"
+              "label": "Evidence window test: Part A routes with stubbed fetch (39), Part B contract 1.0.4 precision, adapter and fail-closed rows (68), Part C Chromium at 1440x1000 and 430x932 (footer, overview toolbar and print package carry seven independent fields with their origin; MCF date-only published date renders at day precision without a time; no aria-label on the generic field spans; no page-level horizontal overflow at phone width; no generic freshness phrase on any of the three surfaces); 146 checks, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test at 1.0.4: 355 checks including the backward-compatibility fixture (a 1.0.3-shaped window with no precision keys validates unchanged)"
             }
           ]
         }
@@ -1106,15 +1166,20 @@
         "implementationCommit": {
           "state": "RECORDED",
           "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
-          "commitSha": "431a7a77c3f59950b5d922b493311c1a0351f4e4",
+          "commitSha": "cd756868fd40b328b412b96ecce3193707591728",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
-              "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+              "label": "BLP-004 route commit 431a7a7 (retrievedAt, textProvenance, postedDateRaw / expiryDateRaw; superseded by cd75686, kept as evidence)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+              "label": "BLP-004 implementation commit cd75686: contract 1.0.4 (per-field date precision marker, backward-compatible), evidenceWindowAdapter.js 1.0.0 (uniform decoding rule, no clock inside), evidenceAdapter.js completeness from textProvenance, App.jsx wiring (raw fields carried, analysedAt stamped at the call site, result.evidenceWindow attached), footer and overview toolbar and print package rendering all seven fields independently, plus the exit-audit fixes (visible text as the accessible name, data-window-origin, fail-closed rows, export retrievedAt passed through from the route, careers.js fetchedAt bound to the snapshot read, RoleGraph footer scope statement); supersedes route commit 431a7a7 as the recorded implementation, which is kept as evidence"
             }
           ],
-          "note": "Route commit 431a7a7 is the first of the BLP-004 implementation commits (routes only; separate small PR per the Supervisor's ruling 1). The adapter, App.jsx wiring, footer rendering and contract 1.0.4 follow in a further commit that will supersede this one as the recorded implementation, with 431a7a7 kept as evidence."
+          "note": "Implementation commit cd75686 on the working branch supersedes route commit 431a7a7 (kept as evidence). Not merged; merge, automated-runtime and Supervisor approval remain unrecorded."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -1159,10 +1224,12 @@
         "v3.1/api/mcf.js",
         "v3.1/api/careers.js",
         "v3.1/src/contracts/evidenceContracts.js",
+        "v3.1/src/contracts/evidenceAdapter.js",
         "v3.1/src/contracts/evidenceWindowAdapter.js",
         "v3.1/src/App.jsx",
         "v3.1/src/ReviewStudioLegacy.jsx",
         "v3.1/src/review/PrintPackage.jsx",
+        "v3.1/src/RoleGraph.jsx",
         "v3.1/tests/evidence-window.mjs",
         "v3.1/tests/evidence-contract.mjs",
         ".github/workflows/v31-browser-gate.yml"
@@ -1192,6 +1259,30 @@
               "kind": "COMMIT",
               "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/431a7a77c3f59950b5d922b493311c1a0351f4e4",
               "label": "BLP-004 route commit 431a7a7: api/mcf.js and api/careers.js emit retrievedAt (observation time; careers uses the dump cache's fetchedAt, withheld when absent), textProvenance { cap, originalLength, truncated } per capped field, and postedDateRaw / expiryDateRaw (source values untouched: MCF date-only strings, careers epoch milliseconds at midnight UTC). Additive only; existing fields unchanged."
+            }
+          ]
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T16:05:57+08:00",
+          "reason": "Seven evidence-window fields are built once in App.jsx from the routes' raw facts (postedDateRaw / expiryDateRaw decoded by one documented rule to day or instant precision, retrievedAt as the observation time, analysedAt stamped at the call site with the client offset, postingCount 1 for a posting with corpusRange withheld, min/max over dated postings for a corpus with the dated subset visible, sourceTimezone withheld) and rendered independently on the workspace footer, the overview toolbar and the print package, each unavailable value shown as the word withheld with its reason. Contract 1.0.4 adds the per-field precision marker, backward-compatible. EvidenceSource completeness is now measured from textProvenance. Verified locally in node and Chromium at desktop and phone width; conformance-auditor and a11y-honesty-reviewer both passed on the implementation tree and every warning and flag they raised was fixed in this commit, including a real defect in the posting export (the export click stamped as retrievedAt); Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/cd756868fd40b328b412b96ecce3193707591728",
+              "label": "BLP-004 implementation commit cd75686: contract 1.0.4 (per-field date precision marker, backward-compatible), evidenceWindowAdapter.js 1.0.0 (uniform decoding rule, no clock inside), evidenceAdapter.js completeness from textProvenance, App.jsx wiring (raw fields carried, analysedAt stamped at the call site, result.evidenceWindow attached), footer and overview toolbar and print package rendering all seven fields independently, plus the exit-audit fixes (visible text as the accessible name, data-window-origin, fail-closed rows, export retrievedAt passed through from the route, careers.js fetchedAt bound to the snapshot read, RoleGraph footer scope statement); supersedes route commit 431a7a7 as the recorded implementation, which is kept as evidence"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-window.mjs",
+              "label": "Evidence window test: Part A routes with stubbed fetch (39), Part B contract 1.0.4 precision, adapter and fail-closed rows (68), Part C Chromium at 1440x1000 and 430x932 (footer, overview toolbar and print package carry seven independent fields with their origin; MCF date-only published date renders at day precision without a time; no aria-label on the generic field spans; no page-level horizontal overflow at phone width; no generic freshness phrase on any of the three surfaces); 146 checks, exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test at 1.0.4: 355 checks including the backward-compatibility fixture (a 1.0.3-shaped window with no precision keys validates unchanged)"
             }
           ]
         }
