@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ReviewStudioLegacy from "./ReviewStudioLegacy.jsx";
 import WorkUniverseLanding from "./work-universe/WorkUniverseLanding.jsx";
-import { applyEvidenceToLedger, createEmptyLedger } from "./work-universe/candidateProofLedgerData.js";
+import { applyEvidenceToLedger, createEmptyLedger, reconcileLinks, catalogueKey } from "./work-universe/candidateProofLedgerData.js";
+import { buildResultEvidence } from "./contracts/evidenceAdapter.js";
 
 // Preserve the named helper contract consumed by App.jsx. The Step 3 wrapper
 // changes only the default surface; deterministic helpers continue to come from
@@ -31,15 +32,35 @@ export default function ReviewStudio(props) {
   // BLP-008: the candidate-proof ledger remembers records across edits, so it lives beside the
   // payload (a cleared payload is null) in this session-only state; nothing reaches browser storage.
   const [proofLedger, setProofLedger] = useState(createEmptyLedger);
+  // BLP-009: the posting's canonical evidence bundle (BLP-003) is the catalogue of link targets;
+  // the same bundle the Work Universe reads, built once here so the ledger and the surfaces
+  // address a duty by the same id.
+  const proofBundle = useMemo(() => ((props.result && props.result.evidence && props.result.evidence.adapterVersion) ? props.result.evidence : buildResultEvidence(props.result, props.posting)), [props.result, props.posting]);
+  // Keyed on the linkable CATALOGUE (target ids, texts, parentage), not only on the posting's
+  // identity: a duty list re-distilled from the same text changes every duty id while the source
+  // id and text hash stay put (conformance-auditor C-1).
+  const bundleKey = useMemo(() => catalogueKey(proofBundle), [proofBundle]);
+  // A reconcile that cannot produce a valid ledger THROWS by design (it never hands back stored link
+  // state as current). There is no error boundary in this tree, so the throw is caught at this
+  // boundary and turned into a warm, withheld state the panel says in words (conformance-auditor
+  // W-new-5, D7): the ledger is kept as it was, and the panel withholds its link state until a
+  // later fold or reconcile validates again.
+  const [proofLedgerFault, setProofLedgerFault] = useState(null);
+  const guarded = (ledger, step) => { try { const next = step(ledger); setProofLedgerFault(null); return next; } catch (error) { setProofLedgerFault(error && error.message ? error.message : String(error)); return ledger; } };
   const handlePersonEvidenceChange = (evidence) => {
     // The clock is read once, at this boundary, never inside the updater (React may run an
     // updater more than once); the fold itself is pure.
     const at = new Date().toISOString();
     setPersonEvidenceOverride(evidence);
-    setProofLedger((ledger) => applyEvidenceToLedger(ledger, evidence, at));
+    setProofLedger((ledger) => guarded(ledger, (l) => applyEvidenceToLedger(l, evidence, at, { bundle: proofBundle })));
   };
+  // When the posting evidence changes, every link is re-judged by the system against it.
+  useEffect(() => {
+    const at = new Date().toISOString();
+    setProofLedger((ledger) => (ledger.records.some((r) => (r.links || []).length) ? guarded(ledger, (l) => reconcileLinks(l, proofBundle, at)) : ledger));
+  }, [bundleKey]); // eslint-disable-line react-hooks/exhaustive-deps
   // The panel hands back an UPDATER so its choices always run against the live ledger.
-  const handleProofLedgerChange = (updater) => setProofLedger((ledger) => (typeof updater === "function" ? updater(ledger) : ledger));
+  const handleProofLedgerChange = (updater) => setProofLedger((ledger) => (typeof updater === "function" ? guarded(ledger, updater) : ledger));
   const [governanceReviewState, setGovernanceReviewState] = useState({});
   const governanceSubjectKey = props.posting?.uuid || `${props.title || ""}::${props.employer || ""}::${props.source || ""}`;
   useEffect(() => setGovernanceReviewState({}), [governanceSubjectKey]);
@@ -76,6 +97,8 @@ export default function ReviewStudio(props) {
           onPrintPackage={() => openWorkspace({ kind: "print" })}
           onPersonEvidenceChange={handlePersonEvidenceChange}
           proofLedger={proofLedger}
+          proofBundle={proofBundle}
+          proofLedgerFault={proofLedgerFault}
           onProofLedgerChange={handleProofLedgerChange}
           onGovernanceDecisionChange={(key, status) => setGovernanceReviewState((current) => ({ ...current, [key]: status }))}
         />

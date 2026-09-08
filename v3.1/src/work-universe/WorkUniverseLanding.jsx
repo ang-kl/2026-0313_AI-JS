@@ -479,7 +479,7 @@ function ProvChip({ kind }) {
 }
 
 export default function WorkUniverseLanding({
-  result, title, employer, source, band, posting, rolePane, aiMomentsPane, onBack, onEnterStudio, onPrintPackage, onPersonEvidenceChange, onGovernanceDecisionChange, proofLedger, onProofLedgerChange,
+  result, title, employer, source, band, posting, rolePane, aiMomentsPane, onBack, onEnterStudio, onPrintPackage, onPersonEvidenceChange, onGovernanceDecisionChange, proofLedger, proofBundle, proofLedgerFault, onProofLedgerChange,
 }) {
   const deviceProfile = useDeviceProfile();
   const rootRef = useRef(null);
@@ -1010,7 +1010,7 @@ export default function WorkUniverseLanding({
                 </div>
               )}
               {anchor === "person" && personEvidenceOpen && <PersonEvidenceIngress targetSkills={baseData.skills} value={result?.personEvidence} onChange={onPersonEvidenceChange} />}
-              {anchor === "person" && personEvidenceOpen && <CandidateProofLedger ledger={proofLedger} currentSourceId={result?.personEvidence?.sourceId || null} onLedgerChange={onProofLedgerChange} />}
+              {anchor === "person" && personEvidenceOpen && <CandidateProofLedger ledger={proofLedger} currentSourceId={result?.personEvidence?.sourceId || null} bundle={proofBundle} fault={proofLedgerFault || null} onLedgerChange={onProofLedgerChange} onOpenEvidence={onEnterStudio ? (evidenceId) => onEnterStudio({ kind: "evidence", graphId: null, signalId: null, evidenceId }) : undefined} />}
             </div>
             <section className="wu-sourceBody">
               {sourceTab === "job-ad" && <div>

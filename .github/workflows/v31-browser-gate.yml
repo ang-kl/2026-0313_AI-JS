@@ -82,6 +82,7 @@ jobs:
           node tests/evidence-failure-paths.mjs
           node tests/person-evidence-excerpts.mjs
           node tests/candidate-proof-ledger.mjs
+          node tests/proof-links.mjs
 
       - name: Enforce blueprint-register construction scope
         if: startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-')

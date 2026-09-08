@@ -256,7 +256,7 @@
       "symbol": "ReviewStudio",
       "semanticAnchor": "v31-universe-surface",
       "anchorText": "v31-universe-surface",
-      "sourceLines": "26-99",
+      "sourceLines": "27-122",
       "featureIds": [
         "FEAT-STEP3-SHELL-001",
         "FEAT-STEP3-ROUNDTRIP-001",
