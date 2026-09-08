@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T19:12:24+08:00"
+      "updatedAt": "2026-09-08T19:41:52+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -739,6 +739,11 @@
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6750323949db8f5e5864730231411f0e764d59f8",
           "label": "DEFECT FOUND BY PHONE-WIDTH VERIFICATION and fixed in 6750323: the fixed 'Work Universe' return button sat at top 72px while the sticky site header measures 95px at 430px, so return navigation could not be tapped on a phone; it now sits below the measured --site-header-height at every width (v3.1/src/ReviewStudio.jsx)."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "DISCHARGED (2026-09-08, under BLP-005, commit 6a75e9f): the browser-gate.mjs:576 omission recorded on this entry is closed; the gate now waits for a duty row (canonical duty: id), reads data-evidence-id from it and composes the workspace testid from that id, so no positional id was reintroduced."
         }
       ],
       "blockers": [
@@ -1449,7 +1454,7 @@
       "title": "Test evidence round trip and failure paths",
       "requirement": "Add positive source round-trip, reference-integrity, withholding, stale-data, and failure-path contract tests.",
       "priority": "P0",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002",
         "BLP-003",
@@ -1476,6 +1481,111 @@
           "kind": "TEST",
           "reference": "v3.1/tests/company-flow-browser.mjs",
           "label": "Company-flow browser test"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+          "label": "BLP-005 implementation commit 6a75e9f: tests/evidence-failure-paths.mjs (routes under every failure cause, the words each state shows, the evidence layer on failed, empty, incomplete and stale inputs, an identifier inventory byte-identical across a rebuild with unknown and dangling references refused, determinism proved), tests/support/surface-phrases.mjs (one definition of the forbidden freshness and absence phrases, shared with evidence-window.mjs), browser-gate.mjs reading data-evidence-id from the row, and three minimal product changes admitted under Supervisor ruling Q1 because criterion 3 was failing: api/mcf.js reports a failed search page with its cause instead of an empty page, evidenceAdapter.js 1.1.0 carries the state text, App.jsx renders the company results failure and empty states distinctly"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-failure-paths.mjs",
+          "label": "Failure-path suite: Part A node 113 checks (A1 routes: abort, upstream error, unreadable body, HTTP 500 and genuine empty for MyCareersFuture; abort, error, oversize dump and unexpected shape for careers.gov.sg; missing uuid 400; GET 405; every failure answers 200 with fallback, a code and no invented row, and classifies FAILURE, a genuine no-match EMPTY; A2 nine withholding, three stale, six failure and one empty sentence all distinct, none a freshness or absence phrase; A3 NO_SOURCE_ROWS, INCOMPLETE_IDENTITY, stale decision, stale link, stale output via isOutputStale and proof STALE transitions; A4 MyCareersFuture and careers.gov.sg inventories byte-identical across a rebuild, canonical ids only, proposals composed only from declared duties, dangling parent, unknown anchor, off-roster voice, dangling predecessor and tampered window origin refused; A5 a randomised fixture detected as non-deterministic), Part B Chromium at 1440x1000 and 430x932, 160 total (positive grid; SERVER failure renders data-state failure with the code, names MyCareersFuture, says what it means, no absence or freshness phrase, prior grid gone; EMPTY renders data-state empty and says the source answered; the withheld window field is the third state; three distinct data-states; the MyCareersFuture failure state still renders beside a careers.gov.sg match, and a careers.gov.sg SERVER fallback renders its own failure state in its own column beside a MyCareersFuture grid; a results-state box and a grid for the same source never coexist), exit 0"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/browser-gate.mjs",
+          "label": "Browser gate: the workspace testid is now composed from the row's data-evidence-id (discharging BLP-003's carried omission at line 576); the positional literal v31-workspace-evidence-s0 is gone"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/tests/evidence-failure-paths.mjs",
+          "label": "EXIT AUDIT conformance-auditor (2026-09-08, on the uncommitted BLP-005 tree): no hard gate breached (gate 1 PASS, gate 2 PASS, gate 3 PASS with nothing fabricated, gate 4 not applicable, gate 5 not verifiable in v3.1 because the engine snapshot harness lives under v3/ and the engine is untouched; determinism proved at bundle level instead); D1-D8 not applicable (no prompt touched) with D3, D7 and D8 PASS on the new path; G1, G2, G3, G7 PASS, G4 conditional, G8 partial. Three criticals and seven warnings against the change's own criterion 3, all fixed before commit: C1 the filtered-empty branch of resolveCompany still answered EMPTY when a later page failed (now the failure cause); C2 a careers.gov.sg match suppressed the whole MyCareersFuture failure box, proven live (now per-column states); C3 the prior-result assertion was vacuous at both widths because Back to new search unmounts the panel (now the honest invariant that a results-state box and a grid for the same source never coexist, with the limit stated in the test); W4 pagesPolled counted a failed page as polled; W6 the dead mcfSearchPage wrapper with a false comment; W8 the withholding coverage test could not fail (now each reason is asserted to have real text); W9 the careers.gov.sg column vanished on a failure (now its own failure state); W10 the gate took the first row, which may be a requirement row without a workspace id (now the first duty row); W14 reset states lacked code; W15 the EMPTY caption claimed verbatim names and counts it did not have. W5, W7, S11, S12 recorded as known omissions; S13 (synthetic fixtures rather than the spec's named golden inputs) recorded for the Human Lead."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/App.jsx",
+          "label": "EXIT AUDIT a11y-honesty-reviewer (2026-09-08): PASS on all six items for the Step 1a company results state box: no red or green and colour is not a signal at all (both states share the amber box; the distinction is the bold lead word, the sentence, the second line and data-state); role=status is the right live-region role for the result of the user's own search; no interactive element added; the failure wording names the source and what it means and is never an absence, the empty wording says the source answered, no cause is invented and an unrecognised code surfaces rather than being guessed; contrast 8.7:1 body and 5.5:1 caveat on the amber ground; footers untouched. One cosmetic suggestion applied: aria-live=polite alongside role=status for consistency with the file's other status regions."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "DEFECT FOUND BY EXIT AUDIT (conformance-auditor C2, fixed in the implementation commit): the Step 1a results box was suppressed whenever careers.gov.sg had a match for the employer, so a MyCareersFuture timeout beside one public-sector posting rendered the MyCareersFuture header with nothing under it and no failure words anywhere, implying the source was read and was empty. Proven live by the auditor's probe. Per-column failure states now render for both sources."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "DEFECT FOUND BY THE NEW SUITE (fixed in the implementation commit under Supervisor ruling Q1): mcfSearchPage swallowed every page failure (timeout, non-2xx, unreadable body) into an empty page, so resolveCompany answered EMPTY with 'No live MyCareersFuture postings found for that company' on a timeout: a failure phrased as an absence, on the route, before the client saw it. The Supervisor's scope reading credited the route's catch block, which only fires for errors thrown outside the page fetch; the page fetch never threw. Now mcfSearchPageResult returns the cause (TIMEOUT, BUSY, SERVER), a failed page ends the poll, and nothing-read-plus-a-failure answers fallback with that cause; a genuine no-match still answers EMPTY."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "Q1 PRODUCT CHANGE (named before verification): the Step 1a company results box merged a failed read and a genuine empty answer into one amber sentence; it now carries data-testid company-results-state, role status, data-state failure or empty, data-source and data-source-code, and renders the one definition of the words (failureText names the source and what it means; emptyText says the source answered). The state captures the route code, NETWORK when the fetch itself rejected."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceAdapter.js",
+          "label": "Q1 PRODUCT CHANGE admitted by the Blueprint Supervisor's BLP-005 ruling Q1 (adapter 1.0.0 to 1.1.0, additive; additivity proved by the BLP-003 and BLP-004 suites re-running unchanged): EVIDENCE_STATE and one definition of the words each state shows (withholdingText for all nine WITHHOLD reasons, staleText for decision, output and proof, failureText, emptyText, classifyRoutePayload), so surfaces and tests cannot drift and BLP-010 and BLP-018 inherit the strings rather than inventing new ones (Supervisor ruling Q2)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "KNOWN OMISSION (Supervisor ruling Q2): the output STALE state (isOutputStale) and the proof STALE transitions are covered at node level only, because no OutputBlock or ProofRecord is minted on a live path yet; the rendering strings are pinned in evidenceAdapter.js staleText. Surface assertions are owned by BLP-018 (outputs) and BLP-010 (proof states)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "KNOWN OMISSION (conformance-auditor W5, W7): a partial company poll (some pages read, a later page failed) returns its hits with pagesFailed > 0, the evidence layer records POLL_PARTIAL on each posting's bundle, but no surface yet says the posting set may be incomplete and the JSON export envelope carries neither the route code nor pagesFailed, so a failed or truncated read is not reconstructable from the artefact. Owner escalated to the Human Lead (no requirement covers Step 2 result-completeness disclosure)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "KNOWN OMISSION (conformance-auditor S11, S12): the failure paragraph says 'in this attempt' with no time, and the status region is mounted together with its text after the spinner unmounts, which some screen reader and browser pairs do not announce; a persistent polite region on the panel wrapper and the route's retrieval time are follow-ups for the Step 1a owner."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/tests/evidence-failure-paths.mjs",
+          "label": "KNOWN OMISSION: the phone Step 1a header has no 'Back to new search' control, so at 430x932 the second employer search reloads the page; the assertion that a failure does not keep showing the prior result is exercised in-page at 1440x1000; at phone width it is kept and asserted after the reload, close to trivially satisfied and labelled so in the test, so it fails loudly if in-page phone navigation is added without carrying the state."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "KNOWN OMISSION: the role-search action of api/mcf.js and other callers of mcfSearchPage keep the best-effort array shape and still fold a failed page into an empty one; only the company resolver reports the cause. Owner: BLP-028 (error and stale states at every width) or an earlier Step 2 change."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/api/mcf.js",
+          "label": "AUTHORISED_CHANGE to protected scope 'existing Step 2 behaviour', admitted by the Blueprint Supervisor's BLP-005 ruling Q1 (a minimal product fix is permitted only where BLP-005's own criterion 3, withheld, stale and failure paths visibly distinct and deterministic, is failing; the file must be declared and the fix named before verification): api/mcf.js resolveCompany now reports a failed search page with its cause instead of folding it into an empty page. Justification: failure and empty being indistinguishable at the source is criterion 3 failing at its origin. Success path proved unchanged by step2-feature-map-browser, company-flow-browser and browser-gate green on the changed build. Callers checked: repo-wide grep found no caller of the array-shaped mcfSearchPage wrapper after the change (the company resolver uses mcfSearchPageResult; the role-search action uses its own fetch path), so the dead wrapper was removed rather than kept with a comment naming callers that do not exist (conformance-auditor W6). pagesPolled now counts pages actually read (W4). The filtered-empty branch (all read pages matched nothing but a later page failed) now answers the failure cause, not EMPTY (C1). classifyRoutePayload fails closed (a fallback with an unknown code or no code is FAILURE), stated in the module."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/App.jsx",
+          "label": "AUTHORISED_CHANGE to protected scope 'Step 1 behaviour', admitted by the Blueprint Supervisor's BLP-005 ruling Q1 (the Q1 test was 'visibly distinct', which means at the surface; a distinction that exists in the data and is destroyed in the sentence the user reads is the same defect): the Step 1a company results box distinguishes a failed read from an empty answer, carries the route code and the partial-poll marker onto each job; the MyCareersFuture failure state renders even when careers.gov.sg has a match (C2), and a careers.gov.sg failure renders its own state in its own column instead of the column vanishing (W9). Justification: a distinction that exists in the data and is destroyed in the sentence the user reads is the same defect as losing it at the source; the Supervisor's Q1 test was 'visibly distinct', which means at the surface. Step 1a suites (company-flow-browser, step2-feature-map-browser, browser-gate, responsive-preflight) pass unchanged on the changed build."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceAdapter.js",
+          "label": "SUPERVISOR'S READING CORRECTED BY THE TEST (recorded at the Supervisor's request): the scope ruling credited api/mcf.js with distinguishing failures because its outer catch branches on AbortError; the page fetch never threw, so the outer catch never fired for a page failure and every cause became EMPTY. The suite the Supervisor asked for is what caught it."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceAdapter.js",
+          "label": "FLAG FOR THE HUMAN LEAD (not a block): the state sentences in evidenceAdapter.js (nine withholding, three stale, five failure causes, one empty) are user-facing copy; the Human Lead may wish to own the wording. They are enumerated in tests/evidence-failure-paths.mjs A2 and written to test-results/evidence-failure-paths/state-sentences.md on every run."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceAdapter.js",
+          "label": "ESCALATED TO THE HUMAN LEAD (no owner in the register; not assigned by inference): (1) disclosure of a partial employer poll to the user. The fact is now recorded on the bundle as residual risk POLL_PARTIAL and on the Step 1a state as pagesFailed, but no surface says the posting set may be incomplete. (2) The phone Step 1a header has no 'Back to new search' control, so a second employer search at phone width needs a reload; a genuine product observation with no natural owner."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-failure-paths.mjs",
+          "label": "KNOWN OMISSION (conformance-auditor S13, tightened by the Supervisor): the suite's fixtures are AUTHORED to the shape the routes emit and are not checked against a captured real MyCareersFuture or careers.gov.sg response, so an upstream shape change would pass this suite silently. The failure paths do not turn on any fixture value, so no assertion is wrong today; the risk is the one this programme was bitten by once already (the careers.gov.sg date ruling corrected only by fetching the real dump). tests/evidence-window.mjs carries fixtures closer to the raw upstream payloads and is the precedent to follow when golden inputs (spec section 8 names NHG, PSD and Metta) are captured. Owner: the Human Lead's call on capturing golden inputs."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-contract.mjs",
+          "label": "NOTE: the two files originally declared for BLP-005 (tests/evidence-contract.mjs, tests/evidence-round-trip.mjs) were not changed; their positive round-trip and reference-integrity coverage from BLP-002 and BLP-003 stands (396 and 171 + 216 checks) and the new suite adds the failure, stale and inventory fixtures beside them."
         }
       ],
       "blockers": [
@@ -1484,7 +1594,23 @@
           "description": "The canonical contracts and all required positive and negative fixtures are not recorded as passing.",
           "ownerRole": "test-evaluation-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+              "label": "BLP-005 implementation commit 6a75e9f: tests/evidence-failure-paths.mjs (routes under every failure cause, the words each state shows, the evidence layer on failed, empty, incomplete and stale inputs, an identifier inventory byte-identical across a rebuild with unknown and dangling references refused, determinism proved), tests/support/surface-phrases.mjs (one definition of the forbidden freshness and absence phrases, shared with evidence-window.mjs), browser-gate.mjs reading data-evidence-id from the row, and three minimal product changes admitted under Supervisor ruling Q1 because criterion 3 was failing: api/mcf.js reports a failed search page with its cause instead of an empty page, evidenceAdapter.js 1.1.0 carries the state text, App.jsx renders the company results failure and empty states distinctly"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite: Part A node 113 checks (A1 routes: abort, upstream error, unreadable body, HTTP 500 and genuine empty for MyCareersFuture; abort, error, oversize dump and unexpected shape for careers.gov.sg; missing uuid 400; GET 405; every failure answers 200 with fallback, a code and no invented row, and classifies FAILURE, a genuine no-match EMPTY; A2 nine withholding, three stale, six failure and one empty sentence all distinct, none a freshness or absence phrase; A3 NO_SOURCE_ROWS, INCOMPLETE_IDENTITY, stale decision, stale link, stale output via isOutputStale and proof STALE transitions; A4 MyCareersFuture and careers.gov.sg inventories byte-identical across a rebuild, canonical ids only, proposals composed only from declared duties, dangling parent, unknown anchor, off-roster voice, dangling predecessor and tampered window origin refused; A5 a randomised fixture detected as non-deterministic), Part B Chromium at 1440x1000 and 430x932, 160 total (positive grid; SERVER failure renders data-state failure with the code, names MyCareersFuture, says what it means, no absence or freshness phrase, prior grid gone; EMPTY renders data-state empty and says the source answered; the withheld window field is the third state; three distinct data-states; the MyCareersFuture failure state still renders beside a careers.gov.sg match, and a careers.gov.sg SERVER fallback renders its own failure state in its own column beside a MyCareersFuture grid; a results-state box and a grid for the same source never coexist), exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/browser-gate.mjs",
+              "label": "Browser gate: the workspace testid is now composed from the row's data-evidence-id (discharging BLP-003's carried omission at line 576); the positional literal v31-workspace-evidence-s0 is gone"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -1501,11 +1627,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+              "label": "BLP-005 implementation commit 6a75e9f: tests/evidence-failure-paths.mjs (routes under every failure cause, the words each state shows, the evidence layer on failed, empty, incomplete and stale inputs, an identifier inventory byte-identical across a rebuild with unknown and dangling references refused, determinism proved), tests/support/surface-phrases.mjs (one definition of the forbidden freshness and absence phrases, shared with evidence-window.mjs), browser-gate.mjs reading data-evidence-id from the row, and three minimal product changes admitted under Supervisor ruling Q1 because criterion 3 was failing: api/mcf.js reports a failed search page with its cause instead of an empty page, evidenceAdapter.js 1.1.0 carries the state text, App.jsx renders the company results failure and empty states distinctly"
+            }
+          ],
+          "note": "Implementation commit 6a75e9f on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -1547,8 +1679,14 @@
         }
       },
       "affectedFiles": [
-        "v3.1/tests/evidence-contract.mjs",
-        "v3.1/tests/evidence-round-trip.mjs"
+        "v3.1/tests/evidence-failure-paths.mjs",
+        "v3.1/tests/support/surface-phrases.mjs",
+        "v3.1/tests/evidence-window.mjs",
+        "v3.1/tests/browser-gate.mjs",
+        "v3.1/api/mcf.js",
+        "v3.1/src/contracts/evidenceAdapter.js",
+        "v3.1/src/App.jsx",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -1563,6 +1701,38 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T19:14:00+08:00",
+          "reason": "Started on the Human Lead's order while PR #496 (BLP-006) was still open; work held locally until that PR merged. The Blueprint Supervisor's five rulings recorded first: a minimal product fix is permitted only where BLP-005's own criterion 3 fails and must be declared and named before verification; output and proof stale states at node level with owners; three states in the browser (failure, empty, withheld) at both widths with the failure never phrased as an absence and the prior result never kept; visibly distinct means distinct words, a distinct data-state, never colour alone, naming which source and what it means; the forbidden-phrase list shared, never duplicated.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T19:41:52+08:00",
+          "reason": "Positive source-bearing fixtures for MyCareersFuture and careers.gov.sg preserve every identifier class byte-identically across a rebuild; negative fixtures refuse unknown and dangling references (parent, anchor, predecessor, reviewer, proposal, window origin) with a reason; withheld, stale and failure paths are distinct by reason code, by the one definition of the words a surface shows, and by data-state on the surface, at desktop and phone width, and deterministic by double build. The suite found and the change fixed a failure phrased as an absence on the MyCareersFuture company route. Verified locally in node and Chromium; Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/6a75e9f0d0fe96c9f24503f41304631151fa5ec8",
+              "label": "BLP-005 implementation commit 6a75e9f: tests/evidence-failure-paths.mjs (routes under every failure cause, the words each state shows, the evidence layer on failed, empty, incomplete and stale inputs, an identifier inventory byte-identical across a rebuild with unknown and dangling references refused, determinism proved), tests/support/surface-phrases.mjs (one definition of the forbidden freshness and absence phrases, shared with evidence-window.mjs), browser-gate.mjs reading data-evidence-id from the row, and three minimal product changes admitted under Supervisor ruling Q1 because criterion 3 was failing: api/mcf.js reports a failed search page with its cause instead of an empty page, evidenceAdapter.js 1.1.0 carries the state text, App.jsx renders the company results failure and empty states distinctly"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-failure-paths.mjs",
+              "label": "Failure-path suite: Part A node 113 checks (A1 routes: abort, upstream error, unreadable body, HTTP 500 and genuine empty for MyCareersFuture; abort, error, oversize dump and unexpected shape for careers.gov.sg; missing uuid 400; GET 405; every failure answers 200 with fallback, a code and no invented row, and classifies FAILURE, a genuine no-match EMPTY; A2 nine withholding, three stale, six failure and one empty sentence all distinct, none a freshness or absence phrase; A3 NO_SOURCE_ROWS, INCOMPLETE_IDENTITY, stale decision, stale link, stale output via isOutputStale and proof STALE transitions; A4 MyCareersFuture and careers.gov.sg inventories byte-identical across a rebuild, canonical ids only, proposals composed only from declared duties, dangling parent, unknown anchor, off-roster voice, dangling predecessor and tampered window origin refused; A5 a randomised fixture detected as non-deterministic), Part B Chromium at 1440x1000 and 430x932, 160 total (positive grid; SERVER failure renders data-state failure with the code, names MyCareersFuture, says what it means, no absence or freshness phrase, prior grid gone; EMPTY renders data-state empty and says the source answered; the withheld window field is the third state; three distinct data-states; the MyCareersFuture failure state still renders beside a careers.gov.sg match, and a careers.gov.sg SERVER fallback renders its own failure state in its own column beside a MyCareersFuture grid; a results-state box and a grid for the same source never coexist), exit 0"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/browser-gate.mjs",
+              "label": "Browser gate: the workspace testid is now composed from the row's data-evidence-id (discharging BLP-003's carried omission at line 576); the positional literal v31-workspace-evidence-s0 is gone"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
