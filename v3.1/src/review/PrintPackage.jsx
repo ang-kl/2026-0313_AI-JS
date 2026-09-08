@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { buildGovernanceLedgerData } from "../work-universe/governanceLedgerData.js";
 
@@ -18,12 +18,18 @@ function Withheld({ children }) {
   return <p className="v31-print-withheld"><b>WITHHELD</b> · {children}</p>;
 }
 
-function PrintMeta({ source, confidence }) {
+// BLP-004: the print package carries the same seven evidence-window fields as the screen, each
+// on its own with its withheld state spelled out as text; a durable artefact never states a
+// window it cannot back.
+function PrintMeta({ source, confidence, windowRows }) {
+  const rows = Array.isArray(windowRows) ? windowRows : [];
   return (
     <div className="v31-print-meta">
       <span>Source · {source || "source withheld"}</span>
       <span>Confidence · {confidence || "withheld"}</span>
-      <span>Time-window · snapshot at analysis</span>
+      <span data-testid="print-evidence-window" role="group" aria-label="Evidence time-window, seven fields">Time-window · {rows.length ? rows.map((r, i) => (
+        <Fragment key={r.key}>{i > 0 ? " · " : ""}<span data-window-field={r.key} data-window-state={r.withheld ? "withheld" : "value"} data-window-precision={r.precision || ""} data-window-origin={r.origin || ""}>{r.label}: {r.text}</span></Fragment>
+      )) : "withheld (no evidence window was supplied)"}</span>
     </div>
   );
 }
@@ -39,7 +45,8 @@ function Section({ number, title, children, pageBreak }) {
 
 export default function PrintPackage({
   open, variant, setVariant, onClose, result, title, employer, source,
-  confidence, dissection, comments, decisions, critical,
+  confidence,
+  windowRows, dissection, comments, decisions, critical,
 }) {
   useEffect(() => {
     if (!open) return undefined;
@@ -112,7 +119,7 @@ export default function PrintPackage({
           <p className="v31-print-kicker">V3 · reviewable work intelligence</p>
           <h1>{roleName}</h1>
           <p className="v31-print-subtitle">{orgName} · {variant === "review" ? "full evidence and decision review" : "clean role and candidate preparation brief"}</p>
-          <PrintMeta source={source} confidence={confidence} />
+          <PrintMeta source={source} confidence={confidence} windowRows={windowRows} />
           <div className="v31-print-summary">
             <div className="v31-print-stat"><b>{dutySpans.length || "—"}</b><span>source duties</span></div>
             <div className="v31-print-stat"><b>{roleSkills.length || "—"}</b><span>role skills</span></div>

@@ -10,6 +10,34 @@ import { useState, useMemo, useEffect, useLayoutEffect, useRef, Fragment } from 
 import { createPortal } from "react-dom";
 import { loadState, saveState } from "./persist.js";
 import { buildResultEvidence, legacyRequirementRows, partitionDecisionLedger, mergeDecisionLedger, partitionLinks } from "./contracts/evidenceAdapter.js";
+import { windowRows as evidenceWindowRows } from "./contracts/evidenceWindowAdapter.js";
+
+// BLP-004: the evidence window as seven independent inline fields. Each field is its own
+// element carrying data-window-field / data-window-state, and its VISIBLE text spells the state
+// out ("Corpus range withheld (not supplied)"), so a withheld value is announced as text and
+// never by styling alone. No aria-label on the field spans: ARIA 1.2 prohibits aria-label on the
+// generic role, and a screen reader in browse mode reads the text nodes anyway, so the visible
+// text is the one accessible name (a11y-honesty-reviewer finding, 08-09 '26). No generic
+// freshness phrase is ever rendered here.
+function rsWindowLine(rows, { color, mutedColor }) {
+  const dot = String.fromCharCode(0x00b7);
+  return (
+    <span data-testid="evidence-window" role="group" aria-label="Evidence time-window, seven fields" style={{ display: "inline" }}>
+      Time-window:{" "}
+      {rows.map((r, i) => (
+        <Fragment key={r.key}>
+          {/* The separator sits OUTSIDE the no-wrap field so the line can break between fields
+              and never overflows the footer (seen at 1440px with seven fields). */}
+          {i > 0 ? " " + dot + " " : ""}
+          <span data-window-field={r.key} data-window-state={r.withheld ? "withheld" : "value"} data-window-precision={r.precision || ""} data-window-origin={r.origin || ""}
+            style={{ color: r.withheld ? mutedColor : color, whiteSpace: "nowrap" }}>
+            {r.label}: {r.text}
+          </span>
+        </Fragment>
+      ))}
+    </span>
+  );
+}
 // PB1 (v3-preinterview-brief-spec.md): reuse the shipped, module-cached ACRA lookup
 // byte-identically - no new fetch path, no frozen-door touch (fetchEmployerRegistration
 // itself is not on the frozen list; only /api/ssic's lookup action + api/ssic.js are).
@@ -1109,6 +1137,8 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
   // Honest overall confidence: high when every duty was engine-classified, withheld when none,
   // else "N of M classified" - never a flat confident number over unclassified spans.
   const _classified = dissection.spans.filter((s) => s.band).length;
+  // BLP-004: seven evidence-window fields, built once by App.jsx (result.evidenceWindow).
+  const windowRowsList = useMemo(() => evidenceWindowRows(result && result.evidenceWindow), [result]);
   const footerConf = dissection.spans.length === 0 ? "withheld" : _classified === dissection.spans.length ? "high (engine-classified)" : _classified === 0 ? "withheld" : _classified + " of " + dissection.spans.length + " duties classified";
   // Revision (Human Lead, 30-07 '26): the canvas has no tabs, so gating the read mode on
   // `tab === "ad"` silently disabled it there - picking "Clean, as published" in the
@@ -1780,7 +1810,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       </div>
       {/* Row 3: the active tab's toolbar */}
       <div className="wis-scroll" style={{ flex: "none", display: "flex", alignItems: "center", gap: 8, padding: "4px 14px", background: "#f3f1ea", borderBottom: "1px solid #e0dcd0", overflowX: "auto", minHeight: 44 }}>
-        {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} time-window: snapshot at analysis</span>}
+        {tab === "overview" && <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.6875rem", color: "#6b6357" }}>verdict first {String.fromCharCode(0x00b7)} every chip is a door {String.fromCharCode(0x00b7)} {rsWindowLine(windowRowsList, { color: "#6b6357", mutedColor: "#9a6113" })}</span>}
         {tab === "ad" && [["clean", "Read clean"], ["suggestions", "Evidence view"], ["comments", "Comments"]].map(([k, lbl]) => (
           <button key={k} type="button" aria-pressed={markup === k} onClick={() => setMarkup(k)} style={pillStyle(markup === k)}>{lbl}</button>
         ))}
@@ -1922,7 +1952,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       {/* Footer - +10% type (0.6875 -> 0.75625rem) + roomier padding, and the version
           tag lifted from #8595d6 (~3.3:1 on navy) to #c3cdf5 (WCAG AA). 11-07 '26. */}
       <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap", padding: "9px 18px", background: "#142a8e", lineHeight: 1.5 }}>
-        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} Time-window: snapshot at analysis</span>
+        <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#dbe2ff" }}>Source: {source || "MyCareersFuture"} {String.fromCharCode(0x00b7)} Confidence: {footerConf} {String.fromCharCode(0x00b7)} {rsWindowLine(windowRowsList, { color: "#dbe2ff", mutedColor: "#f3d59a" })}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#fff", fontWeight: 500 }}>AI-assisted {String.fromCharCode(0x00b7)} human decides</span>
           {version && <span title={"SG Career View " + version} style={{ fontFamily: "'Spline Sans Mono',monospace", fontSize: "0.75625rem", color: "#c3cdf5" }}>v{version}</span>}
@@ -1939,6 +1969,7 @@ export default function ReviewStudio({ result, title, employer, source, rolePane
       employer={employer}
       source={source}
       confidence={footerConf}
+      windowRows={windowRowsList}
       dissection={dissection}
       comments={dissection.comments}
       decisions={commentStatus}

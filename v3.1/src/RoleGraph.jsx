@@ -1341,7 +1341,7 @@ function KGFooter({ kg }) {
       <div>
         <b>Source:</b> duties from MCF posting (verbatim); skills from ESCO; occupation from ESCO/ISCO-08.
         <b> Confidence:</b> high = verified; medium = inferred from ESCO overlap; low = sparse evidence.
-        <b> Time-window:</b> snapshot of the analysed posting.
+        <b> Time-window:</b> the analysed posting only.
       </div>
       <div style={{ marginTop: 6, fontSize: "0.6875rem", color: P.muted }}>
         AI-assisted; human decides. Knowledge graph is computed deterministically from the MCF posting data - no LLM authoring any node, edge, verb, or cluster.

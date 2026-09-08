@@ -46,6 +46,18 @@
 //          validateProofRecord and validateOutputBlock validates each cited distilled span against
 //          knownSpans and refuses on any error, so a forged state cannot pass the gate the
 //          generation requirements inherit.
+//   1.0.4  EvidenceWindow date fields carry a `precision` marker, "instant" or "day" (BLP-004,
+//          Supervisor ruling Q1). MyCareersFuture publishes date-only values and careers.gov.sg
+//          encodes calendar dates as epoch milliseconds at midnight UTC, so a value such as
+//          "2026-08-26" is a real source fact at day precision: recording it at that precision is
+//          the opposite of inventing an instant, and withholding it would be a false withholding.
+//          A day-precision value is exactly YYYY-MM-DD (no time, no offset); an instant is the
+//          ISO datetime form as before. A field object with NO precision key stays valid and
+//          means instant, so every 1.0.3 record and fixture validates unchanged. A withheld date
+//          field carries precision null. corpusRange compares its bounds only at one precision:
+//          both day (calendar order) or both instant (Date.parse); mixed bounds are withheld as
+//          WITHHELD_CONFLICTING_EVIDENCE rather than silently coerced through Date.parse, which
+//          would read a day value as UTC midnight, the exact fabrication this marker prevents.
 //
 // Validation scope: rule 7 runs only when the validator can see the parents. Consumers MUST validate
 // distilled spans through validateEvidenceBundle or pass knownSpans; a standalone call checks shape
@@ -58,7 +70,7 @@
 // Protected scope: this module is additive. It changes no Step 1, Step 2, graph, review, print,
 // v3/ or Railway behaviour. Consumers adopt it under later requirements (BLP-003 onward).
 
-export const CONTRACT_VERSION = "1.0.3";
+export const CONTRACT_VERSION = "1.0.4";
 // ptn-1 folds every Unicode space separator (category Zs) to U+0020, removes zero-width characters
 // (U+200B, U+200C, U+200D, U+FEFF) and treats U+2028, U+2029 and U+0085 as line breaks. It has never
 // been persisted in a narrower form.
@@ -193,6 +205,7 @@ export function sha256Hex(text) {
 // Small deterministic helpers.
 // ---------------------------------------------------------------------------------------------
 const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
+const ISO_DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const IANA_ZONE = /^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+)+$|^UTC$/;
 const ZERO_WIDTH = /[\u200b\u200c\u200d\ufeff]/g;
 const LINE_SEPARATORS = /[\u2028\u2029\u0085]/g;
@@ -201,6 +214,19 @@ const UNICODE_SPACE = /\p{Zs}/gu;
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
 function nonemptyString(value) { return typeof value === "string" && value.trim().length > 0; }
 function isIsoDateTime(value) { return nonemptyString(value) && ISO_DATE_TIME.test(value) && !Number.isNaN(Date.parse(value)); }
+// A calendar date with no time and no offset; the month and day must exist (2026-02-30 is not a date).
+function isIsoDateOnly(value) {
+  if (!nonemptyString(value) || !ISO_DATE_ONLY.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  const probe = new Date(Date.UTC(y, m - 1, d));
+  return probe.getUTCFullYear() === y && probe.getUTCMonth() === m - 1 && probe.getUTCDate() === d;
+}
+/** Precision of a date value by its form: "day" for YYYY-MM-DD, "instant" for an ISO datetime, null otherwise. */
+export function datePrecisionOf(value) {
+  if (isIsoDateOnly(value)) return "day";
+  if (isIsoDateTime(value)) return "instant";
+  return null;
+}
 function isInteger(value) { return Number.isInteger(value); }
 
 /**
@@ -817,11 +843,30 @@ export function validateVisualProfile(profile) {
 // ---------------------------------------------------------------------------------------------
 // 7. EvidenceWindow
 // ---------------------------------------------------------------------------------------------
+export const DATE_PRECISIONS = Object.freeze(["instant", "day"]);
+const WINDOW_DATE_FIELDS = Object.freeze(["publishedAt", "closingAt", "retrievedAt", "analysedAt"]);
+
 function windowField(value, origin, validator) {
   if (value === undefined || value === null || value === "" || !validator(value)) {
     return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD };
   }
   return { value, origin: origin ?? ORIGIN.SOURCE_VERBATIM, withheldReason: null };
+}
+// 1.0.4: a date field accepts an instant or a day-precision value and records which it holds.
+function windowDateField(value, origin) {
+  const precision = datePrecisionOf(value);
+  if (!precision) return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null };
+  return { value, origin: origin ?? ORIGIN.SOURCE_VERBATIM, withheldReason: null, precision };
+}
+// corpusRange: both bounds at one precision, ordered at that precision; mixed precision is withheld.
+function windowRangeField(value, origin) {
+  if (!isObject(value)) return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null };
+  const pf = datePrecisionOf(value.from), pt = datePrecisionOf(value.to);
+  if (!pf || !pt) return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null };
+  if (pf !== pt) return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.CONFLICTING_EVIDENCE, precision: null };
+  const ordered = pf === "day" ? value.from <= value.to : Date.parse(value.from) <= Date.parse(value.to);
+  if (!ordered) return { value: null, origin: ORIGIN.WITHHELD, withheldReason: WITHHOLD.UNAVAILABLE_FIELD, precision: null };
+  return { value: { from: value.from, to: value.to }, origin: origin ?? ORIGIN.DETERMINISTIC, withheldReason: null, precision: pf };
 }
 
 /**
@@ -832,11 +877,11 @@ export function createEvidenceWindow(input = {}) {
   const originOf = (key) => (isObject(input.origins) && ORIGINS.includes(input.origins[key]) ? input.origins[key] : undefined);
   return {
     contractVersion: CONTRACT_VERSION,
-    publishedAt: windowField(input.publishedAt, originOf("publishedAt"), isIsoDateTime),
-    closingAt: windowField(input.closingAt, originOf("closingAt"), isIsoDateTime),
-    retrievedAt: windowField(input.retrievedAt, originOf("retrievedAt") ?? ORIGIN.DETERMINISTIC, isIsoDateTime),
-    analysedAt: windowField(input.analysedAt, originOf("analysedAt") ?? ORIGIN.DETERMINISTIC, isIsoDateTime),
-    corpusRange: windowField(input.corpusRange, originOf("corpusRange") ?? ORIGIN.DETERMINISTIC, (v) => isObject(v) && isIsoDateTime(v.from) && isIsoDateTime(v.to) && Date.parse(v.from) <= Date.parse(v.to)),
+    publishedAt: windowDateField(input.publishedAt, originOf("publishedAt")),
+    closingAt: windowDateField(input.closingAt, originOf("closingAt")),
+    retrievedAt: windowDateField(input.retrievedAt, originOf("retrievedAt") ?? ORIGIN.DETERMINISTIC),
+    analysedAt: windowDateField(input.analysedAt, originOf("analysedAt") ?? ORIGIN.DETERMINISTIC),
+    corpusRange: windowRangeField(input.corpusRange, originOf("corpusRange") ?? ORIGIN.DETERMINISTIC),
     postingCount: windowField(input.postingCount, originOf("postingCount") ?? ORIGIN.DETERMINISTIC, (v) => isInteger(v) && v >= 0),
     sourceTimezone: windowField(input.sourceTimezone, originOf("sourceTimezone"), (v) => nonemptyString(v) && IANA_ZONE.test(v)),
   };
@@ -857,6 +902,24 @@ export function validateEvidenceWindow(window) {
       if (field.withheldReason !== null) errors.push(`EvidenceWindow.${key} carries a value and a withheld reason`);
       if (field.origin === ORIGIN.AI_ASSISTED) errors.push(`EvidenceWindow.${key} may not be AI-assisted; dates are never inferred`);
     }
+    // 1.0.4 precision rules. An absent key means instant (1.0.3 records stay valid).
+    if ("precision" in field && field.precision !== null && !DATE_PRECISIONS.includes(field.precision)) errors.push(`EvidenceWindow.${key}.precision must be instant, day or null`);
+    if (field.value === null && "precision" in field && field.precision !== null) errors.push(`EvidenceWindow.${key} is withheld and must carry precision null`);
+    if (field.value !== null && WINDOW_DATE_FIELDS.includes(key)) {
+      const declared = field.precision ?? "instant";
+      const actual = datePrecisionOf(field.value);
+      if (!actual) errors.push(`EvidenceWindow.${key} value is neither an ISO datetime nor a YYYY-MM-DD date`);
+      else if (actual !== declared) errors.push(`EvidenceWindow.${key} declares ${declared} precision but its value is a ${actual} value (a day value must carry no time; an instant must not claim day precision)`);
+    }
+    if (field.value !== null && key === "corpusRange") {
+      const v = field.value;
+      const pf = isObject(v) ? datePrecisionOf(v.from) : null, pt = isObject(v) ? datePrecisionOf(v.to) : null;
+      if (!pf || !pt) errors.push("EvidenceWindow.corpusRange bounds must both be dates");
+      else if (pf !== pt) errors.push("EvidenceWindow.corpusRange bounds are at different precisions; compare at one precision or withhold, never coerce a day value through Date.parse");
+      else if ((field.precision ?? "instant") !== pf) errors.push(`EvidenceWindow.corpusRange declares ${field.precision ?? "instant"} precision but its bounds are ${pf} values`);
+      else if (pf === "day" ? v.from > v.to : Date.parse(v.from) > Date.parse(v.to)) errors.push("EvidenceWindow.corpusRange is inverted");
+    }
+    if (field.value !== null && !WINDOW_DATE_FIELDS.includes(key) && key !== "corpusRange" && "precision" in field && field.precision !== null) errors.push(`EvidenceWindow.${key} is not a date field and carries no precision`);
   }
   const keys = Object.keys(window).filter((k) => k !== "contractVersion");
   const extra = keys.filter((k) => !EVIDENCE_WINDOW_FIELDS.includes(k));

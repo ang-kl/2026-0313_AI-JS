@@ -1477,6 +1477,19 @@ import { sectorEvidenceFromRegistry } from "./businessCubeModel.js";
 import WikiGraphView from "./wiki/WikiGraphView.jsx";
 import ReviewStudio, { rsNormTitle, rsJaccard, rsTokens, rsEmpTypeBucket } from "./ReviewStudio.jsx";
 import { buildResultEvidence } from "./contracts/evidenceAdapter.js";
+import { buildEvidenceWindow, isoWithOffset } from "./contracts/evidenceWindowAdapter.js";
+
+// BLP-004 (conformance-auditor W4): a posting object now carries the route's own retrievedAt, so a
+// single-posting export must not stamp the export click under the same name. Pass the route's
+// stamp through and withhold when the route supplied none. List exports keep an export-time stamp
+// because a list has no single observation moment; each posting inside carries its own.
+function postingRetrievalMeta(job) {
+  const source = job && job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture";
+  const retrievedAt = job && job.retrievedAt ? job.retrievedAt : undefined;
+  return { source, retrievedAt, timeWindow: retrievedAt ? "retrievedAt is when the route observed the source; the posting carries the same stamp" : "retrievedAt withheld: the route supplied no retrieval time for this posting" };
+}
+const LIST_EXPORT_WINDOW = "retrievedAt is when this export was made; each posting carries its own route-stamped retrievedAt";
+
 import { useDeviceProfile } from "./responsive/deviceProfile.js";
 import { exposureForIsco } from "../engine-data/engine-core.js";
 import { classifySkillLevel, classifyResponsibilityLevel } from "../engine-data/skill-level.js";
@@ -14095,10 +14108,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         appVersion: APP_VERSION,
         query: { role: sel?.title || null },
         blocks: {
-          posting: block(ORIGIN.VERBATIM,
-            { source: job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture",
-              retrievedAt: new Date().toISOString(), timeWindow: "live at retrieval" },
-            job),
+          posting: block(ORIGIN.VERBATIM, postingRetrievalMeta(job), job),
           searchMatch: block(ORIGIN.DERIVED,
             { source: "job-search bucketing in this app",
               note: "How closely this posting matched the searched role. Computed here, not supplied by the source." },
@@ -14123,7 +14133,7 @@ function McfJobsPanel({ sel, skills, escoOccupation, onAnalysePosting, onQueuePo
         },
         blocks: {
           mcfPostings: block(ORIGIN.VERBATIM,
-            { source: "MyCareersFuture", retrievedAt: now, timeWindow: "live at retrieval",
+            { source: "MyCareersFuture", retrievedAt: now, timeWindow: LIST_EXPORT_WINDOW,
               note: state.capped ? "Result set was capped; this is not every matching posting." : undefined },
             state.jobs),
           csgPostings: block(ORIGIN.VERBATIM,
@@ -15941,12 +15951,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         appVersion: APP_VERSION,
         query: { employer: state.query || companyQuery || null },
         blocks: {
-          posting: block(
-            ORIGIN.VERBATIM,
-            { source: job.source === "careers.gov.sg" ? "careers.gov.sg" : "MyCareersFuture",
-              retrievedAt: new Date().toISOString(), timeWindow: "live at retrieval" },
-            job
-          ),
+          posting: block(ORIGIN.VERBATIM, postingRetrievalMeta(job), job),
         },
       })
     );
@@ -15963,7 +15968,7 @@ function CompanyPanel({ companyQuery, onAnalysePosting, onQueuePosting, queueCou
         query: { employer: name, typed: companyQuery || null, queryKey: state.queryKey || null },
         blocks: {
           mcfPostings: block(ORIGIN.VERBATIM,
-            { source: "MyCareersFuture", retrievedAt: now, timeWindow: "live at retrieval",
+            { source: "MyCareersFuture", retrievedAt: now, timeWindow: LIST_EXPORT_WINDOW,
               note: "Polled " + (state.pagesPolled || 0) + " page(s); a fuzzy poll may miss postings filed under a differently-spelled employer name." },
             mcfFilteredSorted),
           csgPostings: block(ORIGIN.VERBATIM,
@@ -16668,7 +16673,17 @@ export default function App({ initialSearchMode } = {}) {
   // BLP-003: canonical evidence identity (EvidenceSource + spans) is built ONCE here, from the
   // analysed posting and the engine's duty list, and rides on result.evidence into Step 3. The
   // adapter owns the rule; this is wiring only.
-  const resultWithEvidence = useMemo(() => (result ? { ...result, evidence: buildResultEvidence(result, analysingPosting) } : result), [result, analysingPosting]);
+  const resultWithEvidence = useMemo(() => (result ? {
+    ...result,
+    evidence: buildResultEvidence(result, analysingPosting, { retrievedAt: analysingPosting && analysingPosting.retrievedAt }),
+    // BLP-004: the seven evidence-window fields, built once here from the posting's raw route
+    // facts (or the sampled corpus for a corpus analysis) and the analysis stamp.
+    evidenceWindow: buildEvidenceWindow({
+      posting: analysingPosting,
+      corpusJobs: !analysingPosting && result.responsibilitiesData && Array.isArray(result.responsibilitiesData.jobs) ? result.responsibilitiesData.jobs : [],
+      analysedAt: result.analysedAt,
+    }),
+  } : result), [result, analysingPosting]);
   // Corpus "analyse all as one role" build spans all three sources and many postings, so it
   // is slower than a single analysis - hold its shape so the loading screen shows an explicit
   // "please wait, this is building across every source" callout (Human Lead request).
@@ -17332,6 +17347,9 @@ export default function App({ initialSearchMode } = {}) {
       })();
       const iscoMajor = (escoOccupation && Number.isInteger(escoOccupation.iscoMajor)) ? escoOccupation.iscoMajor : iscoMajorFromCode;
       const newResult = { iscoGroup:occ.iscoGroup||"", description:occ.description||"", skills:merged, foundationData, progressionData, crossoverData, contextData, escoOccupationUri, escoOccupation, iscoMajor, escoCanonicalTitle: escoFetchTitle !== occ.title ? escoFetchTitle : null,
+        // BLP-004: the moment this analysis was produced, stamped at the call site with the
+        // client's own offset (the adapters never read a clock).
+        analysedAt: isoWithOffset(new Date()),
         source: corpus ? "corpus" : posting ? "posting" : "esco",
         postingMeta: posting ? { uuid:posting.uuid, employer:posting.employer, mcfUrl:posting.mcfUrl,
           // PRO1: who POSTED vs who is HIRING - the strongest outsourced-posting signal
@@ -17641,6 +17659,14 @@ export default function App({ initialSearchMode } = {}) {
         source: job.source || "MyCareersFuture",
         skills: Array.isArray(job.skills) ? job.skills.filter(Boolean) : [],
         text: job.responsibilitiesText || job.description || "",
+        // BLP-004: the route's evidence-window facts ride along untouched - the source's raw
+        // dates, the observation time and the text provenance of the field used as `text`.
+        // The evidence layer reads only these (never postedDate/expiryDate, the display values).
+        postedDateRaw: job.postedDateRaw ?? null,
+        expiryDateRaw: job.expiryDateRaw ?? null,
+        retrievedAt: job.retrievedAt || "",
+        textProvenance: job.textProvenance || null,
+        textField: job.responsibilitiesText ? "responsibilitiesText" : (job.description ? "description" : null),
         // AI-5: the analysed ad's own salary band rides along so the competitive read
         // can position it against the sampled market - deterministic, no lookup.
         salaryMid: salaryMidOf(job),
