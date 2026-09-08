@@ -78,6 +78,7 @@ jobs:
           node tests/browser-gate.mjs
           node tests/evidence-round-trip.mjs
           node tests/evidence-window.mjs
+          node tests/reviewer-contract.mjs
 
       - name: Enforce blueprint-register construction scope
         if: startsWith(github.head_ref, 'codex/v31-blueprint-completion-register-')

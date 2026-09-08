@@ -58,6 +58,25 @@
 //          both day (calendar order) or both instant (Date.parse); mixed bounds are withheld as
 //          WITHHELD_CONFLICTING_EVIDENCE rather than silently coerced through Date.parse, which
 //          would read a day value as UTC midnight, the exact fabrication this marker prevents.
+//   1.1.0  Review actors and the canonical review vocabulary (BLP-006, Supervisor rulings Q3 and
+//          the dependency-direction ruling). REVIEW_VERB is no longer provisional; DECISION_STATUS,
+//          CONFIDENCE and RISK (blueprint section 5.2) join it here, and the reviewer roster module
+//          (src/review/reviewerContract.js) IMPORTS this vocabulary rather than defining it, so the
+//          contract layer never depends on a feature folder. Actor ids are namespaced: a roster
+//          reviewer is "reviewer:<slug>", a named human is "human:<id>", the executor is "system".
+//          A decision must be made by a human actor; a comment or proposal is authored by a reviewer
+//          or a human, never by "system"; a confirmation's confirmedBy must be a human actor. When a
+//          roster is passed (validateReviewChange(change, { roster }), the same call-site pattern as
+//          knownSpans), a reviewer id must resolve to an ACTIVE roster entry whose kinds and verbs
+//          admit the event, so a voice can never exceed its declared action boundary. MINOR bump,
+//          not patch: a free-text reviewerId that validated under 1.0.4 is refused under 1.1.0, so
+//          consumers must check. Every 1.0.4 fixture already used the namespaced form and
+//          re-validates unchanged, which is verified empirically in tests/evidence-contract.mjs
+//          (the Supervisor's separate reopen test for BLP-002, distinct from the bump level).
+//          Version equality: checkContractVersion is exact, so a record STAMPED "1.0.4" is refused
+//          under 1.1.0 whatever its shape (true of every bump). Nothing persisted carries a stamp:
+//          records are built with the current constant and never round-tripped, and the decision
+//          ledger stores only commentId@anchorId -> status. Only hand-built records are affected.
 //
 // Validation scope: rule 7 runs only when the validator can see the parents. Consumers MUST validate
 // distilled spans through validateEvidenceBundle or pass knownSpans; a standalone call checks shape
@@ -70,7 +89,7 @@
 // Protected scope: this module is additive. It changes no Step 1, Step 2, graph, review, print,
 // v3/ or Railway behaviour. Consumers adopt it under later requirements (BLP-003 onward).
 
-export const CONTRACT_VERSION = "1.0.4";
+export const CONTRACT_VERSION = "1.1.0";
 // ptn-1 folds every Unicode space separator (category Zs) to U+0020, removes zero-width characters
 // (U+200B, U+200C, U+200D, U+FEFF) and treats U+2028, U+2029 and U+0085 as line breaks. It has never
 // been persisted in a narrower form.
@@ -120,12 +139,24 @@ export const PROOF_TARGET_KIND = Object.freeze(["duty", "requirement", "skill", 
 export const PROOF_DESTINATION = Object.freeze(["resume", "coverLetter", "interview", "portfolio", "workSample"]);
 export const DESTINATION_STATE = Object.freeze(["UNSET", "ALLOWED", "REVOKED"]);
 export const REVIEW_KIND = Object.freeze(["comment", "proposal", "decision", "change"]);
-// Provisional vocabulary. BLP-006 reconciles the canonical roster and verbs; a change there is a
-// contract version bump, not a silent edit.
+// CANONICAL review vocabulary (BLP-006, contract 1.1.0). The nine blueprint section 5.1 object
+// types plus the five human-control and reversal verbs. A change here is a contract version bump.
 export const REVIEW_VERB = Object.freeze([
   "comment", "insert", "delete", "replace", "split", "merge", "relabel", "escalate", "withhold",
   "accept", "reject", "resolve", "reopen", "undo",
 ]);
+// Blueprint section 5.2 tracked-change fields, canonical here so the roster and the UI share them.
+export const DECISION_STATUS = Object.freeze(["open", "accepted", "rejected", "resolved", "escalated"]);
+export const CONFIDENCE = Object.freeze(["high", "medium", "low", "none"]);
+export const RISK = Object.freeze(["none", "caveat", "escalation", "withheld"]);
+// Review actor namespaces (BLP-006 criterion 3: comments, proposals, human decisions and executed
+// actions stay distinct, and a human is never a roster entry).
+export const ACTOR_PREFIX = Object.freeze({ REVIEWER: "reviewer:", HUMAN: "human:" });
+export const SYSTEM_ACTOR = "system";
+export function isReviewerActorId(value) { return typeof value === "string" && value.startsWith(ACTOR_PREFIX.REVIEWER) && value.length > ACTOR_PREFIX.REVIEWER.length && !/\s/.test(value); }
+export function isHumanActorId(value) { return typeof value === "string" && value.startsWith(ACTOR_PREFIX.HUMAN) && value.length > ACTOR_PREFIX.HUMAN.length && !/\s/.test(value); }
+export function isSystemActorId(value) { return value === SYSTEM_ACTOR; }
+export function actorKindOf(value) { return isReviewerActorId(value) ? "reviewer" : isHumanActorId(value) ? "human" : isSystemActorId(value) ? "system" : null; }
 export const OUTPUT_STATE = Object.freeze(["PROPOSED", "ACCEPTED", "REJECTED", "STALE", "WITHHELD"]);
 export const POLICY_RESULT = Object.freeze(["PASS", "FAIL", "NOT_RUN"]);
 export const VISUAL_ID = Object.freeze(["graph", "org", "workflow", "stream"]);
@@ -437,7 +468,8 @@ function withheldSpanId(sourceId, reason, detail) {
  * VERIFIED or USER_CONFIRMED distilled spans may back a ProofRecord target or an OutputBlock citation.
  */
 export function isConfirmationRecord(value) {
-  return isObject(value) && nonemptyString(value.confirmedBy) && isIsoDateTime(value.confirmedAt)
+  // 1.1.0: the confirmer is a named HUMAN actor ("human:<id>"); a reviewer or the system cannot confirm.
+  return isObject(value) && isHumanActorId(value.confirmedBy) && isIsoDateTime(value.confirmedAt)
     && (value.reviewChangeId === null || value.reviewChangeId === undefined || nonemptyString(value.reviewChangeId));
 }
 export function deriveDerivationState({ origin, derivation, confirmation }) {
@@ -694,7 +726,12 @@ export function createReviewChange({ id, kind, verb, targetSpanIds, reviewerId, 
   };
 }
 
-export function validateReviewChange(change) {
+/**
+ * `options.roster` (1.1.0): an array of roster entries { id, active, kinds, verbs } (the shape
+ * src/review/reviewerContract.js exports as ROSTER). When present, a reviewer actor must resolve to
+ * an active entry whose kinds and verbs admit this event. Passed at the call site like knownSpans.
+ */
+export function validateReviewChange(change, options = {}) {
   const errors = [];
   if (!isObject(change)) return result(["ReviewChange must be an object"]);
   checkContractVersion(errors, change, "ReviewChange");
@@ -703,6 +740,22 @@ export function validateReviewChange(change) {
   if (!REVIEW_VERB.includes(change.verb)) errors.push(`ReviewChange.verb must be one of ${REVIEW_VERB.join(", ")}`);
   if (!Array.isArray(change.targetSpanIds) || !change.targetSpanIds.length || !change.targetSpanIds.every(nonemptyString)) errors.push("ReviewChange.targetSpanIds must name at least one span");
   if (!nonemptyString(change.reviewerId)) errors.push("ReviewChange.reviewerId must identify a stable reviewer");
+  else {
+    const actor = actorKindOf(change.reviewerId);
+    if (!actor) errors.push(`ReviewChange.reviewerId must be a namespaced actor id (${ACTOR_PREFIX.REVIEWER}<slug>, ${ACTOR_PREFIX.HUMAN}<id> or ${SYSTEM_ACTOR}), got "${change.reviewerId}"`);
+    else if (change.kind === "decision" && actor !== "human") errors.push("a decision is made by a human actor (human:<id>); a reviewer or the system cannot decide");
+    else if ((change.kind === "comment" || change.kind === "proposal") && actor === "system") errors.push(`a ${change.kind} is authored by a reviewer or a human, never by ${SYSTEM_ACTOR}`);
+    else if (change.kind === "change" && actor === "reviewer") errors.push("an executed change is applied by the system or a human, never by a reviewer voice");
+    if (actor === "reviewer" && options && Array.isArray(options.roster)) {
+      const entry = options.roster.find((r) => r && r.id === change.reviewerId);
+      if (!entry) errors.push(`ReviewChange.reviewerId ${change.reviewerId} is not on the roster`);
+      else {
+        if (entry.active !== true) errors.push(`reviewer ${change.reviewerId} is declared but not active; it may not author events`);
+        if (!Array.isArray(entry.kinds) || !entry.kinds.includes(change.kind)) errors.push(`reviewer ${change.reviewerId} may not author kind ${change.kind} (boundary: ${(entry.kinds || []).join(", ") || "none"})`);
+        if (!Array.isArray(entry.verbs) || !entry.verbs.includes(change.verb)) errors.push(`reviewer ${change.reviewerId} may not use verb ${change.verb} (boundary: ${(entry.verbs || []).join(", ") || "none"})`);
+      }
+    }
+  }
   if (change.createdAt !== null && !isIsoDateTime(change.createdAt)) errors.push("ReviewChange.createdAt must be ISO 8601 or null");
   if (change.createdAt === null) errors.push("ReviewChange.createdAt is required (an event without a time is not auditable)");
   checkOrigin(errors, change.origin, "ReviewChange");
@@ -718,13 +771,13 @@ export function validateReviewChange(change) {
  * Validate an append-only history: ids unique, predecessors resolve to earlier events, times
  * never go backwards. Nothing is removed; a reversal is a new event.
  */
-export function validateReviewHistory(events) {
+export function validateReviewHistory(events, options = {}) {
   const errors = [];
   if (!Array.isArray(events)) return result(["review history must be an array"]);
   const seen = new Set();
   let previousTime = -Infinity;
   events.forEach((event, index) => {
-    const own = validateReviewChange(event);
+    const own = validateReviewChange(event, options);
     own.errors.forEach((e) => errors.push(`[${index}] ${e}`));
     if (isObject(event)) {
       if (nonemptyString(event.id) && seen.has(event.id)) errors.push(`[${index}] duplicate event id ${event.id}`);

@@ -158,7 +158,7 @@ console.log(`Part A (routes, stubbed fetch): ${checks} checks passed`);
 const { buildEvidenceWindow, decodeSourceDate, formatWindowField, windowRows, isoWithOffset } = await import("../src/contracts/evidenceWindowAdapter.js");
 const { buildResultEvidence } = await import("../src/contracts/evidenceAdapter.js");
 const { CONTRACT_VERSION, ORIGIN, WITHHOLD, validateEvidenceWindow, EVIDENCE_WINDOW_FIELDS } = await import("../src/contracts/evidenceContracts.js");
-eq(CONTRACT_VERSION, "1.0.4", "contract is 1.0.4 (day-precision marker)");
+eq(CONTRACT_VERSION, "1.1.0", "contract is at least 1.0.4 (day-precision marker); 1.1.0 adds the review vocabulary and actor namespaces");
 
 // B1. The uniform decoding rule, one branch each.
 deq(decodeSourceDate("2026-08-26"), { value: "2026-08-26", precision: "day" }, "a: date-only string -> day precision, value as-is (MCF)");
@@ -245,7 +245,7 @@ const unmeasured = buildResultEvidence({ responsibilitiesData: { responsibilitie
 eq(unmeasured.source.completeness, "UNKNOWN", "without textProvenance completeness stays UNKNOWN");
 ok(unmeasured.residualRisks.some((r) => r.code === "COMPLETENESS_UNKNOWN"), "and the residual risk is named");
 
-console.log(`Part B (contract 1.0.4 and adapter): ${checks} checks passed`);
+console.log(`Part B (contract precision rules and adapter): ${checks} checks passed`);
 
 // ---------------------------------------------------------------------------------------------
 // Part C (Chromium): the seven fields reach the footer, the overview toolbar and the print
