@@ -224,7 +224,8 @@ ok(!resolveConflict(l5, A, { thisTo: "DEMONSTRATED", counterpartTo: "WITHHELD" }
 const res = resolveConflict(l5, A, { thisTo: "DEMONSTRATED", counterpartTo: "WITHHELD" }, t(7), { bundle });
 ok(res.ok, `resolution for both sides is accepted (${res.error || "ok"})`);
 ok(rec(res.ledger, A).record.state === "DEMONSTRATED" && rec(res.ledger, B).record.state === "WITHHELD" && rec(res.ledger, A).conflict === null && rec(res.ledger, B).conflict === null, "both sides move in one act and the conflict is cleared on both (this is the assertion that dies if a resolution is one-sided)");
-ok(res.ledger.events.slice(-2).every((e) => e.kind === "CONFLICT_RESOLVED" && e.actor === LEDGER_ACTOR.HUMAN), "two human CONFLICT_RESOLVED events");
+ok(res.ledger.events.filter((e) => e.at === t(7) && e.kind === "CONFLICT_RESOLVED").length === 2 && res.ledger.events.filter((e) => e.at === t(7) && e.kind === "CONFLICT_RESOLVED").every((e) => e.actor === LEDGER_ACTOR.HUMAN), "two human CONFLICT_RESOLVED events at the resolution's instant");
+ok(rec(res.ledger, B).links[0].state === "INVALID" && rec(res.ledger, B).links[0].reason === "CANDIDATE_SOURCE_CHANGED" && res.ledger.events.at(-1).kind === "LINK_INVALID" && res.ledger.events.at(-1).at === t(7), "the withheld side's link is re-judged at the resolution's own instant and waits on the record, as after a fold (fails if a stored VALID link stands on a WITHHELD record until the next fold)");
 ok(validateLedger(res.ledger).ok, `the ledger validates after resolution (${validateLedger(res.ledger).errors[0] || "no errors"})`);
 const bothKeep = resolveConflict(l5, A, { thisTo: "CERTIFIED", counterpartTo: "CERTIFIED" }, t(7), { bundle });
 ok(bothKeep.ok && rec(bothKeep.ledger, A).record.state === "CERTIFIED" && rec(bothKeep.ledger, B).record.state === "CERTIFIED", "both sides may be kept as CERTIFIED (no link needed) if that is the human's resolution");
@@ -449,10 +450,15 @@ async function runViewport({ name, width, height, phone }) {
   ok(/withheld this excerpt at a conflict's resolution/.test(await page.getByTestId("cpl-state-withheld-note").innerText()) && /offer it again/.test(await page.getByTestId("cpl-state-withheld-note").innerText()), `${tag}: the withheld note says the cause and what resumes it`);
   ok((await page.locator('[data-testid="cpl-record"]').first().locator('[data-testid="cpl-conflict-none"]').count()) === 1 && /No conflict can be declared/.test(await page.locator('[data-testid="cpl-record"]').first().locator('[data-testid="cpl-conflict-none"]').innerText()), `${tag}: with the counterpart withheld the demonstrated record says no conflict can be declared (fails if a candidate is offered over a record that is not accepted)`);
   // Re-applying the same evidence does not resume the withheld side (W-1); the human's offer does.
+  // The apply's own notice is waited for and asserted here, so the offer's read below starts from a
+  // settled notice: run 34247867499 at phone width captured `before` while the apply's notice was
+  // still landing, the offer's wait then resolved on that late change, and the offer's words were
+  // read before its own effect had rendered (the BLP-008 race class, one act earlier).
+  before = await noticeText(page);
   await page.getByTestId("person-evidence-confirm").check();
   await page.getByTestId("person-evidence-apply").click();
-  await page.waitForFunction(() => document.querySelectorAll('[data-testid="cpl-events"] li').length > 0, null, { timeout: 5000 });
-  await page.waitForFunction(() => (document.querySelectorAll('[data-testid="cpl-record"]')[1]?.querySelectorAll('[data-testid="cpl-events"] li').length || 0) > 0, null, { timeout: 5000 });
+  await noticeChanged(page, before);
+  ok(/Evidence applied at .*2 excerpts confirmed again/.test(await noticeText(page)), `${tag}: an apply of the same evidence is said as excerpts confirmed again, not as a resume (fails if the notice keeps the previous act's words or announces a resume)`);
   eq(await stateOf(page, 1), "WITHHELD", `${tag}: applying the same evidence again leaves the record withheld at resolution WITHHELD (fails if an unchanged apply undoes the resolution)`);
   ok(await page.getByTestId("cpl-offer-again").isEnabled(), `${tag}: the offer-again control is offered on the record withheld at resolution`);
   before = await noticeText(page);

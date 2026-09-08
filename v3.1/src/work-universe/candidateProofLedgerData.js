@@ -1109,7 +1109,10 @@ export function resolveConflict(ledger, proofId, { thisTo, counterpartTo }, at, 
   const ra = settle(a, thisTo); if (!ra.ok) return refuseState(ledger, at, ra.error);
   const rb = settle(b, counterpartTo); if (!rb.ok) return refuseState(ledger, at, rb.error);
   const ev = (r, to, detail, other) => createLedgerEvent({ at, proofId: r.id, kind: "CONFLICT_RESOLVED", from: "CONFLICTING", to, reason: "HUMAN_DECLARATION", actor: LEDGER_ACTOR.HUMAN, detail: `resolved by the human with proof ${other.id}: ${detail}` });
-  return commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? ra.record : r.id === b.id ? rb.record : r)), events: [...ledger.events, ev(a, thisTo, ra.detail, b), ev(b, counterpartTo, rb.detail, a)] }, at, "resolveConflict");
+  const result = commit(ledger, { ...ledger, records: ledger.records.map((r) => (r.id === a.id ? ra.record : r.id === b.id ? rb.record : r)), events: [...ledger.events, ev(a, thisTo, ra.detail, b), ev(b, counterpartTo, rb.detail, a)] }, at, "resolveConflict");
+  // A side withheld at resolution takes its links with it at the same instant, as a fold would: a
+  // stored VALID link on a WITHHELD record would otherwise stand until the next fold re-judged it.
+  return result.ok && bundle !== undefined ? { ...result, ledger: reconcileLinks(result.ledger, bundle, at) } : result;
 }
 
 // ---------------------------------------------------------------------------------------------
