@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T14:24:17+00:00"
+      "updatedAt": "2026-09-08T22:34:58+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2705,7 +2705,7 @@
       "title": "Build the structured candidate-proof ledger",
       "requirement": "Build the structured candidate-proof ledger.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-007"
       ],
@@ -2832,7 +2832,7 @@
           "id": "BLP-008-BLOCKER-01",
           "description": "The structured proof ledger is not recorded as implemented.",
           "ownerRole": "product-ui-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -2843,6 +2843,31 @@
               "kind": "TEST",
               "reference": "v3.1/tests/candidate-proof-ledger.mjs",
               "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
             }
           ]
         }
@@ -2881,15 +2906,31 @@
               "label": "SUPERSEDED as the implementation commit by 22d2413 (one waited read in the Chromium suite; every source, panel and workflow blob unchanged). BLP-008 implementation commit 159e429: candidateProofLedgerData.js (pure, deterministic ledger over BLP-007 payloads: one contract ProofRecord per confirmed excerpt kept with source id, span id, source hash and exact excerpt; the human's own claim USER_AUTHORED and never pre-filled; a governed proof-type enum with validator coverage, UNSPECIFIED until chosen; the confirmation record; missing evidence and downstream uses computed, never typed; any edit stales every active record together by system detection; the same ids resume the same record with history intact; removal and clearing withhold by a human act; one validated event shape; validateLedger; the persistence-versus-CONTRACT_VERSION hazard named), CandidateProofLedger.jsx (the panel under the ingress), ReviewStudio.jsx (session-only ledger state beside the payload, folded on every person-evidence change with the clock at that boundary only), WorkUniverseLanding.jsx (two props and a one-line mount), tests/candidate-proof-ledger.mjs (node 103 checks, Chromium 184 at 1440x1000 and 430x932, every assertion naming what would make it fail), gate workflow line"
             }
           ],
-          "note": "Implementation commit 86e4320 (second test-only revision; chain 159e429 -> 22d2413 -> 86e4320, each earlier commit kept as superseded evidence) on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 86e4320 (second test-only revision; chain 159e429 -> 22d2413 -> 86e4320, each earlier commit kept as superseded evidence) on the working branch. Merged to main as c3923af by PR #500; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields; the eighth affected file, the feature-map manifest, is carried by 098deb3, cited on the merge commit's evidence links."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "c3923af48f687d91b42ea5a46139d7273a01c424",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/500",
+          "mergedAt": "2026-09-08T22:31:13+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/500",
+              "label": "PR #500 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Exact merge commit c3923af"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            }
+          ],
+          "note": "Merge commit c3923af (PR #500, squash of implementation 159e429, record 5a2ee43, reconciliation merge f983fab, feature-map locator shift 098deb3, label correction ec21fc2, test-only revisions 22d2413 and 86e4320 with record commits fce4102 and 6710ecb), merged 2026-09-08T22:31:13+08:00. Merge identity proven by blob SHA equality on all eight affected files and an empty diff over v3.1/src, v3.1/tests, .github and v3.1/doc between 6710ecb and c3923af. Superseded implementation commits 159e429 and 22d2413 are retained on the record as evidence so the chain of revisions stays legible."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -2898,17 +2939,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-008 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/candidate-proof-ledger.mjs",
+          "checkedAt": "2026-09-08T22:34:14+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ],
+          "note": "Run on the merged tree at c3923af by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34238047809 on 6710ecb is kept as the PR's green check, not as this evidence; its two predecessors, 34236077643 and 34236469225, failed on the feature-map locator drift and on the notice read respectively and are cited on the evidence links). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised by this run; that assurance belongs to the pull_request run 34238047809 (run 79) on 6710ecb, which supplied the real base f051bcd and passed the locator check that run 76 had failed, and the record cites which run carries which assurance rather than letting the dispatch appear to cover both, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of this branch; this run executes tests/candidate-proof-ledger.mjs with the BLP-003 to BLP-007 suites at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "c3923af48f687d91b42ea5a46139d7273a01c424"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -2918,7 +2975,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-008 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -2972,14 +3029,123 @@
               "label": "Ledger suite: Part A node 103 checks (empty ledger and null payload; two excerpts become two distinct source-linked records with validating contract records, CLAIMED_ONLY, RECORDED by the human; claim null, proof type UNSPECIFIED, confirmation from the payload, the four 'not yet' missing items and the downstream-uses words with no WITHHELD; the whole-text record names its missing excerpt; an edit stales every earlier record together by the system with reason SOURCE_TEXT_CHANGED while the new text's record is added; reverting adds no record and the resumed record's history reads RECORDED, STALE, RESUMED; removing one excerpt withholds that record by a human act and reconfirms the other; clearing withholds and re-applying resumes without a duplicate; a payload that is not manual person evidence is treated as cleared; proof type outside the enum refused at the setter and by validateLedger; claim trimmed, USER_AUTHORED, empty is null, wrong origin refused; a record that goes stale and resumes keeps claim and type; byte-identical output for identical inputs and chains; staleness attributed to a human, resumption into DEMONSTRATED, a system RECORDED, a state its history does not explain, duplicate ids and out-of-order events all refused), Part B Chromium 184 checks total at 1440x1000 and 430x932 (empty ledger in words; one record citing the ingress's span id, CLAIMED_ONLY, exact excerpt, claim empty and never pre-filled, missing and downstream words, confirmer with identity withheld; proof type and claim as human events in the history; an edit makes the earlier record STALE with an announced note saying every earlier record went stale together and no per-proof examination happened; restoring the text resumes the same record with type and claim kept and no duplicate; clearing withholds and deletes nothing; no browser storage; 44px controls; no overflow; the vocabulary shown as provisional)"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T22:34:56+08:00",
+          "reason": "Blueprint Supervisor established merge identity directly by blob SHA between implementation commit 86e4320 and merge commit c3923af across ALL EIGHT declared affected files: candidateProofLedgerData.js 84afecd643b0, CandidateProofLedger.jsx 8ba53b711a0b, personEvidenceData.js 5c8d170ce441, ReviewStudio.jsx ff00fdc9f5fa, WorkUniverseLanding.jsx e7bdf2b7a117, tests/candidate-proof-ledger.mjs 378e639dde0b, .github/workflows/v31-browser-gate.yml e070fc4d1e1b, doc/v3-step3-feature-map.manifest.json 5de4b65c2055; and git diff 6710ecb c3923af -- v3.1/src v3.1/tests .github v3.1/doc is empty. Six of the eight are the same bytes the Supervisor attested at 3b2d600, unchanged through a cherry-pick onto a moved base, a manifest locator correction, a label correction, two test-only revisions and a squash merge. Read the workflow_dispatch run 34238806154 (job 102103372642) on main at c3923af, conclusion success, from the job object and the log: candidate-proof-ledger 103 node and 184 Chromium at 1440x1000 and 430x932, browser-gate with no browser errors, evidence-round-trip 171+216, evidence-window 39+107+146, reviewer-contract 61+120, evidence-failure-paths 113+160, person-evidence-contract 65 and person-evidence-excerpts 104 unchanged, evidence-contract 396 at contract 1.1.0, register and feature-map contracts passing. Step 9 skipped by its branch-name gate, correct on main.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T22:34:58+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: each confirmed excerpt is one contract ProofRecord carried with its source id, span id, source hash and exact excerpt, distinct by a proof id that is a pure function of source and span, validated through validateProofRecord on every transition and through one commit guard that runs validateLedger before any result becomes state. Criterion 2: the record carries the human's own claim (USER_AUTHORED, null until typed, never pre-filled from the excerpt), a governed proof type with validator coverage and its words provisional pending the Human Lead, the confirmation record, missing evidence computed deterministically from the record, and downstream uses said in \"not yet\" words rather than withheld. Criterion 3: any edit to the pasted text stales every active record together by system detection, the panel says so and does not imply per-proof examination, the same ids resume the same record with its history intact rather than appending a duplicate, and removal and clearing withhold by a human act. The Supervisor probed the guard adversarially in memory: a forged proof type, a forged claim, a claim rewritten after its event, a forged state and a payload whose excerpt text was altered by one character are each refused with a named reason, the refusal attributed to the system and no record changed; output is byte-identical across identical folds and previousLedger is not mutated.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+              "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+              "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+              "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+              "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+              "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T22:34:58+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/c3923af48f687d91b42ea5a46139d7273a01c424",
+            "label": "Merge commit c3923af (squash of PR #500: implementation 159e429 re-based from the attested 3b2d600, the record 5a2ee43, the reconciliation merge f983fab, the feature-map locator shift 098deb3, the label correction ec21fc2, the test-only revisions 22d2413 and 86e4320 with their record commits fce4102 and 6710ecb)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/86e432018f6baaabb2d5e6ebd81af57825818728",
+            "label": "Implementation commit 86e4320 (candidateProofLedgerData.js, CandidateProofLedger.jsx, personEvidenceData.js, ReviewStudio.jsx, WorkUniverseLanding.jsx, tests/candidate-proof-ledger.mjs with the wait-then-assert notice read, gate workflow line)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/098deb3f",
+            "label": "Commit 098deb3: the eighth affected file, v3.1/doc/v3-step3-feature-map.manifest.json, with the seven Step 3 component line ranges moved to the lines the same symbols and anchors occupy after BLP-008's additions (the Supervisor checked every start-and-end pair against f051bcd and found the locators corrected, not loosened); cited here because the implementation commit does not contain it"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34238806154",
+            "label": "Browser-gate run 34238806154 (job 102103372642) on merged main c3923af by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/candidate-proof-ledger.mjs",
+            "label": "Ledger suite on the dispatch run: Part A node PASS 103 checks; Part B Chromium PASS 184 checks total at 1440x1000 and 430x932"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-round-trip.mjs",
+            "label": "BLP-003 to BLP-007 suites re-run unchanged on the same dispatch run (evidence round trip 171 + 216, evidence window 39 + 107 + 146, reviewer contract 61 + 120, evidence failure paths 113 + 160, person-evidence-contract 65, person-evidence-excerpts 104, evidence contract 396 at 1.1.0)"
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 34238806154, not on any summary. Dispatch caveat carried and verified at the step's own command line: the feature-map step ran with FEATURE_MAP_BASE_REF empty, so this run passes it without exercising the base-ref comparison; the base-ref assurance belongs to the pull_request run 34238047809 on 6710ecb, which ran with base f051bcd and passed, and the record says which run carries which. The register-scope step is skipped by a branch-name gate that cannot match main. TWO DEFECTS THE SUPERVISOR FOUND AND REQUIRED CORRECTED BEFORE MERGE are on the record with their fixes: an evidence label asserting a diff was empty over v3.1 and .github when it was not, corrected to the true pathspec; and a Playwright wait whose predicate was its own assertion, which made \"the panel notice says the claim was recorded\" unable to fail. On the second, the builder's replacement is better than the Supervisor's suggested predicate: a wait for \"non-empty\" would have reintroduced the race because the notice already carried the proof-type text, and the builder caught that and said so. CI, not the builder, found the phone-width race; the record says so. Known omissions stand with their owners; the proof-type vocabulary remains with the Human Lead, and the whole-text proof class remains conditional on BLP-007's open no-proof-until-marked option.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
