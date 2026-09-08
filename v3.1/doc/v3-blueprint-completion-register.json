@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-09T00:08:23+08:00"
+      "updatedAt": "2026-09-09T00:20:55+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -3310,7 +3310,7 @@
         {
           "kind": "COMMIT",
           "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
-          "label": "NOTE (post-completion, appended not edited; status unchanged): a C1-class mis-attribution existed in missingEvidenceOf's fallback from ff4c7c0 through the corrected implementation 592db34 and the approved merge f1d94e9 (this requirement's verifiedCommit), and remained on main (b5c23e0) until BLP-010's merge: for a record whose links were invalid only because the record itself was stale or withheld (CANDIDATE_SOURCE_CHANGED), the missing-evidence line said 'every link is invalid against the current posting evidence' when nothing was known to have changed about the posting, the precise class this requirement's own C-a ruling existed to eliminate, surviving in a fallback neither the conformance auditor nor the Supervisor looked at. Found by the conformance auditor on BLP-010's third pass and fixed at baf8700 (noLinkStandsText, from the links' own reasons with no default arm). BLP-009 does NOT reopen: its evidence re-validates unchanged at 160 node and 225 Chromium, verified by the Supervisor at 2bfe500, and its three acceptance criteria (stable identifiers, inspectability, invalidation without mutating text) are not falsified by the fallback sentence's wording. The Supervisor approved BLP-009 without catching it, and asked for this note so the record describes the artefact as it was."
+          "label": "NOTE (post-completion, appended not edited; status unchanged): a C1-class mis-attribution existed in missingEvidenceOf's fallback from ff4c7c0 through the corrected implementation 592db34 and the approved merge f1d94e9 (this requirement's verifiedCommit), and remained on main (b5c23e0) until BLP-010's merge: for a record whose links were invalid only because the record itself was stale or withheld (CANDIDATE_SOURCE_CHANGED), the missing-evidence line said 'every link is invalid against the current posting evidence' when nothing was known to have changed about the posting, the precise class this requirement's own C-a ruling existed to eliminate, surviving in a fallback neither the conformance auditor nor the Supervisor looked at. Found by the conformance auditor on BLP-010's third pass and fixed at baf8700 (noLinkStandsText, from the links' own reasons with no default arm). BLP-009 does NOT reopen: its evidence re-validates unchanged at 160 node and 225 Chromium, verified by the Supervisor at 2bfe500, and its three acceptance criteria (stable identifiers, inspectability, invalidation without mutating text) are not falsified by the fallback sentence's wording. The Supervisor approved BLP-009 without catching it, and asked for this note so the record describes the artefact as it was. WINDOW CLOSED: the merge that carried the fix is 967a8ff (PR #504) at 2026-09-09T00:15:50+08:00, so the sentence was on main from e6b3af3 (2026-09-08T15:04:05Z, the early merge of ff4c7c0) until then, and the Supervisor confirmed by artefact that origin/main at 967a8ff no longer carries it."
         }
       ],
       "blockers": [
@@ -3641,7 +3641,7 @@
       "title": "Support canonical candidate-proof states",
       "requirement": "Support demonstrated, certified, claimed-only, withheld, conflicting, and stale proof states.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-008",
         "BLP-009"
@@ -3789,7 +3789,7 @@
           "id": "BLP-010-BLOCKER-01",
           "description": "The canonical proof-state model and transition tests are not recorded.",
           "ownerRole": "contract-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -3800,6 +3800,26 @@
               "kind": "TEST",
               "reference": "v3.1/tests/proof-states.mjs",
               "label": "Proof-states suite: Part A node 167 checks (the adapter's sentences, one per state, no worth words, STALE verbatim staleText('proof'), an unknown state named; DEMONSTRATED refused with no link, with a link recorded VALID but no bundle, with an unreadable bundle, with a link that no longer stands, and on the whole pasted text; accepted on a standing link with the declaration naming the link and its instant; CERTIFIED with no link; re-declaration refused; the proof-type reading shown as words and never enforced; withdrawal as WITHHELD then RESUMED by the human with the link untouched; the declared link cannot be unlinked or re-linked while the declaration stands; a posting change under a demonstration stales it by system detection with cause TARGET_LINK and the declaration kept, the target's return resuming it as CLAIMED_ONLY and NOT as DEMONSTRATED, a re-extraction resuming it by the human's re-link as CLAIMED_ONLY, a text change staling it with cause CANDIDATE_TEXT and restoration resuming it as CLAIMED_ONLY; an unreadable bundle keeps the demonstration with the link not judged, no STALE event, the standing view saying not judged and unknown, and the evidence being read again resumes the link with TARGET_EVIDENCE_READ while the record never left DEMONSTRATED; a link-stale record follows the candidate text, a text change adding CANDIDATE_TEXT by a STALE_CAUSE event, the target's return alone no longer resuming it, and the text's restoration resuming it as CLAIMED_ONLY with every cause cleared; a demonstration on two links stands while one stands and lapses only when every declared link is lost; conflicts declared only between accepted records over a target that stands on both sides under a live judgement, refused with no bundle, over a target not shared, from CLAIMED_ONLY or with itself, both sides CONFLICTING naming each other, a constructed one-sided conflict REFUSED by the validator, resolution moving both sides in one act, a resolution to CLAIMED_ONLY not offered, DEMONSTRATED at resolution passing the live-judgement gate, re-applying the same evidence leaving the withheld side WITHHELD and the human's offer resuming it with its links re-judged, dissolution on both sides when the shared target no longer stands or the counterpart leaves, and no dissolution under unreadable evidence; forgeries refused (a DEMONSTRATED record without its STATE_SET event, without its declaration, standing on no link, with every declared link INVALID, unstructured; a stale cause on a non-stale record, a STALE record without a cause, a repeated or ungoverned cause, a withheld record without its cause; events reordered against their seq; a declaration attributed to the system, a declaration from STALE, a conflict from CLAIMED_ONLY, a resume reason by the wrong actor, STALE_CAUSE with a reason a fold cannot make true); staleCauseText and withheldCauseText throwing on an ungoverned cause; every act deterministic), Part B Chromium 242 checks total at 1440x1000 and 430x932 (the rendered words for every state reached equal the adapter's; demonstrated withheld with the reason until a link stands, then declared, the notice naming the link; unlinking the declared link refused in words that keep the human in charge; withdrawal said in words; certified with no link; a proof-type mismatch shown and the state not refused; exactly one conflict candidate offered over the shared duty; conflict declared and resolved for both with the counterpart WITHHELD, its note naming the cause and what resumes it, no conflict candidate offered against a withheld record, an apply of the same evidence leaving it WITHHELD, the offer-again control resuming it with the offer said in words; a text change staling the demonstrated record with the adapter's stale sentence and the cause beside it in the data layer's words, linking blocked with the reason, and restoration resuming it as CLAIMED_ONLY; nothing reaches browser storage; every state control and select at least 44px; no overflow). Every notice read captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+              "label": "Merge commit 967a8ff (squash of PR #504 at head cf84587: the implementation 06ef237, its revisions 9610332 and baf8700, the record commits df98585, 7ecea73, 46958de, d2c7ad6, 7c06355, 2bfe500 and cf84587). Tree identity: git diff cf84587 967a8ff with no pathspec is empty; blob identity: all seven affected files identical between baf8700 and 967a8ff (candidateProofLedgerData.js 0fef49610692, CandidateProofLedger.jsx 54a426201240, evidenceAdapter.js fb8fcb6892e5, ReviewStudio.jsx 2267135e210e, tests/proof-states.mjs 1df6feffb9a0, tests/proof-links.mjs 8162b779c143, .github/workflows/v31-browser-gate.yml 85c755b63df2). Merged at 2026-09-09T00:15:50+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of baf8700 and the gate green on cf84587 (pull_request run 93, 34249615246, the run carrying the real-base-ref feature-map assurance); that the coordinating session issued the merge through the API after undrafting is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34250022472",
+              "label": "Browser-gate run 34250022472 (job 102141835780) on merged main 967a8ff by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Proof-states suite on the dispatch run: Part A node PASS 167 checks; Part B Chromium PASS 242 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 967a8ff, equal to the counts recorded at baf8700)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q7, recorded either way): proof-links 160 node / 225 Chromium (BLP-009, unchanged from its approval plus the A12b extension recorded at BLP-010), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), and the BLP-002 to BLP-007 suites unchanged (person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0); none reopens."
             }
           ]
         }
@@ -3838,15 +3858,26 @@
               "label": "SUPERSEDED as the implementation commit by baf8700: 9610332 was the second BLP-010 implementation commit, verified by the Supervisor at its own runs (proof-states 165 node / 240 Chromium, proof-links 160 / 225, candidate-proof-ledger 103 / 184, the counts AT THAT COMMIT); kept as evidence. The conformance auditor's third pass passed its resolution re-judge and named one pre-existing mis-attribution it made reachable, fixed in the revision below."
             }
           ],
-          "note": "Implementation commit baf8700 (third revision; 06ef237 and 9610332 kept as superseded evidence) on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit baf8700 (third revision; 06ef237 and 9610332 kept as superseded evidence) on the working branch. Merged to main as 967a8ff by PR #504; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "967a8ff3a702beb6df383a790b0114fb71951e76",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/504",
+          "mergedAt": "2026-09-09T00:15:50+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/504",
+              "label": "PR #504 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+              "label": "Exact merge commit 967a8ff"
+            }
+          ],
+          "note": "Merge commit 967a8ff (PR #504, squash of the implementation baf8700 and its predecessors 06ef237 and 9610332 with their records, the state-meanings citation, the reopen test and the BLP-009 note), merged 2026-09-09T00:15:50+08:00. Merge identity proven two ways: git diff cf84587 967a8ff with no pathspec is empty, and all seven affected files are blob-identical to baf8700. On attribution the record states the account and the timestamp as the API's facts and the coordinating session's issuing of the merge as its own statement, the rule established at f1d94e9."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -3855,17 +3886,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-010 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/proof-states.mjs",
+          "checkedAt": "2026-09-09T00:19:36+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34250022472",
+              "label": "Browser-gate run 34250022472 (job 102141835780) on merged main 967a8ff by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Proof-states suite on the dispatch run: Part A node PASS 167 checks; Part B Chromium PASS 242 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 967a8ff, equal to the counts recorded at baf8700)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q7, recorded either way): proof-links 160 node / 225 Chromium (BLP-009, unchanged from its approval plus the A12b extension recorded at BLP-010), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), and the BLP-002 to BLP-007 suites unchanged (person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0); none reopens."
+            }
+          ],
+          "note": "Run on the merged tree at 967a8ff by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34249615246 on cf84587 is kept as the PR's green check, not as this evidence; the earlier pull_request run 34247867499 on 7ecea73 failed at phone width on the offer-again read and is cited on the DEFECT entry; runs 89 to 92 on superseded heads are not cited). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised by this run; that assurance belongs to the pull_request run 34249615246 (run 93) on cf84587, which supplied the real base b5c23e0 and passed the locator check, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of this branch; this run executes tests/proof-states.mjs with the BLP-003 to BLP-009 suites at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "967a8ff3a702beb6df383a790b0114fb71951e76"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -3875,7 +3922,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-010 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -3928,14 +3975,108 @@
               "label": "Proof-states suite: Part A node 167 checks (the adapter's sentences, one per state, no worth words, STALE verbatim staleText('proof'), an unknown state named; DEMONSTRATED refused with no link, with a link recorded VALID but no bundle, with an unreadable bundle, with a link that no longer stands, and on the whole pasted text; accepted on a standing link with the declaration naming the link and its instant; CERTIFIED with no link; re-declaration refused; the proof-type reading shown as words and never enforced; withdrawal as WITHHELD then RESUMED by the human with the link untouched; the declared link cannot be unlinked or re-linked while the declaration stands; a posting change under a demonstration stales it by system detection with cause TARGET_LINK and the declaration kept, the target's return resuming it as CLAIMED_ONLY and NOT as DEMONSTRATED, a re-extraction resuming it by the human's re-link as CLAIMED_ONLY, a text change staling it with cause CANDIDATE_TEXT and restoration resuming it as CLAIMED_ONLY; an unreadable bundle keeps the demonstration with the link not judged, no STALE event, the standing view saying not judged and unknown, and the evidence being read again resumes the link with TARGET_EVIDENCE_READ while the record never left DEMONSTRATED; a link-stale record follows the candidate text, a text change adding CANDIDATE_TEXT by a STALE_CAUSE event, the target's return alone no longer resuming it, and the text's restoration resuming it as CLAIMED_ONLY with every cause cleared; a demonstration on two links stands while one stands and lapses only when every declared link is lost; conflicts declared only between accepted records over a target that stands on both sides under a live judgement, refused with no bundle, over a target not shared, from CLAIMED_ONLY or with itself, both sides CONFLICTING naming each other, a constructed one-sided conflict REFUSED by the validator, resolution moving both sides in one act, a resolution to CLAIMED_ONLY not offered, DEMONSTRATED at resolution passing the live-judgement gate, re-applying the same evidence leaving the withheld side WITHHELD and the human's offer resuming it with its links re-judged, dissolution on both sides when the shared target no longer stands or the counterpart leaves, and no dissolution under unreadable evidence; forgeries refused (a DEMONSTRATED record without its STATE_SET event, without its declaration, standing on no link, with every declared link INVALID, unstructured; a stale cause on a non-stale record, a STALE record without a cause, a repeated or ungoverned cause, a withheld record without its cause; events reordered against their seq; a declaration attributed to the system, a declaration from STALE, a conflict from CLAIMED_ONLY, a resume reason by the wrong actor, STALE_CAUSE with a reason a fold cannot make true); staleCauseText and withheldCauseText throwing on an ungoverned cause; every act deterministic), Part B Chromium 242 checks total at 1440x1000 and 430x932 (the rendered words for every state reached equal the adapter's; demonstrated withheld with the reason until a link stands, then declared, the notice naming the link; unlinking the declared link refused in words that keep the human in charge; withdrawal said in words; certified with no link; a proof-type mismatch shown and the state not refused; exactly one conflict candidate offered over the shared duty; conflict declared and resolved for both with the counterpart WITHHELD, its note naming the cause and what resumes it, no conflict candidate offered against a withheld record, an apply of the same evidence leaving it WITHHELD, the offer-again control resuming it with the offer said in words; a text change staling the demonstrated record with the adapter's stale sentence and the cause beside it in the data layer's words, linking blocked with the reason, and restoration resuming it as CLAIMED_ONLY; nothing reaches browser storage; every state control and select at least 44px; no overflow). Every notice read captures the notice before the action and waits for it to CHANGE, then asserts its words, so no wait is its own assertion."
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-09T00:20:53+08:00",
+          "reason": "Blueprint Supervisor established merge identity by two independent routes. Whole-tree: git diff cf84587 967a8ff with NO pathspec is empty, so the squash carries the pull request head's entire tree. Per file: all seven declared affected files are blob-identical between implementation commit baf8700 and merge commit 967a8ff - candidateProofLedgerData.js 0fef49610692, CandidateProofLedger.jsx 54a426201240, evidenceAdapter.js fb8fcb6892e5, ReviewStudio.jsx 2267135e210e, tests/proof-states.mjs 1df6feffb9a0, tests/proof-links.mjs 8162b779c143, .github/workflows/v31-browser-gate.yml 85c755b63df2. Read the workflow_dispatch run 34250022472 (job 102141835780) on main at 967a8ff, conclusion success, from the job object and the log: proof-states 167 node and 242 Chromium at 1440x1000 and 430x932, proof-links 160 and 225 and candidate-proof-ledger 103 and 184 unchanged, BLP-007 65 and 104, evidence-round-trip 171+216, evidence-window 39+107+146, reviewer-contract 61+120, evidence-failure-paths 113+160, evidence-contract 396 at contract 1.1.0, governance ledger, audit integrity, register and feature-map contracts passing. No figure in the run differs from the Supervisor's own runs at 2bfe500. Step 9 skipped by its branch-name gate, correct on main.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+              "label": "Merge commit 967a8ff (squash of PR #504 at head cf84587: the implementation 06ef237, its revisions 9610332 and baf8700, the record commits df98585, 7ecea73, 46958de, d2c7ad6, 7c06355, 2bfe500 and cf84587). Tree identity: git diff cf84587 967a8ff with no pathspec is empty; blob identity: all seven affected files identical between baf8700 and 967a8ff (candidateProofLedgerData.js 0fef49610692, CandidateProofLedger.jsx 54a426201240, evidenceAdapter.js fb8fcb6892e5, ReviewStudio.jsx 2267135e210e, tests/proof-states.mjs 1df6feffb9a0, tests/proof-links.mjs 8162b779c143, .github/workflows/v31-browser-gate.yml 85c755b63df2). Merged at 2026-09-09T00:15:50+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of baf8700 and the gate green on cf84587 (pull_request run 93, 34249615246, the run carrying the real-base-ref feature-map assurance); that the coordinating session issued the merge through the API after undrafting is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
+              "label": "Implementation commit baf8700 (third revision; 06ef237 and 9610332 superseded and kept as evidence with their own counts): candidateProofLedgerData.js, CandidateProofLedger.jsx, evidenceAdapter.js, ReviewStudio.jsx, tests/proof-states.mjs, tests/proof-links.mjs, gate workflow line"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34250022472",
+              "label": "Browser-gate run 34250022472 (job 102141835780) on merged main 967a8ff by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Proof-states suite on the dispatch run: Part A node PASS 167 checks; Part B Chromium PASS 242 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 967a8ff, equal to the counts recorded at baf8700)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q7, recorded either way): proof-links 160 node / 225 Chromium (BLP-009, unchanged from its approval plus the A12b extension recorded at BLP-010), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), and the BLP-002 to BLP-007 suites unchanged (person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0); none reopens."
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-09T00:20:55+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: the six canonical states are represented distinctly, each with one definition of its words in evidenceAdapter 1.2.0 (STALE reusing staleText(\"proof\") verbatim), and the suite asserts the RENDERED words equal the adapter's, so a local gloss returning would kill the assertion. Criterion 2: every transition is a governed event through one commit guard, deterministic and derived from history, with the human's declarations (DEMONSTRATED, CERTIFIED, CONFLICTING, its resolution, withdrawal, offer again) separated from system detection (a link lost, a conflict dissolved, a source changed), each verdict-producing function switching over the full governed set with no default arm and throwing on a reason outside it. Criterion 3: DEMONSTRATED may be declared only on a link STANDING under a live judgement - with no bundle the declaration is refused in words, \"refused rather than allowed on stored link state\", which is the ruling carried forward from BLP-009's W-a - the unstructured whole-text record is refused, unlink and relink are refused on a declared link, resumption returns to CLAIMED_ONLY and never re-asserts a declaration, and a one-sided conflict is refused BY THE VALIDATOR, the assertion that dies if symmetry is an intention rather than a property. The state semantics are sourced, not invented: v3.1/script/v3-result-engine-spec.md lines 185 and 183.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+              "label": "Merge commit 967a8ff (squash of PR #504 at head cf84587: the implementation 06ef237, its revisions 9610332 and baf8700, the record commits df98585, 7ecea73, 46958de, d2c7ad6, 7c06355, 2bfe500 and cf84587). Tree identity: git diff cf84587 967a8ff with no pathspec is empty; blob identity: all seven affected files identical between baf8700 and 967a8ff (candidateProofLedgerData.js 0fef49610692, CandidateProofLedger.jsx 54a426201240, evidenceAdapter.js fb8fcb6892e5, ReviewStudio.jsx 2267135e210e, tests/proof-states.mjs 1df6feffb9a0, tests/proof-links.mjs 8162b779c143, .github/workflows/v31-browser-gate.yml 85c755b63df2). Merged at 2026-09-09T00:15:50+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of baf8700 and the gate green on cf84587 (pull_request run 93, 34249615246, the run carrying the real-base-ref feature-map assurance); that the coordinating session issued the merge through the API after undrafting is the coordinator's own statement, marked as such."
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
+              "label": "Implementation commit baf8700 (third revision; 06ef237 and 9610332 superseded and kept as evidence with their own counts): candidateProofLedgerData.js, CandidateProofLedger.jsx, evidenceAdapter.js, ReviewStudio.jsx, tests/proof-states.mjs, tests/proof-links.mjs, gate workflow line"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34250022472",
+              "label": "Browser-gate run 34250022472 (job 102141835780) on merged main 967a8ff by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-states.mjs",
+              "label": "Proof-states suite on the dispatch run: Part A node PASS 167 checks; Part B Chromium PASS 242 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 967a8ff, equal to the counts recorded at baf8700)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/proof-links.mjs",
+              "label": "Reopen tests on the same dispatch run (Supervisor ruling Q7, recorded either way): proof-links 160 node / 225 Chromium (BLP-009, unchanged from its approval plus the A12b extension recorded at BLP-010), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), and the BLP-002 to BLP-007 suites unchanged (person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0); none reopens."
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-09T00:20:55+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/967a8ff3a702beb6df383a790b0114fb71951e76",
+            "label": "Merge commit 967a8ff (squash of PR #504 at head cf84587: the implementation 06ef237, its revisions 9610332 and baf8700, the record commits df98585, 7ecea73, 46958de, d2c7ad6, 7c06355, 2bfe500 and cf84587). Tree identity: git diff cf84587 967a8ff with no pathspec is empty; blob identity: all seven affected files identical between baf8700 and 967a8ff (candidateProofLedgerData.js 0fef49610692, CandidateProofLedger.jsx 54a426201240, evidenceAdapter.js fb8fcb6892e5, ReviewStudio.jsx 2267135e210e, tests/proof-states.mjs 1df6feffb9a0, tests/proof-links.mjs 8162b779c143, .github/workflows/v31-browser-gate.yml 85c755b63df2). Merged at 2026-09-09T00:15:50+08:00 by the account ang-kl (the API's merged_by) after the Supervisor's verification of baf8700 and the gate green on cf84587 (pull_request run 93, 34249615246, the run carrying the real-base-ref feature-map assurance); that the coordinating session issued the merge through the API after undrafting is the coordinator's own statement, marked as such."
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/baf8700687fda7f40da7b9cdd3c5932cb7003ef6",
+            "label": "Implementation commit baf8700 (third revision; 06ef237 and 9610332 superseded and kept as evidence with their own counts): candidateProofLedgerData.js, CandidateProofLedger.jsx, evidenceAdapter.js, ReviewStudio.jsx, tests/proof-states.mjs, tests/proof-links.mjs, gate workflow line"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34250022472",
+            "label": "Browser-gate run 34250022472 (job 102141835780) on merged main 967a8ff by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/proof-states.mjs",
+            "label": "Proof-states suite on the dispatch run: Part A node PASS 167 checks; Part B Chromium PASS 242 checks total at 1440x1000 and 430x932 (the counts are the run's own output at 967a8ff, equal to the counts recorded at baf8700)"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/proof-links.mjs",
+            "label": "Reopen tests on the same dispatch run (Supervisor ruling Q7, recorded either way): proof-links 160 node / 225 Chromium (BLP-009, unchanged from its approval plus the A12b extension recorded at BLP-010), candidate-proof-ledger 103 / 184 (BLP-008, unchanged), and the BLP-002 to BLP-007 suites unchanged (person-evidence-excerpts 104, person-evidence-contract 65, evidence failure paths 113 + 160, reviewer contract 61 + 120, evidence window 39 + 107 + 146, evidence round trip 171 + 216, evidence contract 396 at 1.1.0); none reopens."
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 34250022472, not on any summary. Dispatch caveat carried and verified at the step's own command line: the feature-map step ran with FEATURE_MAP_BASE_REF empty; the base-ref assurance belongs to the pull_request run 34249615246 on cf84587 (conclusion success, 16:12:19 to 16:15:21Z). The register-scope step is skipped by a branch-name gate that cannot match main. THREE IMPLEMENTATIONS: 06ef237 (Supervisor-verified, 164/237) and 9610332 (Supervisor-verified, 165/240) are retained as superseded evidence with their own counts marked as at those commits; the approved implementation is baf8700 at 167/242. FIVE DEFECTS are on the record with their finders named: C1, C-NEW-1 and W-NEW-1 by the conformance auditor before any commit; the phone-width notice race by THE GATE at 430x932, not by the builder or the local runs, which passed by timing; and the stored-VALID link on a withheld side by the builder while fixing that race - an assertion inserted to stabilise a test found a product defect, so the stabilisation was not merely hygiene. A third auditor pass then found a C1-class mis-attribution pre-existing since BLP-009's ff4c7c0, fixed at baf8700; BLP-009's own record carries a note that it shipped and approved that defect, that the Supervisor did not catch it, and that BLP-009 does not reopen because its evidence re-validates unchanged at 160/225. The window in which main carried that mis-attribution opened at ff4c7c0 and CLOSES AT THIS MERGE, 967a8ff, verified by the Supervisor: the sentence no longer occurs in the file on main. FOR THE HUMAN LEAD under Rule V-1: LEDGER_VERSION 1.2.0 and ADAPTER_VERSION 1.2.0, both additive, with CONTRACT_VERSION unmoved at 1.1.0. Q7 REOPEN TEST recorded either way: the BLP-002 to BLP-007 suites re-ran unchanged on the dispatch (396; 171+216; 39+107+146; 113+160; 61+120; 65 and 104), and BLP-008 and BLP-009 at 103/184 and 160/225; none reopens. KNOWN OMISSION: the browser-side TARGET_LINK arms cannot be driven through the UI because buildJobAnatomy is guarded by three or more ads while the posting flow passes one; the conformance auditor's claim of such a path was checked against App.jsx and withdrawn by them; asserted in node instead; owner BLP-012. The WORK_SAMPLE -> DEMONSTRATED and CREDENTIAL -> CERTIFIED mapping remains with the Human Lead as a note, not a gate.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
