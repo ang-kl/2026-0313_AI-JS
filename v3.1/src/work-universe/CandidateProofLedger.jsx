@@ -14,6 +14,7 @@ import {
   setClaimText,
   setProofType,
   unlinkProof,
+  ledgerFaultText,
 } from "./candidateProofLedgerData.js";
 import { LOCAL_HUMAN_ACTOR } from "../review/reviewerContract.js";
 
@@ -131,7 +132,10 @@ function LinkControls({ row, catalogue, bundle, disabled, onLink, onUnlink, onRe
   );
 }
 
-export default function CandidateProofLedger({ ledger, currentSourceId, bundle, fault, onLedgerChange, onOpenEvidence }) {
+export default function CandidateProofLedger({ ledger, currentSourceId, bundle, onLedgerChange, onOpenEvidence }) {
+  // The withheld sentence is derived from the faults the KEPT ledger carries, never from a value set
+  // beside it: a fault is present exactly when the ledger records one unresolved (Supervisor finding on ff4c7c0).
+  const fault = ledgerFaultText(ledger);
   const rows = useMemo(() => ledgerRows(ledger, { currentSourceId, bundle }), [ledger, currentSourceId, bundle]);
   const catalogue = useMemo(() => bundleTargets(bundle), [bundle]);
   const invalidOnEarlierPosting = rows.reduce((n, r) => n + r.links.filter((l) => l.state === "INVALID" && l.reason === "TARGET_SOURCE_CHANGED").length, 0);
@@ -195,7 +199,7 @@ export default function CandidateProofLedger({ ledger, currentSourceId, bundle, 
       {invalidOnEarlierPosting > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-links-stale-note">The posting evidence changed, so every link to the earlier posting is invalid together ({invalidOnEarlierPosting}); the app did not examine links one by one. Each keeps the target text it was linked to, for inspection, and resumes if the same posting evidence returns.</p>}
       {notJudged > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-links-unjudged-note">The posting evidence could not be read, so {notJudged} link{notJudged === 1 ? " was" : "s were"} not judged: {notJudged === 1 ? "it is" : "they are"} unknown, not confirmed, and count as no target until the evidence can be read again. Nothing is known to have changed.</p>}
       {reextracted > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-links-reextracted-note">{reextracted} link{reextracted === 1 ? "" : "s"} point{reextracted === 1 ? "s" : ""} at a target id that was re-extracted: the exact text is still in the posting evidence under a new id. Where exactly one current row carries that text, a re-link is offered for you to make; where more than one does, none is offered.</p>}
-      {fault && <p className="cpl-note" data-kind="stale" data-testid="cpl-fault" role="status" aria-live="polite">The ledger could not be re-checked and its link state is withheld: {fault}. Nothing here is shown as current until the ledger validates again; the records and their history stay readable.</p>}
+      {fault && <p className="cpl-note" data-kind="stale" data-testid="cpl-fault" role="status" aria-live="polite">{fault}</p>}
       {readOnly && <p className="cpl-note" data-testid="cpl-readonly">This ledger is read-only here: no change handler is connected, so proof types and claims cannot be recorded on this surface.</p>}
       {staleCount > 0 && <p className="cpl-note" data-kind="stale" data-testid="cpl-stale-note" role="status" aria-live="polite">{staleOnEarlier > 0 ? `The pasted text changed, so every record cut from the earlier text is stale together (${staleOnEarlier}); the app did not examine proofs one by one. Mark the excerpts again on the current text, or restore the earlier text to resume them.` : ""}{staleOnCurrent > 0 ? ` ${staleOnCurrent} stale record${staleOnCurrent === 1 ? " is" : "s are"} cut from the text now in the box but no longer marked on it; mark ${staleOnCurrent === 1 ? "that excerpt" : "those excerpts"} again to resume.` : ""}</p>}
       <div className="cpl-note" data-testid="cpl-notice" data-kind={notice?.kind || ""} role="status" aria-live="polite">{notice ? notice.text : ""}</div>

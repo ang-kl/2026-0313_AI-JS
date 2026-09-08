@@ -19,6 +19,7 @@ import {
   LINKABLE_TARGET_KINDS, TARGET_KIND_AVAILABILITY, LEDGER_ACTOR, LINK_STATE,
   createEmptyLedger, applyEvidenceToLedger, linkProof, unlinkProof, relinkProof, reconcileLinks, bundleTargets, judgeLink, catalogueKey, availabilityOf,
   ledgerRows, validateLedger, validateLedgerEvent, createLedgerEvent, makeLinkId, missingEvidenceOf, downstreamUsesOf, linkStanding, REASONS_BY_KIND,
+  guardLedgerStep, activeLedgerFault, ledgerFaultText, validateLedgerFault, createLedgerFault,
 } from "../src/work-universe/candidateProofLedgerData.js";
 import { buildManualPersonSource, buildManualPersonEvidence, markExcerpt } from "../src/work-universe/personEvidenceData.js";
 import { buildPostingEvidence, DUTY_EXTRACTION_VERSION } from "../src/contracts/evidenceAdapter.js";
@@ -237,6 +238,23 @@ const backdatedFold = applyEvidenceToLedger(l4, pay(src.text + "\nAppended.", []
 ok(backdatedFold.refusals.at(-1)?.reason === "LEDGER_INVALID" && JSON.stringify(backdatedFold.records) === JSON.stringify(l4.records), "a fold under a backdated clock is refused on the record and changes nothing, so its links still read VALID truthfully: no fold happened and the record is still CLAIMED_ONLY on the same text (BLP-008 guard, unchanged)");
 const forged = { ...l2, records: l2.records.map((r) => ({ ...r, links: r.links.map((l) => ({ ...l, id: "link:000000000000000000000000" })) })) };
 assert.throws(() => reconcileLinks(forged, bundle2, t(5)), /invariant violation/, "a reconcile that cannot produce a valid ledger THROWS rather than returning stored link state as current (fails if a refused reconcile hands back the old ledger)"); checks += 1;
+
+// A12b Supervisor finding on ff4c7c0: the boundary that catches the W-a throw is a PURE value, and the
+// panel's withheld sentence is derived from the kept ledger's faults and nothing else
+const faulted = guardLedgerStep(l2, () => reconcileLinks(forged, bundle2, t(5)), t(5));
+ok(JSON.stringify(faulted.records) === JSON.stringify(l2.records) && JSON.stringify(faulted.events) === JSON.stringify(l2.events), "when the step throws, the PREVIOUS ledger's records and events are kept unchanged (fails if a thrown step leaks a partial ledger)");
+ok(faulted.faults.length === 1 && faulted.faults[0].resolvedAt === null && /invariant violation/.test(faulted.faults[0].detail) && faulted.faults[0].actor === LEDGER_ACTOR.SYSTEM, "the fault is recorded on the kept ledger with the thrown message, unresolved, by the system");
+ok(validateLedger(faulted).ok, `the faulted ledger validates: faults are governed (${validateLedger(faulted).errors[0] || "no errors"})`);
+ok(activeLedgerFault(faulted) === faulted.faults[0] && /link state is withheld: .*invariant violation/.test(ledgerFaultText(faulted)), "the withheld sentence is derived from that fault and names it (this is the assertion that dies if the sentence can be produced from anything but a fault present on the ledger)");
+eq(ledgerFaultText(l2), null, "a ledger with no fault produces no withheld sentence (fails if the sentence can appear without a fault present)");
+const faultedTwice = guardLedgerStep(faulted, () => reconcileLinks(forged, bundle2, t(6)), t(6));
+ok(faultedTwice.faults.length === 2 && faultedTwice.faults.every((f) => f.resolvedAt === null) && ledgerFaultText(faultedTwice) !== null, "a second throw appends a second fault and the sentence stays (fails if a throwing pass clears the warning)");
+const recovered = guardLedgerStep(faultedTwice, (l) => reconcileLinks(l, bundle2, t(7)), t(7));
+ok(recovered.faults.length === 2 && recovered.faults.every((f) => f.resolvedAt === t(7)) && ledgerFaultText(recovered) === null && recovered.records[0].links.every((l) => l.state === "INVALID"), "only a step that SUCCEEDS resolves the open faults, at its own instant, and the sentence lifts; the faults stay on the record (fails if the sentence is cleared while a fault is open, or if resolution forgets the fault)");
+ok(validateLedger(recovered).ok, "the recovered ledger validates with resolved faults");
+ok(!validateLedger({ ...l2, faults: [{ ...createLedgerFault({ at: t(1), detail: "x" }), actor: LEDGER_ACTOR.HUMAN }] }).ok && !validateLedger({ ...l2, faults: [{ ...createLedgerFault({ at: t(2), detail: "x" }), resolvedAt: t(1) }] }).ok && !validateLedgerFault({}).ok, "a fault attributed to a human, resolved before it happened, or shapeless is refused by the validator (fails if faults are an ungoverned field)");
+assert.throws(() => guardLedgerStep(l2, (l) => l, "not an instant"), /ISO instant/, "the boundary needs a clock, read once outside the updater"); checks += 1;
+eq(JSON.stringify(guardLedgerStep(l2, () => reconcileLinks(forged, bundle2, t(5)), t(5))), JSON.stringify(faulted), "the boundary is deterministic and pure (no side effect could make two runs differ)");
 
 // A13 Supervisor ruling W-b: a view built without a bundle says so; a view built with one re-judges
 const stored = l2.records[0]; // links recorded VALID against `bundle`
