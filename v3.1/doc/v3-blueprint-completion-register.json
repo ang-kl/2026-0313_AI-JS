@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T11:15:30+08:00"
+      "updatedAt": "2026-09-08T11:40:55+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -272,7 +272,7 @@
       "title": "Define canonical evidence contracts",
       "requirement": "Define canonical `EvidenceSource`, `EvidenceSpan`, `ProofRecord`, `ReviewChange`, `OutputBlock`, `VisualProfile`, and `EvidenceWindow` contracts.",
       "priority": "P0",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-001"
       ],
@@ -292,6 +292,26 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/script/v3.1-blueprint-component-cross-reference.md",
           "label": "Blueprint component cross-reference"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bd115137a921d64899497f03d1d6d69c286486ea",
+          "label": "BLP-002 implementation commit bd11513 (contracts module and contract test)"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/808fb356af13c8186ca9363babf35be4a010fb20",
+          "label": "BLP-002 CI wiring commit 808fb35 (evidence-contract test in the browser gate)"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-contract.mjs",
+          "label": "Evidence contract test: 7 contracts, 160 checks, exit 0 (local)"
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/contracts/evidenceContracts.js",
+          "label": "Canonical evidence contracts, contract 1.0.0, normalisation ptn-1"
         }
       ],
       "blockers": [
@@ -299,8 +319,24 @@
           "id": "BLP-002-BLOCKER-01",
           "description": "Canonical contract implementation and validation evidence are not recorded.",
           "ownerRole": "contract-engineer",
-          "status": "OPEN",
-          "evidenceLinks": []
+          "status": "RESOLVED",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bd115137a921d64899497f03d1d6d69c286486ea",
+              "label": "BLP-002 implementation commit bd11513 (contracts module and contract test)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/808fb356af13c8186ca9363babf35be4a010fb20",
+              "label": "BLP-002 CI wiring commit 808fb35 (evidence-contract test in the browser gate)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test: 7 contracts, 160 checks, exit 0 (local)"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -317,11 +353,22 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "bd115137a921d64899497f03d1d6d69c286486ea",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bd115137a921d64899497f03d1d6d69c286486ea",
+              "label": "BLP-002 implementation commit bd11513 (contracts module and contract test)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/808fb356af13c8186ca9363babf35be4a010fb20",
+              "label": "BLP-002 CI wiring commit 808fb35 (evidence-contract test in the browser gate)"
+            }
+          ],
+          "note": "Implementation commit bd11513 on the working branch adds the contracts module and its test; CI wiring follows in 808fb35 on the same branch. Not yet merged."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -364,7 +411,8 @@
       },
       "affectedFiles": [
         "v3.1/src/contracts/evidenceContracts.js",
-        "v3.1/tests/evidence-contract.mjs"
+        "v3.1/tests/evidence-contract.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -379,6 +427,49 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T11:40:55+08:00",
+          "reason": "Contract implementation began on the working branch from main f6b3728, after BLP-001 was approved COMPLETE.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/f6b3728a97c412f43ab742e190c8fb5d931f21fc",
+              "label": "Baseline main f6b3728 (Wave 0 merged)"
+            }
+          ]
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T11:40:55+08:00",
+          "reason": "Seven canonical contracts implemented with deterministic validators and a positive/negative contract test (160 checks, exit 0 locally); CI wiring added; Blueprint Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/bd115137a921d64899497f03d1d6d69c286486ea",
+              "label": "BLP-002 implementation commit bd11513 (contracts module and contract test)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/808fb356af13c8186ca9363babf35be4a010fb20",
+              "label": "BLP-002 CI wiring commit 808fb35 (evidence-contract test in the browser gate)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-contract.mjs",
+              "label": "Evidence contract test: 7 contracts, 160 checks, exit 0 (local)"
+            },
+            {
+              "kind": "FILE",
+              "reference": "v3.1/src/contracts/evidenceContracts.js",
+              "label": "Canonical evidence contracts, contract 1.0.0, normalisation ptn-1"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
