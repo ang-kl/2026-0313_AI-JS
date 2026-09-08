@@ -3742,6 +3742,16 @@
           "kind": "DOCUMENT",
           "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
           "label": "GUIDANCE carried forward from the Supervisor and the conformance auditor: every assertion names the observation that would make it fail and that observation is checked reachable before the assertion is written (one draft assertion on an unreachable case, the counterpart alone going stale, was replaced by the reachable withheld-counterpart case); every diff statement carries its pathspec; every count is the suite's own final output at the implementation commit; every verdict-producing function switches over the full governed set with no default arm; and, added at this requirement, every gate sentence states its QUANTIFIER and answers the partial case out loud (the validator's DEMONSTRATED rule had been written universally where the reconcile's was existential, and the two disagreed exactly at partial loss)."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3/script/v3-result-engine-spec.md",
+          "label": "SOURCE OF THE STATE MEANINGS (Supervisor ruling Q2: sourced, not invented): the three accepted-or-claimed meanings are taken from v3/script/v3-result-engine-spec.md line 185, the T3 build amendment, which tiers candidate evidence by bucket as 'A demonstrated = CV achievements / B certified = qualifications / C claimed = self-listed skills', with the house commitment at line 183, the T3 row's 'A/B/C proof ledger (demonstrated/certified/claimed); claimed never covered'. BLP-010 adopts those meanings for DEMONSTRATED (the human's declaration that an excerpt demonstrates a duty or requirement it stands linked to), CERTIFIED (a qualification or credential, no link required) and CLAIMED_ONLY (self-asserted, licensing no destination), and the commitment that claimed is never covered is carried as the rule that a claimed-only, conflicting, withheld or stale proof can never silently become accepted evidence. The scoring those definitions served in T3 (scoreTrueFit's A 1.0 / B 0.7 / C 0.35 weights) was removed from the product, as the Supervisor records, and stays out of scope: no state carries a weight and nothing here scores. The mapping WORK_SAMPLE -> DEMONSTRATED and CREDENTIAL -> CERTIFIED remains an interpretive step reserved to the Human Lead together with the proof-type vocabulary, which is why it is shown as a note and is not a gate."
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/evidence-round-trip.mjs",
+          "label": "REOPEN TEST for the adapter bump (Supervisor ruling Q7, recorded either way): with ADAPTER_VERSION at 1.2.0 the suites of BLP-003 through BLP-007 re-ran unchanged on the branch build at 06ef237 at 1440x1000 and 430x932, with their own printed figures: evidence-round-trip 171 node and 216 Chromium (BLP-003); evidence-window 39, 107 and 146 (BLP-004); evidence-failure-paths 113 and 160 (BLP-005); reviewer-contract 61 and 120 (BLP-006); person-evidence-contract 65 and person-evidence-excerpts 104 (BLP-007); evidence-contract 396 at contract 1.1.0 (BLP-002). Result: none reopens; the bump is additive (one new export, no existing output changed) and every earlier approval stands. BLP-008 and BLP-009 re-ran at 103 / 184 and 160 / 225 on the same build."
         }
       ],
       "blockers": [
