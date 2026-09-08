@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T20:20:00+08:00"
+      "updatedAt": "2026-09-08T20:19:26+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -744,6 +744,11 @@
           "kind": "TEST",
           "reference": "v3.1/tests/browser-gate.mjs",
           "label": "DISCHARGED (2026-09-08, under BLP-005, commit 6a75e9f): the browser-gate.mjs:576 omission recorded on this entry is closed; the gate now waits for a duty row (canonical duty: id), reads data-evidence-id from it and composes the workspace testid from that id, so no positional id was reintroduced."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "DISCHARGED (2026-09-08, under BLP-007, commit 5ee2f71): the candidate-proof identifier omission recorded on this entry (owner BLP-007) is implemented; manual person evidence now carries a content-addressed candidate source id and verbatim span ids from the canonical contracts."
         }
       ],
       "blockers": [
@@ -2296,7 +2301,7 @@
       "title": "Capture exact candidate-evidence excerpts",
       "requirement": "Capture exact candidate-evidence excerpts with immutable source and span identifiers.",
       "priority": "P1",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED_UNVERIFIED",
       "dependencies": [
         "BLP-002",
         "BLP-003"
@@ -2317,6 +2322,86 @@
           "kind": "FILE",
           "reference": "v3.1/src/work-universe/personEvidenceData.js",
           "label": "Person evidence data"
+        },
+        {
+          "kind": "COMMIT",
+          "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+          "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (53 checks) and a new two-width Chromium suite (76 checks); the gate workflow runs it"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+          "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 76 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+        },
+        {
+          "kind": "TEST",
+          "reference": "v3.1/tests/person-evidence-contract.mjs",
+          "label": "Node contract (existing assertions unchanged, 53 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "EXIT AUDIT (conformance-auditor, 2026-09-08, read-only, static D1-D8 and dynamic G1-G8 against the live build plus a node probe of the exported data layer): hard gates PASS, no blocker; D3, D4, D5, D6 PASS, D7 and G8 PARTIAL, D8 PASS-with-note; three CRITICAL findings, all fixed before the implementation commit and each now asserted: C-1 the drift re-check through validateEvidenceSpan was satisfied by construction (a span rebuilt from the current source matches that source), so an excerpt lacking sourceTextHash resolved valid against a different document and the payload passed isManualPersonEvidence; the hash is now mandatory (reason NO_HASH), the comment says the hash comparison is the drift check, and node asserts a hashless excerpt never resolves and refuses the payload. C-2 the 'text was normalised, select again' branch was dead on the mouse path because clicking Mark blurred the textarea first, which canonicalised and collapsed the selection, so the user was told 'select the exact text' after having made a selection; the Mark button now keeps focus in the box on mouse down, the selection is recorded from the textarea's own select events into a ref cleared on any text change, and Chromium asserts at both widths that selecting on non-canonical text and marking says 'select the excerpt again' in words, marks nothing, and that selecting again marks exactly the selection. C-3 the confirmation record was a bespoke object never passed through the contract's isConfirmationRecord and confirmedAt could be null while confirmation read USER-CONFIRMED; the build now refuses a supplied confirmedAt that is not an ISO instant, records the build time when none is supplied (the build is the confirmation act), gates the record through isConfirmationRecord, and isManualPersonEvidence requires it plus the declared shape (D8's marker is now read). Warnings fixed: W-1 the re-seed effect keyed on object identity and allocated a fresh array each run (loop hazard for a consumer handing a fresh object per render): keyed on source id and confirmation time with a shallow compare; W-2 after the text was replaced the pill still read CONFIRMED and the summary named a source the box no longer held: the pill reads CONFIRMED (EARLIER TEXT) and a line says the summary describes the evidence last applied, asserted; W-3 the stale block was not announced and the disabled Apply gave no reason: role status, aria-live polite, aria-describedby, asserted; W-4 focus dropped to body when the last excerpt was removed: focus moves to the Mark control, asserted; W-6 skill checkbox rows under 44px (pre-existing): fixed with the confirm row, asserted. Suggestions taken: S-1 the second-application assertion was vacuous (the summary already carried the source id): it now waits for a later confirmation time with identical source and span ids; S-2 non-canonical rawText with excerpts is refused rather than reinterpreted, asserted; S-3 the applied payload is memoised on value identity. W-5 (register untouched at audit time) is this record."
+        },
+        {
+          "kind": "OTHER",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "EXIT AUDIT (a11y-honesty-reviewer, 2026-09-08, read-only): no red or green anywhere (PASS); marked, stale, refused and the CONFIRMED/WITHHELD pill each conveyed by text and shape, never colour alone (PASS); accessible names on the remove controls, the status region, the excerpt list and the textarea (PASS); no aria-label on generic spans (PASS); focus-visible outline on every new control (PASS); withhold rather than invent on stale rows and confirmation time (PASS); honest copy (PASS). One PARTIAL fixed before commit: the skill checkbox rows (30px) and the confirm checkbox row had no 44px minimum; both now 44px and asserted in Chromium at both widths. Three notes taken: the raw CLAIMED_ONLY string is now followed by 'claimed by you, not yet demonstrated'; the stale message branches on the data layer's reason (text changed, text cleared, excerpt no longer fits); the summary shows the set of proof states over every proof, not only the first. The 'AI-assisted; human decides' footer rule does not apply to this component: it is an evidence-capture input surface that authors no AI figure (every string is the user's text, a deterministic offset or hash, or a literal message), and the downstream views that render figures from this evidence carry the footer. Flagged for the Human Lead, pre-existing and outside this change: the Work Universe page footer pill reads 'AI-assisted · human decides' with a middle dot where CLAUDE.md section 4 and the result-engine spec require the literal semicolon form."
+        },
+        {
+          "kind": "DOCUMENT",
+          "reference": "v3.1/doc/V3-Blueprint-Completion-Instructions.md",
+          "label": "P0 GATE NOTE (Supervisor ruling 1, recorded in its final form after BLP-005 reached COMPLETE): BLP-007's recorded predecessors are BLP-002 and BLP-003, both COMPLETE, so instructions section 9 item 1 is satisfied and BLP-007 may reach COMPLETE on its own dependencies; what section 10 forbids is the P1 GATE passing while P0 holds an unapproved requirement, since gates are cumulative, and section 10 P0's 'before candidate-output implementation begins' names the P3 candidate-output gate (section 13.3), not P1 candidate-proof work. The Human Lead's order was the authorisation to start; work began while PR #497 (BLP-005) was open and was held locally until it merged and BLP-005 was approved COMPLETE on the dispatch run at c703d9c, so the P0 gate was closed before this record was written. CONDITION carried: if BLP-005 is ever reopened, BLP-007 must be re-checked against whatever changes, because both are built on the same P0 contracts."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "SUPERVISOR RULING 3(c): confirmed excerpts are CLAIMED_ONLY, required rather than merely permitted. WITHHELD means evidence legitimately unavailable; present, confirmed evidence recorded as WITHHELD would be the false-withholding error ruled against under BLP-004 Q1. CLAIMED_ONLY says what is true (the candidate claims it, nothing yet demonstrates it) and is safe because validateProofRecord refuses ALLOWED on any destination outside DEMONSTRATED or CERTIFIED. The whole-text proof (no excerpt marked) is likewise CLAIMED_ONLY with its coarseness carried in the label and note, not in its evidential status."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "OPTION FOR THE HUMAN LEAD (recorded by the Supervisor, not imposed): emit NO ProofRecord until an excerpt is marked, carrying the raw text as an EvidenceSource only. A proof over an entire document asserts that the document proves something without saying what, which BLP-008 and BLP-009 will then have to link to a target; arguably the more honest design, but it changes the gate string '1 unstructured proof' and what consumers see, so it is a product call. CLAIMED_ONLY over the whole-text span is implemented meanwhile."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "SUPERVISOR RULING 5(ii): a content-hash source id is the right stability (same text, same id; edited text, a different source whose old spans can never silently re-point at it), matching the BLP-003 identity discipline; hashed over the CANONICAL text so two pastes differing only in line endings share an id; 24-hex width shared with the contract's duty: ids (SOURCE_ID_HASH_WIDTH)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "SUPERVISOR RULING 5(iii): the confirmation record's actor human:local-user (LOCAL_HUMAN_ACTOR from the BLP-006 roster) is acceptable; blueprint 15.2 is open about reviewer roster membership, not human actors. CONDITION kept: wherever the record surfaces it keeps the display name 'you (this device; identity not recorded)', so nobody later reads the id as an authenticated identity (the confirm label and the summary both say it)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "THE DEFECT THE SUPERVISOR PREDICTED, AVOIDED STRUCTURALLY: cleanRaw (the previous normalisation) did only CRLF folding and trim, while the contract's normalisePostingText also strips zero-width characters, folds Unicode spaces, strips trailing whitespace per line and collapses three or more newlines, three of which change string length; so the textarea value and the source text were different strings and selectionStart/selectionEnd would have sliced the wrong characters for exactly the pastes a naive test would not exercise. The textarea now holds the canonical text (canonicalised on paste and on blur), Mark refuses to read a selection while the value is not canonical and asks for the selection again, and the required fixture (CRLF, trailing space, zero-width, triple newline before the selection) is asserted mechanism-independently in node and in Chromium at both widths: span.text === source.text.slice(start, end) === the selected substring."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "CONSUMER RENDERING CHECK (Supervisor ruling 3(f), named per file): proofs[].evidenceIds changed from ['PRAW1'] to the canonical span id. WorkUniverseLanding.personEvidenceOf reads person.proofs only to compute supplied (length > 0) and renders neither proofs nor evidenceIds; its skill signal reads person.skills, unchanged. ReviewStudio.jsx merges personEvidenceOverride into the result and renders nothing from it. PrintPackage.jsx personSkillsOf reads person.skills only. No consumer renders evidenceIds, so no consumer file is affected and none is declared."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/personEvidenceData.js",
+          "label": "KNOWN OMISSION (out of scope by the Supervisor's section 4 ruling): ProofRecord.targets is always [] here. Ticked target skills still ride on the payload's skills list exactly as before (the pre-existing skill-claim path, protected), not as proof targets, because a skill label is not a canonical target id and target links are BLP-008 and BLP-009's requirement. Destination controls (BLP-010) and proof-state transitions beyond CLAIMED_ONLY (BLP-011) are untouched."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "KNOWN OMISSION: the character counter and maxLength (30,000) measure the textarea value, which before canonicalisation can be longer than the canonical text by the characters normalisation removes; the source line shows the canonical length beside it. Selection on a touch device uses the platform's native text selection in the textarea; the suite drives it through setSelectionRange at phone width, which is the same API the platform handle uses, but no physical-device pass has been made (physical runtime is not required by the completion policy)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/WorkUniverseLanding.jsx",
+          "label": "KNOWN OMISSION: the Work Universe graphs and the print package do not yet show the excerpt ids or the source id; the ingress summary is the only surface that renders them. Owner: BLP-008 (target links) and BLP-015 (print ledger with ids)."
+        },
+        {
+          "kind": "FILE",
+          "reference": "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
+          "label": "KNOWN OMISSION (a11y-honesty-reviewer, pre-existing, outside the changed files): WorkUniverseLanding.jsx renders the page footer pill as 'AI-assisted · human decides' (middle dot), not the literal 'AI-assisted; human decides' the result-page contract names; the same middle-dot variant is already recorded on BLP-004. Owner: the Human Lead's call on the footer wording."
         }
       ],
       "blockers": [
@@ -2325,7 +2410,23 @@
           "description": "Exact span capture over the canonical evidence contracts is not recorded.",
           "ownerRole": "product-ui-engineer",
           "status": "OPEN",
-          "evidenceLinks": []
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (53 checks) and a new two-width Chromium suite (76 checks); the gate workflow runs it"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 76 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-contract.mjs",
+              "label": "Node contract (existing assertions unchanged, 53 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+            }
+          ]
         }
       ],
       "protectedScopes": [
@@ -2342,11 +2443,17 @@
       ],
       "provenance": {
         "implementationCommit": {
-          "state": "NOT_IMPLEMENTED",
-          "commitSha": null,
-          "evidenceLinks": [],
-          "note": "No implementation is recorded for this requirement.",
-          "branch": null
+          "state": "RECORDED",
+          "branch": "claude/v3-blueprint-completion-onboarding-0qpigt",
+          "commitSha": "5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (53 checks) and a new two-width Chromium suite (76 checks); the gate workflow runs it"
+            }
+          ],
+          "note": "Implementation commit 5ee2f71 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
         },
         "mergeCommit": {
           "state": "NOT_MERGED",
@@ -2389,7 +2496,10 @@
       },
       "affectedFiles": [
         "v3.1/src/work-universe/PersonEvidenceIngress.jsx",
-        "v3.1/src/work-universe/personEvidenceData.js"
+        "v3.1/src/work-universe/personEvidenceData.js",
+        "v3.1/tests/person-evidence-contract.mjs",
+        "v3.1/tests/person-evidence-excerpts.mjs",
+        ".github/workflows/v31-browser-gate.yml"
       ],
       "completionPolicy": {
         "requiresDeployment": false,
@@ -2404,6 +2514,38 @@
           "reason": "Initial conservative register state; no completion evidence is recorded.",
           "approvedBy": null,
           "evidenceLinks": []
+        },
+        {
+          "from": "NOT_STARTED",
+          "to": "IN_PROGRESS",
+          "changedAt": "2026-09-08T19:55:00+08:00",
+          "reason": "Started on the Human Lead's order while PR #497 (BLP-005) was still open; work held locally until that PR merged and BLP-005 was approved COMPLETE. The Blueprint Supervisor's rulings recorded first: sequencing reading (a) with a three-part note and a reopen condition; CLAIMED_ONLY for confirmed excerpts and for the whole-text proof, granularity in the label and note; the no-proof-until-marked option recorded for the Human Lead; a content-hash source id over the canonical text at 24 hex; canonical text in the textarea so offsets, hash and slice cover one string; the CRLF, trailing-space, zero-width and triple-newline fixture required; validateEvidenceSpan against the source before emission; the removal-integrity assertion; human:local-user acceptable with its display name kept; consumers checked per file for rendering of evidenceIds.",
+          "approvedBy": null,
+          "evidenceLinks": []
+        },
+        {
+          "from": "IN_PROGRESS",
+          "to": "IMPLEMENTED_UNVERIFIED",
+          "changedAt": "2026-09-08T20:19:26+08:00",
+          "reason": "Users select exact candidate evidence spans in the pasted text and mark them without rewriting the source text (the span is sliced from the canonical source, never retyped); every excerpt records a stable source id (content hash of the canonical text) and a stable span id (span:<sourceId>:<start>-<end>), identical across a second application of the same text; unconfirmed raw evidence cannot be treated as confirmed proof (nothing is emitted before the human confirms, every emitted proof is CLAIMED_ONLY with a confirmation record, a stale excerpt is refused outright, and a payload whose source drifted from its hash is not recognised). Verified locally in node and Chromium at 1440x1000 and 430x932; the full existing gate passes on the same build; Supervisor verification pending.",
+          "approvedBy": null,
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (53 checks) and a new two-width Chromium suite (76 checks); the gate workflow runs it"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite (Chromium at 1440x1000 and 430x932, 76 checks total, exit 0): the textarea holds the canonical text after blur and the rendered source id is the hash of that text; an empty selection is refused in words; the Supervisor's fixture (CRLF, trailing space, zero-width character, three newlines before the selected range) yields a span whose text equals both the canonical slice and what the user selected, with id span:<sourceId>:<start>-<end>; duplicates refused; removal leaves the other excerpt intact; the confirmed summary carries the same source id, one proof per excerpt, CLAIMED_ONLY, the local human confirmer with identity not recorded, never WITHHELD; nothing reaches browser storage; an excerpt is not promoted into a person skill; editing the text makes the earlier excerpt STALE in words with a new source id and blocks use until removed; the same text and selection give the same span id on a second application; 44px controls with accessible names; no overflow; the pre-existing proof-only path still reads 'USER-CONFIRMED · 0 skill claims · 1 unstructured proof'"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-contract.mjs",
+              "label": "Node contract (existing assertions unchanged, 53 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
