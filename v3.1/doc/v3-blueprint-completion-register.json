@@ -7,7 +7,7 @@
     "releaseMilestone": "V3.1 blueprint completion",
     "totalRequirements": 30,
     "createdAt": "2026-09-04T07:56:00+08:00",
-      "updatedAt": "2026-09-08T20:19:26+08:00"
+      "updatedAt": "2026-09-08T21:43:41+08:00"
   },
   "baselineCommit": {
     "state": "RECORDED",
@@ -2301,7 +2301,7 @@
       "title": "Capture exact candidate-evidence excerpts",
       "requirement": "Capture exact candidate-evidence excerpts with immutable source and span identifiers.",
       "priority": "P1",
-      "status": "IMPLEMENTED_UNVERIFIED",
+      "status": "COMPLETE",
       "dependencies": [
         "BLP-002",
         "BLP-003"
@@ -2409,7 +2409,7 @@
           "id": "BLP-007-BLOCKER-01",
           "description": "Exact span capture over the canonical evidence contracts is not recorded.",
           "ownerRole": "product-ui-engineer",
-          "status": "OPEN",
+          "status": "RESOLVED",
           "evidenceLinks": [
             {
               "kind": "COMMIT",
@@ -2425,6 +2425,26 @@
               "kind": "TEST",
               "reference": "v3.1/tests/person-evidence-contract.mjs",
               "label": "Node contract (existing assertions unchanged, 65 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+              "label": "Merge commit 15a20c6 (squash of PR #498: implementation commit 5ee2f71, the BLP-005 approval efcf130, the BLP-007 record cfc8e8a and the measured-counts correction 2a242a4)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34232542670",
+              "label": "Browser-gate run 34232542670 (job 102082036040) on merged main 15a20c6 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite on the dispatch run: Chromium PASS 104 checks total at 1440x1000 and 430x932; person-evidence-contract 65 checks (existing assertions unchanged)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence failure paths, evidence contract 396 at 1.1.0)"
             }
           ]
         }
@@ -2453,15 +2473,26 @@
               "label": "BLP-007 implementation commit 5ee2f71: personEvidenceData.js rebuilt over the canonical contracts (one candidate-document EvidenceSource per pasted text, id src:manual-paste:<24 hex of the canonical text>; every excerpt a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source, validated against it through validateEvidenceSpan before emission; one CLAIMED_ONLY ProofRecord per excerpt, or one over the whole-text span with a granularity note when none is marked; a confirmation record naming human:local-user with identity withheld in words; stale excerpts refused, never emitted), PersonEvidenceIngress.jsx (the textarea holds the canonical text, canonicalised on paste and blur; Mark exact excerpt from selection reads selectionStart/selectionEnd only against canonical text; excerpt list with span id, source id, exact text and a named Remove control; STALE in words when the text changes; summary with source id, proof count and state), the node contract test extended (65 checks) and a new two-width Chromium suite (104 checks); the gate workflow runs it"
             }
           ],
-          "note": "Implementation commit 5ee2f71 on the working branch. Not merged; merge, automated-runtime and Supervisor approval remain unrecorded until the post-merge sequence runs."
+          "note": "Implementation commit 5ee2f71 on the working branch. Merged to main as 15a20c6 by PR #498; merge, automated-runtime and Supervisor approval are recorded in the sibling provenance fields."
         },
         "mergeCommit": {
-          "state": "NOT_MERGED",
-          "commitSha": null,
-          "pullRequest": null,
-          "mergedAt": null,
-          "evidenceLinks": [],
-          "note": "No merge is recorded for this requirement."
+          "state": "RECORDED",
+          "commitSha": "15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+          "pullRequest": "https://github.com/ang-kl/2026-0313_AI-JS/pull/498",
+          "mergedAt": "2026-09-08T21:20:50+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "PULL_REQUEST",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/pull/498",
+              "label": "PR #498 merged to main"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+              "label": "Exact merge commit 15a20c6"
+            }
+          ],
+          "note": "Merge commit 15a20c6 (PR #498, squash of 5ee2f71, efcf130, cfc8e8a, 2a242a4), merged by the Human Lead 2026-09-08T21:20:50+08:00. Merge identity proven by blob SHA equality on all five affected files and an empty code, test and workflow diff between 5ee2f71 and 15a20c6."
         },
         "deploymentStatus": {
           "state": "NOT_DEPLOYED",
@@ -2470,17 +2501,33 @@
           "deploymentUrl": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No deployment is recorded for this requirement.",
+          "note": "Deployment evidence is not required by the BLP-007 completion policy.",
           "deployedCommit": null
         },
         "automatedRuntimeVerification": {
-          "state": "NOT_RUN",
-          "runtime": null,
-          "testSuite": null,
-          "checkedAt": null,
-          "evidenceLinks": [],
-          "note": "No automated runtime verification is recorded for this requirement.",
-          "verifiedCommit": null
+          "state": "PASSED",
+          "runtime": "GitHub Actions ubuntu-latest, Node 22, workflow .github/workflows/v31-browser-gate.yml (workflow_dispatch on main)",
+          "testSuite": "v3.1/tests/person-evidence-excerpts.mjs",
+          "checkedAt": "2026-09-08T21:35:28+08:00",
+          "evidenceLinks": [
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34232542670",
+              "label": "Browser-gate run 34232542670 (job 102082036040) on merged main 15a20c6 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite on the dispatch run: Chromium PASS 104 checks total at 1440x1000 and 430x932; person-evidence-contract 65 checks (existing assertions unchanged)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence failure paths, evidence contract 396 at 1.1.0)"
+            }
+          ],
+          "note": "Run on the merged tree at 15a20c6 by workflow_dispatch, because the gate triggers only on pull_request and workflow_dispatch and a pull_request run checks out a synthetic merge ref rather than the merge commit (the pull_request run 34226174943 on 2a242a4 is kept as the PR's green check, not as this evidence). Caveat: on a dispatch run github.event.pull_request.base.sha is empty, so the feature-map contract's scope comparison is not exercised, and the blueprint-register construction-scope step is gated on a codex branch-name prefix and skipped on every run of this branch; this run executes tests/person-evidence-contract.mjs and tests/person-evidence-excerpts.mjs with the BLP-003 to BLP-006 suites at both viewports after browser-gate and is evidence for those suites only, and must not be cited as feature-map scope or register-scope evidence.",
+          "verifiedCommit": "15a20c650e306b89dd11baa7b09fda3bd7714f3d"
         },
         "physicalRuntimeVerification": {
           "state": "NOT_RUN",
@@ -2490,7 +2537,7 @@
           "browser": null,
           "checkedAt": null,
           "evidenceLinks": [],
-          "note": "No physical runtime verification is recorded for this requirement.",
+          "note": "Physical runtime evidence is not required by the BLP-007 completion policy.",
           "verifiedCommit": null
         }
       },
@@ -2546,14 +2593,108 @@
               "label": "Node contract (existing assertions unchanged, 65 new checks): source validates as candidate-document manual-paste COMPLETE; id src:manual-paste:<24 hex> equals the hash of the canonical text and is stable across two builds, changes on edited text, and ignores line-ending differences; the whole-text proof cites the whole-text span, is CLAIMED_ONLY with the granularity note, validates, and allows no destination; the normalisation fixture's span text equals the source slice and the selected substring; empty, whitespace-only, out-of-range, duplicate and no-source selections refused with a reason code; excerpt proofs ordered by offset, one per excerpt, all CLAIMED_ONLY and validated; unconfirmed excerpts emit nothing; a payload whose source text drifted from its hash or whose proof lacks a span id is not manual person evidence; an excerpt marked against earlier text is stale (TEXT_CHANGED), out of range is INVALID_SPAN, a payload with a stale excerpt is refused outright; removing an excerpt removes its proof and leaves no orphan evidenceIds reference"
             }
           ]
+        },
+        {
+          "from": "IMPLEMENTED_UNVERIFIED",
+          "to": "AUTOMATED_VERIFIED",
+          "changedAt": "2026-09-08T21:43:39+08:00",
+          "reason": "Blueprint Supervisor established merge identity directly: git rev-parse gives identical blob SHAs at 5ee2f71 and merge commit 15a20c6 for all five declared affected files (personEvidenceData.js 9860a029db83, PersonEvidenceIngress.jsx c7a25f315dbc, person-evidence-contract.mjs 079de54251de, person-evidence-excerpts.mjs d84ae43503e9, v31-browser-gate.yml cfe92fc6e04c), and the diff across v3.1/src, v3.1/tests, v3.1/api and .github between the two commits is empty. Read the workflow_dispatch run 34232542670 (job 102082036040) on main at 15a20c6, conclusion success, from the run object and the job log: person-evidence-contract 65 checks, person-evidence-excerpts 104 checks in Chromium at 1440x1000 and 430x932, and the BLP-003 to BLP-006 suites re-run unchanged (171+216, 39+107+146, 61+120, 113+160) with evidence-contract 396 at contract 1.1.0. Step 9 skipped by its branch-name gate, correct on main.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+              "label": "Merge commit 15a20c6 (squash of PR #498: implementation commit 5ee2f71, the BLP-005 approval efcf130, the BLP-007 record cfc8e8a and the measured-counts correction 2a242a4)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "Implementation commit 5ee2f71 (personEvidenceData.js over the canonical contracts, PersonEvidenceIngress.jsx with exact excerpt capture, the extended node contract and the new two-width Chromium suite, gate workflow line)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34232542670",
+              "label": "Browser-gate run 34232542670 (job 102082036040) on merged main 15a20c6 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite on the dispatch run: Chromium PASS 104 checks total at 1440x1000 and 430x932; person-evidence-contract 65 checks (existing assertions unchanged)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence failure paths, evidence contract 396 at 1.1.0)"
+            }
+          ]
+        },
+        {
+          "from": "AUTOMATED_VERIFIED",
+          "to": "COMPLETE",
+          "changedAt": "2026-09-08T21:43:41+08:00",
+          "reason": "All three acceptance criteria are discharged. Criterion 1: every excerpt is a verbatim EvidenceSpan span:<sourceId>:<start>-<end> sliced from the source and validated through validateEvidenceSpan before emission, with the source id a content hash of the canonical text, so an edited text is a different source whose old spans can never silently re-point at it. Criterion 2: the textarea holds the canonical text, so the offsets the user selects, the hash that names the source and the slice that becomes a span cover one string by construction; the Supervisor's required fixture (CRLF, trailing space, zero-width character, three newlines before the selection) asserts span.text equals both the canonical slice and the selected substring, at both viewports. Criterion 3: a stale or hashless excerpt is refused and never emitted, the mandatory sourceTextHash is the drift check the validator alone cannot provide, and nothing is emitted before the human confirms. The check counts on the record were corrected before merge after the Supervisor found the labels stated 53 and 76 against measured 65 and 104.",
+          "approvedBy": "blueprint-supervisor",
+          "evidenceLinks": [
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+              "label": "Merge commit 15a20c6 (squash of PR #498: implementation commit 5ee2f71, the BLP-005 approval efcf130, the BLP-007 record cfc8e8a and the measured-counts correction 2a242a4)"
+            },
+            {
+              "kind": "COMMIT",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+              "label": "Implementation commit 5ee2f71 (personEvidenceData.js over the canonical contracts, PersonEvidenceIngress.jsx with exact excerpt capture, the extended node contract and the new two-width Chromium suite, gate workflow line)"
+            },
+            {
+              "kind": "RUNTIME",
+              "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34232542670",
+              "label": "Browser-gate run 34232542670 (job 102082036040) on merged main 15a20c6 by workflow_dispatch, conclusion success, both viewports"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+              "label": "Excerpt suite on the dispatch run: Chromium PASS 104 checks total at 1440x1000 and 430x932; person-evidence-contract 65 checks (existing assertions unchanged)"
+            },
+            {
+              "kind": "TEST",
+              "reference": "v3.1/tests/evidence-round-trip.mjs",
+              "label": "BLP-003 to BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence failure paths, evidence contract 396 at 1.1.0)"
+            }
+          ]
         }
       ],
       "supervisorApproval": {
-        "approvedStatus": null,
-        "approvedBy": null,
-        "approvedAt": null,
-        "evidenceLinks": [],
-        "note": "No Blueprint Supervisor approval is recorded.",
+        "approvedStatus": "COMPLETE",
+        "approvedBy": "blueprint-supervisor",
+        "approvedAt": "2026-09-08T21:43:41+08:00",
+        "evidenceLinks": [
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/15a20c650e306b89dd11baa7b09fda3bd7714f3d",
+            "label": "Merge commit 15a20c6 (squash of PR #498: implementation commit 5ee2f71, the BLP-005 approval efcf130, the BLP-007 record cfc8e8a and the measured-counts correction 2a242a4)"
+          },
+          {
+            "kind": "COMMIT",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/commit/5ee2f71e765f0c5ce3d6e62b1794aa29f4989c82",
+            "label": "Implementation commit 5ee2f71 (personEvidenceData.js over the canonical contracts, PersonEvidenceIngress.jsx with exact excerpt capture, the extended node contract and the new two-width Chromium suite, gate workflow line)"
+          },
+          {
+            "kind": "RUNTIME",
+            "reference": "https://github.com/ang-kl/2026-0313_AI-JS/actions/runs/34232542670",
+            "label": "Browser-gate run 34232542670 (job 102082036040) on merged main 15a20c6 by workflow_dispatch, conclusion success, both viewports"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/person-evidence-excerpts.mjs",
+            "label": "Excerpt suite on the dispatch run: Chromium PASS 104 checks total at 1440x1000 and 430x932; person-evidence-contract 65 checks (existing assertions unchanged)"
+          },
+          {
+            "kind": "TEST",
+            "reference": "v3.1/tests/evidence-round-trip.mjs",
+            "label": "BLP-003 to BLP-006 suites re-run unchanged on the same dispatch run (evidence round trip, evidence window, reviewer contract, evidence failure paths, evidence contract 396 at 1.1.0)"
+          }
+        ],
+        "note": "Approved on the Supervisor's own reading of run 34232542670, not on any summary. Dispatch caveat carried and verified in the log at the step's own command line: the feature-map step ran with FEATURE_MAP_BASE_REF empty, so it passes without exercising its base-ref comparison; the register-scope step is skipped by a branch-name gate that cannot match main. The Supervisor's process note is recorded: an earlier attempt to watch the run used gh, which is absent from the Supervisor's shell, so that wait produced nothing and the run was read through the API instead. Known omissions stand as recorded with their owners, including the no-proof-until-marked option still open with the Human Lead, which if taken removes the whole-text proof class and must be re-checked against BLP-008.",
         "attestationSubjectCommit": null,
         "attestationUrl": null,
         "attestationSha256": null
